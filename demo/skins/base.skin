@@ -4,9 +4,9 @@
 <title>Welcome to Helma NG!</title>
 </head>
 <body>
-<% render 'body' %>
+<% render 'content' %>
 </body>
 </html>
 
-<% subskin 'body' %>
-Hallo Welt!
+<% subskin 'content' %>
+Overwrite this subskin to add content.
