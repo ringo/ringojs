@@ -7,5 +7,5 @@
 </body>
 </html>
 
-<% #subskin 'body' %>
+<% subskin 'body' %>
 Hallo Welt!

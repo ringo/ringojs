@@ -1,4 +1,4 @@
-importModule('core.string');
+// importModule('core.string');
 
 /**
  * Parse a skin from a resource and render it using the given context.
@@ -21,19 +21,14 @@ function createSkin(resource) {
     var currentSkin = mainSkin;
     var parentSkin = null;
     parseSkin(resource, function(part) {
-        if (part.name && part.name.startsWith('#')) {
-            if (part.name == '#extends') {
-                var skinPath = part.getParameter(1);
-                var skinResource = resource.getRepository().getResource(skinPath);
-                parentSkin = createSkin(skinResource);
-            } else if (part.name == '#subskin')  {
-                var skinName = part.getParameter('name', 1);
-                currentSkin = [];
-                subSkins[skinName] = currentSkin;
-            } else {
-                currentSkin = [];
-                subSkins[part.name] = currentSkin;
-            }
+        if (part.name == 'extends') {
+            var skinPath = part.getParameter(1);
+            var skinResource = resource.getRepository().getResource(skinPath);
+            parentSkin = createSkin(skinResource);
+        } else if (part.name == 'subskin')  {
+            var skinName = part.getParameter('name', 1);
+            currentSkin = [];
+            subSkins[skinName] = currentSkin;
         } else {
             currentSkin[currentSkin.length] = part;
         }
@@ -134,6 +129,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             var skinName = macro.getParameter(paramIndex + 1);
             self.renderSubskin(skinName, context);
         },
+        // experimental if tag
         "if": function(macro, context, paramIndex) {
             var condition = macro.getParameter(paramIndex + 1);
             if (evaluateExpression(condition, context)) {
