@@ -20,7 +20,6 @@ import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.bio.SocketConnector;
 import org.mortbay.xml.XmlConfiguration;
 import org.helma.util.StringUtils;
 
@@ -54,6 +53,7 @@ public class HelmaServer {
     }
 
     public static void printUsage() {
-        System.err.println("Simply pass one or more application directories as command line arguments.");
+        System.out.println("Usage:");
+        System.out.println("    java -jar server.jar APPDIR");
     }
 }
