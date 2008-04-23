@@ -5,7 +5,7 @@ function main_action() {
     var context = {page: {title: 'Welcome to Helma NG',
                           message: message,
                           link: '<a href="/">go back!</a>'}};
-    renderSkin('skins/index.skin', context);
+    renderSkin('skins/index.html', context);
 }
 
 // module scopes automatically support JSAdapter syntax!

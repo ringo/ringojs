@@ -14,7 +14,7 @@ function main_action() {
     var context = {page: {title: 'Welcome to Helma NG',
                           message: 'Hello World!',
                           link: '<a href="/mount/point/">check this out!</a>'}};
-    renderSkin('skins/index.skin', context);
+    renderSkin('skins/index.html', context);
 }
 
 // demo continuation action
