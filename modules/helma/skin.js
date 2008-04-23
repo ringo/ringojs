@@ -6,8 +6,8 @@ importModule('core.string');
  * @param context
  */
 function renderSkin(skinOrPath, context) {
-    skin = (skinOrPath instanceof Skin) ?
-           skinOrResource : createSkin(getResource(skinOrPath));
+    var skin = (skinOrPath instanceof Skin) ?
+           skinOrPath : createSkin(getResource(skinOrPath));
     skin.render(context);
 }
 
