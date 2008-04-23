@@ -83,7 +83,7 @@ To build helma yourself follow these steps:
 
   Check out helma from subversion:
 
-      svn co http://hopdev.helma.org/svn/helma/trunk/ helma2
+      svn co https://dev.helma.org/svn/helma-ng/trunk/ helma2
 
   Change to the helma2 directory and run ant to compile:
 
