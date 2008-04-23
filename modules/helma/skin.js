@@ -69,7 +69,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
     };
 
     this.getSubskin = function(skinName) {
-        return new Skin(subSkins[skinName], subSkins, resource);
+        return new Skin(subSkins[skinName], subSkins, parentSkin);
     };
 
     this.getSkinParts = function(skinName) {
