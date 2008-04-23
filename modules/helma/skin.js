@@ -1,4 +1,4 @@
-// importModule('core.string');
+importModule('core.string');
 
 /**
  * Parse a skin from a resource and render it using the given context.
