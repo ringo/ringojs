@@ -1,5 +1,7 @@
 importModule('core.string');
 
+/*global getResource importModule parseSkin */
+
 /**
  * Parse a skin from a resource and render it using the given context.
  * @param skinOrResource
@@ -21,11 +23,11 @@ function createSkin(resource) {
     var currentSkin = mainSkin;
     var parentSkin = null;
     parseSkin(resource, function(part) {
-        if (part.name == 'extends') {
+        if (part.name === 'extends') {
             var skinPath = part.getParameter(1);
             var skinResource = resource.getRepository().getResource(skinPath);
             parentSkin = createSkin(skinResource);
-        } else if (part.name == 'subskin')  {
+        } else if (part.name === 'subskin')  {
             var skinName = part.getParameter('name', 1);
             currentSkin = [];
             subSkins[skinName] = currentSkin;
@@ -36,7 +38,7 @@ function createSkin(resource) {
     // normalization: cut trailing whitespace so it's
     // easier to tell if main skin shoule be inherited
     var lastPart = mainSkin[mainSkin.length - 1];
-    if (typeof(lastPart) == 'string' && lastPart.trim() == '') {
+    if (typeof(lastPart) === 'string' && lastPart.trim() === '') {
         mainSkin.pop();
     }
     return new Skin(mainSkin, subSkins, parentSkin);
@@ -53,7 +55,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var self = this;
 
     this.render = function(context) {
-        if (mainSkin.length == 0 && parentSkin) {
+        if (mainSkin.length === 0 && parentSkin) {
             renderInternal(parentSkin.getSkinParts(), context);
         } else {
             renderInternal(mainSkin, context);
@@ -74,14 +76,15 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     this.getSkinParts = function(skinName) {
         var parts = skinName ? subSkins[skinName] : mainSkin;
-        if (!parts || (!skinName && parts.length == 0)) {
+        if (!parts || (!skinName && parts.length === 0)) {
             return parentSkin ? parentSkin.getSkinParts(skinName) : null;
         }
         return parts;
-    }
+    };
 
     var renderInternal = function(parts, context) {
-        for each (var part in parts) {
+        for (var i in parts) {
+            var part = parts[i];
             if (part.args) {
                 if (part.name) {
                     evaluateMacro(part, context);
@@ -99,7 +102,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             builtins[name](macro, context, paramIndex);
         } else {
             var value = evaluateExpression(name,  context);
-            if (value != null && value != "") {
+            if (value !== null && value !== '' && value !== undefined) {
                 res.write(macro.getParameter('prefix') || '');
                 res.write(value);
                 res.write(macro.getParameter('suffix') || '');
@@ -112,9 +115,11 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var evaluateExpression = function(expression, context) {
         var path = expression.split('.');
         var elem = context;
-        for each (var name in path) {
-            elem = elem[name];
-            if (!elem) break;
+        for (var i in path) {
+            elem = elem[path[i]];
+            if (!elem) {
+                break;
+            }
         }
         if (elem instanceof Function) {
             return elem();
@@ -140,6 +145,6 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     this.toString = function() {
         return "[Skin Object]";
-    }
+    };
 
 }
