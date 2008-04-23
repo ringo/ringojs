@@ -1,0 +1,12 @@
+Helma NG 0.2
+ + Removed importClass() and importJar() as they polute the global namespace
+ + Refactor skin parser to use a callback based approach
+ + Implement autmatic JSAdapter behaviour for module scopes if any
+   of __get__, __put__, __has__, __delete__ or __getIds__ is defined
+ + helma.skin: Added skin module implementing subskins and skin inheritance
+ + helma.simpleweb: Improved error reporting
+ + helma.continuation: Added support for continuations
+ + Helma shell: fix and improve word completion
+
+Helma NG 0.1 - 18 April 2008
+ + First release of Helma NG

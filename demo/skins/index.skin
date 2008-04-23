@@ -1,0 +1,6 @@
+<% #extends 'base.skin' %>
+
+<% #subskin 'body' %>
+<h2><% page.title %></h2>
+<% page.message prefix="<p style='font-weight: bold;'>" suffix="</p>"%>
+<% page.link prefix="<p>" suffix="</p>" %>

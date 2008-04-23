@@ -1,0 +1,11 @@
+<html>
+<head>
+<title>Welcome to Helma NG!</title>
+</head>
+<body>
+<% render 'body' %>
+</body>
+</html>
+
+<% #subskin 'body' %>
+Hallo Welt!
