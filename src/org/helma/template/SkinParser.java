@@ -275,14 +275,14 @@ public class SkinParser {
         void add(Object obj) {
             if (type == MACRO){
                 if (parameterName != null) {
-                    macro.getNamedArgs().put(parameterName, obj);
-                    parameterName = null;
+                    macro.addNamed(parameterName, obj);
                 } else {
-                    macro.getArgs().add(obj);
+                    macro.add(obj);
                 }
             } else {
                 list.add(obj);
             }
+            parameterName = null;
         }
 
         void pushParameterName(StringBuffer buffer) {

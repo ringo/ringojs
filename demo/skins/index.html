@@ -1,6 +1,9 @@
 <% extends 'base.html' %>
 
 <% subskin 'content' %>
-<h2><% page.title %></h2>
-<% page.message prefix="<p style='font-weight: bold;'>" suffix="</p>"%>
-<% page.link prefix="<p>" suffix="</p>" %>
+<h2><% title %></h2>
+<% message %>
+<% link prefix="<p>" suffix="</p>" %>
+
+<% subskin 'message' %>
+<p>Hello <% name %>!</p>

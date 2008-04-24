@@ -232,7 +232,7 @@ public class GlobalFunctions {
     public static Object parseSkin(final Context cx, final Scriptable thisObj,
                                    Object[] args, Function funObj)
             throws IOException, UnbalancedTagException {
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        final RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
         ScriptUtils.checkArguments(args, 2, 2);
         Object desc = ScriptUtils.getObjectArgument(args, 0);
         if (!(args[1] instanceof Function)) {
@@ -256,7 +256,8 @@ public class GlobalFunctions {
             }
 
             public void renderMacro(MacroTag macro) {
-                func.call(cx, thisObj, null, new Object[] {Context.javaToJS(macro, thisObj)});
+                func.call(cx, thisObj, null,
+                        new Object[] {engine.wrapArgument(macro, thisObj)});
             }
         });
         parser.parse(res);

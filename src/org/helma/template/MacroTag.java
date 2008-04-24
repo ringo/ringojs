@@ -17,24 +17,35 @@
 package org.helma.template;
 
 import org.helma.util.CaseInsensitiveMap;
+import org.helma.util.ScriptableList;
+import org.helma.util.ScriptableMap;
+import org.mozilla.javascript.*;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * A macro tag. Basically a list of unnamed parameters
  * and a map of named parameters.
  */
-public class MacroTag {
+public class MacroTag extends ScriptableObject {
 
+    Object name;
     ArrayList<Object> args = new ArrayList<Object>();
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
     int startLine;
 
+    Object jsParams, jsNames;
+
+    public MacroTag() {}
+
     public MacroTag(int line) {
         this.startLine = line;
+    }
+
+    public String getClassName() {
+        return "MacroTag";
     }
 
     public List<Object> getArgs() {
@@ -45,49 +56,86 @@ public class MacroTag {
         return namedArgs;
     }
 
-    public int getStartLine() {
+    public int jsGet_startLine() {
         return startLine;
     }
 
-    public String getName() {
-        if (args.size() == 0)
-            return null;
-        Object first = args.get(0);
-        return first instanceof String ? (String) first : null;
+    public Object jsGet_name() {
+        return name instanceof String ?
+                name : null;
     }
 
+    public Object jsGet_parameterNames() {
+        if (jsNames == null) {
+            Context cx = Context.getCurrentContext();
+            int size = namedArgs.size();
+            Object[] values = namedArgs.keySet().toArray(new Object[size]);
+            jsNames = cx.newArray(getTopLevelScope(this), values);
+        }
+        return jsNames;
+    }
 
-    public Object getParameter(String name) {
-        if (name != null && namedArgs.containsKey(name)) {
-            return namedArgs.get(name);
+    public Object jsGet_parameters() {
+        if (jsParams == null) {
+            Context cx = Context.getCurrentContext();
+            int size = args.size();
+            Object[] values = args.toArray(new Object[size]);
+            jsParams = cx.newArray(getTopLevelScope(this), values);
+        }
+        return jsParams;
+    }
+
+    public static Object jsFunction_getParameter(Context cx, Scriptable thisObj,
+                                      Object[] args, Function funObj) {
+        try {
+            MacroTag macro = (MacroTag) thisObj;
+            Object value = macro.lookupParameter(args);
+            Scriptable scope = ScriptableObject.getTopLevelScope(thisObj); 
+            if (value instanceof List) {
+                return new ScriptableList(scope, (List) value);
+            } else if (value instanceof Map) {
+                return new ScriptableMap(scope, (Map) value);
+            } else {
+                return Context.javaToJS(value, scope);
+            }
+        } catch (Exception x) {
+            throw new WrappedException(x);
+        }
+    }
+
+    protected Object lookupParameter(Object[] keys) {
+        for (Object key: keys) {
+            if (key instanceof String) {
+                String s = (String) key;
+                if (namedArgs.containsKey(s)) {
+                    return namedArgs.get(s);
+                }
+            } else if (key instanceof Number) {
+                int i = ((Number) key).intValue();
+                if (i > -1 && i < args.size()) {
+                    return args.get(i);
+                }
+            } else {
+                throw new IllegalArgumentException("Wrong argument: " + key);
+            }
         }
         return null;
     }
 
-    public Object getParameter(int position) {
-        if (position > -1 && position < args.size()) {
-            return args.get(position);
+    protected void addNamed(String key, Object value) {
+        if (name == null) {
+            name = value;
+        } else {
+            namedArgs.put(key, value);
         }
-        return null;
     }
 
-    public Object getParameter(String name, int position) {
-        if (name != null && namedArgs.containsKey(name)) {
-            return namedArgs.get(name);
+    protected void add(Object value) {
+        if (name == null) {
+            name = value;
+        } else {
+            args.add(value);
         }
-        if (position > -1 && position < args.size()) {
-            return args.get(position);
-        }
-        return null;
-    }
-
-    public int getLength() {
-        return args.size();
-    }
-
-    public String[] getNames() {
-        int size = namedArgs.size();
-        return namedArgs.keySet().toArray(new String[size]);
     }
 
     public String toString() {

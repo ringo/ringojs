@@ -11,9 +11,16 @@ importModule('helma.continuation');
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
 function main_action() {
-    var context = {page: {title: 'Welcome to Helma NG',
-                          message: 'Hello World!',
-                          link: '<a href="/mount/point/">check this out!</a>'}};
+    var names = ['Bruno', 'Emma', 'Lisa', 'Mark'];
+    var context = {
+        title: 'Welcome to Helma NG',
+        message: function(tag, skin) {
+            for (var i in names) {
+                skin.render({name: names[i]});
+            }
+        },
+        link: '<a href="/mount/point/">check this out!</a>'
+    };
     renderSkin('skins/index.html', context);
 }
 

@@ -14,6 +14,7 @@ package org.helma.web;
 import org.helma.util.StringUtils;
 import org.helma.javascript.RhinoEngine;
 import org.helma.tools.HelmaConfiguration;
+import org.helma.template.MacroTag;
 import org.mozilla.javascript.WrappedException;
 
 import javax.servlet.http.HttpServlet;
@@ -36,7 +37,8 @@ public class HelmaServlet extends HttpServlet {
         new Class[] {
             ScriptableRequest.class,
             ScriptableResponse.class,
-            ScriptableSession.class
+            ScriptableSession.class,
+            MacroTag.class
         };
 
     public void init(ServletConfig config) throws ServletException {

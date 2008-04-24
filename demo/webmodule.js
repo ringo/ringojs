@@ -2,9 +2,11 @@
 importFromModule('helma.skin', 'renderSkin');
 
 function main_action() {
-    var context = {page: {title: 'Welcome to Helma NG',
-                          message: message,
-                          link: '<a href="/">go back!</a>'}};
+    var context = {
+        title: 'Welcome to Helma NG',
+        message: message,
+        link: '<a href="/">go back!</a>'
+    };
     renderSkin('skins/index.html', context);
 }
 

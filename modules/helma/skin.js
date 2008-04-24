@@ -24,11 +24,11 @@ function createSkin(resource) {
     var parentSkin = null;
     parseSkin(resource, function(part) {
         if (part.name === 'extends') {
-            var skinPath = part.getParameter(1);
+            var skinPath = part.getParameter(0);
             var skinResource = resource.getRepository().getResource(skinPath);
             parentSkin = createSkin(skinResource);
         } else if (part.name === 'subskin')  {
-            var skinName = part.getParameter('name', 1);
+            var skinName = part.getParameter('name', 0);
             currentSkin = [];
             subSkins[skinName] = currentSkin;
         } else {
@@ -71,7 +71,11 @@ function Skin(mainSkin, subSkins, parentSkin) {
     };
 
     this.getSubskin = function(skinName) {
-        return new Skin(subSkins[skinName], subSkins, parentSkin);
+        if (subSkins[skinName]) {
+            return new Skin(subSkins[skinName], subSkins, parentSkin);
+        } else {
+            return null;
+        }
     };
 
     this.getSkinParts = function(skinName) {
@@ -85,7 +89,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var renderInternal = function(parts, context) {
         for (var i in parts) {
             var part = parts[i];
-            if (part.args) {
+            if (part instanceof MacroTag) {
                 if (part.name) {
                     evaluateMacro(part, context);
                 }
@@ -97,11 +101,10 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var evaluateMacro = function(macro, context, paramIndex) {
         paramIndex = paramIndex || 0;
-        var name = macro.getParameter(paramIndex);
-        if (name in builtins) {
-            builtins[name](macro, context, paramIndex);
+        if (macro.name in builtins) {
+            builtins[macro.name](macro, context, paramIndex);
         } else {
-            var value = evaluateExpression(name,  context);
+            var value = evaluateExpression(macro, context);
             if (value !== null && value !== '' && value !== undefined) {
                 res.write(macro.getParameter('prefix') || '');
                 res.write(value);
@@ -112,8 +115,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
         }
     };
 
-    var evaluateExpression = function(expression, context) {
-        var path = expression.split('.');
+    var evaluateExpression = function(macro, context) {
+        var path = macro.name.split('.');
         var elem = context;
         for (var i in path) {
             elem = elem[path[i]];
@@ -122,7 +125,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             }
         }
         if (elem instanceof Function) {
-            return elem();
+            return elem(macro, self.getSubskin(macro.name));
         } else {
             return elem;
         }
@@ -131,14 +134,14 @@ function Skin(mainSkin, subSkins, parentSkin) {
     // builtin macro handlers
     var builtins = {
         render: function(macro, context, paramIndex) {
-            var skinName = macro.getParameter(paramIndex + 1);
+            var skinName = macro.getParameter(paramIndex);
             self.renderSubskin(skinName, context);
         },
         // experimental if tag
         "if": function(macro, context, paramIndex) {
-            var condition = macro.getParameter(paramIndex + 1);
+            var condition = macro.getParameter(paramIndex);
             if (evaluateExpression(condition, context)) {
-                evaluateMacro(macro, context, paramIndex + 2);
+                evaluateMacro(macro, context, paramIndex + 1);
             }
         }
     };
