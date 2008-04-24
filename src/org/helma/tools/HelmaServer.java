@@ -22,24 +22,42 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.xml.XmlConfiguration;
 import org.helma.util.StringUtils;
+import org.helma.repository.Repository;
+import org.helma.repository.Resource;
 
 import java.io.File;
 import java.util.Map;
+import java.util.List;
 import java.net.URL;
 
 public class HelmaServer {
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0 || "-h".equals(args[0])) {
+        String modulePath = ".,modules";
+        if (args.length > 0) {
+            if ("--help".equals(args[0]) || "-h".equals(args[0])) {
+                printUsage();
+                return;
+            }
+            modulePath = StringUtils.join(args, ",") + ",modules";
+        }
+        HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
+        List<Repository> repositories = config.getRepositories();
+        boolean found = false;
+        for (Repository repo: repositories) {
+            Resource res = repo.getResource("main.js");
+            if (res.exists()) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            System.out.println("Error:");
+            System.out.println("    File main.js not found in module path.");
             printUsage();
             return;
         }
-        String modulePath = ".,modules";
-        if (args.length > 0) {
-            modulePath = StringUtils.join(args, ",") + ",modules";
-        }
-        HelmaConfiguration helmaconfig = new HelmaConfiguration(null, null);
-        File configFile = new File(helmaconfig.getHelmaHome(), "etc/jetty.xml");
+        File configFile = new File(config.getHelmaHome(), "etc/jetty.xml");
         URL configUrl = new URL("file:" + configFile);
         XmlConfiguration xmlconfig = new XmlConfiguration(configUrl);
         Server server = new Server();
@@ -54,6 +72,6 @@ public class HelmaServer {
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("    java -jar server.jar APPDIR");
+        System.out.println("    java -jar server.jar [APPDIR]");
     }
 }

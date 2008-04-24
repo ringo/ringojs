@@ -18,6 +18,7 @@ package org.helma.tools;
 
 import org.helma.javascript.RhinoEngine;
 import org.helma.javascript.ModuleScope;
+import org.helma.util.StringUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
@@ -40,7 +41,15 @@ public class HelmaShell {
     static ModuleScope scope;
 
     public static void main(String[] args) throws IOException {
-        HelmaConfiguration config = new HelmaConfiguration();
+        String modulePath = ".,modules";
+        if (args.length > 0) {
+            if ("--help".equals(args[0]) || "-h".equals(args[0])) {
+                printUsage();
+                return;
+            }
+            modulePath = StringUtils.join(args, ",") + ",modules";
+        }
+        HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = config.createEngine();
         scope = engine.getShellScope();
         ConsoleReader reader = new ConsoleReader();
@@ -88,6 +97,11 @@ public class HelmaShell {
         }
 
     }
+
+    public static void printUsage() {
+        System.out.println("Usage:");
+        System.out.println("    java -jar shell.jar [APPDIR]");
+    }    
 
     static class JSCompletor implements Completor {
 

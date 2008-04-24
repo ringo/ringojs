@@ -23,6 +23,7 @@ import org.helma.util.StringUtils;
 import org.helma.javascript.RhinoEngine;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -33,15 +34,18 @@ public class HelmaConfiguration {
     Class[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
-    public HelmaConfiguration() {
+    public HelmaConfiguration()
+            throws FileNotFoundException  {
         this(null, null);
     }
 
-    public HelmaConfiguration(String helmaHome) {
+    public HelmaConfiguration(String helmaHome)
+            throws FileNotFoundException {
         this(helmaHome, null);
     }
 
-    public HelmaConfiguration(String helmaHome, String helmaModulePath) {
+    public HelmaConfiguration(String helmaHome, String helmaModulePath)
+            throws FileNotFoundException {
         if (helmaHome == null) {
             helmaHome = System.getProperty("helma.home", "");
         }
@@ -59,16 +63,21 @@ public class HelmaConfiguration {
             rep = rep.trim();
             File file = new File(rep);
             if (!file.isAbsolute()) {
-                file = new File(home, rep);
+                // if path is relative, try to resolve against current directory first,
+                // then relative to helma installation directory.
+                file = file.getAbsoluteFile();
+                if (!file.exists()) {
+                    file = new File(home, rep);
+                }
+            }
+            if (!file.exists()) {
+                throw new FileNotFoundException("File '" + file + "' does not exist.");
             }
             if (rep.toLowerCase().endsWith(".zip")) {
                 repositories.add(new ZipRepository(file));
             } else {
                 repositories.add(new FileRepository(file));
             }
-        }
-        if (repositories.isEmpty()) {
-            repositories.add(new FileRepository(new File("")));
         }
         // System.err.println("Parsed repository list: " + repositories);
     }
