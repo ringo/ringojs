@@ -45,6 +45,11 @@ public class HelmaServlet extends HttpServlet {
     private static final long serialVersionUID = 9078627193637127187L;
 
     /**
+     * Zero argument constructor used by servlet config.
+     */
+    public HelmaServlet() {}
+
+    /**
      * Build a servlet around an already existing rhino engine.
      * This is used when starting the server from a script or shell.
      * @param engine a rhino engine
