@@ -23,10 +23,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import javax.servlet.ServletConfig;
 import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
+/**
+ * Helma servlet class used to access helma from a web server.
+ */
 public class HelmaServlet extends HttpServlet {
 
     protected RhinoEngine engine;
@@ -40,6 +41,17 @@ public class HelmaServlet extends HttpServlet {
             ScriptableSession.class,
             MacroTag.class
         };
+
+    private static final long serialVersionUID = 9078627193637127187L;
+
+    /**
+     * Build a servlet around an already existing rhino engine.
+     * This is used when starting the server from a script or shell.
+     * @param engine a rhino engine
+     */
+    public HelmaServlet(RhinoEngine engine) {
+        this.engine = engine;
+    }
 
     public void init(ServletConfig config) throws ServletException {
         pool = Executors.newFixedThreadPool(8);
@@ -107,13 +119,4 @@ public class HelmaServlet extends HttpServlet {
         volatile String redirect;
     }
     
-    class Resolver implements PathResolver {
-		/**
-		 * Resolve object path against our public directory
-		 */
-		public boolean resolve(RequestPath path) {
-						return false;
-		}
-    }
-
 }
