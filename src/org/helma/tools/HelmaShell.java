@@ -51,11 +51,17 @@ public class HelmaShell {
         Context cx = engine.getContextFactory().enterContext();
         cx.setErrorReporter(new ToolErrorReporter(true, System.out));
         try {
-            while (true) {
+            repl: while (true) {
                 String source = "";
                 String prompt = "helma> ";
                 while (true) {
                     String newline = reader.readLine(prompt);
+                    if (newline == null) {
+                        // NULL input, if e.g. Ctrl-D was pressed
+                        out.println();
+                        out.flush();
+                        break repl;
+                    }
                     source = source + newline + "\n";
                     lineno++;
                     if (cx.stringIsCompilableUnit(source))
