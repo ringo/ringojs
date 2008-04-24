@@ -16,7 +16,7 @@ function main_action() {
         title: 'Welcome to Helma NG',
         message: function(tag, skin) {
             for (var i in names) {
-                skin.render({name: names[i]});
+                skin.renderSubskin('message', {name: names[i]});
             }
         },
         link: '<a href="/mount/point/">check this out!</a>'

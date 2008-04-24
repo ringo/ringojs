@@ -125,7 +125,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             }
         }
         if (elem instanceof Function) {
-            return elem(macro, self.getSubskin(macro.name));
+            return elem(macro, self, context);
         } else {
             return elem;
         }
