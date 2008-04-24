@@ -36,6 +36,8 @@ public class MacroTag extends ScriptableObject {
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
     int startLine;
 
+    static final Object[] ownIds = new Object[] {"name", "parameters", "parameterNames"};
+
     Object jsParams, jsNames;
 
     public MacroTag() {}
@@ -83,6 +85,20 @@ public class MacroTag extends ScriptableObject {
             jsParams = cx.newArray(getTopLevelScope(this), values);
         }
         return jsParams;
+    }
+
+    public Object[] getIds() {
+        Object[] ids = super.getIds();
+        Object[] result = new Object[ownIds.length + ids.length];
+        System.arraycopy(ownIds, 0, result, 0, ownIds.length);
+        System.arraycopy(ids, 0, result, ownIds.length, ids.length);
+        return result;
+    }
+
+    public boolean has(String name, Scriptable start) {
+        return "name".equals(name) ||
+                "parameters".equals(name) ||
+                "parameterNames".equals(name) || super.has(name, start);
     }
 
     public static Object jsFunction_getParameter(Context cx, Scriptable thisObj,
