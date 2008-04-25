@@ -32,7 +32,7 @@ function start() {
     // level to -1 for requests that have a helma_continuation parameter.
     rhino.addRequestListener('continuation-support', function(req) {
         if (req && req.params.helma_continuation != null) {
-            app.setRhinoOptimizationLevel(-1);
+            rhino.setRhinoOptimizationLevel(-1);
         }
     });
 
