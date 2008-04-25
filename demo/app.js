@@ -1,5 +1,5 @@
 /*
- * The start.js file can be used to start a web application from the shell.
+ * The app module can be used to control a web application from javascript.
  * Currently this isn't used by the helma command line server (server.jar),
  * but it can be used to start the application server from the shell using
  * the following command:
