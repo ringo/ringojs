@@ -60,23 +60,25 @@ public class HelmaServlet extends HttpServlet {
 
     public void init(ServletConfig config) throws ServletException {
         pool = Executors.newFixedThreadPool(8);
-        try {
-            String classNames = config.getInitParameter("hostClasses");
-            Class[] classes = defaultHostClasses;
-            if (classNames != null) {
-                Class[] custom = StringUtils.toClassArray(classNames, ", ");
-                Class[] copy = new Class[classes.length + custom.length];
-                System.arraycopy(classes, 0, copy, 0, classes.length);
-                System.arraycopy(custom, 0, copy, classes.length, custom.length);
-                classes = copy;
+        if (engine == null) {
+            try {
+                String classNames = config.getInitParameter("hostClasses");
+                Class[] classes = defaultHostClasses;
+                if (classNames != null) {
+                    Class[] custom = StringUtils.toClassArray(classNames, ", ");
+                    Class[] copy = new Class[classes.length + custom.length];
+                    System.arraycopy(classes, 0, copy, 0, classes.length);
+                    System.arraycopy(custom, 0, copy, classes.length, custom.length);
+                    classes = copy;
+                }
+                HelmaConfiguration helmaconf = new HelmaConfiguration(
+                        config.getInitParameter("helmaHome"),
+                        config.getInitParameter("helmaModulePath"));
+                helmaconf.setHostClasses(classes);
+                engine = helmaconf.createEngine();
+            } catch (Exception x) {
+                throw new ServletException(x);
             }
-            HelmaConfiguration helmaconf = new HelmaConfiguration(
-                    config.getInitParameter("helmaHome"),
-                    config.getInitParameter("helmaModulePath"));
-            helmaconf.setHostClasses(classes);
-            engine = helmaconf.createEngine();
-        } catch (Exception x) {
-            throw new ServletException(x);
         }
     }
 
