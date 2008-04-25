@@ -26,6 +26,10 @@ function main_action() {
 
 // demo continuation action
 function continuation_action() {
+    if (req.params.helma_continuation == null) {
+        // set query param so helma knows to switch rhino optimization level to -1
+        res.redirect(req.path + "?helma_continuation=");
+    }
     res.write(<form method="post" action={Continuation.nextUrl()}>
                 <input name="foo"/>
                 <input type="submit"/>
