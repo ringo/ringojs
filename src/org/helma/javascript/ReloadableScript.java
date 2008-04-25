@@ -34,6 +34,8 @@ public class ReloadableScript {
     Script script;
     Exception exception = null;
     short scriptType = UNKNOWN;
+    // the loaded module scope is cached for shared modules
+    ModuleScope moduleScope = null;
 
     final static short UNKNOWN = 0,
                      ORDINARY = 1,
@@ -71,6 +73,7 @@ public class ReloadableScript {
             } catch (Exception x) {
                 exception = x;
             } finally {
+                moduleScope = null;
                 timestamp = resource.lastModified();
             }
         }
@@ -113,8 +116,15 @@ public class ReloadableScript {
         ModuleScope owner = null;
         if (loadingScope instanceof ModuleScope)
             owner = (ModuleScope) loadingScope;
-        ModuleScope scope = new ModuleScope(resource, owner, parentScope);
         Script script = getScript(cx);
+        ModuleScope scope = moduleScope;
+        // FIXME: caching of shared modules causes code updates to
+        // go unnoticed for indirectly loaded modules!
+        if (scope != null) {
+            // shared modules can be cached
+            return scope;
+        }
+        scope = new ModuleScope(resource, owner, parentScope);
         script.exec(cx, scope);
         if (scriptType == UNKNOWN) {
             scriptType = scope.has("__get__", scope) ||
@@ -124,6 +134,9 @@ public class ReloadableScript {
                          scope.has("__getIds__", scope) ? ADAPTER : ORDINARY;
         }
         scope.setHasAdapterFunctions(scriptType == ADAPTER);
+        if (scope.get("__shared__", scope) == Boolean.TRUE) {
+            moduleScope = scope;
+        }
         return scope;
     }
 

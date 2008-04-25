@@ -133,8 +133,7 @@ public class GlobalFunctions {
             throws JavaScriptException, IOException {
         RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
         Scriptable parentScope = ScriptRuntime.getTopCallScope(cx);
-        ReloadableScript script = engine.getScript(moduleName, getLocalRepository(thisObj));
-        Scriptable scope = script.load(parentScope, thisObj, cx);
+        Scriptable scope = engine.loadModule(cx, moduleName, parentScope, thisObj);
         // split as string and walk through
         if (as != null) {
             if (as.indexOf('.') == -1) {

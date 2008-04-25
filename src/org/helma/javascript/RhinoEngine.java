@@ -19,8 +19,6 @@ package org.helma.javascript;
 import org.mozilla.javascript.*;
 import org.helma.repository.Resource;
 import org.helma.repository.Repository;
-import org.helma.repository.ZipRepository;
-import org.helma.repository.FileRepository;
 import org.helma.util.*;
 import org.helma.tools.launcher.HelmaClassLoader;
 
@@ -129,7 +127,7 @@ public class RhinoEngine {
         try {
             Scriptable scope = createThreadScope(cx);
             initGlobalsAndArguments(scope, globals, args);
-            Scriptable module = getScript(path).load(scope, null, cx);
+            Scriptable module = loadModule(cx, path, scope, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
@@ -198,7 +196,9 @@ public class RhinoEngine {
     }
 
     /**
-     * Create a thread local javascript scope
+     * Create the per-thread top level javascript scope.
+     * This has the global shared scope as prototype, and serves as
+     * prototype for the module scopes loaded by this thread.
      * @param cx the current context
      * @return the scope object
      */
@@ -212,15 +212,14 @@ public class RhinoEngine {
     }
 
     /**
-     * Initialize the global variables on a thread scope
+     * Initialize and normalize the global variables and arguments on a thread scope.
      * @param scope the thread local scope
      * @param globals the map of global objects
+     * @param args the arguments
      */
     protected void initGlobalsAndArguments(Scriptable scope, Map<String,Object> globals, Object[] args) {
         if (globals != null && !globals.isEmpty()) {
-            // for (Iterator i = globals.keySet().iterator(); i.hasNext();) {
             for (String key: globals.keySet()) {
-                // String key = (String) i.next();
                 Object value = globals.get(key);
                 scope.put(key, scope, wrapArgument(value, scope));
             }
@@ -232,6 +231,12 @@ public class RhinoEngine {
         }
     }
 
+    /**
+     * Prepare a single property or argument value for use within rhino.
+     * @param value the property or argument value
+     * @param scope the scope
+     * @return the object wrapped and wired for rhino
+     */
     protected Object wrapArgument(Object value, Scriptable scope) {
         if (value instanceof ScriptableObject) {
             ScriptableObject scriptable = ((ScriptableObject) value);
@@ -286,6 +291,31 @@ public class RhinoEngine {
     }
 
     /**
+     * Load a Javascript module into a module scope. This checks if the module has already
+     * been loaded in the current context and if so returns the existing module scope.
+     * @param cx the current context
+     * @param moduleName the module name
+     * @param parentScope the parent scope to load the module
+     * @param loadingScope the scope requesting the module
+     * @return the loaded module scope
+     * @throws IOException indicates that in input/output related error occurred
+     */
+    public Scriptable loadModule(Context cx, String moduleName,
+                                 Scriptable parentScope, Scriptable loadingScope)
+            throws IOException {
+        Map modules = (Map) cx.getThreadLocal("modules");
+        if (modules.containsKey(moduleName)) {
+            return (Scriptable) modules.get(moduleName);
+        }
+        Repository local = loadingScope instanceof ModuleScope ?
+                ((ModuleScope) loadingScope).getRepository() : null;
+        ReloadableScript script = getScript(moduleName, local);
+        Scriptable scope = script.load(parentScope, loadingScope, cx);
+        modules.put(moduleName, scope);
+        return scope;
+    }
+
+    /**
      * Get a resource from our script repository
      * @param path the resource path
      * @return the resource
@@ -324,23 +354,6 @@ public class RhinoEngine {
             }
         }
         return getResource(path);
-    }
-
-    /**
-     * Mount a child repository to the main script repository.
-     * @param repositoryPath the path to the repository
-     * @param prefix the mount name
-     */
-    public void mountRepository(String repositoryPath, String prefix) {
-        File file = new File(repositoryPath);
-        Repository repository = repositoryPath.endsWith(".zip") ?
-            new ZipRepository(file) : new FileRepository(file);
-        // if prefix isn't passed explicitely, use last element of repository path
-        if (prefix == null) {
-            String[] path = StringUtils.split(repositoryPath, "/");
-            prefix = path[path.length - 1];
-        }
-        repositories.get(0).mountRepository(repository, prefix);
     }
 
     public ContextFactory getContextFactory() {

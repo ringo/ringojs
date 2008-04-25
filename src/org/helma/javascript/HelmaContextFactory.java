@@ -12,6 +12,8 @@ package org.helma.javascript;
 
 import org.mozilla.javascript.*;
 
+import java.util.HashMap;
+
 public class HelmaContextFactory extends ContextFactory {
 
     RhinoEngine engine;
@@ -56,6 +58,7 @@ public class HelmaContextFactory extends ContextFactory {
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
+        cx.putThreadLocal("modules", new HashMap());
         cx.setApplicationClassLoader(engine.loader);
         cx.setWrapFactory(engine.wrapFactory);
         cx.setLanguageVersion(languageVersion);
@@ -69,6 +72,7 @@ public class HelmaContextFactory extends ContextFactory {
 
     protected void onContextReleased(Context cx) {
         cx.removeThreadLocal("engine");
+        cx.removeThreadLocal("modules");
         super.onContextReleased(cx);
     }
 
