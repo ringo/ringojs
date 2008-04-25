@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -41,6 +42,7 @@ public class RhinoEngine {
     ScriptableObject topLevelScope;
     Map<String, ReloadableScript> compiledScripts = new HashMap<String, ReloadableScript>();
     Map<String, ReloadableScript> interpretedScripts = new HashMap<String, ReloadableScript>();
+    Map<String, Function> requestListeners = new HashMap<String, Function>();
     AppClassLoader loader = new AppClassLoader();
     WrapFactory wrapFactory = new HelmaWrapFactory();
     ContextFactory contextFactory = new HelmaContextFactory(this);
@@ -71,7 +73,7 @@ public class RhinoEngine {
             if (classes != null) {
                 // for (int i=0; i<classes.length; i++) {
                 for (Class clazz: classes) {
-                    ScriptableObject.defineClass(topLevelScope, clazz);
+                    defineHostClass(clazz);
                 }
             }
             // ImporterTopLevel.init(cx, topLevelScope, false);
@@ -80,12 +82,43 @@ public class RhinoEngine {
             ScriptableMap.init(topLevelScope);
             JSAdapter.init(cx, topLevelScope, false);
         } catch (Exception x) {
-            RuntimeException rtx = new IllegalArgumentException("Error defining class");
-            rtx.initCause(x);
-            throw rtx;
+            throw new IllegalArgumentException("Error defining class", x);
         } finally {
             Context.exit();
         }
+    }
+
+    /**
+     * Define a Javascript host object implemented by the given class.
+     * @param clazz The Java class implementing the host object.
+     * @exception IllegalAccessException if access is not available
+     *            to a reflected class member
+     * @exception InstantiationException if unable to instantiate
+     *            the named class
+     * @exception InvocationTargetException if an exception is thrown
+     *            during execution of methods of the named class
+     */
+    public void defineHostClass(Class clazz)
+            throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        ScriptableObject.defineClass(topLevelScope, clazz);
+    }
+
+    /**
+     * Register a request listener. Request listeners are javascript functions
+     * that are invoked before a request is processed.
+     * @param name the request listener name
+     * @param func the requst listener function
+     */
+    public void addRequestListener(String name, Function func) {
+        requestListeners.put(name, func);
+    }
+
+    /**
+     * Unregister a previously registered request listener.
+     * @param name the request listener name
+     */
+    public void removeRequestListener(String name) {
+        requestListeners.remove(name);
     }
 
     /**
@@ -127,6 +160,9 @@ public class RhinoEngine {
         try {
             Scriptable scope = createThreadScope(cx);
             initGlobalsAndArguments(scope, globals, args);
+            for (Function func: requestListeners.values()) {
+                func.call(cx, scope, null, args);
+            }
             Scriptable module = loadModule(cx, path, scope, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
