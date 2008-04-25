@@ -106,12 +106,13 @@ public class ReloadableScript {
      * Get a module scope loaded with this script
      *
      * @param parentScope the parent scope for the module
+     * @param loadingScope the scope requesting the module to be loaded
      * @param cx the rhino context
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Scriptable load(Scriptable parentScope, Scriptable loadingScope, Context cx)
+    public synchronized Scriptable load(Scriptable parentScope, Scriptable loadingScope, Context cx)
             throws JavaScriptException, IOException {
         ModuleScope owner = null;
         if (loadingScope instanceof ModuleScope)
