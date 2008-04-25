@@ -33,13 +33,14 @@ public class ReloadableScript {
     long timestamp;
     Script script;
     Exception exception = null;
-    short scriptType = UNKNOWN;
     // the loaded module scope is cached for shared modules
     ModuleScope moduleScope = null;
+    // script type - one of UNKNOW, ORDINARY, JSADAPTER
+    short scriptType = UNKNOWN;
 
     final static short UNKNOWN = 0,
-                     ORDINARY = 1,
-                     ADAPTER = 2;
+                     ORDINARY = 0,
+                     JSADAPTER = 2;
 
     /**
      * Construct a Script from the given script resource.
@@ -63,7 +64,6 @@ public class ReloadableScript {
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
-            scriptType = UNKNOWN;
             if (!resource.exists()) {
                 throw new FileNotFoundException(resource + " not found or not readable");
             }
@@ -73,7 +73,7 @@ public class ReloadableScript {
             } catch (Exception x) {
                 exception = x;
             } finally {
-                moduleScope = null;
+                scriptType = UNKNOWN;
                 timestamp = resource.lastModified();
             }
         }
@@ -122,19 +122,23 @@ public class ReloadableScript {
         // FIXME: caching of shared modules causes code updates to
         // go unnoticed for indirectly loaded modules!
         if (scope != null) {
-            // shared modules can be cached
-            return scope;
+            // use cached scope unless script has been reloaded
+            if (scriptType != UNKNOWN) {
+                return scope;
+            }
+        } else {
+            scope = new ModuleScope(resource, owner, parentScope);
         }
-        scope = new ModuleScope(resource, owner, parentScope);
         script.exec(cx, scope);
+        // find out if this is a JSAdapter type scope
         if (scriptType == UNKNOWN) {
             scriptType = scope.has("__get__", scope) ||
                          scope.has("__has__", scope) ||
                          scope.has("__put__", scope) ||
                          scope.has("__delete__", scope) ||
-                         scope.has("__getIds__", scope) ? ADAPTER : ORDINARY;
+                         scope.has("__getIds__", scope) ? JSADAPTER : ORDINARY;
         }
-        scope.setHasAdapterFunctions(scriptType == ADAPTER);
+        scope.setHasAdapterFunctions(scriptType == JSADAPTER);
         if (scope.get("__shared__", scope) == Boolean.TRUE) {
             moduleScope = scope;
         }
