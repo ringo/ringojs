@@ -57,45 +57,43 @@ public class HelmaShell {
         reader.addCompletor(new JSCompletor());
         PrintWriter out = new PrintWriter(System.out);
         int lineno = 1;
-        Context cx = engine.getContextFactory().enterContext();
-        cx.setErrorReporter(new ToolErrorReporter(true, System.out));
-        try {
-            repl: while (true) {
-                String source = "";
-                String prompt = "helma> ";
-                while (true) {
-                    String newline = reader.readLine(prompt);
-                    if (newline == null) {
-                        // NULL input, if e.g. Ctrl-D was pressed
-                        out.println();
-                        out.flush();
-                        break repl;
-                    }
-                    source = source + newline + "\n";
-                    lineno++;
-                    if (cx.stringIsCompilableUnit(source))
-                        break;
-                    prompt = "     > ";
-                }
-                try {
-                    Object result = cx.evaluateString(scope, source, "<shell>", lineno, null);
-                    // Avoid printing out undefined or function definitions.
-                    if (result != Context.getUndefinedValue()) {
-                        out.println(Context.toString(result));
-                    }               
+        repl: while (true) {
+            Context cx = engine.getContextFactory().enterContext();
+            cx.setErrorReporter(new ToolErrorReporter(true, System.out));
+            String source = "";
+            String prompt = "helma> ";
+            while (true) {
+                String newline = reader.readLine(prompt);
+                if (newline == null) {
+                    // NULL input, if e.g. Ctrl-D was pressed
+                    out.println();
                     out.flush();
-                    lineno++;
-                } catch (RhinoException ex) {
-                    Context.reportError(ex.getMessage(), ex.sourceName(),
-                        ex.lineNumber(), ex.lineSource(), ex.columnNumber());
-                } catch (Exception ex) {
-                    Context.reportError(ex.toString());
+                    break repl;
                 }
+                source = source + newline + "\n";
+                lineno++;
+                if (cx.stringIsCompilableUnit(source))
+                    break;
+                prompt = "     > ";
             }
-        } finally {
-            Context.exit();
+            try {
+                Object result = cx.evaluateString(scope, source, "<shell>", lineno, null);
+                // Avoid printing out undefined or function definitions.
+                if (result != Context.getUndefinedValue()) {
+                    out.println(Context.toString(result));
+                }
+                out.flush();
+                lineno++;
+            } catch (RhinoException ex) {
+                Context.reportError(ex.getMessage(), ex.sourceName(),
+                        ex.lineNumber(), ex.lineSource(), ex.columnNumber());
+            } catch (Exception ex) {
+                Context.reportError(ex.toString());
+            } finally {
+                Context.exit();
+            }
         }
-
+        System.exit(0);
     }
 
     public static void printUsage() {
