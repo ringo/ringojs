@@ -24,10 +24,6 @@ var server;
 function startServer(config) {
     config = config || {};
     var configFile = config.configFile || 'jetty.xml';
-    var port = config.port || 8080;
-    var mountpoint = config.mountpoint || '/';
-    var staticDir = config.staticDir || 'static';
-    var staticMountpoint = config.staticMountpoint || '/static';
     // var staticIndex = config.staticIndex || config.staticIndex == undefined;
     if (!server) {
         var engine = getRhinoEngine();
@@ -43,22 +39,23 @@ function startServer(config) {
             var xmlconfig = new XmlConfiguration(jettyconfig.inputStream);
             // port config is done via properties
             var props = xmlconfig.getProperties();
-            props.put("port", port.toString());
+            props.put('port', (config.port || 8080).toString());
+            props.put('mountpoint', config.mountpoint || '/');
+            props.put('staticMountpoint', config.staticMountpoint || '/static');
             xmlconfig.configure(server);
             //everything else is configured via idmap
             var idMap = xmlconfig.getIdMap();
             // java.lang.System.err.println("idmap: " + idMap);
-            var contexts = idMap.get("contexts");
-            // set up static context
-            var staticCtx = new jetty.servlet.Context(contexts, staticMountpoint, false, false);
-            staticCtx.setResourceBase(engine.getResource(staticDir));
+            var staticCtx = idMap.get('staticContext');
+            if (config.staticDir) {
+                staticCtx.setResourceBase(engine.getResource(config.staticDir));
+            }
             var staticHolder = new jetty.servlet.ServletHolder(jetty.servlet.DefaultServlet);
             staticCtx.addServlet(staticHolder, "/*");
             // set up helma servlet context
-            var context = new jetty.servlet.Context(contexts, mountpoint, true, false);
-            var servlet = new HelmaServlet(getRhinoEngine());
-            var holder = new jetty.servlet.ServletHolder(servlet);
-            context.addServlet(holder, "/*");
+            var helmaCtx = idMap.get('helmaContext');
+            var helmaServlet = new HelmaServlet(getRhinoEngine());
+            helmaCtx.addServlet(new jetty.servlet.ServletHolder(helmaServlet), "/*");
             // start server
             server.start();
         } catch (error) {

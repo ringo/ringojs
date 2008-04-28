@@ -11,9 +11,7 @@
         
 
 <Configure id="server" class="org.mortbay.jetty.Server">
-
-    <Property name="port" default="8080" id="port"/>
-
+    
     <!-- =========================================================== -->
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
@@ -54,11 +52,13 @@
 
     <!-- Use this connector for many frequently idle connections
          and for threadless continuations.
+    -->
+    <!--
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
-            <Set name="host"><SystemProperty name="jetty.host" /></Set>
-            <Set name="port"><SystemProperty name="jetty.port" default="8080"/></Set>
+            <Set name="host"><Property name="host"/></Set>
+            <Set name="port"><Property name="port" default="8080"/></Set>
             <Set name="maxIdleTime">30000</Set>
             <Set name="Acceptors">2</Set>
             <Set name="statsOn">false</Set>
@@ -70,12 +70,13 @@
     </Call>
     -->
 
-    <!-- Use this connector if NIO is not available. 
+    <!-- Use this connector if NIO is not available.
     -->
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.bio.SocketConnector">
-            <Set name="port"><Ref id="port"/></Set>
+            <Set name="host"><Property name="host"/></Set>
+            <Set name="port"><Property name="port" default="8080"/></Set>
             <Set name="maxIdleTime">50000</Set>
             <Set name="lowResourceMaxIdleTime">1500</Set>
           </New>
@@ -163,6 +164,26 @@
       </Array>
     </Set>
     -->
+
+    <!-- ======================================================= -->
+    <!-- Configure static servlet context                         -->
+    <!-- ======================================================= -->
+    <New class="org.mortbay.jetty.servlet.Context" id="staticContext">
+      <Arg><Ref id="contexts"/></Arg>
+      <Arg><Property name="staticMountpoint" default="/static"/></Arg>
+      <Arg type="Boolean">false</Arg> <!-- session support -->
+      <Arg type="Boolean">false</Arg> <!-- security support -->
+    </New>
+
+    <!-- ======================================================= -->
+    <!-- Configure Helma Servlet Context                         -->
+    <!-- ======================================================= -->
+    <New class="org.mortbay.jetty.servlet.Context" id="helmaContext">
+      <Arg><Ref id="contexts"/></Arg>
+      <Arg><Property name="mountpoint" default="/"/></Arg>
+      <Arg type="Boolean">true</Arg> <!-- session support -->
+      <Arg type="Boolean">false</Arg> <!-- security support -->
+    </New>
 
     <!-- =========================================================== -->
     <!-- Configure Request Log                                       -->

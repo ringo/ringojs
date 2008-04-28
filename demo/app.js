@@ -20,13 +20,23 @@
 importModuleAs('helma.rhino', 'rhino');
 importModuleAs('helma.jetty', 'jetty');
 
-// define native host classes used by this app
+// define native host classes used by helma web apps
 rhino.addStandardHostObjects();
+
+// The jetty module uses a jetty xml configuration as blueprint, allowing
+// applications to override and add stuff via a config argument to startServer.
+//
+// Possible properties for the config argument (default values in parentheses):
+// configFile ('jetty.xml'),  host (any), port (8080), mountpoint ('/'),
+// staticDir (none), staticMountpoint ('/static'),
+var jettyConfig = {
+    staticDir: 'static'
+};
 
 /**
  * Start the jetty server.
  */
-function start(config) {
+function start() {
     // register a request listener that automatically sets rhino optimization
     // level to -1 for requests that have a helma_continuation parameter.
     rhino.addRequestListener('continuation-support', function(req) {
@@ -35,7 +45,7 @@ function start(config) {
         }
     });
     // start jetty http server with configuration file modules/helma/jetty.xml
-    jetty.startServer(config);
+    jetty.startServer(jettyConfig);
 }
 
 
