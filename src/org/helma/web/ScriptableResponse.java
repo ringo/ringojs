@@ -18,12 +18,12 @@ package org.helma.web;
 
 import org.mozilla.javascript.*;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.ServletOutputStream;
-import java.io.Writer;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Stack;
 
 /**
@@ -36,6 +36,7 @@ public class ScriptableResponse extends ScriptableObject {
 
     private HttpServletResponse response;
     private Stack<StringWriter> buffers = new Stack<StringWriter>();
+    private static final long serialVersionUID = 8492609461086704262L;
 
     public ScriptableResponse() {
         response = null;
@@ -47,6 +48,14 @@ public class ScriptableResponse extends ScriptableObject {
         } else {
             throw new IllegalArgumentException("Expected HttpServletResponse, got " + res);
         }
+    }
+
+    /**
+     * Get the servlet request as a wrapped java object
+     * @return the servlet request as a wrapped java object
+     */
+    public Object jsGet_servletResponse() {
+        return Context.toObject(response, getParentScope());
     }
 
     /**

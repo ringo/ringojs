@@ -19,10 +19,10 @@ package org.helma.web;
 import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.ScriptableObject;
 
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a HTTP session instance. The implementation
@@ -35,6 +35,7 @@ import java.util.HashMap;
 public class ScriptableSession extends ScriptableObject {
 
     HttpServletRequest request;
+    private static final long serialVersionUID = 6101876387501354846L;
 
     public ScriptableSession() {
         super();

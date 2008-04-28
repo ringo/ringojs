@@ -16,14 +16,14 @@
 
 package org.helma.web;
 
-import org.mozilla.javascript.ScriptableObject;
+import org.helma.util.CaseInsensitiveMap;
+import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.helma.util.ScriptableMap;
-import org.helma.util.CaseInsensitiveMap;
+import org.mozilla.javascript.ScriptableObject;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -36,6 +36,7 @@ public class ScriptableRequest extends ScriptableObject {
 
     HttpServletRequest request;
     Scriptable cookies, data, params, headers, attributes;
+    private static final long serialVersionUID = -2167096504665220425L;
 
     public ScriptableRequest() {
         super();
@@ -43,6 +44,14 @@ public class ScriptableRequest extends ScriptableObject {
 
     public ScriptableRequest(Object request) {
         this.request = (HttpServletRequest) request;
+    }
+
+    /**
+     * Get the servlet request as a wrapped java object
+     * @return the servlet request as a wrapped java object
+     */
+    public Object jsGet_servletRequest() {
+        return Context.toObject(request, getParentScope());
     }
 
     /**
