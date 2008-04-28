@@ -16,19 +16,18 @@
 
 package org.helma.test;
 
-import org.helma.template.SkinParser;
-import org.helma.template.UnbalancedTagException;
-import org.helma.template.SkinRenderer;
+import junit.framework.AssertionFailedError;
+import junit.framework.TestCase;
 import org.helma.template.MacroTag;
+import org.helma.template.SkinParser;
+import org.helma.template.SkinRenderer;
+import org.helma.template.UnbalancedTagException;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import junit.framework.TestCase;
-import junit.framework.AssertionFailedError;
+import java.util.List;
+import java.util.Map;
 
 public class SkinParserTest extends TestCase {
 
@@ -43,7 +42,7 @@ public class SkinParserTest extends TestCase {
 
             public void renderMacro(MacroTag macro) {
                 List<Object> list = new ArrayList<Object>();
-                list.add("name");
+                // list.add("name");
                 List<Object> sublist = new ArrayList<Object>();
                 sublist.add(1.0);
                 sublist.add(-2.3);
@@ -79,7 +78,7 @@ public class SkinParserTest extends TestCase {
             }
 
         });
-        parser.parse("<% {foo: \"<%bar%>\"} %>");
+        parser.parse("<% name {foo: \"<%bar%>\"} %>");
     }
 
     public void testMacroList() throws IOException, UnbalancedTagException {
@@ -93,6 +92,6 @@ public class SkinParserTest extends TestCase {
                 throw new AssertionFailedError("renderText called on textless macro");
             }
         });
-        parser.parse("<% 1 %><% 2 %><% 3 %>");
+        parser.parse("<% name 1 %><% name 2 %><% name 3 %>");
     }
 }
