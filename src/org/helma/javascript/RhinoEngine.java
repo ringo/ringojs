@@ -16,19 +16,22 @@
 
 package org.helma.javascript;
 
-import org.mozilla.javascript.*;
-import org.helma.repository.Resource;
 import org.helma.repository.Repository;
-import org.helma.util.*;
+import org.helma.repository.Resource;
 import org.helma.tools.launcher.HelmaClassLoader;
+import org.helma.util.CaseInsensitiveMap;
+import org.helma.util.JSAdapter;
+import org.helma.util.ScriptableList;
+import org.helma.util.ScriptableMap;
+import org.mozilla.javascript.*;
 
-import java.io.IOException;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.net.URL;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -46,6 +49,8 @@ public class RhinoEngine {
     AppClassLoader loader = new AppClassLoader();
     WrapFactory wrapFactory = new HelmaWrapFactory();
     ContextFactory contextFactory = new HelmaContextFactory(this);
+
+    public static final Object[] EMPTY_ARGS = new Object[0];
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
