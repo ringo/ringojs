@@ -16,9 +16,9 @@
 
 package org.helma.javascript;
 
-import org.mozilla.javascript.*;
-import org.helma.repository.Resource;
 import org.helma.repository.Repository;
+import org.helma.repository.Resource;
+import org.mozilla.javascript.*;
 
 /**
  * A scriptable object that keeps track of the resource it has been loaded from
@@ -30,6 +30,7 @@ public class ModuleScope extends NativeObject {
     ModuleScope ownerScope;
     boolean hasAdapterFunctions;
     AdapterFlag isAdapter = new AdapterFlag();
+    private static final long serialVersionUID = -2409425841990094897L;
 
     public ModuleScope(Resource resource, ModuleScope owner, Scriptable prototype) {
         this.resource = resource;
@@ -55,7 +56,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public Object getDefaultValue(Class hint) {
-        if (hint == String.class) {
+        if (hint == String.class || hint == null) {
             return toString();
         }
         return super.getDefaultValue(hint);
