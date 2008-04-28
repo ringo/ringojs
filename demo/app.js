@@ -21,13 +21,12 @@ importModuleAs('helma.rhino', 'rhino');
 importModuleAs('helma.jetty', 'jetty');
 
 // define native host classes used by this app
-rhino.addHostObject(org.helma.web.ScriptableRequest);
-rhino.addHostObject(org.helma.web.ScriptableResponse);
-rhino.addHostObject(org.helma.web.ScriptableSession);
-rhino.addHostObject(org.helma.template.MacroTag);
+rhino.addStandardHostObjects();
 
-// start the server
-function start() {
+/**
+ * Start the jetty server.
+ */
+function start(config) {
     // register a request listener that automatically sets rhino optimization
     // level to -1 for requests that have a helma_continuation parameter.
     rhino.addRequestListener('continuation-support', function(req) {
@@ -35,16 +34,17 @@ function start() {
             rhino.setRhinoOptimizationLevel(-1);
         }
     });
-
     // start jetty http server with configuration file modules/helma/jetty.xml
-    jetty.startServer('jetty.xml');
+    jetty.startServer(config);
 }
 
-// stop the server
+
+/**
+ * Stop the jetty server.
+ */
 function stop() {
     // remove request listener
     rhino.removeRequestListener('continuation-support');
-
     // stop jetty
     jetty.stopServer();
 }

@@ -9,6 +9,13 @@ function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
 }
 
+function addStandardHostObjects() {
+    addHostObject(org.helma.web.ScriptableRequest);
+    addHostObject(org.helma.web.ScriptableResponse);
+    addHostObject(org.helma.web.ScriptableSession);
+    addHostObject(org.helma.template.MacroTag);    
+}
+
 function addRequestListener(name, func) {
     getRhinoEngine().addRequestListener(name, func);
 }

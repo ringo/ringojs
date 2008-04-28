@@ -8,9 +8,11 @@
 <!-- http://docs.codehaus.org/display/JETTY/jetty.xml                -->
 <!--                                                                 -->
 <!-- =============================================================== -->
+        
 
+<Configure id="server" class="org.mortbay.jetty.Server">
 
-<Configure id="Server" class="org.mortbay.jetty.Server">
+    <Property name="port" default="8080" id="port"/>
 
     <!-- =========================================================== -->
     <!-- Server Thread Pool                                          -->
@@ -73,7 +75,7 @@
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.bio.SocketConnector">
-            <Set name="port">8080</Set>
+            <Set name="port"><Ref id="port"/></Set>
             <Set name="maxIdleTime">50000</Set>
             <Set name="lowResourceMaxIdleTime">1500</Set>
           </New>
@@ -89,32 +91,25 @@
     <!-- =========================================================== -->
     <!-- Set up global session ID manager                            -->
     <!-- =========================================================== -->
-    <!--
     <Set name="sessionIdManager">
       <New class="org.mortbay.jetty.servlet.HashSessionIdManager">
         <Set name="workerName">node1</Set>
       </New>
     </Set>
-    -->
 
     <!-- =========================================================== -->
     <!-- Set handler Collection Structure                            --> 
     <!-- =========================================================== -->
     <Set name="handler">
-      <New id="Handlers" class="org.mortbay.jetty.handler.HandlerCollection">
+      <New id="handlers" class="org.mortbay.jetty.handler.HandlerCollection">
         <Set name="handlers">
          <Array type="org.mortbay.jetty.Handler">
            <Item>
-             <New id="Contexts" class="org.mortbay.jetty.handler.ContextHandlerCollection"/>
+             <New id="contexts" class="org.mortbay.jetty.handler.ContextHandlerCollection"/>
            </Item>
            <Item>
-             <New id="DefaultHandler" class="org.mortbay.jetty.handler.DefaultHandler"/>
+             <New id="requestLog" class="org.mortbay.jetty.handler.RequestLogHandler"/>
            </Item>
-           <!--
-           <Item>
-             <New id="RequestLog" class="org.mortbay.jetty.handler.RequestLogHandler"/>
-           </Item>
-           -->
          </Array>
         </Set>
       </New>
@@ -176,21 +171,21 @@
     <!-- contexts configuration (see $(jetty.home)/contexts/test.xml -->
     <!-- for an example).                                            -->
     <!-- =========================================================== -->
-    <!--
-    <Ref id="RequestLog">
+    <Ref id="requestLog">
       <Set name="requestLog">
-        <New id="RequestLogImpl" class="org.mortbay.jetty.NCSARequestLog">
+        <New id="requestLogImpl" class="org.mortbay.jetty.NCSARequestLog">
+          <!--
           <Set name="filename"><SystemProperty name="jetty.logs" default="./logs"/>/yyyy_mm_dd.request.log</Set>
           <Set name="filenameDateFormat">yyyy_MM_dd</Set>
           <Set name="retainDays">90</Set>
           <Set name="append">true</Set>
           <Set name="extended">true</Set>
+          -->
           <Set name="logCookies">false</Set>
-          <Set name="LogTimeZone">GMT</Set>
+          <Set name="LogTimeZone">CET</Set>
         </New>
       </Set>
     </Ref>
-    -->
 
     <!-- =========================================================== -->
     <!-- extra options                                               -->
