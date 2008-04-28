@@ -21,11 +21,8 @@ function handleRequest(req, res, session) {
     global.session = session;
     res.contentType = "text/html; charset=UTF-8";
     // resume continuation?
-    var continuationId = req.params.helma_continuation;
-    if (continuationId && session.data.continuation) {
-        var continuation = session.data.continuation[continuationId];
-        if (continuation)
-            return continuation();
+    if (invokeContinuation()) {
+        return;
     }
     // resolve path and invoke action
     var path = req.path.split('/');
@@ -34,7 +31,8 @@ function handleRequest(req, res, session) {
     for (var i = 1; i < path.length -1; i++) {
         handler = handler[path[i]];
         if (!handler) {
-            return notfound();
+            notfound();
+            return;
         }
     }
     var action = path[path.length - 1];
@@ -45,14 +43,14 @@ function handleRequest(req, res, session) {
     }
     // res.writeln(handler, action, handler[action]);
     if (!handler[action] || !(handler[action] instanceof Function)) {
-        return notfound();
+        notfound();
+        return
     }
     try {
         handler[action].call(handler);
     } catch (e) {
         error(e);
     }
-    return null;
 }
 
 /**
@@ -85,5 +83,28 @@ function notfound() {
     res.writeln('<h1>Not Found</h1>');
     res.writeln('The requested URL', req.path, 'was not found on the server.');
     return null;
+}
+
+/**
+ * Check if there is a helma_continuation http parameter, and if so,
+ * check if there is a matching continuation, and if so, invoke the continuation
+ * and return null.
+ */
+function invokeContinuation() {
+    var continuationId = req.params.helma_continuation;
+    if (continuationId && session.data.continuation) {
+        var continuation = session.data.continuation[continuationId];
+        if (continuation) {
+            try {
+                // FIXME: continuations scope gets messed up after some time. dig we must.
+                continuation();
+                return true;
+            } catch (e) {
+                error(e);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
