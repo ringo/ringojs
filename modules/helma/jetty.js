@@ -49,9 +49,9 @@ function startServer(config) {
             var staticCtx = idMap.get('staticContext');
             if (config.staticDir) {
                 staticCtx.setResourceBase(engine.getResource(config.staticDir));
+                var staticHolder = new jetty.servlet.ServletHolder(jetty.servlet.DefaultServlet);
+                staticCtx.addServlet(staticHolder, "/*");
             }
-            var staticHolder = new jetty.servlet.ServletHolder(jetty.servlet.DefaultServlet);
-            staticCtx.addServlet(staticHolder, "/*");
             // set up helma servlet context
             var helmaCtx = idMap.get('helmaContext');
             var helmaServlet = new HelmaServlet(getRhinoEngine());
