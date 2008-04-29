@@ -16,10 +16,11 @@
 
 package org.helma.javascript;
 
-import org.mozilla.javascript.*;
 import org.helma.repository.Resource;
+import org.mozilla.javascript.*;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * This class represents a JavaScript Resource.
@@ -39,7 +40,7 @@ public class ReloadableScript {
     short scriptType = UNKNOWN;
 
     final static short UNKNOWN = 0,
-                     ORDINARY = 0,
+                     ORDINARY = 1,
                      JSADAPTER = 2;
 
     /**
@@ -141,6 +142,8 @@ public class ReloadableScript {
         scope.setHasAdapterFunctions(scriptType == JSADAPTER);
         if (scope.get("__shared__", scope) == Boolean.TRUE) {
             moduleScope = scope;
+        } else {
+            moduleScope = null;
         }
         return scope;
     }
