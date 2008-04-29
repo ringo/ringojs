@@ -14,6 +14,7 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
+__shared__ = true;
 
 String.ANUMPATTERN    = /[^a-zA-Z0-9]/;
 String.APATTERN       = /[^a-zA-Z]/;
