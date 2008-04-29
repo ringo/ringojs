@@ -16,16 +16,16 @@
 
 package org.helma.tools;
 
+import org.helma.javascript.RhinoEngine;
+import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.helma.repository.ZipRepository;
-import org.helma.repository.FileRepository;
 import org.helma.util.StringUtils;
-import org.helma.javascript.RhinoEngine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HelmaConfiguration {
 
@@ -56,7 +56,7 @@ public class HelmaConfiguration {
         repositories = new ArrayList<Repository>();
 
         if (helmaModulePath == null) {
-            helmaModulePath = System.getProperty("helma.modulepath", ".,modules");
+            helmaModulePath = System.getProperty("helma.modulepath", ".");
         }
         String[] reps = StringUtils.split(helmaModulePath, ",");
         for (String rep: reps) {
@@ -79,6 +79,8 @@ public class HelmaConfiguration {
                 repositories.add(new FileRepository(file));
             }
         }
+        // always add modules from helma home
+        repositories.add(new FileRepository(new File(home, "modules")));
         // System.err.println("Parsed repository list: " + repositories);
     }
 

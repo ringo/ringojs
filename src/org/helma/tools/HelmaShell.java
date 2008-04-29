@@ -16,21 +16,20 @@
 
 package org.helma.tools;
 
-import org.helma.javascript.RhinoEngine;
+import jline.Completor;
+import jline.ConsoleReader;
 import org.helma.javascript.ModuleScope;
+import org.helma.javascript.RhinoEngine;
 import org.helma.util.StringUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.Collections;
-import java.util.regex.Pattern;
+import java.util.List;
 import java.util.regex.Matcher;
-
-import jline.ConsoleReader;
-import jline.Completor;
+import java.util.regex.Pattern;
 
 /**
  * HelmaShell is a simple interactive shell that provides the
@@ -41,13 +40,13 @@ public class HelmaShell {
     static ModuleScope scope;
 
     public static void main(String[] args) throws IOException {
-        String modulePath = ".,modules";
+        String modulePath = ".";
         if (args.length > 0) {
             if ("--help".equals(args[0]) || "-h".equals(args[0])) {
                 printUsage();
                 return;
             }
-            modulePath = StringUtils.join(args, ",") + ",modules";
+            modulePath = StringUtils.join(args, ",");
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = config.createEngine();

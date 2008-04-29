@@ -22,13 +22,13 @@ import org.helma.util.StringUtils;
 public class HelmaServer {
 
     public static void main(String[] args) throws Exception {
-        String modulePath = ".,modules";
+        String modulePath = ".";
         if (args.length > 0) {
             if ("--help".equals(args[0]) || "-h".equals(args[0])) {
                 printUsage();
                 return;
             }
-            modulePath = StringUtils.join(args, ",") + ",modules";
+            modulePath = StringUtils.join(args, ",");
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = config.createEngine();
