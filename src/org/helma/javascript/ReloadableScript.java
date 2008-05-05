@@ -127,6 +127,7 @@ public class ReloadableScript {
             if (scriptType != UNKNOWN) {
                 return scope;
             }
+            scope.delete("__shared__");
         } else {
             scope = new ModuleScope(resource, owner, parentScope);
         }
