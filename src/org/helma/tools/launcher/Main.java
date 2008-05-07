@@ -16,15 +16,12 @@
 
 package org.helma.tools.launcher;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.net.URLDecoder;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Main launcher class. This figures out the Helma home directory,
@@ -127,6 +124,9 @@ public class Main {
                 jarUrl = jarUrl.substring(4, excl);
                 launcherUrl = new URL(jarUrl);
                 helmaHome = new File(launcherUrl.getPath()).getParent();
+                if (helmaHome == null) {
+                    helmaHome = ".";
+                }
             }
         }
 
