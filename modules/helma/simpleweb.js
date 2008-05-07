@@ -4,6 +4,8 @@
  * module scopes replace hopobject hierarchies.
  */
 
+importModule('core.string');
+
 /**
  * Handler function that connects to the Helma servlet. Import this
  * into your main module scope:
@@ -35,16 +37,17 @@ function handleRequest(req, res, session) {
             return;
         }
     }
-    var action = path[path.length - 1];
-    if (!action) {
-        action = "main_action";
-    } else {
-        action += "_action";
-    }
+    var lastPart = path[path.length - 1];
+    var action = lastPart ? lastPart + '_action' : 'main_action';
     // res.writeln(handler, action, handler[action]);
-    if (!handler[action] || !(handler[action] instanceof Function)) {
-        notfound();
-        return
+    if (!(handler[action] instanceof Function)) {
+        if (!req.path.endsWith('/') && handler[lastPart] &&
+            handler[lastPart]['main_action'] instanceof Function) {
+            res.redirect(req.path + '/');
+        } else if (!handler[action]) {
+            notfound();
+            return
+        }
     }
     try {
         handler[action].call(handler);
