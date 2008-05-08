@@ -28,6 +28,10 @@ function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
 }
 
+function extendJavaClass(javaClass) {
+    return getRhinoEngine().getExtendedClass(javaClass);
+}
+
 function addRequestListener(name, func) {
     getRhinoEngine().addRequestListener(name, func);
 }
