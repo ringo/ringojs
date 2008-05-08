@@ -7,9 +7,10 @@ importModule('core.string');
  * @param skinOrResource
  * @param context
  */
-function renderSkin(skinOrPath, context) {
+function renderSkin(skinOrPath, context, scope) {
+    scope = scope || this;
     var skin = (skinOrPath instanceof Skin) ?
-           skinOrPath : createSkin(getResource(skinOrPath));
+           skinOrPath : createSkin(scope.getResource(skinOrPath), scope);
     skin.render(context);
 }
 
@@ -17,7 +18,7 @@ function renderSkin(skinOrPath, context) {
  * Parse a skin from a resource.
  * @param resource
  */
-function createSkin(resource) {
+function createSkin(resource, scope) {
     var mainSkin = [];
     var subSkins = {};
     var currentSkin = mainSkin;
@@ -25,7 +26,10 @@ function createSkin(resource) {
     parseSkin(resource, function(part) {
         if (part.name === 'extends') {
             var skinPath = part.getParameter(0);
-            var skinResource = resource.getRepository().getResource(skinPath);
+            var skinResource = resource.repository.getResource(skinPath);
+            if (!skinResource.exists()) {
+                skinResource = scope.getResource(skinPath);
+            }
             parentSkin = createSkin(skinResource);
         } else if (part.name === 'subskin')  {
             var skinName = part.getParameter('name', 0);
@@ -118,16 +122,23 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var evaluateExpression = function(macro, context) {
         var path = macro.name.split('.');
         var elem = context;
-        for (var i in path) {
+        var length = path.length;
+        var last = path[length-1];
+        for (var i = 0; i < length - 1; i++) {
             elem = elem[path[i]];
             if (!elem) {
                 break;
             }
         }
-        if (elem instanceof Function) {
-            return elem(macro, self, context);
-        } else {
-            return elem;
+        if (elem && elem[last]) {
+            elem = elem[path[length-1]];
+            if (elem instanceof Function) {
+                return elem(macro, self, context);
+            } else {
+                return elem;
+            }
+        } else if (elem && elem[last + "_macro"] instanceof Function) {
+            return elem[last + "_macro"].call(elem, macro, self, context);
         }
     };
 
