@@ -3,10 +3,13 @@ importFromModule('helma.simpleweb', 'handleRequest');
 // import renderSkin
 importFromModule('helma.skin', 'renderSkin');
 // mount web app module on /mount/point/
-importModuleAs('webmodule', 'mount.point');
+importModule('webmodule', 'mount.point');
 // continuation support
 importModule('helma.continuation');
 
+// importModule('helma1bridge');
+
+// importModule('minidemo.main', 'minidemo');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering

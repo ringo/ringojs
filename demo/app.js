@@ -17,8 +17,8 @@
  */
 
 // import application and server module
-importModuleAs('helma.rhino', 'rhino');
-importModuleAs('helma.jetty', 'jetty');
+importModule('helma.rhino', 'rhino');
+importModule('helma.jetty', 'jetty');
 
 // define native host classes used by helma web apps
 rhino.initWebApp();
