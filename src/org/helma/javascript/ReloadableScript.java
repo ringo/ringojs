@@ -16,11 +16,14 @@
 
 package org.helma.javascript;
 
+import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.mozilla.javascript.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents a JavaScript Resource.
@@ -29,9 +32,10 @@ import java.io.IOException;
  */
 public class ReloadableScript {
 
-    Resource resource;
-    RhinoEngine engine;
-    long timestamp;
+    final Resource resource;
+    final Repository repository;
+    final RhinoEngine engine;
+    long checksum = -1;
     Script script;
     Exception exception = null;
     // the loaded module scope is cached for shared modules
@@ -51,6 +55,20 @@ public class ReloadableScript {
      */
     public ReloadableScript(Resource resource, RhinoEngine engine) {
         this.resource = resource;
+        this.repository = resource == null ? null : resource.getRepository();
+        this.engine = engine;
+    }
+
+    /**
+     * Construct a Script from the given script repository, munging all contained
+     * script resources into one module.
+     *
+     * @param repository the script repository.
+     * @param engine the rhino engine
+     */
+    public ReloadableScript(Repository repository, RhinoEngine engine) {
+        this.resource = null;
+        this.repository = repository;
         this.engine = engine;
     }
 
@@ -65,6 +83,9 @@ public class ReloadableScript {
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
+            if (resource == null) {
+                return getMultiScript(cx);
+            }
             if (!resource.exists()) {
                 throw new FileNotFoundException(resource + " not found or not readable");
             }
@@ -75,7 +96,7 @@ public class ReloadableScript {
                 exception = x;
             } finally {
                 scriptType = UNKNOWN;
-                timestamp = resource.lastModified();
+                checksum = resource.lastModified();
             }
         }
 
@@ -88,17 +109,59 @@ public class ReloadableScript {
     }
 
     /**
+     * Get the a script composed out of multiple scripts. This is a bit of a hack
+     * we have in order to support helma 1 like one-directory-per-prototype like
+     * compilation mode.
+     *
+     * @param cx the current Context
+     * @throws JavaScriptException if an error occurred compiling the script code
+     * @throws IOException if an error occurred reading the script file
+     * @return the compiled and up-to-date script
+     */
+    protected synchronized Script getMultiScript(Context cx) throws JavaScriptException, IOException {
+        if (!repository.exists()) {
+            throw new FileNotFoundException(repository + " not found or not readable");
+        }
+        List<Resource> resources = repository.getAllResources();
+        final List<Script> scripts = new ArrayList<Script>();
+        try {
+            exception = null;
+            for (Resource res: resources) {
+                if (res.getName().endsWith(".js")) {
+                    scripts.add(cx.compileReader(res.getReader(), res.getName(), 1, null));
+                }
+           }
+        } catch (Exception x) {
+            exception = x;
+        } finally {
+            scriptType = UNKNOWN;
+            checksum = repository.getChecksum();
+        }
+        script =  new Script() {
+            public Object exec(Context cx, Scriptable scope) {
+                for (Script script: scripts) {
+                    script.exec(cx, scope);
+                }
+                return null;
+            }
+        };
+        return script;
+    }
+
+
+    /**
      * Evaluate the script on a module scope and return the result
      *
-     * @param parentScope the parent scope for the module
+     * @param prototype the parent scope for the module
      * @param cx the rhino context
      * @return the result of the evaluation
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Object evaluate(Scriptable parentScope, Context cx)
+    public Object evaluate(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
-        ModuleScope scope = new ModuleScope(resource, null, parentScope);
+        NativeObject scope = new NativeObject();
+        scope.setPrototype(prototype);
         Script script = getScript(cx);
         return script.exec(cx, scope);
     }
@@ -106,66 +169,58 @@ public class ReloadableScript {
     /**
      * Get a module scope loaded with this script
      *
-     * @param parentScope the parent scope for the module
-     * @param loadingScope the scope requesting the module to be loaded
+     * @param prototype the parent scope for the module
      * @param cx the rhino context
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public synchronized Scriptable load(Scriptable parentScope, Scriptable loadingScope, Context cx)
+    public synchronized Scriptable load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
-        ModuleScope owner = null;
-        if (loadingScope instanceof ModuleScope)
-            owner = (ModuleScope) loadingScope;
         Script script = getScript(cx);
-        ModuleScope scope = moduleScope;
+        ModuleScope module = moduleScope;
         // FIXME: caching of shared modules causes code updates to
         // go unnoticed for indirectly loaded modules!
-        if (scope != null) {
+        if (module != null) {
             // use cached scope unless script has been reloaded
             if (scriptType != UNKNOWN) {
-                return scope;
+                return module;
             }
-            scope.delete("__shared__");
+            module.delete("__shared__");
         } else {
-            scope = new ModuleScope(resource, owner, parentScope);
+            module = new ModuleScope(resource, repository, prototype);
         }
-        script.exec(cx, scope);
+        script.exec(cx, module);
         // find out if this is a JSAdapter type scope
         if (scriptType == UNKNOWN) {
-            scriptType = scope.has("__get__", scope) ||
-                         scope.has("__has__", scope) ||
-                         scope.has("__put__", scope) ||
-                         scope.has("__delete__", scope) ||
-                         scope.has("__getIds__", scope) ? JSADAPTER : ORDINARY;
+            scriptType = module.has("__get__", module) ||
+                         module.has("__has__", module) ||
+                         module.has("__put__", module) ||
+                         module.has("__delete__", module) ||
+                         module.has("__getIds__", module) ? JSADAPTER : ORDINARY;
         }
-        scope.setHasAdapterFunctions(scriptType == JSADAPTER);
-        if (scope.get("__shared__", scope) == Boolean.TRUE) {
-            moduleScope = scope;
-        } else {
-            moduleScope = null;
-        }
-        return scope;
+        module.setHasAdapterFunctions(scriptType == JSADAPTER);
+        moduleScope = (module.get("__shared__", module) == Boolean.TRUE) ?
+                module : null;
+        return module;
     }
 
-    /**
-     * Get the resource of the script.
-     * @return the script resource
-     */
-    public Resource getResource() {
-        return resource;
-    }
 
     /**
      * Checks if the main file or any of the files it includes were updated 
      * since the script was last parsed and evaluated.
      * @return true if none of the included files has been updated since
      * we last checked.
+     * @throws IOException an I/O exception occurred during the check
      */
-    protected boolean isUpToDate() {
-        return resource.exists() && resource.lastModified() == timestamp;
+    protected boolean isUpToDate() throws IOException {
+        if (resource == null) {
+            return repository.getChecksum() == checksum;
+        } else {
+            return resource.lastModified() == checksum;
+        }
     }
 
 }
+
 

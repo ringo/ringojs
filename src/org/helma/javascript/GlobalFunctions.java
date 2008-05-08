@@ -16,18 +16,18 @@
 
 package org.helma.javascript;
 
-import org.mozilla.javascript.*;
 import org.helma.repository.Resource;
-import org.helma.repository.Repository;
-import org.helma.util.ScriptableList;
-import org.helma.util.ScriptUtils;
-import org.helma.util.StringUtils;
-import org.helma.template.SkinParser;
-import org.helma.template.UnbalancedTagException;
-import org.helma.template.SkinRenderer;
 import org.helma.template.MacroTag;
+import org.helma.template.SkinParser;
+import org.helma.template.SkinRenderer;
+import org.helma.template.UnbalancedTagException;
+import org.helma.util.ScriptUtils;
+import org.helma.util.ScriptableList;
+import org.helma.util.StringUtils;
+import org.mozilla.javascript.*;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -43,7 +43,6 @@ public class GlobalFunctions {
     public static void init(ScriptableObject scope) {
         scope.defineFunctionProperties(
                 new String[] {"importModule",
-                              "importModuleAs",
                               "importFromModule",
                               "importJar",
                               "getResource",
@@ -65,29 +64,14 @@ public class GlobalFunctions {
      */
     public static Object importModule(Context cx, Scriptable thisObj, Object[] args, Function funObj)
             throws JavaScriptException, IOException {
-        ScriptUtils.checkArguments(args, 1, 1);
-        String moduleName = ScriptUtils.getStringArgument(args, 0);
-        importInternal(moduleName, moduleName, thisObj, cx);
-        return Undefined.instance;
-    }
-
-    /**
-     * Evaluate a JavaScript resource.
-     * @param cx the current context
-     * @param thisObj the object the function is called on
-     * @param args the arguments
-     * @param funObj the function object
-     * @return null
-     * @throws JavaScriptException javascript evaluation error
-     * @throws IOException error reading the resource
-     */
-    public static Object importModuleAs(Context cx, Scriptable thisObj, Object[] args, Function funObj)
-            throws JavaScriptException, IOException {
-        ScriptUtils.checkArguments(args, 2, 2);
+        ScriptUtils.checkArguments(args, 1, 2);
         String moduleName = ScriptUtils.getStringArgument(args, 0);
         String as = ScriptUtils.getStringArgument(args, 1);
-        importInternal(moduleName, as, thisObj, cx);
-        return Undefined.instance;
+        if (as == null) {
+            as = moduleName.endsWith(".*") ?
+                    moduleName.substring(0, moduleName.length() - 2) : moduleName;
+        }
+        return importInternal(moduleName, as, thisObj, cx);
     }
 
     /**
@@ -129,11 +113,11 @@ public class GlobalFunctions {
         return Undefined.instance;
     }
 
-    private static Scriptable importInternal(String moduleName, String as, Scriptable thisObj,  Context cx)
+    private static Scriptable importInternal(String moduleName, String as, Scriptable thisObj, Context cx)
             throws JavaScriptException, IOException {
         RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
-        Scriptable parentScope = ScriptRuntime.getTopCallScope(cx);
-        Scriptable scope = engine.loadModule(cx, moduleName, parentScope, thisObj);
+        Scriptable topScope = getTopScope(cx);
+        Scriptable scope = engine.loadModule(cx, moduleName, topScope, thisObj);
         // split as string and walk through
         if (as != null) {
             if (as.indexOf('.') == -1) {
@@ -157,12 +141,6 @@ public class GlobalFunctions {
         return scope;
     }
 
-    private static Repository getLocalRepository(Scriptable scriptable) {
-        // add the importing module's repository to the search path so we find local modules
-        if (scriptable instanceof ModuleScope)
-            return ((ModuleScope) scriptable).getRepository();
-        return null;
-    }
 
     /**
      * Add a resource to the application classpath.
@@ -179,10 +157,10 @@ public class GlobalFunctions {
         ScriptUtils.checkArguments(args, 1, 1);
         String path = ScriptUtils.getStringArgument(args, 0);
         // add the importing module's repository to the search path so we find local modules
-        Resource resource = engine.findResource(path, getLocalRepository(thisObj));
+        Resource resource = engine.findResource(path, engine.getRepository(thisObj));
         URL url = resource.getUrl();
         engine.loader.addURL(url);
-        return Undefined.instance;
+        return url.toString();
     }
 
     /**
@@ -198,7 +176,7 @@ public class GlobalFunctions {
         ScriptUtils.checkArguments(args, 1, 1);
         String path = ScriptUtils.getStringArgument(args, 0);
         // add the importing module's repository to the search path so we find local modules
-        Resource resource = engine.findResource(path, getLocalRepository(thisObj));
+        Resource resource = engine.findResource(path, engine.getRepository(thisObj));
         return Context.javaToJS(resource, engine.topLevelScope);
     }
 
@@ -261,6 +239,15 @@ public class GlobalFunctions {
         });
         parser.parse(res);
         return true;
+    }
+
+    // get the first non-module scope in the scope prototype chain
+    private static Scriptable getTopScope(Context cx) {
+        Scriptable scope = ScriptRuntime.getTopCallScope(cx);
+        while (scope instanceof ModuleScope && scope.getPrototype() != null) {
+            scope = scope.getPrototype();
+        }
+        return scope;
     }
 
 }

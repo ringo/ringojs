@@ -10,7 +10,9 @@
  */
 package org.helma.javascript;
 
-import org.mozilla.javascript.*;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.ErrorReporter;
 
 import java.util.HashMap;
 
@@ -75,7 +77,6 @@ public class HelmaContextFactory extends ContextFactory {
         cx.removeThreadLocal("modules");
         super.onContextReleased(cx);
     }
-
 
     public void setStrictMode(boolean flag)
     {

@@ -27,32 +27,25 @@ import org.mozilla.javascript.*;
 public class ModuleScope extends NativeObject {
 
     Resource resource;
-    ModuleScope ownerScope;
+    Repository repository;
     boolean hasAdapterFunctions;
     AdapterFlag isAdapter = new AdapterFlag();
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(Resource resource, ModuleScope owner, Scriptable prototype) {
+    public ModuleScope(Resource resource, Repository repository, Scriptable prototype) {
         this.resource = resource;
-        this.ownerScope = owner;
+        this.repository = repository;
         setParentScope(null);
         setPrototype(prototype);
     }
 
-    public Resource getResource() {
-        return resource;
-    }
-
     public Repository getRepository() {
-        return resource.getRepository();
-    }
-
-    public ModuleScope getOwner() {
-        return ownerScope;
+        return repository;
     }
 
     public String toString() {
-        return "[ModuleScope " + resource + "]";
+        Object path = resource == null ? repository : resource;
+        return "[ModuleScope " + path + "]";
     }
 
     public Object getDefaultValue(Class hint) {
@@ -72,8 +65,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public Object get(String name, Scriptable start) {
-        // System.err.println(" IIAA GG " + isAdapter.get() + " ::: " + hasAdapterFunctions);
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(GET_PROP);
             if (func != null) {
                 return call(func, new Object[] { name });
@@ -83,7 +75,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public Object get(int index, Scriptable start) {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(GET_PROP);
             if (func != null) {
                 return call(func, new Object[] { index });
@@ -93,7 +85,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public boolean has(String name, Scriptable start) {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(HAS_PROP);
             if (func != null) {
                 Object res = call(func, new Object[] { name });
@@ -104,7 +96,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public boolean has(int index, Scriptable start) {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(HAS_PROP);
             if (func != null) {
                 Object res = call(func, new Object[] { index });
@@ -116,7 +108,7 @@ public class ModuleScope extends NativeObject {
 
     public void put(String name, Scriptable start, Object value) {
         if (start == this) {
-            if (isAdapter.get()) {
+            if (hasAdapterFunctions && isAdapter.get()) {
                 Function func = getAdapteeFunction(PUT_PROP);
                 if (func != null) {
                     call(func, new Object[] { name, value });
@@ -131,7 +123,7 @@ public class ModuleScope extends NativeObject {
 
     public void put(int index, Scriptable start, Object value) {
         if (start == this) {
-            if (isAdapter.get()) {
+            if (hasAdapterFunctions && isAdapter.get()) {
                 Function func = getAdapteeFunction(PUT_PROP);
                 if( func != null) {
                     call(func, new Object[] { index, value });
@@ -145,7 +137,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public void delete(String name) {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(DEL_PROP);
             if (func != null) {
                 call(func, new Object[] { name });
@@ -156,7 +148,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public void delete(int index) {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(DEL_PROP);
             if (func != null) {
                 call(func, new Object[] { index });
@@ -167,10 +159,10 @@ public class ModuleScope extends NativeObject {
     }
 
     public Object[] getIds() {
-        if (isAdapter.get()) {
+        if (hasAdapterFunctions && isAdapter.get()) {
             Function func = getAdapteeFunction(GET_PROPIDS);
             if (func != null) {
-                Object val = call(func, new Object[0]);
+                Object val = call(func, RhinoEngine.EMPTY_ARGS);
                 // in most cases, adaptee would return native JS array
                 if (val instanceof NativeArray) {
                     NativeArray array = (NativeArray) val;

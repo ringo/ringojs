@@ -19,10 +19,7 @@ package org.helma.javascript;
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.tools.launcher.HelmaClassLoader;
-import org.helma.util.CaseInsensitiveMap;
-import org.helma.util.JSAdapter;
-import org.helma.util.ScriptableList;
-import org.helma.util.ScriptableMap;
+import org.helma.util.*;
 import org.mozilla.javascript.*;
 
 import java.io.File;
@@ -41,16 +38,16 @@ import java.util.Map;
  */
 public class RhinoEngine {
 
-    List<Repository> repositories;
-    ScriptableObject topLevelScope;
-    Map<String, ReloadableScript> compiledScripts = new HashMap<String, ReloadableScript>();
-    Map<String, ReloadableScript> interpretedScripts = new HashMap<String, ReloadableScript>();
-    Map<String, Function> requestListeners = new HashMap<String, Function>();
-    AppClassLoader loader = new AppClassLoader();
-    WrapFactory wrapFactory = new HelmaWrapFactory();
-    ContextFactory contextFactory = new HelmaContextFactory(this);
+    List<Repository>               repositories;
+    ScriptableObject               topLevelScope;
+    Map<String, ReloadableScript>  compiledScripts    = new HashMap<String, ReloadableScript>();
+    Map<String, ReloadableScript>  interpretedScripts = new HashMap<String, ReloadableScript>();
+    Map<String, Function>          requestListeners   = new HashMap<String, Function>();
+    AppClassLoader                 loader             = new AppClassLoader();
+    HelmaWrapFactory               wrapFactory        = new HelmaWrapFactory();
+    HelmaContextFactory            contextFactory     = new HelmaContextFactory(this);
 
-    public static final Object[] EMPTY_ARGS = new Object[0];
+    public static final Object[]   EMPTY_ARGS         = new Object[0];
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
@@ -191,8 +188,8 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         try {
             Scriptable scope = createThreadScope(cx);
-            Resource resource = repositories.get(0).getResource("<shell>");
-            ModuleScope module = new ModuleScope(resource, null, scope);
+            Repository repository = repositories.get(0);
+            Resource resource = repository.getResource("<shell>");
             try {
                 // exec script on scope without setting the module resource -
                 // this is why we don't use ReloadableScript.evaluate().
@@ -200,7 +197,7 @@ public class RhinoEngine {
             } catch (Exception x) {
                 System.err.println("Warning: couldn't load module 'helma.shell'.");
             }
-            return module;
+            return new ModuleScope(resource, repository, scope);
         } finally {
             Context.exit();
         }
@@ -321,11 +318,23 @@ public class RhinoEngine {
                 interpretedScripts : compiledScripts;
         ReloadableScript script = scripts.get(moduleName);
         if (script == null) {
-            String resourceName = moduleName.replace('.', File.separatorChar) + ".js";
-            Resource resource = findResource(resourceName, localPath);
-            script = new ReloadableScript(resource, this);
-            if (resource.exists()) {
-                scripts.put(moduleName, script);
+            boolean isWildcard = moduleName.endsWith(".*");
+            if (isWildcard) {
+                String repositoryName = moduleName
+                        .substring(0, moduleName.length() - 2)
+                        .replace('.', File.separatorChar);
+                Repository repository = findRepository(repositoryName, localPath);
+                script = new ReloadableScript(repository, this);
+                if (repository.exists()) {
+                    scripts.put(moduleName, script);
+                }
+            } else {
+                String resourceName = moduleName.replace('.', File.separatorChar) + ".js";
+                Resource resource = findResource(resourceName, localPath);
+                script = new ReloadableScript(resource, this);
+                if (resource.exists()) {
+                    scripts.put(moduleName, script);
+                }
             }
         }
         return script;
@@ -348,12 +357,27 @@ public class RhinoEngine {
         if (modules.containsKey(moduleName)) {
             return (Scriptable) modules.get(moduleName);
         }
-        Repository local = loadingScope instanceof ModuleScope ?
-                ((ModuleScope) loadingScope).getRepository() : null;
+        Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable scope = script.load(parentScope, loadingScope, cx);
+        Scriptable scope = script.load(parentScope, cx);
         modules.put(moduleName, scope);
         return scope;
+    }
+
+    /**
+     * Get the repository associated with the scope or one of its prototypes
+     *
+     * @param scope the scope to get the repository from
+     * @return the repository, or null
+     */
+    protected Repository getRepository(Scriptable scope) {
+        while (scope != null) {
+            if (scope instanceof ModuleScope) {
+                return ((ModuleScope) scope).getRepository();
+            }
+            scope = scope.getPrototype();
+        }
+        return null;
     }
 
     /**
@@ -369,6 +393,21 @@ public class RhinoEngine {
             }
         }
         return repositories.get(0).getResource(path);
+    }
+
+    /**
+     * Get a resource from our script repository
+     * @param path the resource path
+     * @return the resource
+     */
+    public Repository getRepository(String path) {
+        for (Repository repo: repositories) {
+            Repository repository = repo.getChildRepository(path);
+            if (repository.exists()) {
+                return repository;
+            }
+        }
+        return repositories.get(0).getChildRepository(path);
     }
 
     /**
@@ -397,6 +436,16 @@ public class RhinoEngine {
         return getResource(path);
     }
 
+    public Repository findRepository(String path, Repository localPath) {
+        if (localPath != null) {
+            Repository repository = localPath.getChildRepository(path);
+            if (repository.exists()) {
+                return repository;
+            }
+        }
+        return getRepository(path);
+    }
+
     public ContextFactory getContextFactory() {
         return contextFactory;
     }
@@ -409,7 +458,18 @@ public class RhinoEngine {
         return wrapFactory;
     }
 
+    public ExtendedJavaClass getExtendedClass(Class type) {
+        ExtendedJavaClass wrapper =  wrapFactory.javaWrappers.get(type.getName());
+        if (wrapper == null) {
+            wrapper = new ExtendedJavaClass(topLevelScope, type);
+            wrapFactory.javaWrappers.put(type.getName(), wrapper);
+        }
+        return wrapper;
+    }
+
     class HelmaWrapFactory extends WrapFactory {
+
+        Map<String, ExtendedJavaClass> javaWrappers = new HashMap<String, ExtendedJavaClass>();
 
         public HelmaWrapFactory() {
             // disable java primitive wrapping, it's just annoying.
@@ -475,8 +535,62 @@ public class RhinoEngine {
          * @return the wrapped value which shall not be null
          */
         public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType) {
+            // TODO: for now we always use the actual class as staticType may be an interface
+            // and getExtendedClass() can't deal with that
+            ExtendedJavaClass extClass = getExtendedClass(javaObject.getClass());
+            if (extClass != null) {
+                return new ExtendedJavaObject(scope, javaObject, staticType, extClass);
+            }
             return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
         }
+
+        protected ExtendedJavaClass getExtendedClass(Class clazz) {
+            if (clazz.isInterface()) {
+                // can't deal with interfaces - panic
+                throw new IllegalArgumentException();
+            }
+            // How class name to prototype name lookup works:
+            // If an object is not found by its direct class name, a cache entry is added
+            // for the class name. For negative result, the string "(unmapped)" is used
+            // as cache value.
+            //
+            // Caching is done directly in classProperties, as ResourceProperties have
+            // the nice effect of being purged when the underlying resource is updated,
+            // so cache invalidation happens implicitely.
+            String className = clazz.getName();
+            ExtendedJavaClass extClass = javaWrappers.get(className);
+            // fast path: direct hit, either positive or negative
+            if (extClass != null) {
+                return extClass == ExtendedJavaClass.NONE ? null : extClass;
+            }
+
+            // walk down superclass path. We already checked the actual class,
+            // and we know that java.lang.Object does not implement any interfaces,
+            // and the code is streamlined a bit to take advantage of this.
+            while (clazz != Object.class) {
+                // check interfaces
+                Class[] classes = clazz.getInterfaces();
+                for (Class interfaceClass : classes) {
+                    extClass = javaWrappers.get(interfaceClass.getName());
+                    if (extClass != null) {
+                        // cache the class name for the object so we run faster next time
+                        javaWrappers.put(className, extClass);
+                        return extClass;
+                    }
+                }
+                clazz = clazz.getSuperclass();
+                extClass = javaWrappers.get(clazz.getName());
+                if (extClass != null) {
+                    // cache the class name for the object so we run faster next time
+                    javaWrappers.put(className, extClass);
+                    return extClass == ExtendedJavaClass.NONE ? null : extClass;
+                }
+            }
+            // not mapped - cache negative result
+            javaWrappers.put(className, ExtendedJavaClass.NONE);
+            return null;
+        }
+
     }
 
 }
