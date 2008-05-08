@@ -311,17 +311,24 @@ public class ScriptableRequest extends ScriptableObject {
         while (en.hasMoreElements()) {
             list.add(en.nextElement());
         }
-        return Context.getCurrentContext()
-                .newArray(getParentScope(), list.toArray());
+        Context cx = Context.getCurrentContext();
+        return cx.newArray(getParentScope(), list.toArray());
     }
 
     protected Scriptable getJsArray(Object[] arr) {
         Scriptable scope = getParentScope();
-        Object[] objectArray = new Object[arr == null ? 0 : arr.length];
-        for (int i=0; i<objectArray.length; i++) {
-            objectArray[i] = Context.toObject(arr[i], scope);
+        Context cx = Context.getCurrentContext();
+        if (arr == null) {
+            return cx.newArray(scope, 0);
         }
-        return Context.getCurrentContext().newArray(scope, objectArray);
+        int length = arr.length;
+        Scriptable array = cx.newArray(scope, length);
+        for (int i = 0; i < length; i++) {
+            if (arr[i] != null) {
+                array.put(i, array, Context.toObject(arr[i], scope));
+            }
+        }
+        return array;
     }
 
 }
