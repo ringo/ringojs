@@ -125,8 +125,11 @@ public class HelmaShell {
                     Scriptable obj = scope;
                     String[] parts = word.split("\\.", -1);
                     for (int k = 0; k < parts.length - 1; k++) {
-                        obj = ScriptRuntime.toObject(scope, obj.get(parts[k], obj));
-
+                        Object o = ScriptableObject.getProperty(obj, parts[k]);
+                        if (o == null || o == ScriptableObject.NOT_FOUND) {
+                            return start;
+                        }
+                        obj = ScriptRuntime.toObject(scope, o);
                     }
                     String lastpart = parts[parts.length - 1];
                     // set return value to beginning of word we're replacing
@@ -147,7 +150,7 @@ public class HelmaShell {
                             // the list is just too long.
                             break;
                         }
-                        obj = (ScriptableObject) obj.getPrototype();
+                        obj = obj.getPrototype();
                     }
                 }
             } catch (Exception ignore) {
