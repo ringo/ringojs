@@ -43,6 +43,7 @@ public class RhinoEngine {
     Map<String, ReloadableScript>  compiledScripts    = new HashMap<String, ReloadableScript>();
     Map<String, ReloadableScript>  interpretedScripts = new HashMap<String, ReloadableScript>();
     Map<String, Function>          requestListeners   = new HashMap<String, Function>();
+    Map<String, Function>          responseListeners  = new HashMap<String, Function>();
     AppClassLoader                 loader             = new AppClassLoader();
     HelmaWrapFactory               wrapFactory        = new HelmaWrapFactory();
     HelmaContextFactory            contextFactory     = new HelmaContextFactory(this);
@@ -109,7 +110,7 @@ public class RhinoEngine {
      * Register a request listener. Request listeners are javascript functions
      * that are invoked before a request is processed.
      * @param name the request listener name
-     * @param func the requst listener function
+     * @param func the request listener function
      */
     public void addRequestListener(String name, Function func) {
         requestListeners.put(name, func);
@@ -121,6 +122,24 @@ public class RhinoEngine {
      */
     public void removeRequestListener(String name) {
         requestListeners.remove(name);
+    }
+
+    /**
+     * Register a response listener. Response listeners are javascript functions
+     * that are invoked after a response has been generated.
+     * @param name the response listener name
+     * @param func the response listener function
+     */
+    public void addResponseListener(String name, Function func) {
+        responseListeners.put(name, func);
+    }
+
+    /**
+     * Unregister a previously registered response listener.
+     * @param name the response listener name
+     */
+    public void removeResponseListener(String name) {
+        responseListeners.remove(name);
     }
 
     /**
@@ -240,7 +259,7 @@ public class RhinoEngine {
      * @param cx the current context
      * @return the scope object
      */
-    protected Scriptable createThreadScope(Context cx) {
+    public Scriptable createThreadScope(Context cx) {
         Scriptable threadScope = cx.newObject(topLevelScope);
         threadScope.setPrototype(topLevelScope);
         threadScope.setParentScope(null);
