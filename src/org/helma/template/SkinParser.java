@@ -18,8 +18,8 @@ package org.helma.template;
 
 import org.helma.repository.Resource;
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 /**
  * Scanner for Helma templates/skins.
@@ -59,7 +59,7 @@ public class SkinParser {
                             renderer.renderText(buffer.toString());
                             buffer.setLength(0);
                         }
-                        readMacro(reader);
+                        renderer.renderMacro(readMacro(reader));
                     } else {
                         buffer.append((char) c);
                         reader.reset();
@@ -75,7 +75,7 @@ public class SkinParser {
         }
     }
 
-    void readMacro(LineNumberReader reader) throws IOException, UnbalancedTagException {
+    protected MacroTag readMacro(LineNumberReader reader) throws IOException, UnbalancedTagException {
         boolean escape = false;
         int quotechar = 0;
         Stack<ObjectList> stack = new Stack<ObjectList>();
@@ -84,6 +84,30 @@ public class SkinParser {
 
         loop: while ((c = reader.read()) > 0) {
             switch (c) {
+                case '|':
+                    if (quotechar == 0) {
+                        list.macro.addFilter(readMacro(reader));
+                    } else {
+                        buffer.append((char) c);
+                    }
+                    break;
+                case '<':
+                    if (quotechar == 0) {
+                        reader.mark(1);
+                        if (reader.read() == '%') {
+                            if (buffer.length() > 0) {
+                                renderer.renderText(buffer.toString());
+                                buffer.setLength(0);
+                            }
+                            list.add(readMacro(reader));
+                        } else {
+                            buffer.append((char) c);
+                            reader.reset();
+                        }
+                    } else {
+                        buffer.append((char) c);
+                    }
+                    break;
                 case '%':
                     if (quotechar == 0) {
                         reader.mark(1);
@@ -188,7 +212,7 @@ public class SkinParser {
         if (!stack.isEmpty()) {
             throw new UnbalancedTagException("unbalanced macro");
         }
-        renderer.renderMacro(list.macro);
+        return list.macro;
     }
 
     /**

@@ -22,8 +22,8 @@ import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.*;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A macro tag. Basically a list of unnamed parameters
@@ -34,9 +34,11 @@ public class MacroTag extends ScriptableObject {
     Object name;
     ArrayList<Object> args = new ArrayList<Object>();
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
+    MacroTag filter = null;
     int startLine;
 
-    static final Object[] ownIds = new Object[] {"name", "parameters", "parameterNames"};
+    static final Object[] ownIds = new Object[] {"name", "parameters",
+                                                 "parameterNames", "filter"};
 
     Object jsParams, jsNames;
 
@@ -56,6 +58,14 @@ public class MacroTag extends ScriptableObject {
 
     public Map<String,Object> getNamedArgs() {
         return namedArgs;
+    }
+
+    public void addFilter(MacroTag filter) {
+        if (this.filter == null) {
+            this.filter = filter;
+        } else {
+            this.filter.addFilter(filter);
+        }
     }
 
     public int jsGet_startLine() {
@@ -85,6 +95,16 @@ public class MacroTag extends ScriptableObject {
             jsParams = cx.newArray(getTopLevelScope(this), values);
         }
         return jsParams;
+    }
+
+    public Object jsGet_filter() {
+        if (filter != null) {
+            filter.setParentScope(getParentScope());
+            filter.setPrototype(getPrototype());
+            return filter;
+        } else {
+            return NOT_FOUND;
+        }
     }
 
     public Object[] getIds() {
