@@ -18,16 +18,19 @@ function renderSkin(skinOrPath, context, scope) {
  * Parse a skin from a resource.
  * @param resource
  */
-function createSkin(resource, scope) {
+function createSkin(resourceOrString, scope) {
     var mainSkin = [];
     var subSkins = {};
     var currentSkin = mainSkin;
     var parentSkin = null;
-    parseSkin(resource, function(part) {
+    parseSkin(resourceOrString, function(part) {
         if (part.name === 'extends') {
             var skinPath = part.getParameter(0);
-            var skinResource = resource.repository.getResource(skinPath);
-            if (!skinResource.exists()) {
+            var skinResource;
+            if (resourceOrString.repository) {
+                skinResource = resourceOrString.repository.getResource(skinPath);
+            }
+            if (!skinResource || !skinResource.exists()) {
                 skinResource = scope.getResource(skinPath);
             }
             parentSkin = createSkin(skinResource);
@@ -126,21 +129,25 @@ function Skin(mainSkin, subSkins, parentSkin) {
         var last = path[length-1];
         for (var i = 0; i < length - 1; i++) {
             elem = elem[path[i]];
-            if (!elem) {
+            if (!isDefined(elem)) {
                 break;
             }
         }
-        if (elem && elem[last]) {
+        if (isDefined(elem) && isDefined(elem[last])) {
             elem = elem[path[length-1]];
             if (elem instanceof Function) {
                 return elem(macro, self, context);
             } else {
                 return elem;
             }
-        } else if (elem && elem[last + "_macro"] instanceof Function) {
+        } else if (isDefined(elem) && elem[last + "_macro"] instanceof Function) {
             return elem[last + "_macro"].call(elem, macro, self, context);
         }
     };
+
+    var isDefined = function(elem) {
+        return elem != undefined && elem != null;
+    }
 
     // builtin macro handlers
     var builtins = {
