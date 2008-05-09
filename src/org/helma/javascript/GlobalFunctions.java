@@ -216,17 +216,18 @@ public class GlobalFunctions {
             throw new IllegalArgumentException("Second argument to parseSkin must be a function");
         }
         final Function func = (Function) args[1];
-        Resource res;
+        Resource res = null;
+        String str = null;
         if (desc instanceof Resource) {
             res = (Resource) desc;
+            if (!res.exists()) {
+                throw new FileNotFoundException("Resource '" + res + "' not found");
+            }
         } else if (desc instanceof String) {
-            res = engine.getResource((String) desc);
+            str = (String) desc;
         } else {
             throw new IllegalArgumentException("Can't converert to skin resource: " + desc);
         }           
-        if (!res.exists()) {
-            throw new FileNotFoundException("Resource '" + res + "' not found");
-        }
         SkinParser parser = new SkinParser(new SkinRenderer() {
             public void renderText(String text) {
                 func.call(cx, thisObj, null, new Object[] {text});
@@ -237,7 +238,11 @@ public class GlobalFunctions {
                         new Object[] {engine.wrapArgument(macro, thisObj)});
             }
         });
-        parser.parse(res);
+        if (res != null) {
+            parser.parse(res);
+        } else {
+            parser.parse(str);
+        }
         return true;
     }
 
