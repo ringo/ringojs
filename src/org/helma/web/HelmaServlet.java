@@ -11,17 +11,17 @@
 
 package org.helma.web;
 
-import org.helma.util.StringUtils;
 import org.helma.javascript.RhinoEngine;
-import org.helma.tools.HelmaConfiguration;
 import org.helma.template.MacroTag;
+import org.helma.tools.HelmaConfiguration;
+import org.helma.util.StringUtils;
 import org.mozilla.javascript.WrappedException;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
 import java.io.IOException;
 import java.util.concurrent.*;
 
@@ -33,6 +33,8 @@ public class HelmaServlet extends HttpServlet {
     protected RhinoEngine engine;
 
     private ExecutorService pool;
+
+    private int requestTimeout = 10;
 
     static protected Class[] defaultHostClasses =
         new Class[] {
@@ -62,6 +64,10 @@ public class HelmaServlet extends HttpServlet {
         pool = Executors.newFixedThreadPool(8);
         if (engine == null) {
             try {
+                String timeout = config.getInitParameter("requestTimeout");
+                if (timeout != null) {
+                    requestTimeout = Integer.parseInt(timeout);
+                }
                 String classNames = config.getInitParameter("hostClasses");
                 Class[] classes = defaultHostClasses;
                 if (classNames != null) {
@@ -87,14 +93,16 @@ public class HelmaServlet extends HttpServlet {
             throws ServletException, IOException {
         Future<Status> future = pool.submit(new Callable<Status>() {
             public Status call() {
+                ScriptableResponse scriptableRes = new ScriptableResponse(res);
                 Object[] args = {
                     new ScriptableRequest(req),
-                    new ScriptableResponse(res),
+                    scriptableRes,
                     new ScriptableSession(req)
                 };
                 Status status = new Status();
                 try {
                     engine.invoke(null, "main", "handleRequest", args);
+                    scriptableRes.close();
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();
                 } catch (WrappedException wx) {
@@ -119,6 +127,14 @@ public class HelmaServlet extends HttpServlet {
         } catch (TimeoutException x) {
             throw new ServletException("Request timed out", x);
         }
+    }
+
+    public int getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    public void setRequestTimeout(int requestTimeout) {
+        this.requestTimeout = requestTimeout;
     }
 
     class Status {

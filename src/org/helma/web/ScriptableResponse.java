@@ -59,6 +59,22 @@ public class ScriptableResponse extends ScriptableObject {
     }
 
     /**
+     * Get the wrapped Writer for this response
+     * @return a wrapped StringWriter
+     */
+    public Object jsGet_writer() {
+        return Context.toObject(getWriter(), getParentScope());
+    }
+
+    /**
+     * Get the StringBuffer instance associated with the response's writer
+     * @return the wrapped StringBuffer
+     */
+    public Object jsGet_buffer() {
+        return Context.toObject(getWriter().getBuffer(), getParentScope());
+    }
+
+    /**
      * Property to set/get the Content-Type header of the current HTTP response.
      *
      *   res.contentType = "text/html";
@@ -242,11 +258,22 @@ public class ScriptableResponse extends ScriptableObject {
         return buffers.pop().toString();
     }
 
-    public synchronized Writer getWriter() throws IOException {
+    public synchronized StringWriter getWriter() {
         if (buffers.isEmpty()) {
-            return response.getWriter();
-        } else {
-            return buffers.peek();
+            buffers.push(new StringWriter());
+        }
+        return buffers.peek();
+    }
+
+    public synchronized void close() throws IOException {
+        while (buffers.size() > 1) {
+            StringWriter writer = buffers.pop();
+            buffers.peek().write(writer.toString());
+        }
+        if (buffers.size() == 1) {
+            Writer servletWriter = response.getWriter();
+            servletWriter.write(buffers.pop().toString());
+            servletWriter.close();
         }
     }
 
