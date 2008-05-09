@@ -108,13 +108,18 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var evaluateMacro = function(macro, context, paramIndex) {
         paramIndex = paramIndex || 0;
+        var length = res.buffer.length();
         if (macro.name in builtins) {
             builtins[macro.name](macro, context, paramIndex);
         } else {
             var value = evaluateExpression(macro, context);
-            if (value !== null && value !== '' && value !== undefined) {
-                res.write(macro.getParameter('prefix') || '');
-                res.write(value);
+            var visibleValue = isVisible(value);
+            var wroteSomething = res.buffer.length() > length;
+            if (visibleValue || wroteSomething) {
+                res.buffer.insert(length, macro.getParameter('prefix') || '');
+                if (visibleValue) {
+                    res.write(value);
+                }
                 res.write(macro.getParameter('suffix') || '');
             } else {
                 res.write(macro.getParameter('default') || '');
@@ -133,20 +138,24 @@ function Skin(mainSkin, subSkins, parentSkin) {
                 break;
             }
         }
-        if (isDefined(elem) && isDefined(elem[last])) {
+        if (isDefined(elem) && elem[last + "_macro"] instanceof Function) {
+            return elem[last + "_macro"].call(elem, macro, self, context);
+        } else if (isDefined(elem) && isDefined(elem[last])) {
             elem = elem[path[length-1]];
             if (elem instanceof Function) {
                 return elem(macro, self, context);
             } else {
                 return elem;
             }
-        } else if (isDefined(elem) && elem[last + "_macro"] instanceof Function) {
-            return elem[last + "_macro"].call(elem, macro, self, context);
         }
     };
 
     var isDefined = function(elem) {
-        return elem != undefined && elem != null;
+        return elem !== undefined && elem !== null;
+    }
+
+    var isVisible = function(elem) {
+        return elem !== undefined && elem !== null && elem !== '';
     }
 
     // builtin macro handlers
