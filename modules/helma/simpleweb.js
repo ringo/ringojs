@@ -38,7 +38,9 @@ function handleRequest(req, res, session) {
         }
     }
     var lastPart = path[path.length - 1];
-    var action = lastPart ? lastPart + '_action' : 'main_action';
+    var action = lastPart ?
+                 lastPart.replace('.', '_', 'g') + '_action' :
+                 'main_action';
     // res.writeln(handler, action, handler[action]);
     if (!(handler[action] instanceof Function)) {
         if (!req.path.endsWith('/') && handler[lastPart] &&
