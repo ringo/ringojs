@@ -120,7 +120,7 @@
                 deprecation="${deprecation}"
                 optimize="${optimize}">
         </javac>
-        <javadoc packagenames="org.helma.web"
+        <javadoc packagenames="org.helma.web,org.helma.template"
                  sourcepath="${src}"
                  doclet="RhinoDoclet"
                  docletpath="tools">
