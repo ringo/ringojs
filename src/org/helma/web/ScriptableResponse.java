@@ -51,10 +51,18 @@ public class ScriptableResponse extends ScriptableObject {
         }
     }
 
+    /**
+     * Get or set the HTTP status code of the response.
+     * @return the HTTP status code of the response.
+     */
     public int jsGet_status()  {
         return status;
     }
 
+    /**
+     * Set the HTTP status code of the response.
+     * @param status the HTTP status code of the response
+     */
     public void jsSet_status(int status) {
         response.setStatus(status);
         this.status = status;
@@ -115,6 +123,7 @@ public class ScriptableResponse extends ScriptableObject {
      * @param thisObj the object the method was called on
      * @param args the arguments
      * @param funObj the function object
+     * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
     public static void jsFunction_write(Context cx, Scriptable thisObj,
                                         Object[] args, Function funObj) {
@@ -141,6 +150,7 @@ public class ScriptableResponse extends ScriptableObject {
      * @param thisObj the object the method was called on
      * @param args the arguments
      * @param funObj the function object
+     * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
     public static void jsFunction_writeln(Context cx, Scriptable thisObj,
                                           Object[] args, Function funObj) {
@@ -170,11 +180,11 @@ public class ScriptableResponse extends ScriptableObject {
      * user session and discarded afterwards. A days value of 0 means the cookie should
      * be immediately discarded by the client and can therefore be used to delete a cookie.
      *
-     * @rhinoparam name the cookie name
-     * @rhinoparam value the cookie value
-     * @rhinoparam days number of days the cookie should be stored
-     * @rhinoparam path the URL path to apply the cookie to
-     * @rhinoparam domain the domain to apply the cookie to
+     * @rhinoparam name String the cookie name
+     * @rhinoparam value String  the cookie value
+     * @rhinoparam days Integer number of days the cookie should be stored
+     * @rhinoparam path String the URL path to apply the cookie to
+     * @rhinoparam domain String the domain to apply the cookie to
      */
     public static void jsFunction_setCookie(Context cx, Scriptable thisObj,
                                           Object[] args, Function funObj) {
