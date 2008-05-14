@@ -16,10 +16,12 @@
 
 import com.sun.javadoc.*;
 
-import java.util.*;
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.util.*;
 
 /**
  * A doclet that extracts Rhino host object documentation out of javadoc comments
@@ -36,13 +38,17 @@ public class RhinoDoclet {
                 addClassDoc(doc, map);
         }
         Writer writer = new FileWriter("rhinodoc.json");
-        writeJson(map, writer);
+        writeJson(map, writer, 0);
         writer.close();
         return true;
     }
 
     static void addClassDoc(ClassDoc doc, Map<String,Object> map) {
         HashMap<String,Object> classMap = new HashMap<String,Object>();
+        Map<String,Object> methodMap = new HashMap<String,Object>();
+        Map<String,Object> propertyMap = new HashMap<String,Object>();
+        classMap.put("methods", methodMap);
+        classMap.put("properties", propertyMap);
         Tag nametag = getTag(doc, "rhinoclass");
         String name = nametag == null ? doc.name() : nametag.text();
         addGenericDoc(doc, name, "class", classMap);
@@ -50,11 +56,11 @@ public class RhinoDoclet {
         for (MethodDoc method: methods) {
             String methodName = method.name();
             if (methodName.startsWith("jsFunction_")) {
-                addMethodDoc(method, classMap);
+                addMethodDoc(method, methodMap);
             } else if (methodName.startsWith("jsGet_")) {
-                addPropertyDoc(method, classMap);
+                addPropertyDoc(method, propertyMap);
             } else if (methodName.startsWith("jsSet_")) {
-                addPropertyDoc(method, classMap);
+                addPropertyDoc(method, propertyMap);
             }
         }
         map.put(name, classMap);
@@ -62,20 +68,44 @@ public class RhinoDoclet {
 
     static void addMethodDoc(MethodDoc doc, Map<String,Object> map) {
         HashMap<String,Object> methMap = new HashMap<String,Object>();
-        String name = doc.name().substring(11) + "()";
-        Parameter[] params = doc.parameters();
-        ParamTag[] paramTags = doc.paramTags();
+        String name = doc.name().substring(11);
         List<Object> paramList = new ArrayList<Object>();
-        for (Parameter param: params) {
-            Map<String, String> paramMap = new HashMap<String, String>();
-            paramMap.put("name", param.name());
-            paramMap.put("type", param.typeName());
-            for (ParamTag tag: paramTags)
-                if (param.name().equals(tag.parameterName())) {
-                    paramMap.put("desc", tag.parameterComment());
-                    break;
+        Tag[] rhinoTags = doc.tags("rhinoparam");
+        if (rhinoTags == null || rhinoTags.length == 0) {
+            Parameter[] params = doc.parameters();
+            ParamTag[] paramTags = doc.paramTags();
+            for (Parameter param: params) {
+                Map<String, String> paramMap = new HashMap<String, String>();
+                paramMap.put("name", param.name());
+                paramMap.put("type", param.typeName());
+                for (ParamTag tag: paramTags) {
+                    if (param.name().equals(tag.parameterName())) {
+                        paramMap.put("description", tag.parameterComment());
+                        break;
+                    }
                 }
-            paramList.add(paramMap);
+                paramList.add(paramMap);
+            }
+        } else {
+            for (Tag tag: rhinoTags) {
+                String text = tag.text().trim();
+                Map<String, String> paramMap = new HashMap<String, String>();
+                String[] split = text.split("\\s");
+                if (split.length > 0) {
+                    paramMap.put("name", split[0]);
+                }
+                if (split.length > 1) {
+                    paramMap.put("type", split[1]);
+                }
+                if (split.length > 2) {
+                    StringBuffer b = new StringBuffer();
+                    for (int i = 2; i < split.length; i++) {
+                        b.append(split[i]).append(" ");
+                    }
+                    paramMap.put("description", b.toString());
+                }
+                paramList.add(paramMap);
+            }
         }
         methMap.put("params", paramList);
         addGenericDoc(doc, name, "method", methMap);
@@ -94,7 +124,7 @@ public class RhinoDoclet {
         map.put("name", name);
         map.put("type", type);
         map.put("body", body);
-        Tag desctag = getTag(doc, "desc");
+        Tag desctag = getTag(doc, "description");
         String desc = desctag == null ? getFirstSentence(body) : desctag.text();
         map.put("description", desc);
     }
@@ -158,31 +188,43 @@ public class RhinoDoclet {
     // A very primitive JSON writer, only supports objects and strings.
     // The String encoding code is gratefully lifted from the Springtree
     // JSON writer - see <http://blog.stringtree.org/2006/08/12/json/>
-    static void writeJson(Object obj, Writer writer) throws IOException {
+    static void writeJson(Object obj, Writer writer, int indent) throws IOException {
         if (obj instanceof Map) {
+            indent += 2;
             Map map = (Map) obj;
             writer.write("{");
+            writeNewline(writer, indent);
             Iterator it = map.keySet().iterator();
             while (it.hasNext()) {
                 Object key = it.next();
                 Object value = map.get(key);
-                writeJson(key, writer);
+                writeJson(key, writer, indent);
                 writer.write(": ");
-                writeJson(value, writer);
-                if (it.hasNext())
+                writeJson(value, writer, indent);
+                if (it.hasNext()) {
                     writer.write(", ");
+                    writeNewline(writer, indent);
+                }
             }
+            writeNewline(writer, indent);
             writer.write("}");
+            indent -= 2;
         } else if (obj instanceof List) {
+            indent += 2;
             List list = (List) obj;
             Iterator it = list.iterator();
             writer.write("[");
+            writeNewline(writer, indent);
             while (it.hasNext()) {
-                writeJson(it.next(), writer);
-                if (it.hasNext())
+                writeJson(it.next(), writer, indent);
+                if (it.hasNext()) {
                     writer.write(", ");
+                    writeNewline(writer, indent);
+                }
             }
+            writeNewline(writer, indent);
             writer.write("]");
+            indent -= 2;
         } else if (obj instanceof String) {
             writer.write('"');
             CharacterIterator it = new StringCharacterIterator(obj.toString());
@@ -208,6 +250,13 @@ public class RhinoDoclet {
                 }
             }
             writer.write('"');
+        }
+    }
+
+    static void writeNewline(Writer writer, int indent) throws IOException {
+        writer.write(System.getProperty("line.separator"));
+        for (int i = 0; i < indent; i++) {
+            writer.write(" ");
         }
     }
 }
