@@ -35,6 +35,7 @@ import java.util.Stack;
 public class ScriptableResponse extends ScriptableObject {
 
     private HttpServletResponse response;
+    private int status = 200;
     private Stack<StringWriter> buffers = new Stack<StringWriter>();
     private static final long serialVersionUID = 8492609461086704262L;
 
@@ -48,6 +49,15 @@ public class ScriptableResponse extends ScriptableObject {
         } else {
             throw new IllegalArgumentException("Expected HttpServletResponse, got " + res);
         }
+    }
+
+    public int jsGet_status()  {
+        return status;
+    }
+
+    public void jsSet_status(int status) {
+        response.setStatus(status);
+        this.status = status;
     }
 
     /**
