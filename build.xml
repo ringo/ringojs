@@ -10,6 +10,7 @@
         <echo message=" jar        --> generates the ./lib/helma.jar file"/>
         <echo message=" test       --> run JUnit tests"/>
         <echo message=" apidocs    --> generates the API docs"/>
+        <echo message=" rhinodocs  --> generate Javascript API for host classes as JSON file"/>
         <echo message=" package    --> creates Helma distribution"/>
         <echo message=" clean      --> clean up compiled resources"/>
     </target>
@@ -106,6 +107,26 @@
             <fileset dir="${src}" includes="**/*.java" />
             <classpath refid="classpath"/>
        </javadoc>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Creates the Rhino/Javascript API documentation as JSON file         -->
+    <!-- =================================================================== -->
+    <target name="rhinodocs" depends="init">
+         <javac srcdir="tools"
+                destdir="tools"
+                target="1.5"
+                debug="${debug}"
+                deprecation="${deprecation}"
+                optimize="${optimize}">
+        </javac>
+        <javadoc packagenames="org.helma.web"
+                 sourcepath="${src}"
+                 doclet="RhinoDoclet"
+                 docletpath="tools">
+                 <classpath refid="classpath"/>
+        </javadoc>
+        <echo message="Javascript documentation generated in rhinodoc.json"/>
     </target>
 
     <!-- =================================================================== -->
