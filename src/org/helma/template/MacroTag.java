@@ -68,15 +68,25 @@ public class MacroTag extends ScriptableObject {
         }
     }
 
+    /**
+     * Get the number of the line where this macro tag starts.
+     */
     public int jsGet_startLine() {
         return startLine;
     }
 
+    /**
+     * The name of the macro tag.
+     */
     public Object jsGet_name() {
         return name instanceof String ?
                 name : null;
     }
 
+
+    /**
+     * A Javascript array containing all parameter names in this macro tag.
+     */
     public Object jsGet_parameterNames() {
         if (jsNames == null) {
             Context cx = Context.getCurrentContext();
@@ -87,6 +97,10 @@ public class MacroTag extends ScriptableObject {
         return jsNames;
     }
 
+    /**
+     * A Javascript array containing all unnamed parameters in this macro tag, in the
+     * order in which they appear in the tag.
+     */
     public Object jsGet_parameters() {
         if (jsParams == null) {
             Context cx = Context.getCurrentContext();
@@ -97,6 +111,10 @@ public class MacroTag extends ScriptableObject {
         return jsParams;
     }
 
+    /**
+     * The next macro tag in the filter chain, or undefined if the macro tag does not contain
+     * a filter chain. The filter chain is defined by the pipe character '|' within within macro tags.
+     */
     public Object jsGet_filter() {
         if (filter != null) {
             filter.setParentScope(getParentScope());
@@ -121,6 +139,14 @@ public class MacroTag extends ScriptableObject {
                 "parameterNames".equals(name) || super.has(name, start);
     }
 
+    /**
+     * Get a named or unnamed parameter from the macro tag. This method takes a variable
+     * number of string or integer arguments. It evaluates the arguments as parameter
+     * names or parameter indices until a parameter is found and returns it. If the
+     * arguments don't match a parameter, the method returns null.
+     * @rhinoparam nameOrIndex StringOrInteger one or more parameter names or indices.
+     * @return Object The first parameter that matches one of the arguments.
+     */
     public static Object jsFunction_getParameter(Context cx, Scriptable thisObj,
                                       Object[] args, Function funObj) {
         try {
