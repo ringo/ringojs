@@ -17,7 +17,7 @@ function initWebApp() {
     addHostObject(org.helma.template.MacroTag);
     // register a request listener that automatically sets rhino optimization
     // level to -1 for requests that have a helma_continuation parameter.
-    addRequestListener('continuation-support', function(req) {
+    addOnRequest('continuation-support', function(req) {
         if (req && req.params.helma_continuation != null) {
             setRhinoOptimizationLevel(-1);
         }
@@ -32,20 +32,65 @@ function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
 }
 
-function addRequestListener(name, func) {
-    getRhinoEngine().addRequestListener(name, func);
+/**
+ * Register a onRequest handler function that is called before a request is processed.
+ * @param name the name of the handler
+ * @param func the handler function
+ */
+function addOnRequest(name, func) {
+    getRhinoEngine().addOnRequest(name, func);
 }
 
-function removeRequestListener(name) {
-    getRhinoEngine().removeRequestListener(name);
+/**
+ * Remove a onRequest handler function that was previously registered.
+ * @param name the name of the handler
+ */
+function removeOnRequest(name) {
+    getRhinoEngine().removeOnRequest(name);
 }
 
-function addResponseListener(name, func) {
-    getRhinoEngine().addResponseListener(name, func);
+/**
+ * Register a onResponse handler function that is called after a request is processed.
+ * @param name the name of the handler
+ * @param func the handler function
+ */
+function addOnResponse(name, func) {
+    getRhinoEngine().addOnResponse(name, func);
 }
 
-function removeResponseListener(name) {
-    getRhinoEngine().removeResponseListener(name);
+/**
+ * Remove a onResponse handler function that was previously registered.
+ * @param name the name of the handler
+ */
+function removeOnResponse(name) {
+    getRhinoEngine().removeOnResponse(name);
+}
+
+/**
+ * Register a callback handler function that can be called via invokeCallback().
+ * @param name the name of the handler
+ * @param func the handler function
+ */
+function addCallback(name, func) {
+    getRhinoEngine().addCallback(name, func);
+}
+
+/**
+ * Remove a callback handler function that was previously registered.
+ * @param name the name of the handler
+ */
+function removeCallback(name) {
+    getRhinoEngine().removeCallback(name);
+}
+
+/**
+ * Invoke a callback, failing silently if no callback is registered with this name.
+ * @param name the callback name
+ * @param thisObj the object to invoke the callback on, or null
+ * @param args the callback argument array
+ */
+function invokeCallback(name, thisObj, args) {
+    getRhinoEngine().invokeCallback(name, thisObj, args);
 }
 
 function setRhinoOptimizationLevel(level) {

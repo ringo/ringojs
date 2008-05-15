@@ -44,6 +44,7 @@ public class RhinoEngine {
     Map<String, ReloadableScript>  interpretedScripts = new HashMap<String, ReloadableScript>();
     Map<String, Function>          requestListeners   = new HashMap<String, Function>();
     Map<String, Function>          responseListeners  = new HashMap<String, Function>();
+    Map<String, Function>          callbacks          = new HashMap<String, Function>();
     AppClassLoader                 loader             = new AppClassLoader();
     HelmaWrapFactory               wrapFactory        = new HelmaWrapFactory();
     HelmaContextFactory            contextFactory     = new HelmaContextFactory(this);
@@ -84,6 +85,8 @@ public class RhinoEngine {
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
             JSAdapter.init(cx, topLevelScope, false);
+            ScriptableObject.defineProperty(topLevelScope, "global", topLevelScope,
+                    ScriptableObject.DONTENUM);
         } catch (Exception x) {
             throw new IllegalArgumentException("Error defining class", x);
         } finally {
@@ -112,7 +115,7 @@ public class RhinoEngine {
      * @param name the request listener name
      * @param func the request listener function
      */
-    public void addRequestListener(String name, Function func) {
+    public void addOnRequest(String name, Function func) {
         requestListeners.put(name, func);
     }
 
@@ -120,7 +123,7 @@ public class RhinoEngine {
      * Unregister a previously registered request listener.
      * @param name the request listener name
      */
-    public void removeRequestListener(String name) {
+    public void removeOnRequest(String name) {
         requestListeners.remove(name);
     }
 
@@ -130,7 +133,7 @@ public class RhinoEngine {
      * @param name the response listener name
      * @param func the response listener function
      */
-    public void addResponseListener(String name, Function func) {
+    public void addOnResponse(String name, Function func) {
         responseListeners.put(name, func);
     }
 
@@ -138,8 +141,48 @@ public class RhinoEngine {
      * Unregister a previously registered response listener.
      * @param name the response listener name
      */
-    public void removeResponseListener(String name) {
+    public void removeOnResponse(String name) {
         responseListeners.remove(name);
+    }
+
+    /**
+     * Register a callback. Callbacks are javascript functions
+     * that can be invoked on certain events.
+     * @param name the callback name
+     * @param func the callback function
+     */
+    public void addCallback(String name, Function func) {
+        callbacks.put(name, func);
+    }
+
+    /**
+     * Unregister a previously registered callback.
+     * @param name the callback name
+     */
+    public void removeCallback(String name) {
+        callbacks.remove(name);
+    }
+
+    /**
+     * Invoke a callback. If no callback is registered under this name fail silently.
+     * @param name the callback name
+     * @param args the arguments
+     * @return the return value
+     */
+    public Object invokeCallback(String name, Object thisObj, Object[] args) {
+        Function func = callbacks.get(name);
+        if (func != null) {
+            Context cx = Context.getCurrentContext();
+            Scriptable scope = ScriptRuntime.getTopCallScope(cx);
+            Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, scope);
+            initGlobalsAndArguments(scope, null, args);
+            Object retval = func.call(cx, scope, thisObject, args);
+            if (retval instanceof Wrapper) {
+                return ((Wrapper) retval).unwrap();
+            }
+            return retval;
+        }
+        return null;
     }
 
     /**
@@ -381,7 +424,7 @@ public class RhinoEngine {
         }
         Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable scope = script.load(parentScope, cx);
+        Scriptable scope = script.load(topLevelScope, cx);
         modules.put(moduleName, scope);
         return scope;
     }
