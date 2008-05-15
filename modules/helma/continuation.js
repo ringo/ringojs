@@ -55,7 +55,7 @@ Continuation.nextUrl = function() {
 Continuation.nextPage = function() {
     // capture continuation and store it in callback container
     setCallback(Continuation.nextId(), new Continuation());
-        // trick to exit current context: call empty continuation
+    // trick to exit current context: call empty continuation
     new org.mozilla.javascript.continuations.Continuation()();
 };
 
