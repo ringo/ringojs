@@ -181,8 +181,8 @@ public class RhinoEngine {
         try {
             Scriptable scope = createThreadScope(cx);
             initGlobalsAndArguments(scope, globals, args);
-            for (Function func: requestListeners.values()) {
-                func.call(cx, scope, null, args);
+            for (Function f: requestListeners.values()) {
+                f.call(cx, scope, null, args);
             }
             Scriptable module = loadModule(cx, path, scope, null);
             Object func = ScriptableObject.getProperty(module, method);
@@ -190,6 +190,9 @@ public class RhinoEngine {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
             }
             Object retval = ((Function) func).call(cx, scope, module, args);
+            for (Function f: responseListeners.values()) {
+                f.call(cx, scope, null, args);
+            }
             if (retval instanceof Wrapper) {
                 return ((Wrapper) retval).unwrap();
             }

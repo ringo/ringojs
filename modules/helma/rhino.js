@@ -40,6 +40,14 @@ function removeRequestListener(name) {
     getRhinoEngine().removeRequestListener(name);
 }
 
+function addResponseListener(name, func) {
+    getRhinoEngine().addResponseListener(name, func);
+}
+
+function removeResponseListener(name) {
+    getRhinoEngine().removeResponseListener(name);
+}
+
 function setRhinoOptimizationLevel(level) {
     getRhinoContext().setOptimizationLevel(level);    
 }
