@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -37,6 +39,7 @@ public class Response extends ScriptableObject {
     private HttpServletResponse response;
     private int status = 200;
     private Stack<Buffer> buffers = new Stack<Buffer>();
+    private Map<String, Buffer> namedBuffers;
     private static final long serialVersionUID = 8492609461086704262L;
 
     public Response() {
@@ -82,6 +85,25 @@ public class Response extends ScriptableObject {
      */
     public Object jsGet_buffer() {
         return Context.toObject(getBuffer(), getParentScope());
+    }
+
+    /**
+     * Get a named response buffer, creating it if it doesn't exist.
+     * @param name the buffer name
+     * @return the buffer
+     */
+    public Object jsFunction_getBuffer(String name) {
+        Buffer buffer = null;
+        if (namedBuffers == null) {
+            namedBuffers = new HashMap<String, Buffer>();
+        } else {
+            buffer = namedBuffers.get(name);
+        }
+        if (buffer == null) {
+            buffer = new Buffer();
+            namedBuffers.put(name, buffer);
+        }
+        return Context.toObject(buffer, getParentScope());
     }
 
     /**
