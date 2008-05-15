@@ -1,0 +1,25 @@
+
+body, th, td {
+	font-family: Verdana, helvetica, arial, sans-serif;
+	background: #fff;
+	color: #333;
+}
+
+ul#tree {
+    float: left;
+    width: 25%;
+    font-size: 80%;
+}
+
+div#description {
+}
+
+table {
+    border-collapse:collapse;
+    border: 1px solid black;
+}
+
+th {
+    text-align: left;
+    background-color: #eee;
+}
