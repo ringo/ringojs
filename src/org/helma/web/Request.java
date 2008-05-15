@@ -32,17 +32,17 @@ import java.util.*;
  *
  * @rhinoclass Request
  */
-public class ScriptableRequest extends ScriptableObject {
+public class Request extends ScriptableObject {
 
     HttpServletRequest request;
     Scriptable cookies, data, params, headers, attributes;
     private static final long serialVersionUID = -2167096504665220425L;
 
-    public ScriptableRequest() {
+    public Request() {
         super();
     }
 
-    public ScriptableRequest(Object request) {
+    public Request(Object request) {
         this.request = (HttpServletRequest) request;
     }
 

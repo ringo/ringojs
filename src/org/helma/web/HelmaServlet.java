@@ -38,9 +38,9 @@ public class HelmaServlet extends HttpServlet {
 
     static protected Class[] defaultHostClasses =
         new Class[] {
-            ScriptableRequest.class,
-            ScriptableResponse.class,
-            ScriptableSession.class,
+            Request.class,
+            Response.class,
+            Session.class,
             MacroTag.class
         };
 
@@ -93,16 +93,16 @@ public class HelmaServlet extends HttpServlet {
             throws ServletException, IOException {
         Future<Status> future = pool.submit(new Callable<Status>() {
             public Status call() {
-                ScriptableResponse scriptableRes = new ScriptableResponse(res);
+                Response response = new Response(res);
                 Object[] args = {
-                    new ScriptableRequest(req),
-                    scriptableRes,
-                    new ScriptableSession(req)
+                    new Request(req),
+                    response,
+                    new Session(req)
                 };
                 Status status = new Status();
                 try {
                     engine.invoke(null, "main", "handleRequest", args);
-                    scriptableRes.close();
+                    response.close();
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();
                 } catch (WrappedException wx) {

@@ -32,18 +32,18 @@ import java.util.Stack;
  *
  * @rhinoclass Response
  */
-public class ScriptableResponse extends ScriptableObject {
+public class Response extends ScriptableObject {
 
     private HttpServletResponse response;
     private int status = 200;
-    private Stack<StringWriter> buffers = new Stack<StringWriter>();
+    private Stack<Buffer> buffers = new Stack<Buffer>();
     private static final long serialVersionUID = 8492609461086704262L;
 
-    public ScriptableResponse() {
+    public Response() {
         response = null;
     }
 
-    public ScriptableResponse(Object res) {
+    public Response(Object res) {
         if (res instanceof HttpServletResponse) {
             response = (HttpServletResponse) res;
         } else {
@@ -77,19 +77,11 @@ public class ScriptableResponse extends ScriptableObject {
     }
 
     /**
-     * Get the wrapped Writer for this response
-     * @return a wrapped StringWriter
-     */
-    public Object jsGet_writer() {
-        return Context.toObject(getWriter(), getParentScope());
-    }
-
-    /**
-     * Get the StringBuffer instance associated with the response's writer
-     * @return the wrapped StringBuffer
+     * Get the ResponseBufffer instance associated with the response's writer
+     * @return the ResponseBuffer
      */
     public Object jsGet_buffer() {
-        return Context.toObject(getWriter().getBuffer(), getParentScope());
+        return Context.toObject(getBuffer(), getParentScope());
     }
 
     /**
@@ -123,22 +115,15 @@ public class ScriptableResponse extends ScriptableObject {
      * @param thisObj the object the method was called on
      * @param args the arguments
      * @param funObj the function object
+     * @return the response object
      * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
-    public static void jsFunction_write(Context cx, Scriptable thisObj,
+    public static Object jsFunction_write(Context cx, Scriptable thisObj,
                                         Object[] args, Function funObj) {
-        try {
-            ScriptableResponse res = (ScriptableResponse) thisObj;
-            Writer writer = res.getWriter();
-            int length = args.length;
-            for (int i = 0; i < length; i++) {
-                writer.write(Context.toString(args[i]));
-                if (i < length - 1)
-                    writer.write(" ");
-            }
-        } catch (IOException x) {
-            throw new WrappedException(x);
-        }
+        Response res = (Response) thisObj;
+        Buffer buffer = res.getBuffer();
+        buffer.write(args);
+        return thisObj;
     }
 
     /**
@@ -150,23 +135,15 @@ public class ScriptableResponse extends ScriptableObject {
      * @param thisObj the object the method was called on
      * @param args the arguments
      * @param funObj the function object
+     * @return teh response object
      * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
-    public static void jsFunction_writeln(Context cx, Scriptable thisObj,
+    public static Object jsFunction_writeln(Context cx, Scriptable thisObj,
                                           Object[] args, Function funObj) {
-        try {
-            ScriptableResponse res = (ScriptableResponse) thisObj;
-            Writer writer = res.getWriter();
-            int length = args.length;
-            for (int i = 0; i < length; i++) {
-                writer.write(Context.toString(args[i]));
-                if (i < length - 1)
-                    writer.write(" ");
-            }
-            writer.write("\r\n");
-        } catch (IOException x) {
-            throw new WrappedException(x);
-        }
+        Response res = (Response) thisObj;
+        Buffer buffer = res.getBuffer();
+        buffer.writeln(args);
+        return thisObj;
     }
 
     /**
@@ -180,6 +157,10 @@ public class ScriptableResponse extends ScriptableObject {
      * user session and discarded afterwards. A days value of 0 means the cookie should
      * be immediately discarded by the client and can therefore be used to delete a cookie.
      *
+     * @param cx the rhino context
+     * @param thisObj the object the method was called on
+     * @param args the arguments
+     * @param funObj the function object
      * @rhinoparam name String the cookie name
      * @rhinoparam value String  the cookie value
      * @rhinoparam days Integer number of days the cookie should be stored
@@ -188,12 +169,12 @@ public class ScriptableResponse extends ScriptableObject {
      */
     public static void jsFunction_setCookie(Context cx, Scriptable thisObj,
                                           Object[] args, Function funObj) {
-        if (!(thisObj instanceof ScriptableResponse))
+        if (!(thisObj instanceof Response))
             throw new IllegalArgumentException("setCookie() must be called on response object");
         if (args.length < 2 || args.length > 5)
             throw new IllegalArgumentException(
                     "res.setCookie() requires between 2 and 5 arguments");
-        ScriptableResponse response = (ScriptableResponse) thisObj;
+        Response response = (Response) thisObj;
         String name = getStringArgument(args, 0, null);
         if (name == null)
             throw new IllegalArgumentException("cookie name must not be null");
@@ -261,7 +242,7 @@ public class ScriptableResponse extends ScriptableObject {
      * directly writing to the response.
      */
     public synchronized void jsFunction_push() {
-        buffers.push(new StringWriter());
+        buffers.push(new Buffer());
     }
 
     /**
@@ -278,17 +259,17 @@ public class ScriptableResponse extends ScriptableObject {
         return buffers.pop().toString();
     }
 
-    public synchronized StringWriter getWriter() {
+    public synchronized Buffer getBuffer() {
         if (buffers.isEmpty()) {
-            buffers.push(new StringWriter());
+            buffers.push(new Buffer());
         }
         return buffers.peek();
     }
 
     public synchronized void close() throws IOException {
         while (buffers.size() > 1) {
-            StringWriter writer = buffers.pop();
-            buffers.peek().write(writer.toString());
+            Buffer buffer = buffers.pop();
+            buffers.peek().write(buffer.toString());
         }
         if (buffers.size() == 1) {
             Writer servletWriter = response.getWriter();
@@ -312,8 +293,81 @@ public class ScriptableResponse extends ScriptableObject {
     public String getClassName() {
         return "Response";
     }
+
+    /**
+     * The Response buffer class. This unites some of the methods of java Writers and StringBuffers.
+     */
+    public class Buffer {
+
+        private StringWriter writer = new StringWriter();
+
+        /**
+         * Get the current length of the buffer.
+         */
+        public int getLength() {
+            return writer.getBuffer().length();
+        }
+
+        /**
+         * Insert a string at the given position.
+         * @param pos the buffer position
+         * @param obj the object to insert
+         * @return this buffer instance
+         */
+        public Buffer insert(int pos, Object obj) {
+            writer.getBuffer().insert(pos, Context.toString(obj));
+            return this;
+        }
+
+        /**
+         * Reset the buffer.
+         * @return the buffer instance
+         */
+        public Buffer reset() {
+            writer.getBuffer().setLength(0);
+            return this;
+        }
+
+        /**
+         * Write a number of objects to the buffer separated by space characters, terminated by a line break.
+         * @param args the arguments to write
+         * @return the buffer instance
+         */
+        public Buffer writeln(Object... args) {
+            write(args);
+            writer.write("\r\n");
+            return this;
+        }
+
+        /**
+         * Write a number of objects to the buffer separated by space characters.
+         * @param args the arguments to write
+         * @return the buffer instance
+         */
+        public Buffer write(Object... args) {
+            int length = args.length;
+            for (int i = 0; i < length; i++) {
+                writer.write(Context.toString(args[i]));
+                if (i < length - 1) {
+                    writer.write(" ");
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Return the string presentation of this buffer.
+         * @return the string presentation of this buffer.
+         */
+        public String toString() {
+            return writer.getBuffer().toString();
+        }
+    }
 }
 
+/**
+ * Error class thrown to signal a HTTP redirect.
+ */
 class RedirectException extends Error {
     public RedirectException(String destination) {
         super(destination);

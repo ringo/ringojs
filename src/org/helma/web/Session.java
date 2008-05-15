@@ -32,16 +32,16 @@ import java.util.Map;
  * @rhinoclass Session
  * @desc A scriptable HTTP user session
  */
-public class ScriptableSession extends ScriptableObject {
+public class Session extends ScriptableObject {
 
     HttpServletRequest request;
     private static final long serialVersionUID = 6101876387501354846L;
 
-    public ScriptableSession() {
+    public Session() {
         super();
     }
 
-    ScriptableSession(HttpServletRequest request) {
+    Session(HttpServletRequest request) {
         this.request = request;
     }
 

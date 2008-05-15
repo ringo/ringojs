@@ -11,9 +11,9 @@ var __shared__ = true;
  */
 function initWebApp() {
     // set up standard web app host objects
-    addHostObject(org.helma.web.ScriptableRequest);
-    addHostObject(org.helma.web.ScriptableResponse);
-    addHostObject(org.helma.web.ScriptableSession);
+    addHostObject(org.helma.web.Request);
+    addHostObject(org.helma.web.Response);
+    addHostObject(org.helma.web.Session);
     addHostObject(org.helma.template.MacroTag);
     // register a request listener that automatically sets rhino optimization
     // level to -1 for requests that have a helma_continuation parameter.

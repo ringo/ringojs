@@ -108,13 +108,13 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var evaluateMacro = function(macro, context, paramIndex) {
         paramIndex = paramIndex || 0;
-        var length = res.buffer.length();
+        var length = res.buffer.length;
         if (macro.name in builtins) {
             builtins[macro.name](macro, context, paramIndex);
         } else {
             var value = evaluateExpression(macro, context);
             var visibleValue = isVisible(value);
-            var wroteSomething = res.buffer.length() > length;
+            var wroteSomething = res.buffer.length > length;
             if (visibleValue || wroteSomething) {
                 res.buffer.insert(length, macro.getParameter('prefix') || '');
                 if (visibleValue) {
