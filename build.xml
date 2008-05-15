@@ -126,7 +126,7 @@
                  docletpath="tools">
                  <classpath refid="classpath"/>
         </javadoc>
-        <echo message="Javascript documentation generated in rhinodoc.json"/>
+        <echo message="Javascript documentation generated in docs/core/rhinodoc.js"/>
     </target>
 
     <!-- =================================================================== -->

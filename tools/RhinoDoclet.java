@@ -16,6 +16,7 @@
 
 import com.sun.javadoc.*;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -37,8 +38,14 @@ public class RhinoDoclet {
             if (implementsScriptable(doc))
                 addClassDoc(doc, map);
         }
-        Writer writer = new FileWriter("rhinodoc.json");
+        File dir = new File("docs/core");
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Couldn't crate directory " + dir);
+        }
+        Writer writer = new FileWriter(new File(dir, "rhinodoc.js"));
+        writer.write ("var doc = ");
         writeJson(map, writer, 0);
+        writer.write(";");
         writer.close();
         return true;
     }
