@@ -1,4 +1,5 @@
 importModule('core.string');
+importModule('helma.rhino');
 
 var __shared__ = true;
 var configured = false;
@@ -10,9 +11,9 @@ var configured = false;
  */
 function setConfig(resource) {
     if (resource.endsWith('.properties') || resource.endsWith('.props')) {
-       org.apache.log4j.PropertyConfigurator.configureAndWatch(resource);
+       org.apache.log4j.PropertyConfigurator.configure(resource);
     } else {
-       org.apache.log4j.xml.DOMConfigurator.configureAndWatch(resource);
+       org.apache.log4j.xml.DOMConfigurator.configure(resource);
     }
     configured = true;
 }
@@ -22,8 +23,53 @@ function setConfig(resource) {
  */
 function getLogger(name) {
     if (!configured) {
-        org.apache.log4j.BasicConfigurator.configure();
-        configured = true;
+        // getResource('foo').name gets us the absolute path to a local resource
+        setConfig(getResource('log4j.properties').name);
     }
     return org.apache.log4j.Logger.getLogger(name);
 }
+
+
+/**
+ * Render log4j messages to response buffer in the style of helma 1 res.debug().
+ */
+function startResponseLog() {
+    // onLogEvent() callback is called by org.helma.util.RhinoAppender
+    helma.rhino.addCallback("onLogEvent", function(msg, stack) {
+        var buffer = res.getBuffer("responseLog");
+        buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow; ");
+        buffer.write("color: black; border-top: 1px solid black;\">");
+        buffer.write(msg);
+        buffer.writeln("</div>");
+        return null;
+    });
+    // add an onResponse callback to automatically flush the response log
+    helma.rhino.addOnResponse("responseLogFlusher", function(req, res) {
+        if (res.status == 200) {
+            flushResponseLog();
+        }
+    });
+}
+
+/**
+ * Stop log4j response buffer logging.
+ */
+function stopResponseLog() {
+    // unregister handlers added in startResponseLog()
+    helma.rhino.removeCallback("onLogEvent");
+    helma.rhino.removeOnResponse("responseLogFlusher");
+}
+
+/**
+ * Write the log4j response buffer to the main response buffer and reset it.
+ * This can either be called manually to insert the log buffer at any given position
+ * in the response, or it will called by the log4j response listener after the
+ * response has been generated.
+ */
+function flushResponseLog() {
+    var buffer = res.getBuffer("responseLog");
+    res.write(buffer);
+    buffer.reset();
+    return null;
+};
+
