@@ -38,18 +38,16 @@ import java.util.Map;
  */
 public class RhinoEngine {
 
-    List<Repository>               repositories;
-    ScriptableObject               topLevelScope;
-    Map<String, ReloadableScript>  compiledScripts    = new HashMap<String, ReloadableScript>();
-    Map<String, ReloadableScript>  interpretedScripts = new HashMap<String, ReloadableScript>();
-    Map<String, Function>          requestListeners   = new HashMap<String, Function>();
-    Map<String, Function>          responseListeners  = new HashMap<String, Function>();
-    Map<String, Function>          callbacks          = new HashMap<String, Function>();
-    AppClassLoader                 loader             = new AppClassLoader();
-    HelmaWrapFactory               wrapFactory        = new HelmaWrapFactory();
-    HelmaContextFactory            contextFactory     = new HelmaContextFactory(this);
+    List<Repository>                   repositories;
+    ScriptableObject                   topLevelScope;
+    Map<String, ReloadableScript>      compiledScripts    = new HashMap<String, ReloadableScript>();
+    Map<String, ReloadableScript>      interpretedScripts = new HashMap<String, ReloadableScript>();
+    Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
+    AppClassLoader                     loader             = new AppClassLoader();
+    HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
+    HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
 
-    public static final Object[]   EMPTY_ARGS         = new Object[0];
+    public static final Object[]       EMPTY_ARGS         = new Object[0];
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
@@ -110,77 +108,46 @@ public class RhinoEngine {
     }
 
     /**
-     * Register a request listener. Request listeners are javascript functions
-     * that are invoked before a request is processed.
-     * @param name the request listener name
-     * @param func the request listener function
-     */
-    public void addOnRequest(String name, Function func) {
-        requestListeners.put(name, func);
-    }
-
-    /**
-     * Unregister a previously registered request listener.
-     * @param name the request listener name
-     */
-    public void removeOnRequest(String name) {
-        requestListeners.remove(name);
-    }
-
-    /**
-     * Register a response listener. Response listeners are javascript functions
-     * that are invoked after a response has been generated.
-     * @param name the response listener name
-     * @param func the response listener function
-     */
-    public void addOnResponse(String name, Function func) {
-        responseListeners.put(name, func);
-    }
-
-    /**
-     * Unregister a previously registered response listener.
-     * @param name the response listener name
-     */
-    public void removeOnResponse(String name) {
-        responseListeners.remove(name);
-    }
-
-    /**
      * Register a callback. Callbacks are javascript functions
      * that can be invoked on certain events.
      * @param name the callback name
      * @param func the callback function
      */
-    public void addCallback(String name, Function func) {
-        callbacks.put(name, func);
+    public void addCallback(String event, String name, Function func) {
+        Map<String, Function> map = callbacks.get(event);
+        if (map == null) {
+            map = new HashMap<String, Function>();
+            callbacks.put(event, map);
+        }
+        map.put(name, func);
     }
 
     /**
      * Unregister a previously registered callback.
      * @param name the callback name
      */
-    public void removeCallback(String name) {
-        callbacks.remove(name);
+    public void removeCallback(String event, String name) {
+        if (callbacks.containsKey(event)) {
+            callbacks.get(event).remove(name);
+        }
     }
 
     /**
      * Invoke a callback. If no callback is registered under this name fail silently.
-     * @param name the callback name
+     * @param event the callback event
      * @param args the arguments
      * @return the return value
      */
-    public Object invokeCallback(String name, Object thisObj, Object[] args) {
-        Function func = callbacks.get(name);
-        if (func != null) {
+    public Object invokeCallback(String event, Object thisObj, Object... args) {
+        Map<String, Function> funcs = callbacks.get(event);
+        if (funcs != null) {
             Context cx = Context.getCurrentContext();
             Scriptable scope = ScriptRuntime.getTopCallScope(cx);
             Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, scope);
             initGlobalsAndArguments(scope, null, args);
-            Object retval = func.call(cx, scope, thisObject, args);
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
+            for (Function func: funcs.values()) {
+                func.call(cx, scope, thisObject, args);
             }
-            return retval;
         }
         return null;
     }
@@ -224,18 +191,12 @@ public class RhinoEngine {
         try {
             Scriptable scope = createThreadScope(cx);
             initGlobalsAndArguments(scope, globals, args);
-            for (Function f: requestListeners.values()) {
-                f.call(cx, scope, null, args);
-            }
             Scriptable module = loadModule(cx, path, scope, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
             }
             Object retval = ((Function) func).call(cx, scope, module, args);
-            for (Function f: responseListeners.values()) {
-                f.call(cx, scope, null, args);
-            }
             if (retval instanceof Wrapper) {
                 return ((Wrapper) retval).unwrap();
             }

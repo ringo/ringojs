@@ -1,5 +1,5 @@
 importModule('core.string');
-importModule('helma.rhino');
+importModule('helma.rhino', 'rhino');
 
 var __shared__ = true;
 var configured = false;
@@ -35,7 +35,7 @@ function getLogger(name) {
  */
 function startResponseLog() {
     // onLogEvent() callback is called by org.helma.util.RhinoAppender
-    helma.rhino.addCallback("onLogEvent", function(msg, stack) {
+    rhino.addCallback("onLogEvent", "responseLog", function(msg, stack) {
         var buffer = res.getBuffer("responseLog");
         buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow; ");
         buffer.write("color: black; border-top: 1px solid black;\">");
@@ -44,8 +44,8 @@ function startResponseLog() {
         return null;
     });
     // add an onResponse callback to automatically flush the response log
-    helma.rhino.addOnResponse("responseLogFlusher", function(req, res) {
-        if (res.status == 200) {
+    rhino.addCallback("onResponse", "responseLogFlusher", function(res) {
+        if (res.status == 200 || res.status >= 400) {
             flushResponseLog();
         }
     });
@@ -56,8 +56,8 @@ function startResponseLog() {
  */
 function stopResponseLog() {
     // unregister handlers added in startResponseLog()
-    helma.rhino.removeCallback("onLogEvent");
-    helma.rhino.removeOnResponse("responseLogFlusher");
+    rhino.removeCallback("onLogEvent", "responseLog");
+    rhino.removeCallback("onResponse", "responseLogFlusher");
 }
 
 /**

@@ -5,6 +5,8 @@
  */
 
 importModule('core.string');
+importModule('helma.rhino', 'rhino');
+// importModule('helma.simpleweb.*');
 
 /**
  * Handler function that connects to the Helma servlet. Import this
@@ -17,6 +19,7 @@ importModule('core.string');
  * @param session
  */
 function handleRequest(req, res, session) {
+    rhino.invokeCallback('onRequest', null, [req]);
     // install req, res and session as globals
     global.req = req;
     global.res = res;
@@ -55,6 +58,8 @@ function handleRequest(req, res, session) {
         handler[action].call(handler);
     } catch (e) {
         error(e);
+    } finally {
+        rhino.invokeCallback('onResponse', null, [res]);        
     }
 }
 
@@ -63,6 +68,7 @@ function handleRequest(req, res, session) {
  * @param e the error that happened
  */
 function error(e) {
+    res.status = 500;
     res.contentType = 'text/html';
     res.writeln('<h2>', e, '</h2>');
     if (e.fileName && e.lineNumber) {
@@ -84,6 +90,7 @@ function error(e) {
  * Standard notfound page
  */
 function notfound() {
+    res.status = 404;
     res.contentType = 'text/html';
     res.writeln('<h1>Not Found</h1>');
     res.writeln('The requested URL', req.path, 'was not found on the server.');

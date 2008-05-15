@@ -10,7 +10,7 @@ import org.mozilla.javascript.Context;
  * A log4j appender that passes log events to a Rhino callback function
  * named <code>onLogEvent</code>.
  *
- * @see org.helma.javascript.RhinoEngine#addCallback(String, org.mozilla.javascript.Function)
+ * @see org.helma.javascript.RhinoEngine#addCallback(String, String, org.mozilla.javascript.Function)
  * @see org.helma.javascript.RhinoEngine#invokeCallback(String, Object, Object[])
  */
 public class RhinoAppender extends AppenderSkeleton {
@@ -52,11 +52,13 @@ public class RhinoAppender extends AppenderSkeleton {
                 throwable = buffer.toString();
             }
         }
-        Object[] args = throwable == null ?
-                new Object[] {message} :
-                new Object[] {message, throwable};
 
-        engine.invokeCallback("onLogEvent", null, args);
+        if (throwable == null) {
+            engine.invokeCallback("onLogEvent", null, message);
+        } else {
+            engine.invokeCallback("onLogEvent", null, message, throwable);
+        }
+
     }
 
     /**
