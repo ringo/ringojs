@@ -93,15 +93,12 @@ public class HelmaServlet extends HttpServlet {
             throws ServletException, IOException {
         Future<Status> future = pool.submit(new Callable<Status>() {
             public Status call() {
+                Request request = new Request(req);
                 Response response = new Response(res);
-                Object[] args = {
-                    new Request(req),
-                    response,
-                    new Session(req)
-                };
+                Session session = new Session(req);
                 Status status = new Status();
                 try {
-                    engine.invoke(null, "main", "handleRequest", args);
+                    engine.invoke(null, "main", "handleRequest", request, response, session);
                     response.close();
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();

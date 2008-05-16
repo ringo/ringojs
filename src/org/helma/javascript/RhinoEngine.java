@@ -185,12 +185,18 @@ public class RhinoEngine {
      * @throws NoSuchMethodException the method is not defined
      * @throws IOException an I/O related error occurred
      */
-    public Object invoke(Map<String,Object> globals, String path, String method, Object[] args)
+    public Object invoke(Map<String,Object> globals, String path, String method, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
         try {
             Scriptable scope = createThreadScope(cx);
             initGlobalsAndArguments(scope, globals, args);
+            Map<String, Function> funcs = callbacks.get("onInvoke");
+            if (funcs != null) {
+                for (Function func: funcs.values()) {
+                    func.call(cx, scope, null, args);
+                }
+            }
             Scriptable module = loadModule(cx, path, scope, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {

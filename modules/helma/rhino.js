@@ -17,7 +17,7 @@ function initWebApp() {
     addHostObject(org.helma.template.MacroTag);
     // register a request listener that automatically sets rhino optimization
     // level to -1 for requests that have a helma_continuation parameter.
-    addCallback('onRequest', 'continuation-support', function(req) {
+    addCallback('onInvoke', 'continuation-support', function(req) {
         if (req && req.params.helma_continuation != null) {
             setRhinoOptimizationLevel(-1);
         }
