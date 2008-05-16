@@ -174,7 +174,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
                 }
             }
         }
-        return undefined;
+        // TODO: if filter is not found just return value as is
+        return value;
     };
 
     var isDefined = function(elem) {
