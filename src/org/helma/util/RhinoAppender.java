@@ -5,6 +5,7 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.helma.javascript.RhinoEngine;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
 
 /**
  * A log4j appender that passes log events to a Rhino callback function
@@ -38,7 +39,8 @@ public class RhinoAppender extends AppenderSkeleton {
 
 
         String message = this.layout.format(event);
-        String throwable = null;
+        String javaStack = null;
+        String scriptStack = null;
 
         if(layout.ignoresThrowable()) {
             String[] s = event.getThrowableStrRep();
@@ -49,15 +51,15 @@ public class RhinoAppender extends AppenderSkeleton {
      	            buffer.append(s[i]);
      	            buffer.append(Layout.LINE_SEP);
      	        }
-                throwable = buffer.toString();
+                javaStack = buffer.toString();
+                Throwable t = event.getThrowableInformation().getThrowable();
+                if (t instanceof RhinoException) {
+                    scriptStack = ((RhinoException) t).getScriptStackTrace();
+                }
             }
         }
 
-        if (throwable == null) {
-            engine.invokeCallback("onLogEvent", null, message);
-        } else {
-            engine.invokeCallback("onLogEvent", null, message, throwable);
-        }
+        engine.invokeCallback("onLogEvent", null, message, javaStack, scriptStack);
 
     }
 
