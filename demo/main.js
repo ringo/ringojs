@@ -26,7 +26,7 @@ function main_action() {
 function skins_action() {
     var names = ['Bruno', 'Emma', 'Lisa', 'Mark'];
     var context = {
-        title: 'Welcome to Helma NG',
+        title: 'Skin Demo',
         message: function(macrotag, skin, context) {
             for (var i in names) {
                 skin.renderSubskin('message', {name: names[i]});
