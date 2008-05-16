@@ -161,7 +161,6 @@ function Skin(mainSkin, subSkins, parentSkin) {
             }
         }
         if (isDefined(elem)) {
-            res.debug(macro.name);
             if (elem[last + suffix] instanceof Function) {
                 return value === undefined ?
                        elem[last + suffix].call(elem, macro, self, context) :
