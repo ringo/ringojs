@@ -33,7 +33,7 @@ function getLogger(name) {
 /**
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */
-function startResponseLog() {
+function enableResponseLog() {
     // onLogEvent() callback is called by org.helma.util.RhinoAppender
     rhino.addCallback("onLogEvent", "responseLog", function(msg, stack) {
         var buffer = res.getBuffer("responseLog");
@@ -54,7 +54,7 @@ function startResponseLog() {
 /**
  * Stop log4j response buffer logging.
  */
-function stopResponseLog() {
+function disableResponseLog() {
     // unregister handlers added in startResponseLog()
     rhino.removeCallback("onLogEvent", "responseLog");
     rhino.removeCallback("onResponse", "responseLogFlusher");
