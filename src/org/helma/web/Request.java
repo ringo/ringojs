@@ -21,6 +21,7 @@ import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Wrapper;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -42,8 +43,15 @@ public class Request extends ScriptableObject {
         super();
     }
 
-    public Request(HttpServletRequest req) {
-        this.request = req;
+    public Request(Object req) {
+        if (req instanceof Wrapper) {
+            req = ((Wrapper) req).unwrap();
+        }
+        if (req instanceof HttpServletRequest) {
+            this.request = (HttpServletRequest) req;
+        } else {
+            throw new IllegalArgumentException("Expected HttpServletRequest, got " + req);
+        }
     }
 
     /**

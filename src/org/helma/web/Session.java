@@ -18,6 +18,7 @@ package org.helma.web;
 
 import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Wrapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -41,8 +42,15 @@ public class Session extends ScriptableObject {
         super();
     }
 
-    Session(HttpServletRequest req) {
-        this.request = req;
+    public Session(Object req) {
+        if (req instanceof Wrapper) {
+            req = ((Wrapper) req).unwrap();
+        }
+        if (req instanceof HttpServletRequest) {
+            this.request = (HttpServletRequest) req;
+        } else {
+            throw new IllegalArgumentException("Expected HttpServletRequest, got " + req);
+        }
     }
 
     /**
