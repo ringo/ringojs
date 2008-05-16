@@ -577,7 +577,7 @@ String.prototype.format = function() {
 };
 
 String.prototype.stripTags = function() {
-    return stripTags(this);
+    return this.replace(/<\/?[^>]+>/gi, '');
 };
 
 /**
