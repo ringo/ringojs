@@ -3,7 +3,7 @@ importFromModule('helma.skin', 'renderSkin');
 
 function main_action() {
     var context = {
-        title: 'Welcome to Helma NG',
+        title: 'Module Demo',
         message: message,
         link: '<a href="/">go back!</a>'
     };

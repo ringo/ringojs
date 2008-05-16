@@ -2,10 +2,32 @@
 <html>
 <head>
 <title><% title %></title>
+<link rel="stylesheet" href="/static/style.css">    
 <% render 'head' %>
 </head>
 <body>
-<% render 'content' %>
+<div id="wrap">
+    <div id="header">
+        <div id="logo">
+            <a href="http://dev.helma.org/ng/"><img src="/static/helma.png" alt="Helma logo"
+                                                    width="100" height="60" border="0" ></a>
+        </div>
+        <h1><% title %></h1>
+    </div>
+    <div id="main">
+        <% render 'content' %>
+    </div>
+    <div id="menu">
+        <ul>
+            <li><a href="/">home</a></li>
+            <li><a href="/skins">skins</a></li>
+            <li><a href="/mount/point/">modules</a></li>
+            <li><a href="/continuation">continuations</a></li>
+            <li><a href="/logging">logging</a></li>
+        </ul>
+    </div>
+    <div id="footer"><% footer %></div>
+</div>
 </body>
 </html>
 

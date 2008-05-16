@@ -14,8 +14,16 @@ var log = logging.getLogger('main');
 importModule('helma.filters', 'filters');
 
 // the main action is invoked for http://localhost:8080/
-// this also shows simple skin rendering
 function main_action() {
+    var context = {
+        title: 'Welcome to Helma NG',
+        message: 'Introductory text goes here'
+    };
+    renderSkin('skins/index.html', context);
+}
+
+// demo for skins, macros, filters
+function skins_action() {
     var names = ['Bruno', 'Emma', 'Lisa', 'Mark'];
     var context = {
         title: 'Welcome to Helma NG',
@@ -24,36 +32,61 @@ function main_action() {
                 skin.renderSubskin('message', {name: names[i]});
             }
         },
-        link: '<a href="/mount/point/">check this out!</a>',
         filters: filters
     };
     renderSkin('skins/index.html', context);
 }
 
-function responselog_action() {
+// demo for log4j logging
+function logging_action() {
     // make sure responselog is enabled
-    logging.enableResponseLog();
-    log.info("Hello world!");
-    try {
-        foo.bar.moo;
-    } catch (e) {
-        log.error(e, e.rhinoException);
+    var hasResponseLog = logging.responseLogEnabled();
+    if (!hasResponseLog) {
+        logging.enableResponseLog();
+        log.debug("enabling response log");
     }
+    log.info("Hello world!");
+    if (req.data.makeTrouble) {
+        try {
+            foo.bar.moo;
+        } catch (e) {
+            log.error(e, e.rhinoException);
+        }
+    }
+    if (!hasResponseLog) {
+        log.debug("disabling response log");
+        logging.disableResponseLog();
+    }
+    var context = {
+        title: "Logging Demo",
+        content: "Response buffer logging with log4j... <a href='?makeTrouble=1'>make troubles</a>"
+    };
+    renderSkin('skins/plain.html', context);    
+    logging.flushResponseLog();
 }
 
-// demo continuation action
+// demo for continuation support
 function continuation_action() {
     if (req.params.helma_continuation == null) {
         // set query param so helma knows to switch rhino optimization level to -1
         res.redirect(req.path + "?helma_continuation=");
     }
-    res.write(<form method="post" action={Continuation.nextUrl()}>
-                <input name="foo"/>
-                <input type="submit"/>
-              </form>);
+    // render first page
+    var context = {
+        title: "Continuations Demo",
+        content: '<form method="post" action="' + Continuation.nextUrl() + '">' +
+                 '<input name="foo"/>' +
+                 '<input type="submit"/>' +
+                 '</form>'
+        };
+    renderSkin('skins/plain.html', context);
     Continuation.nextPage();
+    // render second page
     var foo = req.data.foo;
-    res.write('<a href="' + Continuation.nextUrl() + '">click here</a>');
+    context.content = '<a href="' + Continuation.nextUrl() + '">click here</a>';
+    renderSkin('skins/plain.html', context);
     Continuation.nextPage();
-    res.write('you said: ' + foo);
+    // render third page
+    context.content = 'You said: ' + foo; 
+    renderSkin('skins/plain.html', context);
 }
