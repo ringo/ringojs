@@ -16,9 +16,9 @@
 
 package org.helma.repository;
 
-import java.util.List;
-import java.util.Iterator;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Repository represents an abstract container of resources (e.g. code, skins, ...).
@@ -28,8 +28,9 @@ import java.io.IOException;
 public interface Repository {
 
     /**
-     * Checksum of the repository and all its content. Implementations
-     * should make sure
+     * Checksum of the repository and all its contained resources. Implementations
+     * should make sure to return a different checksum if any contained resource
+     * has changed.
      *
      * @return checksum
      * @throws IOException an I/O error occurred

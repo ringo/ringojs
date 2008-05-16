@@ -124,11 +124,12 @@ public class FileRepository extends AbstractRepository {
     }
 
     /**
-     * Checksum of the repository and all its content. Implementations
-     * should make sure
+     * Checksum of the repository and all its contained resources. Implementations
+     * should make sure to return a different checksum if any contained resource
+     * has changed.
      *
      * @return checksum
-     * @throws IOException
+     * @throws IOException an I/O error occurred
      */
     public synchronized long getChecksum() throws IOException {
         // delay checksum check if already checked recently
@@ -137,8 +138,8 @@ public class FileRepository extends AbstractRepository {
             update();
             long checksum = lastModified;
 
-            for (Repository repository: repositories) {
-                checksum += repository.getChecksum();
+            for (Resource res: resources.values()) {
+                checksum += res.lastModified();
             }
 
             lastChecksum = checksum;
