@@ -2,7 +2,7 @@
 
 <% subskin 'content' %>
 <h2><% title %></h2>
-<% message %>
+<% message | filters.uppercase %>
 <% link prefix="<p>" suffix="</p>" %>
 
 <% subskin 'message' %>

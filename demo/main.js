@@ -7,9 +7,11 @@ importModule('webmodule', 'mount.point');
 // continuation support
 importModule('helma.continuation');
 
-// importModule('helma1bridge');
+importModule('helma.logging', 'logging');
+var log = logging.getLogger('main');
 
-// importModule('minidemo.main', 'minidemo');
+// import macrofilters
+importModule('helma.filters', 'filters');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
@@ -22,9 +24,21 @@ function main_action() {
                 skin.renderSubskin('message', {name: names[i]});
             }
         },
-        link: '<a href="/mount/point/">check this out!</a>'
+        link: '<a href="/mount/point/">check this out!</a>',
+        filters: filters
     };
     renderSkin('skins/index.html', context);
+}
+
+function responselog_action() {
+    // make sure responselog is enabled
+    logging.enableResponseLog();
+    log.info("Hello world!");
+    try {
+        foo.bar.moo;
+    } catch (e) {
+        log.error(e, e.rhinoException);
+    }
 }
 
 // demo continuation action
