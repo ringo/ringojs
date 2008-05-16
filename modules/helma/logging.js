@@ -35,11 +35,19 @@ function getLogger(name) {
  */
 function enableResponseLog() {
     // onLogEvent() callback is called by org.helma.util.RhinoAppender
-    rhino.addCallback("onLogEvent", "responseLog", function(msg, stack) {
+    rhino.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
         var buffer = res.getBuffer("responseLog");
-        buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow; ");
+        buffer.write("<div class=\"helma-debug-line\" style=\"background: #fc3; ");
         buffer.write("color: black; border-top: 1px solid black;\">");
         buffer.write(msg);
+        if (scriptStack) {
+            buffer.write("<h3>Script Stack</h3>");
+            buffer.write("<pre>", scriptStack, "</pre>");
+        }
+        if (javaStack) {
+            buffer.write("<h3>Java Stack</h3>");
+            buffer.write("<pre>", javaStack, "</pre>");
+        }
         buffer.writeln("</div>");
         return null;
     });
