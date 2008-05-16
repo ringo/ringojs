@@ -200,6 +200,13 @@ public class MacroTag extends ScriptableObject {
         }
     }
 
+    public Object getDefaultValue(Class hint) {
+        if (hint == String.class || hint == null) {
+            return toString();
+        }
+        return super.getDefaultValue(hint);
+    }
+
     public String toString() {
         return new StringBuffer("[MacroTag ").append(name).append(" ")
                 .append(args).append(namedArgs).append("]").toString();
