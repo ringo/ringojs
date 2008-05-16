@@ -41,8 +41,8 @@ public class Session extends ScriptableObject {
         super();
     }
 
-    Session(HttpServletRequest request) {
-        this.request = request;
+    Session(HttpServletRequest req) {
+        this.request = req;
     }
 
     /**

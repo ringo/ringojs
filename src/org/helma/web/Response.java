@@ -46,12 +46,8 @@ public class Response extends ScriptableObject {
         response = null;
     }
 
-    public Response(Object res) {
-        if (res instanceof HttpServletResponse) {
-            response = (HttpServletResponse) res;
-        } else {
-            throw new IllegalArgumentException("Expected HttpServletResponse, got " + res);
-        }
+    public Response(HttpServletResponse res) {
+        this.response = res;
     }
 
     /**

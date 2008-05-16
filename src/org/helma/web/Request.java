@@ -42,8 +42,8 @@ public class Request extends ScriptableObject {
         super();
     }
 
-    public Request(Object request) {
-        this.request = (HttpServletRequest) request;
+    public Request(HttpServletRequest req) {
+        this.request = req;
     }
 
     /**
