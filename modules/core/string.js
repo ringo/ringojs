@@ -354,7 +354,23 @@ String.prototype.unwrap = function(removeTags, replacement) {
  * @return String md5 hash of the string
  */
 String.prototype.md5 = function() {
-    return Packages.helma.util.MD5Encoder.encode(this);
+    var str = new java.lang.String(this);
+    var md = java.security.MessageDigest.getInstance('MD5');
+    var b = md.digest(str.getBytes())
+    var buf = new java.lang.StringBuffer(b.length * 2);
+    var j;
+
+    for (var i in b) {
+        j = (b[i] < 0) ? (256 + b[i]) : b[i];
+
+        if (j < 16) {
+            buf.append('0');
+        }
+
+        buf.append(java.lang.Integer.toHexString(j));
+    }
+
+    return buf.toString();
 };
 
 
