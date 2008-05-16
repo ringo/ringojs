@@ -6,7 +6,7 @@
 
 importModule('core.string');
 importModule('helma.rhino', 'rhino');
-// importModule('helma.simpleweb.*');
+importModule('helma.simpleweb.*');
 
 /**
  * Handler function that connects to the Helma servlet. Import this
@@ -59,7 +59,7 @@ function handleRequest(req, res, session) {
     } catch (e) {
         error(e);
     } finally {
-        rhino.invokeCallback('onResponse', null, [res]);        
+        rhino.invokeCallback('onResponse', null, [res]);
     }
 }
 
