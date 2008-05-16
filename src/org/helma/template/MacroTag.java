@@ -201,7 +201,7 @@ public class MacroTag extends ScriptableObject {
     }
 
     public String toString() {
-        return new StringBuffer("[MacroTag ")
+        return new StringBuffer("[MacroTag ").append(name).append(" ")
                 .append(args).append(namedArgs).append("]").toString();
     }
 }

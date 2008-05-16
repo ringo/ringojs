@@ -87,6 +87,7 @@ public class SkinParser {
                 case '|':
                     if (quotechar == 0) {
                         list.macro.addFilter(readMacro(reader));
+                        return list.macro;
                     } else {
                         buffer.append((char) c);
                     }
