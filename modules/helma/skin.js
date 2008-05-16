@@ -1,4 +1,6 @@
 importModule('core.string');
+importModule('helma.logging', 'logging');
+var log = logging.getLogger('helma.skin');
 
 /*global getResource importModule parseSkin */
 
@@ -112,9 +114,29 @@ function Skin(mainSkin, subSkins, parentSkin) {
         if (macro.name in builtins) {
             builtins[macro.name](macro, context, paramIndex);
         } else {
-            var value = evaluateExpression(macro, context);
+            var value = evaluateExpression(macro, context, '_macro');
             var visibleValue = isVisible(value);
             var wroteSomething = res.buffer.length > length;
+
+            // check if macro has a filter, if so extra work ahead
+            if (macro.filter) {
+                // make sure value is not undefined,
+                // otherwise evaluateExpression() might become confused
+                if (!visibleValue) {
+                    value = "";
+                }
+                if (wroteSomething) {
+                    var written = res.buffer.cutOff(length);
+                    if (visibleValue) {
+                        value = written + value;
+                    } else {
+                        value = written;
+                    }
+                }
+                value = evaluateExpression(macro.filter, context, '_filter', value);
+                visibleValue = isVisible(value);
+                wroteSomething = res.buffer.length > length;
+            }
             if (visibleValue || wroteSomething) {
                 res.buffer.insert(length, macro.getParameter('prefix') || '');
                 if (visibleValue) {
@@ -127,7 +149,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         }
     };
 
-    var evaluateExpression = function(macro, context) {
+    var evaluateExpression = function(macro, context, suffix, value) {
         var path = macro.name.split('.');
         var elem = context;
         var length = path.length;
@@ -138,16 +160,22 @@ function Skin(mainSkin, subSkins, parentSkin) {
                 break;
             }
         }
-        if (isDefined(elem) && elem[last + "_macro"] instanceof Function) {
-            return elem[last + "_macro"].call(elem, macro, self, context);
-        } else if (isDefined(elem) && isDefined(elem[last])) {
-            elem = elem[path[length-1]];
-            if (elem instanceof Function) {
-                return elem(macro, self, context);
-            } else {
-                return elem;
+        if (isDefined(elem)) {
+            res.debug(macro.name);
+            if (elem[last + suffix] instanceof Function) {
+                return value === undefined ?
+                       elem[last + suffix].call(elem, macro, self, context) :
+                       elem[last + suffix].call(elem, value, macro, self, context);
+            } else if (value === undefined && isDefined(elem[last])) {
+                elem = elem[path[length-1]];
+                if (elem instanceof Function) {
+                    return elem(macro, self, context);
+                } else {
+                    return elem;
+                }
             }
         }
+        return undefined;
     };
 
     var isDefined = function(elem) {
@@ -167,7 +195,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         // experimental if tag
         "if": function(macro, context, paramIndex) {
             var condition = macro.getParameter(paramIndex);
-            if (evaluateExpression(condition, context)) {
+            if (evaluateExpression(condition, context, '_macro')) {
                 evaluateMacro(macro, context, paramIndex + 1);
             }
         }
