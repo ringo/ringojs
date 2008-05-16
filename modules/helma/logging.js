@@ -10,11 +10,11 @@ var configured = false;
  * e.g. <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/' reset="true">
  */
 function setConfig(resource) {
-    if (resource.endsWith('.properties') || resource.endsWith('.props')) {
-       org.apache.log4j.PropertyConfigurator.configure(resource);
-    } else {
-       org.apache.log4j.xml.DOMConfigurator.configure(resource);
-    }
+    var configurator = resource.endsWith('.properties') || resource.endsWith('.props') ?
+       org.apache.log4j.PropertyConfigurator :
+       org.apache.log4j.xml.DOMConfigurator;
+    configurator.configure(resource);
+    configurator.configureAndWatch(resource, 2000);
     configured = true;
 }
 
