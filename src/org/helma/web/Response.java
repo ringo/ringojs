@@ -345,11 +345,11 @@ public class Response extends ScriptableObject {
         }
 
         /**
-         * Cut the buffer at the given position, returning the cut off substring.
+         * Cut the buffer at the given position, returning the removed substring.
          * @param pos the index at which to cut the buffer
-         * @return the cut off part
+         * @return the removed substring
          */
-        public String cutOff(int pos) {
+        public String truncate(int pos) {
             StringBuffer buffer = writer.getBuffer();
             String tail = buffer.substring(pos);
             buffer.setLength(pos);
@@ -390,6 +390,22 @@ public class Response extends ScriptableObject {
                 }
             }
             return this;
+        }
+
+        /**
+         * Get the buffer's writer.
+         * @return the buffer's writer
+         */
+        public StringWriter getWriter() {
+            return writer;
+        }
+
+        /**
+         * Get the StringBuffer associated with this buffer.
+         * @return  the StringBuffer
+         */
+        public StringBuffer getStringBuffer() {
+            return writer.getBuffer();
         }
 
         /**

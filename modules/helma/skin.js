@@ -119,23 +119,25 @@ function Skin(mainSkin, subSkins, parentSkin) {
             var wroteSomething = res.buffer.length > length;
 
             // check if macro has a filter, if so extra work ahead
-            if (macro.filter) {
+            var filter = macro.filter;
+            while (filter) {
                 // make sure value is not undefined,
                 // otherwise evaluateExpression() might become confused
                 if (!visibleValue) {
                     value = "";
                 }
                 if (wroteSomething) {
-                    var written = res.buffer.cutOff(length);
+                    var written = res.buffer.truncate(length);
                     if (visibleValue) {
                         value = written + value;
                     } else {
                         value = written;
                     }
                 }
-                value = evaluateExpression(macro.filter, context, '_filter', value);
+                value = evaluateExpression(filter, context, '_filter', value);
                 visibleValue = isVisible(value);
                 wroteSomething = res.buffer.length > length;
+                filter = filter.filter;
             }
             if (visibleValue || wroteSomething) {
                 res.buffer.insert(length, macro.getParameter('prefix') || '');
