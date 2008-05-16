@@ -345,6 +345,18 @@ public class Response extends ScriptableObject {
         }
 
         /**
+         * Cut the buffer at the given position, returning the cut off substring.
+         * @param pos the index at which to cut the buffer
+         * @return the cut off part
+         */
+        public String cutOff(int pos) {
+            StringBuffer buffer = writer.getBuffer();
+            String tail = buffer.substring(pos);
+            buffer.setLength(pos);
+            return tail;
+        }
+
+        /**
          * Reset the buffer.
          * @return the buffer instance
          */
