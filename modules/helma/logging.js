@@ -8,6 +8,7 @@ var __shared__ = true;
 
     var configured = false;
     var responseLogEnabled = false;
+    var self = this;
 
     /**
      * Configure log4j using the given file resource.
@@ -59,7 +60,7 @@ var __shared__ = true;
         // add an onResponse callback to automatically flush the response log
         rhino.addCallback("onResponse", "responseLogFlusher", function(res) {
             if (res.status == 200 || res.status >= 400) {
-                this.flushResponseLog();
+                self.flushResponseLog();
             }
         });
         responseLogEnabled = true;
