@@ -15,7 +15,7 @@ function render(skinOrPath, context, scope) {
     scope = scope || this;
     var skin;
     if (typeof(skinOrPath.render) == "function") {
-        skin = obj;
+        skin = skinOrPath;
     } else if (typeof(skinOrPath) == "string") {
         var subskin;
         if (skinOrPath.indexOf('#') > -1) {
