@@ -1,0 +1,32 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' -------------------------------------------------------------------- %>
+<% render <% skin %> %>
+
+
+<% subskin 'step1' ---------------------------------------------------------------------- %>
+<div>This is a demo for Continuation support in Helma NG.</div>
+
+<p>Continuations allow you to capture the state of a running JavaScript function and resume it
+at a later point in time. The most common usage of continuations is to handle a multi-page
+dialog in one server side function as an alternative to storing temporary data in the session
+object or hidden input fields. Compared to those techniques, continuations allow you to simply
+store user data in local variables.</p>
+
+<p>Enter something in the form below to view a simple continuation demo.</p>
+
+<form method="post" action="<% href %>">
+    <input name="message">
+    <input type="submit">
+</form>
+
+
+<% subskin 'step2' ---------------------------------------------------------------------- %>
+Thanks. Your message is now stored as a local variable inside a Continuation.
+<p><a href="<% href %>">Click here to view it</a>.</p>
+
+
+<% subskin 'step3' ---------------------------------------------------------------------- %>
+You said: <h3><% message prefix="&raquo;" suffix="&laquo;" %></h3>
+
+<p><a href="http://dev.helma.org/ng/helma.continuation">Learn more about continuations</a> in Helma NG</p>

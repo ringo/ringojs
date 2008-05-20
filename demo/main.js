@@ -1,40 +1,32 @@
 // import request handler from simpleweb module
 importFromModule('helma.simpleweb', 'handleRequest');
-// import renderSkin
-importFromModule('helma.skin', 'renderSkin');
+// import render
+importFromModule('helma.skin', 'render');
 // mount web app module on /mount/point/
 importModule('webmodule', 'mount.point');
 // continuation support
 importModule('helma.continuation');
 
 importModule('helma.logging', 'logging');
-var log = logging.getLogger('main');
+logging.enableResponseLog();
+var log = logging.getLogger(__name__);
 
 // import macrofilters
 importModule('helma.filters', 'filters');
 
 // the main action is invoked for http://localhost:8080/
 function main_action() {
-    var context = {
-        title: 'Welcome to Helma NG',
-        message: 'Introductory text goes here'
-    };
-    renderSkin('skins/index.html', context);
+    render('skins/index.html', { title: 'Welcome to Helma NG' });
 }
 
 // demo for skins, macros, filters
 function skins_action() {
-    var names = ['Bruno', 'Emma', 'Lisa', 'Mark'];
     var context = {
         title: 'Skin Demo',
-        message: function(macrotag, skin, context) {
-            for (var i in names) {
-                skin.renderSubskin('message', {name: names[i]});
-            }
-        },
-        filters: filters
+        name: 'Luisa',
+        names: ['Benni', 'Emma', 'Luca', 'Selma']
     };
-    renderSkin('skins/index.html', context);
+    render('skins/skins.html', context);
 }
 
 // demo for log4j logging
@@ -53,15 +45,11 @@ function logging_action() {
             log.error(e, e.rhinoException);
         }
     }
+    render('skins/logging.html', { title: "Logging Demo" });
     if (!hasResponseLog) {
         log.debug("disabling response log");
         logging.disableResponseLog();
     }
-    var context = {
-        title: "Logging Demo",
-        content: "Response buffer logging with log4j... <a href='?makeTrouble=1'>make troubles</a>"
-    };
-    renderSkin('skins/plain.html', context);    
     logging.flushResponseLog();
 }
 
@@ -72,21 +60,24 @@ function continuation_action() {
         res.redirect(req.path + "?helma_continuation=");
     }
     // render first page
-    var context = {
+    render('skins/continuation.html', {
         title: "Continuations Demo",
-        content: '<form method="post" action="' + Continuation.nextUrl() + '">' +
-                 '<input name="foo"/>' +
-                 '<input type="submit"/>' +
-                 '</form>'
-        };
-    renderSkin('skins/plain.html', context);
+        skin: "step1",
+        href: Continuation.nextUrl()
+    });
     Continuation.nextPage();
     // render second page
-    var foo = req.data.foo;
-    context.content = '<a href="' + Continuation.nextUrl() + '">click here</a>';
-    renderSkin('skins/plain.html', context);
+    var message = req.data.message;
+    render('skins/continuation.html',  {
+        title: "Continuations (Page 2 of 3)",
+        skin: "step2",
+        href: Continuation.nextUrl()
+    });
     Continuation.nextPage();
     // render third page
-    context.content = 'You said: ' + foo; 
-    renderSkin('skins/plain.html', context);
+    render('skins/continuation.html', {
+        title: "Continuations (last Page)",
+        skin: "step3",
+        message: message
+    });
 }

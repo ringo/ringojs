@@ -1,0 +1,13 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' %>
+<div>Helma NG uses <a href="http://logging.apache.org/log4j/1.2/index.html">Apache log4j</a> as logging framework.</div>
+
+<p>In addition to all the cool features in log4j, Helma NG provides a special RhinoAppender class that allows you to
+process log messages using a JavaScript callback function. This allows you to append log messages to the page being
+rendered, which is very useful during development.</p>
+
+<p>This will also print full JavaScript and Java stack traces for error messages.
+<a href="?makeTrouble=1">Click here</a> to generate an error message.</p>
+
+<p><a href="http://dev.helma.org/ng/helma.logging/">Learn more</a> about the helma.logging module on the Helma NG site.</p>

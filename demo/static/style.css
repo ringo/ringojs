@@ -5,7 +5,9 @@ body, html {
 
 body {
     min-width: 750px;
-    font-size: 90%;
+    font-family: sans-serif;
+    font-size: 80%;
+    line-height: 170%;
 }
 
 #wrap {
@@ -46,7 +48,7 @@ body {
 }
 
 #menu ul {
-    background-color: #abc;
+    background-color: #abd;
     border-width: 1px 2px 2px 1px;
     border-color: black;
     border-style: solid;
@@ -74,4 +76,12 @@ div#menu li {
     color: #666;
     font-size: 80%;
     clear:both;
+}
+
+pre.code {
+    background-color: #bda;
+    border-width: 1px 2px 2px 1px;
+    border-color: black;
+    border-style: solid;
+    padding: 1em;
 }
