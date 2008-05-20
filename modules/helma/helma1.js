@@ -36,7 +36,7 @@ function renderSkin(obj, param) {
     } else {
         throw Error("Invalid skin object: " + obj);
     }
-    helma.skin.renderSkin(skin, context, this);
+    helma.skin.render(skin, context, this);
 }
 
 function renderSkinAsString(obj, param) {
