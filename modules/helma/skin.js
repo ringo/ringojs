@@ -1,18 +1,32 @@
 importModule('core.string');
 importModule('helma.logging', 'logging');
-var log = logging.getLogger('helma.skin');
+var log = logging.getLogger(__name__);
 
 /*global getResource importModule parseSkin */
 
 /**
  * Parse a skin from a resource and render it using the given context.
- * @param skinOrResource
+ * @param skinOrPath
  * @param context
  */
 function renderSkin(skinOrPath, context, scope) {
     scope = scope || this;
-    var skin = (skinOrPath instanceof Skin) ?
-           skinOrPath : createSkin(scope.getResource(skinOrPath), scope);
+    var skin;
+    if (typeof(skinOrPath.render) == "function") {
+        skin = obj;
+    } else if (typeof(skinOrPath) == "string") {
+        var subskin;
+        if (skinOrPath.indexOf('#') > -1) {
+            [skinOrPath, subskin] = skinOrPath.split('#');
+        }
+        var resource = this.getResource(skinOrPath);
+        skin = createSkin(resource, this);
+        if (subskin) {
+            skin = skin.getSubskin(subskin);
+        }
+    } else {
+        throw Error("Unknown skin object: " + skinOrPath);
+    }
     skin.render(context);
 }
 
@@ -21,6 +35,7 @@ function renderSkin(skinOrPath, context, scope) {
  * @param resource
  */
 function createSkin(resourceOrString, scope) {
+    log.debug("creating skin: " + resourceOrString);
     var mainSkin = [];
     var subSkins = {};
     var currentSkin = mainSkin;
