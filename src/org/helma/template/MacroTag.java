@@ -16,6 +16,7 @@
 
 package org.helma.template;
 
+import org.helma.javascript.RhinoEngine;
 import org.helma.util.CaseInsensitiveMap;
 import org.helma.util.ScriptableList;
 import org.helma.util.ScriptableMap;
@@ -157,6 +158,8 @@ public class MacroTag extends ScriptableObject {
                 return new ScriptableList(scope, (List) value);
             } else if (value instanceof Map) {
                 return new ScriptableMap(scope, (Map) value);
+            } else if (value instanceof MacroTag) {
+                return RhinoEngine.wrapArgument(value, scope);
             } else {
                 return Context.javaToJS(value, scope);
             }

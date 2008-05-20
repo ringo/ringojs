@@ -257,7 +257,7 @@ public class RhinoEngine {
      * @param scope the scope
      * @return the object wrapped and wired for rhino
      */
-    protected Object wrapArgument(Object value, Scriptable scope) {
+    public static Object wrapArgument(Object value, Scriptable scope) {
         if (value instanceof ScriptableObject) {
             ScriptableObject scriptable = ((ScriptableObject) value);
             scriptable.setPrototype(ScriptableObject.getClassPrototype(
