@@ -18,10 +18,12 @@ package org.helma.tools.launcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 
 /**
  * Main launcher class. This figures out the Helma home directory,
@@ -52,6 +54,12 @@ public class Main {
         try {
             File home = getHelmaHome();
             ClassLoader loader = createClassLoader(home);
+
+            // set default log4j configuration file
+            if (System.getProperty("log4j.configuration") == null) {
+                File file = new File(home, "modules/helma/log4j.properties"); 
+                System.setProperty("log4j.configuration", "file:" + file.getPath());
+            }
 
             Class clazz = loader.loadClass(className);
             Class[] cargs = new Class[] {args.getClass()};
@@ -94,7 +102,8 @@ public class Main {
      * Get the Helma install directory.
      *
      * @return the base install directory we're running in
-     * @throws java.io.IOException
+     * @throws IOException an I/O related exception occurred
+     * @throws MalformedURLException the jar URL couldn't be parsed
      */
     public static File getHelmaHome()
             throws IOException, MalformedURLException {
@@ -113,6 +122,12 @@ public class Main {
             // to get the original jar file URL
 
             String jarUrl = launcherUrl.toString();
+            // decode installDir in case it is URL-encoded
+            try {
+                jarUrl = URLDecoder.decode(jarUrl, System.getProperty("file.encoding"));
+            } catch (UnsupportedEncodingException x) {
+                System.err.println("Unable to decode jar URL: " + x);
+            }
 
             if (!jarUrl.startsWith("jar:") || jarUrl.indexOf("!") < 0) {
                 helmaHome = System.getProperty("user.dir");
