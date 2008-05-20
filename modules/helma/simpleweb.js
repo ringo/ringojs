@@ -6,6 +6,7 @@
 
 importModule('core.string');
 importModule('helma.rhino', 'rhino');
+importModule('helma.continuation', 'continuation');
 importModule('helma.simpleweb.*');
 
 /**
@@ -26,7 +27,7 @@ function handleRequest(req, res, session) {
     global.session = session;
     res.contentType = "text/html; charset=UTF-8";
     // resume continuation?
-    if (invokeContinuation()) {
+    if (continuation.resume()) {
         return;
     }
     // resolve path and invoke action
@@ -97,26 +98,4 @@ function notfound() {
     return null;
 }
 
-/**
- * Check if there is a helma_continuation http parameter, and if so,
- * check if there is a matching continuation, and if so, invoke the continuation
- * and return null.
- */
-function invokeContinuation() {
-    var continuationId = req.params.helma_continuation;
-    if (continuationId && session.data.continuation) {
-        var continuation = session.data.continuation[continuationId];
-        if (continuation) {
-            try {
-                // FIXME: continuations scope gets messed up after some time. dig we must.
-                continuation();
-                return true;
-            } catch (e) {
-                error(e);
-                return true;
-            }
-        }
-    }
-    return false;
-}
 

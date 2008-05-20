@@ -27,6 +27,9 @@
  *
  */
 
+importModule('helma.logging', 'logging');
+var log = logging.getLogger(__name__);
+
 var continuation_id = null;
 
 /**
@@ -45,16 +48,18 @@ Continuation.nextId = function() {
  * built from the current URL with an added continuation_id parameter.
  * Suitable for POST forms and links.
  */
-Continuation.nextUrl = function() {
-    return req.path + "?helma_continuation=" + Continuation.nextId();
+Continuation.nextUrl = function(id) {
+    id = id || Continuation.nextId();
+    return req.path + "?helma_continuation=" + id;
 };
 
 /**
  * Stop current execution and register continuation for later resumption.
  */
-Continuation.nextPage = function() {
+Continuation.nextPage = function(id) {
     // capture continuation and store it in callback container
-    setCallback(Continuation.nextId(), new Continuation());
+    id = id || Continuation.nextId();
+    setCallback(id, new Continuation());
     // trick to exit current context: call empty continuation
     new org.mozilla.javascript.continuations.Continuation()();
 };
@@ -66,6 +71,7 @@ var generateId = function() {
     do {
         id = Math.ceil(Math.random() * Math.pow(2, 64)).toString(36);
     } while (getCallback(id));
+    log.debug("Generated continuation id: " + id);
     return id;
 }
 
@@ -73,6 +79,7 @@ var setCallback = function(id, func) {
     if (!session.data.continuation) {
         session.data.continuation = {};
     }
+    log.debug("Registered continuation: " + id);
     session.data.continuation[id] = func;
 };
 
@@ -82,3 +89,27 @@ var getCallback = function(id) {
     }
     return session.data.continuation[id];
 };
+
+/**
+ * Check if there is a helma_continuation http parameter, and if so,
+ * check if there is a matching continuation, and if so, invoke the continuation
+ * and return null.
+ */
+var resume = function() {
+    var continuationId = req.params.helma_continuation;
+    if (continuationId && session.data.continuation) {
+        var continuation = session.data.continuation[continuationId];
+        if (continuation) {
+            log.debug("Resuming continuation " + continuationId);
+            try {
+                // FIXME: continuations scope gets messed up after some time. dig we must.
+                continuation();
+                return true;
+            } catch (e) {
+                error(e);
+                return true;
+            }
+        }
+    }
+    return false;
+}
