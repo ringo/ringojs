@@ -175,7 +175,7 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public synchronized Scriptable load(Scriptable prototype, Context cx)
+    public synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
         ModuleScope module = moduleScope;
@@ -188,7 +188,7 @@ public class ReloadableScript {
             }
             module.delete("__shared__");
         } else {
-            module = new ModuleScope(resource, repository, prototype);
+            module = new ModuleScope(moduleName, resource, repository, prototype);
         }
         script.exec(cx, module);
         // find out if this is a JSAdapter type scope

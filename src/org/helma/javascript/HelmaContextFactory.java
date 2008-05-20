@@ -49,9 +49,6 @@ public class HelmaContextFactory extends ContextFactory {
 
           case Context.FEATURE_WARNING_AS_ERROR:
             return warningAsError;
-
-          case Context. FEATURE_DYNAMIC_SCOPE:
-              return true;
         }
 
         return super.hasFeature(cx, featureIndex);
@@ -59,23 +56,28 @@ public class HelmaContextFactory extends ContextFactory {
 
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
-        cx.putThreadLocal("engine", engine);
-        cx.putThreadLocal("modules", new HashMap());
-        cx.setApplicationClassLoader(engine.loader);
-        cx.setWrapFactory(engine.wrapFactory);
-        cx.setLanguageVersion(languageVersion);
-        cx.setOptimizationLevel(optimizationLevel);
-        if (errorReporter != null) {
-            cx.setErrorReporter(errorReporter);
+        if (engine.isInitialized) {
+            cx.putThreadLocal("engine", engine);
+            cx.putThreadLocal("modules", new HashMap());
+            cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
+            cx.setApplicationClassLoader(engine.loader);
+            cx.setWrapFactory(engine.wrapFactory);
+            cx.setLanguageVersion(languageVersion);
+            cx.setOptimizationLevel(optimizationLevel);
+            if (errorReporter != null) {
+                cx.setErrorReporter(errorReporter);
+            }
+            cx.setGeneratingDebug(generatingDebug);
         }
-        cx.setGeneratingDebug(generatingDebug);
-        super.onContextCreated(cx);
     }
 
     protected void onContextReleased(Context cx) {
-        cx.removeThreadLocal("engine");
-        cx.removeThreadLocal("modules");
         super.onContextReleased(cx);
+        if (engine.isInitialized) {
+            cx.removeThreadLocal("engine");
+            cx.removeThreadLocal("modules");
+            cx.removeThreadLocal("threadscope");
+        }
     }
 
     public void setStrictMode(boolean flag)

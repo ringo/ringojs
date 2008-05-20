@@ -48,6 +48,7 @@ public class RhinoEngine {
     HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
+    protected boolean                  isInitialized      = false;
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
@@ -83,12 +84,13 @@ public class RhinoEngine {
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
             JSAdapter.init(cx, topLevelScope, false);
-            ScriptableObject.defineProperty(topLevelScope, "global", topLevelScope,
+            ScriptableObject.defineProperty(topLevelScope, "__name__", "topScope",
                     ScriptableObject.DONTENUM);
         } catch (Exception x) {
             throw new IllegalArgumentException("Error defining class", x);
         } finally {
             Context.exit();
+            isInitialized = true;
         }
     }
 
@@ -153,26 +155,6 @@ public class RhinoEngine {
     }
 
     /**
-     * Evaluate a module and return the result.
-     *
-     * @param globals a map of global variables
-     * @param path the path of the module to evaluate
-     * @return the return value of the evaluation
-     * @throws IOException if an I/O related error occurred
-     */
-    public Object evaluate(Map<String,Object> globals, String path)
-            throws IOException {
-        Context cx = contextFactory.enterContext();
-        try {
-            Scriptable scope = createThreadScope(cx);
-            initGlobalsAndArguments(scope, globals, null);
-            return getScript(path).evaluate(scope, cx);
-        } finally {
-            Context.exit();
-        }
-    }
-
-    /**
      * Invoke a javascript function. This enters a JavaScript context, creates
      * a new per-thread scope, calls the function, exits the context and returns
      * the return value of the invocation.
@@ -189,20 +171,19 @@ public class RhinoEngine {
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
         try {
-            Scriptable scope = createThreadScope(cx);
-            initGlobalsAndArguments(scope, globals, args);
+            initGlobalsAndArguments(topLevelScope, globals, args);
             Map<String, Function> funcs = callbacks.get("onInvoke");
             if (funcs != null) {
                 for (Function func: funcs.values()) {
-                    func.call(cx, scope, null, args);
+                    func.call(cx, topLevelScope, null, args);
                 }
             }
-            Scriptable module = loadModule(cx, path, scope, null);
+            Scriptable module = loadModule(cx, path, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
             }
-            Object retval = ((Function) func).call(cx, scope, module, args);
+            Object retval = ((Function) func).call(cx, topLevelScope, module, args);
             if (retval instanceof Wrapper) {
                 return ((Wrapper) retval).unwrap();
             }
@@ -219,47 +200,16 @@ public class RhinoEngine {
     public ModuleScope getShellScope() {
         Context cx = contextFactory.enterContext();
         try {
-            Scriptable scope = createThreadScope(cx);
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
             try {
                 // exec script on scope without setting the module resource -
                 // this is why we don't use ReloadableScript.evaluate().
-                getScript("helma.shell").getScript(cx).exec(cx, scope);
+                getScript("helma.shell").getScript(cx).exec(cx, topLevelScope);
             } catch (Exception x) {
                 System.err.println("Warning: couldn't load module 'helma.shell'.");
             }
-            return new ModuleScope(resource, repository, scope);
-        } finally {
-            Context.exit();
-        }
-    }
-
-    /**
-     * Invoke a javascript function. This enters a JavaScript context, creates
-     * a new per-thread scope, calls the function, exits the context and returns
-     * the return value of the invocation.
-     *
-     * @param globals map of global variables to set in the thread scope
-     * @param thisObj the object to invoke the function on
-     * @param function the function object to invoke
-     * @param args the arguments to pass to the method
-     * @return the return value of the invocation
-     * @throws NoSuchMethodException the method is not defined
-     * @throws IOException an I/O related error occurred
-     */
-    public Object invoke(Map<String,Object> globals, Scriptable thisObj, Function function, Object[] args)
-            throws IOException, NoSuchMethodException {
-        Context cx = contextFactory.enterContext();
-        try {
-            Scriptable threadScope = function.getParentScope();
-            initGlobalsAndArguments(threadScope, globals, args);
-
-            Object retval = (function).call(cx, threadScope, thisObj, args);
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
-            }
-            return retval;
+            return new ModuleScope("<shell>", resource, repository, topLevelScope);
         } finally {
             Context.exit();
         }
@@ -274,9 +224,9 @@ public class RhinoEngine {
      */
     public Scriptable createThreadScope(Context cx) {
         Scriptable threadScope = cx.newObject(topLevelScope);
-        threadScope.setPrototype(topLevelScope);
-        threadScope.setParentScope(null);
         ScriptableObject.defineProperty(threadScope, "global", threadScope,
+                ScriptableObject.DONTENUM);
+        ScriptableObject.defineProperty(threadScope, "__name__", "threadScope",
                 ScriptableObject.DONTENUM);
         return threadScope;
     }
@@ -291,12 +241,12 @@ public class RhinoEngine {
         if (globals != null && !globals.isEmpty()) {
             for (String key: globals.keySet()) {
                 Object value = globals.get(key);
-                scope.put(key, scope, wrapArgument(value, scope));
+                scope.put(key, scope, wrapArgument(value, topLevelScope));
             }
         }
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
-                args[i] = wrapArgument(args[i], scope);
+                args[i] = wrapArgument(args[i], topLevelScope);
             }
         }
     }
@@ -377,13 +327,11 @@ public class RhinoEngine {
      * been loaded in the current context and if so returns the existing module scope.
      * @param cx the current context
      * @param moduleName the module name
-     * @param parentScope the parent scope to load the module
      * @param loadingScope the scope requesting the module
      * @return the loaded module scope
      * @throws IOException indicates that in input/output related error occurred
      */
-    public Scriptable loadModule(Context cx, String moduleName,
-                                 Scriptable parentScope, Scriptable loadingScope)
+    public Scriptable loadModule(Context cx, String moduleName, Scriptable loadingScope)
             throws IOException {
         Map modules = (Map) cx.getThreadLocal("modules");
         if (modules.containsKey(moduleName)) {
@@ -391,7 +339,7 @@ public class RhinoEngine {
         }
         Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable scope = script.load(topLevelScope, cx);
+        Scriptable scope = script.load(topLevelScope, moduleName, cx);
         modules.put(moduleName, scope);
         return scope;
     }
@@ -478,7 +426,7 @@ public class RhinoEngine {
         return getRepository(path);
     }
 
-    public ContextFactory getContextFactory() {
+    public HelmaContextFactory getContextFactory() {
         return contextFactory;
     }
 

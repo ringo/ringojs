@@ -32,11 +32,13 @@ public class ModuleScope extends NativeObject {
     AdapterFlag isAdapter = new AdapterFlag();
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(Resource resource, Repository repository, Scriptable prototype) {
+    public ModuleScope(String moduleName, Resource resource,
+                       Repository repository, Scriptable prototype) {
         this.resource = resource;
         this.repository = repository;
         setParentScope(null);
         setPrototype(prototype);
+        defineProperty("__name__", moduleName, DONTENUM);
     }
 
     public Repository getRepository() {
@@ -71,7 +73,16 @@ public class ModuleScope extends NativeObject {
                 return call(func, new Object[] { name });
             }
         }
-        return super.get(name, start);
+        Object value = super.get(name, start);
+        if (value == NOT_FOUND) {
+            // Lookup name in per-thread scope. This is how we implement dynamic scopes.
+            Context cx = Context.getCurrentContext();
+            Scriptable threadScope = (Scriptable) cx.getThreadLocal("threadscope");
+            if (threadScope != null) {
+                value = threadScope.get(name, threadScope);
+            }
+        }
+        return value;
     }
 
     public Object get(int index, Scriptable start) {

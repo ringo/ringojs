@@ -116,8 +116,7 @@ public class GlobalFunctions {
     private static Scriptable importInternal(String moduleName, String as, Scriptable thisObj, Context cx)
             throws JavaScriptException, IOException {
         RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
-        Scriptable topScope = getTopScope(cx);
-        Scriptable scope = engine.loadModule(cx, moduleName, topScope, thisObj);
+        Scriptable scope = engine.loadModule(cx, moduleName, thisObj);
         // split as string and walk through
         if (as != null) {
             if (as.indexOf('.') == -1) {
@@ -244,15 +243,6 @@ public class GlobalFunctions {
             parser.parse(str);
         }
         return true;
-    }
-
-    // get the first non-module scope in the scope prototype chain
-    private static Scriptable getTopScope(Context cx) {
-        Scriptable scope = ScriptRuntime.getTopCallScope(cx);
-        while (scope instanceof ModuleScope && scope.getPrototype() != null) {
-            scope = scope.getPrototype();
-        }
-        return scope;
     }
 
 }
