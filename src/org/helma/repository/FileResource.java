@@ -16,8 +16,9 @@
 
 package org.helma.repository;
 
-import java.net.*;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class FileResource implements Resource {
 
@@ -32,10 +33,17 @@ public class FileResource implements Resource {
     }
 
     protected FileResource(File file, Repository repository) {
-        this.file = file;
+        // make sure our directory has an absolute path,
+        // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
+        try {
+            this.file = file.getCanonicalFile();
+        } catch (IOException iox) {
+            this.file = file.getAbsoluteFile();
+        }
 
-        this.repository = repository;
-        name = file.getAbsolutePath();
+        this.repository = repository == null ?
+                new FileRepository(file.getParentFile()) : repository;
+        name = file.getPath();
         shortName = file.getName();
         // base name is short name with extension cut off
         int lastDot = shortName.lastIndexOf(".");
