@@ -1,18 +1,12 @@
-// import request handler from simpleweb module
+importModule('helma.app', 'app');
 importFromModule('helma.simpleweb', 'handleRequest');
-// import render
 importFromModule('helma.skin', 'render');
-// mount web app module on /mount/point/
-importModule('webmodule', 'mount.point');
-// continuation support
 importModule('helma.continuation');
-
 importModule('helma.logging', 'logging');
 logging.enableResponseLog();
 var log = logging.getLogger(__name__);
 
-// import macrofilters
-importModule('helma.filters', 'filters');
+importModule('webmodule', 'mount.point');
 
 // the main action is invoked for http://localhost:8080/
 function main_action() {
@@ -68,7 +62,7 @@ function continuation_action() {
     Continuation.nextPage();
     // render second page
     var message = req.data.message;
-    render('skins/continuation.html',  {
+    render('skins/continuation.html', {
         title: "Continuations (Page 2 of 3)",
         skin: "step2",
         href: Continuation.nextUrl()
@@ -80,4 +74,9 @@ function continuation_action() {
         skin: "step3",
         message: message
     });
+}
+
+// main method called to start application
+function main() {
+    app.start();
 }
