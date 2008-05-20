@@ -38,9 +38,9 @@ var jettyConfig = {
 /**
  * Start the jetty server.
  */
-function start() {
+function start(config) {
     // start jetty http server with configuration file modules/helma/jetty.xml
-    jetty.startServer(jettyConfig);
+    jetty.startServer(config || jettyConfig);
 }
 
 
