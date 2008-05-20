@@ -16,6 +16,7 @@
 
 package org.helma.javascript;
 
+import org.apache.log4j.Logger;
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.tools.launcher.HelmaClassLoader;
@@ -49,6 +50,8 @@ public class RhinoEngine {
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
     protected boolean                  isInitialized      = false;
+
+    private Logger                     log                = Logger.getLogger("org.helma.javascript");
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
@@ -195,19 +198,22 @@ public class RhinoEngine {
 
     /**
      * Return a shell scope for interactive evaluation
+     * @param mainModule the main module name to pre-load
      * @return a shell scope
+     * @throws IOException an I/O related exception occurred
      */
-    public ModuleScope getShellScope() {
+    public Scriptable getShellScope(String mainModule) throws IOException {
         Context cx = contextFactory.enterContext();
         try {
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
             try {
-                // exec script on scope without setting the module resource -
-                // this is why we don't use ReloadableScript.evaluate().
-                getScript("helma.shell").getScript(cx).exec(cx, topLevelScope);
+                getScript("helma.shell").evaluate(topLevelScope, cx);
             } catch (Exception x) {
-                System.err.println("Warning: couldn't load module 'helma.shell'.");
+                log.error("Warning: couldn't load module 'helma.shell'", x);
+            }
+            if (mainModule != null) {
+                return loadModule(cx, mainModule, null);
             }
             return new ModuleScope("<shell>", resource, repository, topLevelScope);
         } finally {

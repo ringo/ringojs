@@ -32,11 +32,11 @@ public class HelmaServer {
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = config.createEngine();
-        engine.invoke(null, "app", "start", RhinoEngine.EMPTY_ARGS);
+        engine.invoke(null, config.getMainModule(), "main", RhinoEngine.EMPTY_ARGS);
     }
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("    java -jar server.jar [APPDIR]");
+        System.out.println("    java -jar server.jar MAINFILE [SCRIPTDIR] ...");
     }
 }

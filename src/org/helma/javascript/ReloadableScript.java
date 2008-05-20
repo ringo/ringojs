@@ -152,16 +152,14 @@ public class ReloadableScript {
     /**
      * Evaluate the script on a module scope and return the result
      *
-     * @param prototype the parent scope for the module
+     * @param scope the scope to evaluate the script on
      * @param cx the rhino context
      * @return the result of the evaluation
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Object evaluate(Scriptable prototype, Context cx)
+    public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
-        NativeObject scope = new NativeObject();
-        scope.setPrototype(prototype);
         Script script = getScript(cx);
         return script.exec(cx, scope);
     }

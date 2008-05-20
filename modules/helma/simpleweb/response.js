@@ -1,3 +1,4 @@
+importModule('helma.app');
 importModule('helma.rhino');
 
 helma.rhino.addCallback("onResponse", "debugFlusher", function(res) {

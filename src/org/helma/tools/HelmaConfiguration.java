@@ -16,10 +16,9 @@
 
 package org.helma.tools;
 
+import org.apache.log4j.Logger;
 import org.helma.javascript.RhinoEngine;
-import org.helma.repository.FileRepository;
-import org.helma.repository.Repository;
-import org.helma.repository.ZipRepository;
+import org.helma.repository.*;
 import org.helma.util.StringUtils;
 
 import java.io.File;
@@ -31,6 +30,7 @@ public class HelmaConfiguration {
 
     File home;
     List<Repository> repositories;
+    String mainModule;
     Class[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
@@ -59,7 +59,8 @@ public class HelmaConfiguration {
             helmaModulePath = System.getProperty("helma.modulepath", ".");
         }
         String[] reps = StringUtils.split(helmaModulePath, ",");
-        for (String rep: reps) {
+        for (int i = 0; i < reps.length; i++) {
+            String rep = reps[i];
             rep = rep.trim();
             File file = new File(rep);
             if (!file.isAbsolute()) {
@@ -76,12 +77,22 @@ public class HelmaConfiguration {
             if (rep.toLowerCase().endsWith(".zip")) {
                 repositories.add(new ZipRepository(file));
             } else {
-                repositories.add(new FileRepository(file));
+                if (i == 0 && file.isFile()) {
+                    Resource res = new FileResource(file);
+                    mainModule = res.getBaseName();
+                    repositories.add(res.getRepository());
+                } else {
+                    repositories.add(new FileRepository(file));
+                }
             }
         }
         // always add modules from helma home
         repositories.add(new FileRepository(new File(home, "modules")));
-        // System.err.println("Parsed repository list: " + repositories);
+        // if main resource is not explicitly defined assume main.js in first repository
+        if (mainModule == null) {
+            mainModule = "main";
+        }
+        Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
 
     /**
@@ -99,6 +110,15 @@ public class HelmaConfiguration {
      */
     public List<Repository> getRepositories() {
         return repositories;
+    }
+
+    /**
+     * Get the main resource of the configuration. This is the JavaScript file
+     * we call the main function on to run the application.
+     * @return the main module
+     */
+    public String getMainModule() {
+        return mainModule;
     }
 
     /**

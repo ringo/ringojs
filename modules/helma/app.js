@@ -16,6 +16,8 @@
  *
  */
 
+__shared__ = true;
+
 // import application and server module
 importModule('helma.rhino', 'rhino');
 importModule('helma.jetty', 'jetty');

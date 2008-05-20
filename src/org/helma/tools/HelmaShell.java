@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  */
 public class HelmaShell {
 
-    static ModuleScope scope;
+    static Scriptable scope;
 
     public static void main(String[] args) throws IOException {
         String modulePath = ".";
@@ -50,7 +50,7 @@ public class HelmaShell {
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = config.createEngine();
-        scope = engine.getShellScope();
+        scope = engine.getShellScope(config.getMainModule());
         Scriptable threadScope = null;
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
