@@ -20,7 +20,8 @@ import org.helma.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -83,7 +84,7 @@ public final class ZipRepository extends AbstractRepository {
             depth = 0;
             entryPath = "";
         } else {
-            String[] pathArray = StringUtils.split(zipentry.getName(), "/");
+            String[] pathArray = StringUtils.split(zipentry.getName(), separator);
             depth = pathArray.length;
             shortName = pathArray[depth - 1];
             entryPath = zipentry.getName();
@@ -123,7 +124,7 @@ public final class ZipRepository extends AbstractRepository {
                         // names don't match - not a child of ours
                         continue;
                     }
-                    String[] entrypath = StringUtils.split(eName, "/");
+                    String[] entrypath = StringUtils.split(eName, separator);
                     if (depth > 0 && !shortName.equals(entrypath[depth-1])) {
                         // catch case where our name is Foo and other's is FooBar
                         continue;
