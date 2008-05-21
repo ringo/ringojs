@@ -85,10 +85,10 @@
         <jar jarfile="${helma.jar}"
             basedir="${classes}"
             excludes="**/package.html"/>
-        <jar jarfile="server.jar"
+        <jar jarfile="run.jar"
             basedir="${classes}"
             includes="**/tools/launcher/**"
-            manifest="${src}/org/helma/tools/launcher/manifest-server.txt"/>
+            manifest="${src}/org/helma/tools/launcher/manifest-runner.txt"/>
         <jar jarfile="shell.jar"
             basedir="${classes}"
             includes="**/tools/launcher/**"
