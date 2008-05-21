@@ -19,6 +19,12 @@ Helma NG 0.2 - 16 May 2008
    - Add req.servletRequest and res.servletResponse properties to access the
      wrapped servlet classes
    - Implement Response.getBuffer(String) for named response buffer support
+   - Renamed server.jar to run.jar to reflect its generic runtime nature
+   - Allow a script file to be passed to shell.jar and run.jar. shell.jar
+     will evaluate it in its main scope, while run.jar will evaluate it and
+     call the main() function on it.
+   - Rewrite thread scope implementation to use ThreadLocal in ModuleScope.
+     
 
  + Enhancements in modules
    - helma.skin: fully implemented prefix/suffix/default attributes
