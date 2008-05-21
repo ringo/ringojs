@@ -20,7 +20,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="helma-ng"/>
-        <property name="version" value="0.1"/>
+        <property name="version" value="0.2"/>
 
         <property name="home" value="."/>
 
