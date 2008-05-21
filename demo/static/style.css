@@ -4,7 +4,7 @@ body, html {
 }
 
 body {
-    min-width: 750px;
+    min-width: 780px;
     font-family: sans-serif;
     font-size: 80%;
     line-height: 170%;
@@ -12,7 +12,7 @@ body {
 
 #wrap {
     margin: 0 auto;
-    width: 750px;
+    width: 780px;
 }
 
 #header {
@@ -23,7 +23,7 @@ body {
     float: left;
     color: orange;
     margin: 20px 10px;
-    padding: 5px;
+    padding: 15px 5px;
 }
 
 #logo {
