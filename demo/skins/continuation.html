@@ -20,6 +20,36 @@ store user data in local variables.</p>
     <input type="submit">
 </form>
 
+<p>Here's the source code for this demo:</p>
+
+<pre class="code">function continuation_action() {
+    if (req.params.helma_continuation == null) {
+        // parameter tells Helma to disable Rhino optimization
+        res.redirect(req.path + "?helma_continuation=");
+    }
+    // render first page
+    render('skins/continuation.html', {
+        title: "Continuations Demo",
+        skin: "step1",
+        href: Continuation.nextUrl()
+    });
+    Continuation.nextPage();
+    // render second page
+    var message = req.data.message;
+    render('skins/continuation.html', {
+        title: "Continuations (Page 2 of 3)",
+        skin: "step2",
+        href: Continuation.nextUrl()
+    });
+    Continuation.nextPage();
+    // render third page
+    render('skins/continuation.html', {
+        title: "Continuations (last Page)",
+        skin: "step3",
+        message: message
+    });
+}</pre>
+
 
 <% subskin 'step2' ---------------------------------------------------------------------- %>
 Thanks. Your message is now stored as a local variable inside a Continuation.

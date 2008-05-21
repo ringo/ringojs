@@ -11,4 +11,19 @@ rendered, which is very useful during development.</p>
 
 <p><a href="?error=1">Click here</a> to generate an error message including JavaScript and Java stack traces.</p>
 
+<p>Here is the (slightly shortened) source code for this demo:</p>
+
+<pre class="code">function logging_action() {
+    if (req.data.info) {
+        log.info("Hello world!");
+    } else if (req.data.error) {
+        try {
+            foo.bar.moo;
+        } catch (e) {
+            log.error(e, e.rhinoException);
+        }
+    }
+    render('skins/logging.html', { title: "Logging Demo" });
+}</pre>
+
 <p><a href="http://dev.helma.org/ng/helma.logging/">Learn more</a> about the helma.logging module on the Helma NG site.</p>
