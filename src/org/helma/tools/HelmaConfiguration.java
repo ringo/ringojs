@@ -43,7 +43,7 @@ public class HelmaConfiguration {
         this(helmaHome, null);
     }
 
-    public HelmaConfiguration(String helmaHome, String helmaModulePath)
+    public HelmaConfiguration(String helmaHome, String modulePath)
             throws FileNotFoundException {
         if (helmaHome == null) {
             helmaHome = System.getProperty("helma.home", "");
@@ -53,11 +53,10 @@ public class HelmaConfiguration {
             home = home.getAbsoluteFile();
         }
         repositories = new ArrayList<Repository>();
-
-        if (helmaModulePath == null) {
-            helmaModulePath = System.getProperty("helma.modulepath", ".");
+        if (modulePath == null) {
+            modulePath = System.getProperty("helma.modulepath", ".");
         }
-        String[] reps = StringUtils.split(helmaModulePath, ",");
+        String[] reps = StringUtils.split(modulePath, ",");
         for (int i = 0; i < reps.length; i++) {
             String rep = reps[i];
             rep = rep.trim();

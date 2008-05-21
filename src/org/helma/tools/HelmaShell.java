@@ -40,7 +40,7 @@ public class HelmaShell {
     static Scriptable scope;
 
     public static void main(String[] args) throws IOException {
-        String modulePath = ".";
+        String modulePath = null;
         if (args.length > 0) {
             if ("--help".equals(args[0]) || "-h".equals(args[0])) {
                 printUsage();

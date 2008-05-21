@@ -22,7 +22,7 @@ import org.helma.util.StringUtils;
 public class HelmaRunner {
 
     public static void main(String[] args) throws Exception {
-        String modulePath = ".";
+        String modulePath = null;
         if (args.length > 0) {
             if ("--help".equals(args[0]) || "-h".equals(args[0])) {
                 printUsage();
