@@ -31,8 +31,9 @@ function logging_action() {
         logging.enableResponseLog();
         log.debug("enabling response log");
     }
-    log.info("Hello world!");
-    if (req.data.makeTrouble) {
+    if (req.data.info) {
+        log.info("Hello world!");
+    } else if (req.data.error) {
         try {
             foo.bar.moo;
         } catch (e) {
