@@ -95,5 +95,6 @@ pre.code {
     border-width: 1px 2px 2px 1px;
     border-color: black;
     border-style: solid;
-    padding: 1em;
+    padding: 0.8em;
+    line-height: 145%;    
 }
