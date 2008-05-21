@@ -284,6 +284,14 @@ public class Response extends ScriptableObject {
         return buffers.pop().toString();
     }
 
+    /**
+     * Pop all remaining buffers, write their contents to the HTTP response and
+     * close the underlying servlet's response stream.
+     */
+    public synchronized void jsFunction_close() throws IOException {
+        close();
+    }    
+
     public synchronized Buffer getBuffer() {
         if (buffers.isEmpty()) {
             buffers.push(new Buffer());
