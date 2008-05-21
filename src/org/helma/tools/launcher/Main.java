@@ -37,9 +37,9 @@ public class Main {
         }
     }
 
-    static class Server {
+    static class Runner {
         public static void main(String[] args) {
-            Main.main(args, "org.helma.tools.HelmaServer");
+            Main.main(args, "org.helma.tools.HelmaRunner");
         }
     }
         

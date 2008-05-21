@@ -13,6 +13,7 @@ package org.helma.javascript;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
+import org.mozilla.javascript.Scriptable;
 
 import java.util.HashMap;
 
@@ -20,7 +21,7 @@ public class HelmaContextFactory extends ContextFactory {
 
     RhinoEngine engine;
 
-    int languageVersion = 170;
+    int languageVersion = Context.VERSION_1_7;
     boolean strictMode = false;
     boolean warningAsError = false;
     int optimizationLevel = 0;
@@ -58,7 +59,7 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         if (engine.isInitialized) {
             cx.putThreadLocal("engine", engine);
-            cx.putThreadLocal("modules", new HashMap());
+            cx.putThreadLocal("modules", new HashMap<String, Scriptable>());
             cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
             cx.setApplicationClassLoader(engine.loader);
             cx.setWrapFactory(engine.wrapFactory);

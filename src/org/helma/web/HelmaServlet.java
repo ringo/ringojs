@@ -61,7 +61,8 @@ public class HelmaServlet extends HttpServlet {
     }
 
     public void init(ServletConfig config) throws ServletException {
-        pool = Executors.newFixedThreadPool(8);
+        // pool = Executors.newFixedThreadPool(8);
+        pool = Executors.newCachedThreadPool();
         if (engine == null) {
             try {
                 String timeout = config.getInitParameter("requestTimeout");
@@ -81,7 +82,7 @@ public class HelmaServlet extends HttpServlet {
                         config.getInitParameter("helmaHome"),
                         config.getInitParameter("helmaModulePath"));
                 helmaconf.setHostClasses(classes);
-                engine = helmaconf.createEngine();
+                engine = new RhinoEngine(helmaconf);
             } catch (Exception x) {
                 throw new ServletException(x);
             }
@@ -98,7 +99,7 @@ public class HelmaServlet extends HttpServlet {
                 Session session = new Session(req);
                 Status status = new Status();
                 try {
-                    engine.invoke(null, "main", "handleRequest", request, response, session);
+                    engine.invoke(null, "handleRequest", request, response, session);
                     response.close();
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();

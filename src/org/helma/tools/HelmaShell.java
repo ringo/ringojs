@@ -49,8 +49,8 @@ public class HelmaShell {
             modulePath = StringUtils.join(args, ",");
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
-        RhinoEngine engine = config.createEngine();
-        scope = engine.getShellScope(config.getMainModule());
+        RhinoEngine engine = new RhinoEngine(config);
+        scope = engine.getShellScope(config.getMainModule(null));
         Scriptable threadScope = null;
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);

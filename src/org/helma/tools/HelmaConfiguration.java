@@ -17,7 +17,6 @@
 package org.helma.tools;
 
 import org.apache.log4j.Logger;
-import org.helma.javascript.RhinoEngine;
 import org.helma.repository.*;
 import org.helma.util.StringUtils;
 
@@ -88,10 +87,6 @@ public class HelmaConfiguration {
         }
         // always add modules from helma home
         repositories.add(new FileRepository(new File(home, "modules")));
-        // if main resource is not explicitly defined assume main.js in first repository
-        if (mainModule == null) {
-            mainModule = "main";
-        }
         Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
 
@@ -115,10 +110,12 @@ public class HelmaConfiguration {
     /**
      * Get the main resource of the configuration. This is the JavaScript file
      * we call the main function on to run the application.
+     * @param defaultValue the default value to return in case the
+     * main module name is not defined
      * @return the main module
      */
-    public String getMainModule() {
-        return mainModule;
+    public String getMainModule(String defaultValue) {
+        return (mainModule == null)? defaultValue : mainModule;
     }
 
     /**
@@ -130,12 +127,11 @@ public class HelmaConfiguration {
     }
 
     /**
-     * Create a new RhinoEngine with the settings defined by this configuration.
-     * @return a new RhinoEngine
+     * Get the host classes to be added to the Rhino engine.
+     * @return a list of Rhino host classes
      */
-    public RhinoEngine createEngine() {
-        return new RhinoEngine(repositories, hostClasses);
+    public Class[] getHostClasses() {
+        return hostClasses;
     }
-
 
 }

@@ -19,6 +19,7 @@ package org.helma.javascript;
 import org.apache.log4j.Logger;
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
+import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
 import org.mozilla.javascript.*;
@@ -39,6 +40,7 @@ import java.util.Map;
  */
 public class RhinoEngine {
 
+    HelmaConfiguration                 configuration;
     List<Repository>                   repositories;
     ScriptableObject                   topLevelScope;
     Map<String, ReloadableScript>      compiledScripts    = new HashMap<String, ReloadableScript>();
@@ -54,28 +56,21 @@ public class RhinoEngine {
     private Logger                     log                = Logger.getLogger("org.helma.javascript");
 
     /**
-     * Create a RhinoEngine which loads scripts from directory <code>dir</code>.
-     * @param repositories a list of code repositories
-     */
-    public RhinoEngine(List<Repository> repositories) {
-        this(repositories, null);
-    }
-
-    /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
      * and defines the given classes as native host objects.
-     * @param repositories a list of code repositories
-     * @param classes the host classes to define
+     * @param configuration the configuration used to initialize the engine.
      */
-    public RhinoEngine(List<Repository> repositories, Class[] classes) {
+    public RhinoEngine(HelmaConfiguration configuration) {
+        this.configuration = configuration;
+        this.repositories = configuration.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
-        this.repositories = repositories;
         // create a new global scope level
         Context cx = contextFactory.enterContext();
         try {
             topLevelScope = cx.initStandardObjects();
+            Class[] classes = configuration.getHostClasses();
             if (classes != null) {
                 // for (int i=0; i<classes.length; i++) {
                 for (Class clazz: classes) {
@@ -115,6 +110,7 @@ public class RhinoEngine {
     /**
      * Register a callback. Callbacks are javascript functions
      * that can be invoked on certain events.
+     * @param event the callback event
      * @param name the callback name
      * @param func the callback function
      */
@@ -129,6 +125,7 @@ public class RhinoEngine {
 
     /**
      * Unregister a previously registered callback.
+     * @param event the callback event
      * @param name the callback name
      */
     public void removeCallback(String event, String name) {
@@ -140,6 +137,7 @@ public class RhinoEngine {
     /**
      * Invoke a callback. If no callback is registered under this name fail silently.
      * @param event the callback event
+     * @param thisObj the object to invoke the callback on, or null
      * @param args the arguments
      * @return the return value
      */
@@ -149,7 +147,7 @@ public class RhinoEngine {
             Context cx = Context.getCurrentContext();
             Scriptable scope = ScriptRuntime.getTopCallScope(cx);
             Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, scope);
-            initGlobalsAndArguments(scope, null, args);
+            initArguments(args);
             for (Function func: funcs.values()) {
                 func.call(cx, scope, thisObject, args);
             }
@@ -162,26 +160,28 @@ public class RhinoEngine {
      * a new per-thread scope, calls the function, exits the context and returns
      * the return value of the invocation.
      *
-     * @param globals map of global variables to set in the thread scope
-     * @param path the file path to the script
+     * @param moduleName the name of the script module, or null for the main module
      * @param method the method name to call in the script
      * @param args the arguments to pass to the method
      * @return the return value of the invocation
      * @throws NoSuchMethodException the method is not defined
      * @throws IOException an I/O related error occurred
      */
-    public Object invoke(Map<String,Object> globals, String path, String method, Object... args)
+    public Object invoke(String moduleName, String method, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
         try {
-            initGlobalsAndArguments(topLevelScope, globals, args);
+            initArguments(args);
             Map<String, Function> funcs = callbacks.get("onInvoke");
             if (funcs != null) {
                 for (Function func: funcs.values()) {
                     func.call(cx, topLevelScope, null, args);
                 }
             }
-            Scriptable module = loadModule(cx, path, null);
+            if (moduleName == null) {
+                moduleName = configuration.getMainModule("main");
+            }
+            Scriptable module = loadModule(cx, moduleName, null);
             Object func = ScriptableObject.getProperty(module, method);
             if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
@@ -239,17 +239,9 @@ public class RhinoEngine {
 
     /**
      * Initialize and normalize the global variables and arguments on a thread scope.
-     * @param scope the thread local scope
-     * @param globals the map of global objects
      * @param args the arguments
      */
-    protected void initGlobalsAndArguments(Scriptable scope, Map<String,Object> globals, Object[] args) {
-        if (globals != null && !globals.isEmpty()) {
-            for (String key: globals.keySet()) {
-                Object value = globals.get(key);
-                scope.put(key, scope, wrapArgument(value, topLevelScope));
-            }
-        }
+    protected void initArguments(Object[] args) {
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
                 args[i] = wrapArgument(args[i], topLevelScope);
@@ -339,9 +331,9 @@ public class RhinoEngine {
      */
     public Scriptable loadModule(Context cx, String moduleName, Scriptable loadingScope)
             throws IOException {
-        Map modules = (Map) cx.getThreadLocal("modules");
+        Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
         if (modules.containsKey(moduleName)) {
-            return (Scriptable) modules.get(moduleName);
+            return modules.get(moduleName);
         }
         Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
