@@ -37,6 +37,6 @@ public class HelmaRunner {
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("    java -jar server.jar MAINFILE [SCRIPTDIR] ...");
+        System.out.println("    java -jar server.jar [MAINFILE|SCRIPTDIR] [SCRIPTDIR] ...");
     }
 }

@@ -105,7 +105,7 @@ public class HelmaShell {
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("    java -jar shell.jar [APPDIR]");
+        System.out.println("    java -jar shell.jar [MAINFILE|SCRIPTDIR] [SCRIPTDIR] ...");
     }    
 
     static class JSCompletor implements Completor {
