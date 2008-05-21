@@ -10,6 +10,18 @@ body {
     line-height: 170%;
 }
 
+a {
+    color: blue;
+}
+
+a:hover {
+    color: dodgerblue;
+}
+
+a:active {
+    color: darkorange;
+}
+
 #wrap {
     margin: 0 auto;
     width: 780px;
