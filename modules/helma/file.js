@@ -100,11 +100,14 @@ function File(path) {
 
    /**
     * Opens the file represented by this File object.
+    * If the file already exits it will be opened for <strong>reading</strong> only.
+    * An existing file can be opened for appending by passing in a parameter equal to true.
     * 
+    * @param  Boolean   If true, Append to existing file
     * @returns Boolean
     * @type Boolean
     */
-   this.open = function() {
+   this.open = function(append) {
       if (self.isOpened()) {
          setError(new IllegalStateException("File already open"));
          return false;
@@ -115,7 +118,11 @@ function File(path) {
       // get garbage collected.
       try{
          if (file.exists()) {
-            readerWriter = new BufferedReader(new FileReader(file));
+            if (append == true) {
+                readerWriter = new PrintWriter(new FileWriter(file, true));
+            } else {
+                readerWriter = new BufferedReader(new FileReader(file));    
+            }            
          } else {
             readerWriter = new PrintWriter(new FileWriter(file));
          }
@@ -126,7 +133,7 @@ function File(path) {
       }
       return;
    };
-
+   
    /**
     * Tests whether the file or directory represented by this File object exists.
     * 
