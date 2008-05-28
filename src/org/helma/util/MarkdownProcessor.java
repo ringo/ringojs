@@ -496,7 +496,7 @@ public class MarkdownProcessor {
         }
         BlockElement code = stack.peek();
         if (!(code instanceof CodeElement)) {
-            code = new CodeElement(nesting);
+            code = new CodeElement(nesting - 1);
             buffer.append(code.startTag());
             stack.push(code);
         }
