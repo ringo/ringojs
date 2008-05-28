@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class RhinoEngine {
     public static final Object[]       EMPTY_ARGS         = new Object[0];
     protected boolean                  isInitialized      = false;
 
-    private Logger                     log                = Logger.getLogger("org.helma.javascript");
+    private Logger                     log                = Logger.getLogger("org.helma.javascript.RhinoEngine");
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
@@ -182,11 +183,17 @@ public class RhinoEngine {
                 moduleName = configuration.getMainModule("main");
             }
             Scriptable module = loadModule(cx, moduleName, null);
-            Object func = ScriptableObject.getProperty(module, method);
-            if ((func == ScriptableObject.NOT_FOUND) || !(func instanceof Function)) {
+            Object function = ScriptableObject.getProperty(module, method);
+            if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
                 throw new NoSuchMethodException("Function " + method + "() not defined");
             }
-            Object retval = ((Function) func).call(cx, topLevelScope, module, args);
+            Object retval = ((Function) function).call(cx, topLevelScope, module, args);
+            funcs = callbacks.get("onReturn");
+            if (funcs != null) {
+                for (Function func: funcs.values()) {
+                    func.call(cx, topLevelScope, null, args);
+                }
+            }
             if (retval instanceof Wrapper) {
                 return ((Wrapper) retval).unwrap();
             }
@@ -575,6 +582,8 @@ public class RhinoEngine {
 
 class AppClassLoader extends HelmaClassLoader {
 
+    HashSet<URL> urls = new HashSet<URL>();
+
     public AppClassLoader() {
         super(new URL[0], RhinoEngine.class.getClassLoader());
     }
@@ -583,8 +592,11 @@ class AppClassLoader extends HelmaClassLoader {
      * Overrides addURL to make it accessable to GlobalFunctions.importJar()
      * @param url the url to add to the classpath
      */
-    protected void addURL(URL url) {
-        super.addURL(url);
+    protected synchronized void addURL(URL url) {
+        if (!urls.contains(url)) {
+            urls.add(url);
+            super.addURL(url);
+        }
     }
 }
 
