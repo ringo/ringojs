@@ -24,7 +24,9 @@ public class MarkdownProcessor {
     private String result = null;
 
     enum State {
-        NONE, NEWLINE, LINK_ID, LINK_URL, LINK_TITLE, HEADER_PREFIX, HEADER_MAIN, PARAGRAPH, LIST, HTML_BLOCK, CODE
+        NONE, NEWLINE, LINK_ID, LINK_URL, LINK_TITLE,
+        HEADER_PREFIX, HEADER_MAIN, PARAGRAPH, LIST,
+        HTML_BLOCK, CODE, BLOCKQUOTE
     }
 
     public MarkdownProcessor(String text) {
@@ -210,10 +212,16 @@ public class MarkdownProcessor {
                         }
                         if (j < length) {
                             c = chars[j];
-                            int k = checkCodeBlock(i, j, indentation / 4);
+                            int k = checkCodeBlock(i, j, indentation);
                             if (k > i) {
                                 i = k - 1;
                                 state = State.CODE;
+                                break;
+                            }
+                            k = checkBlockquote(c, i, j);
+                            if (k > i) {
+                                i = k - 1;
+                                state = State.PARAGRAPH;
                                 break;
                             }
                             k = checkHorizontalRule(c, j);
@@ -221,7 +229,7 @@ public class MarkdownProcessor {
                                 i = k;
                                 break;
                             }
-                            k = checkList(c, i, j, indentation / 4);
+                            k = checkList(c, i, j, indentation);
                             if (k > i) {
                                 i = k;
                                 state = State.LIST;
@@ -418,7 +426,8 @@ public class MarkdownProcessor {
         return j;
     }
 
-    private int checkList(char c, int i, int j, int nesting) {
+    private int checkList(char c, int i, int j, int indentation) {
+        int nesting = indentation / 4;
         if (c >= '0' && c <= '9') {
             while (j < length && chars[j] >= '0' && chars[j] <= '9' ) {
                 j += 1;
@@ -470,7 +479,8 @@ public class MarkdownProcessor {
         }
     }
 
-    private int checkCodeBlock(int i, int j, int nesting) {
+    private int checkCodeBlock(int i, int j, int indentation) {
+        int nesting = indentation / 4;
         for (int s = stack.size() - 1; s > 0; s--) {
             if (stack.get(s) instanceof ListElement) {
                 nesting -= 1;
@@ -484,10 +494,14 @@ public class MarkdownProcessor {
             }
             return i;
         }
-        if (!(stack.peek() instanceof CodeElement)) {
-            BlockElement code = new CodeElement();
+        BlockElement code = stack.peek();
+        if (!(code instanceof CodeElement)) {
+            code = new CodeElement(nesting);
             buffer.append(code.startTag());
             stack.push(code);
+        }
+        for (int k = code.nesting * 4; k < indentation; k++) {
+            buffer.append(' ');
         }
         while(j < length && chars[j] != '\n') {
             if (chars[j] == '&') {
@@ -504,6 +518,25 @@ public class MarkdownProcessor {
         codeEndMarker = buffer.length();
         return j;
     }
+
+    private int checkBlockquote(char c, int i, int j) {
+        if (c != '>') {
+            if (stack.peek() instanceof BlockquoteElement) {
+                BlockElement blockquote = stack.pop();
+                buffer.append(blockquote.endTag());
+                lineMarker = paragraphMarker = buffer.length();
+            }
+            return i;
+        }
+        if (!(stack.peek() instanceof BlockquoteElement)) {
+            BlockElement code = new BlockquoteElement();
+            buffer.append(code.startTag());
+            stack.push(code);
+            lineMarker = paragraphMarker = buffer.length();
+        }
+        return j + 1;
+    }
+
 
     private void checkParagraph(boolean paragraphs, int i) {
         if (paragraphs && chars[i + 1] == '\n') {
@@ -606,7 +639,17 @@ public class MarkdownProcessor {
         }
     }
 
+    class BlockquoteElement extends BlockElement {
+        BlockquoteElement() {
+            tag = "blockquote";
+        }
+    }
+
     class CodeElement extends BlockElement {
+        CodeElement(int nesting) {
+            this.nesting = nesting;
+        }
+
         String startTag() {
             return "<pre><code>";
         }
