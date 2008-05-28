@@ -100,7 +100,7 @@ public final class JSAdapter implements Scriptable, Function {
     public Object get(int index, Scriptable start) {
         Function func = getAdapteeFunction(GET_PROP);
         if (func != null) {
-            return call(func, new Object[] { new Integer(index) });
+            return call(func, new Object[] { index });
         } else {
             start = getAdaptee();
             return start.get(index, start);
@@ -121,7 +121,7 @@ public final class JSAdapter implements Scriptable, Function {
     public boolean has(int index, Scriptable start) {
         Function func = getAdapteeFunction(HAS_PROP);
         if (func != null) {
-            Object res = call(func, new Object[] { new Integer(index) });
+            Object res = call(func, new Object[] { index });
             return Context.toBoolean(res);
         } else {
             start = getAdaptee();
@@ -147,7 +147,7 @@ public final class JSAdapter implements Scriptable, Function {
         if (start == this) {
             Function func = getAdapteeFunction(PUT_PROP);
             if( func != null) {
-                call(func, new Object[] { new Integer(index), value });
+                call(func, new Object[] { index, value });
             } else {
                 start = getAdaptee();
                 start.put(index, start, value);
@@ -169,7 +169,7 @@ public final class JSAdapter implements Scriptable, Function {
     public void delete(int index) {
         Function func = getAdapteeFunction(DEL_PROP);
         if (func != null) {
-            call(func, new Object[] { new Integer(index) });
+            call(func, new Object[] { index });
         } else {
             getAdaptee().delete(index);
         }
@@ -296,7 +296,7 @@ public final class JSAdapter implements Scriptable, Function {
     // map a property id. Property id can only be an Integer or String
     private Object mapToId(Object tmp) {
         if (tmp instanceof Double) {
-            return new Integer(((Double)tmp).intValue());
+            return ((Double) tmp).intValue();
         } else {
             return Context.toString(tmp);
         }
