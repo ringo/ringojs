@@ -39,6 +39,9 @@ public class ModuleScope extends NativeObject {
         setParentScope(null);
         setPrototype(prototype);
         defineProperty("__name__", moduleName, DONTENUM);
+        String pathName = resource == null ?
+                repository.getName() : resource.getName();
+        defineProperty("__path__", pathName, DONTENUM);
     }
 
     public Repository getRepository() {
