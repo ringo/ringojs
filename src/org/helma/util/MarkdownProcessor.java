@@ -10,6 +10,7 @@ import java.util.Stack;
 public class MarkdownProcessor {
 
     private HashMap<String,String> links = new HashMap<String,String>();
+    private State state;
     private int length;
     private char[] chars;
     private StringBuffer buffer;
@@ -19,14 +20,13 @@ public class MarkdownProcessor {
     private int listEndMarker = 0;
     private int codeEndMarker = 0;
     private boolean strong, em;
-    private Context stack = new Context();
+    private ElementStack stack = new ElementStack();
 
     private String result = null;
 
     enum State {
         NONE, NEWLINE, LINK_ID, LINK_URL, LINK_TITLE,
-        HEADER_PREFIX, HEADER_MAIN, PARAGRAPH, LIST,
-        HTML_BLOCK, CODE, BLOCKQUOTE
+        HEADER, PARAGRAPH, LIST, HTML_BLOCK, CODE, BLOCKQUOTE
     }
 
     public MarkdownProcessor(String text) {
@@ -132,29 +132,26 @@ public class MarkdownProcessor {
     }
 
     private void secondPass() {
-        State state = State.NEWLINE;
+        state = State.NEWLINE;
         stack.add(new BaseElement());
         buffer = new StringBuffer();
-        StringBuffer subBuffer = new StringBuffer();
         boolean escape = false;
         for (int i = 0; i < length; i++) {
             char c = chars[i];
-            switch (c) {
-                case '\r':
-                    throw new RuntimeException("Got Carriage Return");
-                    
-                case '\n':
+            if (c == '\r') {
+                throw new RuntimeException("Got Carriage Return");
+            } else if (c == '\n') {
                     if (state == State.HTML_BLOCK &&
                             (i >= length - 1 || chars[i + 1] != '\n')) {
                         buffer.append(c);
-                        break;
+                        continue;
                     }
-                    if (state == State.HEADER_MAIN) {
-                        BlockElement a = stack.pop();
-                        if (a.m >= a.nesting) {
+                    if (state == State.HEADER) {
+                        Element a = stack.pop();
+                        if (a.m > 0) {
                             buffer.setLength(buffer.length() - a.m);
                         }
-                        buffer.append(a.endTag());
+                        a.close();
                     }
                     if (state == State.LIST && i < length) {
                         checkParagraph(listParagraphs, i);
@@ -172,110 +169,100 @@ public class MarkdownProcessor {
                     if (i > 0 && chars[i - 1] == '\n')  {
                         paragraphMarker = lineMarker;
                     }
-                    break;
-
-                case '\\':
+            } else {
+                if (c == '\\') {
                     escape = !escape;
                     if (escape) {
-                        break;
+                        continue;
                     }
+                }
 
-                default:
-                    if (state == State.LINK_TITLE || state == State.LINK_ID) {
-                        subBuffer.append(c);
-                        break;
-                    }
-                    if (escape) {
-                        buffer.append(c);
-                        escape = false;
-                        break;
-                    }
-                    if (state == State.HEADER_PREFIX) {
-                        if (c == '#') {
-                            stack.peek().nesting++;
-                            break;
-                        }
-                        buffer.append(stack.peek().startTag());
-                        state = State.HEADER_MAIN;
-                    } else if (state == State.HEADER_MAIN) {
-                        if (c == '#') {
-                            stack.peek().m ++;
-                        } else {
-                            stack.peek().m = 0;
-                        }
-                    } else if (state == State.NEWLINE) {
-                        int indentation = 0;
-                        int j = i;
-                        while (j < length && isSpace(chars[j])) {
-                            indentation += c == '\t' ? 4 : 1;
-                            j += 1;
-                        }
-                        if (j < length) {
-                            c = chars[j];
-                            int k = checkCodeBlock(i, j, indentation);
-                            if (k > i) {
-                                i = k - 1;
-                                state = State.CODE;
-                                break;
-                            }
-                            k = checkBlockquote(c, i, j);
-                            if (k > i) {
-                                i = k - 1;
-                                state = State.PARAGRAPH;
-                                break;
-                            }
-                            k = checkHorizontalRule(c, j);
-                            if (k > j) {
-                                i = k;
-                                break;
-                            }
-                            k = checkList(c, i, j, indentation);
-                            if (k > i) {
-                                i = k;
-                                state = State.LIST;
-                                break;
-                            }
-                            if (indentation == 0) {
-                                if (c == '#') {
-                                    stack.push(new HeaderElement());
-                                    state = State.HEADER_PREFIX;
-                                    break;
-                                }
-                            }
-                            state = State.PARAGRAPH;
-                            i = j;
-                        }
-                        if (c == '<') {
-                            // FIXME we should check for block elements here
-                            state = State.HTML_BLOCK;
-                        }
-                    }
-                    if (state == State.HTML_BLOCK) {
-                        buffer.append(c);
-                        break;
-                    }
-                    int j = checkLink(c, i);
-                    if (j > i) {
-                        i = j;
-                        break;
-                    }
-                    j = checkEmphasis(c, i);
-                    if (j > i) {
-                        i = j - 1;
-                        break;
-                    }
-                    j = checkCodeSpan(c, i);
-                    if (j > i) {
-                        i = j;
-                        break;
-                    }
+                if (escape) {
                     buffer.append(c);
-                    break;
+                    escape = false;
+                    continue;
+                }
+                if (state == State.HEADER) {
+                    if (c == '#') {
+                        stack.peek().m ++;
+                    } else {
+                        stack.peek().m = 0;
+                    }
+                } else if (state == State.NEWLINE) {
+                    int k = checkBlock(c, i, 0);
+                    if (k > i) {
+                        i = k;
+                        continue;
+                    }
+                }
+                if (state == State.HTML_BLOCK) {
+                    buffer.append(c);
+                    continue;
+                }
+                int j = checkLink(c, i);
+                if (j > i) {
+                    i = j;
+                    continue;
+                }
+                j = checkEmphasis(c, i);
+                if (j > i) {
+                    i = j - 1;
+                    continue;
+                }
+                j = checkCodeSpan(c, i);
+                if (j > i) {
+                    i = j;
+                    continue;
+                }
+                buffer.append(c);
             }
         }
         while (!stack.isEmpty()) {
-            buffer.append(stack.pop().endTag());
+            stack.pop().close();
         }
+    }
+
+    private int checkBlock(char c, int i, int blockquoteNesting) {
+        int indentation = 0;
+        int j = i;
+        while (j < length && isSpace(chars[j])) {
+            indentation += c == '\t' ? 4 : 1;
+            j += 1;
+        }
+        if (j < length) {
+            c = chars[j];
+            int k = checkCodeBlock(i, j, indentation, blockquoteNesting);
+            if (k > i) {
+                state = State.CODE;
+                return k - 1;
+            }
+            k = checkAtxHeader(c, i);
+            if (k > i) {
+                state = State.HEADER;
+                return k - 1;
+            }
+            k = checkHorizontalRule(c, j);
+            if (k > j) {
+                return k;
+            }
+            k = checkList(c, i, j, indentation, blockquoteNesting);
+            if (k > i) {
+                state = State.LIST;
+                return k;
+            }
+            k = checkBlockquote(c, i, j, indentation, blockquoteNesting);
+            if (k > i) {
+                state = State.NEWLINE;
+                return checkBlock(chars[k], k, blockquoteNesting + 1);
+            }
+            if (c == '<') {
+                // FIXME we should check for block elements here
+                state = State.HTML_BLOCK;
+            } else {
+                state = State.PARAGRAPH;
+            }
+        }
+        return i;
     }
 
     private int checkEmphasis(char c, int i) {
@@ -426,8 +413,8 @@ public class MarkdownProcessor {
         return j;
     }
 
-    private int checkList(char c, int i, int j, int indentation) {
-        int nesting = indentation / 4;
+    private int checkList(char c, int i, int j, int indentation, int blockquoteNesting) {
+        int nesting = indentation / 4 + blockquoteNesting;
         if (c >= '0' && c <= '9') {
             while (j < length && chars[j] >= '0' && chars[j] <= '9' ) {
                 j += 1;
@@ -447,9 +434,8 @@ public class MarkdownProcessor {
         }
         if (lineMarker == paragraphMarker) {
             checkCloseList(null, nesting - 1);
-            return i;
         }
-        return j - 1;
+        return i;
     }
 
     private void checkOpenList(String tag, int nesting) {
@@ -457,8 +443,9 @@ public class MarkdownProcessor {
         if (list == null || !tag.equals(list.tag) || nesting != list.nesting) {
             list = new ListElement(tag, nesting);
             stack.push(list);
-            buffer.append(list.startTag());
+            list.open();
         } else {
+            stack.closeElementsExclusive(list);
             buffer.insert(listEndMarker, "</li>");
         }
         buffer.append("<li>");
@@ -467,37 +454,31 @@ public class MarkdownProcessor {
     }
 
     private void checkCloseList(String tag, int nesting) {
-        ListElement list = stack.peekList();
-        while (list != null &&
-                (list.nesting > nesting ||
-                (list.nesting == nesting && tag != null && !list.tag.equals(tag)))) {
-            buffer.insert(listEndMarker, list.endTag());
-            listEndMarker += list.endTag().length();
-            stack.pop();
-            list = stack.peekList();
+        Element elem = stack.peekList();
+        while (elem != null &&
+                (elem.nesting > nesting ||
+                (elem.nesting == nesting && tag != null && !elem.tag.equals(tag)))) {
+            stack.closeElements(elem);
+            elem = stack.peekNestedElement();
             lineMarker = paragraphMarker = buffer.length();
         }
     }
 
-    private int checkCodeBlock(int i, int j, int indentation) {
+    private int checkCodeBlock(int i, int j, int indentation, int blockquoteNesting) {
         int nesting = indentation / 4;
-        for (int s = stack.size() - 1; s > 0; s--) {
-            if (stack.get(s) instanceof ListElement) {
-                nesting -= 1;
-            }
-        }
+        nesting -= stack.countNestedLists();
         if (nesting <= 0) {
-            if (stack.peek() instanceof CodeElement) {
-                BlockElement code = stack.pop();
-                buffer.insert(codeEndMarker, code.endTag());
+            if (stack.peek() instanceof CodeElement && stack.peek().m == blockquoteNesting) {
+                Element code = stack.pop();
+                code.close();
                 lineMarker = paragraphMarker = buffer.length();
             }
             return i;
         }
-        BlockElement code = stack.peek();
+        Element code = stack.peek();
         if (!(code instanceof CodeElement)) {
-            code = new CodeElement(nesting - 1);
-            buffer.append(code.startTag());
+            code = new CodeElement(nesting, blockquoteNesting);
+            code.open();
             stack.push(code);
         }
         for (int k = code.nesting * 4; k < indentation; k++) {
@@ -519,21 +500,28 @@ public class MarkdownProcessor {
         return j;
     }
 
-    private int checkBlockquote(char c, int i, int j) {
+    private int checkBlockquote(char c, int i, int j, int indentation, int blockquoteNesting) {
+        int nesting = indentation / 4 + blockquoteNesting;
         if (c != '>') {
-            if (stack.peek() instanceof BlockquoteElement) {
-                BlockElement blockquote = stack.pop();
-                buffer.append(blockquote.endTag());
+            Element elem = stack.findNestedElement(nesting);
+            if (elem instanceof BlockquoteElement) {
+                stack.closeElements(elem);
                 lineMarker = paragraphMarker = buffer.length();
             }
             return i;
         }
-        if (!(stack.peek() instanceof BlockquoteElement)) {
-            BlockElement code = new BlockquoteElement();
-            buffer.append(code.startTag());
-            stack.push(code);
-            lineMarker = paragraphMarker = buffer.length();
+
+        Element elem = stack.findNestedElement(nesting);
+        if (elem != null && !(elem instanceof BlockquoteElement)) {
+            stack.closeElements(elem);
+            elem = null;
         }
+        if (elem == null) {
+            elem = new BlockquoteElement(nesting);
+            elem.open();
+            stack.push(elem);
+        }
+        lineMarker = paragraphMarker = buffer.length();
         return j + 1;
     }
 
@@ -545,6 +533,21 @@ public class MarkdownProcessor {
         } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
             buffer.append("<br />");
         }
+    }
+
+    private int checkAtxHeader(char c, int i) {
+        if (c == '#') {
+            int nesting = 1;
+            int j = i + 1;
+            while (j < length && chars[j++] == '#') {
+                nesting += 1;
+            }
+            HeaderElement header = new HeaderElement(nesting);
+            header.open();
+            stack.push(header);
+            return j;
+        }
+        return i;
     }
 
     private int checkHeader(int i) {
@@ -598,89 +601,131 @@ public class MarkdownProcessor {
         return c == ' ' || c == '\t';
     }
 
-    class Context extends Stack<BlockElement> {
+    class ElementStack extends Stack<Element> {
         private static final long serialVersionUID = 8514510754511119691L;
 
-        ListElement peekList() {
-            if (isEmpty()) {
-                return null;
-            }
+        private ListElement peekList() {
             int i = size() - 1;
             while(i > 0) {
-                if (get(i) instanceof ListElement) {
-                    return (ListElement) get(i);
+                Element elem = get(i);
+                if (elem instanceof ListElement) {
+                    return (ListElement) elem;
                 }
                 i -= 1;
             }
             return null;
         }
+
+        private int countNestedLists() {
+            int count = 0;
+            int i = size() - 1;
+            while(i > 0) {
+                Element elem = get(i);
+                if (elem instanceof ListElement) {
+                    count += 1;
+                } else if (elem instanceof BlockquoteElement) {
+                    break;
+                }
+                i -= 1;
+            }
+            return count;
+        }
+
+        private Element peekNestedElement() {
+            int i = size() - 1;
+            while(i > 0) {
+                Element elem = get(i);
+                if (elem instanceof ListElement || elem instanceof BlockquoteElement) {
+                    return elem;
+                }
+                i -= 1;
+            }
+            return null;
+        }
+
+        private Element findNestedElement(int nesting) {
+            for (Element elem: this) {
+                if (nesting == elem.nesting &&
+                        (elem instanceof ListElement || elem instanceof BlockquoteElement)) {
+                    return elem;
+                }
+            }
+            return null;
+        }
+
+        private void closeElements(Element element) {
+            int initialLength = buffer.length();
+            do {
+                peek().close();
+            } while (pop() != element);
+            listEndMarker += buffer.length() - initialLength;
+        }
+
+        private void closeElementsExclusive(Element element) {
+            int initialLength = buffer.length();
+            while(peek() != element) {
+                pop().close();
+            }
+            listEndMarker += buffer.length() - initialLength;
+        }
     }
 
-    class BlockElement {
+    class Element {
         String tag;
         int nesting, m;
 
-        String startTag() {
-            return "<" + tag + ">";
+        void open() {
+            buffer.append("<").append(tag).append(">");
         }
 
-        String endTag() {
-            return "</" + tag + ">";
-        }
-    }
-
-    class BaseElement extends BlockElement {
-        String startTag() {
-            return "";
-        }
-
-        String endTag() {
-            return "";
+        void close() {
+            buffer.append("</").append(tag).append(">");
         }
     }
 
-    class BlockquoteElement extends BlockElement {
-        BlockquoteElement() {
+    class BaseElement extends Element {
+         void open() {}
+
+        void close() {}
+    }
+
+    class BlockquoteElement extends Element {
+        BlockquoteElement(int nesting) {
             tag = "blockquote";
-        }
-    }
-
-    class CodeElement extends BlockElement {
-        CodeElement(int nesting) {
             this.nesting = nesting;
         }
+    }
 
-        String startTag() {
-            return "<pre><code>";
+    class CodeElement extends Element {
+        CodeElement(int nesting, int blockquoteNesting) {
+            this.nesting = nesting;
+            this.m = blockquoteNesting;
         }
 
-        String endTag() {
-            return "</code></pre>";
+        void open() {
+            buffer.append("<pre><code>");
+        }
+
+        void close() {
+            buffer.insert(codeEndMarker, "</code></pre>");
         }
     }
 
-    class HeaderElement extends BlockElement {
-        HeaderElement() {
-            nesting = 1;
-        }
-
-        String startTag() {
-            return "<h" + nesting + ">";
-        }
-
-        String endTag() {
-            return "</h" + nesting + ">";
+    class HeaderElement extends Element {
+        HeaderElement(int nesting) {
+            this.nesting = nesting;
+            this.tag = "h" + nesting;
         }
     }
 
-    class ListElement extends BlockElement {
+    class ListElement extends Element {
         ListElement(String tag, int nesting) {
             this.tag = tag;
             this.nesting = nesting;
         }
 
-        String endTag() {
-            return "</li>" + super.endTag();
+        void close() {
+            buffer.insert(listEndMarker, "</li></" + tag + ">");
         }
     }
 
