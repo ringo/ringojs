@@ -112,7 +112,7 @@ public class HelmaServlet extends HttpServlet {
             }
         });
         try {
-            Status status = future.get(5, TimeUnit.SECONDS);
+            Status status = future.get(requestTimeout, TimeUnit.SECONDS);
             if (status.redirect != null) {
                 res.sendRedirect(status.redirect);
             } else if (status.exception != null) {
