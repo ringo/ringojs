@@ -545,7 +545,7 @@ public class MarkdownProcessor {
             code.open();
             stack.push(code);
         }
-        for (int k = code.nesting * 4; k < indentation; k++) {
+        for (int k = 4; k < indentation; k++) {
             buffer.append(' ');
         }
         while(j < length && chars[j] != '\n') {
