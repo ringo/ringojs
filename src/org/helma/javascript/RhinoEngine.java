@@ -338,15 +338,9 @@ public class RhinoEngine {
      */
     public Scriptable loadModule(Context cx, String moduleName, Scriptable loadingScope)
             throws IOException {
-        Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
-        if (modules.containsKey(moduleName)) {
-            return modules.get(moduleName);
-        }
         Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable scope = script.load(topLevelScope, moduleName, cx);
-        modules.put(moduleName, scope);
-        return scope;
+        return script.load(topLevelScope, moduleName, cx);
     }
 
     /**

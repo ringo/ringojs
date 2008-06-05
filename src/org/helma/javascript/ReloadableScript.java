@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents a JavaScript Resource.
@@ -168,6 +169,7 @@ public class ReloadableScript {
      * Get a module scope loaded with this script
      *
      * @param prototype the parent scope for the module
+     * @param moduleName the module name
      * @param cx the rhino context
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
@@ -175,6 +177,10 @@ public class ReloadableScript {
      */
     public synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
             throws JavaScriptException, IOException {
+        Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
+        if (modules.containsKey(moduleName)) {
+            return modules.get(moduleName);
+        }
         Script script = getScript(cx);
         ModuleScope module = moduleScope;
         // FIXME: caching of shared modules causes code updates to
@@ -188,6 +194,7 @@ public class ReloadableScript {
         } else {
             module = new ModuleScope(moduleName, resource, repository, prototype);
         }
+        modules.put(moduleName, module);
         script.exec(cx, module);
         // find out if this is a JSAdapter type scope
         if (scriptType == UNKNOWN) {
