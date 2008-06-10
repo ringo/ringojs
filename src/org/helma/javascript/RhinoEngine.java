@@ -145,12 +145,10 @@ public class RhinoEngine {
     public Object invokeCallback(String event, Object thisObj, Object... args) {
         Map<String, Function> funcs = callbacks.get(event);
         if (funcs != null) {
-            Context cx = Context.getCurrentContext();
-            Scriptable scope = ScriptRuntime.getTopCallScope(cx);
-            Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, scope);
+            Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, topLevelScope);
             initArguments(args);
             for (Function func: funcs.values()) {
-                func.call(cx, scope, thisObject, args);
+                Context.call(contextFactory, func, topLevelScope, thisObject, args);
             }
         }
         return null;
