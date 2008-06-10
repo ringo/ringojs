@@ -41,12 +41,7 @@ public class ReloadableScript {
     Exception exception = null;
     // the loaded module scope is cached for shared modules
     ModuleScope moduleScope = null;
-    // script type - one of UNKNOW, ORDINARY, JSADAPTER
-    short scriptType = UNKNOWN;
 
-    final static short UNKNOWN = 0,
-                     ORDINARY = 1,
-                     JSADAPTER = 2;
 
     /**
      * Construct a Script from the given script resource.
@@ -96,7 +91,6 @@ public class ReloadableScript {
             } catch (Exception x) {
                 exception = x;
             } finally {
-                scriptType = UNKNOWN;
                 checksum = resource.lastModified();
             }
         }
@@ -135,7 +129,6 @@ public class ReloadableScript {
         } catch (Exception x) {
             exception = x;
         } finally {
-            scriptType = UNKNOWN;
             checksum = repository.getChecksum();
         }
         script =  new Script() {
@@ -187,7 +180,7 @@ public class ReloadableScript {
         // go unnoticed for indirectly loaded modules!
         if (module != null) {
             // use cached scope unless script has been reloaded
-            if (scriptType != UNKNOWN) {
+            if (module.getChecksum() == checksum) {
                 return module;
             }
             module.delete("__shared__");
@@ -196,15 +189,7 @@ public class ReloadableScript {
         }
         modules.put(moduleName, module);
         script.exec(cx, module);
-        // find out if this is a JSAdapter type scope
-        if (scriptType == UNKNOWN) {
-            scriptType = module.has("__get__", module) ||
-                         module.has("__has__", module) ||
-                         module.has("__put__", module) ||
-                         module.has("__delete__", module) ||
-                         module.has("__getIds__", module) ? JSADAPTER : ORDINARY;
-        }
-        module.setHasAdapterFunctions(scriptType == JSADAPTER);
+        module.setChecksum(checksum);
         moduleScope = (module.get("__shared__", module) == Boolean.TRUE) ?
                 module : null;
         return module;
