@@ -14,6 +14,9 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
+// importModule('helma.logging', 'logging');
+// var log = logging.getLog(__name__);
+
 __shared__ = true;
 
 /**
@@ -33,14 +36,16 @@ Object.prototype.dontEnum = function() {
     var cx = rhino.Context.currentContext;
     var wrapped = cx.wrapFactory.wrapAsJavaObject(cx, global, this, null);
     for (var i = 0; i < length; i++) {
+        if (!this.hasOwnProperty(arguments[i])) {
+            continue;
+        }
         try {
             wrapped.setAttributes(arguments[i], rhino.ScriptableObject.DONTENUM);
         } catch (e) {
-            // java.lang.System.err.println("Error: " + e);
-            // FIXME we need a logging module!
+            java.lang.System.err.println("Error in dontEnum: " + e);
         }
     }
-    return null;
+    return;
 }
 
 /**
@@ -127,8 +132,5 @@ Object.prototype.dump = function(recursive) {
 
 
 // prevent any newly added properties from being enumerated
-for (var i in Object)
-   Object.dontEnum(i);
 for (var i in Object.prototype)
    Object.prototype.dontEnum(i);
-
