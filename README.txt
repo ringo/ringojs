@@ -122,7 +122,7 @@ To build helma yourself follow these steps:
 
       svn co https://dev.helma.org/svn/helma-ng/trunk/ helma-ng
 
-  Change to the helma2 directory and run ant to compile:
+  Change to the helma-ng directory and run ant to compile:
 
       ant jar
 
