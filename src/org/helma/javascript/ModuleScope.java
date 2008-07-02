@@ -30,6 +30,7 @@ public class ModuleScope extends NativeObject {
 
     Resource resource;
     Repository repository;
+    String name;
     long checksum;
     private static final long serialVersionUID = -2409425841990094897L;
 
@@ -37,10 +38,11 @@ public class ModuleScope extends NativeObject {
                        Repository repository, Scriptable prototype) {
         this.resource = resource;
         this.repository = repository;
+        this.name = moduleName;
         setParentScope(null);
         setPrototype(prototype);
         defineProperty("__name__", moduleName, DONTENUM);
-        defineProperty("__path__", repository.getName(), DONTENUM);
+        defineProperty("__path__", repository.getPath(), DONTENUM);
     }
 
     public Repository getRepository() {
@@ -53,6 +55,10 @@ public class ModuleScope extends NativeObject {
 
     public void setChecksum(long checksum) {
         this.checksum = checksum;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String toString() {

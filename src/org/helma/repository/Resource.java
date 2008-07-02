@@ -16,9 +16,10 @@
 
 package org.helma.repository;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -31,7 +32,7 @@ public interface Resource {
      * Returns the date the resource was last modified
      * @return last modified date
      */
-    public long lastModified();
+    public long lastModified() throws IOException;
 
     /**
      * Checks wether this resource actually (still) exists
@@ -73,18 +74,16 @@ public interface Resource {
     public String getContent() throws IOException;
 
     /**
-     * Returns the name of the resource; does not include the name of the
-     * repository the resource was fetched from
-     * @return name of the resource
+     * Returns the path of the resource.
+     * @return path of the resource
      */
-    public String getName();
+    public String getPath();
 
     /**
-     * Returns the short name of the resource which is its name exclusive file
-     * ending if it exists
+     * Returns the short name of the resource.
      * @return short name of the resource
      */
-    public String getShortName();
+    public String getName();
 
     /**
      * Returns the short name of the resource with the file extension
@@ -98,7 +97,7 @@ public interface Resource {
      * able to provide urls
      * @return url to the resource
      */
-    public URL getUrl() throws UnsupportedOperationException;
+    public URL getUrl() throws UnsupportedOperationException, MalformedURLException;
 
     /**
      * Returns the repository the resource does belong to

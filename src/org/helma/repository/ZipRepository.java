@@ -80,16 +80,16 @@ public final class ZipRepository extends AbstractRepository {
         this.parent = parent;
 
         if (zipentry == null) {
-            name = shortName = file.getName();
+            path = name = file.getName();
             depth = 0;
             entryPath = "";
         } else {
             String[] pathArray = StringUtils.split(zipentry.getName(), separator);
             depth = pathArray.length;
-            shortName = pathArray[depth - 1];
+            name = pathArray[depth - 1];
             entryPath = zipentry.getName();
-            name = new StringBuffer(parent.getName())
-                                   .append('/').append(shortName).toString();
+            path = new StringBuffer(parent.getPath())
+                                   .append('/').append(name).toString();
         }
     }
 
@@ -125,7 +125,7 @@ public final class ZipRepository extends AbstractRepository {
                         continue;
                     }
                     String[] entrypath = StringUtils.split(eName, separator);
-                    if (depth > 0 && !shortName.equals(entrypath[depth-1])) {
+                    if (depth > 0 && !name.equals(entrypath[depth-1])) {
                         // catch case where our name is Foo and other's is FooBar
                         continue;
                     }
@@ -135,7 +135,7 @@ public final class ZipRepository extends AbstractRepository {
                     if (entrypath.length == depth + 1 && !entry.isDirectory()) {
                         // create a new child resource
                         ZipResource resource = new ZipResource(entry.getName(), this);
-                        newResources.put(resource.getShortName(), resource);
+                        newResources.put(resource.getName(), resource);
                     } else if (entrypath.length > depth) {
                         // create a new child repository
                         if (!newRepositories.containsKey(entrypath[depth])) {
@@ -212,23 +212,6 @@ public final class ZipRepository extends AbstractRepository {
         }
     }
 
-    public void create() {
-        // we do not create zip files as it makes no sense
-        throw new UnsupportedOperationException("create() not implemented for ZipRepository");
-    }
-
-    /**
-     * Checks wether the repository is to be considered a top-level
-     * repository from a scripting point of view. For example, a zip
-     * file within a file repository is not a root repository from
-     * a physical point of view, but from the scripting point of view it is.
-     *
-     * @return true if the repository is to be considered a top-level script repository
-     */
-    public boolean isScriptRoot() {
-        return depth == 0;
-    }
-
     /**
      * Get a child repository with the given name
      *
@@ -236,9 +219,6 @@ public final class ZipRepository extends AbstractRepository {
      * @return the child repository
      */
     public Repository getChildRepository(String name) {
-        if (mounted.containsKey(name)) {
-            return mounted.get(name);
-        }
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
 
@@ -247,7 +227,7 @@ public final class ZipRepository extends AbstractRepository {
     }
 
     public int hashCode() {
-        return 17 + (37 * file.hashCode()) + (37 * name.hashCode());
+        return 17 + (37 * file.hashCode()) + (37 * path.hashCode());
     }
 
     public boolean equals(Object obj) {
@@ -256,11 +236,11 @@ public final class ZipRepository extends AbstractRepository {
         }
 
         ZipRepository rep = (ZipRepository) obj;
-        return (file.equals(rep.file) && name.equals(rep.name));
+        return (file.equals(rep.file) && path.equals(rep.path));
     }
 
     public String toString() {
-        return new StringBuffer("ZipRepository[").append(name).append("]").toString();
+        return new StringBuffer("ZipRepository[").append(path).append("]").toString();
     }
 
 }

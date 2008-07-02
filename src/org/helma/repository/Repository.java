@@ -76,7 +76,7 @@ public interface Repository {
      * @return resources recursive
      * @throws IOException an I/O error occurred
      */
-    public List<Resource> getAllResources() throws IOException;
+    public List<Resource> getAllResources();
 
     /**
      * Returns this repository's direct child repositories
@@ -94,23 +94,6 @@ public interface Repository {
     public boolean exists();
 
     /**
-     * Creates the repository if does not exist yet
-     *
-     * @throws IOException  an I/O error occurred
-     */
-    public void create() throws IOException;
-
-    /**
-     * Checks wether the repository is to be considered a top-level
-     * repository from a scripting point of view. For example, a zip
-     * file within a file repository is not a root repository from
-     * a physical point of view, but from the scripting point of view it is.
-     *
-     * @return true if the repository is to be considered a top-level script repository
-     */
-    public boolean isScriptRoot();
-
-    /**
      * Returns this repository's parent repository.
      * Returns null if this repository already is the top-level repository
      *
@@ -126,34 +109,18 @@ public interface Repository {
     public Repository getChildRepository(String name);
 
     /**
-     * Get this repository's logical script root repository.
-     *
-     * @see {isScriptRoot()}
-     * @return top-level repository
-     */
-    public Repository getRootRepository();
-
-    /**
-     * Mount a child repository under the given path name.
-     *
-     * @param pathname the path name
-     * @param child the child element
-     */
-    public void mountRepository(Repository child, String pathname);
-
-    /**
      * Returns the name of the repository; this is a full name including all
      * parent repositories.
      *
      * @return full name of the repository
      */
-    public String getName();
+    public String getPath();
 
     /**
      * Returns the name of the repository.
      *
      * @return name of the repository
      */
-    public String getShortName();
+    public String getName();
 
 }

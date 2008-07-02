@@ -71,34 +71,20 @@ public class FileRepository extends AbstractRepository {
         }
 
         if (parent == null) {
-            name = shortName = directory.getAbsolutePath();
+            path = name = directory.getAbsolutePath();
         } else {
             this.parent = parent;
-            shortName = directory.getName();
-            name = directory.getAbsolutePath();
-        }
-    }
-
-    public boolean exists() {
-        return directory.exists() && directory.isDirectory();
-    }
-
-    public void create() {
-        if (!directory.exists() || !directory.isDirectory()) {
-            directory.mkdirs();
+            name = directory.getName();
+            path = directory.getAbsolutePath();
         }
     }
 
     /**
-     * Checks wether the repository is to be considered a top-level
-     * repository from a scripting point of view. For example, a zip
-     * file within a file repository is not a root repository from
-     * a physical point of view, but from the scripting point of view it is.
-     *
-     * @return true if the repository is to be considered a top-level script repository
+     * Check whether the repository exists.
+     * @return true if the repository exists.
      */
-    public boolean isScriptRoot() {
-        return parent == null;
+    public boolean exists() {
+        return directory.exists() && directory.isDirectory();
     }
 
     /**
@@ -108,9 +94,6 @@ public class FileRepository extends AbstractRepository {
      * @return the child repository
      */
     public Repository getChildRepository(String name) {
-        if (mounted.containsKey(name)) {
-            return mounted.get(name);
-        }
         return new FileRepository(new File(directory, name), this);
     }
 
@@ -184,7 +167,7 @@ public class FileRepository extends AbstractRepository {
                 } else if (file.isFile()) {
                     // a file resource
                     FileResource resource = new FileResource(file, this);
-                    newResources.put(resource.getShortName(), resource);
+                    newResources.put(resource.getName(), resource);
                 }
             }
 
@@ -217,6 +200,6 @@ public class FileRepository extends AbstractRepository {
     }
 
     public String toString() {
-        return new StringBuffer("FileRepository[").append(name).append("]").toString();
+        return new StringBuffer("FileRepository[").append(path).append("]").toString();
     }
 }

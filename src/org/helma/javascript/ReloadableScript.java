@@ -87,7 +87,7 @@ public class ReloadableScript {
             }
             try {
                 exception = null;
-                script = cx.compileReader(resource.getReader(), resource.getName(), 1, null);
+                script = cx.compileReader(resource.getReader(), resource.getPath(), 1, null);
             } catch (Exception x) {
                 exception = x;
             } finally {
@@ -123,7 +123,7 @@ public class ReloadableScript {
             exception = null;
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {
-                    scripts.add(cx.compileReader(res.getReader(), res.getName(), 1, null));
+                    scripts.add(cx.compileReader(res.getReader(), res.getPath(), 1, null));
                 }
            }
         } catch (Exception x) {

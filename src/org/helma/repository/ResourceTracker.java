@@ -27,7 +27,7 @@ public class ResourceTracker {
     Resource resource;
     long lastModified;
 
-    public ResourceTracker(Resource resource) {
+    public ResourceTracker(Resource resource) throws IOException {
         this.resource = resource;
         markClean();
     }
@@ -36,7 +36,7 @@ public class ResourceTracker {
         return lastModified != resource.lastModified();
     }
 
-    public void markClean() {
+    public void markClean() throws IOException {
         lastModified = resource.lastModified();
     }
 

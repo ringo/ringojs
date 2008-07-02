@@ -19,7 +19,6 @@ package org.helma.repository;
 import org.helma.util.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -40,11 +39,6 @@ public abstract class AbstractRepository implements Repository {
     Repository[] repositories;
 
     /**
-     * Holds mounted repositories
-     */
-    Map<String,Repository> mounted = new HashMap<String,Repository>();
-
-    /**
      * Holds direct resources
      */
     Map<String,Resource> resources = new HashMap<String,Resource>();
@@ -52,12 +46,12 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Cached name for faster access
      */
-    String name;
+    String path;
 
     /**
      * Cached short name for faster access
      */
-    String shortName;
+    String name;
 
     /*
      * empty repository array for convenience
@@ -84,40 +78,16 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Get the full name that identifies this repository globally
      */
-    public String getName() {
-        return name;
+    public String getPath() {
+        return path;
     }
 
     /**
      * Get the local name that identifies this repository locally within its
      * parent repository
      */
-    public String getShortName() {
-        return shortName;
-    }
-
-    /**
-     * Get this repository's logical script root repository.
-     *
-     *@see {isScriptRoot()}
-     */
-    public Repository getRootRepository() {
-        if (parent == null || isScriptRoot()) {
-            return this;
-        } else {
-            return parent.getRootRepository();
-        }
-    }
-
-    /**
-     * Mount a child repository under the given path name.
-     *
-     * @param pathname the path name
-     * @param child    the child element
-     */
-    public void mountRepository(Repository child, String pathname) {
-        if (!child.equals(mounted.get(pathname)))
-            mounted.put(pathname, child);
+    public String getName() {
+        return name;
     }
 
     /**
@@ -128,13 +98,12 @@ public abstract class AbstractRepository implements Repository {
     public synchronized Resource getResource(String path) {
         String[] subs = StringUtils.split(path, separator);
         if (subs.length == 1) {
-            Resource res = resources.get(subs[0]);
-            // if resource does not exist, create it
-            if (res == null) {
-                res = createResource(subs[0]);
-                resources.put(subs[0], res);
+            Resource resource = resources.get(subs[0]);
+            if (resource != null) {
+                return resource;
             }
-            return res;
+            // if resource does not exist, create it
+            return createResource(subs[0]);
         }
         Repository repository = this;
         int i = 0;
@@ -159,11 +128,7 @@ public abstract class AbstractRepository implements Repository {
         if (!repository.exists()) {
             System.err.println("Warning: resource path doesn not exist: " + path);
         }
-        try {
-            return repository.getAllResources();
-        } catch (IOException iox) {
-            return Collections.EMPTY_LIST;
-        }
+        return repository.getAllResources();
     }
 
     /**
@@ -193,7 +158,7 @@ public abstract class AbstractRepository implements Repository {
      * Get a deep list of this repository's resources, including all resources
      * contained in sub-reposotories.
      */
-    public synchronized List<Resource> getAllResources() throws IOException {
+    public synchronized List<Resource> getAllResources() {
         update();
         ArrayList<Resource> allResources = new ArrayList<Resource>();
         allResources.addAll(resources.values());
@@ -210,7 +175,7 @@ public abstract class AbstractRepository implements Repository {
      * @see {getName()}
      */
     public String toString() {
-        return getName();
+        return getPath();
     }
 
 }

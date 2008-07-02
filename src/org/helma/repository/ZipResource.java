@@ -25,8 +25,8 @@ public final class ZipResource implements Resource {
 
     private String entryName;
     private ZipRepository repository;
+    private String path;
     private String name;
-    private String shortName;
     private String baseName;
 
     protected ZipResource(String zipentryName, ZipRepository repository) {
@@ -35,13 +35,13 @@ public final class ZipResource implements Resource {
 
         int lastSlash = entryName.lastIndexOf('/');
 
-        shortName = entryName.substring(lastSlash + 1);
-        name = new StringBuffer(repository.getName()).append('/')
-                .append(shortName).toString();
+        name = entryName.substring(lastSlash + 1);
+        path = new StringBuffer(repository.getPath()).append('/')
+                .append(name).toString();
 
         // base name is short name with extension cut off
-        int lastDot = shortName.lastIndexOf(".");
-        baseName = (lastDot == -1) ? shortName : shortName.substring(0, lastDot);
+        int lastDot = name.lastIndexOf(".");
+        baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
     }
 
     public long lastModified() {
@@ -130,12 +130,12 @@ public final class ZipResource implements Resource {
         return getContent(null);
     }
 
-    public String getName() {
-        return name;
+    public String getPath() {
+        return path;
     }
 
-    public String getShortName() {
-        return shortName;
+    public String getName() {
+        return name;
     }
 
     public String getBaseName() {
@@ -169,14 +169,14 @@ public final class ZipResource implements Resource {
     }
 
     public int hashCode() {
-        return 17 + name.hashCode();
+        return 17 + path.hashCode();
     }
 
     public boolean equals(Object obj) {
-        return obj instanceof ZipResource && name.equals(((ZipResource) obj).name);
+        return obj instanceof ZipResource && path.equals(((ZipResource) obj).path);
     }
 
     public String toString() {
-        return getName();
+        return getPath();
     }
 }

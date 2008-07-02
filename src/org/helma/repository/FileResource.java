@@ -24,8 +24,8 @@ public class FileResource implements Resource {
 
     File file;
     Repository repository;
+    String path;
     String name;
-    String shortName;
     String baseName;
 
     public FileResource(File file) {
@@ -43,19 +43,19 @@ public class FileResource implements Resource {
 
         this.repository = repository == null ?
                 new FileRepository(file.getParentFile()) : repository;
-        name = file.getPath();
-        shortName = file.getName();
+        path = file.getPath();
+        name = file.getName();
         // base name is short name with extension cut off
-        int lastDot = shortName.lastIndexOf(".");
-        baseName = (lastDot == -1) ? shortName : shortName.substring(0, lastDot);
+        int lastDot = name.lastIndexOf(".");
+        baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public String getName() {
         return name;
-    }
-
-    public String getShortName() {
-        return shortName;
     }
 
     public String getBaseName() {
@@ -121,14 +121,14 @@ public class FileResource implements Resource {
     }
 
     public int hashCode() {
-        return 17 + name.hashCode();
+        return 17 + path.hashCode();
     }
 
     public boolean equals(Object obj) {
-        return obj instanceof FileResource && name.equals(((FileResource)obj).name);
+        return obj instanceof FileResource && path.equals(((FileResource)obj).path);
     }
 
     public String toString() {
-        return getName();
+        return getPath();
     }
 }
