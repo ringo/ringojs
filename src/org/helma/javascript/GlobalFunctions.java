@@ -46,6 +46,7 @@ public class GlobalFunctions {
                               "importFromModule",
                               "importJar",
                               "getResource",
+                              "getResources",
                               "parseSkin"
                              },
                 GlobalFunctions.class,

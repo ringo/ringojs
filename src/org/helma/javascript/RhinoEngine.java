@@ -341,6 +341,11 @@ public class RhinoEngine {
         return script.load(topLevelScope, moduleName, cx);
     }
 
+
+    public ScriptableObject getTopLevelScope() {
+        return topLevelScope;
+    }
+
     /**
      * Get the repository associated with the scope or one of its prototypes
      *
@@ -394,6 +399,12 @@ public class RhinoEngine {
      * @return a list of all nested child resources
      */
     public List<Resource> getResources(String path) {
+        for (Repository repo: repositories) {
+            Repository repository = repo.getChildRepository(path);
+            if (repository.exists()) {
+                return repo.getAllResources();
+            }
+        }
         return repositories.get(0).getResources(path);
     }
 
