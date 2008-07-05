@@ -30,7 +30,7 @@ var __shared__ = true;
     this.getLogger = function(name) {
         if (!configured) {
             // getResource('foo').name gets us the absolute path to a local resource
-            this.setConfig(getResource('log4j.properties').name);
+            this.setConfig(getResource('log4j.properties').path);
         }
         return org.apache.log4j.Logger.getLogger(name);
     }
@@ -42,6 +42,9 @@ var __shared__ = true;
     this.enableResponseLog = function() {
         // onLogEvent() callback is called by org.helma.util.RhinoAppender
         rhino.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
+            if (!global.res) {
+                return;
+            }
             var buffer = res.getBuffer("responseLog");
             buffer.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
             buffer.write("color: black; border-top: 1px solid black;\">");

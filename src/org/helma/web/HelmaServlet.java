@@ -34,7 +34,7 @@ public class HelmaServlet extends HttpServlet {
 
     private ExecutorService pool;
 
-    private int requestTimeout = 10;
+    private int requestTimeout = 30;
 
     static protected Class[] defaultHostClasses =
         new Class[] {
