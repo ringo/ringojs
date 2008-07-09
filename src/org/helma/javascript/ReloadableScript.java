@@ -88,26 +88,38 @@ public class ReloadableScript {
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
             if (resource == null) {
-                return getMultiScript(cx);
-            }
-            if (!resource.exists()) {
-                throw new FileNotFoundException(resource + " not found or not readable");
-            }
-            try {
-                exception = null;
-                script = cx.compileReader(resource.getReader(), resource.getPath(), 1, null);
-            } catch (Exception x) {
-                exception = x;
-            } finally {
-                checksum = resource.lastModified();
+                script = getComposedScript(cx);
+            } else {
+                script = getSimpleScript(cx);
             }
         }
-
         if (exception != null) {
             throw exception instanceof WrappedException ?
                 (WrappedException) exception : new WrappedException(exception);
         }
+        return script;
+    }
 
+    /**
+     * Get a script from a single script file.
+     * @param cx the current Context
+     * @throws JavaScriptException if an error occurred compiling the script code
+     * @throws IOException if an error occurred reading the script file
+     * @return the compiled and up-to-date script
+     */
+    protected synchronized Script getSimpleScript(Context cx)
+            throws JavaScriptException, IOException {
+        if (!resource.exists()) {
+            throw new FileNotFoundException(resource + " not found or not readable");
+        }
+        try {
+            exception = null;
+            script = cx.compileReader(resource.getReader(), resource.getPath(), 1, null);
+        } catch (Exception x) {
+            exception = x;
+        } finally {
+            checksum = resource.lastModified();
+        }
         return script;
     }
 
@@ -121,7 +133,8 @@ public class ReloadableScript {
      * @throws IOException if an error occurred reading the script file
      * @return the compiled and up-to-date script
      */
-    protected synchronized Script getMultiScript(Context cx) throws JavaScriptException, IOException {
+    protected synchronized Script getComposedScript(Context cx)
+            throws JavaScriptException, IOException {
         if (!repository.exists()) {
             throw new FileNotFoundException(repository + " not found or not readable");
         }
@@ -176,7 +189,7 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
+    protected synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
         Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
