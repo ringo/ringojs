@@ -36,8 +36,16 @@ public class ReloadableScript {
     final Resource resource;
     final Repository repository;
     final RhinoEngine engine;
+    // the checksum of the underlying resource or repository when
+    // the script was last compiled
     long checksum = -1;
+    // true if module scope is shared
+    boolean shared;
+    // the compiled script
     Script script;
+    // any exception that may have been thrown during compilation.
+    // we keep this around in order to be able to rethrow without trying
+    // to recompile if the underlying resource or repository hasn't changed
     Exception exception = null;
     // the loaded module scope is cached for shared modules
     ModuleScope moduleScope = null;
@@ -170,17 +178,21 @@ public class ReloadableScript {
      */
     public synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
             throws JavaScriptException, IOException {
+        // check if we already came across the module in the current context/request
         Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
         if (modules.containsKey(moduleName)) {
             return modules.get(moduleName);
         }
         Script script = getScript(cx);
         ModuleScope module = moduleScope;
-        // FIXME: caching of shared modules causes code updates to
-        // go unnoticed for indirectly loaded modules!
         if (module != null) {
-            // use cached scope unless script has been reloaded
-            if (module.getChecksum() == checksum) {
+            // Reuse cached scope for shared modules.
+            // If any shared module has been updated, the force_reload flag is set
+            // in the context. This is necessary to catch changes in shared modules
+            // loaded by other shared modules.
+            boolean forceReload = cx.getThreadLocal("force_reload") == Boolean.TRUE;
+            if (module.getChecksum() == checksum && !forceReload) {
+                modules.put(moduleName, module);
                 return module;
             }
             module.delete("__shared__");
@@ -190,11 +202,18 @@ public class ReloadableScript {
         modules.put(moduleName, module);
         script.exec(cx, module);
         module.setChecksum(checksum);
-        moduleScope = (module.get("__shared__", module) == Boolean.TRUE) ?
-                module : null;
+        shared = module.get("__shared__", module) == Boolean.TRUE;
+        moduleScope = shared ? module : null;
         return module;
     }
 
+    /**
+     * Return true if this represents a module shared among all threads/contexts
+     * @return true of this script represents a shared module
+     */
+    public boolean isShared() {
+        return shared;
+    }
 
     /**
      * Checks if the main file or any of the files it includes were updated 

@@ -28,10 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -46,6 +43,7 @@ public class RhinoEngine {
     ScriptableObject                   topLevelScope;
     Map<String, ReloadableScript>      compiledScripts    = new HashMap<String, ReloadableScript>();
     Map<String, ReloadableScript>      interpretedScripts = new HashMap<String, ReloadableScript>();
+    Set<ReloadableScript>              sharedScripts      = new HashSet<ReloadableScript>();
     Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
@@ -338,7 +336,13 @@ public class RhinoEngine {
             throws IOException {
         Repository local = getRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        return script.load(topLevelScope, moduleName, cx);
+        Scriptable module =  script.load(topLevelScope, moduleName, cx);
+        if (script.isShared()) {
+            sharedScripts.add(script);
+        } else {
+            sharedScripts.remove(script);
+        }
+        return module;
     }
 
 
