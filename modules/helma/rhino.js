@@ -59,15 +59,48 @@ function invokeCallback(event, thisObj, args) {
     getRhinoEngine().invokeCallback(event, thisObj, args);
 }
 
+/**
+ * Set the Rhino optimization level for the current thread and context.
+ * The optimization level is an integer between -1 (interpreter mode)
+ * and 9 (compiled mode, all optimizations enabled). The default level
+ * is 0.
+ * @param level an integer between -1 and 9
+ */
 function setRhinoOptimizationLevel(level) {
     getRhinoContext().setOptimizationLevel(level);    
 }
 
+/**
+ * Evaluate a module script on an existing code instead of creating a
+ * new module scope. This can be used to mimic traditional JavaScript
+ * environments such as those found in web browsers.
+ * @param moduleName the name of the module to evaluate
+ * @param scope the JavaScript object to evaluate the script on
+ */
+function evaluate(moduleName, scope) {
+    if (!scope) {
+        // create a new top level scope object
+        scope = {};
+        scope.__parent__ = null;
+        scope.__proto__ = Object.__parent__;
+    }
+    getRhinoEngine()
+            .getScript(moduleName)
+            .evaluate(scope, getRhinoContext());
+    return scope;
+}
+
+/**
+ * Get the org.mozilla.javascript.Context associated with the current thread.
+ */
 function getRhinoContext() {
     var Context = org.mozilla.javascript.Context;
     return Context.getCurrentContext();
 }
 
+/**
+ * Get the org.helma.javascript.RhinoEngine associated with this application.
+ */
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
 }
