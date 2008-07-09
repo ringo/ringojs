@@ -114,7 +114,7 @@ public class FileRepository extends AbstractRepository {
      * @return checksum
      * @throws IOException an I/O error occurred
      */
-    public synchronized long getChecksum() throws IOException {
+    public synchronized long getChecksum() {
         // delay checksum check if already checked recently
         if (System.currentTimeMillis() > lastChecksumTime + cacheTime) {
 

@@ -33,11 +33,11 @@ public class WebappRepository extends AbstractRepository {
         this.timestamp = parent.timestamp;
     }
 
-    public long getChecksum() throws IOException {
+    public long getChecksum() {
         return timestamp;
     }
 
-    public long lastModified() throws IOException {
+    public long lastModified() {
         return timestamp;
     }
 

@@ -35,7 +35,7 @@ public interface Repository {
      * @return checksum
      * @throws IOException an I/O error occurred
      */
-    public long getChecksum() throws IOException;
+    public long getChecksum();
 
     /**
      * Returns the date the repository was last modified.
@@ -43,7 +43,7 @@ public interface Repository {
      * @return last modified date
      * @throws IOException an I/O error occurred
      */
-    public long lastModified() throws IOException;
+    public long lastModified();
 
 
     /**

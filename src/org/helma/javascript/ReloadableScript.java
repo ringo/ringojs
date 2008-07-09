@@ -201,9 +201,8 @@ public class ReloadableScript {
      * since the script was last parsed and evaluated.
      * @return true if none of the included files has been updated since
      * we last checked.
-     * @throws IOException an I/O exception occurred during the check
      */
-    protected boolean isUpToDate() throws IOException {
+    protected boolean isUpToDate() {
         if (resource == null) {
             return repository.getChecksum() == checksum;
         } else {

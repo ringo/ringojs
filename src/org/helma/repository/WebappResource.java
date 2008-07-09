@@ -18,7 +18,7 @@ public class WebappResource extends AbstractResource {
         setBaseNameFromName(name);
     }
 
-    public long lastModified() throws IOException {
+    public long lastModified() {
         return repository.lastModified();
     }
 
@@ -30,7 +30,7 @@ public class WebappResource extends AbstractResource {
         }
     }
 
-    public long getLength() throws IOException {
+    public long getLength() {
         return 0;
     }
 

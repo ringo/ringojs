@@ -32,7 +32,7 @@ public interface Resource {
      * Returns the date the resource was last modified
      * @return last modified date
      */
-    public long lastModified() throws IOException;
+    public long lastModified();
 
     /**
      * Checks wether this resource actually (still) exists
@@ -44,7 +44,7 @@ public interface Resource {
      * Returns the lengh of the resource's content
      * @return content length
      */
-    public long getLength() throws IOException;
+    public long getLength();
 
     /**
      * Returns an input stream to the content of the resource
