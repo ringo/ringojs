@@ -201,11 +201,10 @@ public class RhinoEngine {
 
     /**
      * Return a shell scope for interactive evaluation
-     * @param mainModule the main module name to pre-load
      * @return a shell scope
      * @throws IOException an I/O related exception occurred
      */
-    public Scriptable getShellScope(String mainModule) throws IOException {
+    public Scriptable getShellScope() throws IOException {
         Context cx = contextFactory.enterContext();
         try {
             Repository repository = repositories.get(0);
@@ -214,9 +213,6 @@ public class RhinoEngine {
                 getScript("helma.shell").evaluate(topLevelScope, cx);
             } catch (Exception x) {
                 log.error("Warning: couldn't load module 'helma.shell'", x);
-            }
-            if (mainModule != null) {
-                return loadModule(cx, mainModule, null);
             }
             return new ModuleScope("<shell>", resource, repository, topLevelScope);
         } finally {

@@ -26,6 +26,7 @@ import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -39,7 +40,7 @@ public class HelmaShell {
 
     static Scriptable scope;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         String modulePath = null;
         if (args.length > 0) {
             if ("--help".equals(args[0]) || "-h".equals(args[0])) {
@@ -50,7 +51,13 @@ public class HelmaShell {
         }
         HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
         RhinoEngine engine = new RhinoEngine(config);
-        scope = engine.getShellScope(config.getMainModule(null));
+        try {
+            engine.invoke(config.getMainModule("main"),
+                    "main", RhinoEngine.EMPTY_ARGS);
+        } catch (FileNotFoundException fnf) {
+            // don't complain if main module does not exist
+        }
+        scope = engine.getShellScope();
         Scriptable threadScope = null;
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
