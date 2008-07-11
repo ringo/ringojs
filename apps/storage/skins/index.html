@@ -1,0 +1,17 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' %>
+<h1><% title %></h1>
+<% message prefix="<p>" suffix="</p>" %>
+
+<h3>Add a new book</h3>
+<form action="/" method="post">
+    <label>Author: </label><input name="author" size="30"/>
+    <label>Title: </label><input name="title" size="30"/>
+    <input type="submit" name="save" value="Save"/>
+</form>
+
+<h3>Available Books</h3>
+<p>
+<% books %>
+</p>
