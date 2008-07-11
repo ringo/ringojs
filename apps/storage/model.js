@@ -13,7 +13,7 @@ function Book(props) {
     // Define any instance methods you like, accessing persistent
     // properties using the this prefix.
     this.getFullTitle = function() {
-        return this.author + ": " + this.title;
+        return this.author.name + ": " + this.title;
     }
 
     /*
@@ -44,3 +44,4 @@ db.store = db.store || new db.Store("db");
    Book.filter() - not yet implemented
 */
 db.store.registerType(Book);
+db.store.registerType(Author);

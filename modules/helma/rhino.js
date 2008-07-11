@@ -2,6 +2,9 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
+importModule('helma.logging', 'logging');
+var log = logging.getLogger(__name__);
+
 // mark this module as shared between all requests
 var __shared__ = true;
 
@@ -10,6 +13,7 @@ var __shared__ = true;
  * for request, response, session host objects.
  */
 function initWebApp() {
+    log.info('Initializing web app host objects');
     // set up standard web app host objects
     addHostObject(org.helma.web.Request);
     addHostObject(org.helma.web.Response);

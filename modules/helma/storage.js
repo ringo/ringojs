@@ -1,5 +1,9 @@
 importModule('core.JSON');
 importFromModule('helma.functional', 'partial');
+importModule('helma.logging', 'logging');
+logging.enableResponseLog();
+var log = logging.getLogger(__name__);
+
 
 var __shared__ = true;
 
@@ -34,7 +38,12 @@ function Storable(object, properties) {
         } else if (name == "_type") {
             return type;
         }
-        return this[name] ? this[name] : properties[name];
+        if (this[name]) return this[name];
+        var value = properties[name];
+        if (typeof value == 'object' && typeof value._id == 'string' && typeof value._type == 'string') {
+            value = ctor.store.get(value._type, value._id);
+        }
+        return value;
     };
 
     this.__put__ = function(name, value) {
@@ -43,6 +52,7 @@ function Storable(object, properties) {
                 throw new Error("Cannot change _id on storable object");
             }
             id = value;
+            return;
         }
         properties[name] = value;
     };
@@ -95,32 +105,33 @@ function Store(path) {
         // add class to registry
         typeRegistry[ctor.name] = ctor;
         // install filter, all, and get methods on constructor
-        ctor.filter = partial(filter, ctor.name);
-        ctor.all = partial(getAll, ctor.name);
-        ctor.get = partial(get, ctor.name);
-        ctor.save = partial(save);
-        ctor.remove = partial(remove);
+        ctor.filter = partial(this.filter, ctor.name);
+        ctor.all = partial(this.getAll, ctor.name);
+        ctor.get = partial(this.get, ctor.name);
+        ctor.save = partial(this.save);
+        ctor.remove = partial(this.remove);
+        ctor.store = this;
     };
 
-    var filter = function(type, term) {
+    this.filter = function(type, term) {
         throw new Error("not implemented");
     };
 
-    var getAll = function(type) {
+    this.getAll = function(type) {
         txn = base.beginTransaction();
         var list = base.getAll(txn, type);
         base.commitTransaction(txn);
         return list;
     }
 
-    var get = function(type, id) {
+    this.get = function(type, id) {
         txn = base.beginTransaction();
         var obj = base.get(txn, type, id);
         base.commitTransaction(txn);
         return obj;
     }
 
-    var save = function(obj) {
+    this.save = function(obj) {
         txn = base.beginTransaction();
         var type = obj._type, id = obj._id;
         if (id == undefined) {
@@ -132,7 +143,7 @@ function Store(path) {
         base.commitTransaction(txn);
     };
 
-    var remove = function(obj) {
+    this.remove = function(obj) {
         txn = base.beginTransaction();
         var type = obj._type, id = obj._id;
         if (!type) {
@@ -149,6 +160,7 @@ function Store(path) {
     var storage = new org.helma.storage.Storage({
 
         store: function(object, outputStream) {
+            log.debug("Storing object: " + object.toSource());
             var writer = new java.io.OutputStreamWriter(outputStream);
             writer.write(object.toJSON());
             writer.close();
@@ -179,6 +191,7 @@ function Store(path) {
 
     var file = new java.io.File(path);
     var base = new org.helma.storage.file.FileStorage(file, storage);
+    log.debug("Set up new store: " + base);
 
 };
 

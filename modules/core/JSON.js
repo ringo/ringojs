@@ -46,6 +46,8 @@
 var __shared__ = true;
 
 importModule('core.object');
+importModule('helma.logging', 'logging');
+var log = logging.getLogger(__name__);
 
 (function () {
     var m = {
@@ -109,6 +111,7 @@ importModule('core.object');
                 for (i in x) {
                     v = x[i];
                     f = s[typeof v];
+                    log.debug("Encoding property " + i + " of type " + typeof v);
                     if (f) {
                         v = f(v);
                         if (typeof v == 'string') {
@@ -143,6 +146,23 @@ importModule('core.object');
                 });
             }
             return '"' + x + '"';
+        },
+
+        /*
+         * TODO this is a preliminary hack to support JSAdapter properties for the
+         * storable module. JSAdapters identify as functions with the typeof operator,
+         * and we use this to generate proxies in the DB representation of persistent
+         * object references. We need to find out how to implement this without
+         * messing with the main JSON module.
+         */
+        'function': function(x) {
+            if (x instanceof JSAdapter && x._type && typeof x.save == 'function') {
+                if (!x._id) {
+                    throw Error("Trying to save non-persistent property");
+                }
+                return '{"_id": "' + x._id + '", "_type": "' + x._type + '"}'
+            }
+            return null;
         }
     };
 

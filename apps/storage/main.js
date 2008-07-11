@@ -16,7 +16,7 @@ function main_action() {
     }
     var books = model.Book.all();
     render('skins/index.html', {
-        title: 'Minibase Demo',
+        title: 'Storage Demo',
         books: function(/*tag, skin, context*/) {
             for (var i in books) {
                 var book = books[i]
@@ -27,7 +27,9 @@ function main_action() {
 }
 
 function createBook() {
-    var book = new model.Book({author: req.data.author, title: req.data.title});
+    var author = new model.Author({name: req.data.author});
+    var book = new model.Book({author: author, title: req.data.title});
+    author.save();
     book.save();
     res.redirect('/');
 }
