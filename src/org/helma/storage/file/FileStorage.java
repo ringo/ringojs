@@ -131,7 +131,7 @@ public class FileStorage {
         List<Object> list = new ArrayList<Object>(files.length);
 
         for (File file: files) {
-            if (!file.isFile()) {
+            if (!file.isFile() || file.isHidden()) {
                 continue;
             }
             InputStream in = new FileInputStream(file);
