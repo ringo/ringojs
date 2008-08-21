@@ -17,6 +17,7 @@
 package org.helma.javascript;
 
 import org.apache.log4j.Logger;
+import org.helma.repository.FileResource;
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.tools.HelmaConfiguration;
@@ -152,6 +153,25 @@ public class RhinoEngine {
         return null;
     }
 
+    public Object run(String scriptName, String[] scriptArgs) throws IOException {
+        Context cx = contextFactory.enterContext();
+        try {
+        	Object retval = null;
+            Resource resource = findResource(scriptName, null);
+            if (!resource.exists()) {
+            	resource = new FileResource(new File(scriptName));
+            }
+            ReloadableScript script = new ReloadableScript(resource, this);
+            retval = script.evaluate(topLevelScope, cx);
+        	if (retval instanceof Wrapper) {
+        		return ((Wrapper) retval).unwrap();
+        	}
+        	return retval;
+        } finally {
+        	Context.exit();
+        }   	
+    }
+    
     /**
      * Invoke a javascript function. This enters a JavaScript context, creates
      * a new per-thread scope, calls the function, exits the context and returns

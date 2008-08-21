@@ -25,12 +25,16 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class describes the configuration for a Helma NG application or shell session.
+ * @author hannes
+ */
 public class HelmaConfiguration {
 
     File home;
     List<Repository> repositories;
     String mainModule;
-    Class[] hostClasses = null;
+    Class<?>[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
     public HelmaConfiguration()
@@ -38,12 +42,12 @@ public class HelmaConfiguration {
         this(null, null);
     }
 
-    public HelmaConfiguration(String helmaHome)
+    public HelmaConfiguration(String modulePath)
             throws FileNotFoundException {
-        this(helmaHome, null);
+        this(modulePath, null);
     }
 
-    public HelmaConfiguration(String helmaHome, String modulePath)
+    public HelmaConfiguration(String modulePath, String helmaHome)
             throws FileNotFoundException {
         if (helmaHome == null) {
             helmaHome = System.getProperty("helma.home", "");
@@ -121,7 +125,7 @@ public class HelmaConfiguration {
      * Set the host classes to be added to the Rhino engine.
      * @param classes a list of Rhino host classes
      */
-    public void setHostClasses(Class[] classes) {
+    public void setHostClasses(Class<?>[] classes) {
         this.hostClasses = classes;
     }
 
@@ -129,7 +133,7 @@ public class HelmaConfiguration {
      * Get the host classes to be added to the Rhino engine.
      * @return a list of Rhino host classes
      */
-    public Class[] getHostClasses() {
+    public Class<?>[] getHostClasses() {
         return hostClasses;
     }
 

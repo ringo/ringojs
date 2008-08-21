@@ -58,6 +58,7 @@
             debug="${debug}"
             deprecation="${deprecation}"
             optimize="${optimize}">
+        	<!-- compilerarg value="-Xlint"/ -->
             <classpath refid="classpath"/>
         </javac>
     </target>
@@ -88,11 +89,7 @@
         <jar jarfile="run.jar"
             basedir="${classes}"
             includes="**/tools/launcher/**"
-            manifest="${src}/org/helma/tools/launcher/manifest-runner.txt"/>
-        <jar jarfile="shell.jar"
-            basedir="${classes}"
-            includes="**/tools/launcher/**"
-            manifest="${src}/org/helma/tools/launcher/manifest-shell.txt"/>
+            manifest="${src}/org/helma/tools/launcher/manifest.txt"/>
     </target>
 
     <!-- =================================================================== -->

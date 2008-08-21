@@ -30,18 +30,6 @@ import java.net.URLDecoder;
  * sets up the classpath, and launches one of the Helma tools.
  */
 public class Main {
-
-    static class Shell {
-        public static void main(String[] args) {
-            Main.main(args, "org.helma.tools.HelmaShell");
-        }
-    }
-
-    static class Runner {
-        public static void main(String[] args) {
-            Main.main(args, "org.helma.tools.HelmaRunner");
-        }
-    }
         
     /**
      * Helma boot method. This retrieves the Helma home directory, creates the
@@ -50,7 +38,7 @@ public class Main {
      * @param args command line arguments
      *
      */
-    public static void main(String[] args, String className) {
+    public static void main(String[] args) {
         try {
             File home = getHelmaHome();
             ClassLoader loader = createClassLoader(home);
@@ -61,7 +49,7 @@ public class Main {
                 System.setProperty("log4j.configuration", "file:" + file.getPath());
             }
 
-            Class clazz = loader.loadClass(className);
+            Class clazz = loader.loadClass("org.helma.tools.HelmaRunner");
             Class[] cargs = new Class[] {args.getClass()};
             Method main = clazz.getMethod("main", cargs);
             Object[] nargs = new Object[] {args};

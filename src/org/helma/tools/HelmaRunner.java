@@ -16,27 +16,55 @@
 
 package org.helma.tools;
 
+import java.util.Arrays;
+
 import org.helma.javascript.RhinoEngine;
 import org.helma.util.StringUtils;
 
 public class HelmaRunner {
 
     public static void main(String[] args) throws Exception {
-        String modulePath = null;
-        if (args.length > 0) {
-            if ("--help".equals(args[0]) || "-h".equals(args[0])) {
-                printUsage();
-                return;
+        String scriptName = null;
+        String[] scriptArgs = new String[0];
+        boolean interactive = false;
+
+        if (args != null && args.length > 0) {
+            int i;
+            for (i = 0; i < args.length; i++) {
+            	String arg = args[i];
+            	if (!arg.startsWith("-")) {
+            		break;
+            	}
+            	if ("--help".equals(arg) || "-h".equals(arg)) {
+            		printUsage();
+            		return;
+            	} else if ("--interactive".equals(arg) || "-i".equals(arg)) {
+            		interactive = true;
+            	}
             }
-            modulePath = StringUtils.join(args, ",");
+            if (i < args.length) {
+            	scriptName = args[i++];
+                if (i < args.length) {
+                	scriptArgs = Arrays.copyOfRange(args, i, args.length);
+                }
+            }
         }
-        HelmaConfiguration config = new HelmaConfiguration(null, modulePath);
+
+        HelmaConfiguration config = new HelmaConfiguration();
         RhinoEngine engine = new RhinoEngine(config);
-        engine.invoke(config.getMainModule("main"), "main", RhinoEngine.EMPTY_ARGS);
+        if (scriptName != null) {
+        	engine.run(scriptName, scriptArgs);
+        }
+        if (scriptName == null || interactive) {
+        	new HelmaShell(engine).run();
+        }
     }
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("    java -jar server.jar [MAINFILE|SCRIPTDIR] [SCRIPTDIR] ...");
+        System.out.println("  java -jar run.jar [option] ... [file] [arg] ...");
+        System.out.println("Options:");
+        System.out.println("  -i, --interactive  : Start shell after script file has run");
+        System.out.println("  -h, --help         : Display this help message");
     }
 }
