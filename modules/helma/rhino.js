@@ -2,6 +2,7 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
+importModule('core.object');
 importModule('helma.logging', 'logging');
 var log = logging.getLogger(__name__);
 
@@ -108,3 +109,8 @@ function getRhinoContext() {
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
 }
+
+var args = new ScriptableList(getRhinoEngine().getCommandLineArguments());
+var path = new ScriptableList(getRhinoEngine().getRepositories());
+// make properties read-only
+this.readOnly('args', 'path');

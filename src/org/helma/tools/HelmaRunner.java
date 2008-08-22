@@ -53,7 +53,7 @@ public class HelmaRunner {
         HelmaConfiguration config = new HelmaConfiguration();
         RhinoEngine engine = new RhinoEngine(config);
         if (scriptName != null) {
-        	engine.run(scriptName, scriptArgs);
+        	engine.runScript(scriptName, scriptArgs);
         }
         if (scriptName == null || interactive) {
         	new HelmaShell(engine).run();
