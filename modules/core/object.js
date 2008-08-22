@@ -49,6 +49,29 @@ Object.prototype.dontEnum = function() {
 }
 
 /**
+ * Set the READONLY attribute on one or more properties on this object.
+ * @param One or more property names or index numbers
+ */
+Object.prototype.readOnly = function() {
+    var rhino = new JavaImporter(org.mozilla.javascript);
+    var length = arguments.length;
+    var cx = rhino.Context.currentContext;
+    var wrapped = cx.wrapFactory.wrapAsJavaObject(cx, global, this, null);
+    for (var i = 0; i < length; i++) {
+        if (!this.hasOwnProperty(arguments[i])) {
+            continue;
+        }
+        try {
+            wrapped.setAttributes(arguments[i], rhino.ScriptableObject.READONLY);
+        } catch (e) {
+            java.lang.System.err.println("Error in readOnly: " + e);
+        }
+    }
+    return;
+}
+
+
+/**
  * copy the properties of an object into
  * a new object
  * @param Object the source object
