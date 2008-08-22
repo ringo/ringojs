@@ -76,7 +76,7 @@ function setRhinoOptimizationLevel(level) {
 }
 
 /**
- * Evaluate a module script on an existing code instead of creating a
+ * Evaluate a module script on an existing scope instead of creating a
  * new module scope. This can be used to mimic traditional JavaScript
  * environments such as those found in web browsers.
  * @param moduleName the name of the module to evaluate
