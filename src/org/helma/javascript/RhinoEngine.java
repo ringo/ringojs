@@ -174,7 +174,9 @@ public class RhinoEngine {
             	resource = new FileResource(new File(scriptName));
             }
             ReloadableScript script = new ReloadableScript(resource, this);
-            retval = script.evaluate(topLevelScope, cx);
+            Scriptable scope = new ModuleScope("__main__", resource, 
+                    resource.getRepository(), topLevelScope);
+            retval = script.evaluate(scope, cx);
         	if (retval instanceof Wrapper) {
         		return ((Wrapper) retval).unwrap();
         	}
