@@ -38,6 +38,8 @@ function File(path) {
    var FileReader                = java.io.FileReader;
    var FileWriter                = java.io.FileWriter;
    var PrintWriter               = java.io.PrintWriter;
+   var FileOutputStream          = java.io.FileOutputStream;
+   var OutputStreamWriter        = java.io.OutputStreamWriter;
    var EOFException              = java.io.EOFException;
    var IOException               = java.io.IOException;
    var IllegalStateException     = java.lang.IllegalStateException;
@@ -98,41 +100,59 @@ function File(path) {
       return (readerWriter != null);
    };
 
-   /**
-    * Opens the file represented by this File object.
-    * If the file already exits it will be opened for <strong>reading</strong> only.
-    * An existing file can be opened for appending by passing in a parameter equal to true.
-    * 
-    * @param  Boolean   If true, Append to existing file
-    * @returns Boolean
-    * @type Boolean
-    */
-   this.open = function(append) {
-      if (self.isOpened()) {
-         setError(new IllegalStateException("File already open"));
-         return false;
-      }
-      // We assume that the BufferedReader and PrintWriter creation
-      // cannot fail except if the FileReader/FileWriter fails.
-      // Otherwise we have an open file until the reader/writer
-      // get garbage collected.
-      try{
-         if (file.exists()) {
-            if (append == true) {
-                readerWriter = new PrintWriter(new FileWriter(file, true));
-            } else {
-                readerWriter = new BufferedReader(new FileReader(file));    
-            }            
-         } else {
-            readerWriter = new PrintWriter(new FileWriter(file));
-         }
-         return true;
-      } catch (e) {
-         setError(e);
-         return false;
-      }
-      return;
-   };
+    /**
+     * Opens the file represented by this File object. If the file exists,
+     * it is used for reading, otherwise it is opened for writing.
+     * If the encoding argument is specified, it is used to read or write
+     * the file. Otherwise, the platform's default encoding is used.
+     *
+     * @param {Object} options an optional argument holder object.
+     *  The following options are supported:
+     *  <ul><li>charset name of encoding to use for reading or writing</li>
+     *  <li>append whether to append to the file if it exists</li></ul>
+     * @returns Boolean true if the operation succeeded
+     * @type Boolean
+     */
+    this.open = function(options) {
+       if (self.isOpened()) {
+          setError(new IllegalStateException("File already open"));
+          return false;
+       }
+       // We assume that the BufferedReader and PrintWriter creation
+       // cannot fail except if the FileReader/FileWriter fails.
+       // Otherwise we have an open file until the reader/writer
+       // get garbage collected.
+       var charset = options && options.charset;
+       var append = options && options.append;
+       try {
+          if (file.exists() && !append) {
+             if (charset) {
+                 readerWriter = new BufferedReader(
+                         new java.io.InputStreamReader(new java.io.FileInputStream(file), charset));
+             } else {
+                 readerWriter = new BufferedReader(new FileReader(file));
+             }
+          } else {
+             if (append && charset)  {
+                 readerWriter = new PrintWriter(
+                         new OutputStreamWriter(new FileOutputStream(file, true), charset));
+             } else if (append) {
+                 readerWriter = new PrintWriter(
+                         new OutputStreamWriter(new FileOutputStream(file, true)));
+             } else if (charset) {
+                 readerWriter = new PrintWriter(file, charset);
+             } else {
+                 readerWriter = new PrintWriter(file);
+             }
+          }
+          return true;
+       } catch (e) {
+          setError(e);
+          return false;
+       }
+       return;
+    };
+
    
    /**
     * Tests whether the file or directory represented by this File object exists.
