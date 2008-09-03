@@ -1,8 +1,0 @@
-
-#run tests
-
-#
-cd helma-ng
-
-#helma-ng>
-java -jar run.jar test/test.js

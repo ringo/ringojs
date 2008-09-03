@@ -1,0 +1,3 @@
+This is the ever growing Helma NG JavaScript test suite. 
+
+  java -jar run.jar test/all.js

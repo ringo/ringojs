@@ -1,4 +1,4 @@
-importFromModule("testing.unittest", "*");
+importFromModule("helma.unittest", "*");
 importModule("core.array");
 importModule('helma.logging', 'logging');
 var log = logging.getLogger(__name__);
