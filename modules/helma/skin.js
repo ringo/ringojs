@@ -184,11 +184,10 @@ function Skin(mainSkin, subSkins, parentSkin) {
                        elem[last + suffix].call(elem, macro, self, context) :
                        elem[last + suffix].call(elem, value, macro, self, context);
             } else if (value === undefined && isDefined(elem[last])) {
-                elem = elem[path[length-1]];
-                if (elem instanceof Function) {
-                    return elem(macro, self, context);
+                if (elem[last] instanceof Function) {
+                    return elem[last].call(elem, macro, self, context);
                 } else {
-                    return elem;
+                    return elem[last];
                 }
             }
         }
