@@ -46,6 +46,17 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
             this.map = (Map) obj;
         } else if (obj == Undefined.instance) {
             this.map = new HashMap();
+        } else if (obj instanceof Scriptable) {
+            this.map = new HashMap();
+            Scriptable s = (Scriptable) obj;
+            Object[] ids = s.getIds();
+            for (Object id: ids) {
+                if (id instanceof String) {
+                    map.put(id, s.get((String)id, s));
+                } else if (id instanceof Number) {
+                    map.put(id, s.get(((Number)id).intValue(), s));
+                }
+            }
         } else {
             throw new EvaluatorException("Invalid argument to ScriptableMap(): " + obj);
         }
