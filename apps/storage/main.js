@@ -1,6 +1,9 @@
 importFromModule('helma.simpleweb', 'handleRequest');
 importFromModule('helma.skin', 'render');
 importModule('helma.app', 'app');
+// init store instance and register persistent classes.
+importModule('helma.storage', 'db');
+db.setStoreImpl('helma.storage.filestore', ['db']);
 // db model
 importModule('model');
 
