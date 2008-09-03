@@ -32,13 +32,14 @@ function main_action() {
 function createBook() {
     var author = new model.Author({name: req.data.author});
     var book = new model.Book({author: author, title: req.data.title});
-    author.save();
+    // author is saved transitively
     book.save();
     res.redirect('/');
 }
 
 function removeBook() {
     var book = model.Book.get(req.data.remove);
+    // author is removed through cascading delete
     book.remove();
     res.redirect('/');
 }

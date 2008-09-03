@@ -37,7 +37,7 @@ function Storable(object, properties) {
         }
         if (this[name]) return this[name];
         var value = properties[name];
-        if (typeof value == 'object' && typeof value._id == 'string' && typeof value._type == 'string') {
+        if (isKey(value)) {
             value = ctor.store.get(value._type, value._id);
         }
         return value;
@@ -50,6 +50,9 @@ function Storable(object, properties) {
             }
             id = value;
             return;
+        }
+        if (isPersistentStorable(value)) {
+            value = value.getKey();
         }
         properties[name] = value;
     };
@@ -71,13 +74,20 @@ function Storable(object, properties) {
         return ids;
     };
 
-    this.save = function() {
-        ctor.save(this);
+    this.save = function(txn) {
+        ctor.save(txn, this, properties);
     };
 
-    this.remove = function() {
-        ctor.remove(this);
+    this.remove = function(txn) {
+        ctor.remove(txn, this);
     };
+
+    this.getKey = function() {
+        if (!(typeof id == "string")) {
+            throw new Error("getKey() called on non-persistent object");
+        }
+        return {_id: id, _type: type};
+    }
 
     this.toString = function() {
         return "Storable " + type + "/" + id;
@@ -100,4 +110,25 @@ function Storable(object, properties) {
 function setStoreImpl(moduleName, args) {
     var impl = importModule(moduleName);
     this.store = this.store || impl.createStore(args);
+}
+
+var isKey = function(value) {
+    return value instanceof Object
+            && typeof value._id == 'string'
+            && typeof value._type == 'string';
+}
+
+var isStorable = function(value) {
+    return value instanceof JSAdapter
+            && typeof value._type == 'string';
+}
+
+var isPersistentStorable = function(value) {
+    return isStorable(value)
+            && typeof value._id == 'string';
+}
+
+var isTransientStorable = function(value) {
+    return isStorable(value)
+            && typeof value._id == 'undefined';
 }

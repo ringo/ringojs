@@ -1,3 +1,4 @@
+importModule('helma.storage', 'storage');
 importFromModule('helma.functional', 'partial');
 importModule('helma.logging', 'logging');
 var log = logging.getLogger(__name__);
@@ -40,33 +41,51 @@ function Store(path) {
     };
 
     this.getAll = function(type) {
-        txn = base.beginTransaction();
-        var list = base.getAll(txn, type);
-        base.commitTransaction(txn);
-        return list;
+        return base.getAll(type);
     }
 
     this.get = function(type, id) {
-        txn = base.beginTransaction();
-        var obj = base.get(txn, type, id);
-        base.commitTransaction(txn);
-        return obj;
+        return base.get(type, id);
     }
 
-    this.save = function(obj) {
-        txn = base.beginTransaction();
+    this.save = function(txn, obj, properties) {
+        var wrapTransaction = !txn;
+        if (wrapTransaction) {
+            txn = base.beginTransaction();
+        }
+        for (var i in properties) {
+            var v = properties[i];
+            if (storage.isStorable(v)) {
+                if (storage.isTransientStorable(v)) {
+                    v.save(txn);
+                }
+                properties[i] = v.getKey();
+            }
+        }
         var type = obj._type, id = obj._id;
         if (id == undefined) {
-            id = base.insert(txn, type, obj);
+            id = base.insert(txn, type, properties);
             obj._id = id;
         } else {
-            base.update(txn, type, id, obj);
+            base.update(txn, type, id, properties);
         }
-        base.commitTransaction(txn);
+        if (wrapTransaction) {
+            base.commitTransaction(txn);
+        }
     };
 
-    this.remove = function(obj) {
-        txn = base.beginTransaction();
+    this.remove = function(txn, obj) {
+        var wrapTransaction = !txn;
+        if (wrapTransaction) {
+            txn = base.beginTransaction();
+        }
+        for (var i in obj) {
+            var v = obj[i];
+            if (storage.isPersistentStorable(v)) {
+                // cascading delete (just to show it works)
+                v.remove(txn);
+            }
+        }
         var type = obj._type, id = obj._id;
         if (!type) {
             throw new Error("type not defined in object " + obj);
@@ -75,15 +94,30 @@ function Store(path) {
             throw new Error("id not defined in object " + obj);
         }
         base.remove(txn, type, id);
-        base.commitTransaction(txn);
+        if (wrapTransaction) {
+            base.commitTransaction(txn);
+        }
     };
 
+    this.begin = function() {
+        return base.beginTransaction();
+    }
+
+    this.commit = function(txn) {
+        base.commitTransaction(txn);
+    }
+
+    this.abort = function(txn) {
+        base.abortTransaction(txn);
+    }
+
     // the persister
-    var storage = new org.helma.storage.Storage({
+    var persister = new org.helma.storage.Storage({
 
         store: function(object, outputStream) {
             log.debug("Storing object: " + object.toSource());
             var writer = new java.io.OutputStreamWriter(outputStream);
+            for (var i in object) {}
             writer.write(object.toJSON());
             writer.close();
         },
@@ -112,7 +146,7 @@ function Store(path) {
     });
 
     var file = new java.io.File(path);
-    var base = new org.helma.storage.file.FileStorage(file, storage);
+    var base = new org.helma.storage.file.FileStorage(file, persister);
     log.debug("Set up new store: " + base);
 
 };

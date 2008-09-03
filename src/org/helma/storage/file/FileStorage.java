@@ -90,14 +90,13 @@ public class FileStorage {
     /**
      * Retrieves a Node from the database.
      *
-     * @param txn the current transaction
      * @param type the object type
      * @param id the object id
      * @return the object associated with the given key
      * @throws IOException if an I/O error occurred loading the object.
      * @throws ClassNotFoundException the class couldn't be loaded
      */
-    public Object get(FileStorageTransaction txn, String type, String id)
+    public Object get(String type, String id)
                   throws IOException, ClassNotFoundException {
         File dir = new File(dbHome, type);
         File file = new File(dir, id);
@@ -115,13 +114,12 @@ public class FileStorage {
 
     /**
      * Get all objects stored in the database of a given type.
-     * @param txn the current transaction
      * @param type the object type to retrieve
      * @return an array of all objects belonging to that type
      * @throws IOException if an I/O error occurred loading the object.
      * @throws ClassNotFoundException the class couldn't be loaded
     */
-    public Object[] getAll(FileStorageTransaction txn, String type)
+    public Object[] getAll(String type)
             throws IOException, ClassNotFoundException {
         File dir = new File(dbHome, type);
         if (!dir.exists() || !dir.isDirectory()) {
@@ -149,7 +147,7 @@ public class FileStorage {
      * @param type the object type
      * @param obj the object to insert
      * @throws IOException an I/O exception occurred
-     * @throws org.helma.db.NotPersistableException the object isn't persistable
+     * @throws NotStorableException the object isn't persistable
      * @return the id of the inserted object
      */
     public String insert(FileStorageTransaction txn, String type, Object obj)
@@ -166,7 +164,7 @@ public class FileStorage {
      * @param id the object id
      * @param obj the object to update
      * @throws IOException an I/O exception occurred
-     * @throws org.helma.storage.NotStorableException the object isn't persistable
+     * @throws NotStorableException the object isn't persistable
      */
     public void update(FileStorageTransaction txn, String type, String id, Object obj)
                 throws IOException, NotStorableException {
