@@ -250,12 +250,13 @@ public class RhinoEngine {
         try {
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
+            ModuleScope scope = new ModuleScope("<shell>", resource, topLevelScope);
             try {
-                getScript("helma.shell").evaluate(topLevelScope, cx);
+                getScript("helma.shell").evaluate(scope, cx);
             } catch (Exception x) {
                 log.error("Warning: couldn't load module 'helma.shell'", x);
             }
-            return new ModuleScope("<shell>", resource, topLevelScope);
+            return scope;
         } finally {
             Context.exit();
         }

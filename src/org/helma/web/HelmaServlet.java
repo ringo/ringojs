@@ -15,6 +15,7 @@ import org.helma.javascript.RhinoEngine;
 import org.helma.template.MacroTag;
 import org.helma.tools.HelmaConfiguration;
 import org.helma.util.StringUtils;
+import org.helma.repository.WebappRepository;
 import org.mozilla.javascript.WrappedException;
 
 import javax.servlet.ServletConfig;
@@ -78,9 +79,10 @@ public class HelmaServlet extends HttpServlet {
                     System.arraycopy(custom, 0, copy, classes.length, custom.length);
                     classes = copy;
                 }
-                HelmaConfiguration helmaconf = new HelmaConfiguration(
-                        config.getInitParameter("helmaHome"),
-                        config.getInitParameter("helmaModulePath"));
+                String helmaHome = config.getInitParameter("helmaHome");
+                String scriptName = config.getInitParameter("scriptName");
+                WebappRepository home = new WebappRepository(config.getServletContext(), helmaHome);
+                HelmaConfiguration helmaconf = new HelmaConfiguration(home, scriptName);
                 helmaconf.setHostClasses(classes);
                 engine = new RhinoEngine(helmaconf);
             } catch (Exception x) {

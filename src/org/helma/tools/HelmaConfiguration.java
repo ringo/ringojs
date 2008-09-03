@@ -31,65 +31,74 @@ import java.util.List;
  */
 public class HelmaConfiguration {
 
-    File home;
+    Repository home, modules, scriptdir;
+    Resource script;
     List<Repository> repositories;
     String mainModule;
     Class<?>[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
-    public HelmaConfiguration()
-            throws FileNotFoundException  {
-        this(null, null);
-    }
-
-    public HelmaConfiguration(String modulePath)
+    public HelmaConfiguration(Repository helmaHome, String scriptName)
             throws FileNotFoundException {
-        this(modulePath, null);
-    }
-
-    public HelmaConfiguration(String modulePath, String helmaHome)
-            throws FileNotFoundException {
-        if (helmaHome == null) {
-            helmaHome = System.getProperty("helma.home", "");
-        }
-        home = new File(helmaHome);
-        if (!home.isAbsolute()) {
-            home = home.getAbsoluteFile();
-        }
         repositories = new ArrayList<Repository>();
-        if (modulePath == null) {
-            modulePath = System.getProperty("helma.modulepath", ".");
-        }
-        String[] reps = StringUtils.split(modulePath, ",");
-        for (int i = 0; i < reps.length; i++) {
-            String rep = reps[i];
-            rep = rep.trim();
-            File file = new File(rep);
-            if (!file.isAbsolute()) {
-                // if path is relative, try to resolve against current directory first,
-                // then relative to helma installation directory.
-                file = file.getAbsoluteFile();
-                if (!file.exists()) {
-                    file = new File(home, rep);
+        home = helmaHome;
+
+        // first add script's parent directory to repository path,
+        // or the current directory if no script is run
+        if (scriptName != null) {
+            Resource script = new FileResource(new File(scriptName));
+            if (!script.exists()) {
+                script = home.getResource(scriptName);
+                if (!script.exists()) {
+                    scriptName = scriptName.replace('.', File.separatorChar) + ".js";
+                    script = home.getResource(scriptName);
                 }
-            }
-            if (!file.exists()) {
-                throw new FileNotFoundException("File '" + file + "' does not exist.");
-            }
-            if (rep.toLowerCase().endsWith(".zip")) {
-                repositories.add(new ZipRepository(file));
             } else {
-                if (i == 0 && file.isFile()) {
-                    Resource res = new FileResource(file);
-                    mainModule = res.getBaseName();
-                    repositories.add(res.getParentRepository());
+                scriptdir = script.getParentRepository();
+            }
+            if (!script.exists()) {
+                throw new FileNotFoundException("Can't find file " + scriptName);
+            }
+        } else {
+            scriptdir = new FileRepository(new File("."));
+        }
+        repositories.add(scriptdir);
+
+        // next add repositories from helma.modulepath system property
+        String modulePath = System.getProperty("helma.modulepath");
+        if (modulePath != null) {
+            String[] reps = StringUtils.split(modulePath, ",");
+            for (int i = 0; i < reps.length; i++) {
+                String rep = reps[i];
+                rep = rep.trim();
+                File file = new File(rep);
+                if (!file.isAbsolute()) {
+                    // if path is relative, try to resolve against current directory first,
+                    // then relative to helma installation directory.
+                    file = file.getAbsoluteFile();
+                    if (!file.exists()) {
+                        file = new File(home.getPath(), rep);
+                    }
+                }
+                if (!file.exists()) {
+                    throw new FileNotFoundException("File '" + file + "' does not exist.");
+                }
+                if (rep.toLowerCase().endsWith(".zip")) {
+                    repositories.add(new ZipRepository(file));
                 } else {
-                    repositories.add(new FileRepository(file));
+                    if (i == 0 && file.isFile()) {
+                        Resource res = new FileResource(file);
+                        mainModule = res.getBaseName();
+                        repositories.add(res.getParentRepository());
+                    } else {
+                        repositories.add(new FileRepository(file));
+                    }
                 }
             }
         }
-        // always add modules from helma home
-        repositories.add(new FileRepository(new File(home, "modules")));
+        // finally, always add modules from helma home
+        modules = home.getChildRepository("modules");
+        repositories.add(modules);
         Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
 
@@ -97,7 +106,7 @@ public class HelmaConfiguration {
      * Return the helma install directory
      * @return the helma home directory
      */
-    public File getHelmaHome() {
+    public Repository getHelmaHome() {
         return home;
     }
 

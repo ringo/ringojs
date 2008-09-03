@@ -19,7 +19,7 @@ package org.helma.tools;
 import java.util.Arrays;
 
 import org.helma.javascript.RhinoEngine;
-import org.helma.util.StringUtils;
+import org.helma.repository.FileRepository;
 
 public class HelmaRunner {
 
@@ -50,7 +50,8 @@ public class HelmaRunner {
             }
         }
 
-        HelmaConfiguration config = new HelmaConfiguration();
+        FileRepository home = new FileRepository(System.getProperty("helma.home", "."));
+        HelmaConfiguration config = new HelmaConfiguration(home, scriptName);
         RhinoEngine engine = new RhinoEngine(config);
         if (scriptName != null) {
         	engine.runScript(scriptName, scriptArgs);
