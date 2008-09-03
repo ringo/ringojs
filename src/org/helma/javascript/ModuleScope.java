@@ -17,7 +17,7 @@
 package org.helma.javascript;
 
 import org.helma.repository.Repository;
-import org.helma.repository.Resource;
+import org.helma.repository.Trackable;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
@@ -28,16 +28,16 @@ import org.mozilla.javascript.Scriptable;
  */
 public class ModuleScope extends NativeObject {
 
-    Resource resource;
+    Trackable source;
     Repository repository;
     String name;
     long checksum;
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(String moduleName, Resource resource,
-                       Repository repository, Scriptable prototype) {
-        this.resource = resource;
-        this.repository = repository;
+    public ModuleScope(String moduleName, Trackable source, Scriptable prototype) {
+        this.source = source;
+        this.repository = source instanceof Repository ?
+                (Repository) source : source.getParentRepository();
         this.name = moduleName;
         setParentScope(null);
         setPrototype(prototype);
@@ -62,8 +62,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public String toString() {
-        Object path = resource == null ? repository : resource;
-        return "[ModuleScope " + path + "]";
+        return "[ModuleScope " + source + "]";
     }
 
     public Object getDefaultValue(Class hint) {

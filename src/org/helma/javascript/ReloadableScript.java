@@ -18,6 +18,7 @@ package org.helma.javascript;
 
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
+import org.helma.repository.Trackable;
 import org.mozilla.javascript.*;
 
 import java.io.FileNotFoundException;
@@ -33,8 +34,7 @@ import java.util.Map;
  */
 public class ReloadableScript {
 
-    final Resource resource;
-    final Repository repository;
+    final Trackable source;
     final RhinoEngine engine;
     // the checksum of the underlying resource or repository when
     // the script was last compiled
@@ -54,25 +54,11 @@ public class ReloadableScript {
     /**
      * Construct a Script from the given script resource.
      *
-     * @param resource the JavaScript resource to be applied to this prototype.
+     * @param source the JavaScript resource or repository containing the script.
      * @param engine the rhino engine
      */
-    public ReloadableScript(Resource resource, RhinoEngine engine) {
-        this.resource = resource;
-        this.repository = resource == null ? null : resource.getRepository();
-        this.engine = engine;
-    }
-
-    /**
-     * Construct a Script from the given script repository, munging all contained
-     * script resources into one module.
-     *
-     * @param repository the script repository.
-     * @param engine the rhino engine
-     */
-    public ReloadableScript(Repository repository, RhinoEngine engine) {
-        this.resource = null;
-        this.repository = repository;
+    public ReloadableScript(Trackable source, RhinoEngine engine) {
+        this.source = source;
         this.engine = engine;
     }
 
@@ -87,7 +73,10 @@ public class ReloadableScript {
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
-            if (resource == null) {
+            if (!source.exists()) {
+                throw new FileNotFoundException(source + " not found or not readable");
+            }
+            if (source instanceof Repository) {
                 script = getComposedScript(cx);
             } else {
                 script = getSimpleScript(cx);
@@ -109,16 +98,14 @@ public class ReloadableScript {
      */
     protected synchronized Script getSimpleScript(Context cx)
             throws JavaScriptException, IOException {
-        if (!resource.exists()) {
-            throw new FileNotFoundException(resource + " not found or not readable");
-        }
+        Resource resource = (Resource) source;
         try {
             exception = null;
             script = cx.compileReader(resource.getReader(), resource.getPath(), 1, null);
         } catch (Exception x) {
             exception = x;
         } finally {
-            checksum = resource.lastModified();
+            checksum = resource.getChecksum();
         }
         return script;
     }
@@ -135,9 +122,7 @@ public class ReloadableScript {
      */
     protected synchronized Script getComposedScript(Context cx)
             throws JavaScriptException, IOException {
-        if (!repository.exists()) {
-            throw new FileNotFoundException(repository + " not found or not readable");
-        }
+        Repository repository = (Repository) source;
         List<Resource> resources = repository.getAllResources();
         final List<Script> scripts = new ArrayList<Script>();
         try {
@@ -176,6 +161,11 @@ public class ReloadableScript {
     public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
+        Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        if (scope instanceof ModuleScope) {
+            moduleScope = (ModuleScope) scope;
+            modules.put(source, scope);
+        }
         return script.exec(cx, scope);
     }
 
@@ -192,9 +182,9 @@ public class ReloadableScript {
     protected synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<String,Scriptable> modules = (Map<String,Scriptable>) cx.getThreadLocal("modules");
-        if (modules.containsKey(moduleName)) {
-            return modules.get(moduleName);
+        Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        if (modules.containsKey(source)) {
+            return modules.get(source);
         }
         Script script = getScript(cx);
         ModuleScope module = moduleScope;
@@ -205,14 +195,14 @@ public class ReloadableScript {
             // loaded by other shared modules.
             boolean forceReload = cx.getThreadLocal("force_reload") == Boolean.TRUE;
             if (module.getChecksum() == checksum && !forceReload) {
-                modules.put(moduleName, module);
+                modules.put(source, module);
                 return module;
             }
             module.delete("__shared__");
         } else {
-            module = new ModuleScope(moduleName, resource, repository, prototype);
+            module = new ModuleScope(moduleName, source, prototype);
         }
-        modules.put(moduleName, module);
+        modules.put(source, module);
         script.exec(cx, module);
         module.setChecksum(checksum);
         shared = module.get("__shared__", module) == Boolean.TRUE;
@@ -235,11 +225,7 @@ public class ReloadableScript {
      * we last checked.
      */
     protected boolean isUpToDate() {
-        if (resource == null) {
-            return repository.getChecksum() == checksum;
-        } else {
-            return resource.lastModified() == checksum;
-        }
+        return source.getChecksum() == checksum;
     }
 
 }

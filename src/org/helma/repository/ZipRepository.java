@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.net.URL;
 
 public final class ZipRepository extends AbstractRepository {
 
@@ -187,10 +188,10 @@ public final class ZipRepository extends AbstractRepository {
         return new ZipResource(entryPath + "/" + name, this);
     }
 
-    public long getChecksum() {
-        return file.lastModified();
-    }
-
+    /**
+     * Checks wether this resource actually (still) exists
+     * @return true if the resource exists
+     */
     public boolean exists() {
         ZipFile zipfile = null;
         try {
@@ -222,7 +223,17 @@ public final class ZipRepository extends AbstractRepository {
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
 
+    public URL getUrl() {
+        // TODO: we might want to return a Jar URL
+        // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
+        throw new UnsupportedOperationException("getUrl() not implemented for ZipResource");
+    }
+
     public long lastModified() {
+        return file.lastModified();
+    }
+    
+    public long getChecksum() {
         return file.lastModified();
     }
 

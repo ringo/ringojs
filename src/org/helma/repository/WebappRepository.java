@@ -1,10 +1,11 @@
 package org.helma.repository;
 
 import javax.servlet.ServletContext;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 public class WebappRepository extends AbstractRepository {
 
@@ -51,6 +52,10 @@ public class WebappRepository extends AbstractRepository {
 
     public Repository getChildRepository(String name) {
         return new WebappRepository(context, this, name);
+    }
+
+    public URL getUrl() throws MalformedURLException {
+        return context.getResource(path);
     }
 
     public void update() {

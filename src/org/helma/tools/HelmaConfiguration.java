@@ -82,7 +82,7 @@ public class HelmaConfiguration {
                 if (i == 0 && file.isFile()) {
                     Resource res = new FileResource(file);
                     mainModule = res.getBaseName();
-                    repositories.add(res.getRepository());
+                    repositories.add(res.getParentRepository());
                 } else {
                     repositories.add(new FileRepository(file));
                 }

@@ -14,6 +14,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.Scriptable;
+import org.helma.repository.Trackable;
 
 import java.util.HashMap;
 
@@ -59,7 +60,7 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         if (engine.isInitialized) {
             cx.putThreadLocal("engine", engine);
-            cx.putThreadLocal("modules", new HashMap<String, Scriptable>());
+            cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
             cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
             // This is how we check for updates in shared scripts:
             // when entering a context, we check if _any_ of the shared modules

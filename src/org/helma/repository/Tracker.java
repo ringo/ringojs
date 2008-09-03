@@ -22,25 +22,25 @@ import java.io.IOException;
  * A utility class that allows Resource consumers to track changes
  * on resources.
  */
-public class ResourceTracker {
+public class Tracker {
 
-    Resource resource;
+    Trackable source;
     long lastModified;
 
-    public ResourceTracker(Resource resource) throws IOException {
-        this.resource = resource;
+    public Tracker(Trackable source) throws IOException {
+        this.source = source;
         markClean();
     }
 
     public boolean hasChanged() throws IOException {
-        return lastModified != resource.lastModified();
+        return lastModified != source.lastModified();
     }
 
     public void markClean() throws IOException {
-        lastModified = resource.lastModified();
+        lastModified = source.lastModified();
     }
 
-    public Resource getResource() {
-        return resource;
+    public Trackable getSource() {
+        return source;
     }
 }

@@ -46,8 +46,8 @@ function createSkin(resourceOrString, scope) {
         if (part.name === 'extends') {
             var skinPath = part.getParameter(0);
             var skinResource;
-            if (resourceOrString.repository) {
-                skinResource = resourceOrString.repository.getResource(skinPath);
+            if (resourceOrString.parentRepository) {
+                skinResource = resourceOrString.parentRepository.getResource(skinPath);
             }
             if (!skinResource || !skinResource.exists()) {
                 skinResource = scope.getResource(skinPath);

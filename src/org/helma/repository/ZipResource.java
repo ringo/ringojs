@@ -48,6 +48,10 @@ public final class ZipResource implements Resource {
         return repository.lastModified();
     }
 
+    public long getChecksum() {
+        return repository.lastModified();
+    }
+
     public InputStream getInputStream() throws IOException {
         ZipFile zipfile = null;
         try {
@@ -164,7 +168,7 @@ public final class ZipResource implements Resource {
         }
     }
 
-    public Repository getRepository() {
+    public Repository getParentRepository() {
         return repository;
     }
 

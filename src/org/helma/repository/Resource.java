@@ -26,19 +26,8 @@ import java.net.URL;
  * Resource represents a pointer to some kind of information (code, skin, ...)
  * from which the content can be fetched
  */
-public interface Resource {
+public interface Resource extends Trackable {
 
-    /**
-     * Returns the date the resource was last modified
-     * @return last modified date
-     */
-    public long lastModified();
-
-    /**
-     * Checks wether this resource actually (still) exists
-     * @return true if the resource exists
-     */
-    public boolean exists();
 
     /**
      * Returns the lengh of the resource's content
@@ -74,35 +63,10 @@ public interface Resource {
     public String getContent() throws IOException;
 
     /**
-     * Returns the path of the resource.
-     * @return path of the resource
-     */
-    public String getPath();
-
-    /**
-     * Returns the short name of the resource.
-     * @return short name of the resource
-     */
-    public String getName();
-
-    /**
      * Returns the short name of the resource with the file extension
      * (everything following the last dot character) cut off.
      * @return the file name without the file extension
      */
     public String getBaseName();
-
-    /**
-     * Returns an url to the resource if the repository of this resource is
-     * able to provide urls
-     * @return url to the resource
-     */
-    public URL getUrl() throws UnsupportedOperationException, MalformedURLException;
-
-    /**
-     * Returns the repository the resource does belong to
-     * @return upper repository
-     */
-    public Repository getRepository();
 
 }

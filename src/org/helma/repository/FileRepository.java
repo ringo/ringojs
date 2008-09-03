@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * Repository implementation for directories providing file resources
@@ -112,7 +114,6 @@ public class FileRepository extends AbstractRepository {
      * has changed.
      *
      * @return checksum
-     * @throws IOException an I/O error occurred
      */
     public synchronized long getChecksum() {
         // delay checksum check if already checked recently
@@ -188,6 +189,10 @@ public class FileRepository extends AbstractRepository {
      */
     public File getDirectory() {
         return directory;
+    }
+
+    public URL getUrl() throws MalformedURLException {
+        return new URL("file:" + directory.getAbsolutePath());
     }
 
     public int hashCode() {

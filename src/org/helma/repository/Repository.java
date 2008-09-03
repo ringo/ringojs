@@ -25,26 +25,7 @@ import java.util.List;
  * In addition to resources, repositories may contain other repositories, building
  * a hierarchical structure.
  */
-public interface Repository {
-
-    /**
-     * Checksum of the repository and all its contained resources. Implementations
-     * should make sure to return a different checksum if any contained resource
-     * has changed.
-     *
-     * @return checksum
-     * @throws IOException an I/O error occurred
-     */
-    public long getChecksum();
-
-    /**
-     * Returns the date the repository was last modified.
-     *
-     * @return last modified date
-     * @throws IOException an I/O error occurred
-     */
-    public long lastModified();
-
+public interface Repository extends Trackable {
 
     /**
      * Returns a specific direct resource of the repository
@@ -74,7 +55,6 @@ public interface Repository {
      * Returns all direct and indirect resources
      *
      * @return resources recursive
-     * @throws IOException an I/O error occurred
      */
     public List<Resource> getAllResources();
 
@@ -87,40 +67,10 @@ public interface Repository {
     public Repository[] getRepositories() throws IOException;
 
     /**
-     * Checks wether the repository actually (or still) exists
-     *
-     * @return true if the repository exists
-     */
-    public boolean exists();
-
-    /**
-     * Returns this repository's parent repository.
-     * Returns null if this repository already is the top-level repository
-     *
-     * @return the parent repository
-     */
-    public Repository getParentRepository();
-
-    /**
      * Get a child repository with the given name
      * @param name the name of the repository
      * @return the child repository
      */
     public Repository getChildRepository(String name);
-
-    /**
-     * Returns the name of the repository; this is a full name including all
-     * parent repositories.
-     *
-     * @return full name of the repository
-     */
-    public String getPath();
-
-    /**
-     * Returns the name of the repository.
-     *
-     * @return name of the repository
-     */
-    public String getName();
 
 }

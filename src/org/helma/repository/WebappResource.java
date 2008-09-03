@@ -42,7 +42,7 @@ public class WebappResource extends AbstractResource {
         return context.getResource(path);
     }
 
-    public Repository getRepository() {
+    public Repository getParentRepository() {
         return repository;
     }
 }

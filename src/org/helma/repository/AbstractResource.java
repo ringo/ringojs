@@ -55,4 +55,8 @@ public abstract class AbstractResource implements Resource {
     public String getContent() throws IOException {
         return getContent(null);
     }
+
+    public long getChecksum() {
+        return lastModified();
+    }
 }

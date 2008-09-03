@@ -36,11 +36,12 @@ public class FileResource implements Resource {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         try {
-            this.file = file.getCanonicalFile();
+            file = file.getCanonicalFile();
         } catch (IOException iox) {
-            this.file = file.getAbsoluteFile();
+            file = file.getAbsoluteFile();
         }
 
+        this.file = file;
         this.repository = repository == null ?
                 new FileRepository(file.getParentFile()) : repository;
         path = file.getPath();
@@ -74,16 +75,16 @@ public class FileResource implements Resource {
         return new InputStreamReader(getInputStream());
     }
 
-    public URL getUrl() {
-        try {
-            return new URL("file:" + file.getAbsolutePath());
-        } catch (MalformedURLException ex) {
-            return null;
-        }
+    public URL getUrl() throws MalformedURLException {
+        return new URL("file:" + file.getAbsolutePath());
     }
 
     public long lastModified() {
         return file.lastModified();
+    }
+
+    public long getChecksum() {
+        return lastModified();
     }
 
     public String getContent(String encoding) throws IOException {
@@ -116,7 +117,7 @@ public class FileResource implements Resource {
         return file.exists();
     }
 
-    public Repository getRepository() {
+    public Repository getParentRepository() {
         return repository;
     }
 
