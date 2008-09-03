@@ -1,6 +1,5 @@
 
 importModule('core.string');
-importModule('helma.rhino', 'rhino');
 
 var __shared__ = true;
 
@@ -41,6 +40,7 @@ var __shared__ = true;
      */
     this.enableResponseLog = function() {
         // onLogEvent() callback is called by org.helma.util.RhinoAppender
+        var rhino = importModule('helma.rhino');
         rhino.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
             if (!global.res) {
                 return;
@@ -74,6 +74,7 @@ var __shared__ = true;
      */
     this.disableResponseLog = function() {
         // unregister handlers added in startResponseLog()
+        var rhino = importModule('helma.rhino');
         rhino.removeCallback("onLogEvent", "responseLog");
         rhino.removeCallback("onResponse", "responseLogFlusher");
         responseLogEnabled = false;
