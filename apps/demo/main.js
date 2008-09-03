@@ -78,6 +78,6 @@ function continuation_action() {
 }
 
 // main method called to start application
-function main() {
+if (__name__ == "__main__") {
     app.start();
 }

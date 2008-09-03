@@ -48,6 +48,6 @@ function getDeleteLink(book) {
     return '<a href="/?remove=' + book._id + '">delete</a>';
 }
 
-function main() {
+if (__name__ == "__main__") {
     app.start();
 }
