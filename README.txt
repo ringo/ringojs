@@ -15,39 +15,41 @@ Helma NG consists of several parts:
 Helma Shell
 ===========
 
-To start the Helma shell run the following command in a shell window:
+To start the interactive Helma shell start run.jar without a script file:
 
-    java -jar shell.jar
+    java -jar run.jar
 
 This starts the Helma shell with the current directory in its module path.
 The module path is the list of places Helma looks for scripts when asked to
 import something. It should contain your application directory. Helma always
 adds the modules directory to the end of the module path.
 
-You can also specify one or more script directories in the command line that
-will be added to the shell's module path:
+You can also start the interactive Helma shell when running a script using
+the -i or --interactive flag:
 
-    java -jar shell.jar demo/
+    java -jar run.jar -i ./dir/script.js
 
-You can also pass a script file. The file will be immediately evaluated before
-entering shell mode, and its containing directory will be added to the module
-path.
+This will add the script's parent directory to the module path (in this case
+"./dir", run the script, then start the shell.
 
 Helma Runtime
 =============
 
-The command line syntax for the Helma Runtime is similar to that of the Shell,
-except that you use run.jar instead of shell.jar. If you pass a Javascript file
-as first argument, Helma will evaluate the file and try to invoke function main()
-on it.
+The run a script with Helma, simply pass it as an argument to run.jar:
 
     java -jar run.jar somepath/mainfile.js
 
-If you pass a directory instead of a string file, Helma will look for a file
-called "main.js" in the given directory and use that as main script file.
+If you run a script that is contained in Helma's module path you can also
+use the simpler abstract module name instead of the file name:
 
-You can also add any number of additional script directories on the command line
-that will be added to the Helma module path.
+    java -jar run.jar helma.unittest
+
+Helma takes the first command line argument after run.jar that does not start
+with a "-" as script name. Everything coming after the script name is passed
+to the script as argument.
+
+   java -jar run.jar [option] ... [file] [arg] ...
+
 
 Helma Web Framework
 ===================
@@ -57,7 +59,7 @@ built on top of the Helma Runtime.
 
 To run the demo application that is part of Helma NG run the following command:
 
-    java -jar run.jar demo/main.js
+    java -jar run.jar apps/demo/main.js
 
 This starts and serves the demo web app on port 8080:
 
@@ -98,7 +100,7 @@ importFromModule(module, func1, ...)
     the command line. As a fallback, Helma checks the helma.modulepath
     System property:
 
-        java -Dhelma.modulepath=myapp,mylibs,modules -jar shell.jar
+        java -Dhelma.modulepath=myapp,mylibs -jar run.jar
 
 importJar(jarfile)
 
@@ -106,7 +108,7 @@ importJar(jarfile)
     all jar files in the lib directory are included in the classpath. You
     can add also other jar files by starting helma with
 
-       java -Dhelma.classpath=foo.jar,lib0/,lib1/*,lib2/** -jar shell.jar
+       java -Dhelma.classpath=foo.jar,lib0/,lib1/*,lib/** -jar run.jar
 
 getResource(path)
 
