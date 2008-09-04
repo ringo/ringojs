@@ -744,6 +744,6 @@ File.separator = java.io.File.separator;
 
 
 for (var i in File)
-   File.dontEnum(i);
+   if (i != "prototype") File.dontEnum(i);
 for (var i in File.prototype)
    File.prototype.dontEnum(i);
