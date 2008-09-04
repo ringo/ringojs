@@ -12,7 +12,7 @@ var __shared__ = true;
  * @param object the raw javascript object to wrap
  * @param properties the persistent object properties (optional)
  */
-function Storable(object, properties) {
+function makeStorable(object, properties) {
 
     if (!(object instanceof Object) || !(object.constructor instanceof Function))
         throw new Error("object must be an object, was: " + properties);
@@ -31,7 +31,7 @@ function Storable(object, properties) {
         throw new Error("couldn't get type: " + type);
 
 
-    this.__get__ = function(name) {
+    object.__get__ = function(name) {
         if (name == "_id") {
             return id;
         } else if (name == "_type") {
@@ -45,7 +45,7 @@ function Storable(object, properties) {
         return value;
     };
 
-    this.__set__ = function(name, value) {
+    object.__set__ = function(name, value) {
         if (name == "_id") {
             if (id != undefined) {
                 throw new Error("Cannot change _id on storable object");
@@ -62,16 +62,16 @@ function Storable(object, properties) {
         properties[name] = value;
     };
 
-    this.__delete__ = function(name) {
+    object.__delete__ = function(name) {
         delete properties[name];
     };
 
-    this.__has__ = function(name) {
+    object.__has__ = function(name) {
         return properties[name] !== undefined ||
                this[name] !== undefined;
     };
 
-    this.__getIds__ = function() {
+    object.__getIds__ = function() {
         var ids = [];
         for (var id in properties) {
             ids[ids.length] = id
@@ -79,35 +79,27 @@ function Storable(object, properties) {
         return ids;
     };
 
-    this.save = function(txn) {
+    object.save = function(txn) {
         ctor.save(txn, this, properties);
     };
 
-    this.remove = function(txn) {
+    object.remove = function(txn) {
         ctor.remove(txn, this);
     };
 
-    this.getKey = function() {
+    object.getKey = function() {
         if (!(typeof id == "string")) {
             throw new Error("getKey() called on non-persistent object");
         }
         return {_id: id, _type: type};
     }
 
-    this.toString = function() {
-        return type + "[" + id + "]";
-    };
-
-    // trick required to make * instanceof Storable work
-    // as we set this.__proto__ to something else than Storable.prototype.
-    this.__storable__ = true;
-    // make object our prototype and return ourself
-    this.__proto__ = object;
-    return this;
-}
-
-Storable.__hasInstance__ = function(object) {
-   return object instanceof Storable || object.__storable__;
+    // only define toString if object doesn't have one already
+    if (object.toString == Object.prototype.toString) {
+        object.toString = function() {
+            return type + "[" + id + "]";
+        };
+    }
 }
 
 /**

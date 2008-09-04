@@ -26,11 +26,13 @@ function Book(props) {
         book._id      - the object id - undefined for transient objects,
                         and only settable on transient objects
      */
-    return new db.Storable(this, props);
+    db.makeStorable(this, props);
+    return this;
 }
 
 function Author(props) {
-    return new db.Storable(this, props);
+    db.makeStorable(this, props);
+    return this;
 }
 
 // init store instance and register persistent classes.
