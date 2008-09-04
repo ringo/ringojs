@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class HelmaConfiguration {
 
-    Repository home, modules, scriptdir;
+    Repository home, modules;
     Resource script;
     List<Repository> repositories;
     String mainModule;
@@ -42,27 +42,27 @@ public class HelmaConfiguration {
             throws FileNotFoundException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
+        modules = home.getChildRepository("modules");
 
         // first add script's parent directory to repository path,
         // or the current directory if no script is run
         if (scriptName != null) {
             Resource script = new FileResource(new File(scriptName));
             if (!script.exists()) {
-                script = home.getResource(scriptName);
+                script = modules.getResource(scriptName);
                 if (!script.exists()) {
                     scriptName = scriptName.replace('.', File.separatorChar) + ".js";
-                    script = home.getResource(scriptName);
+                    script = modules.getResource(scriptName);
                 }
             } else {
-                scriptdir = script.getParentRepository();
+                repositories.add(script.getParentRepository());
             }
             if (!script.exists()) {
                 throw new FileNotFoundException("Can't find file " + scriptName);
             }
         } else {
-            scriptdir = new FileRepository(new File("."));
+            repositories.add(new FileRepository(new File(".")));
         }
-        repositories.add(scriptdir);
 
         // next add repositories from helma.modulepath system property
         String modulePath = System.getProperty("helma.modulepath");
@@ -96,8 +96,8 @@ public class HelmaConfiguration {
                 }
             }
         }
+
         // finally, always add modules from helma home
-        modules = home.getChildRepository("modules");
         repositories.add(modules);
         Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
