@@ -46,13 +46,13 @@ Array.prototype.contains = function(val) {
  */
 Array.union = function() {
    var result = [];
-   var map = {};
+   var map = new java.util.HashMap();
    for (var i=0; i<arguments.length; i+=1) {
       for (var n in arguments[i]) {
          var item = arguments[i][n];
-         if (!map[item]) {
+         if (!map.containsKey(item)) {
             result.push(item);
-            map[item] = true;
+            map.put(item, true);
          }
       }
    }
