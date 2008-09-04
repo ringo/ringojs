@@ -61,7 +61,7 @@ Continuation.nextPage = function(id) {
     id = id || Continuation.nextId();
     setCallback(id, new Continuation());
     // trick to exit current context: call empty continuation
-    new org.mozilla.javascript.continuations.Continuation()();
+    new org.mozilla.javascript.NativeContinuation()();
 };
 
 // Private helper functions
