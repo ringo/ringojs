@@ -32,7 +32,7 @@ testCase.testReadWriteFile = function() {
     assertEqual(content, string1 + string2);
     file.open();
     var line = file.readln();
-    assertEqual(line, string1 + string2);    
+    assertEqual(line, string1 + string2);
 }
 
 testCase.testEncoding = function() {
