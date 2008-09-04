@@ -22,6 +22,13 @@ testCase.testAssertNotEqual = function() {
    return;
 };
 
+testCase.testAssertEqualArrays = function() {
+   assertEqualArrays([], []);
+   assertEqualArrays(["one"], ["one"]);
+   assertEqualArrays(["one", "two"], ["one", "two"]);
+   return;
+}
+
 testCase.testAssertNull = function() {
    assertNull(null);
    return;

@@ -835,6 +835,37 @@ var __shared__ = true;
       }
       return;
    };
+
+   /**
+    * Checks if the values passed as arguments are arrays and contain the same elements
+    * @param value1 the first array
+    * @param value2 the second array
+    * @throws ArgumentsException
+    * @throws FailureException
+    */
+   this.assertEqualArrays = function(value1, value2) {
+      var functionName = arguments.callee.name;
+      var argsExpected = arguments.callee.length;
+      evalArguments(arguments, argsExpected);
+      if (!(value1 instanceof Array) || !(value2 instanceof Array)) {
+         throw new ArgumentsException("Invalid arguments to assertEqualArrays: " +
+                 valueToString(value1) + ", " + valueToString(value2));
+      }
+      var equal = true;
+      if (value1.length != value2.length) {
+          equal = false;
+      };
+      for (var i = 0; i < value1.length; i++) {
+         if (value1[i] !== value2[i]) {
+             equal = false;
+         }
+      }
+      if (!equal) {
+          throw new FailureException("Expected " + valueToString(value1) +
+                              " to be equal to " + valueToString(value2))
+      }
+      return;
+   }
    
    /**
     * Checks if the value passed as argument is null.
