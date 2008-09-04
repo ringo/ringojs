@@ -31,7 +31,7 @@ importModule('core.object');
  * @constructor
  */
 function File(path) {
-   var File                      = java.io.File;
+   var JFile                     = java.io.File;
    var Writer                    = java.io.Writer;
    var FileReader                = java.io.FileReader;
    var BufferedReader            = java.io.BufferedReader;
@@ -52,9 +52,9 @@ function File(path) {
       // immediately convert to absolute path - java.io.File is 
       // incredibly stupid when dealing with relative file names
       if (arguments.length > 1)
-         file = new File(path, arguments[1]).getAbsoluteFile();
+         file = new JFile(path, arguments[1]).getAbsoluteFile();
       else
-         file = new File(path).getAbsoluteFile();
+         file = new JFile(path).getAbsoluteFile();
    } catch (e) {
       throw(e);
    }
@@ -162,7 +162,7 @@ function File(path) {
    this.getParent = function() {
       if (!file.getParent())
          return null;
-      return new helma.File(file.getParent());
+      return new File(file.getParent());
    };
 
    /**
@@ -532,7 +532,7 @@ function File(path) {
       if (toFile.isOpened()) {
          throw new IllegalStateException("You cannot rename to an openened file");
       }
-      return file.renameTo(new java.io.File(toFile.getAbsolutePath()));
+      return file.renameTo(new JFile(toFile.getAbsolutePath()));
    };
 
    /**
@@ -611,7 +611,7 @@ function File(path) {
          return false;
       var arr = file.list();
       for (var i=0; i<arr.length; i++) {
-         var f = new helma.File(file, arr[i]);
+         var f = new File(file, arr[i]);
          if (f.isDirectory())
             f.removeDirectory();
          else
@@ -638,7 +638,7 @@ function File(path) {
          var result = [];
       var arr = file.list();
       for (var i=0; i<arr.length; i++) {
-         var f = new helma.File(file, arr[i]);
+         var f = new File(file, arr[i]);
          if (f.isDirectory())
             result = result.concat(f.listRecursive(pattern));
          else if (!pattern || pattern.test(arr[i]))
@@ -670,6 +670,18 @@ function File(path) {
       inStream.close();
       outStream.close();
       return true;
+   }
+
+   /**
+    * Create a new empty temporary file in the this directory, or in the directory
+    * containing this file.
+    * @param {String} prefix the prefix of the temporary file; must be at least three characters long
+    * @param {String} suffix the suffix of the temporary file; may be null
+    * @return {File} the temporary file 
+    */
+   this.createTempFile = function(prefix, suffix) {
+      var dir = this.isDirectory() ? file : file.getParentFile();
+      return new File(JFile.createTempFile(prefix, suffix, dir));
    }
 
    /**
@@ -724,6 +736,16 @@ File.toString = function() {
 
 
 File.separator = java.io.File.separator;
+
+/**
+ * Create a new empty temporary file in the default temporary-file directory.
+ * @param {String} prefix the prefix of the temporary file; must be at least three characters long
+ * @param {String} suffix the suffix of the temporary file; may be null
+ * @return {File} the temporary file
+ */
+File.createTempFile = function(prefix, suffix) {
+   return new File(java.io.File.createTempFile(prefix, suffix));
+}
 
 
 for (var i in File)
