@@ -73,34 +73,24 @@ testCase.testArrayLastIndexOf = function() {
    assertEqual( empty.lastIndexOf(undefined), -1 );
 
    // test with strings
-   try {
       assertEqual( arrayWithOneString.lastIndexOf(string1), 0 );
       assertEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
       assertEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
       assertEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
-   } catch(err) {
-      log.error("FIXME: Array.lastIndexOf is broken. Replace it by using the native JavaScript 1.6 Array::lastIndexOf method")
-   }
+
 
    assertNotEqual( arrayWithTwoStrings.lastIndexOf(string3), 2 );
    assertEqual( arrayWithTwoStrings.lastIndexOf(string3), -1 );
    assertEqual( arrayWithFiveStrings.lastIndexOf(string3), 2 );
    
    // test with objects
-   try {
-      assertEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
-      assertEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
-      assertEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
-   } catch(err) {
-      log.error("FIXME: Array.lastIndexOf is broken. Replace it by using the native JavaScript 1.6 Array::lastIndexOf method")
-   }
+    assertEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
+    assertEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
+    assertEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
 
-   try {
-      assertEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
-      assertEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
-   } catch(err) {
-      log.error("FIXME: Array.lastIndexOf is broken. Replace it by using the native JavaScript 1.6 Array::lastIndexOf method")
-   }
+
+    assertEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
+    assertEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
 
    return;
 };
@@ -137,190 +127,144 @@ testCase.testArrayContains = function() {
 
 
 testCase.testArrayUnion = function() {
-   
-   function arraysAreEqual(arr1, arr2) {
-      if (!arr1 || !arr2) return false;
-      if (arr1.length != arr2.length) return false;
-      for (var i=0; i<arr1.length; i++) {
-         if (arr1[i] !== arr2[i]) return false;
-      }
-      return true;
-   }
 
-   // test arraysAreEqual function
-   assertTrue( arraysAreEqual([], []) );
-   assertTrue( arraysAreEqual(["one"], ["one"]) );
-   assertTrue( arraysAreEqual(["one", "two"], ["one", "two"]) );
-   assertFalse( arraysAreEqual(["one", "two"], ["one", "two", "three"]) );
-   
    // test with empty
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.union(empty, empty), 
       []
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(empty, arrayWithTwoStrings), 
       ["one", "two"]
-   ));  
+   );
    
    // test with strings
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.union(arrayWithOneString, arrayWithOneString), 
       ["one"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithOneString, arrayWithTwoStrings), 
       ["one", "two"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithOneString, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithTwoThreeStrings, arrayWithOneString), 
       ["two", "three", "one"]
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.union(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two", "three", "one"]
-   ));
+   );
    
    // test with objects
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.union(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
-   ));
-   try {
-      assertTrue( arraysAreEqual(
-         Array.union(arrayWithTwoObjects, arrayWithTwoObjects), 
-         arrayWithTwoObjects
-      ));
-      assertTrue( arraysAreEqual(
-         Array.union(arrayWithFiveObjects, empty), 
-         [obj1, obj2, obj3] // breaks
-      ));      
-   } catch(err) {
-      log.error("FIXME: Array.union doesn't work with similar looking objects.");
-      
-      // this could be a replacement using prototype.js
-      /*
-      Array.union = function() {
-         var r = [];
-         $A(arguments).forEach(function(arr) { r = r.concat(arr) });
-         return r.uniq();
-      } 
-      */
-   }
-   
+   );
+
+   assertEqualArrays(
+      Array.union(arrayWithTwoObjects, arrayWithTwoObjects),
+      arrayWithTwoObjects
+   );
+   assertEqualArrays(
+      Array.union(arrayWithFiveObjects, empty),
+      [obj1, obj2, obj3] // breaks
+   );
+
    return;
 };
 
 
 testCase.testArrayIntersection = function() {
-   
-   function arraysAreEqual(arr1, arr2) {
-      if (!arr1 || !arr2) return false;
-      if (arr1.length != arr2.length) return false;
-      for (var i=0; i<arr1.length; i++) {
-         if (arr1[i] !== arr2[i]) return false;
-      }
-      return true;
-   }
 
-   // test arraysAreEqual function
-   assertTrue( arraysAreEqual([], []) );
-   assertTrue( arraysAreEqual(["one"], ["one"]) );
-   assertTrue( arraysAreEqual(["one", "two"], ["one", "two"]) );
-   assertFalse( arraysAreEqual(["one", "two"], ["one", "two", "three"]) );
-   
    // test with empty
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.intersection(empty, empty), 
       []
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(empty, arrayWithTwoStrings), 
       []
-   ));  
+   );
    
    // test with strings
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.intersection(arrayWithOneString, arrayWithOneString), 
       ["one"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithOneString, arrayWithTwoStrings), 
       ["one"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithTwoStrings
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       ["one"]
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithOneString, arrayWithTwoThreeStrings), 
       []
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["two"]
-   ));
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithOneString), 
       []
-   ));   
-   assertTrue( arraysAreEqual(
+   );
+   assertEqualArrays(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two"]
-   ));
+   );
    
    // test with objects
-   assertTrue( arraysAreEqual(
+   assertEqualArrays(
       Array.intersection(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
-   ));
-   try {
-      assertTrue( arraysAreEqual(
-         Array.intersection(arrayWithTwoObjects, arrayWithTwoObjects), 
-         arrayWithTwoObjects
-      ));     
-      assertTrue( arraysAreEqual(
-         Array.intersection(arrayWithFiveObjects, arrayWithTwoObjects), 
-         [obj1, obj2]
-      ));
-   } catch(err) {
-      log.error("FIXME: Array.intersection doesn't work with similar looking objects. Could be replaced by prototypejs Array::intersect()");
-   }
-   assertTrue( arraysAreEqual(
+   );
+
+   assertEqualArrays(
+      Array.intersection(arrayWithTwoObjects, arrayWithTwoObjects),
+      arrayWithTwoObjects
+   );
+   assertEqualArrays(
+      Array.intersection(arrayWithFiveObjects, arrayWithTwoObjects),
+      [obj1, obj2]
+   );
+
+   assertEqualArrays(
       Array.intersection(arrayWithFiveObjects, empty), 
       []
-   ));
+   );
    
    return;
 };
 
-
-   
