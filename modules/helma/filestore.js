@@ -119,7 +119,16 @@ function Store(path) {
     // the class registry
     var typeRegistry = {};
 
+    // map of type to current id tip
+    var idMap = {};
+
     this.registerType = function(ctor) {
+        if (typeof ctor != "function") {
+           throw new Error("registerType() called with non-function argument: " + ctor);
+        }
+        if (typeof ctor.name != "string") {
+           throw new Error("constructor must not be an anonymous function");
+        }
         // add class to registry
         typeRegistry[ctor.name] = ctor;
         // install filter, all, and get methods on constructor
@@ -171,75 +180,81 @@ function Store(path) {
     this.save = function(txn, obj, properties) {
         var wrapTransaction = !txn;
         if (wrapTransaction) {
-            txn = base.beginTransaction();
+            txn = new Transaction();
         }
         for (var i in properties) {
             var v = properties[i];
-            if (storage.isStorable(v)) {
-                if (storage.isTransientStorable(v)) {
+            if (isStorable(v)) {
+                if (isTransientStorable(v)) {
                     v.save(txn);
                 }
                 properties[i] = v.getKey();
             }
         }
-        var type = obj._type, id = obj._id;
-        if (id == undefined) {
-            id = base.insert(txn, type, properties);
-            obj._id = id;
-        } else {
-            base.update(txn, type, id, properties);
+        var [type, id] = [obj._type, obj._id];
+        var dir = new File(base, type);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new Error("Can't create directory for type " + type);
+            }
         }
+        if (id == undefined) {
+            obj._id = id = persister.generateId(type, dir);
+        }
+
+        var file = new File(dir, id);
+        var tempFileName = type + id + ".";
+        var tempFile = base.createTempFile(tempFileName, ".tmp");
+
+        persister.store(properties, tempFile);
+
+        if (file.exists() && !file.canWrite()) {
+            throw new Error("No write permission for " + file);
+        }
+
+        txn.updateResource(new Resource(file, tempFile));
+
         if (wrapTransaction) {
-            base.commitTransaction(txn);
+            txn.commit();
         }
     };
 
     this.remove = function(txn, obj) {
         var wrapTransaction = !txn;
         if (wrapTransaction) {
-            txn = base.beginTransaction();
+            txn = new Transaction();
         }
         for (var i in obj) {
             var v = obj[i];
-            if (storage.isPersistentStorable(v)) {
+            if (isPersistentStorable(v)) {
                 // cascading delete (just to show it works)
                 v.remove(txn);
             }
         }
-        var type = obj._type, id = obj._id;
+        var [type, id] = [obj._type, obj._id];
         if (!type) {
             throw new Error("type not defined in object " + obj);
         }
         if (!id) {
             throw new Error("id not defined in object " + obj);
         }
-        base.remove(txn, type, id);
+
+        var file = new File(new File(base, type), id);
+        txn.deleteResource(new Resource(file));
+
         if (wrapTransaction) {
-            base.commitTransaction(txn);
+            txn.commit();
         }
     };
-
-    this.begin = function() {
-        return new Transaction();
-    }
-
-    this.commit = function(txn) {
-        txn.commit();
-    }
-
-    this.abort = function(txn) {
-        txn.abort();
-    }
 
     // the persister
     var persister = {
 
-        store: function(object, outputStream) {
+        store: function(object, file) {
             log.debug("Storing object: " + object.toSource());
-            var writer = new java.io.OutputStreamWriter(outputStream);
-            for (var i in object) {}
-            writer.write(object.toJSON());
-            writer.close();
+            file.open({ append: true });
+            file.write(object.toJSON());
+            file.close();
         },
 
         retrieve: function(type, file) {
@@ -254,13 +269,16 @@ function Store(path) {
             return obj;
         },
 
-        readInputStream: function(inputStream) {
-            var reader = new java.io.BufferedReader(java.io.InputStreamReader(inputStream));
-            var content = new java.lang.StringBuffer(), line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
+        generateId: function(type, dir) {
+            var id = idMap[type] || 1;
+            var file = new File(dir, id.toString(36));
+            while(file.exists()) {
+                id += 1;
+                file = new File(dir, id.toString(36));
             }
-            return content.toString()
+
+            idMap[type] = id + 1;
+            return file.getName();
         }
 
     };

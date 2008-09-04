@@ -1,5 +1,5 @@
 // simple demo model for helma minibase
-importModule('helma.storage', 'db');
+importModule('helma.filestore', 'db');
 
 /**
  * Our model class. The only thing to observe is to return a Storable
