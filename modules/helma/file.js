@@ -31,17 +31,17 @@ importModule('core.object');
  * @constructor
  */
 function File(path) {
-   var BufferedReader            = java.io.BufferedReader;
    var File                      = java.io.File;
-   var Reader                    = java.io.Reader;
    var Writer                    = java.io.Writer;
    var FileReader                = java.io.FileReader;
-   var FileWriter                = java.io.FileWriter;
+   var BufferedReader            = java.io.BufferedReader;
    var PrintWriter               = java.io.PrintWriter;
    var FileOutputStream          = java.io.FileOutputStream;
    var OutputStreamWriter        = java.io.OutputStreamWriter;
+   var FileInputStream           = java.io.FileInputStream;
+   var InputStreamReader         = java.io.InputStreamReader;
+   var FilenameFilter            = java.io.FilenameFilter;
    var EOFException              = java.io.EOFException;
-   var IOException               = java.io.IOException;
    var IllegalStateException     = java.lang.IllegalStateException;
    var IllegalArgumentException  = java.lang.IllegalArgumentException
 
@@ -62,10 +62,6 @@ function File(path) {
    var readerWriter;
    var atEOF = false;
    var lastLine = null;
-
-   var setError = function(e) {
-      self.lastError = e;
-   };
 
    this.lastError = null;
 
@@ -115,8 +111,7 @@ function File(path) {
      */
     this.open = function(options) {
        if (self.isOpened()) {
-          setError(new IllegalStateException("File already open"));
-          return false;
+          throw new IllegalStateException("File already open");
        }
        // We assume that the BufferedReader and PrintWriter creation
        // cannot fail except if the FileReader/FileWriter fails.
@@ -124,33 +119,27 @@ function File(path) {
        // get garbage collected.
        var charset = options && options.charset;
        var append = options && options.append;
-       try {
-          if (file.exists() && !append) {
-             if (charset) {
-                 readerWriter = new BufferedReader(
-                         new java.io.InputStreamReader(new java.io.FileInputStream(file), charset));
-             } else {
-                 readerWriter = new BufferedReader(new FileReader(file));
-             }
+       if (file.exists() && !append) {
+          if (charset) {
+             readerWriter = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), charset));
           } else {
-             if (append && charset)  {
-                 readerWriter = new PrintWriter(
-                         new OutputStreamWriter(new FileOutputStream(file, true), charset));
-             } else if (append) {
-                 readerWriter = new PrintWriter(
-                         new OutputStreamWriter(new FileOutputStream(file, true)));
-             } else if (charset) {
-                 readerWriter = new PrintWriter(file, charset);
-             } else {
-                 readerWriter = new PrintWriter(file);
-             }
+             readerWriter = new BufferedReader(new FileReader(file));
           }
-          return true;
-       } catch (e) {
-          setError(e);
-          return false;
+       } else {
+          if (append && charset)  {
+             readerWriter = new PrintWriter(
+                     new OutputStreamWriter(new FileOutputStream(file, true), charset));
+          } else if (append) {
+             readerWriter = new PrintWriter(
+                     new OutputStreamWriter(new FileOutputStream(file, true)));
+          } else if (charset) {
+             readerWriter = new PrintWriter(file, charset);
+          } else {
+             readerWriter = new PrintWriter(file);
+          }
        }
-       return;
+       return true;
     };
 
    
@@ -186,16 +175,13 @@ function File(path) {
     */
    this.readln = function() {
       if (!self.isOpened()) {
-         setError(new IllegalStateException("File not opened"));
-         return null;
+         throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof BufferedReader)) {
-         setError(new IllegalStateException("File not opened for reading"));
-         return null;
+         throw new IllegalStateException("File not opened for reading");
       }
       if (atEOF) {
-         setError(new EOFException());
-         return null;
+         throw new EOFException();
       }
       if (lastLine != null) {
          var line = lastLine;
@@ -204,18 +190,12 @@ function File(path) {
       }
       var reader = readerWriter;
       // Here lastLine is null, return a new line
-      try {
-         var line = readerWriter.readLine();
-         if (line == null) {
-            atEOF = true;
-            setError(new EOFException());
-         }
-         return line;
-      } catch (e) {
-         setError(e);
-         return null;
+      var line = readerWriter.readLine();
+      if (line == null) {
+         atEOF = true;
+         throw new EOFException();
       }
-      return;
+      return line;
    };
 
    /**
@@ -228,12 +208,10 @@ function File(path) {
     */
    this.write = function(what) {
       if (!self.isOpened()) {
-         setError(new IllegalStateException("File not opened"));
-         return false;
+         throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof PrintWriter)) {
-         setError(new IllegalStateException("File not opened for writing"));
-         return false;
+         throw new IllegalStateException("File not opened for writing");
       }
       if (what != null) {
          readerWriter.print(what.toString());
@@ -281,8 +259,7 @@ function File(path) {
     */
    this.remove = function() {
       if (self.isOpened()) {
-         setError(new IllegalStateException("An openened file cannot be removed"));
-         return false;
+         throw new IllegalStateException("An openened file cannot be removed");
       }
       return file["delete"]();
    };
@@ -304,16 +281,40 @@ function File(path) {
       if (!file.isDirectory())
          return null;
       if (pattern) {
-         var fileList = file.list();
-         var result = [];
-         for (var i in fileList) {
-            if (pattern.test(fileList[i]))
-               result.push(fileList[i]);
-         }
-         return result;
+         return file.list(new FilenameFilter({
+            accept: function(dir, name) {
+               return pattern.test(name);
+            }
+         }));
       }
       return file.list();   
    };
+
+   /**
+    * List of all files within the directory represented by this File object.
+    * <br /><br />
+    * You may pass a RegExp Pattern to return just files matching this pattern.
+    * <br /><br />
+    * Example: var xmlFiles = dir.list(/.*\.xml/);
+    *
+    * @param {RegExp} pattern as RegExp, optional pattern to test each file name against
+    * @returns Array the list of File objects
+    * @type Array
+    */
+   this.listFiles = function(pattern) {
+      if (self.isOpened())
+         return null;
+      if (!file.isDirectory())
+         return null;
+      if (pattern) {
+         return file.listFiles(new FilenameFilter({
+            accept: function(dir, name) {
+               return pattern.test(name);
+            }
+         }));
+      }
+      return file.listFiles();
+   }
 
    /**
     * Purges the content of the file represented by this File object.
@@ -323,19 +324,12 @@ function File(path) {
     */
    this.flush = function() {
       if (!self.isOpened()) {
-         setError(new IllegalStateException("File not opened"));
-         return false;
+         throw new IllegalStateException("File not opened");
       }
       if (readerWriter instanceof Writer) {
-         try {
-            readerWriter.flush();
-         } catch (e) {
-           setError(e);
-           return false;
-         }
+         readerWriter.flush();
       } else {
-         setError(new IllegalStateException("File not opened for write"));
-         return false; // not supported by reader
+         throw new IllegalStateException("File not opened for write");
       }
       return true;
    };
@@ -347,17 +341,12 @@ function File(path) {
     * @type Boolean
     */
    this.close = function() {
-      if (!self.isOpened())
-         return false;
-      try {
-         readerWriter.close();
-         readerWriter = null;
-         return true;
-      } catch (e) {
-         setError(e);
-         readerWriter = null;
+      if (!self.isOpened()) {
          return false;
       }
+      readerWriter.close();
+      readerWriter = null;
+      return true;
    };
 
    /**
@@ -483,6 +472,18 @@ function File(path) {
    };
 
    /**
+    * Tests whether the file represented by this File object is a hidden file.
+    * <br /><br />
+    * What constitutes a hidden file may depend on the platform we are running on.
+    *
+    * @returns Boolean true if this File object is hidden
+    * @type Boolean
+    */
+   this.isHidden = function() {
+      return file.isHidden();
+   };
+
+   /**
     * Returns the time when the file represented by this File object was last modified.
     * <br /><br />
     * A number representing the time the file was last modified, 
@@ -517,22 +518,19 @@ function File(path) {
     * value should always be checked to make sure that the 
     * rename operation was successful. 
     * 
-    * @param {FileObject} toFile as FileObject of the new path
+    * @param {File} toFile File object containing the new path
     * @returns true if the renaming succeeded; false otherwise
     * @type Boolean
     */
    this.renameTo = function(toFile) {
       if (toFile == null) {
-         setError(new IllegalArgumentException("Uninitialized target File object"));
-         return false;
+         throw new IllegalArgumentException("Uninitialized target File object");
       }
       if (self.isOpened()) {
-         setError(new IllegalStateException("An openened file cannot be renamed"));
-         return false;
+         throw new IllegalStateException("An openened file cannot be renamed");
       }
       if (toFile.isOpened()) {
-         setError(new IllegalStateException("You cannot rename to an openened file"));
-         return false;
+         throw new IllegalStateException("You cannot rename to an openened file");
       }
       return file.renameTo(new java.io.File(toFile.getAbsolutePath()));
    };
@@ -546,26 +544,20 @@ function File(path) {
     */
    this.eof = function() {
       if (!self.isOpened()) {
-         setError(new IllegalStateException("File not opened"));
-         return true;
+         throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof BufferedReader)) {
-         setError(new IllegalStateException("File not opened for read"));
-         return true;
+         throw new IllegalStateException("File not opened for read");
       }
-      if (atEOF)
+      if (atEOF)  {
          return true;
-      if (lastLine != null)
+      } else if (lastLine != null) {
          return false;
-      try {
-         lastLine = readerWriter.readLine();
-         if (lastLine == null)
-            atEOF = true;
-         return atEOF;
-      } catch (e) {
-         setError(e);
-         return true;
       }
+      lastLine = readerWriter.readLine();
+      if (lastLine == null)
+         atEOF = true;
+      return atEOF;
    };
 
    /**
@@ -578,41 +570,32 @@ function File(path) {
    this.readAll = function() {
       // Open the file for readAll
       if (self.isOpened()) {
-         setError(new IllegalStateException("File already open"));
-         return null;
+         throw new IllegalStateException("File already open");
       }
-      try { 
-         if (file.exists()) {
-            readerWriter = new BufferedReader(new FileReader(file));
-         } else {
-            setError(new IllegalStateException("File does not exist"));
-            return null;
-         }
-         if (!file.isFile()) {
-            setError(new IllegalStateException("File is not a regular file"));
-            return null;
-         }
+      if (file.exists()) {
+         readerWriter = new BufferedReader(new FileReader(file));
+      } else {
+         throw new IllegalStateException("File does not exist");
+      }
+      if (!file.isFile()) {
+         throw new IllegalStateException("File is not a regular file");
+      }
       
          // read content line by line to setup proper eol
-         var buffer = new java.lang.StringBuffer(file.length() * 1.10);
-         while (true) {
-            var line = readerWriter.readLine();
-            if (line == null)
-               break;
-            if (buffer.length() > 0)
-               buffer.append("\n");  // EcmaScript EOL
-            buffer.append(line);
-         }
+      var buffer = new java.lang.StringBuffer(file.length() * 1.10);
+      while (true) {
+         var line = readerWriter.readLine();
+         if (line == null)
+            break;
+         if (buffer.length() > 0)
+            buffer.append("\n");  // EcmaScript EOL
+         buffer.append(line);
+      }
      
          // Close the file
-         readerWriter.close();
-         readerWriter = null;
-         return buffer.toString();
-      } catch (e) {
-         readerWriter = null;
-         setError(e);
-         return null;
-      }
+      readerWriter.close();
+      readerWriter = null;
+      return buffer.toString();
    };
 
 
