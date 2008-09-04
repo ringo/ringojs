@@ -132,11 +132,11 @@ function Store(path) {
         // add class to registry
         typeRegistry[ctor.name] = ctor;
         // install filter, all, and get methods on constructor
-        ctor.filter = partial(this.filter, ctor.name);
-        ctor.all = partial(this.getAll, ctor.name);
-        ctor.get = partial(this.get, ctor.name);
-        ctor.save = partial(this.save);
-        ctor.remove = partial(this.remove);
+        ctor.list = partial(list, ctor.name);
+        ctor.all = partial(getAll, ctor.name);
+        ctor.get = partial(get, ctor.name);
+        ctor.save = partial(save);
+        ctor.remove = partial(remove);
         ctor.store = this;
     };
 
@@ -144,11 +144,28 @@ function Store(path) {
         return typeRegistry[name];
     }
 
-    this.filter = function(type, term) {
-        throw new Error("not implemented");
+    var list = function(type, options) {
+        var array = getAll(type);
+        if (options) {
+            var [orderBy, ascDesc] = [options.orderBy, options.order == "desc" ? -1 : 1];
+            if (options.orderBy) {
+                array = array.sort(function(o1, o2) {
+                    var [p1, p2] = [o1[orderBy], o2[orderBy]];
+                    if (p1 < p2) return -1 * ascDesc;
+                    if (p1 > p2) return  1 * ascDesc;
+                    return 0;
+                })
+            }
+            var [start, max] = [parseInt(options.start, 10), parseInt(options.max, 10)];
+            if (isFinite(start) || isFinite(max)) {
+                var start = start || 0;
+                array = array.slice(start, start + max || list.length);
+            }
+        }
+        return array;
     };
 
-    this.getAll = function(type) {
+    var getAll = function(type) {
        var dir = new File(base, type);
        if (!dir.exists() || !dir.isDirectory()) {
            return [];
@@ -165,7 +182,7 @@ function Store(path) {
        return list;
     }
 
-    this.get = function(type, id) {
+    var get = function(type, id) {
        var dir = new File(base, type);
        var file = new File(dir, id);
 
@@ -177,7 +194,7 @@ function Store(path) {
        return persister.retrieve(type, file);
     }
 
-    this.save = function(txn, obj, properties) {
+    var save = function(txn, obj, properties) {
         var wrapTransaction = !txn;
         if (wrapTransaction) {
             txn = new Transaction();
@@ -204,22 +221,22 @@ function Store(path) {
 
         var file = new File(dir, id);
         var tempFileName = type + id + ".";
-        var tempFile = base.createTempFile(tempFileName, ".tmp");
+        var tempfile = base.createTempFile(tempFileName, ".tmp");
 
-        persister.store(properties, tempFile);
+        persister.store(properties, tempfile);
 
         if (file.exists() && !file.canWrite()) {
             throw new Error("No write permission for " + file);
         }
 
-        txn.updateResource(new Resource(file, tempFile));
+        txn.updateResource({ file: file, tempfile: tempfile });
 
         if (wrapTransaction) {
             txn.commit();
         }
     };
 
-    this.remove = function(txn, obj) {
+    var remove = function(txn, obj) {
         var wrapTransaction = !txn;
         if (wrapTransaction) {
             txn = new Transaction();
@@ -240,7 +257,7 @@ function Store(path) {
         }
 
         var file = new File(new File(base, type), id);
-        txn.deleteResource(new Resource(file));
+        txn.deleteResource({ file: file });
 
         if (wrapTransaction) {
             txn.commit();
@@ -309,11 +326,6 @@ var isTransientStorable = function(value) {
             && typeof value._id == 'undefined';
 }
 
-function Resource(file, tmpfile) {
-   this.file = file;
-   this.tmpfile = tmpfile;
-}
-
 function Transaction() {
 
    var updateList = [];
@@ -335,12 +347,12 @@ function Transaction() {
              res.file.remove();
          }
          // move temporary file to permanent name
-         if (res.tmpfile.renameTo(res.file)) {
+         if (res.tempfile.renameTo(res.file)) {
              // success - delete tmp file
-            res.tmpfile.remove();
+            res.tempfile.remove();
          } else {
             // error - leave tmp file and print a message
-            log.error("Couldn't move file, committed version is in " + res.tmpfile);
+            log.error("Couldn't move file, committed version is in " + res.tempfile);
          }
       }
 
@@ -354,7 +366,7 @@ function Transaction() {
 
    this.abort = function() {
       for each (var res in updateList) {
-         res.tmpfile.remove();
+         res.tempfile.remove();
       }
    }
 }
