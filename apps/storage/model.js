@@ -33,6 +33,9 @@ function Author(props) {
     return new db.Storable(this, props);
 }
 
+// init store instance and register persistent classes.
+db.store = /* db.store || */ new db.Store("db");
+
 /*
  The call to registerType installs the following static
  methods in the constructor:
