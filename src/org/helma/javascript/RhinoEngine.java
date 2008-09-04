@@ -420,13 +420,7 @@ public class RhinoEngine {
      * @return the resource
      */
     public Resource getResource(String path) {
-        for (Repository repo: repositories) {
-            Resource res = repo.getResource(path);
-            if (res.exists()) {
-                return res;
-            }
-        }
-        return repositories.get(0).getResource(path);
+        return configuration.getResource(path);
     }
 
     /**
@@ -435,13 +429,7 @@ public class RhinoEngine {
      * @return the resource
      */
     public Repository getRepository(String path) {
-        for (Repository repo: repositories) {
-            Repository repository = repo.getChildRepository(path);
-            if (repository.exists()) {
-                return repository;
-            }
-        }
-        return repositories.get(0).getChildRepository(path);
+        return configuration.getRepository(path);
     }
 
     /**
@@ -451,13 +439,7 @@ public class RhinoEngine {
      * @return a list of all nested child resources
      */
     public List<Resource> getResources(String path) {
-        for (Repository repo: repositories) {
-            Repository repository = repo.getChildRepository(path);
-            if (repository.exists()) {
-                return repo.getAllResources();
-            }
-        }
-        return repositories.get(0).getResources(path);
+        return configuration.getResources(path);
     }
 
     /**

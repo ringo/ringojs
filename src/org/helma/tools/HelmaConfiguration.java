@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class HelmaConfiguration {
 
-    Repository home, modules;
+    Repository home;
     Resource script;
     List<Repository> repositories;
     String mainModule;
@@ -42,29 +42,8 @@ public class HelmaConfiguration {
             throws FileNotFoundException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
-        modules = home.getChildRepository("modules");
 
-        // first add script's parent directory to repository path,
-        // or the current directory if no script is run
-        if (scriptName != null) {
-            Resource script = new FileResource(new File(scriptName));
-            if (!script.exists()) {
-                script = modules.getResource(scriptName);
-                if (!script.exists()) {
-                    scriptName = scriptName.replace('.', File.separatorChar) + ".js";
-                    script = modules.getResource(scriptName);
-                }
-            } else {
-                repositories.add(script.getParentRepository());
-            }
-            if (!script.exists()) {
-                throw new FileNotFoundException("Can't find file " + scriptName);
-            }
-        } else {
-            repositories.add(new FileRepository(new File(".")));
-        }
-
-        // next add repositories from helma.modulepath system property
+        // first add repositories from helma.modulepath system property
         String modulePath = System.getProperty("helma.modulepath");
         if (modulePath != null) {
             String[] reps = StringUtils.split(modulePath, ",");
@@ -97,8 +76,32 @@ public class HelmaConfiguration {
             }
         }
 
-        // finally, always add modules from helma home
+        // next, always add modules from helma home
+        Repository modules = home.getChildRepository("modules");
         repositories.add(modules);
+
+        // finally add script's parent directory to repository path,
+        // or the current directory if no script is run
+        if (scriptName != null) {
+            Resource script = new FileResource(new File(scriptName));
+            if (!script.exists()) {
+                script = getResource(scriptName);
+                if (!script.exists()) {
+                    scriptName = scriptName.replace('.', File.separatorChar) + ".js";
+                    script = getResource(scriptName);
+                }
+            } else {
+                // found script file outside the module path, add its parent directory
+                repositories.add(0, script.getParentRepository());
+            }
+            if (!script.exists()) {
+                throw new FileNotFoundException("Can't find file " + scriptName);
+            }
+        } else {
+            // no script file, add current directory to module search path
+            repositories.add(0, new FileRepository(new File(".")));
+        }
+
         Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
 
@@ -144,6 +147,52 @@ public class HelmaConfiguration {
      */
     public Class<?>[] getHostClasses() {
         return hostClasses;
+    }
+
+    /**
+     * Get a resource from our script repository
+     * @param path the resource path
+     * @return the resource
+     */
+    public Resource getResource(String path) {
+        for (Repository repo: repositories) {
+            Resource res = repo.getResource(path);
+            if (res.exists()) {
+                return res;
+            }
+        }
+        return repositories.get(0).getResource(path);
+    }
+
+    /**
+     * Get a resource from our script repository
+     * @param path the resource path
+     * @return the resource
+     */
+    public Repository getRepository(String path) {
+        for (Repository repo: repositories) {
+            Repository repository = repo.getChildRepository(path);
+            if (repository.exists()) {
+                return repository;
+            }
+        }
+        return repositories.get(0).getChildRepository(path);
+    }
+
+    /**
+     * Get a list of all child resources for the given path relative to
+     * our script repository.
+     * @param path the repository path
+     * @return a list of all nested child resources
+     */
+    public List<Resource> getResources(String path) {
+        for (Repository repo: repositories) {
+            Repository repository = repo.getChildRepository(path);
+            if (repository.exists()) {
+                return repo.getAllResources();
+            }
+        }
+        return repositories.get(0).getResources(path);
     }
 
 }
