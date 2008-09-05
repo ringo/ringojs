@@ -51,6 +51,7 @@ public class RhinoEngine {
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
     HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
+    ModuleScope                        mainScope          = null;
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
     protected boolean                  isInitialized      = false;
@@ -182,8 +183,8 @@ public class RhinoEngine {
             }
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            Scriptable scope = new ModuleScope("__main__", resource, topLevelScope);
-            retval = script.evaluate(scope, cx);
+            mainScope = new ModuleScope("__main__", resource, topLevelScope);
+            retval = script.evaluate(mainScope, cx);
         	if (retval instanceof Wrapper) {
         		return ((Wrapper) retval).unwrap();
         	}
@@ -250,7 +251,8 @@ public class RhinoEngine {
         try {
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
-            ModuleScope scope = new ModuleScope("<shell>", resource, topLevelScope);
+            Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
+            ModuleScope scope = new ModuleScope("<shell>", resource, parentScope);
             try {
                 getScript("helma.shell").evaluate(scope, cx);
             } catch (Exception x) {
