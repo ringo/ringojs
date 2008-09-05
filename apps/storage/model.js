@@ -36,7 +36,7 @@ function Author(props) {
 }
 
 // init store instance and register persistent classes.
-db.store = /* db.store || */ new db.Store("db");
+db.store = db.store || new db.Store("db");
 
 /*
  The call to registerType installs the following static
@@ -44,7 +44,7 @@ db.store = /* db.store || */ new db.Store("db");
 
    Book.get(id)  - get a persistent object of this type by id
    Book.all()    - get an array containing all objects of this type
-   Book.filter() - not yet implemented
+   Book.list()   - get filtered, ordered and sliced lists of this type
 */
 db.store.registerType(Book);
 db.store.registerType(Author);
