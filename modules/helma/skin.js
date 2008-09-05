@@ -152,14 +152,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
             wroteSomething = res.buffer.length > length;
             filter = filter.filter;
         }
-        if (visibleValue || wroteSomething) {
-            res.buffer.insert(length, macro.getParameter('prefix') || '');
-            if (visibleValue) {
-                res.write(value);
-            }
-            res.write(macro.getParameter('suffix') || '');
-        } else {
-            res.write(macro.getParameter('default') || '');
+        if (visibleValue) {
+            res.write(value);
         }
     };
 

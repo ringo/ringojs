@@ -206,3 +206,31 @@ function dateFormat_filter(input, param, format) {
       return input.format(format);
    }
 }
+
+/**
+ * Returns a default string if the given string was empty, undefined
+ * or null.
+ */
+function default_filter(input, filter) {
+    return (input === undefined || input == null || input == '') ?
+            filter.getParameter(0) :
+            input;
+}
+
+/**
+ * Prepends a prefix if the given string is not empty, undefined or null.
+ */
+function prefix_filter(input, filter) {
+    return (input === undefined || input == null || input == '') ?
+            input :
+            (filter.getParameter(0) || '') + input;
+}
+
+/**
+ * Appends a suffix if the given string is not empty, undefined or null.
+ */
+function suffix_filter(input, filter) {
+    return (input === undefined || input == null || input == '') ?
+            input :
+            input + (filter.getParameter(0) || '');
+}
