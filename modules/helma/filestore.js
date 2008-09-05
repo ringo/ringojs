@@ -139,6 +139,12 @@ function Store(path) {
     var list = function(type, options) {
         var array = getAll(type);
         if (options) {
+            // first filter out the the items we're not interested in
+            var filter = options.filter;
+            if (typeof filter == "function") {
+                array = array.filter(filter);
+            }
+            // then put them into order
             var [orderBy, ascDesc] = [options.orderBy, options.order == "desc" ? -1 : 1];
             if (options.orderBy) {
                 array = array.sort(function(o1, o2) {
@@ -148,6 +154,7 @@ function Store(path) {
                     return 0;
                 })
             }
+            // finally apply pagination/slicing
             var [start, max] = [parseInt(options.start, 10), parseInt(options.max, 10)];
             if (isFinite(start) || isFinite(max)) {
                 var start = start || 0;
