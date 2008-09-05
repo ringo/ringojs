@@ -9,21 +9,21 @@ var __shared__ = true;
 /**
  * The base/wrapper prototype for persistent minibase objects
  *
- * @param object the raw javascript object to wrap
+ * @param obj the raw javascript object to wrap
  * @param properties the persistent object properties (optional)
  */
-function makeStorable(object, properties) {
+function makeStorable(obj, properties) {
 
-    if (!(object instanceof Object) || !(object.constructor instanceof Function))
+    if (!(obj instanceof Object) || !(obj.constructor instanceof Function))
         throw new Error("object must be an object, was: " + properties);
-    if (!(object.constructor instanceof Function))
-        throw new Error("object must have a constructor property, has: "  + object.constructor);
+    if (!(obj.constructor instanceof Function))
+        throw new Error("object must have a constructor property, has: "  + obj.constructor);
     if (properties === undefined)
         properties = {};
     if (!(properties instanceof Object))
         throw new Error("properties must be an object, was: " + properties);
 
-    var ctor = object.constructor;
+    var ctor = obj.constructor;
     var type = ctor.name;
     var id;
 
@@ -31,7 +31,7 @@ function makeStorable(object, properties) {
         throw new Error("couldn't get type: " + type);
 
 
-    object.__get__ = function(name) {
+    obj.__get__ = function(name) {
         if (name == "_id") {
             return id;
         } else if (name == "_type") {
@@ -45,7 +45,7 @@ function makeStorable(object, properties) {
         return value;
     };
 
-    object.__set__ = function(name, value) {
+    obj.__set__ = function(name, value) {
         if (name == "_id") {
             if (id != undefined) {
                 throw new Error("Cannot change _id on storable object");
@@ -62,16 +62,16 @@ function makeStorable(object, properties) {
         properties[name] = value;
     };
 
-    object.__delete__ = function(name) {
+    obj.__delete__ = function(name) {
         delete properties[name];
     };
 
-    object.__has__ = function(name) {
+    obj.__has__ = function(name) {
         return properties[name] !== undefined ||
                this[name] !== undefined;
     };
 
-    object.__getIds__ = function() {
+    obj.__getIds__ = function() {
         var ids = [];
         for (var id in properties) {
             ids[ids.length] = id
@@ -79,15 +79,15 @@ function makeStorable(object, properties) {
         return ids;
     };
 
-    object.save = function(txn) {
+    obj.save = function(txn) {
         ctor.save(txn, this, properties);
     };
 
-    object.remove = function(txn) {
+    obj.remove = function(txn) {
         ctor.remove(txn, this);
     };
 
-    object.getKey = function() {
+    obj.getKey = function() {
         if (!(typeof id == "string")) {
             throw new Error("getKey() called on non-persistent object");
         }
@@ -95,8 +95,8 @@ function makeStorable(object, properties) {
     }
 
     // only define toString if object doesn't have one already
-    if (object.toString == Object.prototype.toString) {
-        object.toString = function() {
+    if (obj.toString == Object.prototype.toString) {
+        obj.toString = function() {
             return type + "[" + id + "]";
         };
     }
@@ -151,7 +151,7 @@ function Store(path) {
             var [start, max] = [parseInt(options.start, 10), parseInt(options.max, 10)];
             if (isFinite(start) || isFinite(max)) {
                 var start = start || 0;
-                array = array.slice(start, start + max || list.length);
+                array = array.slice(start, start + max || array.length);
             }
         }
         return array;
