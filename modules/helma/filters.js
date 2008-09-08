@@ -206,3 +206,48 @@ function dateFormat_filter(input, param, format) {
       return input.format(format);
    }
 }
+
+(function() {
+    var isVisible = function(str) {
+        return str !== undefined && str != null && str != '';
+    }
+
+    /**
+     * Returns a default string if the given string was empty, undefined
+     * or null.
+     */
+    this.default_filter = function(input, filter) {
+        return isVisible(input) ?
+                input :
+                filter.getParameter(0);
+    }
+
+    /**
+     * Prepends a prefix if the given string is not empty, undefined or null.
+     */
+    this.prefix_filter = function(input, filter) {
+        return isVisible(input) ?
+                (filter.getParameter(0) || '') + input :
+                input;
+    }
+
+    /**
+     * Appends a suffix if the given string is not empty, undefined or null.
+     */
+    this.suffix_filter = function(input, filter) {
+        return isVisible(input) ?
+                input + (filter.getParameter(0) || '') :
+                input;
+    }
+
+    /**
+     * Wraps a non-empty string with a prefix and suffix string.
+     */
+    this.wrap_filter = function(input, filter) {
+        return isVisible(input) ?
+                (filter.getParameter(0) || '')
+                        + input
+                        + (filter.getParameter(1) || '') :
+                input;
+    }
+})();
