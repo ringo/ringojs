@@ -38,10 +38,12 @@ public class HelmaShell {
 
 	RhinoEngine engine;
     Scriptable scope;
+    boolean debug;
 
-    public HelmaShell(RhinoEngine engine) throws Exception {
+    public HelmaShell(RhinoEngine engine, boolean debug) throws Exception {
     	this.engine = engine;
     	this.scope = engine.getShellScope();
+        this.debug = debug;
     }
     
     public void run() throws IOException {
@@ -50,7 +52,7 @@ public class HelmaShell {
         reader.setBellEnabled(false);
         reader.addCompletor(new JSCompletor());
         PrintWriter out = new PrintWriter(System.out);
-        int lineno = 1;
+        int lineno = 0;
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             // we need to manage our own thread scope, enterContext() creates a new one
@@ -88,8 +90,14 @@ public class HelmaShell {
             } catch (RhinoException ex) {
                 Context.reportError(ex.getMessage(), ex.sourceName(),
                         ex.lineNumber(), ex.lineSource(), ex.columnNumber());
+                if (debug) {
+                    ex.printStackTrace();
+                }
             } catch (Exception ex) {
                 Context.reportError(ex.toString());
+                if (debug) {
+                    ex.printStackTrace();
+                }
             } finally {
                 Context.exit();
             }
