@@ -210,7 +210,7 @@ function Store(path) {
         var [type, id] = [obj._type, obj._id];
         var dir = new File(base, type);
         if (!dir.exists()) {
-            if (!dir.mkdirs()) {
+            if (!dir.makeDirectory()) {
                 throw new Error("Can't create directory for type " + type);
             }
         }
