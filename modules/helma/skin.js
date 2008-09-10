@@ -212,8 +212,10 @@ function Skin(mainSkin, subSkins, parentSkin) {
             }
             if (on) {
                 var subContext = context.clone();
-                for (var i in on) {
-                    subContext[(as || 'item')] = on[i];
+                for (var [key, value] in on) {
+                    log.debug("key: " + value);
+                    subContext[('key')] = key;
+                    subContext[(as || 'value')] = value;
                     self.renderSubskin(skin, subContext);
                 }
             } else {
