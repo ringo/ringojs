@@ -181,7 +181,7 @@ function Store(path) {
        return list;
     }
 
-    var get = function(type, id) {
+    var get = this.get = function(type, id) {
        var dir = new File(base, type);
        var file = new File(dir, id);
 
@@ -311,8 +311,7 @@ var isKey = function(value) {
 }
 
 var isStorable = function(value) {
-    return value instanceof JSAdapter
-            && typeof value._type == 'string';
+    return typeof value._type == 'string';
 }
 
 var isPersistentStorable = function(value) {
