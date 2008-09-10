@@ -50,32 +50,68 @@ function logging_action() {
 
 // demo for continuation support
 function continuation_action() {
-    if (req.params.helma_continuation == null) {
-        // set query param so helma knows to switch rhino optimization level to -1
-        res.redirect(req.path + "?helma_continuation=");
-    }
+
+    // local data - this is the data that is shared between resuming and suspension
+    var data = {};
+    var pages = ["start", "name", "favorite food", "favorite animal", "result"];
+    // to have only one continuation per user just give the pages fixed ids
+    // var pageIds = [0, 1, 2, 3, 4];
+    // to have continuations created dynamically start with empty page ids
+    var pageIds = [];
+    var start;
+
+    // mark start of continuation code. We never step back earlier than this
+    // otherwise local data would be re-initialized
+    pageIds[0] = Continuation.markStart(pageIds[0]);
+    // render intro page
+    renderPage(0);
     // render first page
-    render('skins/continuation.html', {
-        title: "Continuations Demo",
-        skin: "step1",
-        href: Continuation.nextUrl()
-    });
-    Continuation.nextPage();
+    renderPage(1)
     // render second page
-    var message = req.data.message;
-    render('skins/continuation.html', {
-        title: "Continuations (Page 2 of 3)",
-        skin: "step2",
-        href: Continuation.nextUrl()
-    });
-    Continuation.nextPage();
+    renderPage(2);
     // render third page
-    render('skins/continuation.html', {
-        title: "Continuations (last Page)",
-        skin: "step3",
-        message: message
-    });
+    renderPage(3);
+    // render overview page
+    renderPage(4);
+
+    // the local function to do the actual work
+    function renderPage(id) {
+        var previous = pages[id - 1]
+        if (req.isPost() && previous) {
+           data[previous] = req.params[previous];
+        }
+        if (id < pages.length - 1) {
+            pageIds[id + 1] = Continuation.nextId(pageIds[id + 1]);
+            if (id < 1) {
+                render('skins/continuation.html', {
+                    title: "Welcome",
+                    skin: "start",
+                    data: data,
+                    forward: Continuation.getUrl(pageIds[id + 1])
+                });
+            } else {
+                render('skins/continuation.html', {
+                    title: "Question " + id,
+                    skin: "mask",
+                    input: pages[id],
+                    data: data,
+                    value: data[pages[id]],
+                    back: Continuation.getUrl(pageIds[id - 1]),
+                    forward: Continuation.getUrl(pageIds[id + 1])
+                });
+            }
+            Continuation.nextPage(pageIds[id + 1]);
+        } else {
+            render('skins/continuation.html', {
+                title: "Thanks!",
+                skin: "result",
+                data: data,
+                back: Continuation.getUrl(pageIds[id - 1])
+            });
+        }
+    }
 }
+
 
 // main method called to start application
 if (__name__ == "__main__") {
