@@ -11,3 +11,15 @@ function partial(fn /*, arg, ... */) {
         return fn.apply(this, args);
     }
 }
+
+/**
+ * Create a wrapper for a function that always binds an object to "this"
+ * even if it is called as global function.
+ * @param fn {function} a function
+ * @param obj {Object} the object to bind to the "this" object
+ */
+function bind(fn, obj) {
+    return function() {
+        return fn.apply(obj, arguments);
+    }
+}
