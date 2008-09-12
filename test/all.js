@@ -1,4 +1,4 @@
-importFromModule("helma.unittest", "TestSuite");
+var {TestSuite} = loadModule("helma.unittest");
 
 function run() {
     var suite = new TestSuite("Helma Testsuite");

@@ -1,4 +1,4 @@
-importModule('helma.app');
+loadModule('helma.app');
 
 /**
  * Return true if this is a HTTP POST request.

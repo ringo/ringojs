@@ -22,7 +22,7 @@ public class HelmaContextFactory extends ContextFactory {
 
     RhinoEngine engine;
 
-    int languageVersion = Context.VERSION_1_7;
+    int languageVersion = Context.VERSION_1_8;
     boolean strictMode = false;
     boolean warningAsError = false;
     int optimizationLevel = 0;
@@ -58,39 +58,35 @@ public class HelmaContextFactory extends ContextFactory {
 
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
-        if (engine.isInitialized) {
-            cx.putThreadLocal("engine", engine);
-            cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
-            cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
-            // This is how we check for updates in shared scripts:
-            // when entering a context, we check if _any_ of the shared modules
-            // has been updated. If so, we clear the shared module tracker and
-            // mark the context to reload _all_ shared modules it comes across.
-            for (ReloadableScript script: engine.sharedScripts) {
-                if (!script.isUpToDate()) {
-                    cx.putThreadLocal("force_reload", Boolean.TRUE);
-                    engine.sharedScripts.clear();
-                    break;
-                }
+        cx.putThreadLocal("engine", engine);
+        cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
+        // cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
+        // This is how we check for updates in shared scripts:
+        // when entering a context, we check if _any_ of the shared modules
+        // has been updated. If so, we clear the shared module tracker and
+        // mark the context to reload _all_ shared modules it comes across.
+        for (ReloadableScript script: engine.sharedScripts) {
+            if (!script.isUpToDate()) {
+                cx.putThreadLocal("force_reload", Boolean.TRUE);
+                engine.sharedScripts.clear();
+                break;
             }
-            cx.setApplicationClassLoader(engine.loader);
-            cx.setWrapFactory(engine.wrapFactory);
-            cx.setLanguageVersion(languageVersion);
-            cx.setOptimizationLevel(optimizationLevel);
-            if (errorReporter != null) {
-                cx.setErrorReporter(errorReporter);
-            }
-            cx.setGeneratingDebug(generatingDebug);
         }
+        cx.setApplicationClassLoader(engine.loader);
+        cx.setWrapFactory(engine.wrapFactory);
+        cx.setLanguageVersion(languageVersion);
+        cx.setOptimizationLevel(optimizationLevel);
+        if (errorReporter != null) {
+            cx.setErrorReporter(errorReporter);
+        }
+        cx.setGeneratingDebug(generatingDebug);
     }
 
     protected void onContextReleased(Context cx) {
         super.onContextReleased(cx);
-        if (engine.isInitialized) {
-            cx.removeThreadLocal("engine");
-            cx.removeThreadLocal("modules");
-            cx.removeThreadLocal("threadscope");
-        }
+        cx.removeThreadLocal("engine");
+        cx.removeThreadLocal("modules");
+        cx.removeThreadLocal("threadscope");
     }
 
     public void setStrictMode(boolean flag)

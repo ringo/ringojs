@@ -1,8 +1,8 @@
-importFromModule('helma.simpleweb', 'handleRequest');
-importFromModule('helma.skin', 'render');
-importModule('helma.app', 'app');
+var {handleRequest} = loadModule('helma.simpleweb');
+var {render} = loadModule('helma.skin');
+var app = loadModule('helma.app');
 // db model
-importModule('model');
+var model = loadModule('model');
 
 
 // the main action is invoked for http://localhost:8080/

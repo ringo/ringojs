@@ -2,9 +2,8 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
-importModule('core.object');
-importModule('helma.logging', 'logging');
-var log = logging.getLogger(__name__);
+loadModule('core.object');
+var log = loadModule('helma.logging').getLogger(__name__);
 
 // mark this module as shared between all requests
 var __shared__ = true;

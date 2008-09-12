@@ -1,5 +1,5 @@
 // a simple web app/module
-importFromModule('helma.skin', 'render');
+var {render} = loadModule('helma.skin');
 
 function main_action() {
     var context = {

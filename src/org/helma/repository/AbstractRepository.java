@@ -117,26 +117,19 @@ public abstract class AbstractRepository implements Repository {
      * Get a list of resources contained in this repository identified by the
      * given local name.
      * @param path the repository path
+     * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public List<Resource> getResources(String path) {
+    public List<Resource> getResources(String path, boolean recursive) {
         String[] subs = StringUtils.split(path, separator);
         Repository repository = this;
         for (String sub: subs) {
             repository = repository.getChildRepository(sub);
         }
         if (!repository.exists()) {
-            System.err.println("Warning: resource path doesn not exist: " + path);
+            return Collections.emptyList();
         }
-        return repository.getAllResources();
-    }
-
-    /**
-     * Get an iterator over the resources contained in this repository.
-     */
-    public synchronized Iterator<Resource> getResources() {
-        update();
-        return resources.values().iterator();
+        return repository.getResources(recursive);
     }
 
     /**
@@ -158,13 +151,15 @@ public abstract class AbstractRepository implements Repository {
      * Get a deep list of this repository's resources, including all resources
      * contained in sub-reposotories.
      */
-    public synchronized List<Resource> getAllResources() {
+    public synchronized List<Resource> getResources(boolean recursive) {
         update();
         ArrayList<Resource> allResources = new ArrayList<Resource>();
         allResources.addAll(resources.values());
 
-        for (Repository repository: repositories) {
-            allResources.addAll(repository.getAllResources());
+        if (recursive) {
+            for (Repository repository: repositories) {
+                allResources.addAll(repository.getResources(true));
+            }
         }
 
         return allResources;

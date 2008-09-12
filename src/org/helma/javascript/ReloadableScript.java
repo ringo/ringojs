@@ -123,7 +123,7 @@ public class ReloadableScript {
     protected synchronized Script getComposedScript(Context cx)
             throws JavaScriptException, IOException {
         Repository repository = (Repository) source;
-        List<Resource> resources = repository.getAllResources();
+        List<Resource> resources = repository.getResources(false);
         final List<Script> scripts = new ArrayList<Script>();
         try {
             exception = null;

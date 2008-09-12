@@ -1,8 +1,7 @@
-importModule('core.JSON');
-importFromModule('helma.file', 'File');
-importFromModule('helma.functional', 'partial');
-importModule('helma.logging', 'logging');
-var log = logging.getLogger(__name__);
+loadModule('core.JSON');
+var {File} = loadModule('helma.file');
+var {partial} = loadModule('helma.functional');
+var log = loadModule('helma.logging').getLogger(__name__);
 
 var __shared__ = true;
 

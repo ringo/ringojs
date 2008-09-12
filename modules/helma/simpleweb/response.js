@@ -1,7 +1,7 @@
-importModule('helma.app');
-importModule('helma.rhino');
+loadModule('helma.app');
+var rhino = loadModule('helma.rhino');
 
-helma.rhino.addCallback("onResponse", "debugFlusher", function(res) {
+rhino.addCallback("onResponse", "debugFlusher", function(res) {
     if (res.status == 200 || res.status >= 400) {
         res.flushDebug();
     }

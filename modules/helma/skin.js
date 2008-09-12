@@ -1,10 +1,9 @@
 /*global getResource importModule parseSkin */
 
-importModule('core.string');
-importModule('core.object');
-importModule('helma.filters', 'filters');
-importModule('helma.logging', 'logging');
-var log = logging.getLogger(__name__);
+loadModule('core.string');
+loadModule('core.object');
+var filters = loadModule('helma.filters');
+var log = loadModule('helma.logging').getLogger(__name__);
 
 /**
  * Parse a skin from a resource and render it using the given context.
@@ -160,7 +159,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var evaluateExpression = function(macro, context, suffix, value) {
         log.debug('evaluating expression: ' + macro);
         if (builtins[macro.name]) {
-            return builtins[macro.name](macro, context);            
+            return builtins[macro.name](macro, context);
         }
         var path = macro.name.split('.');
         var elem = context;

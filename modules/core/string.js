@@ -38,7 +38,7 @@ String.NULL           = String.EMPTY; // to be deprecated?
  * application, for example by calling app.addRepository('modules/core/String.js')
  */
 
-importModule('core.object');
+loadModule('core.object');
 
 /**
  * checks if a date format pattern is correct

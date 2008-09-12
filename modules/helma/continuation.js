@@ -27,8 +27,7 @@
  *
  */
 
-importModule('helma.logging', 'logging');
-var log = logging.getLogger(__name__);
+var log = loadModule('helma.logging').getLogger(__name__);
 
 var continuation_id = null;
 

@@ -14,7 +14,7 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-importModule('core.object');
+loadModule('core.object');
 var __shared__ = true;
 
 /**

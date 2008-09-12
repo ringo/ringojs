@@ -1,6 +1,6 @@
-importFromModule('helma.unittest', '*');
-importFromModule('helma.file', 'File');
-importModule('core.string');
+includeModule('helma.unittest');
+var {File} = loadModule('helma.file');
+loadModule('core.string');
 
 var testCase = new TestCase('helma.file');
 

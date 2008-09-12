@@ -39,24 +39,19 @@ public interface Repository extends Trackable {
      * Get a list of resources contained in this repository identified by the
      * given local name.
      * @param resourcePath the repository path
+     * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public List<Resource> getResources(String resourcePath);
+    public List<Resource> getResources(String resourcePath, boolean recursive);
+
 
     /**
-     * Returns all direct resources
-     *
-     * @return direct resources
-     * @throws IOException an I/O error occurred
+     * Get a list of resources contained in this repository identified by the
+     * given local name.
+     * @param recursive whether to include nested resources
+     * @return a list of all nested child resources
      */
-    public Iterator<Resource> getResources() throws IOException;
-
-    /**
-     * Returns all direct and indirect resources
-     *
-     * @return resources recursive
-     */
-    public List<Resource> getAllResources();
+    public List<Resource> getResources(boolean recursive);
 
     /**
      * Returns this repository's direct child repositories

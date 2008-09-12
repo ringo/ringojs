@@ -183,16 +183,15 @@ public class HelmaConfiguration {
      * Get a list of all child resources for the given path relative to
      * our script repository.
      * @param path the repository path
-     * @return a list of all nested child resources
+     * @param recursive whether to include nested resources
+     * @return a list of all contained child resources
      */
-    public List<Resource> getResources(String path) {
+    public List<Resource> getResources(String path, boolean recursive) {
+        List<Resource> list = new ArrayList<Resource>();
         for (Repository repo: repositories) {
-            Repository repository = repo.getChildRepository(path);
-            if (repository.exists()) {
-                return repo.getAllResources();
-            }
+            list.addAll(repo.getResources(path, recursive));
         }
-        return repositories.get(0).getResources(path);
+        return list;
     }
 
 }

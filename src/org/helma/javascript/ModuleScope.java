@@ -71,17 +71,4 @@ public class ModuleScope extends NativeObject {
         }
         return super.getDefaultValue(hint);
     }
-
-    public Object get(String name, Scriptable start) {
-        Object value = super.get(name, start);
-        if (value == NOT_FOUND) {
-            // Lookup name in per-thread scope. This is how we implement dynamic scopes.
-            Context cx = Context.getCurrentContext();
-            Scriptable threadScope = (Scriptable) cx.getThreadLocal("threadscope");
-            if (threadScope != null) {
-                value = threadScope.get(name, threadScope);
-            }
-        }
-        return value;
-    }
 }

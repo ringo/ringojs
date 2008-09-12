@@ -2,7 +2,7 @@
  * Module for starting and stopping the jetty http server.
  */
 
-importFromModule('helma.rhino', 'getRhinoEngine');
+var { getRhinoEngine } = loadModule('helma.rhino');
 
 // mark this module as shared between all requests
 var __shared__ = true;

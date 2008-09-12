@@ -19,8 +19,8 @@
 __shared__ = true;
 
 // import application and server module
-importModule('helma.rhino', 'rhino');
-importModule('helma.jetty', 'jetty');
+var rhino = loadModule('helma.rhino');
+var jetty = loadModule('helma.jetty');
 
 // define native host classes used by helma web apps
 rhino.initWebApp();

@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.*;
 
 /**
@@ -54,7 +55,6 @@ public class RhinoEngine {
     ModuleScope                        mainScope          = null;
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
-    protected boolean                  isInitialized      = false;
 
     private Logger                     log                = Logger.getLogger("org.helma.javascript.RhinoEngine");
 
@@ -81,17 +81,18 @@ public class RhinoEngine {
                 }
             }
             // ImporterTopLevel.init(cx, topLevelScope, false);
-            GlobalFunctions.init(topLevelScope);
+            /* GlobalFunctions.init(topLevelScope); */
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
-            JSAdapter.init(cx, topLevelScope, false);
-            ScriptableObject.defineProperty(topLevelScope, "__name__", "topScope",
+            /* JSAdapter.init(cx, topLevelScope, false); */
+            ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
                     ScriptableObject.DONTENUM);
+            getScript("global").evaluate(topLevelScope, cx);
+            // topLevelScope.sealObject();
         } catch (Exception x) {
-            throw new IllegalArgumentException("Error defining class", x);
+            throw new IllegalArgumentException("Error initializing engine", x);
         } finally {
             Context.exit();
-            isInitialized = true;
         }
     }
 
@@ -265,22 +266,6 @@ public class RhinoEngine {
     }
 
     /**
-     * Create the per-thread top level javascript scope.
-     * This has the global shared scope as prototype, and serves as
-     * prototype for the module scopes loaded by this thread.
-     * @param cx the current context
-     * @return the scope object
-     */
-    public Scriptable createThreadScope(Context cx) {
-        Scriptable threadScope = cx.newObject(topLevelScope);
-        ScriptableObject.defineProperty(threadScope, "global", threadScope,
-                ScriptableObject.DONTENUM);
-        ScriptableObject.defineProperty(threadScope, "__name__", "threadScope",
-                ScriptableObject.DONTENUM);
-        return threadScope;
-    }
-
-    /**
      * Initialize and normalize the global variables and arguments on a thread scope.
      * @param args the arguments
      */
@@ -373,7 +358,7 @@ public class RhinoEngine {
      */
     public Scriptable loadModule(Context cx, String moduleName, Scriptable loadingScope)
             throws IOException {
-        Repository local = getRepository(loadingScope);
+        Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
         Scriptable module =  script.load(topLevelScope, moduleName, cx);
         if (script.isShared()) {
@@ -406,7 +391,7 @@ public class RhinoEngine {
      * @param scope the scope to get the repository from
      * @return the repository, or null
      */
-    protected Repository getRepository(Scriptable scope) {
+    public Repository getParentRepository(Scriptable scope) {
         while (scope != null) {
             if (scope instanceof ModuleScope) {
                 return ((ModuleScope) scope).getRepository();
@@ -438,10 +423,11 @@ public class RhinoEngine {
      * Get a list of all child resources for the given path relative to
      * our script repository.
      * @param path the repository path
-     * @return a list of all nested child resources
+     * @param recursive whether to include nested resources
+     * @return a list of all contained child resources
      */
-    public List<Resource> getResources(String path) {
-        return configuration.getResources(path);
+    public List<Resource> getResources(String path, boolean recursive) {
+        return configuration.getResources(path, recursive);
     }
 
     /**
@@ -468,6 +454,10 @@ public class RhinoEngine {
             }
         }
         return getRepository(path);
+    }
+
+    public void addToClasspath(Resource resource) throws MalformedURLException {
+        loader.addURL(resource.getUrl());
     }
 
     public HelmaContextFactory getContextFactory() {

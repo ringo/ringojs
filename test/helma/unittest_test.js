@@ -1,4 +1,4 @@
-importFromModule("helma.unittest", "*");
+includeModule("helma.unittest");
 
 var testCase = new TestCase("testing.unittest");
 

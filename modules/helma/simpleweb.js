@@ -4,10 +4,10 @@
  * module scopes replace hopobject hierarchies.
  */
 
-importModule('core.string');
-importModule('helma.rhino', 'rhino');
-importModule('helma.continuation', 'continuation');
-importModule('helma.simpleweb.*');
+loadModule('core.string');
+loadModule('helma.simpleweb.*');
+var continuation = loadModule('helma.continuation');
+var rhino = loadModule('helma.rhino');
 
 /**
  * Handler function that connects to the Helma servlet. Import this
@@ -20,11 +20,13 @@ importModule('helma.simpleweb.*');
  * @param session
  */
 function handleRequest(req, res, session) {
+    // install req, res and session as per-thread globals
+    putThreadLocal("req", req);
+    putThreadLocal("res", res);
+    putThreadLocal("session", session);
+    // invoke onRequest
     rhino.invokeCallback('onRequest', null, [req]);
-    // install req, res and session as globals
-    global.req = req;
-    global.res = res;
-    global.session = session;
+    // set default content type
     res.contentType = "text/html; charset=UTF-8";
     // resume continuation?
     if (continuation.resume()) {

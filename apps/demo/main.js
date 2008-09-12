@@ -1,12 +1,14 @@
-importModule('helma.app', 'app');
-importFromModule('helma.simpleweb', 'handleRequest');
-importFromModule('helma.skin', 'render');
-importModule('helma.continuation');
-importModule('helma.logging', 'logging');
+var app = loadModule('helma.app');
+var {handleRequest} = loadModule('helma.simpleweb');
+var {render} = loadModule('helma.skin');
+loadModule('helma.continuation');
+var logging = loadModule('helma.logging');
 logging.enableResponseLog();
 var log = logging.getLogger(__name__);
 
-importModule('webmodule', 'mount.point');
+var mount = {
+    point: loadModule('webmodule')
+}
 
 // the main action is invoked for http://localhost:8080/
 function main_action() {
@@ -58,7 +60,6 @@ function continuation_action() {
     // var pageIds = [0, 1, 2, 3, 4];
     // to have continuations created dynamically start with empty page ids
     var pageIds = [];
-    var start;
 
     // mark start of continuation code. We never step back earlier than this
     // otherwise local data would be re-initialized
