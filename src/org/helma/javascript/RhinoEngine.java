@@ -17,7 +17,7 @@
 package org.helma.javascript;
 
 import org.apache.log4j.Logger;
-import org.helma.repository.FileResource;
+import org.helma.repository.ShebangFileResource;
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.repository.Trackable;
@@ -176,7 +176,7 @@ public class RhinoEngine {
             commandLineArgs = Arrays.asList(scriptArgs);
             Resource resource = findResource(scriptName, null);
             if (!resource.exists()) {
-            	resource = new FileResource(new File(scriptName));
+                resource = new ShebangFileResource(new File(scriptName));
             }
             if (!resource.exists()) {
                 String moduleName = scriptName.replace('.', File.separatorChar) + ".js";
