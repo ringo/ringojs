@@ -56,6 +56,8 @@ public class MarkdownProcessor {
         blockTags.add("math");
     }
 
+    public MarkdownProcessor() {}
+
     public MarkdownProcessor(String text) {
         length = text.length();
         chars = new char[length + 2];
@@ -73,6 +75,14 @@ public class MarkdownProcessor {
         chars[length] = chars[length + 1] = '\n';
     }
 
+    public synchronized String process(String text) {
+        length = text.length();
+        chars = new char[length + 2];
+        text.getChars(0, length, chars, 0);
+        chars[length] = chars[length + 1] = '\n';
+        return process();
+    }
+
     public synchronized String process() {
         if (result == null) {
             length = chars.length;
@@ -82,6 +92,29 @@ public class MarkdownProcessor {
             cleanup();
         }
         return result;
+    }
+
+   /**
+    * Retrieve a link defined in the source text. If the link is not found, we call
+    * lookupLink(String) to retrieve it from an external source.
+    * @param linkId the link id
+    * @return a String array with the url as first element and the link title as second.
+    */
+    protected String[] getLink(String linkId) {
+        String[] link =  links.get(linkId);
+        if (link == null) {
+            link = lookupLink(linkId);
+        }
+        return link;
+    }
+
+    /**
+     * Method to override for extended link lookup, e.g. for integration into a wiki
+     * @param linkId the link id
+     * @return a String array with the url as first element and the link title as second.
+     */
+    protected String[] lookupLink(String linkId) {
+        return null;
     }
 
     /**
@@ -297,8 +330,9 @@ public class MarkdownProcessor {
                 i += 1;
 
             }
-            paragraphEndMarker = buffer.charAt(buffer.length() - 1) == '\n' ?
-                    buffer.length() - 1 : buffer.length();
+            int bufLen = buffer.length();
+            paragraphEndMarker = bufLen > 0 && buffer.charAt(bufLen - 1) == '\n' ?
+                    bufLen - 1 : bufLen;
 
 
             while (i < length && chars[i] == '\n') {
@@ -320,8 +354,8 @@ public class MarkdownProcessor {
                     a.close();
                 }
 
-                int bufLen = buffer.length();
-                boolean markParagraph = bufLen == 0 ? false : buffer.charAt(bufLen - 1) == '\n';
+                bufLen = buffer.length();
+                boolean markParagraph = bufLen > 0 && buffer.charAt(bufLen - 1) == '\n';
 
                 if (state == State.LIST && i < length) {
                     checkParagraph(listParagraphs);
@@ -517,17 +551,15 @@ public class MarkdownProcessor {
             }
             linkId = b.toString().toLowerCase();
             if (linkId.length() > 0) {
-                if (!links.containsKey(linkId)) {
+                link = getLink(linkId);
+                if (link == null) {
                     return false;
-                } else {
-                    link = links.get(linkId);
                 }
             } else {
                 linkId = text.toLowerCase();
-                if (!links.containsKey(linkId)) {
+                link = getLink(linkId);
+                if (link == null) {
                     return false;
-                } else {
-                    link = links.get(linkId);
                 }
             }
         } else if (c == '(') {
@@ -568,10 +600,9 @@ public class MarkdownProcessor {
         } else {
             j = k;
             linkId = text.toLowerCase();
-            if (!links.containsKey(linkId)) {
+            link = getLink(linkId);
+            if (link == null) {
                 return false;
-            } else {
-                link = links.get(linkId);
             }
         }
         if (isImage) {
