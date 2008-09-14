@@ -6,12 +6,13 @@
         <echo message=""/>
         <echo message="Helma build targets"/>
         <echo message=""/>
-        <echo message=" compile    --> compiles the source code to ./classes"/>
+        <echo message=" compile    --> compiles the source code to ./build/classes"/>
         <echo message=" jar        --> generates the ./lib/helma.jar file"/>
         <echo message=" test       --> run JUnit tests"/>
         <echo message=" apidocs    --> generates the API docs"/>
         <echo message=" rhinodocs  --> generate Javascript API for host classes as JSON file"/>
         <echo message=" package    --> creates Helma distribution"/>
+        <echo message=" dpkg       --> creates Helma debian package"/>
         <echo message=" clean      --> clean up compiled resources"/>
     </target>
 
@@ -26,11 +27,16 @@
 
         <property name="src" value="${home}/src"/>
         <property name="lib" value="${home}/lib"/>
-        <property name="classes" value="${home}/classes"/>
+        <property name="build" value="${home}/build"/>
+        <property name="classes" value="${build}/classes"/>
         <property name="docs" value="${home}/docs"/>
         <property name="javadocs" value="${home}/docs/api"/>
 
         <property name="helma.jar" value="${lib}/helma.jar"/>
+
+        <property name="dpkg.src" value="${home}/deb"/>
+        <property name="dpkg.tmp" value="${build}/deb"/>
+        <property name="dpkg.dst" value="${project}_${version}.deb"/>
 
         <property name="debug" value="on"/>
         <property name="optimize" value="on"/>
@@ -143,13 +149,46 @@
     </target>
 
     <!-- =================================================================== -->
+    <!-- Create a debian package                                             -->
+    <!-- =================================================================== -->
+    <target name="dpkg" depends="jar,test">
+        <tstamp/>
+        <mkdir dir="${dpkg.tmp}"/>
+        <copy todir="${dpkg.tmp}">
+            <filterset>
+                <filter token="VERSION" value="${version}"/>
+                <filter token="DATE" value="${DSTAMP}"/>
+            </filterset>
+            <fileset dir="${dpkg.src}"/>
+        </copy>
+        <copy todir="${dpkg.tmp}/usr/share/helma/modules">
+            <fileset dir="${home}/modules"/>
+        </copy>
+        <copy todir="${dpkg.tmp}/usr/share/helma/lib">
+            <fileset dir="${lib}"/>
+        </copy>
+        <copy todir="${dpkg.tmp}/usr/share/helma">
+            <fileset file="run.jar"/>
+        </copy>
+        <chmod file="${dpkg.tmp}/usr/bin/helma" perm="ugo+x"/>
+        <exec executable="dpkg-deb">
+            <arg value="--build"/>
+            <arg value="${dpkg.tmp}"/>
+            <arg value="${dpkg.dst}"/>
+        </exec>
+        <!--
+        <delete dir="${dpkg.tmp}"/>
+        -->
+    </target>
+
+    <!-- =================================================================== -->
     <!-- Clean up compiled resources                                         -->
     <!-- =================================================================== -->
     <target name="clean" depends="init">
-        <delete dir="${classes}"/>
+        <delete dir="${build}"/>
         <delete file="${helma.jar}"/>
+        <delete file="${dpkg.dst}"/>
         <delete file="run.jar"/>
-        <delete file="shell.jar"/>
     </target>
 
 
