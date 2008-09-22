@@ -783,17 +783,20 @@ public class MarkdownProcessor {
     private void checkParagraph(boolean paragraphs) {
         if (paragraphs && paragraphEndMarker > paragraphStartMarker &&
                 (chars[i + 1] == '\n' || buffer.charAt(buffer.length() - 1) == '\n')) {
+            int delta = 7;
             buffer.insert(paragraphEndMarker, "</p>");
             if (em) {
                 buffer.insert(paragraphEndMarker, "</em>");
+                delta += 5;
                 em = false;
             }
             if (strong) {
                 buffer.insert(paragraphEndMarker, "</strong>");
+                delta += 9;
                 strong = false;
             }
             buffer.insert(paragraphStartMarker, "<p>");
-            listEndMarker = paragraphEndMarker + 7;
+            listEndMarker = paragraphEndMarker + delta;
         } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
             buffer.append("<br />");
         }
@@ -991,8 +994,7 @@ public class MarkdownProcessor {
     }
 
     class BaseElement extends Element {
-         void open() {}
-
+        void open() {}
         void close() {}
     }
 
