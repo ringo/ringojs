@@ -145,13 +145,15 @@ public class MarkdownProcessor {
 
             switch (state) {
                 case NEWLINE:
-                    if (c == '[') {
+                    if (c == '[' && indentation < 4) {
                         state = State.LINK_ID;
                     } else if (isSpace(c)) {
+                        indentationChars += 1;
                         indentation += (c == '\t') ? 4 : 1;
-                        if (indentation > 3) {
-                            state = State.NONE;
-                        }
+                    } else if (c == '\n' && indentationChars > 0) {
+                        System.arraycopy(chars, i, chars, i - indentationChars, length - i);
+                        i -= indentationChars;
+                        length -= indentationChars;
                     } else {
                         state = State.NONE;
                     }
@@ -212,7 +214,6 @@ public class MarkdownProcessor {
                         if (c == '\n') {
                             links.put(linkId.toLowerCase(), linkValue);
                             System.arraycopy(chars, i, chars, linestart, length - i);
-                            Arrays.fill(chars, length - (i - linestart), length, (char) 0);
                             length -= (i - linestart);
                             i = linestart;
                             buffer.setLength(0);
@@ -224,19 +225,12 @@ public class MarkdownProcessor {
             }
 
             if (c == '\n') {
-                if (state == State.NEWLINE && indentationChars > 0) {
-                    System.arraycopy(chars, i, chars, i - indentationChars, length - i);
-                    Arrays.fill(chars, length - indentationChars, length, (char) 0);
-                    length -= indentationChars;
-                }
                 state = State.NEWLINE;
                 linestart = i;
                 indentation = indentationChars = 0;
             }
 
         }
-        /* for (Map.Entry<String, String[]> entry: links.entrySet())
-            System.err.println(entry.getKey() + " > " + entry.getValue()[0]); */
     }
 
     private synchronized void secondPass() {
