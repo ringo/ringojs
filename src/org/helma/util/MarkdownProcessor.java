@@ -1,5 +1,7 @@
 package org.helma.util;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,7 +14,7 @@ public class MarkdownProcessor {
     private int i;
     private int length;
     private char[] chars;
-    private StringBuffer buffer;
+    private StringBuilder buffer;
     private int lineMarker = 0;
     private int paragraphStartMarker = 0;
     private int paragraphEndMarker = 0;
@@ -23,6 +25,9 @@ public class MarkdownProcessor {
     private ElementStack stack = new ElementStack();
 
     private String result = null;
+
+    // private Logger log = Logger.getLogger(MarkdownProcessor.class);
+    private int line;
 
     enum State {
         // stage 1 states
@@ -236,31 +241,23 @@ public class MarkdownProcessor {
     private synchronized void secondPass() {
         state = State.NEWLINE;
         stack.add(new BaseElement());
-        buffer = new StringBuffer((int) (length * 1.2));
-        // System.err.println("BUFFER ALLOC: " + buffer.capacity());
+        buffer = new StringBuilder((int) (length * 1.2));
+        line = 1;
         boolean escape = false;
 
         for (i = 0; i < length; ) {
-            char c = chars[i];
-
-            if (escape) {
-                buffer.append(c);
-                escape = false;
-                i += 1;
-                continue;
-            } else if (c == '\\') {
-                escape = true;
-                i += 1;
-                continue;
-            }
+            char c;
 
             if (state == State.NEWLINE) {
                 checkBlock(0);
             }
 
+            boolean leadingSpaceChars = true;
+
             while (i < length && chars[i] != '\n') {
 
                 c = chars[i];
+                leadingSpaceChars = leadingSpaceChars && isSpace(c);
 
                 if (state == State.HTML_BLOCK) {
                     buffer.append(c);
@@ -320,7 +317,9 @@ public class MarkdownProcessor {
                     }
                 }
 
-                buffer.append(c);
+                if (!leadingSpaceChars) {
+                    buffer.append(c);
+                }
                 i += 1;
 
             }
@@ -332,6 +331,7 @@ public class MarkdownProcessor {
             while (i < length && chars[i] == '\n') {
 
                 c = chars[i];
+                line += 1;
 
                 // System.err.println("   newline: " + state);
                 if (state == State.HTML_BLOCK &&
@@ -389,14 +389,14 @@ public class MarkdownProcessor {
         if (j < length) {
             char c = chars[j];
 
+            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
+                return true;
+            }
+
             if (checkCodeBlock(j, indentation, blockquoteNesting)) {
                 return true;
             }
 
-            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
-                return true;
-            }
-            
             if (checkList(c, j, indentation, blockquoteNesting)) {
                 return true;
             }
@@ -723,7 +723,8 @@ public class MarkdownProcessor {
             // FIXME adjust indentation for blockquoted code blocks
             indentation -= 1;
         }
-        for (int k = 4; k < indentation; k++) {
+        int sub = 4 + stack.countNestedLists() * 4;
+        for (int k = sub; k < indentation; k++) {
             buffer.append(' ');
         }
         while(j < length && chars[j] != '\n') {
@@ -783,6 +784,14 @@ public class MarkdownProcessor {
         if (paragraphs && paragraphEndMarker > paragraphStartMarker &&
                 (chars[i + 1] == '\n' || buffer.charAt(buffer.length() - 1) == '\n')) {
             buffer.insert(paragraphEndMarker, "</p>");
+            if (em) {
+                buffer.insert(paragraphEndMarker, "</em>");
+                em = false;
+            }
+            if (strong) {
+                buffer.insert(paragraphEndMarker, "</strong>");
+                strong = false;
+            }
             buffer.insert(paragraphStartMarker, "<p>");
             listEndMarker = paragraphEndMarker + 7;
         } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
@@ -824,25 +833,21 @@ public class MarkdownProcessor {
     }
 
     private void checkHeader() {
-        if (chars[i + 1] == '-') {
+        char c = chars[i + 1];
+        if (c == '-' || c == '=') {
             int j = i + 1;
-            while (j < length && chars[j] == '-') {
+            while (j < length && chars[j] == c) {
                 j++;
             }
             if (j < length && chars[j] == '\n') {
-                buffer.insert(lineMarker, "<h2>");
-                buffer.append("</h2>");
+                if (c == '=') {
+                    buffer.insert(lineMarker, "<h1>");
+                    buffer.append("</h1>");
+                } else {
+                    buffer.insert(lineMarker, "<h2>");
+                    buffer.append("</h2>");
+                }
                 i = j;
-            }
-        } else if (chars[i + 1] == '=') {
-            int j = i + 1;
-            while (j < length && chars[j] == '=') {
-                j++;
-            }
-            if (j < length && chars[j] == '\n') {
-                buffer.insert(lineMarker, "<h1>");
-                buffer.append("</h1>");
-                i =  j;
             }
         }
     }
