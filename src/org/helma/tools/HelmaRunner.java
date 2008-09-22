@@ -49,10 +49,9 @@ public class HelmaRunner {
                 }
             }
             if (i < args.length) {
-            	scriptName = args[i++];
-                if (i < args.length) {
-                	scriptArgs = Arrays.copyOfRange(args, i, args.length);
-                }
+            	scriptName = args[i];
+                scriptArgs = new String[args.length - i];
+                System.arraycopy(args, i, scriptArgs, 0, scriptArgs.length);
             }
         }
 
