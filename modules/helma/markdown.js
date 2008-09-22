@@ -390,8 +390,8 @@ function MarkdownProcessor(stringOrResource) {
                 j += 1;
             }
             var found = n;
-            var isStartTag = !isWhitespace(chars[j]);
-            var isEndTag = !isWhitespace(chars[i - 1]);
+            var isStartTag = j < length  - 1 && !isWhitespace(chars[j]);
+            var isEndTag = i > 0 && !isWhitespace(chars[i - 1]);
             var hasStrong = spanTags[2] != null;
             var hasEmphasis = spanTags[1] != null;
             if (isStartTag && (!hasStrong || !hasEmphasis)) {
@@ -1245,8 +1245,8 @@ function MarkdownProcessor(stringOrResource) {
         Element.extend(this, "blockquote", nesting);
     }
 
-    function CodeElement(nesting, m) {
-        Element.extend(this, "code", nesting, m);
+    function CodeElement(nesting) {
+        Element.extend(this, "code", nesting);
 
         this.open = function() {
             buffer.append("<pre><code>");
