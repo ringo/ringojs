@@ -352,11 +352,11 @@ function MarkdownProcessor(stringOrResource) {
         if (j < length) {
             var c = chars[j];
 
-            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
+            if (checkCodeBlock(c, j, indentation, blockquoteNesting)) {
                 return true;
             }
 
-            if (checkCodeBlock(j, indentation, blockquoteNesting)) {
+            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
                 return true;
             }
 
@@ -522,6 +522,7 @@ function MarkdownProcessor(stringOrResource) {
         var escape = false;
         var space = false;
         var nesting = 0;
+        var needsEncoding = false;
         while (j < length && (escape || chars[j] != ']' || nesting != 0)) {
             c = chars[j]
             if (c == '\n' && chars[j - 1] == '\n') {
@@ -534,16 +535,19 @@ function MarkdownProcessor(stringOrResource) {
             } else {
                 escape = c == '\\';
                 if (!escape) {
-                if (c == '[') {
-                    nesting += 1;
-                } else if (c == ']') {
-                    nesting -= 1;
-                }
-                var s = isWhitespace(chars[j]);
-                if (!space || !s) {
-                    b.append(s ? ' ' : c);
-                }
-                space = s;
+                    if (c == '[') {
+                        nesting += 1;
+                    } else if (c == ']') {
+                        nesting -= 1;
+                    }
+                    if (c == '*' || c == '_' || c == '`') {
+                        needsEncoding = true;
+                    }
+                    var s = isWhitespace(chars[j]);
+                    if (!space || !s) {
+                        b.append(s ? ' ' : c);
+                    }
+                    space = s;
                 }
             }
             j += 1;
@@ -637,9 +641,18 @@ function MarkdownProcessor(stringOrResource) {
                 buffer.append(" title=\"").append(escapeHtml(link[1])).append("\"");
             }
             buffer.append(">");
-            b.append(escapeHtml(text)).append("</a>");
+            if (needsEncoding) {
+                b.append(escapeHtml(text)).append("</a>");
+            } else {
+                buffer.append(escapeHtml(text)).append("</a>");
+            }
         }
-        chars = chars.slice(0, i).concat(b.toString().split('')).concat(chars.slice(j + 1, length));
+        if (needsEncoding && !isImage) {
+            chars = chars.slice(0, i).concat(b.toString().split(''))
+                                     .concat(chars.slice(j + 1, length));
+        } else {
+            chars.splice(i, j - i + 1);
+        }
         length = chars.length;
         return true;
     }
@@ -734,8 +747,16 @@ function MarkdownProcessor(stringOrResource) {
         }
     }
 
-    function checkCodeBlock(j, indentation, blockquoteNesting) {
+    function checkCodeBlock(c, j, indentation, blockquoteNesting) {
         var nesting = Math.floor(indentation / 4);
+        // FIXME blockquote closing code from checkBlockquote() is replicated here
+        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.search(ListElement))) {
+            var elem = stack.findNestedElement(nesting + blockquoteNesting);
+            if (elem instanceof BlockquoteElement) {
+                stack.closeElements(elem);
+                lineMarker = paragraphStartMarker = buffer.length();
+            }
+        }
         var code;
         nesting -= stack.countNestedLists();
         if (nesting <= 0) {
