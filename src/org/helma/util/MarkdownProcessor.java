@@ -17,9 +17,7 @@ public class MarkdownProcessor {
     private StringBuilder buffer;
     private int lineMarker = 0;
     private int paragraphStartMarker = 0;
-    private int paragraphEndMarker = 0;
     private boolean listParagraphs = false;
-    private int listEndMarker = 0;
     private int codeEndMarker = 0;
     private boolean strong, em;
     private ElementStack stack = new ElementStack();
@@ -275,7 +273,7 @@ public class MarkdownProcessor {
                     i += 1;
                     continue;
                 }
-                
+
                 switch (c) {
                     case '[':
                         if (checkLink(c)) {
@@ -323,17 +321,12 @@ public class MarkdownProcessor {
                 i += 1;
 
             }
-            int bufLen = buffer.length();
-            paragraphEndMarker = bufLen > 0 && buffer.charAt(bufLen - 1) == '\n' ?
-                    bufLen - 1 : bufLen;
-
 
             while (i < length && chars[i] == '\n') {
 
                 c = chars[i];
                 line += 1;
 
-                // System.err.println("   newline: " + state);
                 if (state == State.HTML_BLOCK &&
                         (i >= length - 1 || chars[i + 1] != '\n')) {
                     buffer.append(c);
@@ -341,14 +334,14 @@ public class MarkdownProcessor {
                     continue;
                 }
                 if (state == State.HEADER) {
-                    Element a = stack.pop();
-                    if (a.m > 0) {
-                        buffer.setLength(buffer.length() - a.m);
+                    Element header = stack.pop();
+                    if (header.m > 0) {
+                        buffer.setLength(buffer.length() - header.m);
                     }
-                    a.close();
+                    header.close();
                 }
 
-                bufLen = buffer.length();
+                int bufLen = buffer.length();
                 boolean markParagraph = bufLen > 0 && buffer.charAt(bufLen - 1) == '\n';
 
                 if (state == State.LIST && i < length) {
@@ -357,14 +350,12 @@ public class MarkdownProcessor {
                 if (state == State.PARAGRAPH && i < length) {
                     checkParagraph(true);
                     checkHeader();
-                } else 
-                if (state != State.NEWLINE) {
-                    listEndMarker = buffer.length();
                 }
+
                 buffer.append(c);
                 state = State.NEWLINE;
                 lineMarker = buffer.length();
-                // if (i > 0 && chars[i - 1] == '\n')  {
+
                 if (markParagraph) {
                     paragraphStartMarker = lineMarker;
                 }
@@ -406,7 +397,7 @@ public class MarkdownProcessor {
             }
 
             if (!checkHtmlBlock(c, j)) {
-                state = State.PARAGRAPH;
+                state = stack.peekList() != null ? State.LIST : State.PARAGRAPH;
             }
         }
         return false;
@@ -485,7 +476,7 @@ public class MarkdownProcessor {
             }
             j += 1;
         }
-        buffer.append("<code>").append(code).append("</code>");
+        buffer.append("<code>").append(code.toString().trim()).append("</code>");
         i = j + 1;
         return true;
     }
@@ -630,10 +621,18 @@ public class MarkdownProcessor {
         if (chars[j] == '>') {
             String href = new String(chars, k, j - k);
             if (href.matches("\\w+:\\S*")) {
+                String text = href;
                 if (href.startsWith("mailto:")) {
+                    text = href.substring(7);
                     href = escapeMailtoUrl(href);
                 }
                 buffer.append("<a href=\"").append(href).append("\">")
+                        .append(text).append("</a>");
+                i = j + 1;
+                return true;
+            } else if (href.matches("^.+@.+\\.[a-zA-Z]+$")) {
+                buffer.append("<a href=\"")
+                        .append(escapeMailtoUrl("mailto:" + href)).append("\">")
                         .append(href).append("</a>");
                 i = j + 1;
                 return true;
@@ -683,7 +682,7 @@ public class MarkdownProcessor {
             list.open();
         } else {
             stack.closeElementsExclusive(list);
-            buffer.insert(listEndMarker, "</li>");
+            buffer.insert(getBufferEnd(), "</li>");
         }
         buffer.append("<li>");
         listParagraphs = isParagraphStart();
@@ -734,6 +733,8 @@ public class MarkdownProcessor {
                 buffer.append("&lt;");
             } else if (chars[j] == '>') {
                 buffer.append("&gt;");
+            } else if (chars[j] == '\t') {
+                buffer.append("   ");
             } else {
                 buffer.append(chars[j]);
             }
@@ -747,8 +748,8 @@ public class MarkdownProcessor {
 
     private boolean checkBlockquote(char c, int j, int indentation, int blockquoteNesting) {
         int nesting = indentation / 4 + blockquoteNesting;
-        if (c != '>' && isParagraphStart()) {
-            Element elem = stack.findNestedElement(nesting);
+        if ((c != '>' && isParagraphStart()) || (nesting > 0 && stack.peekList() == null)) {
+            Element elem = stack.findNestedElement(blockquoteNesting);
             if (elem instanceof BlockquoteElement) {
                 stack.closeElements(elem);
                 lineMarker = paragraphStartMarker = buffer.length();
@@ -781,6 +782,7 @@ public class MarkdownProcessor {
 
 
     private void checkParagraph(boolean paragraphs) {
+        int paragraphEndMarker = getBufferEnd();
         if (paragraphs && paragraphEndMarker > paragraphStartMarker &&
                 (chars[i + 1] == '\n' || buffer.charAt(buffer.length() - 1) == '\n')) {
             int delta = 7;
@@ -796,7 +798,6 @@ public class MarkdownProcessor {
                 strong = false;
             }
             buffer.insert(paragraphStartMarker, "<p>");
-            listEndMarker = paragraphEndMarker + delta;
         } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
             buffer.append("<br />");
         }
@@ -894,7 +895,14 @@ public class MarkdownProcessor {
     private String escapeMailtoUrl(String str) {
         StringBuffer b = new StringBuffer();
         for (char c: str.toCharArray()) {
-            b.append("&#x").append(Integer.toString(c, 16)).append(";");
+            double random = Math.random();
+            if (random < 0.5) {
+                b.append("&#x").append(Integer.toString(c, 16)).append(";");
+            } else if (random < 0.9) {
+                b.append("&#").append(Integer.toString(c, 10)).append(";");
+            } else {
+                b.append(c);
+            }
         }
         return b.toString();
     }
@@ -905,6 +913,14 @@ public class MarkdownProcessor {
 
     boolean isParagraphStart() {
         return paragraphStartMarker == lineMarker;
+    }
+
+    int getBufferEnd() {
+        int l = buffer.length();
+        while(l > 0 && buffer.charAt(l - 1) == '\n') {
+            l -= 1;
+        }
+        return l;
     }
 
     class ElementStack extends Stack<Element> {
@@ -964,7 +980,6 @@ public class MarkdownProcessor {
             do {
                 peek().close();
             } while (pop() != element);
-            listEndMarker += buffer.length() - initialLength;
         }
 
         private void closeElementsExclusive(Element element) {
@@ -972,7 +987,6 @@ public class MarkdownProcessor {
             while(peek() != element) {
                 pop().close();
             }
-            listEndMarker += buffer.length() - initialLength;
         }
     }
 
@@ -985,11 +999,7 @@ public class MarkdownProcessor {
         }
 
         void close() {
-            int l = buffer.length();
-            while(l > 0 && buffer.charAt(l - 1) == '\n') {
-                l -= 1;
-            }
-            buffer.insert(l, "</" + tag + ">");
+            buffer.insert(getBufferEnd(), "</" + tag + ">");
         }
     }
 
@@ -1034,8 +1044,7 @@ public class MarkdownProcessor {
         }
 
         void close() {
-            buffer.insert(listEndMarker, "</li></" + tag + ">");
-        }
+            buffer.insert(getBufferEnd(), "</li></" + tag + ">");        }
     }
 
     public static void main(String... args) throws IOException {

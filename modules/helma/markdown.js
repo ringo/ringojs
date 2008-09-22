@@ -1,26 +1,29 @@
 
-var log = loadModule('helma.logging').getLogger(__name__);
+try {
+    var log = loadModule('helma.logging').getLogger(__name__);
+} catch (error) {
+    // logging module not available
+}
 
 function MarkdownProcessor(stringOrResource) {
 
+    var self = this;
     var links = {};
     var state = 0;
     var i = 0;
     var buffer;
     var lineMarker = 0;
     var paragraphStartMarker = 0;
-    var paragraphEndMarker = 0;
     var listParagraphs = false;
-    var listEndMarker = 0;
+    var codeEndMarker = 0;
     var strong, em;
     var stack;
+    var line;
 
     var chars = (stringOrResource + "\n\n").split('');
     var length = chars.length;
 
     var result;
-
-    var line;
 
     const State = {
         NONE: 0,
@@ -57,6 +60,9 @@ function MarkdownProcessor(stringOrResource) {
         iframe: 1,
         math: 1
     };
+
+    const NEWLINE = '\n'.charCodeAt(0);
+
 
     this.process = function process() {
         firstPass();
@@ -147,7 +153,7 @@ function MarkdownProcessor(stringOrResource) {
                 if (c == '<' && i == bufferStart) {
                     continue;
                 } else if ((isWhitespace(c) || c == '>') && i > bufferStart) {
-                    linkValue[0] = chars.slice(bufferStart, i).join('').trim();
+                    linkValue[0] = trim(chars.slice(bufferStart, i).join(''));
                     var j = i + 1;
                     var newlines = 0;
                     while (j < length && chars[j] != ')' && isWhitespace(chars[j])) {
@@ -284,10 +290,6 @@ function MarkdownProcessor(stringOrResource) {
                 i += 1;
 
             }
-            var bufLen = buffer.length();
-            paragraphEndMarker = bufLen > 0 && bufferEndsWith('\n') ?
-                    bufLen - 1 : bufLen;
-
 
             while (i < length && chars[i] == '\n') {
 
@@ -308,7 +310,7 @@ function MarkdownProcessor(stringOrResource) {
                     header.close();
                 }
 
-                bufLen = buffer.length();
+                var bufLen = buffer.length();
                 var markParagraph = bufLen > 0 && bufferEndsWith('\n');
 
                 if (state == State.LIST && i < length) {
@@ -317,10 +319,8 @@ function MarkdownProcessor(stringOrResource) {
                 if (state == State.PARAGRAPH && i < length) {
                     checkParagraph(true);
                     checkHeader();
-                } else
-                if (state != State.NEWLINE) {
-                    listEndMarker = buffer.length();
-                }
+                } 
+
                 buffer.append(c);
                 state = State.NEWLINE;
                 lineMarker = buffer.length();
@@ -368,7 +368,7 @@ function MarkdownProcessor(stringOrResource) {
             }
 
             if (!checkHtmlBlock(c, j)) {
-                state = State.PARAGRAPH;
+                state = stack.peekList() ? State.LIST : State.PARAGRAPH;
             }
         }
         return false;
@@ -447,6 +447,7 @@ function MarkdownProcessor(stringOrResource) {
             }
             j += 1;
         }
+        code = trim(code.toString());
         buffer.append("<code>").append(code).append("</code>");
         i = j + 1;
         return true;
@@ -507,17 +508,15 @@ function MarkdownProcessor(stringOrResource) {
             }
             linkId = b.toString().toLowerCase();
             if (linkId.length > 0) {
-                if (!links[linkId]) {
+                link = self.getLink(linkId);
+                if (link == null) {
                     return false;
-                } else {
-                    link = links[linkId];
                 }
             } else {
                 linkId = text.toLowerCase();
-                if (!links[linkId]) {
+                link = self.getLink(linkId);
+                if (link == null) {
                     return false;
-                } else {
-                    link = links[linkId];
                 }
             }
         } else if (c == '(') {
@@ -558,10 +557,9 @@ function MarkdownProcessor(stringOrResource) {
         } else {
             j = k;
             linkId = text.toLowerCase();
-            if (!links[linkId]) {
+            link = self.getLink(linkId);
+            if (link == null) {
                 return false;
-            } else {
-                link = links[linkId];
             }
         }
         if (isImage) {
@@ -595,10 +593,18 @@ function MarkdownProcessor(stringOrResource) {
         if (chars[j] == '>') {
             var href = chars.slice(k, j).join('');
             if (href.match("\\w+:\\S*")) {
-                if (href.startsWith("mailto:")) {
+                var text = href;
+                if (href.indexOf("mailto:") == 0) {
+                    text = href.substring(7);
                     href = escapeMailtoUrl(href);
                 }
                 buffer.append("<a href=\"").append(href).append("\">")
+                        .append(text).append("</a>");
+                i = j + 1;
+                return true;
+            } else if (href.match(/^.+@.+\.[a-zA-Z]+$/)) {
+                buffer.append("<a href=\"")
+                        .append(escapeMailtoUrl("mailto:" + href)).append("\">")
                         .append(href).append("</a>");
                 i = j + 1;
                 return true;
@@ -620,10 +626,8 @@ function MarkdownProcessor(stringOrResource) {
                 return true;
             }
         } else if (c == '*' || c == '+' || c == '-') {
-            if (c != '+') {
-                if (checkHorizontalRule(c, j)) {
-                    return true;
-                }
+            if (c != '+' && checkHorizontalRule(c, j, nesting)) {
+                return true;
             }
             j += 1;
             if (j < length && isSpace(chars[j])) {
@@ -642,13 +646,13 @@ function MarkdownProcessor(stringOrResource) {
 
     function checkOpenList(tag, nesting) {
         var list = stack.peekList();
-        if (list == null || !tag.equals(list.tag) || nesting != list.nesting) {
+        if (list == null || !tag == list.tag || nesting != list.nesting) {
             list = new ListElement(tag, nesting);
             stack.push(list);
             list.open();
         } else {
             stack.closeElementsExclusive(list);
-            buffer.insert(listEndMarker, "</li>");
+            buffer.insert(getBufferEnd(), "</li>");
         }
         buffer.append("<li>");
         listParagraphs = isParagraphStart();
@@ -660,7 +664,7 @@ function MarkdownProcessor(stringOrResource) {
         var elem = stack.peekList();
         while (elem != null &&
                 (elem.nesting > nesting ||
-                (elem.nesting == nesting && tag != null && !elem.tag.equals(tag)))) {
+                (elem.nesting == nesting && tag != null && elem.tag != tag))) {
             stack.closeElements(elem);
             elem = stack.peekNestedElement();
             lineMarker = paragraphStartMarker = buffer.length();
@@ -685,10 +689,6 @@ function MarkdownProcessor(stringOrResource) {
             code.open();
             stack.push(code);
         }
-        if (blockquoteNesting > 0) {
-            // FIXME adjust indentation for blockquoted code blocks
-            indentation -= 1;
-        }
         var sub = 4 + stack.countNestedLists() * 4;
         for (var k = sub; k < indentation; k++) {
             buffer.append(' ');
@@ -700,6 +700,8 @@ function MarkdownProcessor(stringOrResource) {
                 buffer.append("&lt;");
             } else if (chars[j] == '>') {
                 buffer.append("&gt;");
+            } else if (chars[j] == '\t') {
+                buffer.append("   ");
             } else {
                 buffer.append(chars[j]);
             }
@@ -714,8 +716,8 @@ function MarkdownProcessor(stringOrResource) {
     function checkBlockquote(c, j, indentation, blockquoteNesting) {
         var nesting = Math.floor(indentation / 4) + blockquoteNesting;
         var elem;
-        if (c != '>' && isParagraphStart()) {
-            elem = stack.findNestedElement(nesting);
+        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.peekList())) {
+            elem = stack.findNestedElement(blockquoteNesting);
             if (elem instanceof BlockquoteElement) {
                 stack.closeElements(elem);
                 lineMarker = paragraphStartMarker = buffer.length();
@@ -748,6 +750,7 @@ function MarkdownProcessor(stringOrResource) {
 
 
     function checkParagraph(paragraphs) {
+        var paragraphEndMarker = getBufferEnd();
         if (paragraphs && paragraphEndMarker > paragraphStartMarker &&
                 (chars[i + 1] == '\n' || bufferEndsWith('\n'))) {
             var delta = 7;
@@ -763,7 +766,6 @@ function MarkdownProcessor(stringOrResource) {
                 strong = false;
             }
             buffer.insert(paragraphStartMarker, "<p>");
-            listEndMarker = paragraphEndMarker + delta;
         } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
             buffer.append("<br />");
         }
@@ -822,17 +824,22 @@ function MarkdownProcessor(stringOrResource) {
         }
     }
 
-    function checkHorizontalRule(c, j) {
+    function checkHorizontalRule(c, j, nesting) {
         if (c != '*' && c != '-') {
             return false;
         }
-        var k = j + 1;
+        var count = 1;
+        var k = j;
         while (k < length && (isSpace(chars[k]) || chars[k] == c)) {
             k += 1;
+            if (chars[k] == c) {
+                 count += 1;
+            }
         }
-        if (k == length || chars[k] == '\n') {
+        if (count >= 3 &&  chars[k] == '\n') {
+            checkCloseList(null, nesting - 1);
             buffer.append("<hr />");
-            i = k - 1;
+            i = k;
             return true;
         }
         return false;
@@ -855,7 +862,14 @@ function MarkdownProcessor(stringOrResource) {
     function escapeMailtoUrl(str) {
         var b = new Buffer();
         for (var c = 0; c < str.length; c++) {
-            b.append("&#x").append(str.charCodeAt(c).toString(16)).append(";");
+            var random = Math.random();
+            if (random < 0.5) {
+                b.append("&#x").append(str.charCodeAt(c).toString(16)).append(";");
+            } else if (random < 0.9) {
+                b.append("&#").append(str.charCodeAt(c).toString(10)).append(";");
+            } else {
+                b.append(str.charAt(c));
+            }
         }
         return b.toString();
     }
@@ -867,7 +881,6 @@ function MarkdownProcessor(stringOrResource) {
     function isParagraphStart() {
         return paragraphStartMarker == lineMarker;
     }
-
 
     function isWhitespace(c) {
         // FIXME replicate java.lang.Character.isWhitespace()
@@ -883,19 +896,40 @@ function MarkdownProcessor(stringOrResource) {
         return c.match(/[\w\d]/);
     }
 
-    var Buffer = java.lang.StringBuffer;
-
-    function bufferEndsWith(str) {
-        return buffer.lastIndexOf(str) == buffer.length() - 1;
+    function trim(s) {
+        return s.replace(/^\s+|\s+$/g, '');
     }
 
-    /* var Buffer = function() {
-        var buf = new Array();
+    function getBufferEnd() {
+        if (typeof buffer.endMarker == "function") {
+            return buffer.endMarker();
+        } else {
+            var l = buffer.length();
+            while(l > 0 && buffer.charAt(l - 1) == NEWLINE) {
+                l -= 1;
+            }
+            return l;
+        }
+    }
+
+    function bufferEndsWith(str) {
+        if (typeof buffer.endsWith == "function") {
+            return buffer.endsWith(str);
+        } else {
+            return buffer.lastIndexOf(str) == buffer.length() - 1;
+        }
+    }
+
+    // using java StringBuilder is faster if it is available
+    // var Buffer = java.lang.StringBuilder;
+
+    var Buffer = function() {
+        var buf = [];
         var count = 0;
 
         this.toString = function toString() {
             return buf.join("");
-        }
+        };
 
         this.append = function append(obj) {
             var str = typeof obj == "string" ? obj : String(obj);
@@ -904,7 +938,7 @@ function MarkdownProcessor(stringOrResource) {
                 buf[buf.length] = str;
             }
             return this;
-        }
+        };
 
         this.insert = function insert(idx, obj) {
             var str = typeof obj == "string" ? obj : String(obj);
@@ -922,7 +956,7 @@ function MarkdownProcessor(stringOrResource) {
                             buf[i] = str + buf[i];
                             break;
                         } else if (c < idx) {
-                            var cut = buf[i].length + idx - c;
+                            var cut = idx - c;
                             var pre = buf[i].substring(0, cut);
                             var post = buf[i].substring(cut);
                             buf[i] = [pre, str, post].join('');
@@ -933,19 +967,19 @@ function MarkdownProcessor(stringOrResource) {
                 count += str.length;
             }
             return this;
-        }
+        };
 
         this.startsWith = function(c) {
-            return buf.length > 0 && buf[0].startsWith(c);
-        }
+            return buf.length > 0 && buf[0].match(new RegExp("^" + c));
+        };
 
         this.endsWith = function(c) {
-            return buf.length > 0 && buf[buf.length -1].endsWith(c);
-        }
+            return buf.length > 0 && buf[buf.length -1].match(new RegExp(c + "$"));
+        };
 
         this.length = function() {
             return count;
-        }
+        };
 
         this.setLength = function setLength(idx) {
             if (idx == 0) {
@@ -967,10 +1001,23 @@ function MarkdownProcessor(stringOrResource) {
                     }
                 }
             }
+        };
+
+        this.endMarker = function() {
+            var c = count;
+            for (var i = buf.length - 1; i >= 0; i--) {
+                for (var j = buf[i].length - 1; j >= 0; j--) {
+                    if (buf[i][j] != '\n') {
+                        return c;
+                    }
+                    c -= 1;
+                }
+            }
+            return 0;
         }
         
         return this;
-    } */
+    }
 
     var Stack = function() {
         var stack = new Array();
@@ -1046,15 +1093,15 @@ function MarkdownProcessor(stringOrResource) {
             do {
                 this.peek().close();
             } while (this.pop() != element);
-            listEndMarker += buffer.length() - initialLength;
+            // listEndMarker += buffer.length() - initialLength;
         };
 
         this.closeElementsExclusive = function closeElementsExclusive(element) {
             var initialLength = buffer.length();
             while(this.peek() != element) {
-                pop().close();
+                this.pop().close();
             }
-            listEndMarker += buffer.length() - initialLength;
+            // listEndMarker += buffer.length() - initialLength;
         };
 
         return this;
@@ -1088,8 +1135,7 @@ function MarkdownProcessor(stringOrResource) {
         }
 
         this.close = function() {
-            // FIXME: check for whitespace at the end of buffer
-            buffer.append("</").append(tag).append(">");
+            buffer.insert(getBufferEnd(), "</" + tag + ">");
         }
 
         this.toString = function() {
@@ -1127,7 +1173,7 @@ function MarkdownProcessor(stringOrResource) {
         Element.extend(this, tag, nesting);
 
         this.close = function() {
-            buffer.insert(listEndMarker, "</li></" + tag + ">");
+            buffer.insert(getBufferEnd(), "</li></" + tag + ">");
         }
     }
 
