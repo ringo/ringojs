@@ -17,7 +17,7 @@ function MarkdownProcessor(stringOrResource) {
     var listParagraphs = false;
     var codeEndMarker = 0;
     var strong, em;
-    var stack;
+    var stack, spanStack;
     var line;
 
     var chars = (stringOrResource + "\n\n").split('');
@@ -68,6 +68,10 @@ function MarkdownProcessor(stringOrResource) {
         firstPass();
         secondPass();
         return result;
+    }
+
+    this.processSpan = function() {
+        return processSpan();
     }
 
     /**
@@ -208,6 +212,7 @@ function MarkdownProcessor(stringOrResource) {
         state = State.NEWLINE;
         stack = new Stack();
         stack.push(new BaseElement());
+        spanStack = new Stack();
         buffer = new Buffer();
         line = 1;
         var escape = false;
@@ -224,7 +229,7 @@ function MarkdownProcessor(stringOrResource) {
             while (i < length && chars[i] != '\n') {
 
                 c = chars[i];
-                leadingSpaceChars = leadingSpaceChars && isSpace(c)
+                leadingSpaceChars = leadingSpaceChars && isSpace(c);
 
                 if (state == State.HTML_BLOCK) {
                     buffer.append(c);
@@ -368,7 +373,7 @@ function MarkdownProcessor(stringOrResource) {
             }
 
             if (!checkHtmlBlock(c, j)) {
-                state = stack.peekList() ? State.LIST : State.PARAGRAPH;
+                state = stack.search(ListElement) ? State.LIST : State.PARAGRAPH;
             }
         }
         return false;
@@ -378,32 +383,94 @@ function MarkdownProcessor(stringOrResource) {
         if (c == '*' || c == '_') {
             var n = 1;
             var j = i + 1;
-            while(j < length && chars[j] == c && n <= 3) {
+            while(j < length && chars[j] == c) {
                 n += 1;
                 j += 1;
             }
-            if (n % 2 == 1) {
-                if (!em && j < length && !isWhitespace(chars[j])) {
-                    buffer.append("<em>");
-                    em = true;
-                } else if (em && !isWhitespace(chars[i - 1])) {
-                    buffer.append("</em>");
-                    em = false;
+            var found = n;
+            var isStartTag = !isWhitespace(chars[j]);
+            var isEndTag = !isWhitespace(chars[i - 1]);
+            if (isEndTag) {
+                while (n > 0) {
+                    var elem = spanStack.peek();
+                    if (elem && elem.m <= n) {
+                        spanStack.pop().close();
+                        n -= elem.m;
+                    } else {
+                        break;
+                    }
                 }
             }
-            if (n > 1) {
-                if (!strong && j < length && !isWhitespace(chars[j])) {
-                    buffer.append("<strong>");
-                    strong = true;
-                } else if (strong && !isWhitespace(chars[i - 1])) {
-                    buffer.append("</strong>");
-                    strong = false;
+            var hasStrong = spanStack.search(Strong);
+            var hasEmphasis = spanStack.search(Emphasis);
+            if (isStartTag && (!hasStrong || !hasEmphasis)) {
+                var matchingEndTags = searchEndTags(hasStrong, hasEmphasis);
+                var tryElements = [
+                    hasEmphasis ? null : Emphasis,
+                    n < 2 || hasStrong ? null : Strong
+                ];
+
+                var matchedElements = [];
+                    for (var k = 0; k < matchingEndTags.length; k++) {
+                        if (matchedElements.length == tryElements.length) {
+                            break;
+                        }
+                for (var l = tryElements.length - 1; l >= 0; l--) {
+                        if (n > l && tryElements[l] && matchingEndTags[k] > l) {
+                            matchedElements.push(tryElements[l]);
+                            n -= l + 1;
+                            matchingEndTags[k] -= l + 1;
+                            tryElements[l] = null;
+                        }
+                    }
                 }
+
+                while (matchedElements.length > 0) {
+                    var ctor = matchedElements.pop();
+                    var elem = new ctor();
+                    elem.open();
+                    spanStack.push(elem);
+                }
+            }
+            if (n == found) {
+                return false;
+            }
+            for (var m = 0; m < n; m++) {
+                buffer.append(c);
             }
             i = j;
             return true;
         }
         return false;
+
+        function searchEndTags(hasStrong, hasEmphasis) {
+            result = [];
+            var lastChar;
+            var count = 0;
+            for (var k = j; k < length; k++) {
+                if (chars[k] == '\n' && lastChar == '\n') {
+                    break;
+                }
+                if (chars[k] == c) {
+                    count += 1;
+                } else {
+                    if (count > 0 && !isWhitespace(chars[k - count - 1])) {
+                        result.push(count);
+                    }
+                    count = 0;
+                }
+                lastChar = chars[k];
+            }
+            for (k = result.length - 1; k >= 0; k--) {
+                if (hasStrong && result[k] >= 2) {
+                    result[k] -= 2; result.length = k + 1; hasStrong = false;
+                }
+                if (hasEmphasis && result[k] >= 1) {
+                    result[k] -= 1; result.length = k + 1; hasEmphasis = false;
+                }
+            }
+            return result;
+        };
     }
 
     function checkCodeSpan(c) {
@@ -470,25 +537,33 @@ function MarkdownProcessor(stringOrResource) {
         var space = false;
         var nesting = 0;
         while (j < length && (escape || chars[j] != ']' || nesting != 0)) {
-            if (chars[j] == '\n' && chars[j - 1] == '\n') {
+            c = chars[j]
+            if (c == '\n' && chars[j - 1] == '\n') {
                 return false;
             }
-            escape = chars[j] == '\\' && !escape;
-            if (!escape) {
-                if (chars[j] == '[') {
+
+            if (escape) {
+                b.append(c);
+                escape = false;
+            } else {
+                escape = c == '\\';
+                if (!escape) {
+                if (c == '[') {
                     nesting += 1;
-                } else if (chars[j] == ']') {
+                } else if (c == ']') {
                     nesting -= 1;
                 }
                 var s = isWhitespace(chars[j]);
                 if (!space || !s) {
-                    b.append(s ? ' ' : chars[j]);
+                    b.append(s ? ' ' : c);
                 }
                 space = s;
+                }
             }
             j += 1;
         }
         var text = b.toString();
+        text = new self.constructor(text).processSpan();
         b.setLength(0);
         var link;
         var linkId;
@@ -581,6 +656,36 @@ function MarkdownProcessor(stringOrResource) {
         return true;
     }
 
+    function processSpan() {
+        spanStack = new Stack();
+        buffer = new Buffer();
+
+        for (i = 0; i < length;) {
+            var c = chars[i];
+
+            switch (c) {
+
+                case '*':
+                case '_':
+                    if (checkEmphasis(c)) {
+                        continue;
+                    }
+                    break;
+
+                case '`':
+                    if (checkCodeSpan(c)) {
+                        continue;
+                    }
+                    break;
+
+            }
+
+            buffer.append(c);
+            i += 1;
+        }
+        return trim(buffer.toString());
+    }
+
     function checkHtmlLink(c) {
         if (c != '<') {
             return false;
@@ -645,7 +750,7 @@ function MarkdownProcessor(stringOrResource) {
     }
 
     function checkOpenList(tag, nesting) {
-        var list = stack.peekList();
+        var list = stack.search(ListElement);
         if (list == null || !tag == list.tag || nesting != list.nesting) {
             list = new ListElement(tag, nesting);
             stack.push(list);
@@ -661,7 +766,7 @@ function MarkdownProcessor(stringOrResource) {
     }
 
     function checkCloseList(tag, nesting) {
-        var elem = stack.peekList();
+        var elem = stack.search(ListElement);
         while (elem != null &&
                 (elem.nesting > nesting ||
                 (elem.nesting == nesting && tag != null && elem.tag != tag))) {
@@ -716,7 +821,7 @@ function MarkdownProcessor(stringOrResource) {
     function checkBlockquote(c, j, indentation, blockquoteNesting) {
         var nesting = Math.floor(indentation / 4);
         var elem;
-        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.peekList())) {
+        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.search(ListElement))) {
             elem = stack.findNestedElement(blockquoteNesting);
             if (elem instanceof BlockquoteElement) {
                 stack.closeElements(elem);
@@ -1038,41 +1143,34 @@ function MarkdownProcessor(stringOrResource) {
             return stack.length == 0;
         }
 
-        this.peekList = function() {
-            var i = stack.length - 1;
-            while(i > 0) {
-                var elem = stack[i];
-                if (elem instanceof ListElement) {
-                    return elem;
+        this.search = function(type) {
+            for (var i = stack.length - 1; i >= 0; i--) {
+                if (stack[i] instanceof type) {
+                    return stack[i];
                 }
-                i -= 1;
             }
             return null;
         };
 
         this.countNestedLists = function() {
             var count = 0;
-            var i = stack.length - 1;
-            while(i > 0) {
+            for (var i = stack.length - 1; i >= 0; i--) {
                 var elem = stack[i];
                 if (elem instanceof ListElement) {
                     count += 1;
                 } else if (elem instanceof BlockquoteElement) {
                     break;
                 }
-                i -= 1;
             }
             return count;
         }
 
         this.peekNestedElement = function() {
-            var i = stack.length - 1;
-            while(i > 0) {
+            for (var i = stack.length - 1; i >= 0; i--) {
                 var elem = stack[i];
                 if (elem instanceof ListElement || elem instanceof BlockquoteElement) {
                     return elem;
                 }
-                i -= 1;
             }
             return null;
         }
@@ -1093,7 +1191,6 @@ function MarkdownProcessor(stringOrResource) {
             do {
                 this.peek().close();
             } while (this.pop() != element);
-            // listEndMarker += buffer.length() - initialLength;
         };
 
         this.closeElementsExclusive = function closeElementsExclusive(element) {
@@ -1101,7 +1198,6 @@ function MarkdownProcessor(stringOrResource) {
             while(this.peek() != element) {
                 this.pop().close();
             }
-            // listEndMarker += buffer.length() - initialLength;
         };
 
         return this;
@@ -1177,4 +1273,13 @@ function MarkdownProcessor(stringOrResource) {
         }
     }
 
+    function Emphasis() {
+        Element.extend(this, "em", 0, 1);
+    }
+
+    function Strong() {
+        Element.extend(this, "strong", 0, 2);
+    }
+
 }
+
