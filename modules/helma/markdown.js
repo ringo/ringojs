@@ -714,7 +714,7 @@ function MarkdownProcessor(stringOrResource) {
     }
 
     function checkBlockquote(c, j, indentation, blockquoteNesting) {
-        var nesting = Math.floor(indentation / 4) + blockquoteNesting;
+        var nesting = Math.floor(indentation / 4);
         var elem;
         if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.peekList())) {
             elem = stack.findNestedElement(blockquoteNesting);
@@ -724,7 +724,7 @@ function MarkdownProcessor(stringOrResource) {
             }
             return false;
         }
-
+        nesting += blockquoteNesting;
         elem = stack.findNestedElement(nesting);
         if (c == '>') {
             if (elem != null && !(elem instanceof BlockquoteElement)) {
