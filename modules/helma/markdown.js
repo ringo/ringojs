@@ -17,7 +17,7 @@ function MarkdownProcessor(stringOrResource) {
     var listParagraphs = false;
     var codeEndMarker = 0;
     var strong, em;
-    var stack, spanStack;
+    var stack, spanTags;
     var line;
 
     var chars = (stringOrResource + "\n\n").split('');
@@ -68,10 +68,6 @@ function MarkdownProcessor(stringOrResource) {
         firstPass();
         secondPass();
         return result;
-    }
-
-    this.processSpan = function() {
-        return processSpan();
     }
 
     /**
@@ -212,7 +208,7 @@ function MarkdownProcessor(stringOrResource) {
         state = State.NEWLINE;
         stack = new Stack();
         stack.push(new BaseElement());
-        spanStack = new Stack();
+        spanTags = {};
         buffer = new Buffer();
         line = 1;
         var escape = false;
@@ -249,18 +245,6 @@ function MarkdownProcessor(stringOrResource) {
                 }
 
                 switch (c) {
-                    case '[':
-                        if (checkLink(c)) {
-                            continue;
-                        }
-                        break;
-
-                    case '!':
-                        if (checkImage()) {
-                            continue;
-                        }
-                        break;
-
                     case '*':
                     case '_':
                         if (checkEmphasis(c)) {
@@ -270,6 +254,18 @@ function MarkdownProcessor(stringOrResource) {
 
                     case '`':
                         if (checkCodeSpan(c)) {
+                            continue;
+                        }
+                        break;
+
+                    case '[':
+                        if (checkLink(c)) {
+                            continue;
+                        }
+                        break;
+
+                    case '!':
+                        if (checkImage()) {
                             continue;
                         }
                         break;
@@ -390,32 +386,20 @@ function MarkdownProcessor(stringOrResource) {
             var found = n;
             var isStartTag = !isWhitespace(chars[j]);
             var isEndTag = !isWhitespace(chars[i - 1]);
-            if (isEndTag) {
-                while (n > 0) {
-                    var elem = spanStack.peek();
-                    if (elem && elem.m <= n) {
-                        spanStack.pop().close();
-                        n -= elem.m;
-                    } else {
-                        break;
-                    }
-                }
-            }
-            var hasStrong = spanStack.search(Strong);
-            var hasEmphasis = spanStack.search(Emphasis);
+            var hasStrong = spanTags[2] != null;
+            var hasEmphasis = spanTags[1] != null;
             if (isStartTag && (!hasStrong || !hasEmphasis)) {
                 var matchingEndTags = searchEndTags(hasStrong, hasEmphasis);
                 var tryElements = [
                     hasEmphasis ? null : Emphasis,
-                    n < 2 || hasStrong ? null : Strong
+                    hasStrong || n < 2 ? null : Strong
                 ];
-
                 var matchedElements = [];
+                for (var l = tryElements.length - 1; l >= 0; l--) {
                     for (var k = 0; k < matchingEndTags.length; k++) {
                         if (matchedElements.length == tryElements.length) {
                             break;
                         }
-                for (var l = tryElements.length - 1; l >= 0; l--) {
                         if (n > l && tryElements[l] && matchingEndTags[k] > l) {
                             matchedElements.push(tryElements[l]);
                             n -= l + 1;
@@ -429,7 +413,17 @@ function MarkdownProcessor(stringOrResource) {
                     var ctor = matchedElements.pop();
                     var elem = new ctor();
                     elem.open();
-                    spanStack.push(elem);
+                    spanTags[ctor == Strong ? 2 : 1] = elem;
+                }
+            }
+            if (isEndTag) {
+                for  (var z = 2; z > 0; z--) {
+                    var elem = spanTags[z];
+                    if (elem && elem.m <= n) {
+                        delete spanTags[z];
+                        elem.close();
+                        n -= elem.m;
+                    }
                 }
             }
             if (n == found) {
@@ -443,7 +437,7 @@ function MarkdownProcessor(stringOrResource) {
         }
         return false;
 
-        function searchEndTags(hasStrong, hasEmphasis) {
+        function searchEndTags() {
             result = [];
             var lastChar;
             var count = 0;
@@ -460,14 +454,6 @@ function MarkdownProcessor(stringOrResource) {
                     count = 0;
                 }
                 lastChar = chars[k];
-            }
-            for (k = result.length - 1; k >= 0; k--) {
-                if (hasStrong && result[k] >= 2) {
-                    result[k] -= 2; result.length = k + 1; hasStrong = false;
-                }
-                if (hasEmphasis && result[k] >= 1) {
-                    result[k] -= 1; result.length = k + 1; hasEmphasis = false;
-                }
             }
             return result;
         };
@@ -563,7 +549,6 @@ function MarkdownProcessor(stringOrResource) {
             j += 1;
         }
         var text = b.toString();
-        text = new self.constructor(text).processSpan();
         b.setLength(0);
         var link;
         var linkId;
@@ -637,6 +622,7 @@ function MarkdownProcessor(stringOrResource) {
                 return false;
             }
         }
+        b.setLength(0);
         if (isImage) {
             buffer.append("<img src=\"").append(escapeHtml(link[0])).append("\"");
             buffer.append(" alt=\"").append(escapeHtml(text)).append("\"");
@@ -650,40 +636,12 @@ function MarkdownProcessor(stringOrResource) {
             if (link[1] != null) {
                 buffer.append(" title=\"").append(escapeHtml(link[1])).append("\"");
             }
-            buffer.append(">").append(escapeHtml(text)).append("</a>");
+            buffer.append(">");
+            b.append(escapeHtml(text)).append("</a>");
         }
-        i = j + 1;
+        chars = chars.slice(0, i).concat(b.toString().split('')).concat(chars.slice(j + 1, length));
+        length = chars.length;
         return true;
-    }
-
-    function processSpan() {
-        spanStack = new Stack();
-        buffer = new Buffer();
-
-        for (i = 0; i < length;) {
-            var c = chars[i];
-
-            switch (c) {
-
-                case '*':
-                case '_':
-                    if (checkEmphasis(c)) {
-                        continue;
-                    }
-                    break;
-
-                case '`':
-                    if (checkCodeSpan(c)) {
-                        continue;
-                    }
-                    break;
-
-            }
-
-            buffer.append(c);
-            i += 1;
-        }
-        return trim(buffer.toString());
     }
 
     function checkHtmlLink(c) {
@@ -822,7 +780,7 @@ function MarkdownProcessor(stringOrResource) {
         var nesting = Math.floor(indentation / 4);
         var elem;
         if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.search(ListElement))) {
-            elem = stack.findNestedElement(blockquoteNesting);
+            elem = stack.findNestedElement(nesting + blockquoteNesting);
             if (elem instanceof BlockquoteElement) {
                 stack.closeElements(elem);
                 lineMarker = paragraphStartMarker = buffer.length();
@@ -1199,6 +1157,10 @@ function MarkdownProcessor(stringOrResource) {
                 this.pop().close();
             }
         };
+
+        this.toString = function() {
+            return stack.toString();
+        }
 
         return this;
     }
