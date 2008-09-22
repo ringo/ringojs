@@ -16,9 +16,9 @@ function MarkdownProcessor(stringOrResource) {
     var paragraphStartMarker = 0;
     var listParagraphs = false;
     var codeEndMarker = 0;
-    var strong, em;
     var stack, spanTags;
     var line;
+    var debug = false;
 
     var chars = (stringOrResource + "\n\n").split('');
     var length = chars.length;
@@ -275,6 +275,12 @@ function MarkdownProcessor(stringOrResource) {
                             continue;
                         }
                         break;
+
+                    case '°':
+                        if (debug) {
+                            lg("line" + line + ":" + stack);
+                            break;
+                        }
                 }
 
                 if (state == State.HEADER) {
@@ -352,11 +358,11 @@ function MarkdownProcessor(stringOrResource) {
         if (j < length) {
             var c = chars[j];
 
-            if (checkCodeBlock(c, j, indentation, blockquoteNesting)) {
+            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
                 return true;
             }
 
-            if (checkBlockquote(c, j, indentation, blockquoteNesting)) {
+            if (checkCodeBlock(c, j, indentation, blockquoteNesting)) {
                 return true;
             }
 
@@ -647,7 +653,7 @@ function MarkdownProcessor(stringOrResource) {
                 buffer.append(escapeHtml(text)).append("</a>");
             }
         }
-        if (needsEncoding && !isImage) {
+        if (buffer.length() > 0) {
             chars = chars.slice(0, i).concat(b.toString().split(''))
                                      .concat(chars.slice(j + 1, length));
         } else {
@@ -738,9 +744,9 @@ function MarkdownProcessor(stringOrResource) {
 
     function checkCloseList(tag, nesting) {
         var elem = stack.search(ListElement);
-        while (elem != null &&
+        while (elem &&
                 (elem.nesting > nesting ||
-                (elem.nesting == nesting && tag != null && elem.tag != tag))) {
+                (elem.nesting == nesting && tag && elem.tag != tag))) {
             stack.closeElements(elem);
             elem = stack.peekNestedElement();
             lineMarker = paragraphStartMarker = buffer.length();
@@ -749,45 +755,40 @@ function MarkdownProcessor(stringOrResource) {
 
     function checkCodeBlock(c, j, indentation, blockquoteNesting) {
         var nesting = Math.floor(indentation / 4);
-        // FIXME blockquote closing code from checkBlockquote() is replicated here
-        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.search(ListElement))) {
-            var elem = stack.findNestedElement(nesting + blockquoteNesting);
-            if (elem instanceof BlockquoteElement) {
-                stack.closeElements(elem);
-                lineMarker = paragraphStartMarker = buffer.length();
-            }
-        }
+        var nestedLists = stack.countNestedLists();
         var code;
-        nesting -= stack.countNestedLists();
-        if (nesting <= 0) {
-            if (stack.peek() instanceof CodeElement && stack.peek().m == blockquoteNesting) {
-                code = stack.pop();
-                code.close();
+        if (nesting - nestedLists <= 0) {
+            code = stack.findNestedElement(CodeElement, blockquoteNesting + nestedLists);
+            if (code) {
+                stack.closeElements(code);
                 lineMarker = paragraphStartMarker = buffer.length();
             }
             return false;
         }
         code = stack.peek();
         if (!(code instanceof CodeElement)) {
-            code = new CodeElement(nesting, blockquoteNesting);
+            code = new CodeElement(blockquoteNesting + nestedLists);
             code.open();
             stack.push(code);
         }
-        var sub = 4 + stack.countNestedLists() * 4;
+        var sub = 4 + nestedLists * 4;
         for (var k = sub; k < indentation; k++) {
             buffer.append(' ');
         }
         while(j < length && chars[j] != '\n') {
-            if (chars[j] == '&') {
+            c = chars[j];
+            if (c == '&') {
                 buffer.append("&amp;");
-            } else if (chars[j] == '<') {
+            } else if (c == '<') {
                 buffer.append("&lt;");
-            } else if (chars[j] == '>') {
+            } else if (c == '>') {
                 buffer.append("&gt;");
-            } else if (chars[j] == '\t') {
+            } else if (c == '\t') {
                 buffer.append("   ");
+            } else if (c == '°' && debug) {
+                lg("line" + line + ":" + stack);
             } else {
-                buffer.append(chars[j]);
+                buffer.append(c);
             }
             j += 1;
         }
@@ -797,25 +798,30 @@ function MarkdownProcessor(stringOrResource) {
         return true;
     }
 
+    function lg(msg) {
+        buffer.append("[" + msg + "]");
+    }
+
     function checkBlockquote(c, j, indentation, blockquoteNesting) {
         var nesting = Math.floor(indentation / 4);
-        var elem;
-        if ((c != '>' && isParagraphStart()) || (nesting > 0 && !stack.search(ListElement))) {
-            elem = stack.findNestedElement(nesting + blockquoteNesting);
-            if (elem instanceof BlockquoteElement) {
+        var elem = stack.findNestedElement(BlockquoteElement, nesting + blockquoteNesting);
+        if (c != '>' && isParagraphStart() || nesting > stack.countNestedLists(elem)) {
+            elem = stack.findNestedElement(BlockquoteElement, blockquoteNesting);
+            if (elem) {
                 stack.closeElements(elem);
                 lineMarker = paragraphStartMarker = buffer.length();
             }
             return false;
         }
-        nesting += blockquoteNesting;
-        elem = stack.findNestedElement(nesting);
+        nesting +=  blockquoteNesting;
+        elem = stack.findNestedElement(BlockquoteElement, nesting);
         if (c == '>') {
+            stack.closeElementsUnlessExists(BlockquoteElement, nesting);
             if (elem != null && !(elem instanceof BlockquoteElement)) {
                 stack.closeElements(elem);
                 elem = null;
             }
-            if (elem == null) {
+            if (elem == null || elem.nesting < nesting) {
                 elem = new BlockquoteElement(nesting);
                 elem.open();
                 stack.push(elem);
@@ -839,19 +845,7 @@ function MarkdownProcessor(stringOrResource) {
                 (chars[i + 1] == '\n' || bufferEndsWith('\n'))) {
             var delta = 7;
             buffer.insert(paragraphEndMarker, "</p>");
-            if (em) {
-                buffer.insert(paragraphEndMarker, "</em>");
-                delta += 5;
-                em = false;
-            }
-            if (strong) {
-                buffer.insert(paragraphEndMarker, "</strong>");
-                delta += 9;
-                strong = false;
-            }
             buffer.insert(paragraphStartMarker, "<p>");
-        } else if (i > 1 && isSpace(chars[i -1]) && isSpace(chars[i - 2])) {
-            buffer.append("<br />");
         }
     }
 
@@ -1005,9 +999,9 @@ function MarkdownProcessor(stringOrResource) {
     }
 
     // using java StringBuilder is faster if it is available
-    // var Buffer = java.lang.StringBuilder;
+    var Buffer = java.lang.StringBuilder;
 
-    var Buffer = function() {
+    var JSBuffer = function() {
         var buf = [];
         var count = 0;
 
@@ -1131,10 +1125,16 @@ function MarkdownProcessor(stringOrResource) {
             return null;
         };
 
-        this.countNestedLists = function() {
+        this.countNestedLists = function(startFromElement) {
             var count = 0;
             for (var i = stack.length - 1; i >= 0; i--) {
                 var elem = stack[i];
+                if (startFromElement) {
+                    if (startFromElement == elem) {
+                        startFromElement = null;
+                    }
+                    continue;
+                }
                 if (elem instanceof ListElement) {
                     count += 1;
                 } else if (elem instanceof BlockquoteElement) {
@@ -1154,11 +1154,10 @@ function MarkdownProcessor(stringOrResource) {
             return null;
         }
 
-        this.findNestedElement = function findNestedElement(nesting) {
+        this.findNestedElement = function findNestedElement(type, nesting) {
             for (var i = 0; i < stack.length; i++) {
                 var elem = stack[i];
-                if (nesting == elem.nesting &&
-                        (elem instanceof ListElement || elem instanceof BlockquoteElement)) {
+                if (nesting == elem.nesting && elem instanceof type) {
                     return elem;
                 }
             }
@@ -1178,6 +1177,20 @@ function MarkdownProcessor(stringOrResource) {
                 this.pop().close();
             }
         };
+
+        this.closeElementsUnlessExists = function closeNestedElement(type, nesting) {
+            var elem = this.findNestedElement(type, nesting);
+            if (!elem) {
+                while(stack.length > 0) {
+                    elem = this.peek();
+                    if (elem && elem.nesting >= nesting) {
+                        stack.pop().close();
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
 
         this.toString = function() {
             return stack.toString();
@@ -1218,7 +1231,7 @@ function MarkdownProcessor(stringOrResource) {
         }
 
         this.toString = function() {
-            return "[" + this.constructor.name + "]";
+            return "[" + this.constructor.name + ":" + this.nesting + "]";
         }
     }
 
@@ -1232,8 +1245,8 @@ function MarkdownProcessor(stringOrResource) {
         Element.extend(this, "blockquote", nesting);
     }
 
-    function CodeElement(nesting, blockquoteNesting) {
-        Element.extend(this, "code", nesting, blockquoteNesting);
+    function CodeElement(nesting, m) {
+        Element.extend(this, "code", nesting, m);
 
         this.open = function() {
             buffer.append("<pre><code>");
