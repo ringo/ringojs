@@ -37,7 +37,7 @@ public class ScriptableList extends NativeJavaObject {
         BaseFunction ctor = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
             public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
                 if (args.length != 1) {
-                    throw new EvaluatorException("Invalid number of arguments to ScriptableList()");
+                    throw new EvaluatorException("ScriptableList() requires a java.util.List argument");
                 }
                 return new ScriptableList(scope, args[0]);
             }
@@ -45,6 +45,11 @@ public class ScriptableList extends NativeJavaObject {
         scope.put(CLASSNAME, scope, ctor);
     }
 
+    /**
+     * Create a ScriptableList wrapper around a java.util.List
+     * @param scope the scope
+     * @param obj the list, possibly wrapped
+     */
     private ScriptableList(Scriptable scope, Object obj) {
         this.parent = scope;
         if (obj instanceof Wrapper) {
@@ -59,11 +64,31 @@ public class ScriptableList extends NativeJavaObject {
         }
         this.staticType = this.list.getClass();
         initMembers();
+        initPrototype(scope);
     }
 
+
+    /**
+     * Create a ScriptableList wrapper around a java.util.List.
+     * @param scope the scope
+     * @param list the list instance
+     */
     public ScriptableList(Scriptable scope, List list) {
         super(scope, list, list.getClass());
         this.list = list;
+        initPrototype(scope);
+    }
+
+    /**
+     * Set the prototype to the Array prototype so we can use array methds such as
+     * push, pop, shift, slice etc.
+     * @param scope the global scope for looking up the Array constructor
+     */
+    protected void initPrototype(Scriptable scope) {
+        Scriptable arrayProto = ScriptableObject.getClassPrototype(scope, "Array");
+        if (arrayProto != null) {
+            this.setPrototype(arrayProto);
+        }
     }
 
     public void delete(int index) {
@@ -101,7 +126,11 @@ public class ScriptableList extends NativeJavaObject {
     public void put(int index, Scriptable start, Object value) {
         if (list != null) {
             try {
-                list.set(index, Context.jsToJava(value, ScriptRuntime.ObjectClass));
+                if (index == list.size()) {
+                    list.add(Context.jsToJava(value, ScriptRuntime.ObjectClass));
+                } else {
+                    list.set(index, Context.jsToJava(value, ScriptRuntime.ObjectClass));
+                }
             } catch (RuntimeException e) {
                 Context.throwAsScriptRuntimeEx(e);
             }
