@@ -27,7 +27,7 @@ function logging_action() {
             log.error(e, e.rhinoException);
         }
     }
-    render('skins/logging.html', { title: "Logging Demo" });
+    res.write(render('skins/logging.html', { title: "Logging Demo" }));
 }</pre>
 
 <p><a href="http://dev.helma.org/ng/helma.logging/">Learn more</a> about the helma.logging module on the Helma NG site.</p>

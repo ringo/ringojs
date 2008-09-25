@@ -16,6 +16,10 @@ function createHopObject(name) {
 var handlers = {};
 
 function renderSkin(obj, param) {
+    res.write(this.renderSkinAsString(obj, param));
+}
+
+function renderSkinAsString(obj, param) {
     var context = {'this': this, 'param': param};
     if (this.macroHandlers) {
         this.macroHandlers.clone(context);
@@ -36,13 +40,7 @@ function renderSkin(obj, param) {
     } else {
         throw Error("Invalid skin object: " + obj);
     }
-    helma.skin.render(skin, context, this);
-}
-
-function renderSkinAsString(obj, param) {
-    res.push();
-    this.renderSkin(obj, param);
-    return res.pop();
+    return helma.skin.render(skin, context, this);
 }
 
 function addMacroHandler(name, handler) {

@@ -12,7 +12,7 @@ var mount = {
 
 // the main action is invoked for http://localhost:8080/
 function main_action() {
-    render('skins/index.html', { title: 'Welcome to Helma NG' });
+    res.write(render('skins/index.html', { title: 'Welcome to Helma NG' }));
 }
 
 // demo for skins, macros, filters
@@ -22,7 +22,7 @@ function skins_action() {
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
     };
-    render('skins/skins.html', context);
+    res.write(render('skins/skins.html', context));
 }
 
 // demo for log4j logging
@@ -42,7 +42,7 @@ function logging_action() {
             log.error(e, e.rhinoException);
         }
     }
-    render('skins/logging.html', { title: "Logging Demo" });
+    res.write(render('skins/logging.html', { title: "Logging Demo" }));
     if (!hasResponseLog) {
         log.debug("disabling response log");
         logging.disableResponseLog();
@@ -84,14 +84,14 @@ function continuation_action() {
         if (id < pages.length - 1) {
             pageIds[id + 1] = Continuation.nextId(pageIds[id + 1]);
             if (id < 1) {
-                render('skins/continuation.html', {
+                res.write(render('skins/continuation.html', {
                     title: "Welcome",
                     skin: "start",
                     data: data,
                     forward: Continuation.getUrl(pageIds[id + 1])
-                });
+                }));
             } else {
-                render('skins/continuation.html', {
+                res.write(render('skins/continuation.html', {
                     title: "Question " + id,
                     skin: "mask",
                     input: pages[id],
@@ -99,16 +99,16 @@ function continuation_action() {
                     value: data[pages[id]],
                     back: Continuation.getUrl(pageIds[id - 1]),
                     forward: Continuation.getUrl(pageIds[id + 1])
-                });
+                }));
             }
             Continuation.nextPage(pageIds[id + 1]);
         } else {
-            render('skins/continuation.html', {
+            res.write(render('skins/continuation.html', {
                 title: "Thanks!",
                 skin: "result",
                 data: data,
                 back: Continuation.getUrl(pageIds[id - 1])
-            });
+            }));
         }
     }
 }

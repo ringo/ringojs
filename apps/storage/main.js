@@ -15,7 +15,7 @@ function main_action() {
         removeBook();
     }
     var books = model.Book.all();
-    render('skins/index.html', {
+    res.write(render('skins/index.html', {
         title: 'Storage Demo',
         books: function(/*tag, skin, context*/) {
             for (var i in books) {
@@ -23,7 +23,7 @@ function main_action() {
                 res.writeln(book.getFullTitle(), getDeleteLink(book), "<br>");
             }
         }
-    });
+    }));
 }
 
 function createBook() {

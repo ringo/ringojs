@@ -6,5 +6,5 @@ function main_action() {
         title: 'Module Demo',
         href: req.path
     };
-    render('skins/modules.html', context);
+    res.write(render('skins/modules.html', context));
 }

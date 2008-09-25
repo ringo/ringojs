@@ -34,8 +34,3 @@ Response.prototype.flushDebug = function() {
     buffer.reset();
     return null;
 };
-
-
-
-
-
