@@ -24,16 +24,10 @@ import java.util.*;
 /**
  * Scanner for Helma templates/skins.
  */
-public class SkinParser {
+public abstract class SkinParser {
 
-    SkinRenderer renderer;
     LineNumberReader reader;
     StringBuffer buffer = new StringBuffer();
-
-    public SkinParser(SkinRenderer renderer) {
-        this.renderer = renderer;
-    }
-
 
     public void parse(Resource res) throws IOException, UnbalancedTagException {
         parse(new InputStreamReader(res.getInputStream()));
@@ -56,10 +50,10 @@ public class SkinParser {
                     reader.mark(1);
                     if (reader.read() == '%') {
                         if (buffer.length() > 0) {
-                            renderer.renderText(buffer.toString());
+                            renderText(buffer.toString());
                             buffer.setLength(0);
                         }
-                        renderer.renderMacro(readMacro(reader));
+                        renderMacro(readMacro(reader));
                     } else {
                         buffer.append((char) c);
                         reader.reset();
@@ -71,9 +65,21 @@ public class SkinParser {
             }
         }
         if (buffer.length() > 0) {
-            renderer.renderText(buffer.toString());
+            renderText(buffer.toString());
         }
     }
+
+    /**
+     * Called when a piece of static text has been parsed.
+     * @param text the text fragement
+     */
+    protected abstract void renderText(String text);
+
+    /**
+     * Called when a macro has been parsed.
+     * @param macro the macro
+     */
+    protected abstract void renderMacro(MacroTag macro);
 
     protected MacroTag readMacro(LineNumberReader reader) throws IOException, UnbalancedTagException {
         boolean escape = false;
@@ -97,7 +103,7 @@ public class SkinParser {
                         reader.mark(1);
                         if (reader.read() == '%') {
                             if (buffer.length() > 0) {
-                                renderer.renderText(buffer.toString());
+                                renderText(buffer.toString());
                                 buffer.setLength(0);
                             }
                             list.add(readMacro(reader));

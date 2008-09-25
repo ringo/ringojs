@@ -65,16 +65,15 @@ const global = this;
      * @param fn a function to consume the skin tokens
      */
     this.parseSkin = function(resourceOrString, fn) {
-        var {SkinParser, SkinRenderer} = org.helma.template;
         var engine = getRhinoEngine();
-        var parser = new SkinParser(new SkinRenderer({
+        var parser = new org.helma.template.SkinParser({
             renderText: function(text) {
                 fn(text);
             },
             renderMacro: function(macro) {
                 fn(engine.wrapArgument(macro, {}));
             }
-        }));
+        });
         parser.parse(resourceOrString);
     };
 
