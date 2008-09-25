@@ -51,6 +51,8 @@ public class RhinoEngine {
     Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
+    Map<String, ExtendedJavaClass>     javaWrappers       = new HashMap<String, ExtendedJavaClass>();
+
     HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
     ModuleScope                        mainScope          = null;
 
@@ -473,17 +475,22 @@ public class RhinoEngine {
     }
 
     public ExtendedJavaClass getExtendedClass(Class type) {
-        ExtendedJavaClass wrapper =  wrapFactory.javaWrappers.get(type.getName());
-        if (wrapper == null) {
+        ExtendedJavaClass wrapper = javaWrappers.get(type.getName());
+        if (wrapper == null || wrapper == ExtendedJavaClass.NONE) {
             wrapper = new ExtendedJavaClass(topLevelScope, type);
-            wrapFactory.javaWrappers.put(type.getName(), wrapper);
+            javaWrappers.put(type.getName(), wrapper);
+            Iterator<Map.Entry<String,ExtendedJavaClass>> it =
+                    javaWrappers.entrySet().iterator();
+            while (it.hasNext()) {
+                if (it.next().getValue() == ExtendedJavaClass.NONE) {
+                    it.remove();
+                }
+            }
         }
         return wrapper;
     }
 
     class HelmaWrapFactory extends WrapFactory {
-
-        Map<String, ExtendedJavaClass> javaWrappers = new HashMap<String, ExtendedJavaClass>();
 
         public HelmaWrapFactory() {
             // disable java primitive wrapping, it's just annoying.
@@ -561,7 +568,7 @@ public class RhinoEngine {
         protected ExtendedJavaClass getExtendedClass(Class clazz) {
             if (clazz.isInterface()) {
                 // can't deal with interfaces - panic
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Can't extend interface " + clazz.getName());
             }
             // How class name to prototype name lookup works:
             // If an object is not found by its direct class name, a cache entry is added
