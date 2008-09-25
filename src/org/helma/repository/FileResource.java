@@ -27,6 +27,7 @@ public class FileResource implements Resource {
     String path;
     String name;
     String baseName;
+    boolean stripShebang = false;
 
     public FileResource(File file) {
         this(file, null);
@@ -64,11 +65,28 @@ public class FileResource implements Resource {
     }
 
     public InputStream getInputStream() throws IOException {
-        try {
-            return new FileInputStream(file);
-        } catch (FileNotFoundException ex) {
-            throw new IOException("File not found: " + file);
+        InputStream stream = new FileInputStream(file);
+        if (stripShebang) {
+            stream = new BufferedInputStream(stream);
+            stream.mark(2);
+            if (stream.read() == '#' && stream.read() == '!') {
+                // skip a line: a line is terminated by \n or \r or \r\n (just as
+                // in BufferedReader#readLine)
+                for (int c = stream.read(); c != -1; c = stream.read()) {
+                    if (c == '\n')
+                        break;
+                    if (c == '\r') {
+                        stream.mark(1);
+                        if (stream.read() != '\n')
+                            stream.reset();
+                        break;
+                    }
+                }
+            } else {
+                stream.reset();
+            }
         }
+        return stream;
     }
 
     public Reader getReader() throws IOException {
@@ -119,6 +137,15 @@ public class FileResource implements Resource {
 
     public Repository getParentRepository() {
         return repository;
+    }
+
+
+    public boolean getStripShebang() {
+        return stripShebang;
+    }
+
+    public void setStripShebang(boolean stripShebang) {
+        this.stripShebang = stripShebang;
     }
 
     public int hashCode() {
