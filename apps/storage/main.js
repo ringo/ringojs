@@ -1,6 +1,6 @@
-var {handleRequest} = loadModule('helma.simpleweb');
-var {render} = loadModule('helma.skin');
-var app = loadModule('helma.app');
+var handleRequest = loadModule('helma.simpleweb').handleRequest;
+var render = loadModule('helma.skin').render;
+var webapp = loadModule('helma.webapp');
 // db model
 var model = loadModule('model');
 
@@ -46,5 +46,5 @@ function getDeleteLink(book) {
 }
 
 if (__name__ == "__main__") {
-    app.start();
+    webapp.start();
 }

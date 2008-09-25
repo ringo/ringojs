@@ -7,10 +7,12 @@ var log = loadModule('helma.logging').getLogger(__name__);
 
 /**
  * Parse a skin from a resource and render it using the given context.
- * @param skinOrPath
- * @param context
+ * @param skinOrPath a skin object or a file name
+ * @param context the skin render context
+ * @param scope optional scope object for relative resource lookup
+ * @param buffer the Buffer object to write to
  */
-function render(skinOrPath, context, scope) {
+function render(skinOrPath, context, scope, buffer) {
     scope = scope || this;
     var skin;
     if (typeof(skinOrPath.render) == "function") {
@@ -20,15 +22,15 @@ function render(skinOrPath, context, scope) {
         if (skinOrPath.indexOf('#') > -1) {
             [skinOrPath, subskin] = skinOrPath.split('#');
         }
-        var resource = this.getResource(skinOrPath);
-        skin = createSkin(resource, this);
+        var resource = scope.getResource(skinOrPath);
+        skin = createSkin(resource, scope);
         if (subskin) {
             skin = skin.getSubskin(subskin);
         }
     } else {
         throw Error("Unknown skin object: " + skinOrPath);
     }
-    skin.render(context);
+    skin.render(context, buffer);
 }
 
 /**
@@ -79,19 +81,19 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var self = this;
 
-    this.render = function(context) {
+    this.render = function(context, buffer) {
         if (mainSkin.length === 0 && parentSkin) {
-            renderInternal(parentSkin.getSkinParts(), context);
+            renderInternal(parentSkin.getSkinParts(), context, buffer);
         } else {
-            renderInternal(mainSkin, context);
+            renderInternal(mainSkin, context, buffer);
         }
     };
 
-    this.renderSubskin = function(skinName, context) {
+    this.renderSubskin = function(skinName, context, buffer) {
         if (!subSkins[skinName] && parentSkin) {
-            renderInternal(parentSkin.getSkinParts(skinName), context);
+            renderInternal(parentSkin.getSkinParts(skinName), context, buffer);
         } else {
-            renderInternal(subSkins[skinName], context);
+            renderInternal(subSkins[skinName], context, buffer);
         }
     };
 
@@ -111,26 +113,26 @@ function Skin(mainSkin, subSkins, parentSkin) {
         return parts;
     };
 
-    var renderInternal = function(parts, context) {
+    var renderInternal = function(parts, context, buffer) {
         for (var i in parts) {
             var part = parts[i];
             if (part instanceof MacroTag) {
                 if (part.name) {
-                    evaluateMacro(part, context);
+                    evaluateMacro(part, context, buffer);
                 }
             } else {
-                res.write(part);
+                buffer.write(part);
             }
         }
     };
 
-    var evaluateMacro = function(macro, context) {
-        var length = res.buffer.length;
-        var value = evaluateExpression(macro, context, '_macro');
+    var evaluateMacro = function(macro, context, buffer) {
+        var length = buffer.length;
+        var value = evaluateExpression(macro, context, '_macro', undefined, buffer);
         var visibleValue = isVisible(value);
-        var wroteSomething = res.buffer.length > length;
+        var wroteSomething = buffer.length > length;
 
-            // check if macro has a filter, if so extra work ahead
+        // check if macro has a filter, if so extra work ahead
         var filter = macro.filter;
         while (filter) {
             // make sure value is not undefined,
@@ -139,27 +141,27 @@ function Skin(mainSkin, subSkins, parentSkin) {
                 value = "";
             }
             if (wroteSomething) {
-                var written = res.buffer.truncate(length);
+                var written = buffer.truncate(length);
                 if (visibleValue) {
                     value = written + value;
                 } else {
                     value = written;
                 }
             }
-            value = evaluateExpression(filter, filters, '_filter', value);
+            value = evaluateExpression(filter, filters, '_filter', value, buffer);
             visibleValue = isVisible(value);
-            wroteSomething = res.buffer.length > length;
+            wroteSomething = buffer.length > length;
             filter = filter.filter;
         }
         if (visibleValue) {
-            res.write(value);
+            buffer.write(value);
         }
     };
 
-    var evaluateExpression = function(macro, context, suffix, value) {
+    var evaluateExpression = function(macro, context, suffix, value, buffer) {
         log.debug('evaluating expression: ' + macro);
         if (builtins[macro.name]) {
-            return builtins[macro.name](macro, context);
+            return builtins[macro.name](macro, context, buffer);
         }
         var path = macro.name.split('.');
         var elem = context;
@@ -198,7 +200,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     // builtin macro handlers
     var builtins = {
-        render: function(macro, context) {
+        render: function(macro, context, buffer) {
             var skin = getEvaluatedParameter(macro.getParameter(0), context, 'render:skin');
             var bind = getEvaluatedParameter(macro.getParameter('bind'), context, 'render:bind');
             var on = getEvaluatedParameter(macro.getParameter('on'), context, 'render:on');
@@ -215,10 +217,10 @@ function Skin(mainSkin, subSkins, parentSkin) {
                     log.debug("key: " + value);
                     subContext[('key')] = key;
                     subContext[(as || 'value')] = value;
-                    self.renderSubskin(skin, subContext);
+                    self.renderSubskin(skin, subContext, buffer);
                 }
             } else {
-                self.renderSubskin(skin, subContext);
+                self.renderSubskin(skin, subContext, buffer);
             }
         }
 

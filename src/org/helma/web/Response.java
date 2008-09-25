@@ -39,7 +39,6 @@ public class Response extends ScriptableObject {
     private HttpServletResponse response;
     private int status = 200;
     private Stack<Buffer> buffers = new Stack<Buffer>();
-    private Map<String, Buffer> namedBuffers;
     private static final long serialVersionUID = 8492609461086704262L;
 
     public Response() {
@@ -83,30 +82,11 @@ public class Response extends ScriptableObject {
     }
 
     /**
-     * Get the ResponseBufffer instance associated with the response's writer
-     * @return the ResponseBuffer
+     * Get the Buffer instance associated with this response
+     * @return the response Buffer
      */
     public Object jsGet_buffer() {
-        return Context.toObject(getBuffer(), getParentScope());
-    }
-
-    /**
-     * Get a named response buffer, creating it if it doesn't exist.
-     * @param name the buffer name
-     * @return the buffer
-     */
-    public Object jsFunction_getBuffer(String name) {
-        Buffer buffer = null;
-        if (namedBuffers == null) {
-            namedBuffers = new HashMap<String, Buffer>();
-        } else {
-            buffer = namedBuffers.get(name);
-        }
-        if (buffer == null) {
-            buffer = new Buffer();
-            namedBuffers.put(name, buffer);
-        }
-        return Context.toObject(buffer, getParentScope());
+        return getBuffer();
     }
 
     /**
@@ -167,7 +147,8 @@ public class Response extends ScriptableObject {
                                           Object[] args, Function funObj) {
         Response res = (Response) thisObj;
         Buffer buffer = res.getBuffer();
-        buffer.writeln(args);
+        buffer.write(args);
+        buffer.write("\r\n");
         return thisObj;
     }
 
@@ -267,7 +248,7 @@ public class Response extends ScriptableObject {
      * directly writing to the response.
      */
     public synchronized void jsFunction_push() {
-        buffers.push(new Buffer());
+        buffers.push(Buffer.createBuffer(getParentScope()));
     }
 
     /**
@@ -294,7 +275,7 @@ public class Response extends ScriptableObject {
 
     public synchronized Buffer getBuffer() {
         if (buffers.isEmpty()) {
-            buffers.push(new Buffer());
+            buffers.push(Buffer.createBuffer(getParentScope()));
         }
         return buffers.peek();
     }
@@ -325,104 +306,6 @@ public class Response extends ScriptableObject {
 
     public String getClassName() {
         return "Response";
-    }
-
-    /**
-     * The Response buffer class. This unites some of the methods of java Writers and StringBuffers.
-     */
-    public class Buffer {
-
-        private StringWriter writer = new StringWriter();
-
-        /**
-         * Get the current length of the buffer.
-         */
-        public int getLength() {
-            return writer.getBuffer().length();
-        }
-
-        /**
-         * Insert a string at the given position.
-         * @param pos the buffer position
-         * @param obj the object to insert
-         * @return this buffer instance
-         */
-        public Buffer insert(int pos, Object obj) {
-            writer.getBuffer().insert(pos, Context.toString(obj));
-            return this;
-        }
-
-        /**
-         * Cut the buffer at the given position, returning the removed substring.
-         * @param pos the index at which to cut the buffer
-         * @return the removed substring
-         */
-        public String truncate(int pos) {
-            StringBuffer buffer = writer.getBuffer();
-            String tail = buffer.substring(pos);
-            buffer.setLength(pos);
-            return tail;
-        }
-
-        /**
-         * Reset the buffer.
-         * @return the buffer instance
-         */
-        public Buffer reset() {
-            writer.getBuffer().setLength(0);
-            return this;
-        }
-
-        /**
-         * Write a number of objects to the buffer separated by space characters, terminated by a line break.
-         * @param args the arguments to write
-         * @return the buffer instance
-         */
-        public Buffer writeln(Object... args) {
-            write(args);
-            writer.write("\r\n");
-            return this;
-        }
-
-        /**
-         * Write a number of objects to the buffer separated by space characters.
-         * @param args the arguments to write
-         * @return the buffer instance
-         */
-        public Buffer write(Object... args) {
-            int length = args.length;
-            for (int i = 0; i < length; i++) {
-                writer.write(Context.toString(args[i]));
-                if (i < length - 1) {
-                    writer.write(" ");
-                }
-            }
-            return this;
-        }
-
-        /**
-         * Get the buffer's writer.
-         * @return the buffer's writer
-         */
-        public StringWriter getWriter() {
-            return writer;
-        }
-
-        /**
-         * Get the StringBuffer associated with this buffer.
-         * @return  the StringBuffer
-         */
-        public StringBuffer getStringBuffer() {
-            return writer.getBuffer();
-        }
-
-        /**
-         * Return the string presentation of this buffer.
-         * @return the string presentation of this buffer.
-         */
-        public String toString() {
-            return writer.getBuffer().toString();
-        }
     }
 }
 

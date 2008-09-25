@@ -98,10 +98,9 @@ public class HelmaServlet extends HttpServlet {
             public Status call() {
                 Request request = new Request(req);
                 Response response = new Response(res);
-                Session session = new Session(req);
                 Status status = new Status();
                 try {
-                    engine.invoke(null, "handleRequest", request, response, session);
+                    engine.invoke(null, "handleRequest", request, response);
                     response.close();
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();

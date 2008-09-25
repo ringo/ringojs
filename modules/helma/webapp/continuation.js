@@ -38,8 +38,8 @@ var continuation_id = null;
  * @param id the continuation id. If not given a new id is generated.
  * @return the continuation url
  */
-Continuation.nextId = function(id) {
-    id = getId(id);
+Continuation.nextId = function(req, id) {
+    id = getId(req, id);
     continuation_id = id;
     return continuation_id;
 };
@@ -51,10 +51,10 @@ Continuation.nextId = function(id) {
  * @param id the continuation id. If not given a new id is generated.
  * @return the continuation url
  */
-Continuation.nextUrl = function(id) {
-    id = getId(id);
+Continuation.nextUrl = function(req, id) {
+    id = getId(req, id);
     continuation_id = id;
-    return Continuation.getUrl(id);
+    return Continuation.getUrl(req, id);
 };
 
 /**
@@ -62,21 +62,26 @@ Continuation.nextUrl = function(id) {
  * @param id the continuation id. If not given a new id is generated.
  * @return the continuation url
  */
-Continuation.getUrl = function(id) {
-   return req.path + "?helma_continuation=" + getId(id);
+Continuation.getUrl = function(req, id) {
+   return req.path + "?helma_continuation=" + getId(req, id);
 }
 
 /**
  * Stop current execution and register continuation for later resumption.
  * @param id the continuation id. If not given a new id is generated.
  */
-Continuation.nextPage = function(id) {
+Continuation.nextPage = function(req, id) {
     // capture continuation and store it in callback container
-    id = getId(id);
-    setCallback(id, new Continuation());
+    id = getId(req, id);
+    setCallback(req, id, new Continuation());
     // trick to exit current context: call empty continuation
     new org.mozilla.javascript.NativeContinuation()();
 };
+
+Continuation.startId = function(req, id) {
+    id = req.data.helma_continuation || id;
+    return id;    
+}
 
 /**
  * This is a utility method used at the start of a continuation action.
@@ -86,18 +91,20 @@ Continuation.nextPage = function(id) {
  * used to avoid re-executing earlier code containing definition of local
  * variables.
  * @param id the continuation id. If not given a new id is generated.
- * @return the continuation id
+ * @return the continuation result
  */
-Continuation.markStart = function(id) {
+Continuation.markStart = function(req, res, id) {
     if (!req.data.helma_continuation) {
         // set query param so helma knows to switch rhino optimization level to -1
-        res.redirect(Continuation.nextUrl(id));
+        res.redirect(Continuation.nextUrl(req, id));
     } else {
         id = req.data.helma_continuation;
+        var cont = new Continuation();
         log.info("Recording continuation start: " + id);
-        Continuation.registerPage(id);
+        setCallback(req, id, cont);
+        continuation_id = null;
+        cont([req, res]);
     }
-    return id;
 }
 
 /**
@@ -105,43 +112,43 @@ Continuation.markStart = function(id) {
  * @param id the continuation id. If not given a new id is generated.
  * @return the continuation id
  */
-Continuation.registerPage = function(id) {
-    id = getId(id);
-    setCallback(id, new Continuation());
-    return Continuation.getUrl(id); 
+Continuation.registerPage = function(req, id) {
+    id = getId(req, id);
+    setCallback(req, id, new Continuation());
+    return Continuation.getUrl(req, id); 
 }
 
 // Private helper functions
 
-var getId = function(id) {
+var getId = function(req, id) {
    if (id == null) {
-      return continuation_id || generateId();
+      return continuation_id || generateId(req);
    }
    return (String(id));
 }
 
-var generateId = function() {
+var generateId = function(req) {
     var id;
     do {
         id = Math.ceil(Math.random() * Math.pow(2, 64)).toString(36);
-    } while (getCallback(id));
+    } while (getCallback(req, id));
     log.debug("Generated continuation id: " + id);
     return id;
 }
 
-var setCallback = function(id, func) {
-    if (!session.data.continuation) {
-        session.data.continuation = {};
+var setCallback = function(req, id, func) {
+    if (!req.session.data.continuation) {
+        req.session.data.continuation = {};
     }
     log.debug("Registered continuation: " + id);
-    session.data.continuation[id] = func;
+    req.session.data.continuation[id] = func;
 };
 
-var getCallback = function(id) {
-    if (!session.data.continuation || !session.data.continuation[id]) {
+var getCallback = function(req, id) {
+    if (!req.session.data.continuation || !req.session.data.continuation[id]) {
         return null;
     }
-    return session.data.continuation[id];
+    return req.session.data.continuation[id];
 };
 
 /**
@@ -149,15 +156,14 @@ var getCallback = function(id) {
  * check if there is a matching continuation, and if so, invoke the continuation
  * and return null.
  */
-var resume = function() {
+var resume = function(req, res) {
     var continuationId = req.params.helma_continuation;
-    if (continuationId && session.data.continuation) {
-        var continuation = session.data.continuation[continuationId];
+    if (continuationId && req.session.data.continuation) {
+        var continuation = req.session.data.continuation[continuationId];
         if (continuation) {
             log.debug("Resuming continuation " + continuationId);
             try {
-                // FIXME: continuations scope gets messed up after some time. dig we must.
-                continuation();
+                continuation([req, res]);
                 return true;
             } catch (e) {
                 error(e);

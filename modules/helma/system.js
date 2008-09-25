@@ -8,26 +8,6 @@ var log = loadModule('helma.logging').getLogger(__name__);
 // mark this module as shared between all requests
 var __shared__ = true;
 
-/**
- * Set this rhino engine up for a web application, registering the standard classes
- * for request, response, session host objects.
- */
-function initWebApp() {
-    log.info('Initializing web app host objects');
-    // set up standard web app host objects
-    addHostObject(org.helma.web.Request);
-    addHostObject(org.helma.web.Response);
-    addHostObject(org.helma.web.Session);
-    addHostObject(org.helma.template.MacroTag);
-    // register a request listener that automatically sets rhino optimization
-    // level to -1 for requests that have a helma_continuation parameter.
-    addCallback('onInvoke', 'continuation-support', function(req) {
-        if (req && req.params.helma_continuation != null) {
-            setRhinoOptimizationLevel(-1);
-        }
-    });
-}
-
 function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
 }
@@ -109,7 +89,27 @@ function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
 }
 
-var args = new ScriptableList(getRhinoEngine().getCommandLineArguments());
-var path = new ScriptableList(getRhinoEngine().getRepositories());
+/**
+ * Get the app's module search path as list of repositories.
+ */
+function getRepositories() {
+    return new ScriptableList(getRhinoEngine().getRepositories());
+}
+
+/**
+ * Add a repository to the module search path
+ * @param repo a repository
+ */
+function addRepository(repo) {
+    if (typeof repo == "string") {
+        repo = new org.helma.repository.FileRepository(repo);
+    }
+    var path = getRepositories();
+    if (repo.exists() && !path.contains(repo)) {
+        path.add(Math.max(0, path.length) - 1, repo);
+    }
+}
+
+const args = new ScriptableList(getRhinoEngine().getCommandLineArguments());
 // make properties read-only
-this.readOnly('args', 'path');
+this.readOnly('args');

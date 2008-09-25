@@ -1,13 +1,12 @@
 /**
- * A minimalist web framework that handles requests and provides
- * skin rendering services similar to helma 1, just that
- * module scopes replace hopobject hierarchies.
+ * The Helma web application framework
  */
 
 loadModule('core.string');
-loadModule('helma.simpleweb.*');
-var continuation = loadModule('helma.continuation');
-var rhino = loadModule('helma.rhino');
+loadModule('helma.webapp.request');
+loadModule('helma.webapp.response');
+var continuation = loadModule('helma.webapp.continuation');
+var system = loadModule('helma.system');
 
 /**
  * Handler function that connects to the Helma servlet. Import this
@@ -17,19 +16,18 @@ var rhino = loadModule('helma.rhino');
  *
  * @param req
  * @param res
- * @param session
  */
-function handleRequest(req, res, session) {
+function handleRequest(req, res) {
     // install req, res and session as per-thread globals
-    putThreadLocal("req", req);
+    /*putThreadLocal("req", req);
     putThreadLocal("res", res);
-    putThreadLocal("session", session);
+    putThreadLocal("session", session);*/
     // invoke onRequest
-    rhino.invokeCallback('onRequest', null, [req]);
+    system.invokeCallback('onRequest', null, [req]);
     // set default content type
     res.contentType = "text/html; charset=UTF-8";
     // resume continuation?
-    if (continuation.resume()) {
+    if (continuation.resume(req, res)) {
         return;
     }
     // resolve path and invoke action
@@ -39,7 +37,7 @@ function handleRequest(req, res, session) {
     for (var i = 1; i < path.length -1; i++) {
         handler = handler[path[i]];
         if (!handler) {
-            notfound();
+            notfound(req, res);
             return;
         }
     }
@@ -53,16 +51,16 @@ function handleRequest(req, res, session) {
             handler[lastPart]['main_action'] instanceof Function) {
             res.redirect(req.path + '/');
         } else if (!handler[action]) {
-            notfound();
+            notfound(req, res);
             return
         }
     }
     try {
-        handler[action].call(handler);
+        handler[action].call(handler, req, res);
     } catch (e) {
-        error(e);
+        error(req, res, e);
     } finally {
-        rhino.invokeCallback('onResponse', null, [res]);
+        system.invokeCallback('onResponse', null, [res]);
     }
 }
 
@@ -70,7 +68,7 @@ function handleRequest(req, res, session) {
  * Standard error page
  * @param e the error that happened
  */
-function error(e) {
+function error(req, res, e) {
     res.status = 500;
     res.contentType = 'text/html';
     res.writeln('<h2>', e, '</h2>');
@@ -92,7 +90,7 @@ function error(e) {
 /**
  * Standard notfound page
  */
-function notfound() {
+function notfound(req, res) {
     res.status = 404;
     res.contentType = 'text/html';
     res.writeln('<h1>Not Found</h1>');

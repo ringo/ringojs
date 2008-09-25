@@ -1,6 +1,6 @@
 loadModule('core.JSON');
-var {File} = loadModule('helma.file');
-var {partial} = loadModule('helma.functional');
+var File = loadModule('helma.file').File;
+var partial = loadModule('helma.functional').partial;
 var log = loadModule('helma.logging').getLogger(__name__);
 
 var __shared__ = true;

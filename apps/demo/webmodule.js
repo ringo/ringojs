@@ -1,10 +1,9 @@
 // a simple web app/module
-var {render} = loadModule('helma.skin');
 
-function main_action() {
+function main_action(req, res) {
     var context = {
         title: 'Module Demo',
         href: req.path
     };
-    render('skins/modules.html', context);
+    res.render('skins/modules.html', context);
 }
