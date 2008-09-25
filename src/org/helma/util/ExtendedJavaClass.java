@@ -53,17 +53,14 @@ public class ExtendedJavaClass extends NativeJavaClass {
 
     public ExtendedJavaClass(Scriptable scope, Class cls) {
 		super(scope, cls);
-        // put it in the class wrapper table
-        Context cx = Context.getCurrentContext();
         // Set the function prototype, as basically Java constructors
 		// behave like JS constructor functions. Like this, all properties
 		// from Function.prototype are inherited.
-		setParentScope(scope);
 		setPrototype(ScriptableObject.getFunctionPrototype(scope));
 		// Determine short className:
 		className = cls.getSimpleName();
 		properties = new HashMap<String, Object>();
-	}
+    }
 
 	public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
 		// If the normal constructor failed, try to see if the last
@@ -167,7 +164,7 @@ public class ExtendedJavaClass extends NativeJavaClass {
     }
 
 	public Scriptable getInstancePrototype() {
-		if (instanceProto == null) {
+        if (instanceProto == null) {
             Context cx = Context.getCurrentContext();
             instanceProto = cx.newObject(getParentScope());
 		}
