@@ -79,7 +79,7 @@ if (__name__ == '__main__') {
         setup = loadModule('setup');
         httpConf = setup.httpConf;
     } catch (noSetup) {
-        log.info('Couldn\'t load setup module - using defaults', noSetup.rhinoException);
+        log.info('Couldn\'t load setup module - using defaults');
     }
     start(httpConf);
 }
