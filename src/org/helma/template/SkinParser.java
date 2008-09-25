@@ -38,34 +38,38 @@ public abstract class SkinParser {
     }
 
     public void parse(Reader r) throws IOException, UnbalancedTagException {
-        if (r instanceof LineNumberReader) {
-            reader = (LineNumberReader) r;
-        } else {
-            reader = new LineNumberReader(r);
-        }
-        int c;
-        while ((c = reader.read()) > 0) {
-            switch (c) {
-                case '<':
-                    reader.mark(1);
-                    if (reader.read() == '%') {
-                        if (buffer.length() > 0) {
-                            renderText(buffer.toString());
-                            buffer.setLength(0);
-                        }
-                        renderMacro(readMacro(reader));
-                    } else {
-                        buffer.append((char) c);
-                        reader.reset();
-                    }
-                    break;
-                default:
-                    buffer.append((char) c);
-                    break;
+        try {
+            if (r instanceof LineNumberReader) {
+                reader = (LineNumberReader) r;
+            } else {
+                reader = new LineNumberReader(r);
             }
-        }
-        if (buffer.length() > 0) {
-            renderText(buffer.toString());
+            int c;
+            while ((c = reader.read()) > 0) {
+                switch (c) {
+                    case '<':
+                        reader.mark(1);
+                        if (reader.read() == '%') {
+                            if (buffer.length() > 0) {
+                                renderText(buffer.toString());
+                                buffer.setLength(0);
+                            }
+                            renderMacro(readMacro(reader));
+                        } else {
+                            buffer.append((char) c);
+                            reader.reset();
+                        }
+                        break;
+                    default:
+                        buffer.append((char) c);
+                        break;
+                }
+            }
+            if (buffer.length() > 0) {
+                renderText(buffer.toString());
+            }
+        } finally {
+            r.close();
         }
     }
 
