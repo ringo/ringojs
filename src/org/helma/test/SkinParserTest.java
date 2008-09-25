@@ -20,7 +20,6 @@ import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 import org.helma.template.MacroTag;
 import org.helma.template.SkinParser;
-import org.helma.template.SkinRenderer;
 import org.helma.template.UnbalancedTagException;
 
 import java.io.IOException;
@@ -32,7 +31,7 @@ import java.util.Map;
 public class SkinParserTest extends TestCase {
 
     public void testComplexDataTypes() throws IOException, UnbalancedTagException {
-        SkinParser parser = new SkinParser(new SkinRenderer() {
+        SkinParser parser = new SkinParser() {
             int i = 0;
             Object[] parts = new Object[] {
                     "start ",
@@ -60,12 +59,12 @@ public class SkinParserTest extends TestCase {
                 assertEquals(text, parts[i++]);
             }
 
-        });
+        };
         parser.parse("start <% name [1, -2.3, \"3\"] {foo: true} %> end");
     }
 
     public void testQuotedMacro() throws IOException, UnbalancedTagException {
-        SkinParser parser = new SkinParser(new SkinRenderer() {
+        SkinParser parser = new SkinParser() {
             public void renderMacro(MacroTag macro) {
                 Map<String,Object> map = new HashMap<String,Object>();
                 map.put("foo", "<%bar%>");
@@ -77,12 +76,12 @@ public class SkinParserTest extends TestCase {
                 throw new AssertionFailedError("renderText called on textless macro: " + text);
             }
 
-        });
+        };
         parser.parse("<% name {foo: \"<%bar%>\"} %>");
     }
 
     public void testMacroList() throws IOException, UnbalancedTagException {
-        SkinParser parser = new SkinParser(new SkinRenderer() {
+        SkinParser parser = new SkinParser() {
             int count = 1;
             public void renderMacro(MacroTag macro) {
                 assertEquals(macro.getArgs().size(), 1);
@@ -91,7 +90,7 @@ public class SkinParserTest extends TestCase {
             public void renderText(String text) {
                 throw new AssertionFailedError("renderText called on textless macro");
             }
-        });
+        };
         parser.parse("<% name 1 %><% name 2 %><% name 3 %>");
     }
 }
