@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/java -jar /usr/share/helma/run.jar $*
