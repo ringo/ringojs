@@ -164,6 +164,7 @@ public class ReloadableScript {
         Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
         if (scope instanceof ModuleScope) {
             moduleScope = (ModuleScope) scope;
+            moduleScope.setChecksum(checksum);
             modules.put(source, scope);
         }
         return script.exec(cx, scope);
