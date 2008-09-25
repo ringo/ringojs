@@ -4,13 +4,14 @@ loadModule('core.string');
 loadModule('core.object');
 var filters = loadModule('helma.filters');
 var log = loadModule('helma.logging').getLogger(__name__);
-var rhino = loadModule('helma.rhino');
-rhino.addHostObject(org.helma.template.MacroTag);
+var system = loadModule('helma.system');
+system.addHostObject(org.helma.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
- * @param skinOrPath
- * @param context
+ * @param skinOrPath a skin object or a file name
+ * @param context the skin render context
+ * @param scope optional scope object for relative resource lookup
  */
 function render(skinOrPath, context, scope) {
     scope = scope || this;
@@ -22,8 +23,8 @@ function render(skinOrPath, context, scope) {
         if (skinOrPath.indexOf('#') > -1) {
             [skinOrPath, subskin] = skinOrPath.split('#');
         }
-        var resource = this.getResource(skinOrPath);
-        skin = createSkin(resource, this);
+        var resource = scope.getResource(skinOrPath);
+        skin = createSkin(resource, scope);
         if (subskin) {
             skin = skin.getSubskin(subskin);
         }

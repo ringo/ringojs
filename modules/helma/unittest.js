@@ -1,6 +1,6 @@
 loadModule("core.string");
-var rhino = loadModule("helma.rhino");
-var {writeln} = loadModule("helma.shell");
+var system = loadModule("helma.system");
+var writeln = loadModule("helma.shell").writeln;
 
 var __shared__ = true;
 
@@ -1072,7 +1072,7 @@ var __shared__ = true;
 
 
 if (__name__ == '__main__') {
-   for each (var test in rhino.args) {
+   for each (var test in system.args) {
       run(test);
    }
 }

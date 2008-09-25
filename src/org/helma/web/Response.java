@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -38,8 +39,6 @@ public class Response extends ScriptableObject {
 
     private HttpServletResponse response;
     private int status = 200;
-    private Stack<Buffer> buffers = new Stack<Buffer>();
-    private Map<String, Buffer> namedBuffers;
     private static final long serialVersionUID = 8492609461086704262L;
 
     public Response() {
@@ -83,33 +82,6 @@ public class Response extends ScriptableObject {
     }
 
     /**
-     * Get the ResponseBufffer instance associated with the response's writer
-     * @return the ResponseBuffer
-     */
-    public Object jsGet_buffer() {
-        return Context.toObject(getBuffer(), getParentScope());
-    }
-
-    /**
-     * Get a named response buffer, creating it if it doesn't exist.
-     * @param name the buffer name
-     * @return the buffer
-     */
-    public Object jsFunction_getBuffer(String name) {
-        Buffer buffer = null;
-        if (namedBuffers == null) {
-            namedBuffers = new HashMap<String, Buffer>();
-        } else {
-            buffer = namedBuffers.get(name);
-        }
-        if (buffer == null) {
-            buffer = new Buffer();
-            namedBuffers.put(name, buffer);
-        }
-        return Context.toObject(buffer, getParentScope());
-    }
-
-    /**
      * Property to set/get the Content-Type header of the current HTTP response.
      *
      *   res.contentType = "text/html";
@@ -144,10 +116,10 @@ public class Response extends ScriptableObject {
      * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
     public static Object jsFunction_write(Context cx, Scriptable thisObj,
-                                        Object[] args, Function funObj) {
+                                        Object[] args, Function funObj)
+            throws IOException {
         Response res = (Response) thisObj;
-        Buffer buffer = res.getBuffer();
-        buffer.write(args);
+        res.write(args);
         return thisObj;
     }
 
@@ -164,11 +136,29 @@ public class Response extends ScriptableObject {
      * @rhinoparam arg Object one ore more objects to write to the response buffer
      */
     public static Object jsFunction_writeln(Context cx, Scriptable thisObj,
-                                          Object[] args, Function funObj) {
+                                          Object[] args, Function funObj)
+            throws IOException {
         Response res = (Response) thisObj;
-        Buffer buffer = res.getBuffer();
-        buffer.writeln(args);
+        res.write(args);
+        res.write("\r\n");
         return thisObj;
+    }
+
+    /**
+     * Write a number of objects to the buffer separated by space characters.
+     * @param args the arguments to write
+     * @return the buffer instance
+     */
+    public ScriptableObject write(Object... args) throws IOException {
+        int length = args.length;
+        PrintWriter writer = response.getWriter();
+        for (int i = 0; i < length; i++) {
+            writer.write(Context.toString(args[i]));
+            if (i < length - 1) {
+                writer.write(" ");
+            }
+        }
+        return this;
     }
 
     /**
@@ -257,60 +247,6 @@ public class Response extends ScriptableObject {
         throw new RedirectException(target);
     }
 
-    /**
-     * Push a new buffer on the response stack. Output written to the
-     * response will be directed to this buffer instead of the main
-     * response body, and returned as String when *res.pop()|pop()* is called.
-     *
-     * This can be used to prepare parts of the response in arbitrary order
-     * without the need to have the generating code be aware that they aren't
-     * directly writing to the response.
-     */
-    public synchronized void jsFunction_push() {
-        buffers.push(new Buffer());
-    }
-
-    /**
-     * Pop a buffer from the response stack and return its contents as String.
-     * This must used in called after *res.push()|push()*, otherwise an exception
-     * will be thrown. 
-     *
-     * This can be used to prepare parts of the response in arbitrary order
-     * without the need to have the generating code be aware that they aren't
-     * directly writing to the response.
-     * @return the content of the last response buffer as String
-     */
-    public synchronized String jsFunction_pop() {
-        return buffers.pop().toString();
-    }
-
-    /**
-     * Pop all remaining buffers, write their contents to the HTTP response and
-     * close the underlying servlet's response stream.
-     */
-    public synchronized void jsFunction_close() throws IOException {
-        close();
-    }    
-
-    public synchronized Buffer getBuffer() {
-        if (buffers.isEmpty()) {
-            buffers.push(new Buffer());
-        }
-        return buffers.peek();
-    }
-
-    public synchronized void close() throws IOException {
-        while (buffers.size() > 1) {
-            Buffer buffer = buffers.pop();
-            buffers.peek().write(buffer.toString());
-        }
-        if (buffers.size() == 1) {
-            Writer servletWriter = response.getWriter();
-            servletWriter.write(buffers.pop().toString());
-            servletWriter.close();
-        }
-    }
-
     public ServletOutputStream getOutputStream() {
         try {
             return response.getOutputStream();
@@ -325,104 +261,6 @@ public class Response extends ScriptableObject {
 
     public String getClassName() {
         return "Response";
-    }
-
-    /**
-     * The Response buffer class. This unites some of the methods of java Writers and StringBuffers.
-     */
-    public class Buffer {
-
-        private StringWriter writer = new StringWriter();
-
-        /**
-         * Get the current length of the buffer.
-         */
-        public int getLength() {
-            return writer.getBuffer().length();
-        }
-
-        /**
-         * Insert a string at the given position.
-         * @param pos the buffer position
-         * @param obj the object to insert
-         * @return this buffer instance
-         */
-        public Buffer insert(int pos, Object obj) {
-            writer.getBuffer().insert(pos, Context.toString(obj));
-            return this;
-        }
-
-        /**
-         * Cut the buffer at the given position, returning the removed substring.
-         * @param pos the index at which to cut the buffer
-         * @return the removed substring
-         */
-        public String truncate(int pos) {
-            StringBuffer buffer = writer.getBuffer();
-            String tail = buffer.substring(pos);
-            buffer.setLength(pos);
-            return tail;
-        }
-
-        /**
-         * Reset the buffer.
-         * @return the buffer instance
-         */
-        public Buffer reset() {
-            writer.getBuffer().setLength(0);
-            return this;
-        }
-
-        /**
-         * Write a number of objects to the buffer separated by space characters, terminated by a line break.
-         * @param args the arguments to write
-         * @return the buffer instance
-         */
-        public Buffer writeln(Object... args) {
-            write(args);
-            writer.write("\r\n");
-            return this;
-        }
-
-        /**
-         * Write a number of objects to the buffer separated by space characters.
-         * @param args the arguments to write
-         * @return the buffer instance
-         */
-        public Buffer write(Object... args) {
-            int length = args.length;
-            for (int i = 0; i < length; i++) {
-                writer.write(Context.toString(args[i]));
-                if (i < length - 1) {
-                    writer.write(" ");
-                }
-            }
-            return this;
-        }
-
-        /**
-         * Get the buffer's writer.
-         * @return the buffer's writer
-         */
-        public StringWriter getWriter() {
-            return writer;
-        }
-
-        /**
-         * Get the StringBuffer associated with this buffer.
-         * @return  the StringBuffer
-         */
-        public StringBuffer getStringBuffer() {
-            return writer.getBuffer();
-        }
-
-        /**
-         * Return the string presentation of this buffer.
-         * @return the string presentation of this buffer.
-         */
-        public String toString() {
-            return writer.getBuffer().toString();
-        }
     }
 }
 

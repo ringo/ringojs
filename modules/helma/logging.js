@@ -40,8 +40,8 @@ var __shared__ = true;
      */
     this.enableResponseLog = function() {
         // onLogEvent() callback is called by org.helma.util.RhinoAppender
-        var rhino = loadModule('helma.rhino');
-        rhino.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
+        var system = loadModule('helma.system');
+        system.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
             if (!global.res) {
                 return;
             }
@@ -61,7 +61,7 @@ var __shared__ = true;
             return null;
         });
         // add an onResponse callback to automatically flush the response log
-        rhino.addCallback("onResponse", "responseLogFlusher", function(res) {
+        system.addCallback("onResponse", "responseLogFlusher", function(res) {
             if (res.status == 200 || res.status >= 400) {
                 self.flushResponseLog();
             }
@@ -74,9 +74,9 @@ var __shared__ = true;
      */
     this.disableResponseLog = function() {
         // unregister handlers added in startResponseLog()
-        var rhino = loadModule('helma.rhino');
-        rhino.removeCallback("onLogEvent", "responseLog");
-        rhino.removeCallback("onResponse", "responseLogFlusher");
+        var system = loadModule('helma.system');
+        system.removeCallback("onLogEvent", "responseLog");
+        system.removeCallback("onResponse", "responseLogFlusher");
         responseLogEnabled = false;
     };
 

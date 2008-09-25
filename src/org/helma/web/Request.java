@@ -36,6 +36,7 @@ import java.util.*;
 public class Request extends ScriptableObject {
 
     HttpServletRequest request;
+    Session session;
     Scriptable cookies, data, params, headers, attributes;
     private static final long serialVersionUID = -2167096504665220425L;
 
@@ -76,6 +77,17 @@ public class Request extends ScriptableObject {
      */
     public int jsGet_port() {
         return request.getServerPort();
+    }
+
+    /**
+     * Get the session object for this request, creating it if it doesn't exist
+     * @return the session associated with this request
+     */
+    public Object jsGet_session() {
+        if (session == null) {
+            session = new Session(request, getParentScope());
+        }
+        return session;
     }
 
     /**
