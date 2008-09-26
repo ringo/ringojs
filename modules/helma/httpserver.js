@@ -26,7 +26,7 @@ var log = loadModule('helma.logging').getLogger(__name__);
      * <li> mountpoint ('/')</li>
      * <li>staticDir ('static')</li>
      * <li>staticMountpoint ('/static')</li>
-     * <li>servletParams ({ moduleName: 'main',
+     * <li>servletParams ({ moduleName: 'helma.webapp',
      *                      functionName: 'handleRequest',
      *                      requestTimeout: 30 })</li>
      * </ul>
@@ -57,8 +57,8 @@ var log = loadModule('helma.logging').getLogger(__name__);
                 var idMap = xmlconfig.getIdMap();
                 // java.lang.System.err.println("idmap: " + idMap);
                 var staticCtx = idMap.get('staticContext');
-                if (staticCtx) {
-                    staticCtx.setResourceBase(getResource(config.staticDir || 'static'));
+                if (staticCtx && typeof config.staticDir == "string") {
+                    staticCtx.setResourceBase(getResource(config.staticDir));
                     var staticHolder = new jetty.servlet.ServletHolder(jetty.servlet.DefaultServlet);
                     staticCtx.addServlet(staticHolder, "/*");
                 }
@@ -68,7 +68,7 @@ var log = loadModule('helma.logging').getLogger(__name__);
                     var helmaServlet = new HelmaServlet(engine);
                     var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
                     var params = config.servletParams || {
-                        moduleName: 'main',
+                        moduleName: 'helma.webapp',
                         functionName: 'handleRequest',
                         requestTimeout: 30
                     };

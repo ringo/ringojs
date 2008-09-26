@@ -46,33 +46,65 @@ function handleRequest(req, res) {
     if (continuation.resume(req, res)) {
         return;
     }
+
     // resolve path and invoke action
-    var path = req.path.split('/');
-    var handler = this;
-    // first element is always empty string if path starts with '/'
-    for (var i = 1; i < path.length -1; i++) {
-        handler = handler[path[i]];
-        if (!handler) {
-            notfound(req, res);
-            return;
+    var path = req.path;
+    if (path.startsWith('/')) {
+        // strip leading slash
+        path = path.slice(1)
+    }
+
+    function getRegExp(pattern) {
+        if (pattern instanceof RegExp) {
+            return pattern;
+        } else if (typeof pattern == "string") {
+            return new RegExp(pattern);
+        } else {
+            throw Error("Pattern must be a regular expression or string");
         }
     }
-    var lastPart = path[path.length - 1];
-    var action = lastPart ?
-                 lastPart.replace('.', '_', 'g') + '_action' :
-                 'main_action';
-    // res.writeln(handler, action, handler[action]);
-    if (!(handler[action] instanceof Function)) {
-        if (!req.path.endsWith('/') && handler[lastPart] &&
-            handler[lastPart]['main_action'] instanceof Function) {
-            res.redirect(req.path + '/');
-        } else if (!handler[action]) {
-            notfound(req, res);
-            return
-        }
-    }
+
     try {
-        handler[action].call(handler, req, res);
+        log.debug('resolving path ' + path);
+        var setup = loadModule('setup');
+        log.debug('got setup: ' + setup);
+        if (setup.urls instanceof Array) {
+            var urls = setup.urls;
+            for (var i = 0; i < urls.length; i++) {
+                log.debug("checking url line: " + urls[i]);
+                var match = getRegExp(urls[i][0]).exec(path);
+                log.debug("got match: " + match);
+                if (match != null) {
+                    var action = urls[i][1];
+                    log.debug("action: " + action);
+                    if (typeof action == "string") {
+                        log.debug("action is string");
+                        var dot = action.lastIndexOf('.');
+                        if (dot < 0) {
+                            throw Error('Action must be of form "module.function"');
+                        }
+                        var module = action.slice(0, dot);
+                        var func = action.slice(dot + 1);
+                        action = loadModule(module)[func];
+                        if (log.isDebugEnabled()) {
+                            log.debug("resolved action: " + action);
+                        }
+                    } else if (typeof action == "function") {
+                        throw Error('Action must either be a string or a function');
+                    }
+                    // got a match - add any regexp groups as additional action arguments
+                    var args = [req, res];
+                    for (var j = 1; j < match.length; j++) {
+                        args.push(match[j]);
+                    }
+                    if (typeof action == "function") {
+                        action.apply(null, args);
+                        return;
+                    }
+                }
+            }
+        }
+        notfound(req, res);
     } catch (e) {
         error(req, res, e);
     } finally {
@@ -119,7 +151,15 @@ function notfound(req, res) {
  */
 function start(config) {
     // start jetty http server
-    server.start(config);
+    var setup;
+    var httpConf;
+    try {
+        setup = config || loadModule('setup');
+        httpConf = setup.httpConf;
+    } catch (noSetup) {
+        log.info('Couldn\'t load setup module - using defaults');
+    }
+    server.start(httpConf);
 }
 
 
@@ -140,13 +180,5 @@ if (__name__ == '__main__') {
         system.addRepository(arg);
     }
     log.info('Setup module search: ' + system.getRepositories());
-    var setup;
-    var httpConf;
-    try {
-        setup = loadModule('setup');
-        httpConf = setup.httpConf;
-    } catch (noSetup) {
-        log.info('Couldn\'t load setup module - using defaults');
-    }
-    start(httpConf);
+    start();
 }

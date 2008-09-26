@@ -1,0 +1,3 @@
+var urls =[
+    [ /^$/, 'main.index' ]
+]

@@ -6,7 +6,7 @@ var model = loadModule('model');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
-function main_action(req, res) {
+function index(req, res) {
     if (req.data.save) {
         createBook(req, res);
     }

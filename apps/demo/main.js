@@ -2,21 +2,23 @@ var webapp = loadModule('helma.webapp');
 var handleRequest = webapp.handleRequest;
 var render = loadModule('helma.skin').render;
 // loadModule('helma.continuation');
-var logging = loadModule('helma.logging');
-logging.enableResponseLog();
-var log = logging.getLogger(__name__);
+var helma = {
+    logging : loadModule('helma.logging')
+}
+helma.logging.enableResponseLog();
+var log = helma.logging.getLogger(__name__);
 
 var mount = {
     point: loadModule('webmodule')
 }
 
 // the main action is invoked for http://localhost:8080/
-function main_action(req, res) {
+function index(req, res) {
     res.render('skins/index.html', { title: 'Welcome to Helma NG' });
 }
 
 // demo for skins, macros, filters
-function skins_action(req, res) {
+function skins(req, res) {
     var context = {
         title: 'Skin Demo',
         name: 'Luisa',
@@ -26,11 +28,11 @@ function skins_action(req, res) {
 }
 
 // demo for log4j logging
-function logging_action(req, res) {
+function logging(req, res) {
     // make sure responselog is enabled
-    var hasResponseLog = logging.responseLogEnabled();
+    var hasResponseLog = helma.logging.responseLogEnabled();
     if (!hasResponseLog) {
-        logging.enableResponseLog();
+        helma.logging.enableResponseLog();
         log.debug("enabling response log");
     }
     if (req.data.info) {
@@ -45,13 +47,13 @@ function logging_action(req, res) {
     res.render('skins/logging.html', { title: "Logging Demo" });
     if (!hasResponseLog) {
         log.debug("disabling response log");
-        logging.disableResponseLog();
+        helma.logging.disableResponseLog();
     }
-    logging.flushResponseLog();
+    helma.logging.flushResponseLog();
 }
 
 // demo for continuation support
-function continuation_action(req, res) {
+function continuation(req, res) {
 
     // local data - this is the data that is shared between resuming and suspension
     var data = {};
@@ -115,11 +117,6 @@ function continuation_action(req, res) {
             });
         }
     }
-}
-
-
-function test_action(req, res) {
-    res.buffer.write(req, req.session);
 }
 
 // main method called to start application
