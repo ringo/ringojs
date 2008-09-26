@@ -45,13 +45,14 @@ public class RhinoEngine {
     List<Repository>                   repositories;
     ScriptableObject                   topLevelScope;
     List<String>                       commandLineArgs;
-    Map<Trackable, ReloadableScript>      compiledScripts    = new HashMap<Trackable, ReloadableScript>();
-    Map<Trackable, ReloadableScript>      interpretedScripts = new HashMap<Trackable, ReloadableScript>();
+    Map<Trackable, ReloadableScript>   compiledScripts    = new HashMap<Trackable, ReloadableScript>();
+    Map<Trackable, ReloadableScript>   interpretedScripts = new HashMap<Trackable, ReloadableScript>();
     Set<ReloadableScript>              sharedScripts      = new HashSet<ReloadableScript>();
     Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
     Map<String, ExtendedJavaClass>     javaWrappers       = new HashMap<String, ExtendedJavaClass>();
+    Set<Class>                         hostClasses        = new HashSet<Class>();
 
     HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
     ModuleScope                        mainScope          = null;
@@ -110,7 +111,12 @@ public class RhinoEngine {
      */
     public void defineHostClass(Class clazz)
             throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        ScriptableObject.defineClass(topLevelScope, clazz);
+        synchronized (clazz) {
+            if (!hostClasses.contains(clazz)) {
+               hostClasses.add(clazz);
+               ScriptableObject.defineClass(topLevelScope, clazz);
+            }
+        }
     }
 
     /**
