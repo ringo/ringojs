@@ -5,6 +5,8 @@
 // mark this module as shared between all requests
 var __shared__ = true;
 
+var log = loadModule('helma.logging').getLogger(__name__);
+
 
 (function() {
 
@@ -22,8 +24,11 @@ var __shared__ = true;
      * <li>configFile ('jetty.xml')</li>
      * <li>port (8080)</li>
      * <li> mountpoint ('/')</li>
-     * </li>staticDir ('static')</li>
-     * </li>staticMountpoint ('/static')</li>
+     * <li>staticDir ('static')</li>
+     * <li>staticMountpoint ('/static')</li>
+     * <li>servletParams ({ moduleName: 'main',
+     *                      functionName: 'handleRequest',
+     *                      requestTimeout: 30 })</li>
      * </ul>
      */
     this.start = function(config) {
@@ -61,7 +66,16 @@ var __shared__ = true;
                 var helmaCtx = idMap.get('helmaContext');
                 if (helmaCtx) {
                     var helmaServlet = new HelmaServlet(engine);
-                    helmaCtx.addServlet(new jetty.servlet.ServletHolder(helmaServlet), "/*");
+                    var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
+                    var params = config.servletParams || {
+                        moduleName: 'main',
+                        functionName: 'handleRequest',
+                        requestTimeout: 30
+                    };
+                    for (var p in params) {
+                        servletHolder.setInitParameter(p, params[p]);
+                    }
+                    helmaCtx.addServlet(servletHolder, "/*");
                 }
                 // start server
                 server.start();

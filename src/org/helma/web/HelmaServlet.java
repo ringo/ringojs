@@ -37,6 +37,8 @@ public class HelmaServlet extends HttpServlet {
 
     private int requestTimeout = 30;
 
+    private String moduleName, functionName;
+
     static protected Class[] defaultHostClasses =
         new Class[] {
             Request.class,
@@ -64,12 +66,20 @@ public class HelmaServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         // pool = Executors.newFixedThreadPool(8);
         pool = Executors.newCachedThreadPool();
+        moduleName = config.getInitParameter("moduleName");
+        if (moduleName == null) {
+            throw new ServletException("moduleName servlet parameter not defined");
+        }
+        functionName = config.getInitParameter("functionName");
+        if (functionName == null) {
+            throw new ServletException("functionName servlet parameter not defined");
+        }
+        String timeout = config.getInitParameter("requestTimeout");
+        if (timeout != null) {
+            requestTimeout = Integer.parseInt(timeout);
+        }
         if (engine == null) {
             try {
-                String timeout = config.getInitParameter("requestTimeout");
-                if (timeout != null) {
-                    requestTimeout = Integer.parseInt(timeout);
-                }
                 String classNames = config.getInitParameter("hostClasses");
                 Class[] classes = defaultHostClasses;
                 if (classNames != null) {
@@ -98,7 +108,7 @@ public class HelmaServlet extends HttpServlet {
             public Status call() {
                 Status status = new Status();
                 try {
-                    engine.invoke(null, "handleRequest", new Request(req), new Response(res));
+                    engine.invoke(moduleName, functionName, new Request(req), new Response(res));
                 } catch (RedirectException redir) {
                     status.redirect = redir.getMessage();
                 } catch (WrappedException wx) {
