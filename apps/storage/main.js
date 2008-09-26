@@ -1,5 +1,5 @@
 var webapp = loadModule('helma.webapp');
-var handleRequest = loadModule('helma.webapp.handler').handleRequest;
+var handleRequest = webapp.handleRequest;
 // db model
 var model = loadModule('model');
 

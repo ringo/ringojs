@@ -28,6 +28,12 @@
  */
 
 var log = loadModule('helma.logging').getLogger(__name__);
+var system = loadModule('helma.system');
+system.addCallback('onInvoke', 'continuation-support', function(req) {
+    if (req && req.params.helma_continuation != null) {
+        system.setRhinoOptimizationLevel(-1);
+    }
+});
 
 var continuation_id = null;
 

@@ -1,5 +1,5 @@
 var webapp = loadModule('helma.webapp');
-var handleRequest = loadModule('helma.webapp.handler').handleRequest;
+var handleRequest = webapp.handleRequest;
 var render = loadModule('helma.skin').render;
 // loadModule('helma.continuation');
 var logging = loadModule('helma.logging');

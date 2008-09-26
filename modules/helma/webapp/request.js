@@ -1,3 +1,7 @@
+var system = loadModule('helma.system');
+system.addHostObject(org.helma.web.Request);
+system.addHostObject(org.helma.web.Session);
+
 /**
  * Return true if this is a HTTP POST request.
  */

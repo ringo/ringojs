@@ -1,4 +1,5 @@
 var system = loadModule('helma.system');
+system.addHostObject(org.helma.web.Response);
 
 system.addCallback("onResponse", "debugFlusher", function(res) {
     if (res.status == 200 || res.status >= 400) {
