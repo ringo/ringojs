@@ -60,18 +60,6 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
         cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
-        // cx.putThreadLocal("threadscope", engine.createThreadScope(cx));
-        // This is how we check for updates in shared scripts:
-        // when entering a context, we check if _any_ of the shared modules
-        // has been updated. If so, we clear the shared module tracker and
-        // mark the context to reload _all_ shared modules it comes across.
-        for (ReloadableScript script: engine.sharedScripts) {
-            if (!script.isUpToDate()) {
-                cx.putThreadLocal("force_reload", Boolean.TRUE);
-                engine.sharedScripts.clear();
-                break;
-            }
-        }
         cx.setApplicationClassLoader(engine.loader);
         cx.setWrapFactory(engine.wrapFactory);
         cx.setLanguageVersion(languageVersion);

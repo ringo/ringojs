@@ -23,9 +23,7 @@ import org.mozilla.javascript.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class represents a JavaScript Resource.
@@ -49,6 +47,8 @@ public class ReloadableScript {
     Exception exception = null;
     // the loaded module scope is cached for shared modules
     ModuleScope moduleScope = null;
+    // Set of direct module dependencies
+    HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
 
 
     /**
@@ -158,16 +158,22 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Object evaluate(Scriptable scope, Context cx)
+    protected Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
-        if (scope instanceof ModuleScope) {
-            moduleScope = (ModuleScope) scope;
-            moduleScope.setChecksum(checksum);
-            modules.put(source, scope);
+        Map<Trackable,Scriptable> modules =
+                (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        ModuleScope module = scope instanceof ModuleScope ?
+                (ModuleScope) scope : null;
+        if (module != null) {
+            modules.put(source, module);
         }
-        return script.exec(cx, scope);
+        Object value = script.exec(cx, scope);
+        if (scope instanceof ModuleScope) {
+            checkShared(module);
+            module.setChecksum(getChecksum());
+        }
+        return value;
     }
 
     /**
@@ -191,11 +197,7 @@ public class ReloadableScript {
         ModuleScope module = moduleScope;
         if (module != null) {
             // Reuse cached scope for shared modules.
-            // If any shared module has been updated, the force_reload flag is set
-            // in the context. This is necessary to catch changes in shared modules
-            // loaded by other shared modules.
-            boolean forceReload = cx.getThreadLocal("force_reload") == Boolean.TRUE;
-            if (module.getChecksum() == checksum && !forceReload) {
+            if (module.getChecksum() == getChecksum()) {
                 modules.put(source, module);
                 return module;
             }
@@ -205,9 +207,8 @@ public class ReloadableScript {
         }
         modules.put(source, module);
         script.exec(cx, module);
-        module.setChecksum(checksum);
-        shared = module.get("__shared__", module) == Boolean.TRUE;
-        moduleScope = shared ? module : null;
+        checkShared(module);
+        module.setChecksum(getChecksum());
         return module;
     }
 
@@ -220,6 +221,16 @@ public class ReloadableScript {
     }
 
     /**
+     * Check if the module has the __shared__ flag set, and set the moduleScope
+     * field accordingly.
+     * @param module the module scope
+     */
+    protected void checkShared(ModuleScope module) {
+        shared = module.get("__shared__", module) == Boolean.TRUE;
+        moduleScope = shared ? module : null;
+    }
+
+    /**
      * Checks if the main file or any of the files it includes were updated 
      * since the script was last parsed and evaluated.
      * @return true if none of the included files has been updated since
@@ -229,6 +240,79 @@ public class ReloadableScript {
         return source.getChecksum() == checksum;
     }
 
+    /**
+     * Get the checksum of the script. For ordinary (non-shared) modules this is just
+     * the checksum of the script code itself. For shared modules, it includes the
+     * transitive sum of loaded module checksums, as shared modules need to be re-evaluated
+     * even if just a dependency has been updated.
+     * @return the evaluation checksum for this script
+     */
+    protected long getChecksum() {
+        long cs = checksum;
+        if (shared) {
+            Set<ReloadableScript> set = new HashSet<ReloadableScript>();
+            for (ReloadableScript script: dependencies) {
+                cs += script.getNestedChecksum(set);
+            }
+        }
+        return cs;
+    }
+
+    /**
+     * Get the recursive checksum of this script as a dependency. Since the checksum
+     * field may not be up-to-date we directly get the checksum from the underlying
+     * resource.
+     * @param set visited script set to prevent cyclic invokation
+     * @return the nested checksum
+     */
+    protected long getNestedChecksum(Set<ReloadableScript> set) {
+        if (set.contains(this)) {
+            return 0;
+        }
+        set.add(this);
+        long cs = source.getChecksum();
+        for (ReloadableScript script: dependencies) {
+            cs += script.getNestedChecksum(set);
+        }
+        return cs;
+
+    }
+
+    /**
+     * Register a script that this script depends on. This means that the script
+     * has been loaded directly or indirectly from the top scope of this module.
+     *
+     * The purpose of this is to keep track of modules loaded indirectly by shared
+     * modules, as we wouldn't normally notice they have been updated.
+     *
+     * Scripts loaded __after__ a module has been loaded do not count as dependencies,
+     * as they will be checked each time they are loaded.
+     *
+     * @param script a script we depend on
+     */
+    protected void addDependency(ReloadableScript script) {
+        if (!dependencies.contains(script)) {
+            dependencies.add(script);
+        }
+    }
+
+    /**
+     * Hash code delegates to source.
+     * @return the hash code
+     */
+    public int hashCode() {
+        return source.hashCode();
+    }
+
+    /**
+     * Equal check delegates to source.
+     * @param obj the object to compare ourself to
+     * @return true if it is a script with the same resource
+     */
+    public boolean equals(Object obj) {
+        return obj instanceof ReloadableScript
+                && source.equals(((ReloadableScript) obj).source);
+    }
 }
 
 

@@ -47,7 +47,6 @@ public class RhinoEngine {
     List<String>                       commandLineArgs;
     Map<Trackable, ReloadableScript>   compiledScripts    = new HashMap<Trackable, ReloadableScript>();
     Map<Trackable, ReloadableScript>   interpretedScripts = new HashMap<Trackable, ReloadableScript>();
-    Set<ReloadableScript>              sharedScripts      = new HashSet<ReloadableScript>();
     Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
@@ -83,14 +82,11 @@ public class RhinoEngine {
                     defineHostClass(clazz);
                 }
             }
-            // ImporterTopLevel.init(cx, topLevelScope, false);
-            /* GlobalFunctions.init(topLevelScope); */
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
-            /* JSAdapter.init(cx, topLevelScope, false); */
             ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
                     ScriptableObject.DONTENUM);
-            getScript("global").evaluate(topLevelScope, cx);
+            evaluate(cx, getScript("global"), topLevelScope);
             // topLevelScope.sealObject();
         } catch (Exception x) {
             throw new IllegalArgumentException("Error initializing engine", x);
@@ -196,7 +192,7 @@ public class RhinoEngine {
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
             mainScope = new ModuleScope("__main__", resource, topLevelScope);
-            retval = script.evaluate(mainScope, cx);
+            retval = evaluate(cx, script, mainScope);
         	if (retval instanceof Wrapper) {
         		return ((Wrapper) retval).unwrap();
         	}
@@ -266,7 +262,7 @@ public class RhinoEngine {
             Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
             ModuleScope scope = new ModuleScope("<shell>", resource, parentScope);
             try {
-                getScript("helma.shell").evaluate(scope, cx);
+                evaluate(cx, getScript("helma.shell"), scope);
             } catch (Exception x) {
                 log.error("Warning: couldn't load module 'helma.shell'", x);
             }
@@ -358,6 +354,23 @@ public class RhinoEngine {
         return script;
     }
 
+    public Object evaluate(Context cx, ReloadableScript script, Scriptable scope)
+            throws IOException {
+        Object result;
+        ReloadableScript parent = getCurrentScript(cx);
+        try {
+            setCurrentScript(cx, script);
+            result = script.evaluate(scope, cx);
+        } finally {
+            if (parent != null) {
+                parent.addDependency(script);
+            }
+            setCurrentScript(cx, parent);
+        }
+        return result;
+
+    }
+
     /**
      * Load a Javascript module into a module scope. This checks if the module has already
      * been loaded in the current context and if so returns the existing module scope.
@@ -371,13 +384,26 @@ public class RhinoEngine {
             throws IOException {
         Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable module =  script.load(topLevelScope, moduleName, cx);
-        if (script.isShared()) {
-            sharedScripts.add(script);
-        } else {
-            sharedScripts.remove(script);
+        Scriptable module;
+        ReloadableScript parent = getCurrentScript(cx);
+        try {
+            setCurrentScript(cx, script);
+            module =  script.load(topLevelScope, moduleName, cx);
+        } finally {
+            if (parent != null) {
+                parent.addDependency(script);
+            }
+            setCurrentScript(cx, parent);
         }
         return module;
+    }
+
+    private ReloadableScript getCurrentScript(Context cx) {
+        return (ReloadableScript) cx.getThreadLocal("current_script");
+    }
+
+    private void setCurrentScript(Context cx, ReloadableScript script) {
+        cx.putThreadLocal("current_script", script);
     }
 
 
