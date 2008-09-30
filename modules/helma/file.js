@@ -722,8 +722,14 @@ function File(path) {
       return body.toByteArray();
    };
 
-   for (var i in this)
-      this.dontEnum(i);
+   // defining an empty  __iterator__ is much better than using dontEnum()
+   // which is __really__ slow.
+   // PS: we might want to return a line iterator for the file
+   this.__iterator__ = function() {
+       // quirk: js requires a "yield" to recognize the function as generator
+       if (false) yield;
+       throw StopIteration;
+   }
 
    return this;
 }
