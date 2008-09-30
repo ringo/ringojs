@@ -1,19 +1,5 @@
 /*
- * The app module can be used to control a web application from javascript.
- * Currently this isn't used by the helma command line server (server.jar),
- * but it can be used to start the application server from the shell using
- * the following command:
- *
- *   importModule('app');
- *   app.start();
- *
- * It takes care of the following things:
- *
- *  - Initializing native host objects
- *  - Setting interceptors or rules to automatically switch optimization
- *      mode on certain requests
- *  - Starting and configuring the web server
- *
+ * The webapp module provides support for building web applications in Helma NG.
  */
 
 __shared__ = true;
@@ -29,10 +15,7 @@ var log = loadModule('helma.logging').getLogger(__name__);
 
 
 /**
- * Handler function that connects to the Helma servlet. Import this
- * into your main module scope:
- *
- * <code>importFromModule('helma.simpleweb', 'handleRequest');</code>
+ * Handler function called by the Helma servlet. 
  *
  * @param req
  * @param res
@@ -109,6 +92,7 @@ function handleRequest(req, res) {
         error(req, res, e);
     } finally {
         system.invokeCallback('onResponse', null, [res]);
+        res.flush();
     }
 }
 

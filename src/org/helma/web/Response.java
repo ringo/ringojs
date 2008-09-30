@@ -161,6 +161,35 @@ public class Response extends ScriptableObject {
         return this;
     }
 
+    public void jsFunction_flush() throws IOException {
+        PrintWriter writer = response.getWriter();
+        writer.flush();
+    }
+
+    public void jsFunction_resetBuffer() {
+        response.resetBuffer();
+    }
+
+    public void jsFunction_reset() {
+        response.reset();
+    }
+
+    public int jsGet_bufferSize() {
+        return response.getBufferSize();
+    }
+
+    public void jsSet_bufferSize(int size) {
+        response.setBufferSize(size);
+    }
+
+    public String jsGet_encoding() {
+        return response.getCharacterEncoding();
+    }
+
+    public void jsSet_encoding(String encoding) {
+        response.setCharacterEncoding(encoding);
+    }
+
     /**
      * Set a HTTP cookie with the given name and value. This function takes at least
      * two arguments, a cookie name and a cookie value. Optionally, the third
