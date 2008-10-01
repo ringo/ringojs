@@ -115,6 +115,9 @@ function error(req, res, e) {
         var printer = new java.io.PrintWriter(writer);
         e.rhinoException.printStackTrace(printer);
         res.writeln('<pre>', writer.toString(), '</pre>');
+        log.error(e.toString(), e.rhinoException);
+    } else {
+        log.error(e.toString());
     }
     return null;
 }
