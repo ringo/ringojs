@@ -1,3 +1,5 @@
+var __shared__ = true;
+
 // simple demo model for helma minibase
 var db = loadModule('helma.filestore');
 
@@ -36,7 +38,7 @@ function Author(props) {
 }
 
 // init store instance and register persistent classes.
-db.store = db.store || new db.Store("db");
+db.store = new db.Store("db");
 
 /*
  The call to registerType installs the following static

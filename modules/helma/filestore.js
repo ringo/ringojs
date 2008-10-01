@@ -120,8 +120,6 @@ function Store(path) {
         if (typeof ctor.name != "string") {
            throw new Error("constructor must not be an anonymous function");
         }
-        // add class to registry
-        typeRegistry[ctor.name] = ctor;
         // install filter, all, and get methods on constructor
         ctor.list = partial(list, ctor.name);
         ctor.all = partial(getAll, ctor.name);
@@ -129,6 +127,8 @@ function Store(path) {
         ctor.save = partial(save);
         ctor.remove = partial(remove);
         ctor.store = this;
+        // add class to registry
+        typeRegistry[ctor.name] = ctor;
     };
 
     this.getRegisteredType = function(name) {
