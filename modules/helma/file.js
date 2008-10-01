@@ -355,6 +355,8 @@ function File(path) {
       }
       readerWriter.close();
       readerWriter = null;
+      atEOF = false;
+      lastLine = null;
       return true;
    };
 
@@ -657,9 +659,10 @@ function File(path) {
    }
 
    /**
-    * Makes a copy of a file or directory over partitions.
+    * Makes a copy of a file or directory, possibly over filesystem borders.
     * 
-    * @param {String|helma.File} dest as a File object or the String of full path of the new file
+    * @param {String|helma.File} dest as a File object or the String of
+    *        full path of the new file
     */
    this.hardCopy = function(dest) {
       if (this.isDirectory()) {
@@ -742,13 +745,34 @@ function File(path) {
       return body.toByteArray();
    };
 
-   // defining an empty  __iterator__ is much better than using dontEnum()
-   // which is __really__ slow.
-   // PS: we might want to return a line iterator for the file
+   /**
+    * Define iterator to loop through the lines of the file for ordinary files,
+    * or the names of contained files for directories.
+    *
+    *   for each (var line in file) ...
+    *
+    *   for each (var filename in dir) ...
+    */
    this.__iterator__ = function() {
-       // quirk: js requires a "yield" to recognize the function as generator
-       if (false) yield;
-       throw StopIteration;
+      if (this.isDirectory()) {
+         var files = this.list();
+         for (var i = 0; i < files.length; i++) {
+             yield files[i];
+         }
+      } else {
+         if (this.open()) {
+            try {
+               while(true) {
+                  yield this.readln();
+               }
+            } catch (e if e instanceof java.io.EOFException) {
+               throw StopIteration;
+            } finally {
+               this.close();
+            }
+         }
+      }
+      throw StopIteration;
    }
 
    return this;
