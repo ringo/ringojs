@@ -82,7 +82,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var self = this;
 
-    this.render = function(context) {
+    this.render = function render(context) {
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
         } else {
@@ -90,7 +90,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         }
     };
 
-    this.renderSubskin = function(skinName, context) {
+    this.renderSubskin = function renderSubskin(skinName, context) {
         if (!subSkins[skinName] && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(skinName), context);
         } else {
@@ -98,7 +98,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         }
     };
 
-    this.getSubskin = function(skinName) {
+    this.getSubskin = function getSubskin(skinName) {
         if (subSkins[skinName]) {
             return new Skin(subSkins[skinName], subSkins, parentSkin);
         } else {
@@ -106,7 +106,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         }
     };
 
-    this.getSkinParts = function(skinName) {
+    this.getSkinParts = function getSkinParts(skinName) {
         var parts = skinName ? subSkins[skinName] : mainSkin;
         if (!parts || (!skinName && parts.length === 0)) {
             return parentSkin ? parentSkin.getSkinParts(skinName) : null;
@@ -114,20 +114,20 @@ function Skin(mainSkin, subSkins, parentSkin) {
         return parts;
     };
 
-    var renderInternal = function(parts, context) {
+    var renderInternal = function renderInternal(parts, context) {
         // extend context by globally provided filters. user-provided filters
         // override globally defined ones
         context = Object.merge(context, filters);
         return [renderPart(part, context) for each (part in parts)].join('');
     };
 
-    var renderPart = function(part, context) {
+    var renderPart = function renderPart(part, context) {
         return part instanceof MacroTag && part.name ?
                 evaluateMacro(part, context) :
                 part;
     };
 
-    var evaluateMacro = function(macro, context) {
+    var evaluateMacro = function evaluateMacro(macro, context) {
         // evaluate the macro itself
         var value = evaluateExpression(macro, context, '_macro');
         // traverse the linked list of filters
@@ -142,7 +142,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         return value
     };
 
-    var evaluateExpression = function(macro, context, suffix, value) {
+    var evaluateExpression = function evaluateExpression(macro, context, suffix, value) {
         log.debug('evaluating expression: ' + macro);
         if (builtins[macro.name]) {
             return builtins[macro.name](macro, context);
@@ -174,17 +174,17 @@ function Skin(mainSkin, subSkins, parentSkin) {
         return value;
     };
 
-    var isDefined = function(elem) {
+    var isDefined = function isDefined(elem) {
         return elem !== undefined && elem !== null;
     }
 
-    var isVisible = function(elem) {
+    var isVisible = function isVisible(elem) {
         return elem !== undefined && elem !== null && elem !== '';
     }
 
     // builtin macro handlers
     var builtins = {
-        render: function(macro, context) {
+        render: function builtinsRender(macro, context) {
             var skin = getEvaluatedParameter(macro.getParameter(0), context, 'render:skin');
             var bind = getEvaluatedParameter(macro.getParameter('bind'), context, 'render:bind');
             var on = getEvaluatedParameter(macro.getParameter('on'), context, 'render:on');
@@ -212,7 +212,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     };
 
-    var getEvaluatedParameter = function(value, context, logprefix) {
+    var getEvaluatedParameter = function getEvaluatedParameter(value, context, logprefix) {
         log.debug(logprefix + ': macro called with value: ' + value);
         if (value instanceof MacroTag) {
             value = evaluateExpression(value, context, '_macro');
@@ -221,7 +221,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
         return value;
     }
 
-    this.toString = function() {
+    this.toString = function toString() {
         return "[Skin Object]";
     };
 
