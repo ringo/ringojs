@@ -465,6 +465,30 @@ String.prototype.contains = function(str, fromIndex) {
 
 
 /**
+ * Get the longest common segment that this and the other string
+ * have in common, starting at the beginning of the string
+ * @param str a string
+ * @return the longest common segment
+ */
+String.prototype.getCommonPrefix = function(str) {
+    if (str == null) {
+        return null;
+    } else if (str.length <= this.length && this.indexOf(str) == 0) {
+        return str;
+    } else if (this.length <= str.length && str.indexOf(this) == 0) {
+        return this;
+    }
+    var length = Math.min(this.length, str.length);
+    for (var i = 0; i < length; i++) {
+        if (this[i] != str[i]) {
+            return this.slice(0, i);
+        }
+    }
+    return this.slice(0, length);
+}
+
+
+/**
  * function compares a string with the one passed as argument
  * using diff
  * @param String String to compare against String object value
