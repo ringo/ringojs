@@ -62,7 +62,7 @@ public class HelmaRunner {
         	engine.runScript(scriptName, scriptArgs);
         }
         if (scriptName == null || interactive) {
-            new HelmaShell(engine, debug).run();
+            new HelmaShell(config, engine, debug).run();
         }
     }
 

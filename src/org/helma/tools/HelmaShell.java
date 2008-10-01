@@ -18,6 +18,7 @@ package org.helma.tools;
 
 import jline.Completor;
 import jline.ConsoleReader;
+import jline.History;
 import org.helma.javascript.ModuleScope;
 import org.helma.javascript.RhinoEngine;
 import org.mozilla.javascript.*;
@@ -25,6 +26,7 @@ import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -36,12 +38,15 @@ import java.util.regex.Pattern;
  */
 public class HelmaShell {
 
-	RhinoEngine engine;
+    HelmaConfiguration config;
+    RhinoEngine engine;
     Scriptable scope;
     boolean debug;
 
-    public HelmaShell(RhinoEngine engine, boolean debug) throws Exception {
-    	this.engine = engine;
+    public HelmaShell(HelmaConfiguration config, RhinoEngine engine, boolean debug)
+            throws Exception {
+        this.config = config;
+        this.engine = engine;
     	this.scope = engine.getShellScope();
         this.debug = debug;
     }
@@ -51,6 +56,8 @@ public class HelmaShell {
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
         reader.addCompletor(new JSCompletor());
+        File historyFile = new File(config.getHelmaHome().getPath(), ".history");
+        reader.setHistory(new History(historyFile));
         PrintWriter out = new PrintWriter(System.out);
         int lineno = 0;
         repl: while (true) {
