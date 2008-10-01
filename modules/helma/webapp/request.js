@@ -49,16 +49,6 @@ function ParameterGroup(path, collection) {
         }
     }
 
-    this.__iterator__ = function() {
-        if (!props) {
-            initProps();
-        }
-        for (var [key, value] in props) {
-            yield [key, value];
-        }
-        throw StopIteration;
-    };
-
     this.__get__ = function(name) {
         if (!props) {
             initProps();
