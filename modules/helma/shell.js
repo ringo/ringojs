@@ -2,7 +2,7 @@
 // so to extend the helma shell just add stuff here.
 
 var output = java.lang.System.out;
-var input = new java.io.InputStreamReader(java.lang.System["in"]);
+var input = new Packages.jline.ConsoleReader();
 
 /**
  * Write 0..n arguments to standard output.
@@ -28,25 +28,24 @@ function writeln() {
  * Read a single character from the standard input.
  */
 function read() {
-    return String.fromCharCode(input.read());
+    return String.fromCharCode(input.readVirtualKey());
 }
 
 /**
- * Read a single line from the standard input. 
- * @param password {Boolean} if true character echo is replaced with '*'
+ * Read a single line from the standard input.
+ * @param prompt {String} optional prompt to display
+ * @param echoChar {String} character to use as echo,
+ *         e.g. '*' for passwords or '' for no echo.
  */
-function readln(password) {
-    var buffer = [];
-    var c;
-    while ((c = read()) != '\r' && c != '\n') {
-        if (password) {
-            write('*');
-        } else {
-            write(c);
-        }
-        buffer.push(c);
+function readln(prompt, echoChar) {
+    prompt = prompt || '';
+    if (typeof echoChar == 'string') {
+        var echo = echoChar == '' ?
+               new java.lang.Character(0) :
+               new java.lang.Character(echoChar.charCodeAt(0));
+        return input.readLine(prompt, echo);
     }
-    return buffer.join('');
+    return input.readLine(prompt);
 }
 
 /**
