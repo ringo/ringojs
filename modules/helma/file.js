@@ -759,7 +759,7 @@ function File(path) {
          for (var i = 0; i < files.length; i++) {
              yield files[i];
          }
-      } else {
+      } else if (this.exists()) {
          if (this.open()) {
             try {
                while(true) {
