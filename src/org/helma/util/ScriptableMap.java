@@ -76,7 +76,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
     public Object get(int index, Scriptable start) {
         if (map == null)
             return super.get(index, start);
-        return get(index);
+        return get(new Integer(index));
     }
 
     private Object get(Object key) {
@@ -99,7 +99,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
         if (map == null) {
             return super.has(index, start);
         } else {
-            return map.containsKey(index);
+            return map.containsKey(new Integer(index));
         }
     }
 
@@ -113,7 +113,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
 
     public void put(int index, Scriptable start, Object value) {
         if (map != null) {
-            put(index, value);
+            put(new Integer(index), value);
        } else {
             super.put(index, start, value);
         }
@@ -143,7 +143,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
     public void delete(int index) {
         if (map != null) {
             try {
-                map.remove(index);
+                map.remove(new Integer(index));
             } catch (RuntimeException e) {
                 Context.throwAsScriptRuntimeEx(e);
             }
