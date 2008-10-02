@@ -22,12 +22,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
 
 /**
  * This class represents a HTTP Response. The current Response object
@@ -37,8 +32,8 @@ import java.util.Stack;
  */
 public class Response extends ScriptableObject {
 
-    private HttpServletResponse response;
-    private int status = 200;
+    protected HttpServletResponse response;
+    protected int status = 200;
     private static final long serialVersionUID = 8492609461086704262L;
 
     public Response() {
@@ -162,8 +157,7 @@ public class Response extends ScriptableObject {
     }
 
     public void jsFunction_flush() throws IOException {
-        PrintWriter writer = response.getWriter();
-        writer.flush();
+        response.flushBuffer();
     }
 
     public void jsFunction_resetBuffer() {
