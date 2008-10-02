@@ -10,7 +10,7 @@ loadModule('core.string');
  * @param maxFrames {Number} maximum number of call frames to display
  */
 function enable(maxFrames) {
-    maxFrames = maxFrames || 30;
+    maxFrames = maxFrames || 20;
     var profiler;
     system.addCallback('onInvoke', 'profiler-support', function() {
         if (!profiler) {
@@ -23,7 +23,7 @@ function enable(maxFrames) {
     system.addCallback('onReturn', 'profiler-support', function() {
         var result = profiler.getResult(maxFrames);
         writeln();
-        writeln("   total  average  calls    path");
+        writeln("     total  average  calls    path");
         for (var i = 1; i < result.maxLength; i++) {
             write("=");
         }
@@ -67,7 +67,7 @@ function Profiler() {
         // frame.addCall(currentFrame);
         currentFrame = name;
         return frame;
-    }
+    };
 
     var getScriptName = function(script) {
         if (script.isFunction()) {
@@ -79,7 +79,7 @@ function Profiler() {
         } else {
             return script.sourceName;
         }
-    }
+    };
 
     this.getResult = function(maxFrames) {
         var list = [];
@@ -96,12 +96,11 @@ function Profiler() {
         var buffer = [];
         var maxLength = 0;
         // find common prefix in path names
-        var names = list.map(function(item) {
+        var commonPrefix = list.map(function(item) {
             return item.name;
-        });
-        var commonPrefix = names.reduce(function(previous, current) {
+        }).reduce(function(previous, current) {
             return previous.getCommonPrefix(current);
-        })
+        });
         for each (var item in list) {
             var str = item.renderLine(commonPrefix.length);
             maxLength = Math.max(maxLength, str.length);
@@ -145,7 +144,7 @@ function Profiler() {
         this.renderLine = function(prefixLength) {
             var millis = Math.round(this.runtime / 1000000);
             var formatter = new java.util.Formatter();
-            formatter.format("%1$5.0f ms %2$5.0f ms %3$6.0f    %4$s%n", millis,
+            formatter.format("%1$7.0f ms %2$5.0f ms %3$6.0f    %4$s%n", millis,
                     Math.round(millis / invocations), invocations, name.slice(prefixLength));
             return formatter.toString();
         };
