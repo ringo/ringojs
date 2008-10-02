@@ -92,7 +92,6 @@ function handleRequest(req, res) {
         error(req, res, e);
     } finally {
         system.invokeCallback('onResponse', null, [res]);
-        res.flush();
     }
 }
 
