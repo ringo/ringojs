@@ -70,8 +70,6 @@ function File(path) {
    var atEOF = false;
    var lastLine = null;
 
-   this.lastError = null;
-
    /** @ignore */
    this.toString = function() {
       return file.toString();
@@ -190,14 +188,14 @@ function File(path) {
       if (atEOF) {
          throw new EOFException();
       }
+      var line;
       if (lastLine != null) {
-         var line = lastLine;
+         line = lastLine;
          lastLine = null;
          return line;
       }
-      var reader = readerWriter;
       // Here lastLine is null, return a new line
-      var line = readerWriter.readLine();
+      line = readerWriter.readLine();
       if (line == null) {
          atEOF = true;
          throw new EOFException();
@@ -372,34 +370,6 @@ function File(path) {
    this.getPath = function() {
       var path = file.getPath();
       return (path == null ? "" : path);
-   };
-
-   /**
-    * Contains the last error that occured, if any.
-    * @returns String
-    * @type String
-    * @see #clearError
-    */
-   this.error = function() {
-      if (this.lastError == null) {
-         return "";
-      } else {
-         var exceptionName = this.lastError.getClass().getName();
-         var l = exceptionName.lastIndexOf(".");
-         if (l > 0)
-            exceptionName = exceptionName.substring(l + 1);
-         return exceptionName + ": " + this.lastError.getMessage();
-      }
-   };
-
-   /**
-    * Clears any error message that may otherwise be returned by the error method.
-    * 
-    * @see #error
-    */
-   this.clearError = function() {
-      this.lastError = null;
-      return;
    };
 
    /**
@@ -643,10 +613,11 @@ function File(path) {
    this.listRecursive = function(pattern) {
       if (!file.isDirectory())
          return false;
+      var result;
       if (!pattern || pattern.test(file.getName()))
-         var result = [file.getAbsolutePath()];
+         result = [file.getAbsolutePath()];
       else
-         var result = [];
+         result = [];
       var arr = file.list();
       for (var i=0; i<arr.length; i++) {
          var f = new File(file, arr[i]);
