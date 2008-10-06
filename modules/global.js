@@ -92,14 +92,4 @@ const global = this;
         return getRhinoContext().getThreadLocal("engine");
     };
 
-
-    /*
-     * Support for defining thread-local variables in the global scope.
-     */
-    var threadLocal = new JavaAdapter(java.lang.ThreadLocal, {
-        initialValue: function() {
-            return {};
-        }
-    });
-
 })(global);
