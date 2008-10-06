@@ -79,6 +79,21 @@ const global = this;
     };
 
     /**
+     * Basic print function compatible with other JavaScript implementations.
+     */
+    this.print = function() {
+        for (var i = 0; i < arguments.length; i++) {
+            out.print(arguments[i]);
+            if (i < arguments.length) {
+                out.print(' ');
+            }
+        }
+        out.println();
+    }
+
+    var out = java.lang.System.out;
+
+    /**
      * Get the org.mozilla.javascript.Context associated with the current thread.
      */
     var getRhinoContext = function getRhinoContext() {
