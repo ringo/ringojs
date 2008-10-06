@@ -29,6 +29,14 @@ testCase.testAssertEqualArrays = function() {
     return;
 }
 
+testCase.testAssertEqualObjects = function() {
+    assertEqualObjects({}, {});
+    assertEqualObjects({a: 1}, {a: 1});
+    assertEqualObjects({a: 1, b: 2}, {a: 1, b: 2});
+    assertEqualObjects({a: 1, b: 2}, {b: 2, a: 1});
+    return;
+};
+
 testCase.testAssertNull = function() {
     assertNull(null);
     return;

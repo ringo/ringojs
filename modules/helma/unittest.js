@@ -868,6 +868,42 @@ var __shared__ = true;
     };
 
     /**
+     * Checks if the arguments are objects and the value associated with a key
+     * is the same in both objects (for all keys of both objects):
+     *   for all k1 in o1, k2 in o2: o1[k1] == o2[k1] && o1[k2] == o2[k2]
+     */
+    this.assertEqualObjects = function(value1, value2) {
+        var functionName = arguments.callee.name;
+        var argsExpected = arguments.callee.length;
+        evalArguments(arguments, argsExpected);
+        if (!(value1 instanceof Object) || !(value2 instanceof Object)) {
+            throw new ArgumentsException(
+                    "Invalid arguments to assertEqualObjects: " +
+                    valueToString(value1) + ", " + valueToString(value2));
+        }
+
+        var equal = true;
+        for (var k1 in value1) {
+            if (value1[k1] != value2[k1]) {
+                equal = false;
+                break;
+            }
+        }
+        if (equal) {
+            for (var k2 in value2) {
+                if (value1[k2] != value2[k2]) {
+                    equal = false;
+                    break;
+                }
+            }
+        }
+        if (!equal) {
+            throw new FailureException("Exepected " + valueToString(value1) +
+                                 " to be equal to " + valueToString(value2));
+        }
+    };
+
+    /**
      * Checks if the value passed as argument is null.
      * @param {Object} val The value that should be null.
      * @throws ArgumentsException
