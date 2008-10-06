@@ -130,6 +130,9 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var evaluateMacro = function evaluateMacro(macro, context) {
         // evaluate the macro itself
         var value = evaluateExpression(macro, context, '_macro');
+        if (value instanceof Array) {
+            value = value.join('');
+        }
         // traverse the linked list of filters
         for (var filter = macro.filter; filter; filter = filter.filter) {
             // make sure value is not undefined, otherwise evaluateExpression()
