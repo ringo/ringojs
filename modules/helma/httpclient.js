@@ -23,10 +23,10 @@
  */
 
 // take care of any dependencies
-loadModule('core.object');
 loadModule('core.date');
 loadModule('core.string');
 
+var __export__ = ["Client", "Cookie"];
 
 /**
  * Creates a new instance of helma.http.Client

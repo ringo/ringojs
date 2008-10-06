@@ -21,13 +21,14 @@ const global = this;
      */
     this.includeModule = function(moduleName) {
         var module = this.loadModule(moduleName);
-        for (var [key, value] in module) {
-            /* if (value && value.__parent__ && value.__parent__ != module) {
-                // only copy values that were defined in the module
-                // FIXME we really need explicit exports here!
-                continue;
-            } */
-            this[key] = value;
+        var exported = module.__export__;
+        if (!exported) {
+            throw ReferenceError("Property __export__ is not defined on module " + moduleName);
+        } else if (!(exported instanceof Array)) {
+            throw TypeError("Property __export__ is not an array in module " + moduleName);
+        }
+        for each (var key in exported) {
+            this[key] = module[key];
         }
     };
 
