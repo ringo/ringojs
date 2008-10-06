@@ -97,66 +97,6 @@ Object.prototype.clone = function(clone, recursive) {
 
 
 /**
- * reduce an extended object (ie. a HopObject)
- * to a generic javascript object
- * @param HopObject the HopObject to be reduced
- * @return Object the resulting generic object
- */
-Object.prototype.reduce = function(recursive) {
-    var result = {};
-    for (var i in this) {
-        if (this[i] instanceof HopObject == false)
-            result[i] = this[i];
-        else if (recursive)
-            result[i] = this.reduce(true);
-    }
-    return result;
-};
-
-
-/**
- * print the contents of an object for debugging
- * @param Object the object to dump
- * @param Boolean recursive flag (if true, dump child objects, too)
- */
-Object.prototype.dump = function(recursive) {
-    var beginList = "<ul>";
-    var endList = "</ul>";
-    var beginItem = "<li>";
-    var endItem = "</li>";
-    var beginKey = "<strong>";
-    var endKey = ":</strong> ";
-    res.write(beginList);
-    for (var p in this) {
-        res.write(beginItem);
-        res.write(beginKey);
-        res.write(p);
-        res.write(endKey);
-        if (recursive && typeof this[p] == "object") {
-            var recurse = true;
-            var types = [Function, Date, String, Number];
-            for (var i in types) {
-                if (this[p] instanceof types[i]) {
-                    recurse = false
-                    break;
-                }
-            }
-            if (recurse == true)
-                this[p].dump(true);
-            else {
-                res.write(this[p].toSource());
-            }
-        } else if (this[p]) {
-            res.write(encode(this[p].toSource()));
-        }
-        res.write(endItem);
-    }
-    res.write(endList);
-    return;
-};
-
-
-/**
  * Creates a new object as the as the keywise union of the provided objects.
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.

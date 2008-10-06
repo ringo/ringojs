@@ -74,8 +74,8 @@ function titleize_filter(input) {
  * @param clipping Appended String, default is the empty String
  */
 function truncate_filter(input, param, limit, clipping) {
-   var limit = param.limit != null ? param.limit : limit;
-   var clipping = param.clipping || clipping || "";
+   limit = param.limit != null ? param.limit : limit;
+   clipping = param.clipping || clipping || "";
    return (input || "").toString().head(limit, clipping);
 }
 
@@ -135,7 +135,7 @@ var h_filter = escapeHtml_filter;
  *        character encoding.
  */
 function escapeUrl_filter(input, param, charset) {
-   var charset = param.charset || charset || app.getCharset();
+   charset = param.charset || charset || app.getCharset();
    return java.net.URLEncoder.encode(input || "", charset);
 }
 
@@ -169,8 +169,8 @@ function linebreakToHtml_filter(input) {
  */
 function replace_filter(input, param, oldString, newString) {
    var str = (input || "").toString();
-   var oldString = param["old"] != null ? param["old"] : oldString;
-   var newString = param["new"] != null ? param["new"] : newString;
+   oldString = param["old"] != null ? param["old"] : oldString;
+   newString = param["new"] != null ? param["new"] : newString;
    var replace = Packages.org.mortbay.util.StringUtil.replace;
    return replace(str, oldString, newString);
 }
@@ -185,8 +185,8 @@ function replace_filter(input, param, oldString, newString) {
  * @param to
  */
 function substring_filter(input, param, from, to) {
-   var from = param.from != null ? param.from : from;
-   var to = param.to != null ? param.to : to;
+   from = param.from != null ? param.from : from;
+   to = param.to != null ? param.to : to;
    var str = (input || "").toString();
    return str.substring(from, to);
 }
@@ -199,7 +199,7 @@ function substring_filter(input, param, from, to) {
  * @param format
  */
 function dateFormat_filter(input, param, format) {
-   var format = param.format || format;
+   format = param.format || format;
    if (!input) {
       return;
    } else {

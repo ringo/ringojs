@@ -29,7 +29,6 @@ String.RIGHT          = 1
 String.ISOFORMAT      = "yyyy-MM-dd'T'HH:mm:ssZ";
 String.SPACE          = " ";
 String.EMPTY          = "";
-String.NULL           = String.EMPTY; // to be deprecated?
 
 /**
  * @fileoverview Adds useful methods to the JavaScript String type.
@@ -113,7 +112,7 @@ String.prototype.isFileName = function() {
  * @return Boolean
  */
 String.prototype.toFileName = function() {
-    return this.replace(new RegExp(String.FILEPATTERN.source, "g"), String.NULL);
+    return this.replace(new RegExp(String.FILEPATTERN.source, "g"), '');
 };
 
 
@@ -142,7 +141,7 @@ String.prototype.isHexColor = function() {
 String.prototype.toHexColor = function() {
     if (this.startsWith("rgb")) {
         res.push();
-        var col = this.replace(/[^0-9,]/g, String.NULL);
+        var col = this.replace(/[^0-9,]/g, '');
         var parts = col.split(",");
         for (var i in parts) {
             var num = parseInt(parts[i], 10);
@@ -151,7 +150,7 @@ String.prototype.toHexColor = function() {
         }
         return res.pop();
     }
-    var col = this.replace(new RegExp(String.HEXPATTERN.source), String.NULL);
+    var col = this.replace(new RegExp(String.HEXPATTERN.source), '');
     return col.toLowerCase().pad("0", 6, String.LEFT);
 };
 
@@ -174,7 +173,7 @@ String.prototype.isAlphanumeric = function() {
  * @return cleaned string
  */
 String.prototype.toAlphanumeric = function() {
-    return this.replace(new RegExp(String.ANUMPATTERN.source, "g"), String.NULL);
+    return this.replace(new RegExp(String.ANUMPATTERN.source, "g"), '');
 };
 
 
@@ -260,14 +259,14 @@ String.prototype.entitize = function() {
 String.prototype.embody = function(limit, clipping, delimiter) {
    if (typeof limit == "string")
       limit = parseInt(limit, 10);
-   var result = {head: this, tail: String.NULL};
+   var result = {head: this, tail: ''};
    if (!limit || limit < 1)
       return result;
-   if (!delimiter || delimiter == String.NULL)
+   if (!delimiter || delimiter == '')
       result.head= this.substring(0, limit);
    else {
       var re = new RegExp ("(" + delimiter + "+)");
-      result.head = this.split(re, 2*limit - 1).join(String.NULL);
+      result.head = this.split(re, 2*limit - 1).join('');
    }
    if (result.head != this) {
       result.tail = this.substring(result.head.length).trim();
@@ -341,7 +340,7 @@ String.prototype.group = function(interval, str, ignoreWhiteSpace) {
  */
 String.prototype.unwrap = function(removeTags, replacement) {
     if (replacement == null)
-        replacement = String.NULL;
+        replacement = '';
     var str = this.replace(/[\n|\r]/g, replacement);
     if (removeTags)
         str = str.replace(/<[w]?br *\/?>/g, replacement);
@@ -380,10 +379,10 @@ String.prototype.md5 = function() {
  * @return String resulting string
  */
 String.prototype.repeat = function(multiplier) {
-    res.push();
+    var list = [];
     for (var i=0; i<multiplier; i++)
-        res.write(this);
-    return res.pop();
+        list[i] = this;
+    return list.join('');
 };
 
 
@@ -395,10 +394,8 @@ String.prototype.repeat = function(multiplier) {
  *            of the string, false otherwise
  */
 String.prototype.startsWith = function(str, offset) {
-    var javaObj = new java.lang.String(this);
-    if (offset != null)
-        return javaObj.startsWith(str, offset);
-    return javaObj.startsWith(str);
+    offset = offset || 0;
+    return this.indexOf(str) == offset; 
 };
 
 
@@ -410,8 +407,7 @@ String.prototype.startsWith = function(str, offset) {
  *            the string, false otherwise
  */
 String.prototype.endsWith = function(str) {
-    var javaObj = new java.lang.String(this);
-    return javaObj.endsWith(str);
+    return this.lastIndexOf(str) == this.length - str.length;
 };
 
 
@@ -426,7 +422,7 @@ String.prototype.endsWith = function(str) {
  * @return String the resulting string
  */
 String.prototype.pad = function(str, len, mode) {
-    if (str  == null || len == null)
+    if (str == null || len == null)
         return this;
     var diff = len - this.length;
     if (diff == 0)
@@ -440,13 +436,13 @@ String.prototype.pad = function(str, len, mode) {
         right = Math.round(diff / 2);
         left = diff - right;
     }
-    res.push();
+    var list = [];
     for (var i=0; i<left; i++)
-        res.write(str);
-    res.write(this);
+        list[i] = str;
+    list.push(this);
     for (var i=0; i<right; i++)
-        res.write(str);
-    return res.pop();
+        list.push(str);
+    return list.join('');
 };
 
 
@@ -458,9 +454,8 @@ String.prototype.pad = function(str, len, mode) {
  * @param Boolean
  */
 String.prototype.contains = function(str, fromIndex) {
-    if (this.indexOf(str, fromIndex ? fromIndex : 0) > -1)
-        return true;
-    return false;
+    return this.indexOf(str, fromIndex ? fromIndex : 0) > -1;
+
 };
 
 
@@ -552,8 +547,7 @@ String.prototype.diff = function(mod, separator) {
  * remove leading and trailing whitespace
  */
 String.prototype.trim = function () {
-    var s = new java.lang.String(this);
-    return String(s.trim());
+    return this.replace(/^\s+|\s+$/g, '');
 };
 
 
@@ -597,25 +591,6 @@ String.prototype.debase64 = function() {
 };
 
 
-// wrapper methods for string-related 
-// global helma functions
-
-String.prototype.encode = function() {
-    return encode(this);
-};
-
-String.prototype.encodeXml = function() {
-    return encodeXml(this);
-};
-
-String.prototype.encodeForm = function() {
-    return encodeForm(this);
-};
-
-String.prototype.format = function() {
-    return format(this);
-};
-
 String.prototype.stripTags = function() {
     return this.replace(/<\/?[^>]+>/gi, '');
 };
@@ -629,24 +604,19 @@ String.prototype.stripTags = function() {
 String.Sorter = function(field, order) {
     if (!order)
         order = 1;
-    var key = field + ":" + order;
-    if (!String.Sorter.cache[key]) {
-        String.Sorter.cache[key] = function(a, b) {
-            var str1 = String(a[field] || String.NULL).toLowerCase();
-            var str2 = String(b[field] || String.NULL).toLowerCase();
-            if (str1 > str2)
-                return order * 1;
-            if (str1 < str2)
-                return order * -1;
-            return 0;
-        };
-    }
-    return String.Sorter.cache[key];
+    return function(a, b) {
+        var str1 = String(a[field] || '').toLowerCase();
+        var str2 = String(b[field] || '').toLowerCase();
+        if (str1 > str2)
+            return order * 1;
+        if (str1 < str2)
+            return order * -1;
+        return 0;
+    };
 };
 
 String.Sorter.ASC = 1;
 String.Sorter.DESC = -1;
-String.Sorter.cache = {};
 
 
 /**
@@ -655,10 +625,7 @@ String.Sorter.cache = {};
  * @return String the resulting string
  */
 String.compose = function() {
-    res.push();
-    for (var i=0; i<arguments.length; i++)
-        res.write(arguments[i]);
-    return res.pop();
+    return Array.join(arguments, '');
 };
 
 
@@ -675,7 +642,7 @@ String.random = function(len, mode) {
         var x = Math.random() * Math.pow(10,len);
         return Math.floor(x);
     }
-    var keystr = String.NULL;
+    var keystr = '';
     for (var i=0; i<len; i++) {
         var x = Math.floor((Math.random() * 36));
         if (mode == 1) {
@@ -705,7 +672,7 @@ String.random = function(len, mode) {
  */
 String.join = function(str1, str2, glue) {
     if (glue == null)
-        glue = String.NULL;
+        glue = '';
     if (str1 && str2)
         return str1 + glue + str2;
     else if (str2)

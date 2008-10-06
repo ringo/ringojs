@@ -168,7 +168,7 @@ Date.prototype.getExpiry = function(param) {
  */
 Date.prototype.equals = function(date, extend) {
     if (!extend)
-        var extend = Date.ONEDAY;
+        extend = Date.ONEDAY;
     switch (extend) {
         case Date.ONESECOND:
             if (this.getSeconds() != date.getSeconds())

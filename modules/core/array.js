@@ -34,9 +34,7 @@ var __shared__ = true;
  * @return {boolean} true if the value is contained
  */
 Array.prototype.contains = function(val) {
-   if (this.indexOf(val) > -1)
-      return true;
-   return false;
+   return this.indexOf(val) > -1;
 };
 
 /**
