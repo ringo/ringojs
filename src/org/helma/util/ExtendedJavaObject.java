@@ -83,7 +83,6 @@ public class ExtendedJavaObject extends NativeJavaObject {
     }
 	
 	public void put(String name, Scriptable start, Object value) {
-		EvaluatorException error = null;
         if (super.has(name, start)) { // members.has(name, false)) {
 			super.put(name, start, value); // members.put(this, name, javaObject, value, false);
 			return; // done

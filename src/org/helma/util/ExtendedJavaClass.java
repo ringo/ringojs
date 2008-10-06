@@ -126,7 +126,6 @@ public class ExtendedJavaClass extends NativeJavaClass {
 	}
 
 	public Object get(String name, Scriptable start) {
-		Object result = Scriptable.NOT_FOUND;
         if ("prototype".equals(name)) {
             return getInstancePrototype();
         } else if (properties.containsKey(name)) {
