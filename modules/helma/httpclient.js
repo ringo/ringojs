@@ -588,9 +588,6 @@ function Client() {
         return "[Helma Http Client]";
     };
 
-    /* for (var i in this)
-        this.dontEnum(i); */
-
     return this;
 };
 
@@ -804,9 +801,3 @@ Cookie.prototype.toString = function() {
     return "[Cookie " + this.name + " " + this.value + "]";
 };
 
-for (var i in this)
-    this.dontEnum(i);
-for (var i in Client.prototype)
-    Client.prototype.dontEnum(i);
-for (var i in Cookie.prototype)
-    Cookie.prototype.dontEnum(i);

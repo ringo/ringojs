@@ -769,7 +769,3 @@ File.createTempFile = function(prefix, suffix) {
 }
 
 
-for (var i in File)
-   if (i != "prototype") File.dontEnum(i);
-for (var i in File.prototype)
-   File.prototype.dontEnum(i);

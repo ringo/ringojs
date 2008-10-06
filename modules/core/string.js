@@ -37,20 +37,18 @@ String.EMPTY          = "";
  * application, for example by calling app.addRepository('modules/core/String.js')
  */
 
-loadModule('core.object');
-
 /**
  * checks if a date format pattern is correct
  * @return Boolean true if the pattern is correct
  */
-String.prototype.isDateFormat = function() {
+String.prototype.__defineProperty__("isDateFormat", function() {
     try {
         new java.text.SimpleDateFormat(this);
         return true;
     } catch (err) {
         return false;
     }
-};
+}, false, false, true);
 
 
 /**
@@ -60,7 +58,7 @@ String.prototype.isDateFormat = function() {
  * @param Object Java TimeZone Object (optional)
  * @return Object contains the resulting date
  */
-String.prototype.toDate = function(format, timezone) {
+String.prototype.__defineProperty__("toDate", function(format, timezone) {
     var sdf = res.data._dateformat;
     if (!sdf) {
         sdf = new java.text.SimpleDateFormat(format);
@@ -74,7 +72,7 @@ String.prototype.toDate = function(format, timezone) {
     } catch (err) {
         return null;
     }
-};
+}, false, false, true);
 
 
 /**
@@ -84,7 +82,7 @@ String.prototype.toDate = function(format, timezone) {
  * @return Boolean
  * @see helma.Url.PATTERN
  */
-String.prototype.isUrl = function() {
+String.prototype.__defineProperty__("isUrl", function() {
     if (String.URLPATTERN.test(this))
         return true;
     try {
@@ -93,7 +91,7 @@ String.prototype.isUrl = function() {
         return false;
     }
     return true;
-};
+}, false, false, true);
 
 
 /**
@@ -101,9 +99,9 @@ String.prototype.isUrl = function() {
  * that are forbidden in image- or filenames
  * @return Boolean
  */
-String.prototype.isFileName = function() {
+String.prototype.__defineProperty__("isFileName", function() {
     return !String.FILEPATTERN.test(this);
-};
+}, false, false, true);
 
 
 /**
@@ -111,9 +109,9 @@ String.prototype.isFileName = function() {
  * that are forbidden or shouldn't be used in filenames
  * @return Boolean
  */
-String.prototype.toFileName = function() {
+String.prototype.__defineProperty__("toFileName", function() {
     return this.replace(new RegExp(String.FILEPATTERN.source, "g"), '');
-};
+}, false, false, true);
 
 
 /**
@@ -122,14 +120,14 @@ String.prototype.toFileName = function() {
  *  @returns Boolean false, if string length (without #) > 6 or < 6 or
  *              contains any character which is not a valid hex value
  */
-String.prototype.isHexColor = function() {
+String.prototype.__defineProperty__("isHexColor", function() {
     var str = this;
     if (this.indexOf("#") == 0)
         str = this.substring(1);
     if (str.length != 6)
         return false;
     return !String.HEXPATTERN.test(str);
-};
+}, false, false, true);
 
 
 /**
@@ -138,7 +136,7 @@ String.prototype.isHexColor = function() {
  * convert a color string like "rgb (255, 204, 51)".
  * @return String the resulting hex color (w/o "#")
  */
-String.prototype.toHexColor = function() {
+String.prototype.__defineProperty__("toHexColor", function() {
     if (this.startsWith("rgb")) {
         res.push();
         var col = this.replace(/[^0-9,]/g, '');
@@ -152,7 +150,7 @@ String.prototype.toHexColor = function() {
     }
     var col = this.replace(new RegExp(String.HEXPATTERN.source), '');
     return col.toLowerCase().pad("0", 6, String.LEFT);
-};
+}, false, false, true);
 
 
 /**
@@ -160,11 +158,11 @@ String.prototype.toHexColor = function() {
  * only a-z and 0-9 (case insensitive!)
  * @return Boolean true in case string is alpha, false otherwise
  */
-String.prototype.isAlphanumeric = function() {
+String.prototype.__defineProperty__("isAlphanumeric", function() {
     if (!this.length)
         return false;
     return !String.ANUMPATTERN.test(this);
-};
+}, false, false, true);
 
 
 /**
@@ -172,9 +170,9 @@ String.prototype.isAlphanumeric = function() {
  * non-alphanumeric characters
  * @return cleaned string
  */
-String.prototype.toAlphanumeric = function() {
+String.prototype.__defineProperty__("toAlphanumeric", function() {
     return this.replace(new RegExp(String.ANUMPATTERN.source, "g"), '');
-};
+}, false, false, true);
 
 
 /**
@@ -182,11 +180,11 @@ String.prototype.toAlphanumeric = function() {
  * only characters a-z
  * @return Boolean true in case string is alpha, false otherwise
  */
-String.prototype.isAlpha = function() {
+String.prototype.__defineProperty__("isAlpha", function() {
     if (!this.length)
         return false;
     return !String.APATTERN.test(this);
-};
+}, false, false, true);
 
 
 /**
@@ -194,11 +192,11 @@ String.prototype.isAlpha = function() {
  * only 0-9
  * @return Boolean true in case string is numeric, false otherwise
  */
-String.prototype.isNumeric = function() {
+String.prototype.__defineProperty__("isNumeric", function() {
     if (!this.length)
         return false;
     return !String.NUMPATTERN.test(this);
-};
+}, false, false, true);
 
 
 /**
@@ -206,13 +204,13 @@ String.prototype.isNumeric = function() {
  * @param Number amount of characters to transform
  * @return String the resulting string
  */
-String.prototype.capitalize = function(limit) {
+String.prototype.__defineProperty__("capitalize", function(limit) {
     if (limit == null)
         limit = 1;
     var head = this.substring(0, limit);
     var tail = this.substring(limit, this.length);
     return head.toUpperCase() + tail.toLowerCase();
-};
+}, false, false, true);
 
 
 /**
@@ -220,7 +218,7 @@ String.prototype.capitalize = function(limit) {
  * word in a string to uppercase
  * @return String the resulting string
  */
-String.prototype.titleize = function() {
+String.prototype.__defineProperty__("titleize", function() {
     var parts = this.split(" ");
     res.push();
     for (var i in parts) {
@@ -229,14 +227,14 @@ String.prototype.titleize = function() {
             res.write(" ");
     }
     return res.pop();
-};
+}, false, false, true);
 
 
 /**
  * translates all characters of a string into HTML entities
  * @return String translated result
  */
-String.prototype.entitize = function() {
+String.prototype.__defineProperty__("entitize", function() {
     res.push();
     for (var i=0; i<this.length; i++) {
         res.write("&#");
@@ -244,7 +242,7 @@ String.prototype.entitize = function() {
         res.write(";");
     }
     return res.pop();
-};
+}, false, false, true);
 
 
 /**
@@ -256,7 +254,7 @@ String.prototype.entitize = function() {
  * @param String delimiter 
  * @return Object containing head and tail properties
  */
-String.prototype.embody = function(limit, clipping, delimiter) {
+String.prototype.__defineProperty__("embody", function(limit, clipping, delimiter) {
    if (typeof limit == "string")
       limit = parseInt(limit, 10);
    var result = {head: this, tail: ''};
@@ -278,25 +276,25 @@ String.prototype.embody = function(limit, clipping, delimiter) {
       }
    }
    return result;
-};
+}, false, false, true);
 
 
 /**
  * get the head of a string
  * @see String.prototype.embody()
  */
-String.prototype.head = function(limit, clipping, delimiter) {
+String.prototype.__defineProperty__("head", function(limit, clipping, delimiter) {
     return this.embody(limit, clipping, delimiter).head;
-};
+}, false, false, true);
 
 
 /**
  * get the tail of a string
  * @see String.prototype.embody()
  */
-String.prototype.tail = function(limit, clipping, delimiter) {
+String.prototype.__defineProperty__("tail", function(limit, clipping, delimiter) {
     return this.embody(limit, clipping, delimiter).tail;
-};
+}, false, false, true);
 
 
 /*
@@ -304,7 +302,7 @@ String.prototype.tail = function(limit, clipping, delimiter) {
  * FIXME: we eventually have to get rid of this one...
  * @see String.prototype.head()
  */
-String.prototype.clip = String.prototype.head;
+String.prototype.__defineProperty__("clip", String.prototype.head, false, false, true);
 
 
 /**
@@ -314,7 +312,7 @@ String.prototype.clip = String.prototype.head;
  * @param Boolean definitely insert at each interval position
  * @return String resulting string
  */
-String.prototype.group = function(interval, str, ignoreWhiteSpace) {
+String.prototype.__defineProperty__("group", function(interval, str, ignoreWhiteSpace) {
     if (!interval || interval < 1)
         interval = 20;
     if (!str || this.length < interval)
@@ -329,7 +327,7 @@ String.prototype.group = function(interval, str, ignoreWhiteSpace) {
         }
     }
     return res.pop();
-};
+}, false, false, true);
 
 
 /**
@@ -338,21 +336,21 @@ String.prototype.group = function(interval, str, ignoreWhiteSpace) {
  * @param String replacement for the linebreaks / html tags
  * @return String the unwrapped string
  */
-String.prototype.unwrap = function(removeTags, replacement) {
+String.prototype.__defineProperty__("unwrap", function(removeTags, replacement) {
     if (replacement == null)
         replacement = '';
     var str = this.replace(/[\n|\r]/g, replacement);
     if (removeTags)
         str = str.replace(/<[w]?br *\/?>/g, replacement);
     return str;    
-};
+}, false, false, true);
 
 
 /**
  * function calculates the md5 hash of a string
  * @return String md5 hash of the string
  */
-String.prototype.md5 = function() {
+String.prototype.__defineProperty__("md5", function() {
     var str = new java.lang.String(this);
     var md = java.security.MessageDigest.getInstance('MD5');
     var b = md.digest(str.getBytes())
@@ -370,7 +368,7 @@ String.prototype.md5 = function() {
     }
 
     return buf.toString();
-};
+}, false, false, true);
 
 
 /**
@@ -378,12 +376,12 @@ String.prototype.md5 = function() {
  * @param Int amount of repetitions
  * @return String resulting string
  */
-String.prototype.repeat = function(multiplier) {
+String.prototype.__defineProperty__("repeat", function(multiplier) {
     var list = [];
     for (var i=0; i<multiplier; i++)
         list[i] = this;
     return list.join('');
-};
+}, false, false, true);
 
 
 /**
@@ -393,10 +391,10 @@ String.prototype.repeat = function(multiplier) {
  * @return Boolean true in case it matches the beginning
  *            of the string, false otherwise
  */
-String.prototype.startsWith = function(str, offset) {
+String.prototype.__defineProperty__("startsWith", function(str, offset) {
     offset = offset || 0;
     return this.indexOf(str) == offset; 
-};
+}, false, false, true);
 
 
 /**
@@ -406,9 +404,9 @@ String.prototype.startsWith = function(str, offset) {
  * @return Boolean true in case it matches the end of
  *            the string, false otherwise
  */
-String.prototype.endsWith = function(str) {
+String.prototype.__defineProperty__("endsWith", function(str) {
     return this.lastIndexOf(str) == this.length - str.length;
-};
+}, false, false, true);
 
 
 /**
@@ -421,7 +419,7 @@ String.prototype.endsWith = function(str) {
  *                     String.BALANCE and String.RIGHT here as well.)
  * @return String the resulting string
  */
-String.prototype.pad = function(str, len, mode) {
+String.prototype.__defineProperty__("pad", function(str, len, mode) {
     if (str == null || len == null)
         return this;
     var diff = len - this.length;
@@ -443,7 +441,7 @@ String.prototype.pad = function(str, len, mode) {
     for (var i=0; i<right; i++)
         list.push(str);
     return list.join('');
-};
+}, false, false, true);
 
 
 /**
@@ -453,10 +451,9 @@ String.prototype.pad = function(str, len, mode) {
  * @param Int Position to start search
  * @param Boolean
  */
-String.prototype.contains = function(str, fromIndex) {
+String.prototype.__defineProperty__("contains", function(str, fromIndex) {
     return this.indexOf(str, fromIndex ? fromIndex : 0) > -1;
-
-};
+}, false, false, true);
 
 
 /**
@@ -465,7 +462,7 @@ String.prototype.contains = function(str, fromIndex) {
  * @param str a string
  * @return the longest common segment
  */
-String.prototype.getCommonPrefix = function(str) {
+String.prototype.__defineProperty__("getCommonPrefix", function(str) {
     if (str == null) {
         return null;
     } else if (str.length <= this.length && this.indexOf(str) == 0) {
@@ -480,7 +477,7 @@ String.prototype.getCommonPrefix = function(str) {
         }
     }
     return this.slice(0, length);
-}
+}, false, false, true);
 
 
 /**
@@ -496,7 +493,7 @@ String.prototype.getCommonPrefix = function(str) {
  *                     .deleted Obj Array containing deleted lines
  *                     .inserted Obj Array containing added lines
  */
-String.prototype.diff = function(mod, separator) {
+String.prototype.__defineProperty__("diff", function(mod, separator) {
     // if no separator use line separator
     var regexp = (typeof(separator) == "undefined") ?
         new RegExp("\r\n|\r|\n") :
@@ -540,29 +537,29 @@ String.prototype.diff = function(mod, separator) {
         }
     }
     return result;
-};
+}, false, false, true);
 
 
 /**
  * remove leading and trailing whitespace
  */
-String.prototype.trim = function () {
+String.prototype.__defineProperty__("trim", function () {
     return this.replace(/^\s+|\s+$/g, '');
-};
+}, false, false, true);
 
 
 /**
  * returns true if the string looks like an e-mail
  */
-String.prototype.isEmail = function() {
+String.prototype.__defineProperty__("isEmail", function() {
     return String.EMAILPATTERN.test(this);
-};
+}, false, false, true);
 
 
 /**
  * returns the amount of occurences of one string in another
  */
-String.prototype.count = function(str) {
+String.prototype.__defineProperty__("count", function(str) {
     var count = 0;
     var offset = 0;
     while ((offset = this.indexOf(str, offset)) > -1) {
@@ -570,30 +567,30 @@ String.prototype.count = function(str) {
         offset += 1;
     }
     return count;
-};
+}, false, false, true);
 
 
 /**
  * returns the string encoded using the base64 algorithm
  */
-String.prototype.enbase64 = function() {
+String.prototype.__defineProperty__("enbase64", function() {
     var bytes = new java.lang.String(this) . getBytes();
     return new Packages.sun.misc.BASE64Encoder().encode(bytes);
-};
+}, false, false, true);
 
 
 /**
  * returns the decoded string using the base64 algorithm
  */
-String.prototype.debase64 = function() {
+String.prototype.__defineProperty__("debase64", function() {
     var bytes = new Packages.sun.misc.BASE64Decoder().decodeBuffer(this);
     return String(new java.lang.String(bytes));
-};
+}, false, false, true);
 
 
-String.prototype.stripTags = function() {
+String.prototype.__defineProperty__("stripTags", function() {
     return this.replace(/<\/?[^>]+>/gi, '');
-};
+}, false, false, true);
 
 /**
  * factory to create functions for sorting objects in an array
@@ -601,7 +598,7 @@ String.prototype.stripTags = function() {
  * @param Number order (ascending or descending)
  * @return Function ready for use in Array.prototype.sort
  */
-String.Sorter = function(field, order) {
+String.__defineProperty__("Sorter", function(field, order) {
     if (!order)
         order = 1;
     return function(a, b) {
@@ -613,7 +610,7 @@ String.Sorter = function(field, order) {
             return order * -1;
         return 0;
     };
-};
+}, false, false, true);
 
 String.Sorter.ASC = 1;
 String.Sorter.DESC = -1;
@@ -624,9 +621,9 @@ String.Sorter.DESC = -1;
  * @param String one or more strings as arguments
  * @return String the resulting string
  */
-String.compose = function() {
+String.__defineProperty__("compose", function() {
     return Array.join(arguments, '');
-};
+}, false, false, true);
 
 
 /**
@@ -637,7 +634,7 @@ String.compose = function() {
  *      2 = use numbers only
  * @returns random string
  */
-String.random = function(len, mode) {
+String.__defineProperty__("random", function(len, mode) {
     if (mode == 2) {
         var x = Math.random() * Math.pow(10,len);
         return Math.floor(x);
@@ -659,7 +656,7 @@ String.random = function(len, mode) {
         }
     }
     return keystr;
-};
+}, false, false, true);
 
 
 /**
@@ -670,7 +667,7 @@ String.random = function(len, mode) {
  * @param String the "glue" to be inserted between both strings
  * @return String the resulting string
  */
-String.join = function(str1, str2, glue) {
+String.__defineProperty__("join", function(str1, str2, glue) {
     if (glue == null)
         glue = '';
     if (str1 && str2)
@@ -678,11 +675,4 @@ String.join = function(str1, str2, glue) {
     else if (str2)
         return str2;
     return str1;
-};
-
-
-// prevent any newly added properties from being enumerated
-for (var i in String)
-   String.dontEnum(i);
-for (var i in String.prototype)
-   String.prototype.dontEnum(i);
+}, false, false, true);

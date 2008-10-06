@@ -23,55 +23,6 @@ __shared__ = true;
  * application, for example by calling app.addRepository('modules/core/Object.js')
  */
 
-/**
- * Set the DONTENUM attribute on one or more properties on this object.
- * @param One or more property names or index numbers
- */
-Object.prototype.dontEnum = function() {
-    var rhino = org.mozilla.javascript;
-    var DONTENUM = rhino.ScriptableObject.DONTENUM;
-    var length = arguments.length;
-    var cx = rhino.Context.getCurrentContext();
-    var wrapped = cx.wrapFactory.wrapAsJavaObject(cx, global, this, null);
-    for (var i = 0; i < length; i++) {
-        var prop = arguments[i];
-        if (!this.hasOwnProperty(prop)) {
-            continue;
-        }
-        try {
-            wrapped.setAttributes(prop, DONTENUM);
-        } catch (e) {
-            log.error("Error in dontEnum for property " + prop, e.rhinoException);
-        }
-    }
-    return;
-}
-
-/**
- * Set the READONLY attribute on one or more properties on this object.
- * @param One or more property names or index numbers
- */
-Object.prototype.readOnly = function() {
-    var rhino = org.mozilla.javascript;
-    var READONLY = rhino.ScriptableObject.READONLY;
-    var length = arguments.length;
-    var cx = rhino.Context.getCurrentContext();
-    var wrapped = cx.wrapFactory.wrapAsJavaObject(cx, global, this, null);
-    for (var i = 0; i < length; i++) {
-        var prop = arguments[i];
-        if (!this.hasOwnProperty(prop)) {
-            continue;
-        }
-        try {
-            wrapped.setAttributes(prop, READONLY);
-        } catch (e) {
-            var log = importModule('helma.logging').getLogger(__name__);
-            log.error("Error in readOnly for property " + prop, e.rhinoException);
-        }
-    }
-    return;
-}
-
 
 /**
  * copy the properties of an object into
@@ -80,7 +31,7 @@ Object.prototype.readOnly = function() {
  * @param Object the (optional) target object
  * @return Object the resulting object
  */
-Object.prototype.clone = function(clone, recursive) {
+Object.prototype.__defineProperty__("clone", function(clone, recursive) {
    if (!clone)
       clone = new this.constructor();
    var value;
@@ -93,7 +44,7 @@ Object.prototype.clone = function(clone, recursive) {
       }
    }
    return clone;
-};
+}, false, false, true);
 
 
 /**
@@ -101,7 +52,7 @@ Object.prototype.clone = function(clone, recursive) {
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
  */
-Object.merge = function() {
+Object.prototype.__defineProperty__("merge", function() {
     var result = {};
     for (var i = arguments.length; i > 0; --i) {
         var obj = arguments[i - 1];
@@ -110,9 +61,6 @@ Object.merge = function() {
         }
     }
     return result;
-};
+}, false, false, true);
 
 
-// prevent any newly added properties from being enumerated
-for (var i in Object.prototype)
-   Object.prototype.dontEnum(i);

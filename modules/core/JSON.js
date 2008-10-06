@@ -45,8 +45,6 @@
 
 var __shared__ = true;
 
-loadModule('core.object');
-var log = loadModule('helma.logging').getLogger(__name__);
 
 (function () {
     var m = {
@@ -110,7 +108,6 @@ var log = loadModule('helma.logging').getLogger(__name__);
                 for (i in x) {
                     v = x[i];
                     f = s[typeof v];
-                    log.debug("Encoding property " + i + " of type " + typeof v);
                     if (f) {
                         v = f(v);
                         if (typeof v == 'string') {
@@ -152,20 +149,18 @@ var log = loadModule('helma.logging').getLogger(__name__);
      * This method produces a JSON text from an object. 
      * The object must not contain any cyclical references.
      */
-    Object.prototype.toJSON = function () {
+    Object.prototype.__defineProperty__("toJSON", function () {
         return s.object(this);
-    };
+    }, false, false, true);
 
     /**
      * This method produces a JSON text from an array. 
      * The array must not contain any cyclical references.
      */
-    Array.prototype.toJSON = function () {
+    Array.prototype.__defineProperty__("toJSON", function () {
         return s.array(this);
-    };
+    }, false, false, true);
 
-    Object.prototype.dontEnum("toJSON");
-    Array.prototype.dontEnum("toJSON");
     return;
 })();
 
@@ -174,12 +169,11 @@ var log = loadModule('helma.logging').getLogger(__name__);
  * This method parses a JSON text to produce an object or
  * array. It will return false if there is an error.
  */
-String.prototype.parseJSON = function () {
+String.prototype.__defineProperty__("parseJSON", function () {
     try {
         return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(this.replace(/"(\\.|[^"\\])*"/g, ''))) && eval('(' + this + ')');
     } catch (e) {
         return false;
     }
-};
+}, false, false, true);
 
-String.prototype.dontEnum("parseJSON");

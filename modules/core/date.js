@@ -23,7 +23,6 @@ __shared__ = true;
  * application, for example by calling app.addRepository('modules/core/Date.js')
  */
 
-loadModule('core.object');
 
 Date.ONESECOND    = 1000;
 Date.ONEMINUTE    = 60 * Date.ONESECOND;
@@ -46,7 +45,7 @@ Date.ISOFORMAT    = "yyyy-MM-dd'T'HH:mm:ss'Z'";
  * @return String formatted Date
  * @see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  */
-Date.prototype.format = function (format, locale, timezone) {
+Date.prototype.__defineProperty__("format", function (format, locale, timezone) {
     if (!format)
         return this.toString();
     var sdf = locale ? new java.text.SimpleDateFormat(format, locale)
@@ -54,34 +53,34 @@ Date.prototype.format = function (format, locale, timezone) {
     if (timezone && timezone != sdf.getTimeZone())
         sdf.setTimeZone(timezone);
     return sdf.format(this);
-};
+}, false, false, true);
 
 
 /** 
  * set the date/time to UTC by subtracting
  * the timezone offset
  */ 
-Date.prototype.toUtc = function() {
+Date.prototype.__defineProperty__("toUtc", function() {
     this.setMinutes(this.getMinutes() + this.getTimezoneOffset());
-};
+}, false, false, true);
 
 
 /** 
  * set the date/time to local time by adding
  * the timezone offset
  */ 
-Date.prototype.toLocalTime = function() {
+Date.prototype.__defineProperty__("toLocalTime", function() {
     this.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-};
+}, false, false, true);
 
 
 /**
  * returns the difference between this and another
  * date object in milliseconds
  */
-Date.prototype.diff = function(dateObj) {
+Date.prototype.__defineProperty__("diff", function(dateObj) {
     return this.getTime() - dateObj.getTime();
-};
+}, false, false, true);
 
 
 /**
@@ -98,7 +97,7 @@ Date.prototype.diff = function(dateObj) {
  * @see Date.prototype.getAge
  * @see Date.prototype.getExpiry
  */
-Date.prototype.getTimespan = function(param) {
+Date.prototype.__defineProperty__("getTimespan", function(param) {
     if (!param)
         param = {date: new Date()};
     else if (!param.date)
@@ -131,7 +130,7 @@ Date.prototype.getTimespan = function(param) {
     }
     result.span = res.pop();
     return result;
-};
+}, false, false, true);
 
 
 /**
@@ -139,12 +138,12 @@ Date.prototype.getTimespan = function(param) {
  * the current Date or a different Date object
  * @see Date.prototype.getTimespan
  */
-Date.prototype.getAge = function(param) {
+Date.prototype.__defineProperty__("getAge", function(param) {
     var age = this.getTimespan(param);
     if (!age.isFuture)
         return age.span;
     return null;
-};
+}, false, false, true);
 
 
 /**
@@ -152,12 +151,12 @@ Date.prototype.getAge = function(param) {
  * the current Date or a different Date object
  * @see Date.prototype.getTimespan
  */
-Date.prototype.getExpiry = function(param) {
+Date.prototype.__defineProperty__("getExpiry", function(param) {
     var age = this.getTimespan(param);
     if (age.isFuture)
         return age.span;
     return null;
-};
+}, false, false, true);
 
 
 /**
@@ -166,7 +165,7 @@ Date.prototype.getExpiry = function(param) {
  * @param Int indicating how far the comparison should go
  * @return Boolean
  */
-Date.prototype.equals = function(date, extend) {
+Date.prototype.__defineProperty__("equals", function(date, extend) {
     if (!extend)
         extend = Date.ONEDAY;
     switch (extend) {
@@ -190,11 +189,5 @@ Date.prototype.equals = function(date, extend) {
                 return false;
     }
     return true;
-};
+}, false, false, true);
 
-
-// prevent any newly added properties from being enumerated
-for (var i in Date)
-   Date.dontEnum(i);
-for (var i in Date.prototype)
-   Date.prototype.dontEnum(i);

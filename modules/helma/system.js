@@ -110,6 +110,6 @@ function addRepository(repo) {
     }
 }
 
-var args = new ScriptableList(getRhinoEngine().getCommandLineArguments());
-// make properties read-only
-this.readOnly('args');
+__defineProperty__("args",
+        new ScriptableList(getRhinoEngine().getCommandLineArguments()),
+        true, true, false);

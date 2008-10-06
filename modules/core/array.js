@@ -14,7 +14,6 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-loadModule('core.object');
 var __shared__ = true;
 
 /**
@@ -33,16 +32,16 @@ var __shared__ = true;
  * @param {Object} val the value to check
  * @return {boolean} true if the value is contained
  */
-Array.prototype.contains = function(val) {
+Array.prototype.__defineProperty__("contains", function(val) {
    return this.indexOf(val) > -1;
-};
+}, false, false, true);
 
 /**
  * Retrieve the union set of a bunch of arrays
  * @param {Array} array1,... the arrays to unify
  * @return {Array} the union set
  */
-Array.union = function() {
+Array.__defineProperty__("union", function() {
    var result = [];
    var map = new java.util.HashMap();
    for (var i=0; i<arguments.length; i+=1) {
@@ -55,14 +54,14 @@ Array.union = function() {
       }
    }
    return result;
-};
+}, false, false, true);
 
 /**
  * Retrieve the intersection set of a bunch of arrays
  * @param {Array} array1,... the arrays to intersect
  * @return {Array} the intersection set
  */
-Array.intersection = function() {
+Array.__defineProperty__("intersection", function() {
    var all = Array.union.apply(this, arguments);
    var result = [];
    for (var n in all) {
@@ -78,10 +77,4 @@ Array.intersection = function() {
          result.push(item);
    }
    return result;
-};
-
-// prevent any newly added properties from being enumerated
-for (var i in Array)
-   Array.dontEnum(i);
-for (var i in Array.prototype)
-   Array.prototype.dontEnum(i);
+}, false, false, true);
