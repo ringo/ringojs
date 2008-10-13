@@ -83,7 +83,7 @@ const global = this;
      */
     this.print = function() {
         for (var i = 0; i < arguments.length; i++) {
-            out.print(arguments[i]);
+            out.print(String(arguments[i]));
             if (i < arguments.length) {
                 out.print(' ');
             }
