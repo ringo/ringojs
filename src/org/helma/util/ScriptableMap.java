@@ -34,7 +34,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
 
     public static void init(Scriptable scope) throws NoSuchMethodException {
         Constructor cnst = ScriptableMap.class.getConstructor(Object.class);
-        FunctionObject jsCnst = new FunctionObject("ScriptableMap", cnst, scope);
+        FunctionObject jsCnst = new FunctionObject(CLASSNAME, cnst, scope);
         jsCnst.addAsConstructor(scope, new ScriptableMap(scope, null));
     }
 

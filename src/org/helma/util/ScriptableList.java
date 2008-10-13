@@ -42,7 +42,8 @@ public class ScriptableList extends NativeJavaObject {
                 return new ScriptableList(scope, args[0]);
             }
         };
-        scope.put(CLASSNAME, scope, ctor);
+        ScriptableObject.defineProperty(scope, CLASSNAME, ctor,
+                ScriptableObject.DONTENUM | ScriptableObject.READONLY);
     }
 
     /**
