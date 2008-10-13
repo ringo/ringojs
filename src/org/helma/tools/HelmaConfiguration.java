@@ -35,6 +35,8 @@ public class HelmaConfiguration {
     Resource script;
     List<Repository> repositories;
     String mainModule;
+    int optimizationLevel = 0;
+    int languageVersion = 180;
     Class<?>[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
@@ -42,6 +44,15 @@ public class HelmaConfiguration {
             throws FileNotFoundException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
+
+        String optLevel = System.getProperty("rhino.optlevel");
+        if (optLevel != null) {
+            optimizationLevel = Integer.parseInt(optLevel);
+        }
+        String langVersion = System.getProperty("rhino.langversion");
+        if (langVersion != null) {
+            languageVersion = Integer.parseInt(langVersion);
+        }
 
         // first add repositories from helma.modulepath system property
         String modulePath = System.getProperty("helma.modulepath");
@@ -147,6 +158,30 @@ public class HelmaConfiguration {
      */
     public Class<?>[] getHostClasses() {
         return hostClasses;
+    }
+
+    /**
+     * Get the Rhino optimization level
+     * @return int value between -1 and 9
+     */
+    public int getOptLevel() {
+        return optimizationLevel;
+    }
+
+    /**
+     * Set the Rhino optimization level
+     * @param optlevel int value between -1 and 9
+     */
+    public void setOptLevel(int optlevel) {
+        this.optimizationLevel = optlevel;
+    }
+
+    /**
+     * Get the desired JavaScript langauge version
+     * @return int value between 0 and 180
+     */
+    public int getLanguageVersion() {
+        return languageVersion;
     }
 
     /**

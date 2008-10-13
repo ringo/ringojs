@@ -53,7 +53,7 @@ public class RhinoEngine {
     Map<String, ExtendedJavaClass>     javaWrappers       = new HashMap<String, ExtendedJavaClass>();
     Set<Class>                         hostClasses        = new HashSet<Class>();
 
-    HelmaContextFactory                contextFactory     = new HelmaContextFactory(this);
+    HelmaContextFactory                contextFactory     = null;
     ModuleScope                        mainScope          = null;
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
@@ -63,11 +63,12 @@ public class RhinoEngine {
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
      * and defines the given classes as native host objects.
-     * @param configuration the configuration used to initialize the engine.
+     * @param config the configuration used to initialize the engine.
      */
-    public RhinoEngine(HelmaConfiguration configuration) {
-        this.configuration = configuration;
-        this.repositories = configuration.getRepositories();
+    public RhinoEngine(HelmaConfiguration config) {
+        this.configuration = config;
+        contextFactory = new HelmaContextFactory(this, config);
+        this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
@@ -75,7 +76,7 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         try {
             topLevelScope = cx.initStandardObjects();
-            Class[] classes = configuration.getHostClasses();
+            Class[] classes = config.getHostClasses();
             if (classes != null) {
                 // for (int i=0; i<classes.length; i++) {
                 for (Class clazz: classes) {

@@ -16,8 +16,6 @@
 
 package org.helma.tools;
 
-import java.util.Arrays;
-
 import org.helma.javascript.RhinoEngine;
 import org.helma.repository.FileRepository;
 
@@ -28,6 +26,7 @@ public class HelmaRunner {
         String[] scriptArgs = new String[0];
         boolean interactive = false;
         boolean debug = false;
+        int optlevel = -2;
 
         if (args != null && args.length > 0) {
             int i;
@@ -43,6 +42,13 @@ public class HelmaRunner {
             		interactive = true;
                 } else if ("--debug".equals(arg) || "-d".equals(arg)) {
                     debug = true;
+                } else if ("optlevel".equals(arg) || "-o".equals(arg)) {
+                    optlevel = Integer.parseInt(args[i+1]);
+                    if (optlevel < -1 || optlevel > 9) {
+                        throw new IllegalArgumentException(
+                                arg + " value must be between -1 and 9");
+                    }
+                    i += 1;
                 } else {
                     printUsage();
                     System.exit(1);
@@ -57,6 +63,9 @@ public class HelmaRunner {
 
         FileRepository home = new FileRepository(System.getProperty("helma.home", "."));
         HelmaConfiguration config = new HelmaConfiguration(home, scriptName);
+        if (optlevel >= -1) {
+            config.setOptLevel(optlevel);
+        }
         RhinoEngine engine = new RhinoEngine(config);
         if (scriptName != null) {
         	engine.runScript(scriptName, scriptArgs);
@@ -73,5 +82,6 @@ public class HelmaRunner {
         System.out.println("  -d, --debug        : Print stack traces for shell errors");
         System.out.println("  -h, --help         : Display this help message");
         System.out.println("  -i, --interactive  : Start shell after script file has run");
+        System.out.println("  -o, --optlevel n   : Set Rhino optimization level (-1 to 9)");
     }
 }

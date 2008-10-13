@@ -15,6 +15,7 @@ import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.Scriptable;
 import org.helma.repository.Trackable;
+import org.helma.tools.HelmaConfiguration;
 
 import java.util.HashMap;
 
@@ -30,16 +31,10 @@ public class HelmaContextFactory extends ContextFactory {
     ErrorReporter errorReporter;
 
 
-    public HelmaContextFactory(RhinoEngine engine) {
+    public HelmaContextFactory(RhinoEngine engine, HelmaConfiguration config) {
         this.engine = engine;
-        String optLevel = System.getProperty("rhino.optlevel");
-        if (optLevel != null) {
-            optimizationLevel = Integer.parseInt(optLevel);
-        }
-        String langVersion = System.getProperty("rhino.langversion");
-        if (langVersion != null) {
-            languageVersion = Integer.parseInt(langVersion);
-        }
+        optimizationLevel = config.getOptLevel();
+        languageVersion = config.getLanguageVersion();
     }
 
     protected boolean hasFeature(Context cx, int featureIndex) {
