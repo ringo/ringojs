@@ -1,7 +1,7 @@
-var webapp = loadModule('helma.webapp');
+var webapp = require('helma.webapp');
 var handleRequest = webapp.handleRequest;
 // db model
-var model = loadModule('model');
+var model = require('model');
 
 
 // the main action is invoked for http://localhost:8080/

@@ -2,7 +2,7 @@
  * Helma NG global functions
  */
 
-const global = this;
+__defineProperty__("global", this, true, true, true);
 
 (function() {
 
@@ -11,16 +11,16 @@ const global = this;
      * @param moduleName the module name such as 'core.object'
      * @return {Object} the module scope
      */
-    this.loadModule = function(moduleName) {
+    this.__defineProperty__("require", function(moduleName) {
         return getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
-    };
+    }, true, true, true);
 
     /**
      * Load a module and include all its properties in the calling scope.
      * @param moduleName the module name such as 'core.object'
      */
-    this.includeModule = function(moduleName) {
-        var module = this.loadModule(moduleName);
+    this.__defineProperty__("include", function(moduleName) {
+        var module = this.require(moduleName);
         var exported = module.__export__;
         if (!exported) {
             throw ReferenceError("Property __export__ is not defined on module " + moduleName);
@@ -30,42 +30,42 @@ const global = this;
         for each (var key in exported) {
             this[key] = module[key];
         }
-    };
+    }, true, true, true);
 
     /**
      * Get a resource from the app's module search path.
      * @param resourceName
      */
-    this.getResource = function(resourceName) {
+    this.__defineProperty__("getResource", function(resourceName) {
         var engine = getRhinoEngine();
         return engine.findResource(resourceName, engine.getParentRepository(this));
-    };
+    }, true, true, true);
 
     /**
      * Add a java resource to our classpath if it isn't already contained.
      * @param resourcePath the resource path
      */
-    this.addToClasspath = function(resourcePath) {
+    this.__defineProperty__("addToClasspath", function(resourcePath) {
         var resource = this.getResource(resourcePath);
         getRhinoEngine().addToClasspath(resource);
-    };
+    }, true, true, true);
 
     /**
      * Get all resources with the given path prefix in the app's module search path
      * @param resourcePath
      * @param nested
      */
-    this.getResources = function(resourcePath, nested) {
+    this.__defineProperty__("getResources", function(resourcePath, nested) {
         var engine = getRhinoEngine();
         return new ScriptableList(engine.getResources(resourcePath, !!nested));
-    };
+    }, true, true, true);
 
     /**
      * Parse a skin resource and pass its tokens to the supplied function.
      * @param resourceOrString a skin resource or string
      * @param fn a function to consume the skin tokens
      */
-    this.parseSkin = function(resourceOrString, fn) {
+    this.__defineProperty__("parseSkin", function(resourceOrString, fn) {
         var engine = getRhinoEngine();
         var parser = new org.helma.template.SkinParser({
             renderText: function(text) {
@@ -76,12 +76,12 @@ const global = this;
             }
         });
         parser.parse(resourceOrString);
-    };
+    }, true, true, true);
 
     /**
      * Basic print function compatible with other JavaScript implementations.
      */
-    this.print = function() {
+    this.__defineProperty__("print", function() {
         for (var i = 0; i < arguments.length; i++) {
             out.print(String(arguments[i]));
             if (i < arguments.length) {
@@ -89,7 +89,7 @@ const global = this;
             }
         }
         out.println();
-    }
+    }, true, true, true);
 
     var out = java.lang.System.out;
 

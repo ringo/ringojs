@@ -1,5 +1,5 @@
-includeModule('helma.unittest');
-loadModule('core.object');
+include('helma.unittest');
+require('core.object');
 
 var c = new TestCase('core.object');
 

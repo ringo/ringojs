@@ -23,8 +23,8 @@
  */
 
 // take care of any dependencies
-loadModule('core.date');
-loadModule('core.string');
+require('core.date');
+require('core.string');
 
 var __export__ = ["Client", "Cookie"];
 

@@ -1,15 +1,10 @@
-var webapp = loadModule('helma.webapp');
-var handleRequest = webapp.handleRequest;
-var render = loadModule('helma.skin').render;
-// loadModule('helma.continuation');
-var helma = {
-    logging : loadModule('helma.logging')
-}
-helma.logging.enableResponseLog();
-var log = helma.logging.getLogger(__name__);
+var webapp = require('helma.webapp');
+var helmaLogging = require('helma.logging')
+helmaLogging.enableResponseLog();
+var log = helmaLogging.getLogger(__name__);
 
 var mount = {
-    point: loadModule('webmodule')
+    point: require('webmodule')
 }
 
 // the main action is invoked for http://localhost:8080/
@@ -30,9 +25,9 @@ function skins(req, res) {
 // demo for log4j logging
 function logging(req, res) {
     // make sure responselog is enabled
-    var hasResponseLog = helma.logging.responseLogEnabled();
+    var hasResponseLog = helmaLogging.responseLogEnabled();
     if (!hasResponseLog) {
-        helma.logging.enableResponseLog();
+        helmaLogging.enableResponseLog();
         log.debug("enabling response log");
     }
     if (req.data.info) {
@@ -47,9 +42,9 @@ function logging(req, res) {
     res.render('skins/logging.html', { title: "Logging Demo" });
     if (!hasResponseLog) {
         log.debug("disabling response log");
-        helma.logging.disableResponseLog();
+        helmaLogging.disableResponseLog();
     }
-    helma.logging.flushResponseLog();
+    helmaLogging.flushResponseLog();
 }
 
 // demo for continuation support

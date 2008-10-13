@@ -5,7 +5,7 @@
 // mark this module as shared between all requests
 var __shared__ = true;
 
-var log = loadModule('helma.logging').getLogger(__name__);
+var log = require('helma.logging').getLogger(__name__);
 
 
 (function() {
@@ -36,7 +36,7 @@ var log = loadModule('helma.logging').getLogger(__name__);
         var configFile = config.configFile || 'jetty.xml';
         // var staticIndex = config.staticIndex || config.staticIndex == undefined;
         if (!server) {
-            var engine = loadModule('helma.system').getRhinoEngine();
+            var engine = require('helma.system').getRhinoEngine();
             var jettyconfig = getResource(configFile);
             if (!jettyconfig.exists()) {
                 throw Error('Resource "' + configFile + '" not found');

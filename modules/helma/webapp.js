@@ -5,13 +5,13 @@
 __shared__ = true;
 
 // import modules
-loadModule('core.string');
-loadModule('helma.webapp.request');
-loadModule('helma.webapp.response');
-var continuation = loadModule('helma.webapp.continuation');
-var system = loadModule('helma.system');
-var server = loadModule('helma.httpserver');
-var log = loadModule('helma.logging').getLogger(__name__);
+require('core.string');
+require('helma.webapp.request');
+require('helma.webapp.response');
+var continuation = require('helma.webapp.continuation');
+var system = require('helma.system');
+var server = require('helma.httpserver');
+var log = require('helma.logging').getLogger(__name__);
 
 
 /**
@@ -49,7 +49,7 @@ function handleRequest(req, res) {
 
     try {
         log.debug('resolving path ' + path);
-        var setup = loadModule('setup');
+        var setup = require('setup');
         log.debug('got setup: ' + setup);
         if (setup.urls instanceof Array) {
             var urls = setup.urls;
@@ -68,7 +68,7 @@ function handleRequest(req, res) {
                         }
                         var module = action.slice(0, dot);
                         var func = action.slice(dot + 1);
-                        action = loadModule(module)[func];
+                        action = require(module)[func];
                         if (log.isDebugEnabled()) {
                             log.debug("resolved action: " + action);
                         }
@@ -140,7 +140,7 @@ function start(config) {
     var setup;
     var httpConf;
     try {
-        setup = config || loadModule('setup');
+        setup = config || require('setup');
         httpConf = setup.httpConf;
     } catch (noSetup) {
         log.info('Couldn\'t load setup module - using defaults');

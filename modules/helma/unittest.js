@@ -1,8 +1,30 @@
-loadModule("core.string");
-var system = loadModule("helma.system");
-var writeln = loadModule("helma.shell").writeln;
+require("core.string");
+var system = require("helma.system");
+var writeln = require("helma.shell").writeln;
 
 var __shared__ = true;
+
+var __export__ = [
+    "TestCase",
+    "TestSuite",
+    "assertEqual",
+    "assertEqualArrays",
+    "assertEqualValues",
+    "assertEqualObjects",
+    "assertNotEqual",
+    "assertTrue",
+    "assertFalse",
+    "assertMatch",
+    "assertNaN",
+    "assertNotNaN",
+    "assertUndefined",
+    "assertNotUndefined",
+    "assertNull",
+    "assertNotNull",
+    "assertStringContains",
+    "assertThrows",
+    "run"
+];
 
 (function() {
 
@@ -10,23 +32,6 @@ var __shared__ = true;
     /*********************************************
      *****  P R I V A T E    M E T H O D S   *****
      *********************************************/
-
-    /**
-     * Loads the test module passed as argument
-     * @param {String} module The name of the module to load
-     * @returns The loaded module
-     */
-    var loadTestModule = function(module) {
-        return loadModule(module, "__currentTest__");
-    };
-
-    /**
-     * Unloads any loaded test module
-     */
-    var unloadTestModule = function() {
-        delete this.__currentTest__;
-        return;
-    };
 
     /**
      * @param {Number} nr The number of arguments to be expected
@@ -517,7 +522,7 @@ var __shared__ = true;
      */
     this.run = function(test) {
         var testResult;
-        var scope = loadTestModule(test || this.__name__);
+        var scope = require(test || this.__name__);
         for (var propName in scope) {
             var prop = scope[propName];
             if (prop instanceof TestCase || prop instanceof TestSuite) {
@@ -529,8 +534,6 @@ var __shared__ = true;
             }
         }
         (new ShellWriter()).write(testResult);
-        // cleanup
-        unloadTestModule();
         return;
     };
 
@@ -723,15 +726,13 @@ var __shared__ = true;
     this.TestSuite.prototype.execute = function(testResult) {
         for (var i = 0; i < this.tests.length; i += 1) {
             var test = this.tests[i];
-            var scope = loadTestModule(test);
+            var scope = require(test);
             for (var propName in scope) {
                 var prop = scope[propName];
                 if (prop instanceof TestCase) {
                     testResult.add(prop.execute(new TestResult(prop)));
                 }
             }
-            // cleanup
-            unloadTestModule();
         };
         return testResult;
     };

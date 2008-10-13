@@ -1,7 +1,7 @@
 var __shared__ = true;
 
 // simple demo model for helma minibase
-var db = loadModule('helma.filestore');
+var db = require('helma.filestore');
 
 /**
  * Our model class. The only thing to observe is to return a Storable

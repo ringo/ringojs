@@ -1,6 +1,6 @@
-includeModule("helma.unittest");
-loadModule("core.array");
-var logging = loadModule("helma.logging");
+include("helma.unittest");
+require("core.array");
+var logging = require("helma.logging");
 var log = logging.getLogger(__name__);
 
 var testCase = new TestCase("core.array");

@@ -2,8 +2,8 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
-loadModule('core.object');
-var log = loadModule('helma.logging').getLogger(__name__);
+require('core.object');
+var log = require('helma.logging').getLogger(__name__);
 
 // mark this module as shared between all requests
 var __shared__ = true;

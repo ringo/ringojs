@@ -21,7 +21,7 @@
  * application, for example by calling app.addRepository('modules/core/Filters.js')
  */
 
-loadModule('core.string');
+require('core.string');
 
 /**
  * Transforms a string to lowercase.

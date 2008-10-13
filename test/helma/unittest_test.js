@@ -1,4 +1,4 @@
-includeModule("helma.unittest");
+include("helma.unittest");
 
 var testCase = new TestCase("testing.unittest");
 

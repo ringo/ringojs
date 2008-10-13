@@ -1,5 +1,5 @@
-includeModule('helma.unittest');
-includeModule('helma.skin');
+include('helma.unittest');
+include('helma.skin');
 
 var c = new TestCase('helma.skin');
 

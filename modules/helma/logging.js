@@ -1,5 +1,5 @@
 
-loadModule('core.string');
+require('core.string');
 
 var __shared__ = true;
 
@@ -40,7 +40,7 @@ var __shared__ = true;
      */
     this.enableResponseLog = function() {
         // onLogEvent() callback is called by org.helma.util.RhinoAppender
-        var system = loadModule('helma.system');
+        var system = require('helma.system');
         system.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
             if (!global.res) {
                 return;
@@ -74,7 +74,7 @@ var __shared__ = true;
      */
     this.disableResponseLog = function() {
         // unregister handlers added in startResponseLog()
-        var system = loadModule('helma.system');
+        var system = require('helma.system');
         system.removeCallback("onLogEvent", "responseLog");
         system.removeCallback("onResponse", "responseLogFlusher");
         responseLogEnabled = false;
