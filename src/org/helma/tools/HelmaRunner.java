@@ -42,7 +42,7 @@ public class HelmaRunner {
             		interactive = true;
                 } else if ("--debug".equals(arg) || "-d".equals(arg)) {
                     debug = true;
-                } else if ("optlevel".equals(arg) || "-o".equals(arg)) {
+                } else if ("--optlevel".equals(arg) || "-o".equals(arg)) {
                     optlevel = Integer.parseInt(args[i+1]);
                     if (optlevel < -1 || optlevel > 9) {
                         throw new IllegalArgumentException(
