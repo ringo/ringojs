@@ -1,44 +1,38 @@
 var __shared__ = true;
 
+var __export__ = [
+    "Book", "Author"
+];
+
 // simple demo model for helma minibase
 var db = require('helma.filestore');
 
 /**
- * Our model class. The only thing to observe is to return a Storable
- * instance, passing this object and an object containing the persistent
- * properties to the Storable constructor.
- * 
- * @param properties persistent properties container
+ * Book class
+ * @param properties object containing persistent properties
  */
-function Book(props) {
+function Book(properties) {
+    this.properties = properties || {};
 
-    // Define any instance methods you like, accessing persistent
-    // properties using the this prefix.
     this.getFullTitle = function() {
         return this.author.name + ": " + this.title;
-    }
+    };
 
-    /*
-      The Storable wrapper handles property access and adds
-      the following instance methods and properties:
-
-        book.save()   - save the instance in the associated store
-        book.remove() - remove the instance in the associated store
-        book._type    - the object type name - readonly
-        book._id      - the object id - undefined for transient objects,
-                        and only settable on transient objects
-     */
-    db.makeStorable(this, props);
     return this;
 }
 
-function Author(props) {
-    db.makeStorable(this, props);
+/**
+ * Author class
+ * @param properties object containing persistent properties
+ */
+function Author(properties) {
+    this.properties = properties || {};
     return this;
 }
+
 
 // init store instance and register persistent classes.
-db.store = new db.Store("db");
+var store = new db.Store("db");
 
 /*
  The call to registerType installs the following static
@@ -47,6 +41,22 @@ db.store = new db.Store("db");
    Book.get(id)  - get a persistent object of this type by id
    Book.all()    - get an array containing all objects of this type
    Book.list()   - get filtered, ordered and sliced lists of this type
+
+ The following instance fields and methods are isntalled in
+ the constructor's prototype property:
+
+   Book.prototype._type     - the type name as String (e.g. "Book")
+   Book.prototype.save()    - save this instance in the database
+   Book.prototype.remove()  - remove this instance from the database
+   Book.prototype.getKey()  - get a key to refer to this persistent instance
+
 */
-db.store.registerType(Book);
-db.store.registerType(Author);
+store.registerType(Book, {
+    title: db.Text(),
+    author: db.Reference(Author)
+});
+
+store.registerType(Author, {
+    name: db.Text(),
+    books: db.Collection(Book)
+});

@@ -1,3 +1,4 @@
+require('core.object');
 require('core.JSON');
 var File = require('helma.file').File;
 var partial = require('helma.functional').partial;
@@ -5,100 +6,34 @@ var log = require('helma.logging').getLogger(__name__);
 
 var __shared__ = true;
 
-/**
- * The base/wrapper prototype for persistent minibase objects
- *
- * @param obj the raw javascript object to wrap
- * @param properties the persistent object properties (optional)
- */
-function makeStorable(obj, properties) {
+var __export__ = [
+    "Store",
+    "Transaction",
+    "Reference",
+    "Collection",
+    "Text"
+]
 
-    if (!(obj instanceof Object) || !(obj.constructor instanceof Function))
-        throw new Error("object must be an object, was: " + properties);
-    if (!(obj.constructor instanceof Function))
-        throw new Error("object must have a constructor property, has: "  + obj.constructor);
-    if (properties === undefined)
-        properties = {};
-    if (!(properties instanceof Object))
-        throw new Error("properties must be an object, was: " + properties);
+var TEXT = 0;
+var REFERENCE = 1;
+var COLLECTION = 2;
 
-    var ctor = obj.constructor;
-    var type = ctor.name;
-    var id;
+function Text() {
+    return {id: TEXT};
+}
 
-    if (typeof type != "string")
-        throw new Error("couldn't get type: " + type);
-
-
-    obj.__get__ = function(name) {
-        if (name == "_id") {
-            return id;
-        } else if (name == "_type") {
-            return type;
-        }
-        if (this[name]) return this[name];
-        var value = properties[name];
-        if (isKey(value)) {
-            value = ctor.store.get(value._type, value._id);
-        }
-        return value;
-    };
-
-    obj.__set__ = function(name, value) {
-        if (name == "_id") {
-            if (id != undefined) {
-                throw new Error("Cannot change _id on storable object");
-            }
-            id = value;
-            return;
-        }
-        if (typeof value == "function") {
-            this[name] = value;
-            return;
-        } else if (isPersistentStorable(value)) {
-            value = value.getKey();
-        }
-        properties[name] = value;
-    };
-
-    obj.__delete__ = function(name) {
-        delete properties[name];
-    };
-
-    obj.__has__ = function(name) {
-        return properties[name] !== undefined ||
-               this[name] !== undefined;
-    };
-
-    obj.__getIds__ = function() {
-        var ids = [];
-        for (var id in properties) {
-            ids[ids.length] = id
-        }
-        return ids;
-    };
-
-    obj.save = function(txn) {
-        ctor.save(txn, this, properties);
-    };
-
-    obj.remove = function(txn) {
-        ctor.remove(txn, this);
-    };
-
-    obj.getKey = function() {
-        if (!(typeof id == "string")) {
-            throw new Error("getKey() called on non-persistent object");
-        }
-        return {_id: id, _type: type};
+function Reference(type) {
+    if (!type) {
+        throw new Error("Missing type argument in Reference()");
     }
+    return {id: REFERENCE, type: type};
+}
 
-    // only define toString if object doesn't have one already
-    if (obj.toString == Object.prototype.toString) {
-        obj.toString = function() {
-            return type + "[" + id + "]";
-        };
+function Collection(type) {
+    if (!type) {
+        throw new Error("Missing type argument in Collection()");
     }
+    return {id: COLLECTION, type: type};
 }
 
 /**
@@ -113,23 +48,89 @@ function Store(path) {
     // map of type to current id tip
     var idMap = {};
 
-    this.registerType = function(ctor) {
-        if (typeof ctor != "function") {
-           throw new Error("registerType() called with non-function argument: " + ctor);
+    /**
+     * @param constructor a plain JavaScript constructor
+     * @param fields container of fields defined for this object type
+     */
+    this.registerType = function(constructor, fields) {
+        if (typeof constructor != "function") {
+           throw new Error("registerType() called with non-function argument: " + constructor);
         }
-        if (typeof ctor.name != "string") {
+        if (typeof constructor.name != "string") {
            throw new Error("constructor must not be an anonymous function");
         }
+
+        var typeName = constructor.name;
+
         // install filter, all, and get methods on constructor
-        ctor.list = partial(list, ctor.name);
-        ctor.all = partial(getAll, ctor.name);
-        ctor.get = partial(get, ctor.name);
-        ctor.save = partial(save);
-        ctor.remove = partial(remove);
-        ctor.store = this;
+        constructor.list = partial(list, typeName);
+        constructor.all = partial(getAll, typeName);
+        constructor.get = partial(get, typeName);
+        constructor.store = this;
         // add class to registry
-        typeRegistry[ctor.name] = ctor;
-    };
+        typeRegistry[typeName] = constructor;
+
+        function getter(name, definition) {
+            if (definition.id == REFERENCE) {
+                var key = this.properties[name];
+                if (isKey(key)) {
+                    return get(key._type, key._id);
+                }
+            } else if (definition.id == COLLECTION) {
+                return definition.type.list({
+                    filter: function(obj) {
+                        return true; // FIXME
+                    }
+                });
+            }
+            return this.properties[name];
+        }
+
+        function setter(name, definition, value) {
+            if (value == null) {
+                delete this.properties[name];
+            } else {
+                this.properties[name] = value;
+            }
+        }
+
+        var proto = constructor.prototype;
+
+        for (var [key, field] in fields) {
+            proto.__defineSetter__(key, partial(setter, key, field));
+            proto.__defineGetter__(key, partial(getter, key, field));
+        }
+
+        proto.__defineGetter__("_type", function() {
+            return typeName;
+        });
+
+        proto.getKey = function() {
+            if (!(typeof this._id == "string")) {
+                throw new Error("getKey() called on non-persistent object");
+            }
+            return {_id: this._id, _type: this._type};
+        }
+
+        proto.save = function(txn) {
+            save(txn, this);
+        };
+
+        proto.remove = function(txn) {
+            remove(txn, this);
+        };
+
+        proto.toString = function() {
+            return typeName + this.properties.toSource();
+        }
+
+        proto.__iterator__ = function(namesOnly) {
+            for (var i in this.properties) {
+                yield namesOnly ? i : [i, this[i]];
+            }
+            throw StopIteration;
+        }
+    }
 
     this.getRegisteredType = function(name) {
         return typeRegistry[name];
@@ -192,18 +193,18 @@ function Store(path) {
        return persister.retrieve(type, file);
     }
 
-    var save = function(txn, obj, properties) {
+    var save = function(txn, obj) {
         var wrapTransaction = !txn;
         if (wrapTransaction) {
             txn = new Transaction();
         }
-        for (var i in properties) {
-            var v = properties[i];
+        for (var i in obj.properties) {
+            var v = obj.properties[i];
             if (isStorable(v)) {
                 if (isTransientStorable(v)) {
                     v.save(txn);
                 }
-                properties[i] = v.getKey();
+                obj.properties[i] = v.getKey();
             }
         }
         var [type, id] = [obj._type, obj._id];
@@ -221,7 +222,7 @@ function Store(path) {
         var tempFileName = type + id + ".";
         var tempfile = base.createTempFile(tempFileName, ".tmp");
 
-        persister.store(properties, tempfile);
+        persister.store(obj.properties, tempfile);
 
         if (file.exists() && !file.canWrite()) {
             throw new Error("No write permission for " + file);
@@ -310,7 +311,7 @@ var isKey = function(value) {
 }
 
 var isStorable = function(value) {
-    return typeof value._type == 'string';
+    return value && typeof value._type == 'string';
 }
 
 var isPersistentStorable = function(value) {
