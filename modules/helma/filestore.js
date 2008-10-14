@@ -305,13 +305,13 @@ function Store(path) {
 };
 
 var isKey = function(value) {
-    return value instanceof Object
-            && typeof value._id == 'string'
-            && typeof value._type == 'string';
+    return value
+            && !value.getKey
+            && typeof value._id == 'string';
 }
 
 var isStorable = function(value) {
-    return value && typeof value._type == 'string';
+    return value && typeof value.getKey == 'function';
 }
 
 var isPersistentStorable = function(value) {
