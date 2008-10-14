@@ -29,11 +29,11 @@ function Reference(type) {
     return {id: REFERENCE, type: type};
 }
 
-function Collection(type) {
+function Collection(type, options) {
     if (!type) {
         throw new Error("Missing type argument in Collection()");
     }
-    return {id: COLLECTION, type: type};
+    return {id: COLLECTION, type: type, options: options};
 }
 
 /**
@@ -70,18 +70,18 @@ function Store(path) {
         // add class to registry
         typeRegistry[typeName] = constructor;
 
-        function getter(name, definition) {
-            if (definition.id == REFERENCE) {
+        function getter(name, def) {
+            if (def.id == REFERENCE) {
                 var key = this.properties[name];
                 if (isKey(key)) {
                     return get(key._type, key._id);
                 }
-            } else if (definition.id == COLLECTION) {
-                return definition.type.list({
-                    filter: function(obj) {
-                        return true; // FIXME
-                    }
-                });
+            } else if (def.id == COLLECTION) {
+                if (def.options) {
+                    return def.type.list(def.options, this);
+                } else {
+                    return def.type.all();
+                }
             }
             return this.properties[name];
         }
@@ -122,6 +122,12 @@ function Store(path) {
 
         proto.toString = function() {
             return typeName + this.properties.toSource();
+        };
+
+        proto.equals = function(obj) {
+            return this === obj || obj &&
+                                   this._type === obj._type &&
+                                   this._id == obj._id;
         }
 
         proto.__iterator__ = function(namesOnly) {
@@ -136,13 +142,13 @@ function Store(path) {
         return typeRegistry[name];
     }
 
-    var list = function(type, options) {
+    var list = function(type, options, thisObj) {
         var array = getAll(type);
         if (options) {
             // first filter out the the items we're not interested in
             var filter = options.filter;
             if (typeof filter == "function") {
-                array = array.filter(filter);
+                array = array.filter(filter, thisObj);
             }
             // then put them into order
             var [orderBy, ascDesc] = [options.orderBy, options.order == "desc" ? -1 : 1];

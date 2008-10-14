@@ -59,5 +59,9 @@ store.registerType(Book, {
 
 store.registerType(Author, {
     name: db.Text(),
-    books: db.Collection(Book)
+    books: db.Collection(Book, {
+        filter: function(obj) this.equals(obj.author),
+        orderBy: "title",
+        order: "asc"
+    })
 });
