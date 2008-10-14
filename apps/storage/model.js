@@ -4,7 +4,6 @@ var __export__ = [
     "Book", "Author"
 ];
 
-// simple demo model for helma minibase
 var db = require('helma.filestore');
 
 /**
@@ -35,8 +34,10 @@ function Author(properties) {
 var store = new db.Store("db");
 
 /*
- The call to registerType installs the following static
- methods in the constructor:
+ The call to registerType installs getters and setters for the
+ persistent data fields in the constructor's prototype property. 
+
+ It also adds the following static methods in the constructor:
 
    Book.get(id)  - get a persistent object of this type by id
    Book.all()    - get an array containing all objects of this type
