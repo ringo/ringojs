@@ -15,8 +15,9 @@ var __export__ = [
 ]
 
 var TEXT = 0;
-var REFERENCE = 1;
-var COLLECTION = 2;
+var REFERENCE = 10;
+var COLLECTION = 20;
+var LIST = 21;
 
 function Text() {
     return {id: TEXT};
@@ -34,6 +35,13 @@ function Collection(type, options) {
         throw new Error("Missing type argument in Collection()");
     }
     return {id: COLLECTION, type: type, options: options};
+}
+
+function List(type, options) {
+    if (!type) {
+        throw new Error("Missing type argument in List()");
+    }
+    return {id: LIST, type: type, options: options};
 }
 
 /**
@@ -76,7 +84,7 @@ function Store(path) {
                 if (isKey(key)) {
                     return get(key._type, key._id);
                 }
-            } else if (def.id == COLLECTION) {
+            } else if (def.id == LIST) {
                 if (def.options) {
                     return def.type.list(def.options, this);
                 } else {
