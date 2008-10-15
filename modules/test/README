@@ -1,0 +1,7 @@
+This is the ever growing Helma NG JavaScript test suite. 
+
+  java -jar run.jar modules/test/all.js
+
+Or, using the module name to the same effect:
+
+  java -jar run.jar test.all
