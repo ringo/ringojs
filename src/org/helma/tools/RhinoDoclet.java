@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+package org.helma.tools;
+
 import com.sun.javadoc.*;
 
 import java.io.File;

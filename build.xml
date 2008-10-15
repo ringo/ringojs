@@ -115,18 +115,11 @@
     <!-- =================================================================== -->
     <!-- Creates the Rhino/Javascript API documentation as JSON file         -->
     <!-- =================================================================== -->
-    <target name="rhinodocs" depends="init">
-         <javac srcdir="tools"
-                destdir="tools"
-                target="1.5"
-                debug="${debug}"
-                deprecation="${deprecation}"
-                optimize="${optimize}">
-        </javac>
+    <target name="rhinodocs" depends="jar">
         <javadoc packagenames="org.helma.web,org.helma.template"
                  sourcepath="${src}"
-                 doclet="RhinoDoclet"
-                 docletpath="tools">
+                 doclet="org.helma.tools.RhinoDoclet"
+                 docletpath="${lib}/helma.jar">
                  <classpath refid="classpath"/>
         </javadoc>
         <echo message="Javascript documentation generated in docs/core/rhinodoc.js"/>
