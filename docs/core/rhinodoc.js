@@ -107,6 +107,15 @@ var doc = {
           ], 
         "type": "method"
         }, 
+      "flush": {
+        "body": "", 
+        "description": "", 
+        "name": "flush", 
+        "params": [
+          
+          ], 
+        "type": "method"
+        }, 
       "setCookie": {
         "body": "Set a HTTP cookie with the given name and value. This function takes at least two arguments, a cookie name and a cookie value. Optionally, the third argument specifies the number of days the cookie is to be stored by the client. The cookie path and domain may be specified as fourth and fifth argument, respectively. \r\n\r\nA negative days value means the cookie should be used only during the current user session and discarded afterwards. A days value of 0 means the cookie should be immediately discarded by the client and can therefore be used to delete a cookie.", 
         "description": "Set a HTTP cookie with the given name and value.", 
@@ -153,10 +162,10 @@ var doc = {
           ], 
         "type": "method"
         }, 
-      "pop": {
-        "body": "Pop a buffer from the response stack and return its contents as String. This must used in called after *res.push()|push()*, otherwise an exception will be thrown. \r\n\r\nThis can be used to prepare parts of the response in arbitrary order without the need to have the generating code be aware that they aren't directly writing to the response.", 
-        "description": "Pop a buffer from the response stack and return its contents as String.", 
-        "name": "pop", 
+      "reset": {
+        "body": "", 
+        "description": "", 
+        "name": "reset", 
         "params": [
           
           ], 
@@ -175,10 +184,10 @@ var doc = {
           ], 
         "type": "method"
         }, 
-      "push": {
-        "body": "Push a new buffer on the response stack. Output written to the response will be directed to this buffer instead of the main response body, and returned as String when *res.pop()|pop()* is called. \r\n\r\nThis can be used to prepare parts of the response in arbitrary order without the need to have the generating code be aware that they aren't directly writing to the response.", 
-        "description": "Push a new buffer on the response stack.", 
-        "name": "push", 
+      "resetBuffer": {
+        "body": "", 
+        "description": "", 
+        "name": "resetBuffer", 
         "params": [
           
           ], 
@@ -189,10 +198,10 @@ var doc = {
     "description": "This class represents a HTTP Response.", 
     "name": "Response", 
     "properties": {
-      "buffer": {
-        "body": "Get the StringBuffer instance associated with the response's writer", 
-        "description": "Get the StringBuffer instance associated with the response's writer", 
-        "name": "buffer", 
+      "bufferSize": {
+        "body": "", 
+        "description": "", 
+        "name": "bufferSize", 
         "type": "property"
         }, 
       "servletResponse": {
@@ -207,16 +216,16 @@ var doc = {
         "name": "status", 
         "type": "property"
         }, 
+      "encoding": {
+        "body": "", 
+        "description": "", 
+        "name": "encoding", 
+        "type": "property"
+        }, 
       "contentType": {
         "body": "Property to set\/get the Content-Type header of the current HTTP response. \r\n\r\n  res.contentType = \"text\/html\";", 
         "description": "Property to set\/get the Content-Type header of the current HTTP response.", 
         "name": "contentType", 
-        "type": "property"
-        }, 
-      "writer": {
-        "body": "Get the wrapped Writer for this response", 
-        "description": "Get the wrapped Writer for this response", 
-        "name": "writer", 
         "type": "property"
         }
       }, 
@@ -368,6 +377,12 @@ var doc = {
         "body": "The name of the scheme used to make this request, for example, http, https, or ftp.", 
         "description": "The name of the scheme used to make this request, for example, http, https, or ftp.", 
         "name": "scheme", 
+        "type": "property"
+        }, 
+      "session": {
+        "body": "Get the session object for this request, creating it if it doesn't exist", 
+        "description": "Get the session object for this request, creating it if it doesn't exist", 
+        "name": "session", 
         "type": "property"
         }, 
       "path": {
