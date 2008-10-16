@@ -44,6 +44,9 @@ public class HelmaContextFactory extends ContextFactory {
           case Context.FEATURE_STRICT_MODE:
             return strictMode;
 
+          case Context.FEATURE_RESERVED_KEYWORD_AS_IDENTIFIER:
+            return true;
+
           case Context.FEATURE_WARNING_AS_ERROR:
             return warningAsError;
         }
