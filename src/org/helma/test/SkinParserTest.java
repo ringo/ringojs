@@ -51,6 +51,7 @@ public class SkinParserTest extends TestCase {
                 map.put("foo", true);
                 list.add(map);
                 assertEquals(i++, 1);
+                assertEquals(macro.getName(), "name");
                 assertEquals(macro.getArgs(), list);
                 assertEquals(macro.getNamedArgs(), new HashMap());
             }
@@ -68,6 +69,7 @@ public class SkinParserTest extends TestCase {
             public void renderMacro(MacroTag macro) {
                 Map<String,Object> map = new HashMap<String,Object>();
                 map.put("foo", "<%bar%>");
+                assertEquals(macro.getName(), "name");
                 assertEquals(macro.getArgs().size(), 1);
                 assertEquals(macro.getArgs().get(0), map);
             }
@@ -92,5 +94,21 @@ public class SkinParserTest extends TestCase {
             }
         };
         parser.parse("<% name 1 %><% name 2 %><% name 3 %>");
+    }
+
+    public void testSuperfluousSpaces() throws IOException, UnbalancedTagException {
+        SkinParser parser = new SkinParser() {
+            public void renderMacro(MacroTag macro) {
+                assertEquals(macro.getName(), "name");
+                assertEquals(macro.getNamedArgs().size(), 1);
+                assertEquals(macro.getNamedArgs().get("foo"), "bar");
+            }
+
+            public void renderText(String text) {
+                throw new AssertionFailedError("renderText called on textless macro: " + text);
+            }
+
+        };
+        parser.parse("<%     name     foo=bar     %>");
     }
 }

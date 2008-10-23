@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class MacroTag extends ScriptableObject {
 
-    Object name;
+    String name;
     ArrayList<Object> args = new ArrayList<Object>();
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
     MacroTag filter = null;
@@ -47,6 +47,7 @@ public class MacroTag extends ScriptableObject {
 
     public MacroTag(int line) {
         this.startLine = line;
+        this.name = null;
     }
 
     public String getClassName() {
@@ -79,9 +80,8 @@ public class MacroTag extends ScriptableObject {
     /**
      * The name of the macro tag.
      */
-    public Object jsGet_name() {
-        return name instanceof String ?
-                name : null;
+    public String jsGet_name() {
+        return name;
     }
 
 
@@ -187,20 +187,20 @@ public class MacroTag extends ScriptableObject {
         return null;
     }
 
-    protected void addNamed(String key, Object value) {
-        if (name == null) {
-            name = value;
-        } else {
-            namedArgs.put(key, value);
-        }
+    protected void setName(String str) {
+        name = str;
     }
 
-    protected void add(Object value) {
-        if (name == null) {
-            name = value;
-        } else {
-            args.add(value);
-        }
+    public String getName() {
+        return name;
+    }
+
+    protected void addNamedParameter(String key, Object value) {
+        namedArgs.put(key, value);
+    }
+
+    protected void addParameter(Object value) {
+        args.add(value);
     }
 
     public Object getDefaultValue(Class hint) {

@@ -286,6 +286,11 @@ public abstract class SkinParser {
                 if (str.length() == 0) {
                     return;
                 }
+            }
+            // always treat first macro argument as name
+            if (type == MACRO && macro.getName() == null) {
+                macro.setName(str);
+            } else if (!quoted) {
                 if ("true".equals(str)) {
                     add(Boolean.TRUE);
                 } else if ("false".equals(str)) {
@@ -310,9 +315,9 @@ public abstract class SkinParser {
         void add(Object obj) {
             if (type == MACRO){
                 if (parameterName != null) {
-                    macro.addNamed(parameterName, obj);
+                    macro.addNamedParameter(parameterName, obj);
                 } else {
-                    macro.add(obj);
+                    macro.addParameter(obj);
                 }
             } else {
                 list.add(obj);
