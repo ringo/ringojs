@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class CaseInsensitiveMapTest extends TestCase {
 
-    private static final Map fixture = new HashMap();
+    private static final Map<String, Boolean> fixture = new HashMap<String, Boolean>();
 
     static {
         fixture.put("AAA", true);
@@ -33,7 +33,7 @@ public class CaseInsensitiveMapTest extends TestCase {
     }
 
     public void testAddRemove() {
-        Map map = new CaseInsensitiveMap();
+        Map<String, Boolean> map = new CaseInsensitiveMap<String, Boolean>();
         map.put("AAA", true);
         map.put("Bbb", true);
         map.put("cCC", true);
@@ -43,7 +43,7 @@ public class CaseInsensitiveMapTest extends TestCase {
     }
 
     public void testOverwrite() {
-        Map map = new CaseInsensitiveMap();
+        Map<String, Boolean> map = new CaseInsensitiveMap<String, Boolean>();
         map.put("AAA", true);
         map.put("Bbb", true);
         map.put("CCC", false);
