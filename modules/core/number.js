@@ -95,3 +95,10 @@ Number.prototype.__defineProperty__('before', function(date) {
 Number.prototype.__defineProperty__('after', function(date) {
     return new Date(date.getTime() + this);
 }, false, false, true);
+
+
+Number.prototype.__defineProperty__('times', function(fun) {
+    for (var i = 0; i < this; i++) {
+        fun(i);
+    }
+}, false, false, true);
