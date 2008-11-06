@@ -1,6 +1,12 @@
 
 require('core.string');
 
+export('getLogger',
+        'setConfig', 
+        'enableResponseLog',
+        'disableResponseLog',
+        'flushResponseLog');
+
 var __shared__ = true;
 
 (function() {

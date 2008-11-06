@@ -1,6 +1,8 @@
 // This module is evaluated on shell scopes,
 // so to extend the helma shell just add stuff here.
 
+export('write', 'writeln', 'read', 'readln', 'quit');
+
 var output = java.lang.System.out;
 var input = new Packages.jline.ConsoleReader();
 

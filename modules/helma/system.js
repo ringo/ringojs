@@ -3,7 +3,21 @@
  */
 
 require('core.object');
-var log = require('helma.logging').getLogger(__name__);
+import('helma.logging');
+
+export('addCallback',
+        'addHostObject',
+        'addRepository',
+        'evaluate',
+        'extendJavaClass',
+        'getRepositories',
+        'getRhinoContext',
+        'invokeCallback',
+        'removeCallback',
+        'setRhinoOptimizationLevel',
+        'args');
+
+var log = helma.logging.getLogger(__name__);
 
 // mark this module as shared between all requests
 var __shared__ = true;

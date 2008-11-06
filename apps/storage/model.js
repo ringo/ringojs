@@ -1,10 +1,8 @@
+import('helma.filestore', 'filestore');
+
+export('Book', 'Author');
+
 var __shared__ = true;
-
-var __export__ = [
-    "Book", "Author"
-];
-
-var db = require('helma.filestore');
 
 /**
  * Book class
@@ -31,7 +29,7 @@ function Author(properties) {
 
 
 // init store instance and register persistent classes.
-var store = new db.Store("db");
+var store = new filestore.Store("db");
 
 /*
  The call to registerType installs getters and setters for the
@@ -53,13 +51,13 @@ var store = new db.Store("db");
 
 */
 store.registerType(Book, {
-    title: db.Text(),
-    author: db.Reference(Author)
+    title: filestore.Text(),
+    author: filestore.Reference(Author)
 });
 
 store.registerType(Author, {
-    name: db.Text(),
-    books: db.List(Book, {
+    name: filestore.Text(),
+    books: filestore.List(Book, {
         filter: function(obj) this.equals(obj.properties.author),
         orderBy: "title",
         order: "asc"

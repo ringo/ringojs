@@ -8,11 +8,35 @@ __defineProperty__("global", this, true, true, true);
 
     /**
      * Load a module and return its module scope.
-     * @param moduleName the module name such as 'core.object'
+     * @param moduleName the module name
      * @return {Object} the module scope
      */
     this.__defineProperty__("require", function(moduleName) {
         return getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
+    }, true, true, true);
+
+    /**
+     * Import a module and set the module scope in the calling scope, using the
+     * module's name as property name or path.
+     * @param moduleName the module name
+     * @param propertyName optional property name to use for setting the
+     *        module in the calling scope
+     */
+    this.__defineProperty__("import", function(moduleName, propertyName) {
+        var module = this.require(moduleName);
+        if (module.__export__) {
+            propertyName = propertyName || moduleName;
+            var path = propertyName.split(".");
+            var elem = this;
+            for (var i = 0; i < path.length - 1; i++) {
+                var child = elem[path[i]];
+                if (!child) {
+                    child = elem[path[i]] = {};
+                }
+                elem = child;
+            }
+            elem[path[path.length - 1]] = module;
+        }
     }, true, true, true);
 
     /**
@@ -31,6 +55,20 @@ __defineProperty__("global", this, true, true, true);
             this[key] = module[key];
         }
     }, true, true, true);
+
+    /**
+     * Define the properties to be exported.
+     * @param name one or more names of exported properties
+     */
+    this.__defineProperty__("export", function() {
+        var list = this.__export__ || [];
+        for (var i = 0; i < arguments.length; i++) {
+            list.push(arguments[i]);
+        }
+        if (this.__export__ != list) {
+            this.__defineProperty__("__export__", list, true, true, true);
+        }
+    }, true, true, true)
 
     /**
      * Get a resource from the app's module search path.

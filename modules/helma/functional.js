@@ -1,3 +1,6 @@
+
+export('partial', 'bind');
+
 /**
  * Simple reimplementation of Mochikit partial()
  */

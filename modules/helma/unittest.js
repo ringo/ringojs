@@ -1,30 +1,31 @@
-require("core.string");
-var system = require("helma.system");
-var writeln = require("helma.shell").writeln;
+import("core.string");
+import("helma.system");
+import("helma.shell");
+
+var system = helma.system;
+var writeln = helma.shell.writeln;
 
 var __shared__ = true;
 
-var __export__ = [
-    "TestCase",
-    "TestSuite",
-    "assertEqual",
-    "assertEqualArrays",
-    "assertEqualValues",
-    "assertEqualObjects",
-    "assertNotEqual",
-    "assertTrue",
-    "assertFalse",
-    "assertMatch",
-    "assertNaN",
-    "assertNotNaN",
-    "assertUndefined",
-    "assertNotUndefined",
-    "assertNull",
-    "assertNotNull",
-    "assertStringContains",
-    "assertThrows",
-    "run"
-];
+export("TestCase",
+        "TestSuite",
+        "assertEqual",
+        "assertEqualArrays",
+        "assertEqualValues",
+        "assertEqualObjects",
+        "assertNotEqual",
+        "assertTrue",
+        "assertFalse",
+        "assertMatch",
+        "assertNaN",
+        "assertNotNaN",
+        "assertUndefined",
+        "assertNotUndefined",
+        "assertNull",
+        "assertNotNull",
+        "assertStringContains",
+        "assertThrows",
+        "run");
 
 (function() {
 

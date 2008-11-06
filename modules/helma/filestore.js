@@ -1,18 +1,17 @@
 require('core.object');
 require('core.JSON');
-var File = require('helma.file').File;
-var partial = require('helma.functional').partial;
-var log = require('helma.logging').getLogger(__name__);
+include('helma.file');
+include('helma.functional');
+
+export("Store",
+       "Transaction",
+       "Reference",
+       "Collection",
+       "Text");
 
 var __shared__ = true;
 
-var __export__ = [
-    "Store",
-    "Transaction",
-    "Reference",
-    "Collection",
-    "Text"
-]
+var log = require('helma.logging').getLogger(__name__);
 
 var TEXT = 0;
 var REFERENCE = 10;

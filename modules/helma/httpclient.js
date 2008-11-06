@@ -26,7 +26,7 @@
 require('core.date');
 require('core.string');
 
-var __export__ = ["Client", "Cookie"];
+export("Client", "Cookie");
 
 /**
  * Creates a new instance of helma.http.Client

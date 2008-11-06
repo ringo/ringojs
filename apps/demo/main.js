@@ -1,11 +1,10 @@
-var webapp = require('helma.webapp');
-var helmaLogging = require('helma.logging')
-helmaLogging.enableResponseLog();
-var log = helmaLogging.getLogger(__name__);
+import('helma.webapp');
+import('helma.logging');
 
-var mount = {
-    point: require('webmodule')
-}
+import('webmodule', 'mount.point');
+
+helma.logging.enableResponseLog();
+var log = helma.logging.getLogger(__name__);
 
 // the main action is invoked for http://localhost:8080/
 function index(req, res) {
@@ -25,9 +24,9 @@ function skins(req, res) {
 // demo for log4j logging
 function logging(req, res) {
     // make sure responselog is enabled
-    var hasResponseLog = helmaLogging.responseLogEnabled();
+    var hasResponseLog = helma.logging.responseLogEnabled();
     if (!hasResponseLog) {
-        helmaLogging.enableResponseLog();
+        helma.logging.enableResponseLog();
         log.debug("enabling response log");
     }
     if (req.data.info) {
@@ -42,9 +41,9 @@ function logging(req, res) {
     res.render('skins/logging.html', { title: "Logging Demo" });
     if (!hasResponseLog) {
         log.debug("disabling response log");
-        helmaLogging.disableResponseLog();
+        helma.logging.disableResponseLog();
     }
-    helmaLogging.flushResponseLog();
+    helma.logging.flushResponseLog();
 }
 
 // demo for continuation support
@@ -116,5 +115,5 @@ function continuation(req, res) {
 
 // main method called to start application
 if (__name__ == "__main__") {
-    webapp.start();
+    helma.webapp.start();
 }

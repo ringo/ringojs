@@ -1,8 +1,11 @@
-var system = require('helma.system');
-var logging = require('helma.logging');
-var {write, writeln} = require('helma.shell');
-var log = logging.getLogger(__name__);
+import('helma.system');
+import('helma.logging');
+import('helma.shell');
 require('core.string');
+
+var system = helma.system;
+var {write, writeln} = helma.shell;
+var log = helma.logging.getLogger(__name__);
 
 /**
  * Register a request listener that automatically sets rhino optimization

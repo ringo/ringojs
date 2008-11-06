@@ -1,4 +1,5 @@
-var system = require('helma.system');
+import('helma.system', 'system');
+
 system.addHostObject(org.helma.web.Response);
 
 system.addCallback("onResponse", "debugFlusher", function(res) {

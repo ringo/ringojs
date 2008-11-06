@@ -1,6 +1,6 @@
 include("helma.unittest");
 
-var testCase = new TestCase("testing.unittest");
+var testCase = new TestCase("helma.unittest");
 
 testCase.testAssertTrue = function() {
     assertTrue(true);

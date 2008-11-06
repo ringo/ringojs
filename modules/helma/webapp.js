@@ -8,11 +8,14 @@ __shared__ = true;
 require('core.string');
 require('helma.webapp.request');
 require('helma.webapp.response');
-var continuation = require('helma.webapp.continuation');
-var system = require('helma.system');
-var server = require('helma.httpserver');
-var log = require('helma.logging').getLogger(__name__);
+import('helma.webapp.continuation', 'continuation');
+import('helma.system', 'system');
+import('helma.httpserver', 'server');
+import('helma.logging', 'logging');
 
+export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
+
+var log = logging.getLogger(__name__);
 
 /**
  * Handler function called by the Helma servlet. 

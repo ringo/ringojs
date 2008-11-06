@@ -2,6 +2,8 @@
  * Module for starting and stopping the jetty http server.
  */
 
+export('start', 'stop');
+
 // mark this module as shared between all requests
 var __shared__ = true;
 

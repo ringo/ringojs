@@ -23,6 +23,24 @@
 
 require('core.string');
 
+export('capitalize_filter',
+        'dateFormat_filter',
+        'default_filter',
+        'escapeHtml_filter',
+        'escapeUrl_filter',
+        'linebreakToHtml_filter',
+        'lowercase_filter',
+        'prefix_filter',
+        'replace_filter',
+        'stripTags_filter',
+        'substring_filter',
+        'suffix_filter',
+        'titleize_filter',
+        'trim_filter',
+        'truncate_filter',
+        'uppercase_filter',
+        'wrap_filter');
+
 /**
  * Transforms a string to lowercase.
  *

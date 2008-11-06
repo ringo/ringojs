@@ -2,16 +2,17 @@
 
 require('core.string');
 require('core.object');
-var filters = require('helma.filters');
-var log = require('helma.logging').getLogger(__name__);
-var system = require('helma.system');
-system.addHostObject(org.helma.template.MacroTag);
+import('helma.filters', 'filters');
+import('helma.logging', 'logging');
+import('helma.system', 'system');
 
-var __export__ = [
-    "render",
-    "createSkin",
-    "Skin"
-];
+export('render',
+       'createSkin',
+       'Skin');
+
+var log = logging.getLogger(__name__);
+
+system.addHostObject(org.helma.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
