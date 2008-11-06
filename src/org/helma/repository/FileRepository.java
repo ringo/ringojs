@@ -85,6 +85,7 @@ public class FileRepository extends AbstractRepository {
      * Check whether the repository exists.
      * @return true if the repository exists.
      */
+    @Override
     public boolean exists() {
         return directory.exists() && directory.isDirectory();
     }
@@ -95,6 +96,7 @@ public class FileRepository extends AbstractRepository {
      * @param name the name of the repository
      * @return the child repository
      */
+    @Override
     public Repository getChildRepository(String name) {
         return new FileRepository(new File(directory, name), this);
     }
@@ -104,6 +106,7 @@ public class FileRepository extends AbstractRepository {
      *
      * @return last modified date
      */
+    @Override
     public long lastModified() {
         return directory.lastModified();
     }
@@ -115,6 +118,7 @@ public class FileRepository extends AbstractRepository {
      *
      * @return checksum
      */
+    @Override
     public synchronized long getChecksum() {
         // delay checksum check if already checked recently
         if (System.currentTimeMillis() > lastChecksumTime + cacheTime) {
@@ -138,6 +142,7 @@ public class FileRepository extends AbstractRepository {
      * Gets called from within all methods returning sub-repositories or
      * resources
      */
+    @Override
     public synchronized void update() {
         if (!directory.exists()) {
             repositories = emptyRepositories;
@@ -180,6 +185,7 @@ public class FileRepository extends AbstractRepository {
     /**
      * Called to create a child resource for this repository
      */
+    @Override
     protected Resource createResource(String name) {
         return new FileResource(new File(directory, name), this);
     }
@@ -191,19 +197,23 @@ public class FileRepository extends AbstractRepository {
         return directory;
     }
 
+    @Override
     public URL getUrl() throws MalformedURLException {
         return new URL("file:" + directory.getAbsolutePath());
     }
 
+    @Override
     public int hashCode() {
         return 17 + (37 * directory.hashCode());
     }
 
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof FileRepository &&
                directory.equals(((FileRepository) obj).directory);
     }
 
+    @Override
     public String toString() {
         return new StringBuffer("FileRepository[").append(path).append("]").toString();
     }

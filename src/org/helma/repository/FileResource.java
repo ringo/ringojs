@@ -52,18 +52,22 @@ public class FileResource implements Resource {
         baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
     }
 
+    @Override
     public String getPath() {
         return path;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getBaseName() {
         return baseName;
     }
 
+    @Override
     public InputStream getInputStream() throws IOException {
         InputStream stream = new FileInputStream(file);
         if (stripShebang) {
@@ -89,22 +93,27 @@ public class FileResource implements Resource {
         return stream;
     }
 
+    @Override
     public Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream());
     }
 
+    @Override
     public URL getUrl() throws MalformedURLException {
         return new URL("file:" + file.getAbsolutePath());
     }
 
+    @Override
     public long lastModified() {
         return file.lastModified();
     }
 
+    @Override
     public long getChecksum() {
         return lastModified();
     }
 
+    @Override
     public String getContent(String encoding) throws IOException {
         InputStream in = getInputStream();
         int size = (int) file.length();
@@ -123,18 +132,22 @@ public class FileResource implements Resource {
                 new String(buf, encoding);
     }
 
+    @Override
     public String getContent() throws IOException {
         return getContent(null);
     }
 
+    @Override
     public long getLength() {
         return file.length();
     }
 
+    @Override
     public boolean exists() {
         return file.exists();
     }
 
+    @Override
     public Repository getParentRepository() {
         return repository;
     }
@@ -148,14 +161,17 @@ public class FileResource implements Resource {
         this.stripShebang = stripShebang;
     }
 
+    @Override
     public int hashCode() {
         return 17 + path.hashCode();
     }
 
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof FileResource && path.equals(((FileResource)obj).path);
     }
 
+    @Override
     public String toString() {
         return getPath();
     }

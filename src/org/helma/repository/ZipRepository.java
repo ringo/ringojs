@@ -104,6 +104,7 @@ public final class ZipRepository extends AbstractRepository {
         return new ZipFile(file);
     }
 
+    @Override
     public synchronized void update() {
         if (file.lastModified() != lastModified ||
                 repositories == null ||
@@ -184,6 +185,7 @@ public final class ZipRepository extends AbstractRepository {
     /**
      * Called to create a child resource for this repository
      */
+    @Override
     protected Resource createResource(String name) {
         return new ZipResource(entryPath + "/" + name, this);
     }
@@ -192,6 +194,7 @@ public final class ZipRepository extends AbstractRepository {
      * Checks wether this resource actually (still) exists
      * @return true if the resource exists
      */
+    @Override
     public boolean exists() {
         ZipFile zipfile = null;
         try {
@@ -219,28 +222,34 @@ public final class ZipRepository extends AbstractRepository {
      * @param name the name of the repository
      * @return the child repository
      */
+    @Override
     public Repository getChildRepository(String name) {
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
 
+    @Override
     public URL getUrl() {
         // TODO: we might want to return a Jar URL
         // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
         throw new UnsupportedOperationException("getUrl() not implemented for ZipResource");
     }
 
+    @Override
     public long lastModified() {
         return file.lastModified();
     }
     
+    @Override
     public long getChecksum() {
         return file.lastModified();
     }
 
+    @Override
     public int hashCode() {
         return 17 + (37 * file.hashCode()) + (37 * path.hashCode());
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ZipRepository)) {
             return false;
@@ -250,6 +259,7 @@ public final class ZipRepository extends AbstractRepository {
         return (file.equals(rep.file) && path.equals(rep.path));
     }
 
+    @Override
     public String toString() {
         return new StringBuffer("ZipRepository[").append(path).append("]").toString();
     }

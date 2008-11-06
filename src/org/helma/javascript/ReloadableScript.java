@@ -138,6 +138,7 @@ public class ReloadableScript {
             checksum = repository.getChecksum();
         }
         script =  new Script() {
+            @Override
             public Object exec(Context cx, Scriptable scope) {
                 for (Script script: scripts) {
                     script.exec(cx, scope);
@@ -300,6 +301,7 @@ public class ReloadableScript {
      * Hash code delegates to source.
      * @return the hash code
      */
+    @Override
     public int hashCode() {
         return source.hashCode();
     }
@@ -309,6 +311,7 @@ public class ReloadableScript {
      * @param obj the object to compare ourself to
      * @return true if it is a script with the same resource
      */
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof ReloadableScript
                 && source.equals(((ReloadableScript) obj).source);

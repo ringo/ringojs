@@ -553,6 +553,7 @@ public class RhinoEngine {
          *                   object based on its class, staticType will be used instead.
          * @return the wrapped value.
          */
+        @Override
         public Object wrap(Context cx, Scriptable scope, Object obj, Class staticType) {
             if (obj instanceof CaseInsensitiveMap) {
                 return new ScriptableMap(scope, (CaseInsensitiveMap) obj);
@@ -568,6 +569,7 @@ public class RhinoEngine {
          * @param obj   the object to be wrapped
          * @return the wrapped value.
          */
+        @Override
         public Scriptable wrapNewObject(Context cx, Scriptable scope, Object obj) {
             return super.wrapNewObject(cx, scope, obj);
         }
@@ -591,6 +593,7 @@ public class RhinoEngine {
          *                   object based on its class, staticType will be used instead.
          * @return the wrapped value which shall not be null
          */
+        @Override
         public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType) {
             // TODO: for now we always use the actual class as staticType may be an interface
             // and getExtendedClass() can't deal with that

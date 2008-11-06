@@ -37,6 +37,7 @@ public class HelmaContextFactory extends ContextFactory {
         languageVersion = config.getLanguageVersion();
     }
 
+    @Override
     protected boolean hasFeature(Context cx, int featureIndex) {
         switch (featureIndex) {
           case Context.FEATURE_STRICT_VARS:
@@ -54,6 +55,7 @@ public class HelmaContextFactory extends ContextFactory {
         return super.hasFeature(cx, featureIndex);
     }
 
+    @Override
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
@@ -68,6 +70,7 @@ public class HelmaContextFactory extends ContextFactory {
         cx.setGeneratingDebug(generatingDebug);
     }
 
+    @Override
     protected void onContextReleased(Context cx) {
         super.onContextReleased(cx);
         cx.removeThreadLocal("engine");
@@ -75,40 +78,34 @@ public class HelmaContextFactory extends ContextFactory {
         cx.removeThreadLocal("threadscope");
     }
 
-    public void setStrictMode(boolean flag)
-    {
+    public void setStrictMode(boolean flag) {
         checkNotSealed();
         this.strictMode = flag;
     }
 
-    public void setWarningAsError(boolean flag)
-    {
+    public void setWarningAsError(boolean flag) {
         checkNotSealed();
         this.warningAsError = flag;
     }
 
-    public void setLanguageVersion(int version)
-    {
+    public void setLanguageVersion(int version) {
         Context.checkLanguageVersion(version);
         checkNotSealed();
         this.languageVersion = version;
     }
 
-    public void setOptimizationLevel(int optimizationLevel)
-    {
+    public void setOptimizationLevel(int optimizationLevel) {
         Context.checkOptimizationLevel(optimizationLevel);
         checkNotSealed();
         this.optimizationLevel = optimizationLevel;
     }
 
-    public void setErrorReporter(ErrorReporter errorReporter)
-    {
+    public void setErrorReporter(ErrorReporter errorReporter) {
         if (errorReporter == null) throw new IllegalArgumentException();
         this.errorReporter = errorReporter;
     }
 
-    public void setGeneratingDebug(boolean generatingDebug)
-    {
+    public void setGeneratingDebug(boolean generatingDebug) {
         this.generatingDebug = generatingDebug;
     }
 

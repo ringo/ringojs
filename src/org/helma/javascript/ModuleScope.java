@@ -61,10 +61,12 @@ public class ModuleScope extends NativeObject {
         return name;
     }
 
+    @Override
     public String toString() {
         return "[ModuleScope " + source + "]";
     }
 
+    @Override
     public Object getDefaultValue(Class hint) {
         if (hint == String.class || hint == null) {
             return toString();

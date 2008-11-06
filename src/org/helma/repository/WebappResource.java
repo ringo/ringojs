@@ -18,10 +18,12 @@ public class WebappResource extends AbstractResource {
         setBaseNameFromName(name);
     }
 
+    @Override
     public long lastModified() {
         return repository.lastModified();
     }
 
+    @Override
     public boolean exists() {
         try {
             return context.getResource(path) != null;
@@ -30,18 +32,22 @@ public class WebappResource extends AbstractResource {
         }
     }
 
+    @Override
     public long getLength() {
         return 0;
     }
 
+    @Override
     public InputStream getInputStream() throws IOException {
         return context.getResourceAsStream(path);
     }
 
+    @Override
     public URL getUrl() throws MalformedURLException {
         return context.getResource(path);
     }
 
+    @Override
     public Repository getParentRepository() {
         return repository;
     }
