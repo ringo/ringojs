@@ -156,12 +156,12 @@ public class MacroTag extends ScriptableObject {
             Scriptable scope = ScriptableObject.getTopLevelScope(thisObj); 
             if (value instanceof List) {
                 return new ScriptableList(scope, (List) value);
+            } else if (value instanceof MacroTag) {
+                return RhinoEngine.wrapArgument(value, scope);
             } else if (value instanceof Scriptable) {
                 return value;
             } else if (value instanceof Map) {
                 return new ScriptableMap(scope, (Map) value);
-            } else if (value instanceof MacroTag) {
-                return RhinoEngine.wrapArgument(value, scope);
             } else {
                 return Context.javaToJS(value, scope);
             }
