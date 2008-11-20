@@ -9,3 +9,6 @@ var urls =[
     [ /^continuation/, 'main.continuation' ],
     [ /^logging/, 'main.logging' ], 
 ]
+
+var charset = 'utf8';
+var contentType = 'text/html';
