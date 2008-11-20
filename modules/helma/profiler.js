@@ -1,7 +1,9 @@
+require('core.string');
 import('helma.system');
 import('helma.logging');
 import('helma.shell');
-require('core.string');
+
+export('enable', 'disable', 'reset', 'Profiler');
 
 var system = helma.system;
 var {write, writeln} = helma.shell;
