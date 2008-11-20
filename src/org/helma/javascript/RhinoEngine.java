@@ -83,6 +83,7 @@ public class RhinoEngine {
                     defineHostClass(clazz);
                 }
             }
+            StaticMethods.init(topLevelScope);
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
             ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
