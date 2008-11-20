@@ -542,7 +542,7 @@ function Client() {
             eTag: conn.getHeaderField("ETag"),
             cookies: null,
             headers: conn.getHeaderFields(),
-            content: null,
+            content: null
         }
 
         // parse all "Set-Cookie" header fields into an array of
@@ -757,10 +757,14 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
 Cookie.parse = function(cookieStr) {
     if (cookieStr != null) {
         var cookie = new Cookie;
-        var m, key, value;
+        var m = Cookie.PATTERN.exec(cookieStr);
+        if (m) {
+            cookie.name = m[1].trim();
+            cookie.value = m[2] ? m[2].trim() : "";
+        }
         while ((m = Cookie.PATTERN.exec(cookieStr)) != null) {
-            key = m[1].trim();
-            value = m[2] ? m[2].trim() : "";
+            var key = m[1].trim();
+            var value = m[2] ? m[2].trim() : "";
             switch (key.toLowerCase()) {
                 case "expires":
                     // try to parse the expires date string into a date object
@@ -770,15 +774,8 @@ Cookie.parse = function(cookieStr) {
                         // ignore
                     }
                     break;
-                case "domain":
-                case "path":
-                    cookie[key.toLowerCase()] = value;
-                    break;
-                case "secure":
-                    break;
                 default:
-                    cookie.name = key;
-                    cookie.value = value;
+                    cookie[key.toLowerCase()] = value;
                     break;
             }
         }
