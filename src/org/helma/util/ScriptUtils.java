@@ -89,7 +89,7 @@ public class ScriptUtils {
         } if (args[pos] instanceof ScriptableObject) {
             return (ScriptableObject) args[pos];
         }
-        throw new IllegalArgumentException("Can't convert to java.util.Map: " + args[pos]);
+        throw new IllegalArgumentException("Can't convert to ScriptableObject: " + args[pos]);
     }
 
     /**
