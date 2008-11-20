@@ -186,11 +186,11 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     var isDefined = function isDefined(elem) {
         return elem !== undefined && elem !== null;
-    }
+    };
 
     var isVisible = function isVisible(elem) {
         return elem !== undefined && elem !== null && elem !== '';
-    }
+    };
 
     // builtin macro handlers
     var builtins = {
@@ -229,7 +229,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             log.debug(logprefix + ': evaluated value macro, got ' + value);
         }
         return value;
-    }
+    };
 
     this.toString = function toString() {
         return "[Skin Object]";
