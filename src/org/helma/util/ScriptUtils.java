@@ -74,6 +74,24 @@ public class ScriptUtils {
             throw new IllegalArgumentException();
     }
 
+
+    /**
+     * Get an argument as ScriptableObject
+     * @param args the argument array
+     * @param pos the position of the requested argument
+     * @return the argument as ScriptableObject
+     * @throws IllegalArgumentException if the argument can't be converted to a map
+     */
+    public static ScriptableObject getScriptableArgument(Object[] args, int pos)
+            throws IllegalArgumentException {
+        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
+            return null;
+        } if (args[pos] instanceof ScriptableObject) {
+            return (ScriptableObject) args[pos];
+        }
+        throw new IllegalArgumentException("Can't convert to java.util.Map: " + args[pos]);
+    }
+
     /**
      * Get an argument as string
      * @param args the argument array
@@ -84,6 +102,23 @@ public class ScriptUtils {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance)
             return null;
         return ScriptRuntime.toString(args[pos].toString());
+    }
+
+    /**
+     * Get an argument as Map
+     * @param args the argument array
+     * @param pos the position of the requested argument
+     * @return the argument as map
+     * @throws IllegalArgumentException if the argument can't be converted to a map
+     */
+    public static Map getMapArgument(Object[] args, int pos)
+            throws IllegalArgumentException {
+        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
+            return null;
+        } if (args[pos] instanceof Map) {
+            return (Map) args[pos];
+        }
+        throw new IllegalArgumentException("Can't convert to java.util.Map: " + args[pos]);
     }
 
     /**
