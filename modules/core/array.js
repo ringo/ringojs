@@ -32,49 +32,55 @@ var __shared__ = true;
  * @param {Object} val the value to check
  * @return {boolean} true if the value is contained
  */
-Array.prototype.__defineProperty__("contains", function(val) {
-   return this.indexOf(val) > -1;
-}, false, false, true);
+Object.defineProperty(Array.prototype, "contains", {
+    value: function(val) {
+       return this.indexOf(val) > -1;
+    }
+});
 
 /**
  * Retrieve the union set of a bunch of arrays
  * @param {Array} array1,... the arrays to unify
  * @return {Array} the union set
  */
-Array.__defineProperty__("union", function() {
-   var result = [];
-   var map = new java.util.HashMap();
-   for (var i=0; i<arguments.length; i+=1) {
-      for (var n in arguments[i]) {
-         var item = arguments[i][n];
-         if (!map.containsKey(item)) {
-            result.push(item);
-            map.put(item, true);
-         }
-      }
-   }
-   return result;
-}, false, false, true);
+Object.defineProperty(Array, "union", {
+    value: function() {
+        var result = [];
+        var map = new java.util.HashMap();
+        for (var i=0; i<arguments.length; i+=1) {
+            for (var n in arguments[i]) {
+                var item = arguments[i][n];
+                if (!map.containsKey(item)) {
+                    result.push(item);
+                    map.put(item, true);
+                }
+            }
+        }
+        return result;
+    }
+});
 
 /**
  * Retrieve the intersection set of a bunch of arrays
  * @param {Array} array1,... the arrays to intersect
  * @return {Array} the intersection set
  */
-Array.__defineProperty__("intersection", function() {
-   var all = Array.union.apply(this, arguments);
-   var result = [];
-   for (var n in all) {
-      var chksum = 0;
-      var item = all[n];
-      for (var i=0; i<arguments.length; i+=1) {
-         if (arguments[i].contains(item))
-            chksum += 1;
-         else
-            break;
-      }
-      if (chksum == arguments.length)
-         result.push(item);
-   }
-   return result;
-}, false, false, true);
+Object.defineProperty(Array, "intersection", {
+    value: function() {
+        var all = Array.union.apply(this, arguments);
+        var result = [];
+        for (var n in all) {
+            var chksum = 0;
+            var item = all[n];
+            for (var i=0; i<arguments.length; i+=1) {
+                if (arguments[i].contains(item))
+                    chksum += 1;
+                else
+                    break;
+            }
+            if (chksum == arguments.length)
+                result.push(item);
+        }
+        return result;
+    }
+});

@@ -124,6 +124,6 @@ function addRepository(repo) {
     }
 }
 
-__defineProperty__("args",
-        new ScriptableList(getRhinoEngine().getCommandLineArguments()),
-        true, true, false);
+Object.defineProperty(this, "args", {
+    value: new ScriptableList(getRhinoEngine().getCommandLineArguments())
+});

@@ -14,91 +14,133 @@
  *   Fri Oct 31 2008 13:04:34 GMT+0100 (MEZ)
  */
 
-Number.prototype.__defineProperty__('millis', function() {
-    return this;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('seconds', function() {
-    return this * 1000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('minutes', function() {
-    return this * 60000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('hours', function() {
-    return this * 3600000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('days', function() {
-    return this * 86400000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('weeks', function() {
-    return this * 604800000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('months', function() {
-    return this * 2592000000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('years', function() {
-    return this * 31536000000;
-}, false, false, true);
-
-
-Number.prototype.__defineProperty__('inMillis', function() {
-    return this;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inSeconds', function() {
-    return this / 1000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inMinutes', function() {
-    return this / 60000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inHours', function() {
-    return this / 3600000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inDays', function() {
-    return this / 86400000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inWeeks', function() {
-    return this / 604800000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inMonths', function() {
-    return this / 2592000000;
-}, false, false, true);
-
-Number.prototype.__defineProperty__('inYears', function() {
-    return this / 31536000000;
-}, false, false, true);
-
-
-Number.prototype.__defineProperty__('ago', function() {
-    return new Date(Date.now() - this);
-}, false, false, true);
-
-Number.prototype.__defineProperty__('fromNow', function() {
-    return new Date(Date.now() + this);
-}, false, false, true);
-
-Number.prototype.__defineProperty__('before', function(date) {
-    return new Date(date.getTime() - this);
-}, false, false, true);
-
-Number.prototype.__defineProperty__('after', function(date) {
-    return new Date(date.getTime() + this);
-}, false, false, true);
-
-
-Number.prototype.__defineProperty__('times', function(fun) {
-    for (var i = 0; i < this; i++) {
-        fun(i);
+Object.defineProperty(Number.prototype, 'millis', {
+    value: function() {
+        return this;
     }
-}, false, false, true);
+});
+
+Object.defineProperty(Number.prototype, 'seconds', {
+    value: function() {
+        return this * 1000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'minutes', {
+    value: function() {
+        return this * 60000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'hours', {
+    value: function() {
+        return this * 3600000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'days', {
+    value: function() {
+        return this * 86400000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'weeks', {
+    value: function() {
+        return this * 604800000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'months', {
+    value: function() {
+        return this * 2592000000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'years', {
+    value: function() {
+        return this * 31536000000;
+    }
+});
+
+
+Object.defineProperty(Number.prototype, 'inMillis', {
+    value: function() {
+        return this;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inSeconds', {
+    value: function() {
+        return this / 1000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inMinutes', {
+    value: function() {
+        return this / 60000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inHours', {
+    value: function() {
+        return this / 3600000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inDays', {
+    value: function() {
+        return this / 86400000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inWeeks', {
+    value: function() {
+        return this / 604800000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inMonths', {
+    value: function() {
+        return this / 2592000000;
+    }
+});
+
+Object.defineProperty(Number.prototype, 'inYears', {
+    value: function() {
+        return this / 31536000000;
+    }
+});
+
+
+Object.defineProperty(Number.prototype, 'ago', {
+    value: function() {
+        return new Date(Date.now() - this);
+    }
+});
+
+Object.defineProperty(Number.prototype, 'fromNow', {
+    value: function() {
+        return new Date(Date.now() + this);
+    }
+});
+
+Object.defineProperty(Number.prototype, 'before', {
+    value: function(date) {
+        return new Date(date.getTime() - this);
+    }
+});
+
+Object.defineProperty(Number.prototype, 'after', {
+    value: function(date) {
+        return new Date(date.getTime() + this);
+    }
+});
+
+
+Object.defineProperty(Number.prototype, 'times', {
+    value: function(fun) {
+        for (var i = 0; i < this; i++) {
+            fun(i);
+        }
+    }
+});

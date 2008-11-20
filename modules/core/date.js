@@ -45,42 +45,49 @@ Date.ISOFORMAT    = "yyyy-MM-dd'T'HH:mm:ss'Z'";
  * @return String formatted Date
  * @see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  */
-Date.prototype.__defineProperty__("format", function (format, locale, timezone) {
-    if (!format)
-        return this.toString();
-    var sdf = locale ? new java.text.SimpleDateFormat(format, locale)
-                     : new java.text.SimpleDateFormat(format);
-    if (timezone && timezone != sdf.getTimeZone())
-        sdf.setTimeZone(timezone);
-    return sdf.format(this);
-}, false, false, true);
+Object.defineProperty(Date.prototype, "format", {
+    value: function (format, locale, timezone) {
+        if (!format)
+            return this.toString();
+        var sdf = locale ? new java.text.SimpleDateFormat(format, locale)
+                         : new java.text.SimpleDateFormat(format);
+        if (timezone && timezone != sdf.getTimeZone())
+            sdf.setTimeZone(timezone);
+        return sdf.format(this);
+    }
+});
 
 
 /** 
  * set the date/time to UTC by subtracting
  * the timezone offset
  */ 
-Date.prototype.__defineProperty__("toUtc", function() {
-    this.setMinutes(this.getMinutes() + this.getTimezoneOffset());
-}, false, false, true);
-
+Object.defineProperty(Date.prototype, "toUtc", {
+    value: function() {
+        this.setMinutes(this.getMinutes() + this.getTimezoneOffset());
+    }
+});
 
 /** 
  * set the date/time to local time by adding
  * the timezone offset
  */ 
-Date.prototype.__defineProperty__("toLocalTime", function() {
-    this.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-}, false, false, true);
+Object.defineProperty(Date.prototype, "toLocalTime", {
+    value: function() {
+        this.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    }
+});
 
 
 /**
  * returns the difference between this and another
  * date object in milliseconds
  */
-Date.prototype.__defineProperty__("diff", function(dateObj) {
-    return this.getTime() - dateObj.getTime();
-}, false, false, true);
+Object.defineProperty(Date.prototype, "diff", {
+    value: function(dateObj) {
+        return this.getTime() - dateObj.getTime();
+    }
+});
 
 
 /**
@@ -97,40 +104,42 @@ Date.prototype.__defineProperty__("diff", function(dateObj) {
  * @see Date.prototype.getAge
  * @see Date.prototype.getExpiry
  */
-Date.prototype.__defineProperty__("getTimespan", function(param) {
-    if (!param)
-        param = {date: new Date()};
-    else if (!param.date)
-        param.date = new Date();
+Object.defineProperty(Date.prototype, "getTimespan", {
+    value: function(param) {
+        if (!param)
+            param = {date: new Date()};
+        else if (!param.date)
+            param.date = new Date();
 
-    var result = {isFuture: this > param.date};
-    var diff = Math.abs(param.date.diff(this));
-    var age = {days: Math.floor(diff / Date.ONEDAY),
-               hours: Math.floor((diff % Date.ONEDAY) / Date.ONEHOUR),
-               minutes: Math.floor((diff % Date.ONEHOUR) / Date.ONEMINUTE)};
+        var result = {isFuture: this > param.date};
+        var diff = Math.abs(param.date.diff(this));
+        var age = {days: Math.floor(diff / Date.ONEDAY),
+                   hours: Math.floor((diff % Date.ONEDAY) / Date.ONEHOUR),
+                   minutes: Math.floor((diff % Date.ONEHOUR) / Date.ONEMINUTE)};
 
-    res.push();
-    if (diff < Date.ONEMINUTE)
-        res.write(param.now || "now");
-    else {
-        var arr = [{one: "day", many: "days"},
-                   {one: "hour", many: "hours"},
-                   {one: "minute", many: "minutes"}];
-        for (var i in arr) {
-            var value = age[arr[i].many];
-            if (value != 0) {
-                var prop = (value == 1 ? arr[i].one : arr[i].many);
-                res.write(value);
-                res.write(" ");
-                res.write(param[prop] || prop);
-                if (i < arr.length -1)
-                    res.write(param.delimiter || ", ");
+        res.push();
+        if (diff < Date.ONEMINUTE)
+            res.write(param.now || "now");
+        else {
+            var arr = [{one: "day", many: "days"},
+                       {one: "hour", many: "hours"},
+                       {one: "minute", many: "minutes"}];
+            for (var i in arr) {
+                var value = age[arr[i].many];
+                if (value != 0) {
+                    var prop = (value == 1 ? arr[i].one : arr[i].many);
+                    res.write(value);
+                    res.write(" ");
+                    res.write(param[prop] || prop);
+                    if (i < arr.length -1)
+                        res.write(param.delimiter || ", ");
+                }
             }
         }
+        result.span = res.pop();
+        return result;
     }
-    result.span = res.pop();
-    return result;
-}, false, false, true);
+});
 
 
 /**
@@ -138,12 +147,14 @@ Date.prototype.__defineProperty__("getTimespan", function(param) {
  * the current Date or a different Date object
  * @see Date.prototype.getTimespan
  */
-Date.prototype.__defineProperty__("getAge", function(param) {
-    var age = this.getTimespan(param);
-    if (!age.isFuture)
-        return age.span;
-    return null;
-}, false, false, true);
+Object.defineProperty(Date.prototype, "getAge", {
+    value: function(param) {
+        var age = this.getTimespan(param);
+        if (!age.isFuture)
+            return age.span;
+        return null;
+    }
+});
 
 
 /**
@@ -151,12 +162,14 @@ Date.prototype.__defineProperty__("getAge", function(param) {
  * the current Date or a different Date object
  * @see Date.prototype.getTimespan
  */
-Date.prototype.__defineProperty__("getExpiry", function(param) {
-    var age = this.getTimespan(param);
-    if (age.isFuture)
-        return age.span;
-    return null;
-}, false, false, true);
+Object.defineProperty(Date.prototype, "getExpiry", {
+        value: function(param) {
+        var age = this.getTimespan(param);
+        if (age.isFuture)
+            return age.span;
+        return null;
+    }
+});
 
 
 /**
@@ -165,29 +178,31 @@ Date.prototype.__defineProperty__("getExpiry", function(param) {
  * @param Int indicating how far the comparison should go
  * @return Boolean
  */
-Date.prototype.__defineProperty__("equals", function(date, extend) {
-    if (!extend)
-        extend = Date.ONEDAY;
-    switch (extend) {
-        case Date.ONESECOND:
-            if (this.getSeconds() != date.getSeconds())
-                return false;
-        case Date.ONEMINUTE:
-            if (this.getMinutes() != date.getMinutes())
-                return false;
-        case Date.ONEHOUR:
-            if (this.getHours() != date.getHours())
-                return false;
-        case Date.ONEDAY:
-            if (this.getDate() != date.getDate())
-                return false;
-        case Date.ONEMONTH:
-            if (this.getMonth() != date.getMonth())
-                return false;
-        case Date.ONEYEAR:
-            if (this.getFullYear() != date.getFullYear())
-                return false;
+Object.defineProperty(Date.prototype, "equals", {
+    value: function(date, extend) {
+        if (!extend)
+            extend = Date.ONEDAY;
+        switch (extend) {
+            case Date.ONESECOND:
+                if (this.getSeconds() != date.getSeconds())
+                    return false;
+            case Date.ONEMINUTE:
+                if (this.getMinutes() != date.getMinutes())
+                    return false;
+            case Date.ONEHOUR:
+                if (this.getHours() != date.getHours())
+                    return false;
+            case Date.ONEDAY:
+                if (this.getDate() != date.getDate())
+                    return false;
+            case Date.ONEMONTH:
+                if (this.getMonth() != date.getMonth())
+                    return false;
+            case Date.ONEYEAR:
+                if (this.getFullYear() != date.getFullYear())
+                    return false;
+        }
+        return true;
     }
-    return true;
-}, false, false, true);
+});
 

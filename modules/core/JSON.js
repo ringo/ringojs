@@ -149,17 +149,21 @@ var __shared__ = true;
      * This method produces a JSON text from an object. 
      * The object must not contain any cyclical references.
      */
-    Object.prototype.__defineProperty__("toJSON", function () {
-        return s.object(this);
-    }, false, false, true);
+    Object.defineProperty(Object.prototype, "toJSON", {
+        value: function () {
+            return s.object(this);
+        }
+    });
 
     /**
      * This method produces a JSON text from an array. 
      * The array must not contain any cyclical references.
      */
-    Array.prototype.__defineProperty__("toJSON", function () {
-        return s.array(this);
-    }, false, false, true);
+    Object.defineProperty(Array.prototype, "toJSON", {
+        value: function () {
+            return s.array(this);
+        }
+    });
 
     return;
 })();
@@ -169,11 +173,13 @@ var __shared__ = true;
  * This method parses a JSON text to produce an object or
  * array. It will return false if there is an error.
  */
-String.prototype.__defineProperty__("parseJSON", function () {
-    try {
-        return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(this.replace(/"(\\.|[^"\\])*"/g, ''))) && eval('(' + this + ')');
-    } catch (e) {
-        return false;
+Object.defineProperty(String.prototype, "parseJSON", {
+    value: function () {
+        try {
+            return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(this.replace(/"(\\.|[^"\\])*"/g, ''))) && eval('(' + this + ')');
+        } catch (e) {
+            return false;
+        }
     }
-}, false, false, true);
+});
 

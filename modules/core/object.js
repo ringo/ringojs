@@ -31,20 +31,22 @@ __shared__ = true;
  * @param Object the (optional) target object
  * @return Object the resulting object
  */
-Object.prototype.__defineProperty__("clone", function(clone, recursive) {
-   if (!clone)
-      clone = new this.constructor();
-   var value;
-   for (var propName in this) {
-      value = this[propName];
-      if (recursive && (value.constructor == HopObject || value.constructor == Object)) {
-         clone[propName] = value.clone(new value.constructor(), recursive);
-      } else {
-         clone[propName] = value;
-      }
-   }
-   return clone;
-}, false, false, true);
+Object.defineProperty(Object.prototype, "clone", {
+    value: function(clone, recursive) {
+        if (!clone)
+            clone = new this.constructor();
+        var value;
+        for (var propName in this) {
+            value = this[propName];
+            if (recursive && (value.constructor == HopObject || value.constructor == Object)) {
+                clone[propName] = value.clone(new value.constructor(), recursive);
+            } else {
+                clone[propName] = value;
+            }
+        }
+        return clone;
+    }
+});
 
 
 /**
@@ -52,15 +54,17 @@ Object.prototype.__defineProperty__("clone", function(clone, recursive) {
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
  */
-Object.prototype.__defineProperty__("merge", function() {
-    var result = {};
-    for (var i = arguments.length; i > 0; --i) {
-        var obj = arguments[i - 1];
-        for (var property in obj) {
-            result[property] = obj[property];
+Object.defineProperty(Object.prototype, "merge", {
+    value: function() {
+        var result = {};
+        for (var i = arguments.length; i > 0; --i) {
+            var obj = arguments[i - 1];
+            for (var property in obj) {
+                result[property] = obj[property];
+            }
         }
+        return result;
     }
-    return result;
-}, false, false, true);
+});
 
 
