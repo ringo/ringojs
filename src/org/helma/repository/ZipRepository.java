@@ -194,7 +194,6 @@ public final class ZipRepository extends AbstractRepository {
      * Checks wether this resource actually (still) exists
      * @return true if the resource exists
      */
-    @Override
     public boolean exists() {
         ZipFile zipfile = null;
         try {
@@ -222,24 +221,20 @@ public final class ZipRepository extends AbstractRepository {
      * @param name the name of the repository
      * @return the child repository
      */
-    @Override
     public Repository getChildRepository(String name) {
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
 
-    @Override
     public URL getUrl() {
         // TODO: we might want to return a Jar URL
         // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
         throw new UnsupportedOperationException("getUrl() not implemented for ZipResource");
     }
 
-    @Override
     public long lastModified() {
         return file.lastModified();
     }
     
-    @Override
     public long getChecksum() {
         return file.lastModified();
     }

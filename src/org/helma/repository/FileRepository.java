@@ -85,7 +85,6 @@ public class FileRepository extends AbstractRepository {
      * Check whether the repository exists.
      * @return true if the repository exists.
      */
-    @Override
     public boolean exists() {
         return directory.exists() && directory.isDirectory();
     }
@@ -96,7 +95,6 @@ public class FileRepository extends AbstractRepository {
      * @param name the name of the repository
      * @return the child repository
      */
-    @Override
     public Repository getChildRepository(String name) {
         return new FileRepository(new File(directory, name), this);
     }
@@ -106,7 +104,6 @@ public class FileRepository extends AbstractRepository {
      *
      * @return last modified date
      */
-    @Override
     public long lastModified() {
         return directory.lastModified();
     }
@@ -118,7 +115,6 @@ public class FileRepository extends AbstractRepository {
      *
      * @return checksum
      */
-    @Override
     public synchronized long getChecksum() {
         // delay checksum check if already checked recently
         if (System.currentTimeMillis() > lastChecksumTime + cacheTime) {
@@ -197,7 +193,6 @@ public class FileRepository extends AbstractRepository {
         return directory;
     }
 
-    @Override
     public URL getUrl() throws MalformedURLException {
         return new URL("file:" + directory.getAbsolutePath());
     }

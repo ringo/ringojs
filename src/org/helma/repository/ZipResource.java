@@ -44,17 +44,14 @@ public final class ZipResource implements Resource {
         baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
     }
 
-    @Override
     public long lastModified() {
         return repository.lastModified();
     }
 
-    @Override
     public long getChecksum() {
         return repository.lastModified();
     }
 
-    @Override
     public InputStream getInputStream() throws IOException {
         ZipFile zipfile = null;
         try {
@@ -84,12 +81,10 @@ public final class ZipResource implements Resource {
         }
     }
 
-    @Override
     public Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream());
     }
 
-    @Override
     public boolean exists() {
         ZipFile zipfile = null;
         try {
@@ -106,7 +101,6 @@ public final class ZipResource implements Resource {
         }
     }
 
-    @Override
     public String getContent(String encoding) throws IOException {
         ZipFile zipfile = null;
         try {
@@ -136,34 +130,28 @@ public final class ZipResource implements Resource {
         }
     }
 
-    @Override
     public String getContent() throws IOException {
         return getContent(null);
     }
 
-    @Override
     public String getPath() {
         return path;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public String getBaseName() {
         return baseName;
     }
 
-    @Override
     public URL getUrl() {
         // TODO: we might want to return a Jar URL
         // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
         throw new UnsupportedOperationException("getUrl() not implemented for ZipResource");
     }
 
-    @Override
     public long getLength() {
         ZipFile zipfile = null;
         try {
@@ -180,7 +168,6 @@ public final class ZipResource implements Resource {
         }
     }
 
-    @Override
     public Repository getParentRepository() {
         return repository;
     }

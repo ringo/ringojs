@@ -34,17 +34,14 @@ public class WebappRepository extends AbstractRepository {
         this.timestamp = parent.timestamp;
     }
 
-    @Override
     public long getChecksum() {
         return timestamp;
     }
 
-    @Override
     public long lastModified() {
         return timestamp;
     }
 
-    @Override
     public boolean exists() {
         if ("/".equals(path)) {
             return true;
@@ -53,12 +50,10 @@ public class WebappRepository extends AbstractRepository {
         return (paths != null && !paths.isEmpty());
     }
 
-    @Override
     public Repository getChildRepository(String name) {
         return new WebappRepository(context, this, name);
     }
 
-    @Override
     public URL getUrl() throws MalformedURLException {
         return context.getResource(path);
     }

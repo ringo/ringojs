@@ -138,7 +138,6 @@ public class ReloadableScript {
             checksum = repository.getChecksum();
         }
         script =  new Script() {
-            @Override
             public Object exec(Context cx, Scriptable scope) {
                 for (Script script: scripts) {
                     script.exec(cx, scope);
