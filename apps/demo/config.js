@@ -1,4 +1,4 @@
-var httpConf = {
+var httpConfig = {
   staticDir: 'static'
 }
 

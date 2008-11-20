@@ -26,6 +26,7 @@ import org.mozilla.javascript.Wrapper;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.UnsupportedEncodingException;
 
 /**
  * This class represents a HTTP Request. The current Request object
@@ -155,6 +156,23 @@ public class Request extends ScriptableObject {
     }
 
     /**
+     * Return the encoding used for parameter parsing.
+     * @return the charset name
+     */
+    public String jsGet_charset() {
+        return request.getCharacterEncoding();
+    }
+
+    /**
+     * Set the request encoding to be used for parameter parsing.
+     * @param charset the charset name
+     * @throws UnsupportedEncodingException if charset name is not a valid encoding
+     */
+    public void jsSet_charset(String charset) throws UnsupportedEncodingException {
+        request.setCharacterEncoding(charset);
+    }
+
+    /**
      * Returns the value of the specified request header as String.
      * @param name the header name
      * @return the header value as String, or null if the header doesn't exist
@@ -198,6 +216,7 @@ public class Request extends ScriptableObject {
 
     /**
      * A JavaScript object reflecting the headers of this request.
+     * @deprecated
      * @return the request headers as JavaScript object
      */
     public Object jsGet_headers() {
@@ -230,6 +249,14 @@ public class Request extends ScriptableObject {
     }
 
     /**
+     * Return the parameter map wrapped as scriptable object.
+     * @return the parameter map, wrapped as scriptable object.
+     */
+    public Object jsFunction_getParameterMap() {
+        return new ScriptableMap(getParentScope(), request.getParameterMap());
+    }
+
+    /**
      * Returns an array of Strings containing all of the values the given request parameter has,
      * or null if the parameter does not exist.
      *
@@ -238,56 +265,6 @@ public class Request extends ScriptableObject {
      */
     public Object jsFunction_getParameters(String name) {
         return getJsArray(request.getParameterValues(name));
-    }
-
-    /**
-     * A JavaScript object reflecting the HTTP parameters of this request.
-     *
-     * Note that both property names and values are always Strings. If there are multiple values
-     * for any parameter, all values but the first are discarded. You should only use
-     * this object when you are sure the parameter has only one value. If the
-     * parameter might have more than one value, use *getParameters(String)*.
-     *
-     * Request parameters are extra information sent with the request either in the
-     * query string or posted form data.
-     *
-     * @return the request parameters as JavaScript object
-     */
-    public Object jsGet_params() {
-        if (params == null) {
-            HashMap<Object, String> map = new HashMap<Object, String>();
-            for (Object key: request.getParameterMap().keySet()) {
-                map.put(key, request.getParameter((String) key));
-            }
-            params = new ScriptableMap(getParentScope(),
-                    new CaseInsensitiveMap<Object,String>(map));
-        }
-        return params;
-    }
-
-    /**
-     * A JavaScript object reflecting the HTTP parameters of this request.
-     *
-     * Note that both property names and values are always Strings. If there are multiple values
-     * for any parameter, all values but the first are discarded. You should only use
-     * this object when you are sure the parameter has only one value. If the
-     * parameter might have more than one value, use *getParameters(String)*.
-     *
-     * Request parameters are extra information sent with the request either in the
-     * query string or posted form data.
-     *
-     * @return the request parameters as JavaScript object
-     */
-    public Object jsGet_data() {
-        if (data == null) {
-            HashMap<Object, String> map = new HashMap<Object, String>();
-            for (Object key: request.getParameterMap().keySet()) {
-                map.put(key, request.getParameter((String) key));
-            }
-            data = new ScriptableMap(getParentScope(),
-                    new CaseInsensitiveMap<Object,String>(map));
-        }
-        return data;
     }
 
    /**
@@ -309,6 +286,7 @@ public class Request extends ScriptableObject {
      * and to access multiple cookies with the same name, use *req.getCookies()|getCookies()*,
      * which returns a JavaScript arrays containing the raw
      * *cookie objects|http://java.sun.com/products/servlet/2.5/docs/servlet-2_5-mr2/javax/servlet/http/Cookie.html*.
+     * @deprecated
      * @return a JavaScript object containing the request's HTTP cookies
      */
     public Object jsGet_cookies() {

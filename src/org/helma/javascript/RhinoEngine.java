@@ -127,7 +127,7 @@ public class RhinoEngine {
     public void addCallback(String event, String name, Function func) {
         Map<String, Function> map = callbacks.get(event);
         if (map == null) {
-            map = new HashMap<String, Function>();
+            map = new LinkedHashMap<String, Function>();
             callbacks.put(event, map);
         }
         map.put(name, func);
@@ -153,8 +153,9 @@ public class RhinoEngine {
      */
     public Object invokeCallback(String event, Object thisObj, Object... args) {
         Map<String, Function> funcs = callbacks.get(event);
-        if (funcs != null) {
-            Scriptable thisObject = thisObj == null ? null : Context.toObject(thisObj, topLevelScope);
+        if (funcs != null && !funcs.isEmpty()) {
+            Scriptable thisObject = thisObj == null ?
+                    topLevelScope : Context.toObject(thisObj, topLevelScope);
             initArguments(args);
             for (Function func: funcs.values()) {
                 Context.call(contextFactory, func, topLevelScope, thisObject, args);
@@ -224,7 +225,7 @@ public class RhinoEngine {
             Map<String, Function> funcs = callbacks.get("onInvoke");
             if (funcs != null) {
                 for (Function func: funcs.values()) {
-                    func.call(cx, topLevelScope, null, args);
+                    func.call(cx, topLevelScope, topLevelScope, args);
                 }
             }
             if (moduleName == null) {
@@ -239,7 +240,7 @@ public class RhinoEngine {
             funcs = callbacks.get("onReturn");
             if (funcs != null) {
                 for (Function func: funcs.values()) {
-                    func.call(cx, topLevelScope, null, args);
+                    func.call(cx, topLevelScope, topLevelScope, args);
                 }
             }
             if (retval instanceof Wrapper) {

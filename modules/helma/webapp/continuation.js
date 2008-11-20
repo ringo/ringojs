@@ -31,11 +31,6 @@ import('helma.system', 'system');
 
 export('resume');
 
-system.addCallback('onInvoke', 'webapp-init', function(req) {
-    if (req && req.getParameter('helma_continuation') != null) {
-        system.setRhinoOptimizationLevel(-1);
-    }
-});
 
 var log = require('helma.logging').getLogger(__name__);
 var continuation_id = null;

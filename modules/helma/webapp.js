@@ -17,6 +17,13 @@ export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 
 var log = logging.getLogger(__name__);
 
+system.addCallback('onInvoke', 'webapp-init', function(req) {
+    if (req instanceof Request && req.queryString  
+            && req.queryString.indexOf('helma_continuation=') == 0) {
+        system.setRhinoOptimizationLevel(-1);
+    }
+});
+
 /**
  * Handler function called by the Helma servlet. 
  *
@@ -24,10 +31,15 @@ var log = logging.getLogger(__name__);
  * @param res
  */
 function handleRequest(req, res) {
+    // get config and apply it to req, res
+    var config = getConfig();
+    if (log.debugEnabled) log.debug('got config: ' + config.toSource());
+
+    req.charset = res.charset = config.charset || 'utf8';
+    res.contentType = config.contentType || 'text/html';
+
     // invoke onRequest
     system.invokeCallback('onRequest', null, [req]);
-    // set default content type
-    res.contentType = "text/html; charset=UTF-8";
     // resume continuation?
     if (continuation.resume(req, res)) {
         return;
@@ -52,10 +64,8 @@ function handleRequest(req, res) {
 
     try {
         log.debug('resolving path ' + path);
-        var setup = require('setup');
-        log.debug('got setup: ' + setup);
-        if (setup.urls instanceof Array) {
-            var urls = setup.urls;
+        if (config.urls instanceof Array) {
+            var urls = config.urls;
             for (var i = 0; i < urls.length; i++) {
                 log.debug("checking url line: " + urls[i]);
                 var match = getRegExp(urls[i][0]).exec(path);
@@ -72,9 +82,7 @@ function handleRequest(req, res) {
                         var module = action.slice(0, dot);
                         var func = action.slice(dot + 1);
                         action = require(module)[func];
-                        if (log.isDebugEnabled()) {
-                            log.debug("resolved action: " + action);
-                        }
+                        if (log.debugEnabled) log.debug("resolved action: " + action);
                     } else if (typeof action == "function") {
                         throw Error('Action must either be a string or a function');
                     }
@@ -136,19 +144,28 @@ function notfound(req, res) {
 }
 
 /**
+ * Try to load the configuration module.
+ * @param configModuleName optional module name, default is 'config'
+ */
+function getConfig(configModuleName) {
+    configModuleName = configModuleName || 'config';
+    var config;
+    try {
+        config = require(configModuleName);
+    } catch (noConfig) {
+        log.info('Couldn\'t load config module: ' + noConfig);
+    }
+    return config || {};
+}
+
+/**
  * Start the jetty server.
  */
 function start(config) {
     // start jetty http server
-    var setup;
-    var httpConf;
-    try {
-        setup = config || require('setup');
-        httpConf = setup.httpConf;
-    } catch (noSetup) {
-        log.info('Couldn\'t load setup module - using defaults');
-    }
-    server.start(httpConf);
+    config = config || getConfig();
+    var httpConfig = config.httpConfig;
+    server.start(httpConfig);
 }
 
 

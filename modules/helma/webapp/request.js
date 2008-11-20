@@ -20,28 +20,52 @@ Request.prototype.isGet = function() {
     return this.method == "GET";
 }
 
-// experimental parameter grouping
+/* Object.defineProperty(Request.prototype, "cookies", {
+    getter: function() {
+        if (!this._cookies) {
+            this._cookies = {};
+            var cookies = this.getCookies();
+            for each (var cookie in cookies) {
 
-Request.prototype.__defineGetter__("grouped",
-        function() {
-            return new ParameterGroup("", this.data);
-        });
+            }
+        }
+        return this._cookies;
+    }
+}); */
 
-function ParameterGroup(path, collection) {
+if (!Request.prototype.hasOwnProperty("params")) {
+    Object.defineProperty(Request.prototype, "params", {
+        getter: function() {
+            return new ParameterGroup("", this.getParameterMap());
+        }
+    });
+}
 
-    for (var i in collection) {
+if (!Request.prototype.hasOwnProperty("data")) {
+    Object.defineProperty(Request.prototype, "data", {
+        getter: function() {
+            return new ParameterGroup("", this.getParameterMap());
+        }
+    });
+}
+
+function ParameterGroup(path, map) {
+
+    map = map || this.getParameterMap();
+
+    for (var i in map) {
         if (i.startsWith(path)) {
             var dot = i.indexOf('.', path.length);
             var key, value;
             if (dot > -1) {
                 key = i.slice(path.length, dot);
-                value = new ParameterGroup(i.slice(0, dot + 1), collection);
+                value = new ParameterGroup(i.slice(0, dot + 1), map);
             } else  {
                 key = i.slice(path.length);
-                value = collection[i];
+                value = map[i];
             }
             if (!this.hasOwnProperty(key)) {
-                this[key] = value;
+                this[key] = value[0];
             }
         }
     }

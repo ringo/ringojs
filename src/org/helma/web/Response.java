@@ -176,12 +176,12 @@ public class Response extends ScriptableObject {
         response.setBufferSize(size);
     }
 
-    public String jsGet_encoding() {
+    public String jsGet_charset() {
         return response.getCharacterEncoding();
     }
 
-    public void jsSet_encoding(String encoding) {
-        response.setCharacterEncoding(encoding);
+    public void jsSet_charset(String charset) {
+        response.setCharacterEncoding(charset);
     }
 
     /**
