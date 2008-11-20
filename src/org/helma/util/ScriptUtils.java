@@ -34,7 +34,9 @@ public class ScriptUtils {
      * @return the wrapped/masked java object
      */
     public static Object javaToJS(Object obj, Scriptable scope) {
-        if (obj instanceof List) {
+        if (obj instanceof Scriptable) {
+            return obj;
+        } else if (obj instanceof List) {
             return new ScriptableList(scope, (List) obj);
         } else if (obj instanceof Map) {
             return new ScriptableMap(scope, (Map) obj);
