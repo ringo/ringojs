@@ -2,8 +2,6 @@
  * The webapp module provides support for building web applications in Helma NG.
  */
 
-__shared__ = true;
-
 // import modules
 require('core.string');
 require('helma.webapp.request');
@@ -17,12 +15,6 @@ export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 
 var log = logging.getLogger(__name__);
 
-system.addCallback('onInvoke', 'webapp-init', function(req) {
-    if (req instanceof Request && req.queryString  
-            && req.queryString.indexOf('helma_continuation=') == 0) {
-        system.setRhinoOptimizationLevel(-1);
-    }
-});
 
 /**
  * Handler function called by the Helma servlet. 
@@ -39,7 +31,7 @@ function handleRequest(req, res) {
     res.contentType = config.contentType || 'text/html';
 
     // invoke onRequest
-    system.invokeCallback('onRequest', null, [req]);
+    invokeMiddleware('onRequest', config.middleware, [req, res]);
     // resume continuation?
     if (continuation.resume(req, res)) {
         return;
@@ -83,15 +75,20 @@ function handleRequest(req, res) {
                         var func = action.slice(dot + 1);
                         action = require(module)[func];
                         if (log.debugEnabled) log.debug("resolved action: " + action);
-                    } else if (typeof action == "function") {
+                    } else if (typeof action != "function") {
                         throw Error('Action must either be a string or a function');
                     }
-                    // got a match - add any regexp groups as additional action arguments
-                    var args = [req, res];
-                    for (var j = 1; j < match.length; j++) {
-                        args.push(match[j]);
-                    }
                     if (typeof action == "function") {
+                        // got a match - add any regexp groups as additional action arguments
+                        var args = [req, res];
+                        var actionArgs = [];
+                        for (var j = 1; j < match.length; j++) {
+                            args.push(match[j]);
+                            actionArgs.push(match[j]);
+                        }
+                        invokeMiddleware('onAction',
+                                config.middleware,
+                                [req, res, action, actionArgs]);
                         action.apply(null, args);
                         return;
                     }
@@ -100,9 +97,25 @@ function handleRequest(req, res) {
         }
         notfound(req, res);
     } catch (e) {
+        invokeMiddleware('onError', config.middleware, [req, res, e]);
         error(req, res, e);
     } finally {
-        system.invokeCallback('onResponse', null, [res]);
+        invokeMiddleware('onResponse', config.middleware, [req, res]);
+    }
+}
+
+function invokeMiddleware(hook, middleware, args) {
+    for (var i = 0; middleware && i < middleware.length; i++) {
+        var signature = middleware[i] + '.' + hook;
+        try {
+            var module = require(middleware[i]);
+            if (typeof module[hook] == 'function') {
+                log.debug('invoking middleware: ' + signature);
+                module[hook].apply(module, args);
+            }
+        } catch (e) {
+            log.error('Error in ' + signature + ': ' + e);
+        }
     }
 }
 

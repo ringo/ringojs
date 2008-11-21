@@ -35,6 +35,14 @@ export('resume');
 var log = require('helma.logging').getLogger(__name__);
 var continuation_id = null;
 
+
+function onRequest(req) {
+    if (req.params.helma_continuation) {
+        system.setRhinoOptimizationLevel(-1);
+    }
+}
+
+
 /**
  * Get the id for the next continuation, suitable for GET forms where
  * the id has to be set via hidden input field.

@@ -58,6 +58,17 @@ function invokeCallback(event, thisObj, args) {
 }
 
 /**
+ * Get the Rhino optimization level for the current thread and context.
+ * The optimization level is an integer between -1 (interpreter mode)
+ * and 9 (compiled mode, all optimizations enabled). The default level
+ * is 0.
+ * @return level an integer between -1 and 9
+ */
+function getRhinoOptimizationLevel() {
+    getRhinoEngine().getOptimizationLevel();    
+}
+
+/**
  * Set the Rhino optimization level for the current thread and context.
  * The optimization level is an integer between -1 (interpreter mode)
  * and 9 (compiled mode, all optimizations enabled). The default level
@@ -65,7 +76,7 @@ function invokeCallback(event, thisObj, args) {
  * @param level an integer between -1 and 9
  */
 function setRhinoOptimizationLevel(level) {
-    getRhinoContext().setOptimizationLevel(level);    
+    getRhinoEngine().setOptimizationLevel(level);
 }
 
 /**

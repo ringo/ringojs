@@ -222,25 +222,21 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         try {
             initArguments(args);
-            Map<String, Function> funcs = callbacks.get("onInvoke");
-            if (funcs != null) {
-                for (Function func: funcs.values()) {
-                    func.call(cx, topLevelScope, topLevelScope, args);
-                }
-            }
             if (moduleName == null) {
                 moduleName = configuration.getMainModule("main");
             }
-            Scriptable module = loadModule(cx, moduleName, null);
-            Object function = ScriptableObject.getProperty(module, method);
-            if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
-                throw new NoSuchMethodException("Function " + method + "() not defined");
-            }
-            Object retval = ((Function) function).call(cx, topLevelScope, module, args);
-            funcs = callbacks.get("onReturn");
-            if (funcs != null) {
-                for (Function func: funcs.values()) {
-                    func.call(cx, topLevelScope, topLevelScope, args);
+            Object retval;
+            while (true) {
+                try {
+                    Scriptable module = loadModule(cx, moduleName, null);
+                    Object function = ScriptableObject.getProperty(module, method);
+                    if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
+                        throw new NoSuchMethodException("Function " + method + "() not defined");
+                    }
+                    retval = ((Function) function).call(cx, topLevelScope, module, args);
+                    break;
+                } catch (RetryException retry) {
+                    // request to try again
                 }
             }
             if (retval instanceof Wrapper) {
@@ -302,6 +298,23 @@ public class RhinoEngine {
             return scriptable;
         } else {
             return Context.javaToJS(value, scope);
+        }
+    }
+
+    public int getOptimizationLevel() {
+        Context cx = Context.getCurrentContext();
+        if (cx != null) {
+            return cx.getOptimizationLevel();
+        }
+        return 0;
+    }
+    
+    public void setOptimizationLevel(int level) {
+        Context cx = Context.getCurrentContext();
+        if (cx != null && cx.getOptimizationLevel() != level) {
+            cx.setOptimizationLevel(level);
+            ((Map) cx.getThreadLocal("modules")).clear();
+            throw new RetryException();
         }
     }
 
@@ -391,7 +404,7 @@ public class RhinoEngine {
         ReloadableScript parent = getCurrentScript(cx);
         try {
             setCurrentScript(cx, script);
-            module =  script.load(topLevelScope, moduleName, cx);
+            module = script.load(topLevelScope, moduleName, cx);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
@@ -655,6 +668,7 @@ public class RhinoEngine {
 
     }
 
+    public static class RetryException extends Error {}
 }
 
 class AppClassLoader extends HelmaClassLoader {

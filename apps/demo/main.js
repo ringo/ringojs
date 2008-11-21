@@ -62,9 +62,7 @@ function continuation(req, res) {
     pageIds[0] = Continuation.startId(req);
     [req, res] = Continuation.markStart(req, res, pageIds[0]);
     // render intro page
-    log.info("running post makestart")
     renderPage(0);
-    log.info("running first page")
     // render first page
     renderPage(1)
     // render second page
