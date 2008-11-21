@@ -8,7 +8,7 @@
         <echo message=""/>
         <echo message=" compile    --> compiles the source code to ./build/classes"/>
         <echo message=" jar        --> generates the ./lib/helma.jar file"/>
-        <echo message=" test       --> run JUnit tests"/>
+        <echo message=" test       --> run JUnit and Helma tests"/>
         <echo message=" apidocs    --> generates the API docs"/>
         <echo message=" rhinodocs  --> generate Javascript API for host classes as JSON file"/>
         <echo message=" package    --> creates Helma distribution"/>
@@ -70,9 +70,10 @@
     </target>
 
     <!-- =================================================================== -->
-    <!-- Runs the JUnit test cases                                           -->
+    <!-- Runs the JUnit and Helma test cases                                 -->
     <!-- =================================================================== -->
     <target name="test" depends="compile">
+        <java jar="run.jar" args="test.all" fork="true" />
         <junit haltonfailure="true">
             <classpath refid="classpath"/>
             <formatter type="brief" usefile="false"/>
