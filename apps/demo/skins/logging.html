@@ -7,17 +7,14 @@
 process log messages using a JavaScript callback function. This allows you to append log messages to the page being
 rendered, which is very useful during development.</p>
 
-<p><a href="?info=1">Click here</a> to generate an ordinary log message.</p>
+<p><a name="info" href="?info=1#info">Click here</a> to generate an ordinary log message.</p>
 
-<p><a href="?error=1">Click here</a> to generate an error message including JavaScript and Java stack traces.</p>
+<p><a name="error" href="?error=1#error">Click here</a> to generate an error message including JavaScript and Java stack traces.</p>
 
 <p>Here is the (slightly shortened) source code for this demo:</p>
 
-<pre class="code">importModule('helma.logging', 'logging');
-logging.enableResponseLog();
-var log = logging.getLogger(__name__);
-
-function logging_action() {
+<pre class="code">
+function logging(req, res) {
     if (req.data.info) {
         log.info("Hello world!");
     } else if (req.data.error) {
@@ -27,7 +24,8 @@ function logging_action() {
             log.error(e, e.rhinoException);
         }
     }
-    res.write(render('skins/logging.html', { title: "Logging Demo" }));
-}</pre>
+    res.render('skins/logging.html', { title: "Logging Demo" });
+}
+</pre>
 
 <p><a href="http://dev.helma.org/ng/helma.logging/">Learn more</a> about the helma.logging module on the Helma NG site.</p>

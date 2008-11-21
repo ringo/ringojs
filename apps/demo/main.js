@@ -23,12 +23,6 @@ function skins(req, res) {
 
 // demo for log4j logging
 function logging(req, res) {
-    // make sure responselog is enabled
-    var hasResponseLog = helma.logging.responseLogEnabled();
-    if (!hasResponseLog) {
-        helma.logging.enableResponseLog();
-        log.debug("enabling response log");
-    }
     if (req.data.info) {
         log.info("Hello world!");
     } else if (req.data.error) {
@@ -39,11 +33,6 @@ function logging(req, res) {
         }
     }
     res.render('skins/logging.html', { title: "Logging Demo" });
-    if (!hasResponseLog) {
-        log.debug("disabling response log");
-        helma.logging.disableResponseLog();
-    }
-    helma.logging.flushResponseLog();
 }
 
 // demo for continuation support

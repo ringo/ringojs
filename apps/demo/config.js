@@ -12,6 +12,7 @@ var urls = [
 
 var middleware = [
     'helma.webapp.continuation',
+    'helma.logging'
 ];
 
 var charset = 'utf8';

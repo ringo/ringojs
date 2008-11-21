@@ -7,6 +7,8 @@ import org.helma.javascript.RhinoEngine;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 
+import java.util.List;
+
 /**
  * A log4j appender that passes log events to a Rhino callback function
  * named <code>onLogEvent</code>.
@@ -27,10 +29,12 @@ public class RhinoAppender extends AppenderSkeleton {
         if (cx == null) {
             return;
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
-        if (engine == null) {
+        Object responseLog = cx.getThreadLocal("responseLog");
+        if (responseLog == null || !(responseLog instanceof List)) {
             return;
         }
+
+        List logList = (List) responseLog;
 
         if(this.layout == null) {
             errorHandler.error("No layout set for the appender named ["+ name+"].");
@@ -59,7 +63,7 @@ public class RhinoAppender extends AppenderSkeleton {
             }
         }
 
-        engine.invokeCallback("onLogEvent", null, message, javaStack, scriptStack);
+        logList.add(new String[] {message, scriptStack, javaStack});
 
     }
 

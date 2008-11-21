@@ -1,5 +1,6 @@
 
 require('core.string');
+import('helma.system', 'system');
 
 export('getLogger',
         'setConfig', 
@@ -12,7 +13,7 @@ var __shared__ = true;
 (function() {
 
     var configured = false;
-    var responseLogEnabled = false;
+    var responseLogEnabled = true;
     var self = this;
 
     /**
@@ -22,8 +23,8 @@ var __shared__ = true;
      */
     this.setConfig = function(resource) {
         var configurator = resource.endsWith('.properties') || resource.endsWith('.props') ?
-           org.apache.log4j.PropertyConfigurator :
-           org.apache.log4j.xml.DOMConfigurator;
+                           org.apache.log4j.PropertyConfigurator :
+                           org.apache.log4j.xml.DOMConfigurator;
         configurator.configure(resource);
         configurator.configureAndWatch(resource, 2000);
         configured = true;
@@ -40,51 +41,19 @@ var __shared__ = true;
         return org.apache.log4j.Logger.getLogger(name);
     }
 
+    // now that getLogger is installed we can get our own log
+    var log = this.getLogger(__name__);
 
     /**
      * Render log4j messages to response buffer in the style of helma 1 res.debug().
      */
-    this.enableResponseLog = function() {
+    this.onRequest = function() {
         // onLogEvent() callback is called by org.helma.util.RhinoAppender
-        var system = require('helma.system');
-        system.addCallback("onLogEvent", "responseLog", function(msg, javaStack, scriptStack) {
-            if (!global.res) {
-                return;
-            }
-            var buffer = res.getBuffer("responseLog");
-            buffer.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
-            buffer.write("color: black; border-top: 1px solid black;\">");
-            buffer.write(msg);
-            if (scriptStack) {
-                buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
-                buffer.write("<pre style='margin: 0;'>", scriptStack, "</pre>");
-            }
-            if (javaStack) {
-                buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
-                buffer.write("<pre style='margin: 0;'>", javaStack, "</pre>");
-            }
-            buffer.writeln("</div>");
-            return null;
-        });
-        // add an onResponse callback to automatically flush the response log
-        system.addCallback("onResponse", "responseLogFlusher", function(res) {
-            if (res.status == 200 || res.status >= 400) {
-                self.flushResponseLog();
-            }
-        });
-        responseLogEnabled = true;
+        if (responseLogEnabled) {
+            var cx = system.getRhinoContext();
+            cx.putThreadLocal('responseLog', new java.util.LinkedList());
+        }
     }
-
-    /**
-     * Stop log4j response buffer logging.
-     */
-    this.disableResponseLog = function() {
-        // unregister handlers added in startResponseLog()
-        var system = require('helma.system');
-        system.removeCallback("onLogEvent", "responseLog");
-        system.removeCallback("onResponse", "responseLogFlusher");
-        responseLogEnabled = false;
-    };
 
     /**
      * Write the log4j response buffer to the main response buffer and reset it.
@@ -92,12 +61,44 @@ var __shared__ = true;
      * in the response, or it will called by the log4j response listener after the
      * response has been generated.
      */
-    this.flushResponseLog = function() {
-        if (global.res) {
-            var buffer = res.getBuffer("responseLog");
-            res.write(buffer);
-            buffer.reset();
+    this.onResponse = this.onError = function(req, res) {
+        if (!responseLogEnabled || (res.status != 200 && res.status < 400)) {
+            return;
         }
+        var cx = system.getRhinoContext();
+        var list = cx.getThreadLocal('responseLog');
+
+        if (list) {
+            for (var i = 0; i < list.size(); i++) {
+                var item = list.get(i);
+                res.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
+                res.write("color: black; border-top: 1px solid black;\">");
+                res.write(item[0]);
+                if (item[1]) {
+                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
+                    res.write("<pre style='margin: 0;'>", item[1], "</pre>");
+                }
+                if (item[2]) {
+                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
+                    res.write("<pre style='margin: 0;'>", item[2], "</pre>");
+                }
+                res.writeln("</div>");
+            }
+        }
+    };
+
+    /**
+     * Stop log4j response logging.
+     */
+    this.disableResponseLog = function() {
+        responseLogEnabled = false;
+    };
+
+    /**
+     * Enable log4j response logging.
+     */
+    this.enableResponseLog = function() {
+        responseLogEnabled = true;
     };
 
     /**
