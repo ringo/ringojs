@@ -23,7 +23,7 @@ public class HelmaContextFactory extends ContextFactory {
 
     RhinoEngine engine;
 
-    int languageVersion = Context.VERSION_1_7;
+    int languageVersion = Context.VERSION_1_8;
     boolean strictMode = false;
     boolean warningAsError = false;
     int optimizationLevel = 0;
