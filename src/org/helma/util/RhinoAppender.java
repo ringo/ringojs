@@ -12,9 +12,6 @@ import java.util.List;
 /**
  * A log4j appender that passes log events to a Rhino callback function
  * named <code>onLogEvent</code>.
- *
- * @see org.helma.javascript.RhinoEngine#addCallback(String, String, org.mozilla.javascript.Function)
- * @see org.helma.javascript.RhinoEngine#invokeCallback(String, Object, Object[])
  */
 public class RhinoAppender extends AppenderSkeleton {
 

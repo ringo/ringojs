@@ -5,15 +5,12 @@
 require('core.object');
 import('helma.logging');
 
-export('addCallback',
-        'addHostObject',
+export('addHostObject',
         'addRepository',
         'evaluate',
         'extendJavaClass',
         'getRepositories',
         'getRhinoContext',
-        'invokeCallback',
-        'removeCallback',
         'setRhinoOptimizationLevel',
         'args');
 
@@ -28,33 +25,6 @@ function addHostObject(javaClass) {
 
 function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
-}
-
-/**
- * Register a callback handler function that can be called via invokeCallback().
- * @param name the name of the handler
- * @param func the handler function
- */
-function addCallback(event, name, func) {
-    getRhinoEngine().addCallback(event, name, func);
-}
-
-/**
- * Remove a callback handler function that was previously registered.
- * @param name the name of the handler
- */
-function removeCallback(event, name) {
-    getRhinoEngine().removeCallback(event, name);
-}
-
-/**
- * Invoke a callback, failing silently if no callback is registered with this name.
- * @param event the callback event
- * @param thisObj the object to invoke the callback on, or null
- * @param args the callback argument array
- */
-function invokeCallback(event, thisObj, args) {
-    getRhinoEngine().invokeCallback(event, thisObj, args);
 }
 
 /**

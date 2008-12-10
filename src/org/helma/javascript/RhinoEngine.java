@@ -47,7 +47,6 @@ public class RhinoEngine {
     List<String>                       commandLineArgs;
     Map<Trackable, ReloadableScript>   compiledScripts    = new HashMap<Trackable, ReloadableScript>();
     Map<Trackable, ReloadableScript>   interpretedScripts = new HashMap<Trackable, ReloadableScript>();
-    Map<String, Map<String, Function>> callbacks          = new HashMap<String, Map<String,Function>>();
     AppClassLoader                     loader             = new AppClassLoader();
     HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
     Map<String, ExtendedJavaClass>     javaWrappers       = new HashMap<String, ExtendedJavaClass>();
@@ -115,53 +114,6 @@ public class RhinoEngine {
                ScriptableObject.defineClass(topLevelScope, clazz);
             }
         }
-    }
-
-    /**
-     * Register a callback. Callbacks are javascript functions
-     * that can be invoked on certain events.
-     * @param event the callback event
-     * @param name the callback name
-     * @param func the callback function
-     */
-    public void addCallback(String event, String name, Function func) {
-        Map<String, Function> map = callbacks.get(event);
-        if (map == null) {
-            map = new LinkedHashMap<String, Function>();
-            callbacks.put(event, map);
-        }
-        map.put(name, func);
-    }
-
-    /**
-     * Unregister a previously registered callback.
-     * @param event the callback event
-     * @param name the callback name
-     */
-    public void removeCallback(String event, String name) {
-        if (callbacks.containsKey(event)) {
-            callbacks.get(event).remove(name);
-        }
-    }
-
-    /**
-     * Invoke a callback. If no callback is registered under this name fail silently.
-     * @param event the callback event
-     * @param thisObj the object to invoke the callback on, or null
-     * @param args the arguments
-     * @return the return value
-     */
-    public Object invokeCallback(String event, Object thisObj, Object... args) {
-        Map<String, Function> funcs = callbacks.get(event);
-        if (funcs != null && !funcs.isEmpty()) {
-            Scriptable thisObject = thisObj == null ?
-                    topLevelScope : Context.toObject(thisObj, topLevelScope);
-            initArguments(args);
-            for (Function func: funcs.values()) {
-                Context.call(contextFactory, func, topLevelScope, thisObject, args);
-            }
-        }
-        return null;
     }
 
     /**
