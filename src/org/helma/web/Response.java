@@ -184,6 +184,21 @@ public class Response extends ScriptableObject {
         response.setCharacterEncoding(charset);
     }
 
+    public void jsFunction_addHeader(String name, String value) {
+        response.addHeader(name, value);
+    }
+
+    public void jsFunction_addDateHeader(String name, double time) {
+        response.addDateHeader(name, (long) time);
+    }
+
+    public void jsFunction_setHeader(String name, String value) {
+        response.setHeader(name, value);
+    }
+        public void jsFunction_setDateHeader(String name, double time) {
+        response.setDateHeader(name, (long) time);
+    }
+
     /**
      * Set a HTTP cookie with the given name and value. This function takes at least
      * two arguments, a cookie name and a cookie value. Optionally, the third
