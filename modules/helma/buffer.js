@@ -36,9 +36,9 @@ function Buffer() {
         var enc = JSON.stringify(this.toString());
         return "<script>\r\n\
             if (console && typeof console.debug == 'function') {\r\n\
-                console.error(" + enc + ");\r\n\
+                console.info(" + enc + ");\r\n\
             } else {\r\n\
-                document.write(" + enc + ");\r\n\
+                document.write('<p>' + " + enc + " + '<p>');\r\n\
             }\r\n\
         </script>\r\n";
     }

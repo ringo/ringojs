@@ -1,20 +1,16 @@
 
-require('core.string');
-import('helma.system', 'system');
-
-export('getLogger',
-        'setConfig', 
-        'enableResponseLog',
-        'disableResponseLog',
-        'flushResponseLog');
-
 var __shared__ = true;
 
 (function() {
 
+    require('core.string');
+    import('helma.system', 'system');
+    include('helma.buffer');
+
+    export('getLogger');
+
     var configured = false;
     var responseLogEnabled = true;
-    var self = this;
 
     /**
      * Configure log4j using the given file resource.
@@ -48,7 +44,7 @@ var __shared__ = true;
      * Render log4j messages to response buffer in the style of helma 1 res.debug().
      */
     this.onRequest = function() {
-        // onLogEvent() callback is called by org.helma.util.RhinoAppender
+        // Install list in 'responseLog' threadlocal
         if (responseLogEnabled) {
             var cx = system.getRhinoContext();
             cx.putThreadLocal('responseLog', new java.util.LinkedList());
@@ -71,41 +67,22 @@ var __shared__ = true;
         if (list) {
             for (var i = 0; i < list.size(); i++) {
                 var item = list.get(i);
-                res.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
-                res.write("color: black; border-top: 1px solid black;\">");
-                res.write(item[0]);
+                var b = new Buffer();
+                b.writeln(item[0]);
                 if (item[1]) {
-                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
-                    res.write("<pre style='margin: 0;'>", item[1], "</pre>");
+                    b.writeln("Script Stack");
+                    b.writeln("————————————");
+                    b.writeln(item[1]);
                 }
                 if (item[2]) {
-                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
-                    res.write("<pre style='margin: 0;'>", item[2], "</pre>");
+                    b.writeln("Java Stack");
+                    b.writeln("——————————");
+                    b.writeln(item[2]);
                 }
-                res.writeln("</div>");
+                res.write(b.toFirebugConsole());
             }
         }
     };
 
-    /**
-     * Stop log4j response logging.
-     */
-    this.disableResponseLog = function() {
-        responseLogEnabled = false;
-    };
-
-    /**
-     * Enable log4j response logging.
-     */
-    this.enableResponseLog = function() {
-        responseLogEnabled = true;
-    };
-
-    /**
-     * Return true if response logging is enabled, false otherwise
-     */
-    this.responseLogEnabled = function() {
-        return responseLogEnabled;
-    }
 
 }).call(this);
