@@ -75,7 +75,7 @@ public class RhinoEngine {
         // create a new global scope level
         Context cx = contextFactory.enterContext();
         try {
-            topLevelScope = cx.initStandardObjects();
+            topLevelScope = new ImporterTopLevel(cx);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
                 // for (int i=0; i<classes.length; i++) {
