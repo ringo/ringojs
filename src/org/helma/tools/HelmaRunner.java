@@ -62,7 +62,7 @@ public class HelmaRunner {
         }
 
         FileRepository home = new FileRepository(System.getProperty("helma.home", "."));
-        HelmaConfiguration config = new HelmaConfiguration(home, scriptName);
+        HelmaConfiguration config = new HelmaConfiguration(home, null, scriptName);
         if (optlevel >= -1) {
             config.setOptLevel(optlevel);
         }

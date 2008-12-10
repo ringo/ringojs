@@ -32,7 +32,6 @@ import java.util.List;
 public class HelmaConfiguration {
 
     Repository home;
-    Resource script;
     List<Repository> repositories;
     String mainModule;
     int optimizationLevel = 0;
@@ -40,7 +39,7 @@ public class HelmaConfiguration {
     Class<?>[] hostClasses = null;
     org.helma.tools.launcher.HelmaClassLoader loader;
 
-    public HelmaConfiguration(Repository helmaHome, String scriptName)
+    public HelmaConfiguration(Repository helmaHome, String modulePath, String scriptName)
             throws FileNotFoundException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
@@ -55,25 +54,26 @@ public class HelmaConfiguration {
         }
 
         // first add repositories from helma.modulepath system property
-        String modulePath = System.getProperty("helma.modulepath");
+        if (modulePath == null) {
+            modulePath = System.getProperty("helma.modulepath");
+        }
         if (modulePath != null) {
-            String[] reps = StringUtils.split(modulePath, ",");
-            for (int i = 0; i < reps.length; i++) {
-                String rep = reps[i];
-                rep = rep.trim();
-                File file = new File(rep);
+            String[] paths = StringUtils.split(modulePath, ",");
+            for (int i = 0; i < paths.length; i++) {
+                String path = paths[i].trim();
+                File file = new File(path);
                 if (!file.isAbsolute()) {
                     // if path is relative, try to resolve against current directory first,
                     // then relative to helma installation directory.
                     file = file.getAbsoluteFile();
                     if (!file.exists()) {
-                        file = new File(home.getPath(), rep);
+                        file = new File(home.getPath(), path);
                     }
                 }
                 if (!file.exists()) {
                     throw new FileNotFoundException("File '" + file + "' does not exist.");
                 }
-                if (rep.toLowerCase().endsWith(".zip")) {
+                if (path.toLowerCase().endsWith(".zip")) {
                     repositories.add(new ZipRepository(file));
                 } else {
                     if (i == 0 && file.isFile()) {

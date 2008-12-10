@@ -15,6 +15,8 @@ import org.helma.javascript.RhinoEngine;
 import org.helma.template.MacroTag;
 import org.helma.tools.HelmaConfiguration;
 import org.helma.util.StringUtils;
+import org.helma.repository.FileRepository;
+import org.helma.repository.Repository;
 import org.helma.repository.WebappRepository;
 import org.mozilla.javascript.WrappedException;
 
@@ -24,6 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.concurrent.*;
 
 /**
@@ -90,12 +93,19 @@ public class HelmaServlet extends HttpServlet {
                     classes = copy;
                 }
                 String helmaHome = config.getInitParameter("helmaHome");
+                String modulePath = config.getInitParameter("modulePath");
                 String scriptName = config.getInitParameter("scriptName");
-                WebappRepository home = new WebappRepository(config.getServletContext(), helmaHome);
-                HelmaConfiguration helmaconf = new HelmaConfiguration(home, scriptName);
-                helmaconf.setHostClasses(classes);
-                engine = new RhinoEngine(helmaconf);
-            } catch (Exception x) {
+                Repository home = new FileRepository(helmaHome);
+                if (!home.exists()) {
+                    home = new WebappRepository(config.getServletContext(), helmaHome);
+                }
+                HelmaConfiguration conf =
+                        new HelmaConfiguration(home, modulePath, scriptName);
+                conf.setHostClasses(classes);
+                engine = new RhinoEngine(conf);
+            } catch (ClassNotFoundException x) {
+                throw new ServletException(x);
+            } catch (FileNotFoundException x) {
                 throw new ServletException(x);
             }
         }
