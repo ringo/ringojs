@@ -3,7 +3,6 @@ import('helma.logging');
 
 import('webmodule', 'mount.point');
 
-helma.logging.enableResponseLog();
 var log = helma.logging.getLogger(__name__);
 
 // the main action is invoked for http://localhost:8080/
