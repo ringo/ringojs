@@ -1,4 +1,5 @@
 require('core.string');
+include('helma.buffer');
 import('helma.system');
 import('helma.logging');
 import('helma.shell');
@@ -12,50 +13,34 @@ var log = helma.logging.getLogger(__name__);
 /**
  * Register a request listener that automatically sets rhino optimization
  * level to -1 and adds a profiler.
- * @param maxFrames {Number} maximum number of call frames to display
  */
-function enable(maxFrames) {
-    maxFrames = maxFrames || 20;
+(function() {
+    var maxFrames = 20;
     var profiler;
-    system.addCallback('onInvoke', 'profiler-support', function() {
+
+    this.onRequest = function() {
+        system.setRhinoOptimizationLevel(-1);
         if (!profiler) {
             profiler = new Profiler();
         }
-        system.setRhinoOptimizationLevel(-1);
         system.getRhinoContext().setDebugger(profiler, null);
-        // log.info('Initialized Tracer for request ' + req.path);
-    });
-    system.addCallback('onReturn', 'profiler-support', function() {
+    };
+
+    this.onResponse = this.onError = function(req, res) {
         var result = profiler.getResult(maxFrames);
-        writeln();
-        writeln("     total  average  calls    path");
+        var b = new Buffer();
+        b.writeln();
+        b.writeln("     total  average  calls    path");
         for (var i = 1; i < result.maxLength; i++) {
-            write("=");
+            b.write("—");
         }
-        writeln();
-        writeln(result.data);
-    })
-}
-
-/**
- * Disable profiling
- */
-function disable() {
-    system.removeCallback('onInvoke', 'profiler-support');
-    system.removeCallback('onReturn', 'profiler-support');
-}
-
-/**
- * Reset profiler data, starting new profiling session
- * @param maxFrames {Number} maximum number of call frames to display
- */
-function reset(maxFrames) {
-    disable();
-    enable(maxFrames);
-}
+        b.writeln();
+        b.writeln(result.data);
+        log.info(b.toString());
+    };
+}).apply(this);
 
 function Profiler() {
-
     var frames = {};
     var currentFrame = null;
 
