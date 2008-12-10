@@ -27,19 +27,17 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(this, "import", {
         value: function(moduleName, propertyName) {
             var module = this.require(moduleName);
-            if (module.__export__) {
-                propertyName = propertyName || moduleName;
-                var path = propertyName.split(".");
-                var elem = this;
-                for (var i = 0; i < path.length - 1; i++) {
-                    var child = elem[path[i]];
-                    if (!child) {
-                        child = elem[path[i]] = {};
-                    }
-                    elem = child;
+            propertyName = propertyName || moduleName;
+            var path = propertyName.split(".");
+            var elem = this;
+            for (var i = 0; i < path.length - 1; i++) {
+                var child = elem[path[i]];
+                if (!child) {
+                    child = elem[path[i]] = {};
                 }
-                elem[path[path.length - 1]] = module;
+                elem = child;
             }
+            elem[path[path.length - 1]] = module;
         }
     });
 
