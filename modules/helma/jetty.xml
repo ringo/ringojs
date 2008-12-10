@@ -222,9 +222,11 @@
     <!-- =========================================================== -->
     <!-- extra options                                               -->
     <!-- =========================================================== -->
-    <Set name="stopAtShutdown">true</Set>
     <Set name="sendServerVersion">true</Set>
     <Set name="sendDateHeader">true</Set>
-    <Set name="gracefulShutdown">1000</Set>
+    <!-- Disable graceful shutdown in development mode. -->
+    <!-- You probably want this enabled for deployment. -->
+    <!-- Set name="gracefulShutdown">0</Set -->
+    <!-- Set name="stopAtShutdown">true</Set -->
 
 </Configure>
