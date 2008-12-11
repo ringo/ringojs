@@ -279,27 +279,6 @@ public class Request extends ScriptableObject {
         return getJsArray(request.getCookies());
     }
 
-    /**
-     * A JavaScript object reflecting the request's HTTP cookies. The object
-     * contains the cookie names as property names and the cookie values as property
-     * values. To access other cookie properties such as max-age, domain, or cookie path,
-     * and to access multiple cookies with the same name, use *req.getCookies()|getCookies()*,
-     * which returns a JavaScript arrays containing the raw
-     * *cookie objects|http://java.sun.com/products/servlet/2.5/docs/servlet-2_5-mr2/javax/servlet/http/Cookie.html*.
-     * @deprecated
-     * @return a JavaScript object containing the request's HTTP cookies
-     */
-    public Object jsGet_cookies() {
-        if (cookies == null) {
-            Map<String, String> cookieMap = new CaseInsensitiveMap<String, String>();
-            for (Cookie cookie: request.getCookies()) {
-                cookieMap.put(cookie.getName(), cookie.getValue());
-            }
-            cookies = new ScriptableMap(getParentScope(), cookieMap);
-        }
-        return cookies;
-    }
-
     public String getClassName() {
         return "Request";
     }
