@@ -16,7 +16,6 @@ export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 
 var log = logging.getLogger(__name__);
 
-
 /**
  * Handler function called by the Helma servlet. 
  *
@@ -45,14 +44,33 @@ function handleRequest(req, res) {
         path = path.slice(1)
     }
 
-    function getRegExp(pattern) {
-        if (pattern instanceof RegExp) {
-            return pattern;
-        } else if (typeof pattern == "string") {
-            return new RegExp(pattern);
-        } else {
+    function getPattern(spec) {
+        var pattern = spec[0];
+        if (typeof pattern == "string") {
+            pattern = spec[0] = new RegExp(pattern);
+        } else if (!(pattern instanceof RegExp)) {
             throw Error("Pattern must be a regular expression or string");
         }
+        return pattern;
+    }
+
+    function getModule(spec) {
+        var module = spec[1];
+        if (typeof module == "string") {
+            module = require(module);
+        } else if (!(module instanceof Object)) {
+            throw Error("Module must be a string or object");
+        }
+        return module;
+    }
+
+    function getAction(module, name) {
+        name = name || "index";
+        var action = module[name.replace(/\./g, "_") + "_action"];
+        if (typeof action == "function") {
+            return action;
+        }
+        return null;
     }
 
     try {
@@ -61,38 +79,30 @@ function handleRequest(req, res) {
             var urls = config.urls;
             for (var i = 0; i < urls.length; i++) {
                 log.debug("checking url line: " + urls[i]);
-                var match = getRegExp(urls[i][0]).exec(path);
+                var match = getPattern(urls[i]).exec(path);
                 log.debug("got match: " + match);
                 if (match != null) {
-                    var action = urls[i][1];
-                    log.debug("action: " + action);
-                    if (typeof action == "string") {
-                        log.debug("action is string");
-                        var dot = action.lastIndexOf('.');
-                        if (dot < 0) {
-                            throw Error('Action must be of form "module.function"');
-                        }
-                        var module = action.slice(0, dot);
-                        var func = action.slice(dot + 1);
-                        action = require(module)[func];
-                        if (log.debugEnabled) log.debug("resolved action: " + action);
-                    } else if (typeof action != "function") {
-                        throw Error('Action must either be a string or a function');
-                    }
+                    var module = getModule(urls[i]);
+                    log.debug("module: " + module);
+                    // cut matching prefix from path
+                    path = path.substring(match[0].length);
+                    // remove leading and trailing slashes
+                    path = path.replace(/^\/+|\/+$/g, "");
+                    //split
+                    path = path.split(/\/+/);
+                    var action = getAction(module, path[0]);
                     if (typeof action == "function") {
-                        // got a match - add any regexp groups as additional action arguments
-                        var args = [req, res];
-                        var actionArgs = [];
-                        for (var j = 1; j < match.length; j++) {
-                            args.push(match[j]);
-                            actionArgs.push(match[j]);
-                        }
+                        // add remaining path elements as additional action arguments
+                        var actionArgs = path.slice(1)
+                                .map(function (elem) decodeURIComponent(elem));
+                        var args = [req, res].concat(actionArgs);
                         invokeMiddleware('onAction',
                                 config.middleware,
                                 [req, res, action, actionArgs]);
-                        action.apply(null, args);
+                        action.apply(module, args);
                         return;
                     }
+                    break;
                 }
             }
         }

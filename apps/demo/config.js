@@ -3,11 +3,8 @@ var httpConfig = {
 };
 
 var urls = [
-    [ /^$/, 'main.index' ],
-    [ /^skins$/, 'main.skins' ],
-    [ /^mount\/point/, 'webmodule.index' ],
-    [ /^continuation/, 'main.continuation' ],
-    [ /^logging/, 'main.logging' ],
+    [ /^mount\/point/, 'webmodule' ],
+    [ /^/, 'actions' ],
 ];
 
 var middleware = [
