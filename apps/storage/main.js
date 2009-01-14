@@ -5,11 +5,11 @@ var handleRequest = webapp.handleRequest;
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
-function index(req, res) {
-    if (req.data.save) {
+function index_action(req, res) {
+    if (req.params.save) {
         createBook(req, res);
     }
-    if (req.data.remove) {
+    if (req.params.remove) {
         removeBook(req, res);
     }
     var books = model.Book.all();
@@ -27,15 +27,15 @@ function index(req, res) {
 }
 
 function createBook(req, res) {
-    var author = new model.Author({name: req.data.author});
-    var book = new model.Book({author: author, title: req.data.title});
+    var author = new model.Author({name: req.params.author});
+    var book = new model.Book({author: author, title: req.params.title});
     // author is saved transitively
     book.save();
     res.redirect('/');
 }
 
 function removeBook(req, res) {
-    var book = model.Book.get(req.data.remove);
+    var book = model.Book.get(req.params.remove);
     // author is removed through cascading delete
     book.remove();
     res.redirect('/');

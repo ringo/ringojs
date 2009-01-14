@@ -1,5 +1,5 @@
 var urls = [
-    [ /^$/, 'main.index' ]
+    [ /^$/, 'main' ]
 ];
 
 var charset = 'utf8';
