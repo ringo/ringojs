@@ -18,6 +18,7 @@ package org.helma.web;
 
 import org.helma.util.CaseInsensitiveMap;
 import org.helma.util.ScriptableMap;
+import org.helma.util.ParameterMap;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -36,9 +37,9 @@ import java.io.UnsupportedEncodingException;
  */
 public class Request extends ScriptableObject {
 
-    HttpServletRequest request;
-    Session session;
-    Scriptable cookies, data, params, headers, attributes;
+    private HttpServletRequest request;
+    private Session session;
+    private Scriptable cookies, data, params, headers, attributes;
     private static final long serialVersionUID = -2167096504665220425L;
 
     public Request() {
@@ -234,37 +235,29 @@ public class Request extends ScriptableObject {
     }
 
     /**
-     * Returns the value of a request parameter as a String, or null if the parameter does not exist.
-     * You should only use this method when you are sure the parameter has only one value. If the
-     * parameter might have more than one value, use *getParameters(String)*.
-     *
-     * Request parameters are extra information sent with the request either in the
-     * query string or posted form data.
-     *
-     * @param name the parameter name
-     * @return the paremeter value
-     */
-    public String jsFunction_getParameter(String name) {
-        return request.getParameter(name);
-    }
-
-    /**
      * Return the parameter map wrapped as scriptable object.
      * @return the parameter map, wrapped as scriptable object.
      */
-    public Object jsFunction_getParameterMap() {
-        return new ScriptableMap(getParentScope(), request.getParameterMap());
+    public Object jsGet_params() {
+        if (params == null) {
+            params = new ScriptableMap(getParentScope(),
+                    new ParameterMap(request.getParameterMap()));
+        }
+        return params;
     }
 
-    /**
-     * Returns an array of Strings containing all of the values the given request parameter has,
-     * or null if the parameter does not exist.
-     *
-     * @param name the parameter name
-     * @return the parameter values
-     */
-    public Object jsFunction_getParameters(String name) {
-        return getJsArray(request.getParameterValues(name));
+    public Object jsGet_cookies() {
+        if (cookies == null) {
+            Cookie[] cookieArray = request.getCookies();
+            ParameterMap cookieMap = new ParameterMap();
+            if (cookieArray != null) {
+                for (Cookie cookie : cookieArray) {
+                    cookieMap.put(cookie.getName(), cookie);
+                }
+            }
+            cookies = new ScriptableMap(getParentScope(), cookieMap);
+        }
+        return cookies;
     }
 
    /**
