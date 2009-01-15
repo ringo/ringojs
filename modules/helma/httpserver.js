@@ -35,7 +35,7 @@ var log = require('helma.logging').getLogger(__name__);
      */
     this.start = function(config) {
         config = config || {};
-        var configFile = config.configFile || 'jetty.xml';
+        var configFile = config.configFile || 'config/jetty.xml';
         // var staticIndex = config.staticIndex || config.staticIndex == undefined;
         if (!server) {
             var engine = require('helma.system').getRhinoEngine();

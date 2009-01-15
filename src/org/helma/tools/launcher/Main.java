@@ -45,7 +45,7 @@ public class Main {
 
             // set default log4j configuration file
             if (System.getProperty("log4j.configuration") == null) {
-                File file = new File(home, "modules/helma/log4j.properties"); 
+                File file = new File(home, "modules/config/log4j.properties"); 
                 System.setProperty("log4j.configuration", "file:" + file.getPath());
             }
 

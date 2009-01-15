@@ -32,7 +32,7 @@ var __shared__ = true;
     this.getLogger = function(name) {
         if (!configured) {
             // getResource('foo').name gets us the absolute path to a local resource
-            this.setConfig(getResource('log4j.properties').path);
+            this.setConfig(getResource('config/log4j.properties').path);
         }
         return org.apache.log4j.Logger.getLogger(name);
     }
