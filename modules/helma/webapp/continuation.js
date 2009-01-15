@@ -18,7 +18,7 @@
  *                    <input type="submit"/>\
  *                   </form>');
  *        Continuation.nextPage();
- *        var foo = req.data.foo;
+ *        var foo = req.params.foo;
  *        res.write('<a href="' + Continuation.nextUrl() + '">click here</a>');
  *        Continuation.nextPage();
  *        res.write("you said: " + foo);
@@ -90,7 +90,7 @@ Continuation.nextPage = function(req, id) {
 };
 
 Continuation.startId = function(req, id) {
-    id = req.data.helma_continuation || id;
+    id = req.params.helma_continuation || id;
     return id;    
 }
 
@@ -105,11 +105,11 @@ Continuation.startId = function(req, id) {
  * @return the continuation result
  */
 Continuation.markStart = function(req, res, id) {
-    if (!req.data.helma_continuation) {
+    if (!req.params.helma_continuation) {
         // set query param so helma knows to switch rhino optimization level to -1
         res.redirect(Continuation.nextUrl(req, id));
     } else {
-        id = req.data.helma_continuation;
+        id = req.params.helma_continuation;
         var cont = new Continuation();
         log.info("Recording continuation start: " + id);
         setCallback(req, id, cont);
