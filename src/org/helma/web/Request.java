@@ -39,7 +39,7 @@ public class Request extends ScriptableObject {
 
     private HttpServletRequest request;
     private Session session;
-    private Scriptable cookies, data, params, headers, attributes;
+    private Scriptable cookies, params, headers;
     private static final long serialVersionUID = -2167096504665220425L;
 
     public Request() {
@@ -174,12 +174,20 @@ public class Request extends ScriptableObject {
     }
 
     /**
-     * Returns the value of the specified request header as String.
-     * @param name the header name
-     * @return the header value as String, or null if the header doesn't exist
+     * Property to get the Content-Type header of the current HTTP request.
+     * @return the MIME content type
      */
-    public String jsFunction_getHeader(String name) {
-        return request.getHeader(name);
+    public String jsGet_contentType() {
+        return request.getContentType();
+    }
+
+    /**
+     * The length, in bytes, of the request body and made available by the input stream,
+     * or -1 if the length is not known.
+     * @return the length of the request body
+     */
+    public int jsGet_contentLength() {
+        return request.getContentLength();
     }
 
     /**
@@ -223,10 +231,11 @@ public class Request extends ScriptableObject {
     public Object jsGet_headers() {
         if (headers == null) {
             Map<String,String> headerMap = new HashMap<String,String>();
-            Enumeration headerEnum = request.getHeaderNames();
-            while (headerEnum.hasMoreElements()) {
-                String name = (String) headerEnum.nextElement();
-                headerMap.put(name, request.getHeader(name));
+            for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
+                String name = (String) e.nextElement();
+                if (!headerMap.containsKey(name)) {
+                    headerMap.put(name, request.getHeader(name));
+                }
             }
             headers = new ScriptableMap(getParentScope(),
                     new CaseInsensitiveMap<String,String>(headerMap));
@@ -268,9 +277,9 @@ public class Request extends ScriptableObject {
      * Otherwise, it is more convenient to use the *req.cookies|cookies* object. 
      * @return a JavaScript array with the request's cookie objects
      */
-    public Object jsFunction_getCookies() {
+    /* public Object jsFunction_getCookies() {
         return getJsArray(request.getCookies());
-    }
+    } */
 
     public String getClassName() {
         return "Request";
