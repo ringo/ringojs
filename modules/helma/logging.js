@@ -68,18 +68,18 @@ var __shared__ = true;
             for (var i = 0; i < list.size(); i++) {
                 var item = list.get(i);
                 var b = new Buffer();
-                b.writeln(item[0]);
+                res.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
+                res.write("color: black; border-top: 1px solid black;\">");
+                res.write(item[0]);
                 if (item[1]) {
-                    b.writeln("Script Stack");
-                    b.writeln("————————————");
-                    b.writeln(item[1]);
+                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
+                    res.write("<pre style='margin: 0;'>", item[1], "</pre>");
                 }
                 if (item[2]) {
-                    b.writeln("Java Stack");
-                    b.writeln("——————————");
-                    b.writeln(item[2]);
+                    res.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
+                    res.write("<pre style='margin: 0;'>", item[2], "</pre>");
                 }
-                res.write(b.toFirebugConsole());
+                res.writeln("</div>");
             }
         }
     };
