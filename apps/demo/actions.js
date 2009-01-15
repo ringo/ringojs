@@ -30,9 +30,9 @@ function skins_action(req, res) {
 
 // demo for log4j logging
 function logging_action(req, res) {
-    if (req.data.info) {
+    if (req.params.info) {
         log.info("Hello world!");
-    } else if (req.data.error) {
+    } else if (req.params.error) {
         try {
             foo.bar.moo;
         } catch (e) {
