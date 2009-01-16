@@ -1,25 +1,41 @@
 require('core.string');
 import('helma.system', 'system');
 
-system.addHostObject(org.helma.web.Request);
-system.addHostObject(org.helma.web.Session);
+if (!global.Request) {
 
-var log = require('helma.logging').getLogger(__name__);
+    system.addHostObject(org.helma.web.Request);
+    system.addHostObject(org.helma.web.Session);
 
-(function() {
+    var log = require('helma.logging').getLogger(__name__);
 
-    /**
-     * Return true if this is a HTTP POST request.
-     */
-    this.isPost = function() {
-        return this.method == "POST";
-    }
+    Object.defineProperty(Request.prototype, "isGet", {
+        getter: function() {
+            return this.isMethod("GET");
+        }
+    });
 
-    /**
-     * Return true if this is a HTTP GET request.
-     */
-    this.isGet = function() {
-        return this.method == "GET";
-    }
- 
-}).apply(Request.prototype);
+    Object.defineProperty(Request.prototype, "isPost", {
+        getter: function() {
+            return this.isMethod("POST");
+        }
+    });
+
+    Object.defineProperty(Request.prototype, "isPut", {
+        getter: function() {
+            return this.isMethod("PUT");
+        }
+    });
+
+    Object.defineProperty(Request.prototype, "isDelete", {
+        getter: function() {
+            return this.isMethod("DELETE");
+        }
+    });
+
+    Object.defineProperty(Request.prototype, "isHead", {
+        getter: function() {
+            return this.isMethod("HEAD");
+        }
+    });
+
+}

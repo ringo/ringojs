@@ -102,6 +102,15 @@ public class Request extends ScriptableObject {
     }
 
     /**
+     * Checks if the argument string matches the HTTP method of this request.
+     * @param method a method name
+     * @return true if the method matches
+     */
+    public boolean jsFunction_isMethod(String method) {
+        return method != null && method.equalsIgnoreCase(request.getMethod());
+    }
+
+    /**
      * Returns any extra path information associated with the URL the client
      * sent when it made this request. The extra path information follows the
      * servlet path but precedes the query string. This method returns null
@@ -225,7 +234,6 @@ public class Request extends ScriptableObject {
 
     /**
      * A JavaScript object reflecting the headers of this request.
-     * @deprecated
      * @return the request headers as JavaScript object
      */
     public Object jsGet_headers() {
@@ -255,13 +263,19 @@ public class Request extends ScriptableObject {
         return params;
     }
 
+    /**
+     * A JavaScript object containint the cookies the client sent with this request.
+     * @return the request cookies as JavaScript object
+     */
     public Object jsGet_cookies() {
         if (cookies == null) {
             Cookie[] cookieArray = request.getCookies();
             ParameterMap cookieMap = new ParameterMap();
             if (cookieArray != null) {
                 for (Cookie cookie : cookieArray) {
-                    cookieMap.put(cookie.getName(), cookie);
+                    if (!cookieMap.containsKey(cookie.getName())) {
+                        cookieMap.put(cookie.getName(), cookie);
+                    }
                 }
             }
             cookies = new ScriptableMap(getParentScope(), cookieMap);

@@ -72,7 +72,7 @@ function continuation_action(req, res) {
     // the local function to do the actual work
     function renderPage(id) {
         var previous = pages[id - 1]
-        if (req.isPost() && previous) {
+        if (req.isPost && previous) {
            data[previous] = req.params[previous];
         }
         if (id < pages.length - 1) {
