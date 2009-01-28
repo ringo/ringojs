@@ -1,8 +1,6 @@
 import('helma.webapp', 'webapp');
 import('model');
 
-var handleRequest = webapp.handleRequest;
-
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
 function index_action(req, res) {
