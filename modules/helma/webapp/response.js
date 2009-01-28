@@ -1,9 +1,9 @@
 include('helma.buffer');
 import('helma.system', 'system');
 
-system.addHostObject(org.helma.web.Response);
+if (!global.Response) {
 
-(function() {
+    system.addHostObject(org.helma.web.Response);
 
     /**
      * Render a skin to the response's buffer
@@ -11,39 +11,45 @@ system.addHostObject(org.helma.web.Response);
      * @param context
      * @param scope
      */
-    this.render = function render(skin, context, scope) {
-        var render = require('helma.skin').render;
-        this.write(render(skin, context, scope));
-    }
+    Object.defineProperty(Response.prototype, 'render', {
+        value: function render(skin, context, scope) {
+            var render = require('helma.skin').render;
+            this.write(render(skin, context, scope));
+        }
+    });
 
     /**
      * Print a debug message to the rendered page.
      */
-    this.debug = function debug() {
-        var buffer = this.debugBuffer || new Buffer();
-        buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow;");
-        buffer.write("color: black; border-top: 1px solid black;\">");
-        var length = arguments.length;
-        for (var i = 0; i < length; i++) {
-            buffer.write(arguments[i]);
-            if (i < length - 1) {
-                buffer.write(" ");
+    Object.defineProperty(Response.prototype, 'debug', {
+        value: function debug() {
+            var buffer = this.debugBuffer || new Buffer();
+            buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow;");
+            buffer.write("color: black; border-top: 1px solid black;\">");
+            var length = arguments.length;
+            for (var i = 0; i < length; i++) {
+                buffer.write(arguments[i]);
+                if (i < length - 1) {
+                    buffer.write(" ");
+                }
             }
+            buffer.writeln("</div>");
+            this.debugBuffer = buffer;
+            return null;
         }
-        buffer.writeln("</div>");
-        this.debugBuffer = buffer;
-        return null;
-    };
+    });
 
     /**
      * Write the debug buffer to the response's main buffer.
      */
-    this.flushDebug = function() {
-        if (this.debugBuffer != null) {
-            this.write(this.debugBuffer);
-            this.debugBuffer.reset();
+    Object.defineProperty(Response.prototype, 'flushDebug', {
+        value: function() {
+            if (this.debugBuffer != null) {
+                this.write(this.debugBuffer);
+                this.debugBuffer.reset();
+            }
+            return null;
         }
-        return null;
-    };
+    });
 
-}).apply(Response.prototype);
+}
