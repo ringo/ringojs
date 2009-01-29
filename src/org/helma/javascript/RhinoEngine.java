@@ -17,10 +17,7 @@
 package org.helma.javascript;
 
 import org.apache.log4j.Logger;
-import org.helma.repository.FileResource;
-import org.helma.repository.Repository;
-import org.helma.repository.Resource;
-import org.helma.repository.Trackable;
+import org.helma.repository.*;
 import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
@@ -407,58 +404,60 @@ public class RhinoEngine {
     }
 
     /**
-     * Get a resource from our script repository
-     * @param path the resource path
-     * @return the resource
-     */
-    public Resource getResource(String path) {
-        return configuration.getResource(path);
-    }
-
-    /**
-     * Get a resource from our script repository
-     * @param path the resource path
-     * @return the resource
-     */
-    public Repository getRepository(String path) {
-        return configuration.getRepository(path);
-    }
-
-    /**
      * Get a list of all child resources for the given path relative to
      * our script repository.
      * @param path the repository path
      * @param recursive whether to include nested resources
      * @return a list of all contained child resources
      */
-    public List<Resource> getResources(String path, boolean recursive) {
+    public List<Resource> findResources(String path, boolean recursive) {
         return configuration.getResources(path, recursive);
     }
 
     /**
-     * Search for a resource in a local path, or the main repository.
+     * Search for a resource in a local path, or the main repository path.
      * @param path the resource name
      * @param localPath a repository to look first
      * @return the resource
      */
     public Resource findResource(String path, Repository localPath) {
+        // To be consistent, always return absolute repository if path is absolute
+        // if we make this dependent on whether files exist we introduce a lot of
+        // vague and undetermined behaviour.
+        File file = new File(path);
+        if (file.isAbsolute()) {
+            return new FileResource(file);
+        }
         if (localPath != null) {
             Resource resource = localPath.getResource(path);
             if (resource.exists()) {
                 return resource;
             }
         }
-        return getResource(path);
+        return configuration.getResource(path);
     }
 
+    /**
+     * Search for a repository in the local path, or the main repository path.
+     * @param path the repository name
+     * @param localPath a repository to look first
+     * @return the repository
+     */
     public Repository findRepository(String path, Repository localPath) {
+        // To be consistent, always return absolute repository if path is absolute
+        // if we make this dependent on whether files exist we introduce a lot of
+        // vague and undetermined behaviour.
+        File file = new File(path);
+        if (file.isAbsolute()) {
+            return new FileRepository(file);
+        }
         if (localPath != null) {
             Repository repository = localPath.getChildRepository(path);
             if (repository.exists()) {
                 return repository;
             }
         }
-        return getRepository(path);
+        return configuration.getRepository(path);
     }
 
     public void addToClasspath(Resource resource) throws MalformedURLException {
