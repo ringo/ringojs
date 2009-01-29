@@ -61,6 +61,9 @@ var __shared__ = true;
         if (!responseLogEnabled || (res.status != 200 && res.status < 400)) {
             return;
         }
+        // flush stuff logged via res.debug()
+        res.flushDebug();
+        
         var cx = system.getRhinoContext();
         var list = cx.getThreadLocal('responseLog');
 

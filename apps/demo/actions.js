@@ -7,7 +7,6 @@ function index_action(req, res) {
     res.render('skins/index.html', { title: 'Welcome to Helma NG' });
     res.debug(req.cookies.toSource());
     res.debug(req.params.toSource());
-    res.flushDebug();
 }
 
 
