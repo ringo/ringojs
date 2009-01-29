@@ -93,8 +93,7 @@ function handleRequest(req, res) {
                     var action = getAction(module, path[0]);
                     if (typeof action == "function") {
                         // add remaining path elements as additional action arguments
-                        var actionArgs = path.slice(1)
-                                .map(function (elem) decodeURIComponent(elem));
+                        var actionArgs = path.slice(1).map(decodeURIComponent);
                         var args = [req, res].concat(actionArgs);
                         invokeMiddleware('onAction',
                                 config.middleware,
