@@ -27,10 +27,10 @@ adds the modules directory to the end of the module path.
 You can also start the interactive Helma shell when running a script using
 the -i or --interactive flag:
 
-    java -jar run.jar -i ./dir/script.js
+    java -jar run.jar -i dir/script.js
 
 This will add the script's parent directory to the module path (in this case
-"./dir", run the script, then start the shell.
+"dir", run the script, then start the shell.
 
 Helma Runtime
 =============
@@ -84,12 +84,13 @@ Global Functions
 In addition to standard Javascript functionality, some useful functions
 Helma adds are:
 
-importModule(module);
-importModule(module, as);
-importFromModule(module, func1, ...)
+import(module);
+include(module);
+require(module);
 
-    These functions load Javascript modules and add them to the current scope.
-    see http://dev.helma.org/ng/Modules+and+Scopes/ for more info.
+    These functions load Javascript modules and make them available to the
+    current scope in different ways. See
+    http://dev.helma.org/ng/Modules+and+Scopes/ for more info.
 
     Helma first tries to resolve the path relative to the location of the
     module calling this method. If that fails, it looks for the resource
@@ -102,9 +103,9 @@ importFromModule(module, func1, ...)
 
         java -Dhelma.modulepath=myapp,mylibs -jar run.jar
 
-importJar(jarfile)
+addToClasspath(jarfile)
 
-    This function adds a jar (Java archive) to the classpath. by default,
+    This function adds a jar file or directory to the classpath. by default,
     all jar files in the lib directory are included in the classpath. You
     can add also other jar files by starting helma with
 
