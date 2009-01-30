@@ -1,7 +1,7 @@
 Helma NG
 ========
 
-This is the README file for the 0.2 release of Helma NG, a Javascript
+This is the README file for the 0.3 release of Helma NG, a Javascript
 runtime and web application framework written in Java. "NG" stands for
 "next generation", meaning that it is a more of a rewrite of Helma 1 than
 simply a new version.
