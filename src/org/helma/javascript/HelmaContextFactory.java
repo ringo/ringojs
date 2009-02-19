@@ -75,7 +75,6 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextReleased(cx);
         cx.removeThreadLocal("engine");
         cx.removeThreadLocal("modules");
-        cx.removeThreadLocal("threadscope");
     }
 
     public void setStrictMode(boolean flag) {

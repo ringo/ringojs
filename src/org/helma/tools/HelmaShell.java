@@ -52,7 +52,6 @@ public class HelmaShell {
     }
     
     public void run() throws IOException {
-        Scriptable threadScope = null;
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
         reader.addCompletor(new JSCompletor());
@@ -62,13 +61,6 @@ public class HelmaShell {
         int lineno = 0;
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
-            // we need to manage our own thread scope, enterContext() creates a new one
-            // by default. It might be preferable to do this in HelmaContextFactory.
-            if (threadScope == null) {
-                threadScope = (Scriptable) cx.getThreadLocal("threadscope");
-            } else {
-                cx.putThreadLocal("threadscope", threadScope);
-            }
             cx.setErrorReporter(new ToolErrorReporter(true, System.out));
             String source = "";
             String prompt = "helma> ";
