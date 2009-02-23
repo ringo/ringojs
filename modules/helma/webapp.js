@@ -66,7 +66,7 @@ function handleRequest(req, res) {
 
     function getAction(module, name) {
         name = name || "index";
-        var action = module[name.replace(/\./g, "_") + "_action"];
+        var action = module[name.replace(/\./g, "_")];
         if (typeof action == "function") {
             return action;
         }

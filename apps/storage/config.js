@@ -1,10 +1,10 @@
-var urls = [
+exports.urls = [
     [ /^$/, 'main' ]
 ];
 
-var middleware = [
+exports.middleware = [
     "helma.logging"
 ]
 
-var charset = 'utf8';
-var contentType = 'text/html';
+exports.charset = 'utf8';
+exports.contentType = 'text/html';

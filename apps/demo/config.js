@@ -1,16 +1,16 @@
-var httpConfig = {
+exports.httpConfig = {
   staticDir: 'static'
 };
 
-var urls = [
+exports.urls = [
     [ /^mount\/point/, 'webmodule' ],
     [ /^/, 'actions' ],
 ];
 
-var middleware = [
+exports.middleware = [
     'helma.webapp.continuation',
     'helma.logging'
 ];
 
-var charset = 'utf8';
-var contentType = 'text/html';
+exports.charset = 'utf8';
+exports.contentType = 'text/html';

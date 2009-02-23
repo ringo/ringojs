@@ -2,6 +2,8 @@ include('helma.unittest');
 var {File} = require('helma.file');
 require('core.string');
 
+export('testCase');
+
 var testCase = new TestCase('helma.file');
 
 var filename = 'helma_file_test_' + String.random(10);

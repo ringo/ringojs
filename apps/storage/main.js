@@ -1,9 +1,11 @@
 import('helma.webapp', 'webapp');
 import('model');
 
+export('index');
+
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
-function index_action(req, res) {
+function index(req, res) {
     if (req.params.save) {
         createBook(req, res);
     }

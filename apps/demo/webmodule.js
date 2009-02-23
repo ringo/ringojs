@@ -1,6 +1,8 @@
 // a simple web app/module
 
-function index_action(req, res) {
+export('index');
+
+function index(req, res) {
     var context = {
         title: 'Module Demo',
         href: req.path

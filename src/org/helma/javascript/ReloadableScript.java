@@ -179,7 +179,7 @@ public class ReloadableScript {
     /**
      * Get a module scope loaded with this script
      *
-     * @param prototype the parent scope for the module
+     * @param prototype the prototype for the module, usually the shared top level scope
      * @param moduleName the module name
      * @param cx the rhino context
      * @return a new module scope
@@ -201,9 +201,9 @@ public class ReloadableScript {
                 modules.put(source, module);
                 return module;
             }
-            module.delete("__shared__");
+            module.reset(cx);
         } else {
-            module = new ModuleScope(moduleName, source, prototype);
+            module = new ModuleScope(moduleName, source, prototype, cx);
         }
         modules.put(source, module);
         script.exec(cx, module);

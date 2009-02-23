@@ -1,5 +1,7 @@
 include("helma.unittest");
 
+export('testCase');
+
 var testCase = new TestCase("helma.unittest");
 
 testCase.testAssertTrue = function() {

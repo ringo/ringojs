@@ -13,7 +13,24 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(this, "require", {
         value: function(moduleName) {
-            return getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
+            var module = getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
+            var exports = module.exports;
+            if (!exports || !(exports instanceof Object)) {
+                exports = {};
+                Object.defineProperty(module, "exports", { value: exports });
+            }
+            // the __exports__ array is an alternative way for a module to export properties.
+            // it contains a list of property names that will be copied to the exports object.
+            if (module.__exports__) {
+                for each (var key in module.__exports__) {
+                    // print("Exporting", moduleName, key, "->", typeof(module[key]));
+                    Object.defineProperty(exports, key, {
+                        value: module[key],
+                        enumerable: true
+                    });
+                }
+            }
+            return exports; 
         }
     });
 
@@ -48,13 +65,7 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(this, "include", {
         value: function(moduleName) {
             var module = this.require(moduleName);
-            var exported = module.__export__;
-            if (!exported) {
-                throw ReferenceError("Property __export__ is not defined on module " + moduleName);
-            } else if (!(exported instanceof Array)) {
-                throw TypeError("Property __export__ is not an array in module " + moduleName);
-            }
-            for each (var key in exported) {
+            for (var key in module) {
                 this[key] = module[key];
             }
         }
@@ -66,12 +77,12 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(this, "export", {
         value: function() {
-            var list = this.__export__ || [];
+            var list = this.__exports__ || [];
             for (var i = 0; i < arguments.length; i++) {
                 list.push(arguments[i]);
             }
-            if (this.__export__ != list) {
-                Object.defineProperty(this, "__export__", { value: list });
+            if (this.__exports__ != list) {
+                Object.defineProperty(this, "__exports__", { value: list });
             }
         }
     });

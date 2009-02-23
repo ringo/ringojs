@@ -2,8 +2,10 @@ import('helma.logging');
 
 var log = helma.logging.getLogger(__name__);
 
+export('index', 'extra_path', 'skins', 'logging', 'continuation');
+
 // the main action is invoked for http://localhost:8080/
-function index_action(req, res) {
+function index(req, res) {
     res.render('skins/index.html', { title: 'Welcome to Helma NG' });
     res.debug(req.cookies.toSource());
     res.debug(req.params.toSource());
@@ -12,14 +14,14 @@ function index_action(req, res) {
 
 // additional path elements are passed to the action as arguments,
 // e.g. /extra.path/foo/bar
-function extra_path_action(req, res) {
+function extra_path(req, res) {
     for (var i = 2; i < arguments.length; i++) {
         res.write(arguments[i], "<br/>");
     }
 }
 
 // demo for skins, macros, filters
-function skins_action(req, res) {
+function skins(req, res) {
     res.render('skins/skins.html', {
         title: 'Skin Demo',
         name: 'Luisa',
@@ -28,7 +30,7 @@ function skins_action(req, res) {
 }
 
 // demo for log4j logging
-function logging_action(req, res) {
+function logging(req, res) {
     if (req.params.info) {
         log.info("Hello world!");
     } else if (req.params.error) {
@@ -42,7 +44,7 @@ function logging_action(req, res) {
 }
 
 // demo for continuation support
-function continuation_action(req, res) {
+function continuation(req, res) {
 
     // local data - this is the data that is shared between resuming and suspension
     var data = {};

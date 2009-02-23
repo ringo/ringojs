@@ -3,8 +3,9 @@ require("core.array");
 var logging = require("helma.logging");
 var log = logging.getLogger(__name__);
 
-var testCase = new TestCase("core.array");
+export('testCase');
 
+var testCase = new TestCase("core.array");
 
 // test data
 var empty = [];

@@ -144,7 +144,7 @@ public class RhinoEngine {
             }
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope("__main__", resource, topLevelScope);
+            mainScope = new ModuleScope("__main__", resource, topLevelScope, cx);
             retval = evaluate(cx, script, mainScope);
         	if (retval instanceof Wrapper) {
         		return ((Wrapper) retval).unwrap();
@@ -209,7 +209,7 @@ public class RhinoEngine {
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
             Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
-            ModuleScope scope = new ModuleScope("<shell>", resource, parentScope);
+            ModuleScope scope = new ModuleScope("<shell>", resource, parentScope, cx);
             try {
                 evaluate(cx, getScript("helma.shell"), scope);
             } catch (Exception x) {

@@ -21,6 +21,7 @@ import org.helma.repository.Trackable;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.NativeArray;
 
 /**
  * A scriptable object that keeps track of the resource it has been loaded from
@@ -32,21 +33,30 @@ public class ModuleScope extends NativeObject {
     Repository repository;
     String name;
     long checksum;
+    Scriptable exports;
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(String moduleName, Trackable source, Scriptable prototype) {
+    public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {
+        setParentScope(null);
+        setPrototype(prototype);
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
         this.name = moduleName;
-        setParentScope(null);
-        setPrototype(prototype);
+        this.exports = cx.newObject(this);
+        defineProperty("exports", exports,  DONTENUM | READONLY | PERMANENT);
+        defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
         defineProperty("__name__", moduleName, DONTENUM);
         defineProperty("__path__", source.getPath(), DONTENUM);
     }
 
     public Repository getRepository() {
         return repository;
+    }
+
+    public void reset(Context cx) {
+        delete("__shared__");     
+        defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
     }
 
     public long getChecksum() {
@@ -59,6 +69,10 @@ public class ModuleScope extends NativeObject {
 
     public String getName() {
         return name;
+    }
+
+    public Scriptable getExports() {
+        return exports;
     }
 
     @Override
