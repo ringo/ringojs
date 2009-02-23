@@ -19,8 +19,6 @@ package org.helma.javascript;
 import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
 
-import java.util.Map;
-
 /**
  * This class contains the native functions Helma adds to the global scope.
  */
@@ -53,7 +51,7 @@ public class StaticMethods {
         ScriptUtils.checkArguments(args, 3, 3);
         ScriptableObject obj = ScriptUtils.getScriptableArgument(args, 0);
         String propname = ScriptUtils.getStringArgument(args, 1);
-        Map desc = ScriptUtils.getMapArgument(args, 2);
+        Scriptable desc = ScriptUtils.getScriptableArgument(args, 2);
         if (obj == null || propname == null || desc == null) {
             throw new IllegalArgumentException();
         }
@@ -67,16 +65,24 @@ public class StaticMethods {
         public final Callable getter, setter;
         public final boolean enumerable, configurable, writable;
 
-        public PropertyDescriptor(Map desc) {
-            value = desc.get("value");
-            getter = (Callable) desc.get("getter");
-            setter = (Callable) desc.get("setter");
-            enumerable = ScriptRuntime.toBoolean(desc.get("enumerable"));
-            configurable = ScriptRuntime.toBoolean(desc.get("configurable"));
-            writable = ScriptRuntime.toBoolean(desc.get("writable"));
+        public PropertyDescriptor(Scriptable desc) {
+            value = getDescriptorValue("value", desc);
+            getter = (Callable) getDescriptorValue("getter", desc);
+            setter = (Callable) getDescriptorValue("setter", desc);
+            enumerable = ScriptRuntime.toBoolean(getDescriptorValue("enumerable", desc));
+            configurable = ScriptRuntime.toBoolean(getDescriptorValue("configurable", desc));
+            writable = ScriptRuntime.toBoolean(getDescriptorValue("writable", desc));
             if (value != null && (getter != null || setter != null)) {
                 throw new IllegalArgumentException("Only one of value or getter/setter must be defined");
             }
+        }
+
+        public Object getDescriptorValue(String propName, Scriptable desc) {
+            Object value = desc.get(propName, desc);
+            if (value == Undefined.instance || value == UniqueTag.NOT_FOUND) {
+                return null;
+            }
+            return value;
         }
 
         public int getAttributes() {
