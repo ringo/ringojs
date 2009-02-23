@@ -7,6 +7,7 @@ export("Store",
        "Transaction",
        "Reference",
        "Collection",
+       "List",
        "Text");
 
 var __shared__ = true;

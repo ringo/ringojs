@@ -11,6 +11,7 @@ export('addHostObject',
         'extendJavaClass',
         'getRepositories',
         'getRhinoContext',
+        'getRhinoEngine',
         'setRhinoOptimizationLevel',
         'args');
 
