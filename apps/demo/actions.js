@@ -13,11 +13,9 @@ function index(req, res) {
 
 
 // additional path elements are passed to the action as arguments,
-// e.g. /extra.path/foo/bar
-function extra_path(req, res) {
-    for (var i = 2; i < arguments.length; i++) {
-        res.write(arguments[i], "<br/>");
-    }
+// e.g. /extra.path/2008/09
+function extra_path(req, res, year, month) {
+    res.write("Extra arguments: ", year, month);
 }
 
 // demo for skins, macros, filters
