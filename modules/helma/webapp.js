@@ -1,4 +1,4 @@
-/*
+11/*
  * The webapp module provides support for building web applications in Helma NG.
  */
 
@@ -91,7 +91,7 @@ function handleRequest(req, res) {
                     //split
                     path = path.split(/\/+/);
                     var action = getAction(module, path[0]);
-                    if (typeof action == "function") {
+                    if (typeof action == "function" && path.length < action.length) {
                         // add remaining path elements as additional action arguments
                         var actionArgs = path.slice(1).map(decodeURIComponent);
                         var args = [req, res].concat(actionArgs);
