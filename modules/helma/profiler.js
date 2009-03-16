@@ -4,7 +4,7 @@ import('helma.system');
 import('helma.logging');
 import('helma.shell');
 
-export('enable', 'disable', 'reset', 'Profiler');
+export('onRequest', 'onResponse', 'onError', 'Profiler');
 
 var system = helma.system;
 var {write, writeln} = helma.shell;
