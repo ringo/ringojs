@@ -211,7 +211,7 @@ public class RhinoEngine {
             Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
             ModuleScope scope = new ModuleScope("<shell>", resource, parentScope, cx);
             try {
-                evaluate(cx, getScript("helma.shell"), scope);
+                evaluate(cx, getScript("helma/shell"), scope);
             } catch (Exception x) {
                 log.error("Warning: couldn't load module 'helma.shell'", x);
             }
