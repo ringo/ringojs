@@ -3,7 +3,7 @@ exports.urls = [
 ];
 
 exports.middleware = [
-    "helma.logging"
+    'helma/logging'
 ]
 
 exports.charset = 'utf8';

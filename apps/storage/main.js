@@ -1,4 +1,4 @@
-import('helma.webapp', 'webapp');
+import('helma/webapp', 'webapp');
 import('model');
 
 export('index');

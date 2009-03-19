@@ -1,6 +1,6 @@
-import("core.string");
-import("helma.system");
-import("helma.shell");
+import("core/string");
+import("helma/system");
+import("helma/shell");
 
 var system = helma.system;
 var writeln = helma.shell.writeln;

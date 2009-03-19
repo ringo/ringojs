@@ -45,7 +45,7 @@ Object.defineProperty(this, "global", { value: this });
         value: function(moduleName, propertyName) {
             var module = this.require(moduleName);
             propertyName = propertyName || moduleName;
-            var path = propertyName.split(".");
+            var path = propertyName.split("/");
             var elem = this;
             for (var i = 0; i < path.length - 1; i++) {
                 var child = elem[path[i]];

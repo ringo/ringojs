@@ -1,12 +1,12 @@
-var {TestSuite} = require("helma.unittest");
+var TestSuite = require("helma/unittest").TestSuite;
 
 function run() {
     var suite = new TestSuite("Helma Testsuite");
-    suite.addTest("test.core.array_test");
-    suite.addTest("test.core.object_test");
-    suite.addTest("test.helma.file_test");
-    suite.addTest("test.helma.unittest_test");
-    suite.addTest("test.helma.skin_test");
+    suite.addTest("test/core/array_test");
+    suite.addTest("test/core/object_test");
+    suite.addTest("test/helma/file_test");
+    suite.addTest("test/helma/unittest_test");
+    suite.addTest("test/helma/skin_test");
     suite.run();
 }
 

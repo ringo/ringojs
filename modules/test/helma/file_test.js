@@ -1,10 +1,10 @@
-include('helma.unittest');
-var {File} = require('helma.file');
-require('core.string');
+include('helma/unittest');
+var {File} = require('helma/file');
+require('core/string');
 
 export('testCase');
 
-var testCase = new TestCase('helma.file');
+var testCase = new TestCase('helma/file');
 
 var filename = 'helma_file_test_' + String.random(10);
 var string1 = 'Hallo Welt!';

@@ -1,8 +1,8 @@
-require('core.string');
-include('helma.buffer');
-import('helma.system');
-import('helma.logging');
-import('helma.shell');
+require('core/string');
+include('helma/buffer');
+import('helma/system');
+import('helma/logging');
+import('helma/shell');
 
 export('onRequest', 'onResponse', 'onError', 'Profiler');
 

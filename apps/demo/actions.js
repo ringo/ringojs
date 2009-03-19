@@ -1,4 +1,4 @@
-import('helma.logging');
+import('helma/logging');
 
 var log = helma.logging.getLogger(__name__);
 

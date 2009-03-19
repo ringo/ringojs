@@ -23,8 +23,8 @@
  */
 
 // take care of any dependencies
-require('core.date');
-require('core.string');
+require('core/date');
+require('core/string');
 
 export("Client", "Cookie");
 

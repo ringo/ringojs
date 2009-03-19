@@ -7,7 +7,7 @@ export('start', 'stop');
 // mark this module as shared between all requests
 var __shared__ = true;
 
-var log = require('helma.logging').getLogger(__name__);
+var log = require('helma/logging').getLogger(__name__);
 
 
 (function() {
@@ -28,7 +28,7 @@ var log = require('helma.logging').getLogger(__name__);
      * <li> mountpoint ('/')</li>
      * <li>staticDir ('static')</li>
      * <li>staticMountpoint ('/static')</li>
-     * <li>servletParams ({ moduleName: 'helma.webapp',
+     * <li>servletParams ({ moduleName: 'helma/webapp',
      *                      functionName: 'handleRequest',
      *                      requestTimeout: 30 })</li>
      * </ul>
@@ -38,7 +38,7 @@ var log = require('helma.logging').getLogger(__name__);
         var configFile = config.configFile || 'config/jetty.xml';
         // var staticIndex = config.staticIndex || config.staticIndex == undefined;
         if (!server) {
-            var engine = require('helma.system').getRhinoEngine();
+            var engine = require('helma/system').getRhinoEngine();
             var jettyconfig = getResource(configFile);
             if (!jettyconfig.exists()) {
                 throw Error('Resource "' + configFile + '" not found');
@@ -70,7 +70,7 @@ var log = require('helma.logging').getLogger(__name__);
                     var helmaServlet = new HelmaServlet(engine);
                     var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
                     var params = config.servletParams || {
-                        moduleName: 'helma.webapp',
+                        moduleName: 'helma/webapp',
                         functionName: 'handleRequest',
                         requestTimeout: 30
                     };

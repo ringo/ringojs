@@ -1,6 +1,6 @@
 
-importModule('helma.skin');
-importModule('core.object');
+importModule('helma/skin');
+importModule('core/object');
 
 function createHopObject(name) {
     var proto = importModule(name + ".*");

@@ -1,10 +1,10 @@
 /*global getResource importModule parseSkin */
 
-require('core.string');
-require('core.object');
-import('helma.filters', 'filters');
-import('helma.logging', 'logging');
-import('helma.system', 'system');
+require('core/string');
+require('core/object');
+import('helma/filters', 'filters');
+import('helma/logging', 'logging');
+import('helma/system', 'system');
 
 export('render',
        'createSkin',

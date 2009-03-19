@@ -2,8 +2,8 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
-require('core.object');
-import('helma.logging');
+require('core/object');
+import('helma/logging');
 
 export('addHostObject',
         'addRepository',

@@ -1,4 +1,4 @@
-import('helma.webapp');
+import('helma/webapp');
 
 // main script to start application
 if (__name__ == "__main__") {

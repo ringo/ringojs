@@ -27,12 +27,12 @@
  *
  */
 
-import('helma.system', 'system');
+import('helma/system', 'system');
 
 export('resume');
 
 
-var log = require('helma.logging').getLogger(__name__);
+var log = require('helma/logging').getLogger(__name__);
 var continuation_id = null;
 
 

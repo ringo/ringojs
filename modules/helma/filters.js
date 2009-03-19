@@ -21,7 +21,7 @@
  * application, for example by calling app.addRepository('modules/core/Filters.js')
  */
 
-require('core.string');
+require('core/string');
 
 export('capitalize_filter',
         'dateFormat_filter',

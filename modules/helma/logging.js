@@ -3,9 +3,9 @@ var __shared__ = true;
 
 (function() {
 
-    require('core.string');
-    import('helma.system', 'system');
-    include('helma.buffer');
+    require('core/string');
+    import('helma/system', 'system');
+    include('helma/buffer');
 
     export('getLogger');
 

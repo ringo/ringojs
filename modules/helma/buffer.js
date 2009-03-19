@@ -1,4 +1,4 @@
-include('core.json2');
+include('core/json2');
 
 export('Buffer');
 

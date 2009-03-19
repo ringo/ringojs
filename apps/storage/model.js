@@ -1,4 +1,4 @@
-import('helma.filestore', 'filestore');
+import('helma/filestore', 'filestore');
 
 export('Book', 'Author');
 

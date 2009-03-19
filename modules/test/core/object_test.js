@@ -1,9 +1,9 @@
-include('helma.unittest');
-require('core.object');
+include('helma/unittest');
+require('core/object');
 
 export('testCase');
 
-var testCase = new TestCase('core.object');
+var testCase = new TestCase('core/object');
 
 testCase.testMerge = function() {
     var x = {a: 1, b: 2};

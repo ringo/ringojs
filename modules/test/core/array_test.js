@@ -1,11 +1,11 @@
-include("helma.unittest");
-require("core.array");
-var logging = require("helma.logging");
+include("helma/unittest");
+require("core/array");
+var logging = require("helma/logging");
 var log = logging.getLogger(__name__);
 
 export('testCase');
 
-var testCase = new TestCase("core.array");
+var testCase = new TestCase("core/array");
 
 // test data
 var empty = [];

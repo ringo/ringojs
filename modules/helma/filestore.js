@@ -1,7 +1,7 @@
-require('core.object');
-require('core.JSON');
-include('helma.file');
-include('helma.functional');
+require('core/object');
+require('core/JSON');
+include('helma/file');
+include('helma/functional');
 
 export("Store",
        "Transaction",
@@ -12,7 +12,7 @@ export("Store",
 
 var __shared__ = true;
 
-var log = require('helma.logging').getLogger(__name__);
+var log = require('helma/logging').getLogger(__name__);
 
 var TEXT = 0;
 var REFERENCE = 10;

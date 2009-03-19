@@ -1,5 +1,5 @@
-include('helma.buffer');
-import('helma.system', 'system');
+include('helma/buffer');
+import('helma/system', 'system');
 
 if (!global.Response) {
 
@@ -13,7 +13,7 @@ if (!global.Response) {
      */
     Object.defineProperty(Response.prototype, 'render', {
         value: function render(skin, context, scope) {
-            var render = require('helma.skin').render;
+            var render = require('helma/skin').render;
             this.write(render(skin, context, scope));
         }
     });

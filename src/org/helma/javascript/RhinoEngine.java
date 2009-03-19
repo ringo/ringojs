@@ -136,7 +136,7 @@ public class RhinoEngine {
                 resource = new FileResource(new File(scriptName));
             }
             if (!resource.exists()) {
-                String moduleName = scriptName.replace('.', File.separatorChar) + ".js";
+                String moduleName = scriptName + ".js";
                 resource = findResource(moduleName, null);
             }
             if (resource instanceof FileResource) {
@@ -302,11 +302,10 @@ public class RhinoEngine {
         boolean isWildcard = moduleName.endsWith(".*");
         if (isWildcard) {
             String repositoryName = moduleName
-                    .substring(0, moduleName.length() - 2)
-                    .replace('.', File.separatorChar);
+                    .substring(0, moduleName.length() - 2);
             source = findRepository(repositoryName, localPath);
         } else {
-            String resourceName = moduleName.replace('.', File.separatorChar) + ".js";
+            String resourceName = moduleName + ".js";
             source = findResource(resourceName, localPath);
         }
         if (scripts.containsKey(source)) {
@@ -422,20 +421,18 @@ public class RhinoEngine {
      * @return the resource
      */
     public Resource findResource(String path, Repository localPath) {
-        // To be consistent, always return absolute repository if path is absolute
-        // if we make this dependent on whether files exist we introduce a lot of
-        // vague and undetermined behaviour.
+        // FIXME: we allow absolute module paths, and we do not check
+        // if relative paths escape their root repository. These are
+        // of course gaping security holes for environments running
+        // non-trusted code.
         File file = new File(path);
         if (file.isAbsolute()) {
             return new FileResource(file);
+        } else if (path.startsWith(".")) {
+            return localPath.getResource(path);
+        } else {
+            return configuration.getResource(path);
         }
-        if (localPath != null) {
-            Resource resource = localPath.getResource(path);
-            if (resource.exists()) {
-                return resource;
-            }
-        }
-        return configuration.getResource(path);
     }
 
     /**

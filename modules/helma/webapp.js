@@ -3,14 +3,14 @@
  */
 
 // import modules
-require('core.string');
-require('helma.webapp.request');
-require('helma.webapp.response');
+require('core/string');
+require('helma/webapp/request');
+require('helma/webapp/response');
 
-import('helma.webapp.continuation', 'continuation');
-import('helma.system', 'system');
-import('helma.httpserver', 'server');
-import('helma.logging', 'logging');
+import('helma/webapp/continuation', 'continuation');
+import('helma/system', 'system');
+import('helma/httpserver', 'server');
+import('helma/logging', 'logging');
 
 export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 

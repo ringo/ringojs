@@ -1,12 +1,12 @@
-require('core.string');
-import('helma.system', 'system');
+require('core/string');
+import('helma/system', 'system');
 
 if (!global.Request) {
 
     system.addHostObject(org.helma.web.Request);
     system.addHostObject(org.helma.web.Session);
 
-    var log = require('helma.logging').getLogger(__name__);
+    var log = require('helma/logging').getLogger(__name__);
 
     Object.defineProperty(Request.prototype, "isGet", {
         getter: function() {

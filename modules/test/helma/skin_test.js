@@ -1,9 +1,9 @@
-include('helma.unittest');
-include('helma.skin');
+include('helma/unittest');
+include('helma/skin');
 
 export('testCase');
 
-var testCase = new TestCase('helma.skin');
+var testCase = new TestCase('helma/skin');
 
 testCase.testBasic = function() {
     var skin = createSkin('simple');
