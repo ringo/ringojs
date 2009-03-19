@@ -213,7 +213,7 @@ public class RhinoEngine {
             try {
                 evaluate(cx, getScript("helma/shell"), scope);
             } catch (Exception x) {
-                log.error("Warning: couldn't load module 'helma.shell'", x);
+                log.error("Warning: couldn't load module 'helma/shell'", x);
             }
             return scope;
         } finally {
