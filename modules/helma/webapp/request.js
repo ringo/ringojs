@@ -1,41 +1,94 @@
 require('core/string');
-import('helma/system', 'system');
+include('helma/functional');
+include('helma/util');
 
-if (!global.Request) {
+export('Request');
 
-    system.addHostObject(org.helma.web.Request);
-    system.addHostObject(org.helma.web.Session);
+// var log = require('helma/logging').getLogger(__name__);
 
-    var log = require('helma/logging').getLogger(__name__);
+function Request(servletRequest) {
 
-    Object.defineProperty(Request.prototype, "isGet", {
+    var params, cookies, session, headers;
+    var define = bindArguments(Object.defineProperty, this);
+
+    define("charset", readOnlyPropertyDesc(servletRequest, "characterEncoding"));
+    define("port", readOnlyPropertyDesc(servletRequest, "port"));
+    define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
+    define("method", readOnlyPropertyDesc(servletRequest, "method"));
+
+    define("params", {
         getter: function() {
-            return this.isMethod("GET");
+            if (!params)
+                params = new ScriptableMap(
+                        new org.helma.util.ParameterMap(
+                                servletRequest.getParameterMap()));
+            return params;
         }
     });
 
-    Object.defineProperty(Request.prototype, "isPost", {
+    define("cookies", {
         getter: function() {
-            return this.isMethod("POST");
+            if (!cookies)
+                cookies = new ScriptableMap();
+            return cookies;
         }
     });
 
-    Object.defineProperty(Request.prototype, "isPut", {
+    define("session", {
         getter: function() {
-            return this.isMethod("PUT");
+            if (!session)
+                session = new Session(servletRequest);
+            return session;
         }
-    });
-
-    Object.defineProperty(Request.prototype, "isDelete", {
-        getter: function() {
-            return this.isMethod("DELETE");
-        }
-    });
-
-    Object.defineProperty(Request.prototype, "isHead", {
-        getter: function() {
-            return this.isMethod("HEAD");
-        }
-    });
+    })
 
 }
+
+function Session(servletRequest) {
+
+    var data;
+    var define = bindArguments(Object.defineProperty, this);
+
+    function getSession() {
+        return servletRequest.getSession();
+    }
+
+    define("data", {
+        getter: function() {
+            if (!data) {
+                data = new ScriptableMap();
+                getSession().setAttribute("helma", data);
+            }
+            return data;
+        }
+    });
+
+    define("isNew", {
+        getter: function() {
+            getSession().isNew();
+        }
+    })
+
+}
+
+var defineRequestProperty = bindArguments(Object.defineProperty, Request.prototype);
+
+defineRequestProperty("isGet", {
+    getter: function() { return this.method == "GET"; }
+})
+
+defineRequestProperty("isPost", {
+    getter: function() { return this.method == "POST"; }
+})
+
+defineRequestProperty("isPut", {
+    getter: function() { return this.method == "PUT"; }
+})
+
+defineRequestProperty("isDelete", {
+    getter: function() { return this.method == "DELETE"; }
+})
+
+defineRequestProperty("isHead", {
+    getter: function() { return this.method == "HEAD"; }
+})

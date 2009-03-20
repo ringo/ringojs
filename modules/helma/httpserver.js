@@ -3,6 +3,8 @@
  */
 
 import('helma/webapp', 'webapp');
+include('helma/webapp/request');
+include('helma/webapp/response');
 
 export('start', 'stop');
 
@@ -71,21 +73,13 @@ var log = require('helma/logging').getLogger(__name__);
                 if (helmaCtx) {
                     // var helmaServlet = new HelmaServlet(engine);
                     var helmaServlet = new Packages.javax.servlet.http.HttpServlet({
-                        service: function(req, res) {
-                            var jsreq = new Request(req),
-                                jsres = new Response(res);
-                            webapp.handleRequest(jsreq, jsres);
+                        service: function(servletRequest, servletResponse) {
+                            var req = new Request(servletRequest),
+                                res = new Response(servletResponse);
+                            webapp.handleRequest(req, res);
                         }
                     });
                     var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
-                    var params = config.servletParams || {
-                        moduleName: 'helma/webapp',
-                        functionName: 'handleRequest',
-                        requestTimeout: 30
-                    };
-                    for (var p in params) {
-                        servletHolder.setInitParameter(p, params[p]);
-                    }
                     helmaCtx.addServlet(servletHolder, "/*");
                 }
                 // start server
