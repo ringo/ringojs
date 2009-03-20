@@ -11,7 +11,7 @@ function partial(fn /*, arg, ... */) {
     var pre_args = slice.call(arguments, 1);
     return function() {
         var args = pre_args.concat(slice.call(arguments));
-        return fn.apply(this, args);
+        return fn.apply(null, args);
     }
 }
 
