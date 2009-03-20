@@ -71,9 +71,9 @@ function Store(path) {
         var typeName = constructor.name;
 
         // install filter, all, and get methods on constructor
-        constructor.list = partial(list, typeName);
-        constructor.all = partial(getAll, typeName);
-        constructor.get = partial(get, typeName);
+        constructor.list = bindArguments(list, typeName);
+        constructor.all = bindArguments(getAll, typeName);
+        constructor.get = bindArguments(get, typeName);
         constructor.store = this;
         // add class to registry
         typeRegistry[typeName] = constructor;
@@ -105,8 +105,8 @@ function Store(path) {
         var proto = constructor.prototype;
 
         for (var [key, field] in fields) {
-            proto.__defineSetter__(key, partial(setter, key, field));
-            proto.__defineGetter__(key, partial(getter, key, field));
+            proto.__defineSetter__(key, bindArguments(setter, key, field));
+            proto.__defineGetter__(key, bindArguments(getter, key, field));
         }
 
         proto.__defineGetter__("_type", function() {
