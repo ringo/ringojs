@@ -74,7 +74,6 @@ public class ScriptUtils {
             throw new IllegalArgumentException();
     }
 
-
     /**
      * Get an argument as ScriptableObject
      * @param args the argument array
@@ -82,10 +81,11 @@ public class ScriptUtils {
      * @return the argument as ScriptableObject
      * @throws IllegalArgumentException if the argument can't be converted to a map
      */
-    public static ScriptableObject getScriptableArgument(Object[] args, int pos)
+    public static ScriptableObject getScriptableArgument(Object[] args, int pos, boolean allowNull)
             throws IllegalArgumentException {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
-            return null;
+            if (allowNull) return null;
+            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
         } if (args[pos] instanceof ScriptableObject) {
             return (ScriptableObject) args[pos];
         }
@@ -98,9 +98,11 @@ public class ScriptUtils {
      * @param pos the position of the requested argument
      * @return the argument as string
      */
-    public static String getStringArgument(Object[] args, int pos) {
-        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance)
-            return null;
+    public static String getStringArgument(Object[] args, int pos, boolean allowNull) {
+        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
+            if (allowNull) return null;
+            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+        }
         return ScriptRuntime.toString(args[pos].toString());
     }
 
@@ -111,10 +113,11 @@ public class ScriptUtils {
      * @return the argument as map
      * @throws IllegalArgumentException if the argument can't be converted to a map
      */
-    public static Map getMapArgument(Object[] args, int pos)
+    public static Map getMapArgument(Object[] args, int pos, boolean allowNull)
             throws IllegalArgumentException {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
-            return null;
+            if (allowNull) return null;
+            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
         } if (args[pos] instanceof Map) {
             return (Map) args[pos];
         }
@@ -127,9 +130,11 @@ public class ScriptUtils {
      * @param pos the position of the requested argument
      * @return the argument as object
      */
-    public static Object getObjectArgument(Object[] args, int pos) {
-        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance)
-            return null;
+    public static Object getObjectArgument(Object[] args, int pos, boolean allowNull) {
+        if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
+            if (allowNull) return null;
+            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+        }
         return Context.jsToJava(args[pos], Object.class);
     }
 

@@ -49,12 +49,10 @@ public class StaticMethods {
     public static void defineProperty(Context cx, Scriptable thisObj, Object[] args, Function funObj)
             throws JavaScriptException {
         ScriptUtils.checkArguments(args, 3, 3);
-        ScriptableObject obj = ScriptUtils.getScriptableArgument(args, 0);
-        String propname = ScriptUtils.getStringArgument(args, 1);
-        Scriptable desc = ScriptUtils.getScriptableArgument(args, 2);
-        if (obj == null || propname == null || desc == null) {
-            throw new IllegalArgumentException();
-        }
+        ScriptableObject obj = ScriptUtils.getScriptableArgument(args, 0, false);
+        String propname = ScriptUtils.getStringArgument(args, 1, false);
+        Scriptable desc = ScriptUtils.getScriptableArgument(args, 2, false);
+
         PropertyDescriptor propDesc = new PropertyDescriptor(desc);
         propDesc.defineProperty(obj, propname);
     }
