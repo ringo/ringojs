@@ -31,14 +31,16 @@ function createBook(req, res) {
     var book = new model.Book({author: author, title: req.params.title});
     // author is saved transitively
     book.save();
-    res.redirect('/');
+    // FIXME redirect currently not working
+    // res.redirect('/');
 }
 
 function removeBook(req, res) {
     var book = model.Book.get(req.params.remove);
     // author is removed through cascading delete
     book.remove();
-    res.redirect('/');
+    // FIXME redirect currently not working
+    // res.redirect('/');
 }
 
 function getDeleteLink(book) {
