@@ -84,3 +84,30 @@ Object.defineProperty(Array, "intersection", {
         return result;
     }
 });
+
+Object.defineProperty(Array.prototype, "max", {
+		value: function() {
+			return Math.max.apply( Math, this );
+		}
+});
+
+Object.defineProperty(Array.prototype, "min", {
+		value: function() {
+			return Math.min.apply( Math, this );
+		}
+});
+
+Object.defineProperty(Array.prototype, "partition", {
+		value: function(fn) {
+			var trues = [], falses = [];
+			for (var i=0; i<this.length; i++) {
+				if (fn(this[i], i)) {
+					trues.push(this[i]);
+				} else {
+					falses.push(this[i]);
+				}
+			}
+			return [trues, falses]
+		}
+});
+
