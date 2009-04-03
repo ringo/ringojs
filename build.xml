@@ -72,8 +72,10 @@
     <!-- =================================================================== -->
     <!-- Runs the JUnit and Helma test cases                                 -->
     <!-- =================================================================== -->
-    <target name="test" depends="compile">
-        <java jar="run.jar" args="test/all" fork="true" />
+    <target name="test" depends="jar">
+        <java jar="run.jar" fork="true">
+            <arg value="test/all"/>
+        </java>
         <junit haltonfailure="true">
             <classpath refid="classpath"/>
             <formatter type="brief" usefile="false"/>
