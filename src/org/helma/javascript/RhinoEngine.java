@@ -25,6 +25,7 @@ import org.mozilla.javascript.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -38,7 +39,7 @@ import java.util.*;
  */
 public class RhinoEngine {
 
-    HelmaConfiguration                 configuration;
+    HelmaConfiguration                 config;
     List<Repository>                   repositories;
     ScriptableObject                   topLevelScope;
     List<String>                       commandLineArgs;
@@ -60,9 +61,10 @@ public class RhinoEngine {
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
      * and defines the given classes as native host objects.
      * @param config the configuration used to initialize the engine.
+     * @param globals an optional map of predefined global properties
      */
-    public RhinoEngine(HelmaConfiguration config) {
-        this.configuration = config;
+    public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals) {
+        this.config = config;
         contextFactory = new HelmaContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
@@ -70,6 +72,7 @@ public class RhinoEngine {
         }
         // create a new global scope level
         Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
         try {
             if (config.getClassShutter() != null) {
                 cx.setClassShutter(config.getClassShutter());
@@ -88,6 +91,12 @@ public class RhinoEngine {
             ScriptableObject.defineClass(topLevelScope, ScriptableWrapper.class);
             ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
                     ScriptableObject.DONTENUM);
+            if (globals != null) {
+                for (Map.Entry<String, Object> entry : globals.entrySet()) {
+                    ScriptableObject.defineProperty(topLevelScope, entry.getKey(),
+                            entry.getValue(), ScriptableObject.DONTENUM);
+                }
+            }
             evaluate(cx, getScript("global"), topLevelScope);
             if (config.isSealed()) {
                 topLevelScope.sealObject();
@@ -96,6 +105,7 @@ public class RhinoEngine {
             throw new IllegalArgumentException("Error initializing engine", x);
         } finally {
             Context.exit();
+            resetThreadLocals(cx, threadLocals);
         }
     }
 
@@ -128,9 +138,10 @@ public class RhinoEngine {
      * @throws JavaScriptException the script threw an error during
      *         compilation or execution
      */
-    public Object runScript(String scriptName, String[] scriptArgs)
+    public Object runScript(String scriptName, String... scriptArgs)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
         try {
         	Object retval;
             Map<Trackable,ReloadableScript> scripts = cx.getOptimizationLevel() == -1 ?
@@ -157,6 +168,7 @@ public class RhinoEngine {
         	return retval;
         } finally {
         	Context.exit();
+            resetThreadLocals(cx, threadLocals);
         }   	
     }
     
@@ -175,10 +187,11 @@ public class RhinoEngine {
     public Object invoke(String moduleName, String method, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
         try {
             initArguments(args);
             if (moduleName == null) {
-                moduleName = configuration.getMainModule("main");
+                moduleName = config.getMainModule("main");
             }
             Object retval;
             while (true) {
@@ -200,6 +213,7 @@ public class RhinoEngine {
             return retval;
         } finally {
             Context.exit();
+            resetThreadLocals(cx, threadLocals);
         }
     }
 
@@ -210,6 +224,7 @@ public class RhinoEngine {
      */
     public Scriptable getShellScope() throws IOException {
         Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
         try {
             Repository repository = repositories.get(0);
             Resource resource = repository.getResource("<shell>");
@@ -223,6 +238,7 @@ public class RhinoEngine {
             return scope;
         } finally {
             Context.exit();
+            resetThreadLocals(cx, threadLocals);
         }
     }
 
@@ -324,7 +340,7 @@ public class RhinoEngine {
         return script;
     }
 
-    public Object evaluate(Context cx, ReloadableScript script, Scriptable scope)
+    protected Object evaluate(Context cx, ReloadableScript script, Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = getCurrentScript(cx);
@@ -368,6 +384,25 @@ public class RhinoEngine {
         return module;
     }
 
+    /**
+     * Create a sandboxed scripting engine with the same install directory as this and the
+     * given module paths, global properties, class shutter and sealing
+     * @param modulePath the comma separated module search path
+     * @param globals a map of predefined global properties, may be null
+     * @param shutter a Rhino class shutter, may be null
+     * @param sealed if the global object should be sealed, defaults to false
+     * @return a sandboxed RhinoEngine instance
+     * @throws FileNotFoundException if any part of the module paths does not exist
+     */
+    public RhinoEngine createSandbox(String modulePath, Map<String,Object> globals,
+                                     ClassShutter shutter, boolean sealed)
+            throws FileNotFoundException {
+        HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, null);
+        sandbox.setClassShutter(shutter);
+        sandbox.setSealed(sealed);
+        return new RhinoEngine(sandbox, globals);
+    }
+
     private ReloadableScript getCurrentScript(Context cx) {
         return (ReloadableScript) cx.getThreadLocal("current_script");
     }
@@ -376,6 +411,25 @@ public class RhinoEngine {
         cx.putThreadLocal("current_script", script);
     }
 
+    private Object[] checkThreadLocals(Context cx) {
+        if (cx.getThreadLocal("engine") == this) {
+            return null;
+        }
+        Object[] retval = new Object[] {
+            cx.getThreadLocal("engine"),
+            cx.getThreadLocal("modules")
+        };
+        cx.putThreadLocal("engine", this);
+        cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
+        return retval;
+    }
+
+    private void resetThreadLocals(Context cx, Object[] objs) {
+        if (objs != null) {
+            cx.putThreadLocal("engine", objs[0]);
+            cx.putThreadLocal("modules", objs[1]);
+        }
+    }
 
     public ScriptableObject getTopLevelScope() {
         return topLevelScope;
@@ -416,7 +470,7 @@ public class RhinoEngine {
      * @return a list of all contained child resources
      */
     public List<Resource> findResources(String path, boolean recursive) {
-        return configuration.getResources(path, recursive);
+        return config.getResources(path, recursive);
     }
 
     /**
@@ -436,7 +490,7 @@ public class RhinoEngine {
         } else if (path.startsWith(".")) {
             return localPath.getResource(path);
         } else {
-            return configuration.getResource(path);
+            return config.getResource(path);
         }
     }
 
@@ -460,7 +514,7 @@ public class RhinoEngine {
                 return repository;
             }
         }
-        return configuration.getRepository(path);
+        return config.getRepository(path);
     }
 
     public void addToClasspath(Resource resource) throws MalformedURLException {

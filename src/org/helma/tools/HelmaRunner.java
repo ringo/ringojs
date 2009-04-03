@@ -68,7 +68,7 @@ public class HelmaRunner {
         if (optlevel >= -1) {
             config.setOptLevel(optlevel);
         }
-        RhinoEngine engine = new RhinoEngine(config);
+        RhinoEngine engine = new RhinoEngine(config, null);
         if (scriptName != null) {
         	engine.runScript(scriptName, scriptArgs);
         }

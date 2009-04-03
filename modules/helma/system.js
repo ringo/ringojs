@@ -7,6 +7,7 @@ import('helma/logging');
 
 export('addHostObject',
         'addRepository',
+        'createSandbox',
         'evaluate',
         'extendJavaClass',
         'getRepositories',
@@ -16,6 +17,7 @@ export('addHostObject',
         'args');
 
 var log = helma.logging.getLogger(__name__);
+var omj = org.mozilla.javascript;
 
 // mark this module as shared between all requests
 var __shared__ = true;
@@ -24,6 +26,33 @@ function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
 }
 
+/**
+ * Create a sandboxed scripting engine with the same install directory as this and the
+ * given module paths, global properties, class shutter and sealing
+ * @param modulePath the comma separated module search path
+ * @param globals a map of predefined global properties, may be null
+ * @param shutter a Rhino class shutter, may be null
+ * @param sealed if the global object should be sealed, defaults to false
+ * @return a sandboxed RhinoEngine instance
+ * @throws FileNotFoundException if any part of the module paths does not exist
+ */
+function createSandbox(modulePath, globals, shutter, sealed) {
+    if (shutter) {
+        if (!(shutter instanceof omj.ClassShutter)) {
+            shutter = new omj.ClassShutter(shutter);
+        }
+    } else {
+        shutter = null;
+    }
+    sealed = Boolean(sealed);
+    return getRhinoEngine().createSandbox(modulePath, globals, shutter, sealed);
+}
+
+/**
+ * Get a wrapper around a java class that can be extended in javascript using
+ * the ClassName.prototype property
+ * @param javaClass a fully qualified java class name
+ */
 function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
 }
@@ -74,8 +103,7 @@ function evaluate(moduleName, scope) {
  * Get the org.mozilla.javascript.Context associated with the current thread.
  */
 function getRhinoContext() {
-    var Context = org.mozilla.javascript.Context;
-    return Context.getCurrentContext();
+    return omj.Context.getCurrentContext();
 }
 
 /**

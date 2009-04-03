@@ -66,24 +66,24 @@ public class HelmaServlet extends HttpServlet {
         this.engine = engine;
     }
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig servletConfig) throws ServletException {
         // pool = Executors.newFixedThreadPool(8);
         pool = Executors.newCachedThreadPool();
-        moduleName = config.getInitParameter("moduleName");
+        moduleName = servletConfig.getInitParameter("moduleName");
         if (moduleName == null) {
             throw new ServletException("moduleName servlet parameter not defined");
         }
-        functionName = config.getInitParameter("functionName");
+        functionName = servletConfig.getInitParameter("functionName");
         if (functionName == null) {
             throw new ServletException("functionName servlet parameter not defined");
         }
-        String timeout = config.getInitParameter("requestTimeout");
+        String timeout = servletConfig.getInitParameter("requestTimeout");
         if (timeout != null) {
             requestTimeout = Integer.parseInt(timeout);
         }
         if (engine == null) {
             try {
-                String classNames = config.getInitParameter("hostClasses");
+                String classNames = servletConfig.getInitParameter("hostClasses");
                 Class[] classes = defaultHostClasses;
                 if (classNames != null) {
                     Class[] custom = StringUtils.toClassArray(classNames, ", ");
@@ -92,16 +92,16 @@ public class HelmaServlet extends HttpServlet {
                     System.arraycopy(custom, 0, copy, classes.length, custom.length);
                     classes = copy;
                 }
-                String helmaHome = config.getInitParameter("helmaHome");
-                String modulePath = config.getInitParameter("modulePath");
+                String helmaHome = servletConfig.getInitParameter("helmaHome");
+                String modulePath = servletConfig.getInitParameter("modulePath");
                 Repository home = new FileRepository(helmaHome);
                 if (!home.exists()) {
-                    home = new WebappRepository(config.getServletContext(), helmaHome);
+                    home = new WebappRepository(servletConfig.getServletContext(), helmaHome);
                 }
-                HelmaConfiguration conf =
+                HelmaConfiguration config =
                         new HelmaConfiguration(home, modulePath, "modules");
-                conf.setHostClasses(classes);
-                engine = new RhinoEngine(conf);
+                config.setHostClasses(classes);
+                engine = new RhinoEngine(config, null);
             } catch (ClassNotFoundException x) {
                 throw new ServletException(x);
             } catch (FileNotFoundException x) {
