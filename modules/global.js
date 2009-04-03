@@ -15,7 +15,7 @@ Object.defineProperty(this, "global", { value: this });
         value: function(moduleName) {
             var module = getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
             var exports = module.exports;
-            if (!exports || !(exports instanceof Object)) {
+            if (!exports || typeof exports != "object") {
                 exports = {};
                 Object.defineProperty(module, "exports", { value: exports });
             }
@@ -162,8 +162,7 @@ Object.defineProperty(this, "global", { value: this });
      * Get the org.mozilla.javascript.Context associated with the current thread.
      */
     var getRhinoContext = function getRhinoContext() {
-        var Context = org.mozilla.javascript.Context;
-        return Context.getCurrentContext();
+        return org.mozilla.javascript.Context.getCurrentContext();
     };
 
     /**
