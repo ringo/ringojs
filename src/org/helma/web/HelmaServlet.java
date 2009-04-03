@@ -94,13 +94,12 @@ public class HelmaServlet extends HttpServlet {
                 }
                 String helmaHome = config.getInitParameter("helmaHome");
                 String modulePath = config.getInitParameter("modulePath");
-                String scriptName = config.getInitParameter("scriptName");
                 Repository home = new FileRepository(helmaHome);
                 if (!home.exists()) {
                     home = new WebappRepository(config.getServletContext(), helmaHome);
                 }
                 HelmaConfiguration conf =
-                        new HelmaConfiguration(home, modulePath, scriptName);
+                        new HelmaConfiguration(home, modulePath, "modules");
                 conf.setHostClasses(classes);
                 engine = new RhinoEngine(conf);
             } catch (ClassNotFoundException x) {

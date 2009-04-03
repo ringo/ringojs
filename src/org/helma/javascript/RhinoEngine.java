@@ -71,6 +71,9 @@ public class RhinoEngine {
         // create a new global scope level
         Context cx = contextFactory.enterContext();
         try {
+            if (config.getClassShutter() != null) {
+                cx.setClassShutter(config.getClassShutter());
+            }
             topLevelScope = new ImporterTopLevel(cx);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
@@ -86,7 +89,9 @@ public class RhinoEngine {
             ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
                     ScriptableObject.DONTENUM);
             evaluate(cx, getScript("global"), topLevelScope);
-            // topLevelScope.sealObject();
+            if (config.isSealed()) {
+                topLevelScope.sealObject();
+            }
         } catch (Exception x) {
             throw new IllegalArgumentException("Error initializing engine", x);
         } finally {

@@ -19,6 +19,8 @@ package org.helma.tools;
 import org.apache.log4j.Logger;
 import org.helma.repository.*;
 import org.helma.util.StringUtils;
+import org.helma.tools.launcher.HelmaClassLoader;
+import org.mozilla.javascript.ClassShutter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,9 +39,19 @@ public class HelmaConfiguration {
     int optimizationLevel = 0;
     int languageVersion = 180;
     Class<?>[] hostClasses = null;
-    org.helma.tools.launcher.HelmaClassLoader loader;
+    HelmaClassLoader loader;
+    ClassShutter classShutter = null;
+    boolean sealed = false;
 
-    public HelmaConfiguration(Repository helmaHome, String modulePath, String scriptName)
+    /**
+     * Create a new Helma configuration and sets up its module search path.
+     *
+     * @param helmaHome the helma installation directory
+     * @param modulePath the module search path as comma separated string
+     * @param systemModules system module path to append to module path, or null
+     * @throws FileNotFoundException if a moudule path item does not exist
+     */
+    public HelmaConfiguration(Repository helmaHome, String modulePath, String systemModules)
             throws FileNotFoundException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
@@ -53,10 +65,6 @@ public class HelmaConfiguration {
             languageVersion = Integer.parseInt(langVersion);
         }
 
-        // first add repositories from helma.modulepath system property
-        if (modulePath == null) {
-            modulePath = System.getProperty("helma.modulepath");
-        }
         if (modulePath != null) {
             String[] paths = StringUtils.split(modulePath, ",");
             for (int i = 0; i < paths.length; i++) {
@@ -87,15 +95,28 @@ public class HelmaConfiguration {
             }
         }
 
-        // next, always add modules from helma home
-        Repository modules = home.getChildRepository("modules");
-        repositories.add(modules);
+        // append system modules path relative to helma home
+        if (systemModules != null) {
+            Repository modules = home.getChildRepository(systemModules);
+            repositories.add(modules);
+        }
 
-        // finally add script's parent directory to repository path,
+        Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
+    }
+
+    /**
+     * If the scriptName argument is not null, prepend the script's parent repository
+     * to the module path. Otherwise, prepend the current working directory to the module path.
+     * @param scriptName the name of the script, or null.
+     * @throws FileNotFoundException if the script repository does not exist
+     */
+    public void addScriptRepository(String scriptName) throws FileNotFoundException {
+        // add script's parent directory to repository path,
         // or the current directory if no script is run
         if (scriptName != null) {
             Resource script = new FileResource(new File(scriptName));
-            if (!script.exists()) {
+            // check if the script can be found in the module path
+            if (!script.exists() && !repositories.isEmpty()) {
                 script = getResource(scriptName);
                 if (!script.exists()) {
                     scriptName = scriptName.replace('.', File.separatorChar) + ".js";
@@ -112,8 +133,6 @@ public class HelmaConfiguration {
             // no script file, add current directory to module search path
             repositories.add(0, new FileRepository(new File(".")));
         }
-
-        Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
     }
 
     /**
@@ -227,6 +246,22 @@ public class HelmaConfiguration {
             list.addAll(repo.getResources(path, recursive));
         }
         return list;
+    }
+
+    public ClassShutter getClassShutter() {
+        return classShutter;
+    }
+
+    public void setClassShutter(ClassShutter classShutter) {
+        this.classShutter = classShutter;
+    }
+
+    public boolean isSealed() {
+        return sealed;
+    }
+
+    public void setSealed(boolean sealed) {
+        this.sealed = sealed;
     }
 
 }
