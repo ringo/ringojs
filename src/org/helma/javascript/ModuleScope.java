@@ -44,7 +44,7 @@ public class ModuleScope extends NativeObject {
                 (Repository) source : source.getParentRepository();
         this.name = moduleName;
         this.exports = cx.newObject(this);
-        defineProperty("exports", exports,  DONTENUM | READONLY | PERMANENT);
+        defineProperty("exports", exports,  DONTENUM);
         defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
         defineProperty("__name__", moduleName, DONTENUM);
         defineProperty("__path__", source.getPath(), DONTENUM);
@@ -55,6 +55,8 @@ public class ModuleScope extends NativeObject {
     }
 
     public void reset(Context cx) {
+        this.exports = cx.newObject(this);
+        defineProperty("exports", exports,  DONTENUM);
         delete("__shared__");     
         defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
     }
