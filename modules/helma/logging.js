@@ -17,7 +17,11 @@ exports.setConfig = function(resource) {
                        org.apache.log4j.PropertyConfigurator :
                        org.apache.log4j.xml.DOMConfigurator;
     configurator.configure(resource);
-    configurator.configureAndWatch(resource, 2000);
+    try {
+        configurator.configureAndWatch(resource, 2000);
+    } catch (e) {
+        print("Error watching log configuration file:", e);
+    }
     configured = true;
 }
 
