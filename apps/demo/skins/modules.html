@@ -5,12 +5,13 @@ Welcome to the web module mounted at
 
 <h3><a href="<% href %>"><% href %></a></h3>
 
-<p>This module was mounted in the app's main module using the following statement:</p>
+<p>This module was mounted in the app's config.js file:</p>
 
-<pre class="code">importModule('webmodule', 'mount.point');</pre>
+<pre class="code">exports.urls = [
+    [ /^mount\/point/, 'webmodule' ]
+];</pre>
 
 <p>Modules are the <a href="http://dev.helma.org/ng/Modules+and+Scopes/">basic building blocks</a>
-of Helma NG, and they can also be used as web components. Just use importModule() to import a web app or module
-to where you want it and its actions become accessible from the web.</p>
+of Helma NG, and they can also be used as web components.</p>
 
 <p><a href="/">Go back</a> to the main page.
