@@ -1,19 +1,45 @@
 Helma NG
 ========
 
-This is the README file for the 0.3 release of Helma NG, a Javascript
-runtime and web application framework written in Java. "NG" stands for
-"next generation", meaning that it is a more of a rewrite of Helma 1 than
-simply a new version.
+Helma NG is a Javascript runtime and web application framework written in Java.
+"NG" stands for "next generation", meaning that it is a more of a rewrite of
+Helma 1 than simply a new version.
 
-Helma NG consists of several parts:
+Helma NG consists of several components that can be used together or alone:
 
-  1) The Helma Shell
-  2) The Helma Runtime
-  3) The Helma Web Framework
+  1) A compact JavaScript runtime environment based on Mozilla Rhino. It adds
+     to Rhino a reloading module system that is compatible to the ServerJS
+     Securable Module proposal.
 
-Helma Shell
-===========
+  2) An interactive shell with support for autocompletion and history.
+
+  3) A module library implemented in JavaScript, covering basic functionality
+     such as extensions to the built-in objects, file I/O, logging, persistence,
+     client and server side HTTP support and more.
+
+JavaScript Runtime
+==================
+
+The Helma JavaScript runtime is based on Mozilla Rhino and supports
+JavaScript 1.7 with partial support for JavaScript 1.8 features.
+
+To run a script with Helma, simply pass it as an argument to run.jar:
+
+    java -jar run.jar somepath/mainfile.js
+
+If you run a script that is contained in Helma's module path you can also
+use the simpler abstract module name instead of the file name:
+
+    java -jar run.jar helma.unittest
+
+Helma takes the first command line argument after run.jar that does not start
+with a "-" as script name. Everything coming after the script name is passed
+to the script as arguments.
+
+   java -jar run.jar [option] ... [file] [arg] ...
+
+JavaScript Shell
+================
 
 To start the interactive Helma shell start run.jar without a script file:
 
@@ -32,27 +58,9 @@ the -i or --interactive flag:
 This will add the script's parent directory to the module path (in this case
 "dir", run the script, then start the shell.
 
-Helma Runtime
+
+Web Framework
 =============
-
-The run a script with Helma, simply pass it as an argument to run.jar:
-
-    java -jar run.jar somepath/mainfile.js
-
-If you run a script that is contained in Helma's module path you can also
-use the simpler abstract module name instead of the file name:
-
-    java -jar run.jar helma.unittest
-
-Helma takes the first command line argument after run.jar that does not start
-with a "-" as script name. Everything coming after the script name is passed
-to the script as argument.
-
-   java -jar run.jar [option] ... [file] [arg] ...
-
-
-Helma Web Framework
-===================
 
 The Helma Web Framework is a web application framework written mostly in JavaScript
 built on top of the Helma Runtime.
