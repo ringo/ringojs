@@ -40,8 +40,21 @@ function Request(servletRequest) {
                 session = new Session(servletRequest);
             return session;
         }
-    })
+    });
 
+    define("headers", {
+        getter: function() {
+            if (!headers)
+                headers = new ScriptableMap();
+            return params;
+        }
+    });
+
+    define("getHeader", {
+        value: function getHeader(name) {
+            return servletRequest.getHeader(name);
+        }
+    });
 }
 
 function Session(servletRequest) {
