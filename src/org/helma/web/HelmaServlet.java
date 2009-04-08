@@ -18,7 +18,6 @@ import org.helma.util.StringUtils;
 import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.helma.repository.WebappRepository;
-import org.mozilla.javascript.WrappedException;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -27,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import java.util.concurrent.*;
 
 /**
  * Helma servlet class used to access helma from a web server.
@@ -35,8 +33,6 @@ import java.util.concurrent.*;
 public class HelmaServlet extends HttpServlet {
 
     protected RhinoEngine engine;
-
-    private ExecutorService pool;
 
     private int requestTimeout = 30;
 
@@ -67,8 +63,6 @@ public class HelmaServlet extends HttpServlet {
     }
 
     public void init(ServletConfig servletConfig) throws ServletException {
-        // pool = Executors.newFixedThreadPool(8);
-        pool = Executors.newCachedThreadPool();
         moduleName = servletConfig.getInitParameter("moduleName");
         if (moduleName == null) {
             throw new ServletException("moduleName servlet parameter not defined");
@@ -113,34 +107,12 @@ public class HelmaServlet extends HttpServlet {
     protected void service(final HttpServletRequest req,
                            final HttpServletResponse res)
             throws ServletException, IOException {
-        Future<Status> future = pool.submit(new Callable<Status>() {
-            public Status call() {
-                Status status = new Status();
-                try {
-                    engine.invoke(moduleName, functionName, new Request(req), new Response(res));
-                } catch (RedirectException redir) {
-                    status.redirect = redir.getMessage();
-                } catch (WrappedException wx) {
-                    status.exception = wx.getWrappedException();
-                } catch (Exception x) {
-                    status.exception = x;
-                }
-                return status;
-            }
-        });
         try {
-            Status status = future.get(requestTimeout, TimeUnit.SECONDS);
-            if (status.redirect != null) {
-                res.sendRedirect(status.redirect);
-            } else if (status.exception != null) {
-                throw new ServletException(status.exception);
-            }
-        } catch (InterruptedException x) {
-            throw new ServletException("Interrupted", x);
-        } catch (ExecutionException x) {
-            throw new ServletException("Execution Error", x);
-        } catch (TimeoutException x) {
-            throw new ServletException("Request timed out", x);
+            engine.invoke(moduleName, functionName, new Request(req), new Response(res));
+        } catch (RedirectException redir) {
+            res.sendRedirect(redir.getMessage());
+        } catch (NoSuchMethodException x) {
+            throw new ServletException("Method not found", x);
         }
     }
 
