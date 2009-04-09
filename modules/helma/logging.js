@@ -13,12 +13,13 @@ var responseLogEnabled = true;
  * e.g. <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/' reset="true">
  */
 exports.setConfig = function(resource) {
-    var configurator = resource.endsWith('.properties') || resource.endsWith('.props') ?
+    var {path, url} = resource;
+    var configurator = path.endsWith('.properties') || path.endsWith('.props') ?
                        org.apache.log4j.PropertyConfigurator :
                        org.apache.log4j.xml.DOMConfigurator;
-    configurator.configure(resource);
+    configurator.configure(url);
     try {
-        configurator.configureAndWatch(resource, 2000);
+        configurator.configureAndWatch(path, 2000);
     } catch (e) {
         print("Error watching log configuration file:", e);
     }
@@ -31,7 +32,7 @@ exports.setConfig = function(resource) {
 exports.getLogger = function(name) {
     if (!configured) {
         // getResource('foo').name gets us the absolute path to a local resource
-        this.setConfig(getResource('config/log4j.properties').path);
+        this.setConfig(getResource('config/log4j.properties'));
     }
     return org.apache.log4j.Logger.getLogger(name);
 }
