@@ -47,7 +47,7 @@ public class JackServlet extends HttpServlet {
             home = new FileRepository(helmaHome);
         }
         try {
-            HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, null);
+            HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
             helmaConfig.setHostClasses(new Class[] { JackEnv.class });
             engine = new RhinoEngine(helmaConfig, null);
         } catch (FileNotFoundException x) {
