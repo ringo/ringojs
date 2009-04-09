@@ -7,8 +7,8 @@ export('index', 'extra_path', 'skins', 'logging', 'continuation');
 // the main action is invoked for http://localhost:8080/
 function index(req, res) {
     res.render('skins/index.html', { title: 'Welcome to Helma NG' });
-    res.debug(req.cookies.toSource());
-    res.debug(req.params.toSource());
+    // res.debug(req.cookies.toSource());
+    // res.debug(req.params.toSource());
 }
 
 
@@ -43,6 +43,13 @@ function logging(req, res) {
 
 // demo for continuation support
 function continuation(req, res) {
+
+    res.render('skins/continuation.html', {
+        title: "Continuations",
+        skin: "start",
+        note: "NOTE: Continuation support is currently broken, so I have disabled this demo for the time being."
+    });
+	return;
 
     // local data - this is the data that is shared between resuming and suspension
     var data = {};
