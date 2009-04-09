@@ -69,6 +69,11 @@ public class HelmaConfiguration {
             String[] paths = StringUtils.split(modulePath, ",");
             for (int i = 0; i < paths.length; i++) {
                 String path = paths[i].trim();
+                Repository repo = home.getChildRepository(path);
+                if (repo.exists()) {
+                    repositories.add(repo);
+                    continue;
+                }
                 File file = new File(path);
                 if (!file.isAbsolute()) {
                     // if path is relative, try to resolve against current directory first,

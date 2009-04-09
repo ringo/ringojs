@@ -42,9 +42,9 @@ public class JackServlet extends HttpServlet {
         String helmaHome = getInitParam(config, "home", "WEB-INF");
         String modulePath = getInitParam(config, "modulePath", "modules");
 
-        Repository home = new FileRepository(helmaHome);
+        Repository home = new WebappRepository(config.getServletContext(), helmaHome);
         if (!home.exists()) {
-            home = new WebappRepository(config.getServletContext(), helmaHome);
+            home = new FileRepository(helmaHome);
         }
         try {
             HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, null);

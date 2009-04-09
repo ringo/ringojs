@@ -41,7 +41,7 @@ public interface Trackable {
      */
     public String getName();
 
-        /**
+    /**
      * Returns an url to the resource if the repository of this resource is
      * able to provide urls
      * @return url to the resource

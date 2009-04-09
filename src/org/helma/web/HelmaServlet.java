@@ -88,9 +88,9 @@ public class HelmaServlet extends HttpServlet {
                 }
                 String helmaHome = servletConfig.getInitParameter("helmaHome");
                 String modulePath = servletConfig.getInitParameter("modulePath");
-                Repository home = new FileRepository(helmaHome);
+                Repository home = new WebappRepository(servletConfig.getServletContext(), helmaHome);
                 if (!home.exists()) {
-                    home = new WebappRepository(servletConfig.getServletContext(), helmaHome);
+                    home = new FileRepository(helmaHome);
                 }
                 HelmaConfiguration config =
                         new HelmaConfiguration(home, modulePath, "modules");

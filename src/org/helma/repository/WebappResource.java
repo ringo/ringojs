@@ -9,6 +9,7 @@ import java.net.URL;
 public class WebappResource extends AbstractResource {
 
     ServletContext context;
+    private int exists = -1;
 
     protected WebappResource(ServletContext context, WebappRepository repository, String name) {
         this.context = context;
@@ -23,11 +24,14 @@ public class WebappResource extends AbstractResource {
     }
 
     public boolean exists() {
-        try {
-            return context.getResource(path) != null;
-        } catch (MalformedURLException mux) {
-            return false;
+        if (exists < 0) {
+            try {
+                exists = context.getResource(path) != null ? 1 : 0;
+            } catch (MalformedURLException mux) {
+                exists = 0;
+            }
         }
+        return exists == 1;
     }
 
     public long getLength() {
@@ -44,5 +48,21 @@ public class WebappResource extends AbstractResource {
 
     public Repository getParentRepository() {
         return repository;
+    }
+
+    @Override
+    public String toString() {
+        return "WebappResource[" + path + "]";
+    }
+
+
+    @Override
+    public int hashCode() {
+        return 37 + path.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof WebappResource && path.equals(((WebappResource)obj).path);
     }
 }

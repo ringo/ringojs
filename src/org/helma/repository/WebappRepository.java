@@ -12,6 +12,7 @@ public class WebappRepository extends AbstractRepository {
     ServletContext context;
 
     long timestamp;
+    private int exists = -1;
 
     public WebappRepository(ServletContext context, String path) {
         this.context = context;
@@ -43,11 +44,15 @@ public class WebappRepository extends AbstractRepository {
     }
 
     public boolean exists() {
-        if ("/".equals(path)) {
-            return true;
+        if (exists < 0) {
+            if ("/".equals(path)) {
+                exists = 1;
+            } else {
+                Set paths = context.getResourcePaths(path);
+                exists = (paths != null && !paths.isEmpty()) ? 1 : 0;
+            }
         }
-        Set paths = context.getResourcePaths(path);
-        return (paths != null && !paths.isEmpty());
+        return exists == 1;
     }
 
     public Repository getChildRepository(String name) {
@@ -92,4 +97,21 @@ public class WebappRepository extends AbstractRepository {
     protected Resource createResource(String name) {
         return new WebappResource(context, this, name);
     }
+
+    @Override
+    public String toString() {
+        return "WebappRepository[" + path + "]";
+    }
+
+
+    @Override
+    public int hashCode() {
+        return 5 + path.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof WebappRepository && path.equals(((WebappRepository)obj).path);
+    }
+
 }
