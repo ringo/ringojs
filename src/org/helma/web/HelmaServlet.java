@@ -33,10 +33,7 @@ import java.io.FileNotFoundException;
 public class HelmaServlet extends HttpServlet {
 
     protected RhinoEngine engine;
-
-    private int requestTimeout = 30;
-
-    private String moduleName, functionName;
+    private String module, function;
 
     static protected Class[] defaultHostClasses =
         new Class[] {
@@ -62,22 +59,13 @@ public class HelmaServlet extends HttpServlet {
         this.engine = engine;
     }
 
-    public void init(ServletConfig servletConfig) throws ServletException {
-        moduleName = servletConfig.getInitParameter("moduleName");
-        if (moduleName == null) {
-            throw new ServletException("moduleName servlet parameter not defined");
-        }
-        functionName = servletConfig.getInitParameter("functionName");
-        if (functionName == null) {
-            throw new ServletException("functionName servlet parameter not defined");
-        }
-        String timeout = servletConfig.getInitParameter("requestTimeout");
-        if (timeout != null) {
-            requestTimeout = Integer.parseInt(timeout);
-        }
+    public void init(ServletConfig config) throws ServletException {
+        module = getInitParam(config, "module", "app");
+        function = getInitParam(config, "function", "handler");
+
         if (engine == null) {
             try {
-                String classNames = servletConfig.getInitParameter("hostClasses");
+                String classNames = config.getInitParameter("hostClasses");
                 Class[] classes = defaultHostClasses;
                 if (classNames != null) {
                     Class[] custom = StringUtils.toClassArray(classNames, ", ");
@@ -86,16 +74,16 @@ public class HelmaServlet extends HttpServlet {
                     System.arraycopy(custom, 0, copy, classes.length, custom.length);
                     classes = copy;
                 }
-                String helmaHome = servletConfig.getInitParameter("helmaHome");
-                String modulePath = servletConfig.getInitParameter("modulePath");
-                Repository home = new WebappRepository(servletConfig.getServletContext(), helmaHome);
+                String helmaHome = getInitParam(config, "home", "WEB-INF");
+                String modulePath = getInitParam(config, "modulePath", "modules");
+                Repository home = new WebappRepository(config.getServletContext(), helmaHome);
                 if (!home.exists()) {
                     home = new FileRepository(helmaHome);
                 }
-                HelmaConfiguration config =
+                HelmaConfiguration helmaConfig =
                         new HelmaConfiguration(home, modulePath, "modules");
-                config.setHostClasses(classes);
-                engine = new RhinoEngine(config, null);
+                helmaConfig.setHostClasses(classes);
+                engine = new RhinoEngine(helmaConfig, null);
             } catch (ClassNotFoundException x) {
                 throw new ServletException(x);
             } catch (FileNotFoundException x) {
@@ -108,7 +96,7 @@ public class HelmaServlet extends HttpServlet {
                            final HttpServletResponse res)
             throws ServletException, IOException {
         try {
-            engine.invoke(moduleName, functionName, new Request(req), new Response(res));
+            engine.invoke(module, function, new Request(req), new Response(res));
         } catch (RedirectException redir) {
             res.sendRedirect(redir.getMessage());
         } catch (NoSuchMethodException x) {
@@ -116,17 +104,9 @@ public class HelmaServlet extends HttpServlet {
         }
     }
 
-    public int getRequestTimeout() {
-        return requestTimeout;
-    }
-
-    public void setRequestTimeout(int requestTimeout) {
-        this.requestTimeout = requestTimeout;
-    }
-
-    class Status {
-        volatile Throwable exception;
-        volatile String redirect;
+    private String getInitParam(ServletConfig config, String name, String defaultValue) {
+        String value = config.getInitParameter(name);
+        return value == null ? defaultValue : value;
     }
     
 }
