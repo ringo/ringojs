@@ -60,8 +60,8 @@ public class JackServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             Object result = engine.invoke(module, function, new JackEnv(request));
-            engine.invoke("jack", "handleResponse", response, result);
-        } catch (Exception x) {
+            engine.invoke("helma/jack", "applyResponse", response, result);
+        } catch (NoSuchMethodException x) {
             throw new ServletException("Method not found", x);
         }
     }
