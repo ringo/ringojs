@@ -4,7 +4,12 @@
 export('write', 'writeln', 'read', 'readln', 'quit');
 
 var output = java.lang.System.out;
-var input = new Packages.jline.ConsoleReader();
+var input;
+try {
+    input = new Packages.jline.ConsoleReader();
+} catch (x) {
+    output.println("No input: " + x);
+}
 
 /**
  * Write 0..n arguments to standard output.
