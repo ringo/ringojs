@@ -19,7 +19,10 @@ var log = helma.logging.getLogger(__name__);
     var profiler;
 
     this.onRequest = function() {
-        system.setRhinoOptimizationLevel(-1);
+        if (system.getOptimizationLevel() > -1) {
+            system.setOptimizationLevel(-1);
+            throw {retry: true};
+        }
         if (!profiler) {
             profiler = new Profiler();
         }
@@ -27,12 +30,16 @@ var log = helma.logging.getLogger(__name__);
     };
 
     this.onResponse = this.onError = function(req, res) {
+        if (system.getOptimizationLevel() > -1) {
+            return;
+        }
         var result = profiler.getResult(maxFrames);
         var b = new Buffer();
         b.writeln();
         b.writeln("     total  average  calls    path");
         for (var i = 1; i < result.maxLength; i++) {
-            b.write("—");
+            // b.write("—");
+            b.write("-");
         }
         b.writeln();
         b.writeln(result.data);

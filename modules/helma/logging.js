@@ -70,10 +70,15 @@ exports.onResponse = exports.onError = function(req, res) {
     if (list) {
         for (var i = 0; i < list.size(); i++) {
             var item = list.get(i);
-            var b = new Buffer();
+            var msg = item[0];
+            var multiline = msg && msg.indexOf('\n') > 0 || msg.indexOf('\r')> 0;
             res.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
             res.write("color: black; border-top: 1px solid black;\">");
-            res.write(item[0]);
+            if (multiline) {
+                res.write("<pre>").write(msg).write("</pre>");
+            } else {
+                res.write(msg);
+            }
             if (item[1]) {
                 res.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
                 res.write("<pre style='margin: 0;'>", item[1], "</pre>");

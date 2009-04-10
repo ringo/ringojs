@@ -37,9 +37,6 @@ public class HelmaServlet extends HttpServlet {
 
     static protected Class[] defaultHostClasses =
         new Class[] {
-            Request.class,
-            Response.class,
-            Session.class,
             MacroTag.class
         };
 
@@ -97,7 +94,7 @@ public class HelmaServlet extends HttpServlet {
                            final HttpServletResponse res)
             throws ServletException, IOException {
         try {
-            engine.invoke(module, function, new Request(req), new Response(res));
+            engine.invoke(module, function, req, res);
         } catch (RedirectException redir) {
             res.sendRedirect(redir.getMessage());
         } catch (NoSuchMethodException x) {

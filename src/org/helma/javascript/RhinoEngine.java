@@ -203,8 +203,17 @@ public class RhinoEngine {
                     }
                     retval = ((Function) function).call(cx, topLevelScope, module, args);
                     break;
+                } catch (JavaScriptException jsx) {
+                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
+                            (Scriptable) jsx.getValue() : null;
+                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
+                        ((Map) cx.getThreadLocal("modules")).clear();
+                    } else {
+                        throw jsx;
+                    }
                 } catch (RetryException retry) {
                     // request to try again
+                    ((Map) cx.getThreadLocal("modules")).clear();                    
                 }
             }
             if (retval instanceof Wrapper) {
@@ -272,6 +281,10 @@ public class RhinoEngine {
         }
     }
 
+    /**
+     * Get the current Rhino optimization level
+     * @return the current optimization level
+     */
     public int getOptimizationLevel() {
         Context cx = Context.getCurrentContext();
         if (cx != null) {
@@ -279,13 +292,15 @@ public class RhinoEngine {
         }
         return 0;
     }
-    
+
+    /**
+     * Set Rhino optimization level
+     * @param level the new optimization level
+     */
     public void setOptimizationLevel(int level) {
         Context cx = Context.getCurrentContext();
         if (cx != null && cx.getOptimizationLevel() != level) {
             cx.setOptimizationLevel(level);
-            ((Map) cx.getThreadLocal("modules")).clear();
-            throw new RetryException();
         }
     }
 
@@ -676,7 +691,14 @@ public class RhinoEngine {
 
     }
 
-    public static class RetryException extends Error {}
+    public static class RetryException extends RuntimeException {
+        public final String retry;
+
+        public RetryException(String message) {
+            super(message);
+            retry = message;
+        }
+    }
 }
 
 class AppClassLoader extends HelmaClassLoader {

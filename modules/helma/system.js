@@ -13,7 +13,8 @@ export('addHostObject',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
-        'setRhinoOptimizationLevel',
+        'getOptimizationLevel',
+        'setOptimizationLevel',
         'args');
 
 var log = helma.logging.getLogger(__name__);
@@ -64,8 +65,8 @@ function extendJavaClass(javaClass) {
  * is 0.
  * @return level an integer between -1 and 9
  */
-function getRhinoOptimizationLevel() {
-    getRhinoEngine().getOptimizationLevel();    
+function getOptimizationLevel() {
+    return getRhinoEngine().getOptimizationLevel();    
 }
 
 /**
@@ -75,7 +76,7 @@ function getRhinoOptimizationLevel() {
  * is 0.
  * @param level an integer between -1 and 9
  */
-function setRhinoOptimizationLevel(level) {
+function setOptimizationLevel(level) {
     getRhinoEngine().setOptimizationLevel(level);
 }
 

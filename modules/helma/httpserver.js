@@ -2,10 +2,6 @@
  * Module for starting and stopping the jetty http server.
  */
 
-import('helma/webapp', 'webapp');
-include('helma/webapp/request');
-include('helma/webapp/response');
-
 export('start', 'stop');
 
 // mark this module as shared between all requests
@@ -71,15 +67,15 @@ var log = require('helma/logging').getLogger(__name__);
                 // set up helma servlet context
                 var helmaCtx = idMap.get('helmaContext');
                 if (helmaCtx) {
-                    // var helmaServlet = new HelmaServlet(engine);
-                    var helmaServlet = new Packages.javax.servlet.http.HttpServlet({
-                        service: function(servletRequest, servletResponse) {
-                            var req = new Request(servletRequest),
-                                res = new Response(servletResponse);
-                            webapp.handleRequest(req, res);
-                        }
-                    });
+                    var helmaServlet = new HelmaServlet(engine);
                     var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
+                    var params = config.servletParams || {
+                        'module': 'helma/webapp',
+                        'function': 'handleServletRequest'
+                    };
+                    for (var p in params) {
+                        servletHolder.setInitParameter(p, params[p]);
+                    }
                     helmaCtx.addServlet(servletHolder, "/*");
                 }
                 // start server

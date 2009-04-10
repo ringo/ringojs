@@ -4,17 +4,20 @@
 
 // import modules
 require('core/string');
-require('helma/webapp/request');
-require('helma/webapp/response');
 
+include('helma/webapp/request');
+include('helma/webapp/response');
 import('helma/webapp/continuation', 'continuation');
+
 import('helma/system', 'system');
 import('helma/httpserver', 'server');
 import('helma/logging', 'logging');
 
-export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
+export('start', 'stop', 'getConfig', 'handleServletRequest', 'error', 'notfound');
 
 var log = logging.getLogger(__name__);
+
+function handleJackRequest(env) {}
 
 /**
  * Handler function called by the Helma servlet. 
@@ -22,10 +25,13 @@ var log = logging.getLogger(__name__);
  * @param req
  * @param res
  */
-function handleRequest(req, res) {
+function handleServletRequest(servletRequest, servletResponse) {
     // get config and apply it to req, res
     var config = getConfig();
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
+
+    var req = new Request(servletRequest);
+    var res = new Response(servletResponse);
 
     req.charset = res.charset = config.charset || 'utf8';
     res.contentType = config.contentType || 'text/html';
@@ -41,7 +47,7 @@ function handleRequest(req, res) {
     var path = req.path;
     if (path.startsWith('/')) {
         // strip leading slash
-        path = path.slice(1)
+        path = path.slice(1);
     }
 
     function getPattern(spec) {
@@ -107,8 +113,12 @@ function handleRequest(req, res) {
         }
         notfound(req, res);
     } catch (e) {
-        invokeMiddleware('onError', config.middleware, [req, res, e]);
-        error(req, res, e);
+        if (e.retry) {
+            throw e;
+        } else if (!e.redirect) {
+            invokeMiddleware('onError', config.middleware, [req, res, e]);
+            error(req, res, e);
+        }
     } finally {
         invokeMiddleware('onResponse', config.middleware, [req, res]);
     }
@@ -124,7 +134,11 @@ function invokeMiddleware(hook, middleware, args) {
                 module[hook].apply(module, args);
             }
         } catch (e) {
-            log.error('Error in ' + signature + ': ' + e);
+            if (e.retry) {
+                throw e;
+            } else if (!e.redirect) {
+                log.error('Error in ' + signature + ': ' + e);
+            }
         }
     }
 }
