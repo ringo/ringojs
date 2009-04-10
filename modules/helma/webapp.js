@@ -19,6 +19,11 @@ var log = logging.getLogger(__name__);
 
 function handleJackRequest(env) {}
 
+// support old name
+function handleRequest(req, res) {
+    return handleServletRequest(req, res);
+}
+
 /**
  * Handler function called by the Helma servlet. 
  *
