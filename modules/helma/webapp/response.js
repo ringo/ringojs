@@ -1,7 +1,8 @@
 include('helma/buffer');
 import('helma/system', 'system');
 
-if (!global.Response) {
+// FIXME hack to get this to evaluate
+if (!global.Response || !Response.prototype.render) {
 
     system.addHostObject(org.helma.web.Response);
 
