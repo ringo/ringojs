@@ -37,6 +37,7 @@ public class JackServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
+        super.init(config);
         module = getInitParam(config, "module", "app");
         function = getInitParam(config, "function", "handler");
         String helmaHome = getInitParam(config, "home", "WEB-INF");

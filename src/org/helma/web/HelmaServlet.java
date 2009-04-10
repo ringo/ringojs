@@ -60,6 +60,7 @@ public class HelmaServlet extends HttpServlet {
     }
 
     public void init(ServletConfig config) throws ServletException {
+        super.init(config);
         module = getInitParam(config, "module", "app");
         function = getInitParam(config, "function", "handler");
 
