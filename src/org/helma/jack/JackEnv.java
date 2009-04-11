@@ -16,10 +16,11 @@
 
 package org.helma.jack;
 
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
+import java.io.IOException;
 
 public class JackEnv extends ScriptableObject {
 
@@ -75,9 +76,35 @@ public class JackEnv extends ScriptableObject {
         return req.getRemoteHost();
     }
 
+    public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype) {
+        int flags = DONTENUM | READONLY | PERMANENT;
+        Context cx = Context.getCurrentContext();
+        Scriptable version = cx.newArray(scope, new Object[] {new Integer(0), new Integer(1)});
+        ScriptableObject.defineProperty(prototype, "jack.version", version, flags);
+        ScriptableObject.defineProperty(prototype, "jack.multithread", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(prototype, "jack.multiprocess", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(prototype, "jack.run_once", Boolean.FALSE, flags);
+    }
+
+    @Override
+    public Object get(String name, Scriptable start) {
+        // FIXME: implement IO wrappers
+        if ("jack.input".equals(name)) {
+            try {
+                return Context.toObject(req.getInputStream(), this);
+            } catch (IOException iox) {
+                return Undefined.instance;
+            }
+        } else if ("jack.error".equals(name)) {
+            return Context.toObject(System.err, this);
+        }
+        return super.get(name, start);
+    }
+
     /**
      * Return the name of the class.
      */
+    @Override
     public String getClassName() {
         return "JackEnv";
     }

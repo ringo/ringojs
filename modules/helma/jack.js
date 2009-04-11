@@ -7,7 +7,7 @@ export('applyResponse');
  * you won't need this unless you're implementing your own servlet
  * based jack connector.
  *
- * @param response an instance of javax.servlet.http.HttpServletResponse
+ * @param response an instanceof javax.servlet.http.HttpServletResponse
  * @param result the object returned by a jack application
  */
 function applyResponse(response, result) {
@@ -19,11 +19,11 @@ function applyResponse(response, result) {
 	var writer = response.writer;
 	if (body && typeof body.forEach == "function") {
 		body.forEach(function(chunk) {
-			writer.write(chunk);
+			writer.write(String(chunk));
 			writer.flush();
 		})
 	} else {
-		writer.write(body);
+		writer.write(String(body));
 		writer.flush();
 	}
 }
