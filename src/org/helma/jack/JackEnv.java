@@ -21,6 +21,7 @@ import org.mozilla.javascript.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 public class JackEnv extends ScriptableObject {
 
@@ -44,46 +45,80 @@ public class JackEnv extends ScriptableObject {
         }
     }
 
-    public String jsGet_SCRIPT_NAME() {
+
+    public String getScriptName() {
         return req.getServletPath();
     }
 
-    public String jsGet_PATH_INFO() {
+    public String getPathInfo() {
         return req.getPathInfo();
     }
 
-    public String jsGet_REQUEST_METHOD() {
+    public String getRequestMethod() {
         return req.getMethod();
     }
 
-    public String jsGet_SERVER_NAME() {
+    public String getServerName() {
         return req.getServerName();
     }
     
-    public String jsGet_SERVER_PORT() {
+    public String getServerPort() {
         return Integer.toString(req.getServerPort());
     }
 
-    public String jsGet_QUERY_STRING() {
+    public String getQueryString() {
         return req.getQueryString();
     }
 
-    public String jsGet_HTTP_VERSION() {
+    public String getHttpVersion() {
         return req.getProtocol();
     }
 
-    public String jsGet_REMOTE_HOST() {
+    public String getRemoteHost() {
         return req.getRemoteHost();
     }
 
-    public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype) {
-        int flags = DONTENUM | READONLY | PERMANENT;
+    public String getUrlScheme() {
+        return req.isSecure() ? "https" : "http";
+    }
+
+    public Object getInputStream() {
+        try {
+            return req.getInputStream();
+        } catch (IOException iox) {
+            return Undefined.instance;
+        }
+    }
+
+    public Object getErrorStream() {
+        return System.err;
+    }
+
+    public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
+            throws NoSuchMethodException {
+        int flags = READONLY | PERMANENT;
         Context cx = Context.getCurrentContext();
+        ScriptableObject proto = (ScriptableObject) prototype;
+        proto.defineProperty("SCRIPT_NAME", null, getMethod("getScriptName"), null, flags);
+        proto.defineProperty("PATH_INFO", null, getMethod("getPathInfo"), null, flags);
+        proto.defineProperty("REQUEST_METHOD", null, getMethod("getRequestMethod"), null, flags);
+        proto.defineProperty("SERVER_NAME", null, getMethod("getServerName"), null, flags);
+        proto.defineProperty("SERVER_PORT", null, getMethod("getServerPort"), null, flags);
+        proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
+        proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
+        proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
+        proto.defineProperty("jack.input", null, getMethod("getInputStream"), null, flags);
+        proto.defineProperty("jack.error", null, getMethod("getErrorStream"), null, flags);
         Scriptable version = cx.newArray(scope, new Object[] {new Integer(0), new Integer(1)});
-        ScriptableObject.defineProperty(prototype, "jack.version", version, flags);
-        ScriptableObject.defineProperty(prototype, "jack.multithread", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(prototype, "jack.multiprocess", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(prototype, "jack.run_once", Boolean.FALSE, flags);
+        ScriptableObject.defineProperty(proto, "jack.version", version, flags);
+        ScriptableObject.defineProperty(proto, "jack.multithread", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(proto, "jack.multiprocess", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(proto, "jack.run_once", Boolean.FALSE, flags);
+        proto.defineProperty("jack.url_scheme", null, getMethod("getUrlScheme"), null, flags);
+    }
+
+    private static Method getMethod(String name) throws NoSuchMethodException {
+        return JackEnv.class.getDeclaredMethod(name);
     }
 
     @Override
