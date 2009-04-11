@@ -90,8 +90,7 @@ public class HelmaServlet extends HttpServlet {
         }
     }
 
-    protected void service(final HttpServletRequest req,
-                           final HttpServletResponse res)
+    protected void service(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
         try {
             engine.invoke(module, function, req, res);
