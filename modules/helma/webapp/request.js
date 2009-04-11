@@ -11,13 +11,13 @@ function Request(servletRequest) {
     var params, cookies, session, headers;
     var define = bindArguments(Object.defineProperty, this);
 
-    define("charset", readOnlyPropertyDesc(servletRequest, "characterEncoding"));
+    define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
     define("port", readOnlyPropertyDesc(servletRequest, "port"));
     define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
     define("method", readOnlyPropertyDesc(servletRequest, "method"));
 
     define("params", {
-        getter: function() {
+        get: function() {
             if (!params)
                 params = new ScriptableMap(
                         new org.helma.util.ParameterMap(
@@ -27,7 +27,7 @@ function Request(servletRequest) {
     });
 
     define("cookies", {
-        getter: function() {
+        get: function() {
             if (!cookies) {
                 cookies = new ScriptableMap();
                 (servletRequest.getCookies() || []).map(function mapCookie(servletCookie) {
@@ -41,7 +41,7 @@ function Request(servletRequest) {
     });
 
     define("session", {
-        getter: function() {
+        get: function() {
             if (!session)
                 session = new Session(servletRequest);
             return session;
@@ -49,7 +49,7 @@ function Request(servletRequest) {
     });
 
     define("headers", {
-        getter: function() {
+        get: function() {
             if (!headers) {
                 headers = new ScriptableMap();
                 var names = servletRequest.getHeaderNames();
@@ -89,7 +89,7 @@ function Session(servletRequest) {
     }
 
     define("data", {
-        getter: function() {
+        get: function() {
             if (!data) {
                 data = new ScriptableMap();
                 getSession().setAttribute("helma", data);
@@ -99,7 +99,7 @@ function Session(servletRequest) {
     });
 
     define("isNew", {
-        getter: function() {
+        get: function() {
             getSession().isNew();
         }
     })
@@ -116,13 +116,13 @@ function Cookie(servletCookie) {
     }
 
     define("name", {
-        getter: function() {
+        get: function() {
             if (!name)
                 name = getCookie().getName();
             return name;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 name = value;
                 getCookie().setName(name);
@@ -132,13 +132,13 @@ function Cookie(servletCookie) {
     });
 
     define("value", {
-        getter: function() {
+        get: function() {
             if (!value)
                 value = getCookie().getValue();
             return value;
         },
 
-        setter: function(val) {
+        set: function(val) {
             if (val) {
                 value = val;
                 getCookie().setValue(value);
@@ -148,13 +148,13 @@ function Cookie(servletCookie) {
     });
 
     define("domain", {
-        getter: function() {
+        get: function() {
             if (!domain)
                 domain = getCookie().getDomain();
             return domain;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 domain = value;
                 getCookie().setDomain(domain);
@@ -164,13 +164,13 @@ function Cookie(servletCookie) {
     });
 
     define("path", {
-        getter: function() {
+        get: function() {
             if (!path)
                 path = getCookie().getPath();
             return path;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 path = value;
                 getCookie().setPath(path);
@@ -180,13 +180,13 @@ function Cookie(servletCookie) {
     });
 
     define("maxAge", {
-        getter: function() {
+        get: function() {
             if (!maxAge)
                 maxAge = getCookie().getMaxAge();
             return maxAge;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 maxAge = value;
                 getCookie().setMaxAge(maxAge);
@@ -196,13 +196,13 @@ function Cookie(servletCookie) {
     });
 
     define("comment", {
-        getter: function() {
+        get: function() {
             if (!comment)
                 comment = getCookie().getComment();
             return comment;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 comment = value;
                 getCookie().setComment(comment);
@@ -212,13 +212,13 @@ function Cookie(servletCookie) {
     });
 
     define("isSecure", {
-        getter: function() {
+        get: function() {
             if (!isSecure)
                 isSecure = getCookie().getSecure();
             return isSecure;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 isSecure = value;
                 getCookie().setSecure(isSecure);
@@ -228,13 +228,13 @@ function Cookie(servletCookie) {
     });
 
     define("version", {
-        getter: function() {
+        get: function() {
             if (!version)
                 version = getCookie().getVersion();
             return version;
         },
 
-        setter: function(value) {
+        set: function(value) {
             if (value) {
                 version = value;
                 getCookie().setVersion(version);
@@ -247,21 +247,21 @@ function Cookie(servletCookie) {
 var defineRequestProperty = bindArguments(Object.defineProperty, Request.prototype);
 
 defineRequestProperty("isGet", {
-    getter: function() { return this.method == "GET"; }
+    get: function() { return this.method == "GET"; }
 })
 
 defineRequestProperty("isPost", {
-    getter: function() { return this.method == "POST"; }
+    get: function() { return this.method == "POST"; }
 })
 
 defineRequestProperty("isPut", {
-    getter: function() { return this.method == "PUT"; }
+    get: function() { return this.method == "PUT"; }
 })
 
 defineRequestProperty("isDelete", {
-    getter: function() { return this.method == "DELETE"; }
+    get: function() { return this.method == "DELETE"; }
 })
 
 defineRequestProperty("isHead", {
-    getter: function() { return this.method == "HEAD"; }
+    get: function() { return this.method == "HEAD"; }
 })

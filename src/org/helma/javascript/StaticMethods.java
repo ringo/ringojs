@@ -48,13 +48,16 @@ public class StaticMethods {
      */
     public static void defineProperty(Context cx, Scriptable thisObj, Object[] args, Function funObj)
             throws JavaScriptException {
-        ScriptUtils.checkArguments(args, 3, 3);
-        ScriptableObject obj = ScriptUtils.getScriptableArgument(args, 0, false);
-        String propname = ScriptUtils.getStringArgument(args, 1, false);
-        Scriptable desc = ScriptUtils.getScriptableArgument(args, 2, false);
-
-        PropertyDescriptor propDesc = new PropertyDescriptor(desc);
-        propDesc.defineProperty(obj, propname);
+        try {
+            ScriptUtils.checkArguments(args, 3, 3);
+            ScriptableObject obj = ScriptUtils.getScriptableArgument(args, 0, false);
+            String propname = ScriptUtils.getStringArgument(args, 1, false);
+            Scriptable desc = ScriptUtils.getScriptableArgument(args, 2, false);
+            PropertyDescriptor propDesc = new PropertyDescriptor(desc);
+            propDesc.defineProperty(obj, propname);
+        } catch (IllegalArgumentException illarg) {
+            throw ScriptRuntime.typeError(illarg.getMessage());
+        }
     }
 
 
@@ -64,14 +67,15 @@ public class StaticMethods {
         public final boolean enumerable, configurable, writable;
 
         public PropertyDescriptor(Scriptable desc) {
-            value = getDescriptorValue("value", desc);
-            getter = (Callable) getDescriptorValue("getter", desc);
-            setter = (Callable) getDescriptorValue("setter", desc);
             enumerable = ScriptRuntime.toBoolean(getDescriptorValue("enumerable", desc));
             configurable = ScriptRuntime.toBoolean(getDescriptorValue("configurable", desc));
-            writable = ScriptRuntime.toBoolean(getDescriptorValue("writable", desc));
-            if (value != null && (getter != null || setter != null)) {
-                throw new IllegalArgumentException("Only one of value or getter/setter must be defined");
+            value = getDescriptorValue("value", desc);
+            Object writeableObj = getDescriptorValue("writable", desc);
+            writable = ScriptRuntime.toBoolean(writeableObj);
+            getter = (Callable) getDescriptorValue("get", desc);
+            setter = (Callable) getDescriptorValue("set", desc);
+            if ((value != null || writeableObj != null) && (getter != null || setter != null)) {
+                throw ScriptRuntime.typeError("Mixed value/writable with get/set in PropertyDescriptor");
             }
         }
 
@@ -86,8 +90,10 @@ public class StaticMethods {
         public int getAttributes() {
             int attr = 0;
             if (!enumerable) attr |= ScriptableObject.DONTENUM;
-            if (!writable) attr |= ScriptableObject.READONLY;
             if (!configurable) attr |= ScriptableObject.PERMANENT;
+            if (getter == null && setter == null) {
+                if (!writable) attr |= ScriptableObject.READONLY;
+            }
             return attr;
         }
 
@@ -100,7 +106,7 @@ public class StaticMethods {
                     obj.setGetterOrSetter(propname, 0, setter, true);
                 }
                 obj.setAttributes(propname, getAttributes());
-            } else {
+            } else if (value != null) {
                 obj.defineProperty(propname, value, getAttributes());
             }
 

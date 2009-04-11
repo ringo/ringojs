@@ -16,7 +16,7 @@ export('readOnlyPropertyDesc', 'writeOnlyPropertyDesc', 'readWritePropertyDesc')
  */
 function readOnlyPropertyDesc(obj, name, desc) {
     desc = desc || {};
-    desc.getter = function() { return obj[name]; }
+    desc.get = function() { return obj[name]; }
     return desc;
 }
 
@@ -35,7 +35,7 @@ function readOnlyPropertyDesc(obj, name, desc) {
  */
 function writeOnlyPropertyDesc(obj, name, desc) {
     desc = desc || {};
-    desc.setter = function(value) { obj[name] = value; }
+    desc.set = function(value) { obj[name] = value; }
     return desc;
 }
 
@@ -54,7 +54,7 @@ function writeOnlyPropertyDesc(obj, name, desc) {
  */
 function readWritePropertyDesc(obj, name, desc) {
     desc = desc || {};
-    desc.getter = function() { return obj[name]; }
-    desc.setter = function(value) { obj[name] = value; }
+    desc.get = function() { return obj[name]; }
+    desc.set = function(value) { obj[name] = value; }
     return desc;
 }

@@ -7,7 +7,7 @@ export('Response');
 function Response(servletResponse) {
 
     var writer;
-
+    var status = 200;
 
     Object.defineProperty(this, 'write', {
         value: function write() {
@@ -87,11 +87,30 @@ function Response(servletResponse) {
     });
 
     Object.defineProperty(this, 'charset', {
-        getter: function() {
+        get: function() {
             return servletResponse.getCharacterEncoding();
         },
-        setter: function(charset) {
+        set: function(charset) {
             servletResponse.setCharacterEncoding(charset);
+        }
+    });
+
+    Object.defineProperty(this, 'contentType', {
+        get: function() {
+            return servletResponse.getContentType();
+        },
+        set: function(contentType) {
+            servletResponse.setContentType(contentType);
+        }
+    });
+
+    Object.defineProperty(this, 'status', {
+        get: function() {
+            return status;
+        },
+        set: function(s) {
+            status = s;
+            servletResponse.setStatus(s);
         }
     });
 
