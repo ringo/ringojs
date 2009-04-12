@@ -7,13 +7,26 @@ importPackage(org.mozilla.javascript);
 importPackage(com.google.appengine.api.datastore);
 
 var datastore = DatastoreServiceFactory.getDatastoreService();
+var typeRegistry = {};
+var __shared__ = true;
 
 function Storable(type, arg) {
 
 	// if called with one argument, return a constructor for a concrete type.
 	if (arguments.length == 1) {
-		return bindArguments(Storable, type);
+		var ctor = bindArguments(Storable, type);
+        ctor.all = bindArguments(Storable.all, type);
+        ctor.get = Storable.get;
+        ctor.prototype.__proto__ = Storable.prototype;
+        typeRegistry[type] = ctor;
+        return ctor;
 	}
+
+    // if a constructor is registered make sure we use it to get the
+    // right prototype chain on the instance object
+    if (type in typeRegistry && !(this instanceof typeRegistry[type])) {
+        return new typeRegistry[type](arg);
+    }
 	
 	// if called with two arguments, return an actual instance
     var key, entity, props;
@@ -107,27 +120,27 @@ function Storable(type, arg) {
         if (ensureEntity()) {
             datastore.put(entity);
         }
-    }
+    };
 
     storable.remove = function() {
         if (ensureKey()) {
         	datastore['delete'](key);
         }
-    }
+    };
     
     storable.getKey = function() {
     	if (ensureEntity()) {
     		return entity.getKey();
     	}
     	throw Error("Can't get key from " + arg);
-    }
+    };
 
     storable.getId = function() {
     	if (ensureEntity()) {
     		return KeyFactory.keyToString(entity.getKey());
     	}
     	throw Error("Can't get key from " + arg);
-    }
+    };
     
     storable.toString = function() {
     	if (ensureProps()) {
@@ -136,9 +149,9 @@ function Storable(type, arg) {
     		return entity.getKey().toString();
     	}
     	return "invalid entity: " + arg;
-    }
+    };
 
-    storable.__proto__ = Storable.prototype;
+    storable.__proto__ = this.__proto__;
     return storable;
 }
 
