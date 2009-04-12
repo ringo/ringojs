@@ -24,7 +24,7 @@ a:active {
 
 #wrap {
     margin: 0 auto;
-    width: 780px;
+    width: 750px;
 }
 
 #header {
@@ -41,45 +41,47 @@ a:active {
 #logo {
     text-align:center;
     float: right;
-    width: 200px;
+    width: 130px;
     margin: 10px;
     padding: 5px;
 }
 
 #main {
-    clear:both;
-    float:left;
-    width:520px;
+    clear: both;
+    float: left;
+    width: 530px;
     margin: 0 10px;
     padding: 5px;
 }
 
 #menu {
-    float:right;
-    width:200px;
+    float: right;
+    width: 150px;
 }
 
 #menu ul {
     background-color: #abd;
-    border-width: 1px 2px 2px 1px;
-    border-color: black;
+    border-width: 1px 1px 0 1px;
+    border-color: white;
     border-style: solid;
     margin: 10px;
-    padding: 5px;
+    padding: 0;
 }
 
 div#menu li {
     list-style: none;
+    border-bottom: 1px solid white;
 }
 
 #menu a {
     text-decoration: none;
     color: black;
-    padding: 2px;
+    padding: 4px;
+    display: block;
 }
 
 #menu a:hover {
-    background-color: white;
+    background-color: orange;
 }
 
 #footer {
@@ -91,9 +93,9 @@ div#menu li {
 }
 
 pre.code {
-    background-color: #bda;
-    border-width: 1px 2px 2px 1px;
-    border-color: black;
+    background-color: #abc;
+    border-width: 1px;
+    border-color: #9ab;
     border-style: solid;
     padding: 0.8em;
     line-height: 145%;    
