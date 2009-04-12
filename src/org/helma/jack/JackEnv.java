@@ -96,7 +96,7 @@ public class JackEnv extends ScriptableObject {
 
     public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
             throws NoSuchMethodException {
-        int flags = READONLY | PERMANENT;
+        int flags = PERMANENT;
         Context cx = Context.getCurrentContext();
         ScriptableObject proto = (ScriptableObject) prototype;
         proto.defineProperty("SCRIPT_NAME", null, getMethod("getScriptName"), null, flags);
@@ -109,7 +109,7 @@ public class JackEnv extends ScriptableObject {
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
         proto.defineProperty("jack.input", null, getMethod("getInputStream"), null, flags);
         proto.defineProperty("jack.error", null, getMethod("getErrorStream"), null, flags);
-        Scriptable version = cx.newArray(scope, new Object[] {new Integer(0), new Integer(1)});
+        Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
         ScriptableObject.defineProperty(proto, "jack.version", version, flags);
         ScriptableObject.defineProperty(proto, "jack.multithread", Boolean.TRUE, flags);
         ScriptableObject.defineProperty(proto, "jack.multiprocess", Boolean.TRUE, flags);
