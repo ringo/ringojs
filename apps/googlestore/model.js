@@ -18,5 +18,5 @@ Book.prototype.getFullTitle = function() {
  * Author class
  * @param properties object containing persistent properties
  */
-exports.Author = Storable('Author');
+var Author = Storable('Author');
 
