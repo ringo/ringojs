@@ -12,16 +12,13 @@ function index(req, res) {
     if (req.params.remove) {
         removeBook(req, res);
     }
-    var books = model.Book.all();
     res.render('skins/index.html', {
         title: 'Storage Demo',
         books: function(/*tag, skin, context*/) {
-            var buffer = [];
-            for (var i in books) {
-                var book = books[i]
-                buffer.push(book.getFullTitle(), getDeleteLink(book), "<br>\r\n");
-            }
-            return buffer.join(' ');
+            var books = model.Book.all();
+            return books.map(function(book) {
+                return book.getFullTitle() + ' ' + getDeleteLink(book);
+            }).join('<br>\r\n');
         }
     });
 }
