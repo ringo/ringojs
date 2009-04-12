@@ -31,7 +31,8 @@ function createBook(req, res) {
 
 function removeBook(req, res) {
     var book = Book.get(req.params.remove);
-    // author is removed through cascading delete
+    // no cascading delete
+    book.author.remove();
     book.remove();
     res.redirect('/');
 }
