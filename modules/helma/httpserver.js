@@ -28,9 +28,8 @@ var log = require('helma/logging').getLogger(__name__);
      * <li> mountpoint ('/')</li>
      * <li>staticDir ('static')</li>
      * <li>staticMountpoint ('/static')</li>
-     * <li>servletParams ({ moduleName: 'helma/webapp',
-     *                      functionName: 'handleRequest',
-     *                      requestTimeout: 30 })</li>
+     * <li>servletParams ({ module: 'helma/webapp',
+     *                      function: 'handleServletRequest' })</li>
      * </ul>
      */
     this.start = function(config) {
@@ -67,8 +66,8 @@ var log = require('helma/logging').getLogger(__name__);
                 // set up helma servlet context
                 var helmaCtx = idMap.get('helmaContext');
                 if (helmaCtx) {
-                    var helmaServlet = new HelmaServlet(engine);
-                    var servletHolder = new jetty.servlet.ServletHolder(helmaServlet);
+                    var servlet = new HelmaServlet(engine);
+                    var servletHolder = new jetty.servlet.ServletHolder(servlet);
                     var params = config.servletParams || {
                         'module': 'helma/webapp',
                         'function': 'handleServletRequest'
