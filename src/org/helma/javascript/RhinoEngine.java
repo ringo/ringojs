@@ -502,7 +502,7 @@ public class RhinoEngine {
         File file = new File(path);
         if (file.isAbsolute()) {
             return new FileResource(file);
-        } else if (path.startsWith(".")) {
+        } else if (localPath != null && path.startsWith(".")) {
             return localPath.getResource(path);
         } else {
             return config.getResource(path);
