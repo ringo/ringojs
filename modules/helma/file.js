@@ -97,7 +97,7 @@ function File(path) {
     * @returns Boolean
     * @type Boolean
     */
-   this.isOpened = function() {
+   this.isOpen = function() {
       return (readerWriter != null);
    };
 
