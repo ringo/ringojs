@@ -47,35 +47,35 @@ public class JackEnv extends ScriptableObject {
 
 
     public String getScriptName() {
-        return req.getServletPath();
+        return checkString(req.getServletPath());
     }
 
     public String getPathInfo() {
-        return req.getPathInfo();
+        return checkString(req.getPathInfo());
     }
 
     public String getRequestMethod() {
-        return req.getMethod();
+        return checkString(req.getMethod());
     }
 
     public String getServerName() {
-        return req.getServerName();
+        return checkString(req.getServerName());
     }
     
     public String getServerPort() {
-        return Integer.toString(req.getServerPort());
+        return checkString(Integer.toString(req.getServerPort()));
     }
 
     public String getQueryString() {
-        return req.getQueryString();
+        return checkString(req.getQueryString());
     }
 
     public String getHttpVersion() {
-        return req.getProtocol();
+        return checkString(req.getProtocol());
     }
 
     public String getRemoteHost() {
-        return req.getRemoteHost();
+        return checkString(req.getRemoteHost());
     }
 
     public String getUrlScheme() {
@@ -119,6 +119,10 @@ public class JackEnv extends ScriptableObject {
 
     private static Method getMethod(String name) throws NoSuchMethodException {
         return JackEnv.class.getDeclaredMethod(name);
+    }
+
+    private static String checkString(String str) {
+        return str == null ? "" : str;
     }
 
     @Override

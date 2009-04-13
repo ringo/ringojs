@@ -35,24 +35,36 @@ public class JackServlet extends HttpServlet {
     String module, function;
     RhinoEngine engine;
 
+    public JackServlet(RhinoEngine engine) throws ServletException {
+        this.engine = engine;
+        try {
+            engine.defineHostClass(JackEnv.class);
+        } catch (Exception x) {
+            throw new ServletException(x);
+        }
+    }
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         module = getInitParam(config, "module", "app");
         function = getInitParam(config, "function", "handler");
-        String helmaHome = getInitParam(config, "home", "WEB-INF");
-        String modulePath = getInitParam(config, "modulePath", "modules");
 
-        Repository home = new WebappRepository(config.getServletContext(), helmaHome);
-        if (!home.exists()) {
-            home = new FileRepository(helmaHome);
-        }
-        try {
-            HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
-            helmaConfig.setHostClasses(new Class[] { JackEnv.class });
-            engine = new RhinoEngine(helmaConfig, null);
-        } catch (FileNotFoundException x) {
-            throw new ServletException(x);
+        if (engine == null) {
+            String helmaHome = getInitParam(config, "home", "WEB-INF");
+            String modulePath = getInitParam(config, "modulePath", "modules");
+
+            Repository home = new WebappRepository(config.getServletContext(), helmaHome);
+            if (!home.exists()) {
+                home = new FileRepository(helmaHome);
+            }
+            try {
+                HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
+                helmaConfig.setHostClasses(new Class[] { JackEnv.class });
+                engine = new RhinoEngine(helmaConfig, null);
+            } catch (FileNotFoundException x) {
+                throw new ServletException(x);
+            }
         }
     }
 
