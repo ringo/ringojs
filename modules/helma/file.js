@@ -115,7 +115,7 @@ function File(path) {
      * @type Boolean
      */
     this.open = function(options) {
-       if (self.isOpened()) {
+       if (self.isOpen()) {
           throw new IllegalStateException("File already open");
        }
        // We assume that the BufferedReader and PrintWriter creation
@@ -179,7 +179,7 @@ function File(path) {
     * @type String
     */
    this.readln = function() {
-      if (!self.isOpened()) {
+      if (!self.isOpen()) {
          throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof BufferedReader)) {
@@ -212,7 +212,7 @@ function File(path) {
     * @see #writeln
     */
    this.write = function(what) {
-      if (!self.isOpened()) {
+      if (!self.isOpen()) {
          throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof PrintWriter)) {
@@ -263,7 +263,7 @@ function File(path) {
     * @type Boolean
     */
    this.remove = function() {
-      if (self.isOpened()) {
+      if (self.isOpen()) {
          throw new IllegalStateException("An openened file cannot be removed");
       }
       return file["delete"]();
@@ -281,7 +281,7 @@ function File(path) {
     * @type Array
     */
    this.list = function(pattern) {
-      if (self.isOpened())
+      if (self.isOpen())
          return null;
       if (!file.isDirectory())
          return null;
@@ -307,7 +307,7 @@ function File(path) {
     * @type Array
     */
    this.listFiles = function(pattern) {
-      if (self.isOpened() || !file.isDirectory())
+      if (self.isOpen() || !file.isDirectory())
          return null;
       // map function to convert java.io.Files to helma Files
       function convert(jfile) {
@@ -330,7 +330,7 @@ function File(path) {
     * @type Boolean
     */
    this.flush = function() {
-      if (!self.isOpened()) {
+      if (!self.isOpen()) {
          throw new IllegalStateException("File not opened");
       }
       if (readerWriter instanceof Writer) {
@@ -348,7 +348,7 @@ function File(path) {
     * @type Boolean
     */
    this.close = function() {
-      if (!self.isOpened()) {
+      if (!self.isOpen()) {
          return false;
       }
       readerWriter.close();
@@ -485,7 +485,7 @@ function File(path) {
     * @type Boolean
     */
    this.makeDirectory = function() {
-      if (self.isOpened())
+      if (self.isOpen())
          return false;
       // don't do anything if file exists or use multi directory version
       return (file.isDirectory() || file.mkdirs());
@@ -507,10 +507,10 @@ function File(path) {
       if (toFile == null) {
          throw new IllegalArgumentException("Uninitialized target File object");
       }
-      if (self.isOpened()) {
+      if (self.isOpen()) {
          throw new IllegalStateException("An openened file cannot be renamed");
       }
-      if (toFile.isOpened()) {
+      if (toFile.isOpen()) {
          throw new IllegalStateException("You cannot rename to an openened file");
       }
       return file.renameTo(new JFile(toFile.getAbsolutePath()));
@@ -524,7 +524,7 @@ function File(path) {
     * @type Boolean
     */
    this.eof = function() {
-      if (!self.isOpened()) {
+      if (!self.isOpen()) {
          throw new IllegalStateException("File not opened");
       }
       if (!(readerWriter instanceof BufferedReader)) {
@@ -550,7 +550,7 @@ function File(path) {
     */
    this.readAll = function() {
       // Open the file for readAll
-      if (self.isOpened()) {
+      if (self.isOpen()) {
          throw new IllegalStateException("File already open");
       }
       if (file.exists()) {
