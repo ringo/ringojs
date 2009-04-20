@@ -20,20 +20,16 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class FileResource implements Resource {
+public class FileResource extends AbstractResource {
 
     File file;
-    Repository repository;
-    String path;
-    String name;
-    String baseName;
     boolean stripShebang = false;
 
     public FileResource(File file) {
         this(file, null);
     }
 
-    protected FileResource(File file, Repository repository) {
+    protected FileResource(File file, FileRepository repository) {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         try {
@@ -50,18 +46,6 @@ public class FileResource implements Resource {
         // base name is short name with extension cut off
         int lastDot = name.lastIndexOf(".");
         baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getBaseName() {
-        return baseName;
     }
 
     public InputStream getInputStream() throws IOException {
@@ -89,42 +73,12 @@ public class FileResource implements Resource {
         return stream;
     }
 
-    public Reader getReader() throws IOException {
-        return new InputStreamReader(getInputStream());
-    }
-
     public URL getUrl() throws MalformedURLException {
         return new URL("file:" + file.getAbsolutePath());
     }
 
     public long lastModified() {
         return file.lastModified();
-    }
-
-    public long getChecksum() {
-        return lastModified();
-    }
-
-    public String getContent(String encoding) throws IOException {
-        InputStream in = getInputStream();
-        int size = (int) file.length();
-        byte[] buf = new byte[size];
-        int read = 0;
-        while (read < size) {
-            int r = in.read(buf, read, size - read);
-            if (r == -1)
-                break;
-            read += r;
-        }
-        if (in != null)
-            in.close();
-        return encoding == null ?
-                new String(buf) :
-                new String(buf, encoding);
-    }
-
-    public String getContent() throws IOException {
-        return getContent(null);
     }
 
     public long getLength() {

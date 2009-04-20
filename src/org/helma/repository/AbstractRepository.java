@@ -31,7 +31,7 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Parent repository this repository is contained in.
      */
-    Repository parent;
+    AbstractRepository parent;
 
     /**
      * Holds direct child repositories
@@ -91,6 +91,44 @@ public abstract class AbstractRepository implements Repository {
     }
 
     /**
+     * Mark this repository as root repository.
+     */
+    public void setRoot() {
+        parent = null;
+    }
+
+    /**
+     * Get the path of this repository relative to its root repository.
+     *
+     * @return the repository path
+     */
+    public String getRelativePath() {
+        if (parent == null) {
+            return "";
+        } else {
+            StringBuffer b = new StringBuffer();
+            getRelativePath(b);
+            return b.toString();
+        }
+    }
+
+    protected void getRelativePath(StringBuffer buffer) {
+        if (parent != null) {
+            parent.getRelativePath(buffer);
+            buffer.append(name).append('/');
+        } 
+    }
+
+    /**
+     * Utility method to get the name for the module defined by this resource.
+     *
+     * @return the module name according to the securable module spec
+     */
+    public String getModuleName() {
+        return getRelativePath();
+    }
+
+    /**
      * Get a resource contained in this repository identified by the given local name.
      * If the name can't be resolved to a resource, a resource object is returned
      * for which {@link Resource exists()} returns <code>false<code>.
@@ -107,10 +145,10 @@ public abstract class AbstractRepository implements Repository {
         }
         Repository repository = this;
         int i = 0;
-        while (i < subs.length - 1) {
+        while (repository != null && i < subs.length - 1) {
             repository = repository.getChildRepository(subs[i++]);
         }
-        return repository.getResource(subs[i]);
+        return repository == null ? null : repository.getResource(subs[i]);
     }
 
     /**
@@ -164,6 +202,8 @@ public abstract class AbstractRepository implements Repository {
 
         return allResources;
     }
+
+
 
     /**
      * Returns the repositories full name as string representation.

@@ -59,7 +59,7 @@ public final class ZipRepository extends AbstractRepository {
      * repository
      * @param file a zip file
      */
-    protected ZipRepository(File file, Repository parent) {
+    protected ZipRepository(File file, AbstractRepository parent) {
         this(file, parent, null);
     }
 
@@ -70,7 +70,7 @@ public final class ZipRepository extends AbstractRepository {
      * @param zipentry zip entryName
      * @param parent repository
      */
-    private ZipRepository(File file, Repository parent, ZipEntry zipentry) {
+    private ZipRepository(File file, AbstractRepository parent, ZipEntry zipentry) {
         // make sure our file has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         if (file.isAbsolute()) {
@@ -222,6 +222,11 @@ public final class ZipRepository extends AbstractRepository {
      * @return the child repository
      */
     public Repository getChildRepository(String name) {
+        if (".".equals(name)) {
+            return this;
+        } else if ("..".equals(name)) {
+            return parent;
+        }
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
 

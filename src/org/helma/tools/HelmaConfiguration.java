@@ -69,44 +69,63 @@ public class HelmaConfiguration {
             String[] paths = StringUtils.split(modulePath, File.pathSeparator);
             for (int i = 0; i < paths.length; i++) {
                 String path = paths[i].trim();
-                Repository repo = home.getChildRepository(path);
-                if (repo.exists()) {
-                    repositories.add(repo);
-                    continue;
-                }
-                File file = new File(path);
-                if (!file.isAbsolute()) {
-                    // if path is relative, try to resolve against current directory first,
-                    // then relative to helma installation directory.
-                    file = file.getAbsoluteFile();
-                    if (!file.exists()) {
-                        file = new File(home.getPath(), path);
-                    }
-                }
-                if (!file.exists()) {
-                    throw new FileNotFoundException("File '" + file + "' does not exist.");
-                }
-                if (path.toLowerCase().endsWith(".zip")) {
-                    repositories.add(new ZipRepository(file));
+                Repository repository = resolveRootRepository(path);
+                if (repository != null && repository.exists()) {
+                    repositories.add(repository);
                 } else {
-                    if (i == 0 && file.isFile()) {
-                        Resource res = new FileResource(file);
-                        mainModule = res.getBaseName();
-                        repositories.add(res.getParentRepository());
-                    } else {
-                        repositories.add(new FileRepository(file));
-                    }
+                    getLogger().error("Cannot resolve module path entry: " + path);
                 }
             }
         }
 
         // append system modules path relative to helma home
         if (systemModules != null) {
-            Repository modules = home.getChildRepository(systemModules);
-            repositories.add(modules);
+            Repository repository = resolveRootRepository(systemModules);
+                if (repository != null && repository.exists()) {
+                    repositories.add(repository);
+                } else {
+                    getLogger().error("Cannot resolve system module root: " + systemModules);
+                }
         }
 
-        Logger.getLogger("org.helma.tools").debug("Parsed repository list: " + repositories);
+        getLogger().debug("Parsed repository list: " + repositories);
+    }
+
+    /**
+     * Resolve a module repository path.
+     * @param path the path
+     * @return a repository
+     * @throws FileNotFoundException if the path couldn't be resolved
+     */
+    public Repository resolveRootRepository(String path) throws FileNotFoundException {
+        Repository repository = home.getChildRepository(path);
+        if (repository != null && repository.exists()) {
+            repository.setRoot();
+            return repository;
+        }
+        File file = new File(path);
+        if (!file.isAbsolute()) {
+            // if path is relative, try to resolve against current directory first,
+            // then relative to helma installation directory.
+            file = file.getAbsoluteFile();
+            if (!file.exists()) {
+                file = new File(home.getPath(), path);
+            }
+        }
+        if (!file.exists()) {
+            throw new FileNotFoundException("File '" + file + "' does not exist.");
+        }
+        if (path.toLowerCase().endsWith(".zip")) {
+            return new ZipRepository(file);
+        } else {
+            if (file.isFile()) {
+                Resource res = new FileResource(file);
+                mainModule = res.getBaseName();
+                return res.getParentRepository();
+            } else {
+                return new FileRepository(file);
+            }
+        }
     }
 
     /**
@@ -216,7 +235,7 @@ public class HelmaConfiguration {
     public Resource getResource(String path) {
         for (Repository repo: repositories) {
             Resource res = repo.getResource(path);
-            if (res.exists()) {
+            if (res != null && res.exists()) {
                 return res;
             }
         }
@@ -267,6 +286,10 @@ public class HelmaConfiguration {
 
     public void setSealed(boolean sealed) {
         this.sealed = sealed;
+    }
+
+    private Logger getLogger() {
+        return Logger.getLogger("org.helma.tools");
     }
 
 }

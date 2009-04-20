@@ -54,4 +54,10 @@ public interface Trackable {
      */
     public Repository getParentRepository();
 
+    /**
+     * Utility method to get the name for the module defined by this resource.
+     * @return the module name according to the securable module spec
+     */
+    public String getModuleName();
+
 }

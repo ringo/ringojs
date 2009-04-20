@@ -34,6 +34,7 @@ public class ReloadableScript {
 
     final Trackable source;
     final RhinoEngine engine;
+    final String moduleName;
     // the checksum of the underlying resource or repository when
     // the script was last compiled
     long checksum = -1;
@@ -60,6 +61,7 @@ public class ReloadableScript {
     public ReloadableScript(Trackable source, RhinoEngine engine) {
         this.source = source;
         this.engine = engine;
+        moduleName = source.getModuleName();
     }
 
     /**
@@ -101,7 +103,7 @@ public class ReloadableScript {
         Resource resource = (Resource) source;
         try {
             exception = null;
-            script = cx.compileReader(resource.getReader(), resource.getPath(), 1, null);
+            script = cx.compileReader(resource.getReader(), resource.getRelativePath(), 1, null);
         } catch (Exception x) {
             exception = x;
         } finally {
@@ -129,7 +131,7 @@ public class ReloadableScript {
             exception = null;
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {
-                    scripts.add(cx.compileReader(res.getReader(), res.getPath(), 1, null));
+                    scripts.add(cx.compileReader(res.getReader(), res.getRelativePath(), 1, null));
                 }
            }
         } catch (Exception x) {
@@ -180,13 +182,12 @@ public class ReloadableScript {
      * Get a module scope loaded with this script
      *
      * @param prototype the prototype for the module, usually the shared top level scope
-     * @param moduleName the module name
      * @param cx the rhino context
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected synchronized Scriptable load(Scriptable prototype, String moduleName, Context cx)
+    protected synchronized Scriptable load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
         Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");

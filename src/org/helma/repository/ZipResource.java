@@ -21,13 +21,9 @@ import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public final class ZipResource implements Resource {
+public final class ZipResource extends AbstractResource {
 
     private String entryName;
-    private ZipRepository repository;
-    private String path;
-    private String name;
-    private String baseName;
 
     protected ZipResource(String zipentryName, ZipRepository repository) {
         this.entryName = zipentryName;
@@ -55,7 +51,7 @@ public final class ZipResource implements Resource {
     public InputStream getInputStream() throws IOException {
         ZipFile zipfile = null;
         try {
-            zipfile = repository.getZipFile();
+            zipfile = getZipFile();
             ZipEntry entry = zipfile.getEntry(entryName);
             if (entry == null) {
                 throw new IOException("Zip resource " + this + " does not exist");
@@ -81,14 +77,10 @@ public final class ZipResource implements Resource {
         }
     }
 
-    public Reader getReader() throws IOException {
-        return new InputStreamReader(getInputStream());
-    }
-
     public boolean exists() {
         ZipFile zipfile = null;
         try {
-            zipfile = repository.getZipFile();
+            zipfile = getZipFile();
             return (zipfile.getEntry(entryName) != null);
         } catch (Exception ex) {
             return false;
@@ -104,7 +96,7 @@ public final class ZipResource implements Resource {
     public String getContent(String encoding) throws IOException {
         ZipFile zipfile = null;
         try {
-            zipfile = repository.getZipFile();
+            zipfile = getZipFile();
             ZipEntry entry = zipfile.getEntry(entryName);
             if (entry == null) {
                 return "";
@@ -130,22 +122,6 @@ public final class ZipResource implements Resource {
         }
     }
 
-    public String getContent() throws IOException {
-        return getContent(null);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getBaseName() {
-        return baseName;
-    }
-
     public URL getUrl() {
         // TODO: we might want to return a Jar URL
         // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
@@ -155,7 +131,7 @@ public final class ZipResource implements Resource {
     public long getLength() {
         ZipFile zipfile = null;
         try {
-            zipfile = repository.getZipFile();
+            zipfile = getZipFile();
             return zipfile.getEntry(entryName).getSize();            
         } catch (Exception ex) {
             return 0;
@@ -185,5 +161,12 @@ public final class ZipResource implements Resource {
     @Override
     public String toString() {
         return getPath();
+    }
+
+    private ZipFile getZipFile() throws IOException {
+        if (!(repository instanceof ZipRepository)) {
+            throw new IOException("Parent is not a ZipRepository: " + repository);
+        }
+        return ((ZipRepository) repository).getZipFile();
     }
 }

@@ -68,4 +68,15 @@ public interface Repository extends Trackable {
      */
     public Repository getChildRepository(String name);
 
+    /**
+     * Mark this repository as root repository.
+     */
+    public void setRoot();
+
+    /**
+     * Get the path of this repository relative to its root repository.
+     * @return the repository path
+     */
+    public String getRelativePath();
+
 }

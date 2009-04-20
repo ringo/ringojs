@@ -148,7 +148,7 @@ public class RhinoEngine {
                     interpretedScripts : compiledScripts;
             commandLineArgs = Arrays.asList(scriptArgs);
             Resource resource = findResource(scriptName, null);
-            if (!resource.exists()) {
+            if (resource == null || !resource.exists()) {
                 resource = new FileResource(new File(scriptName));
             }
             if (!resource.exists()) {
@@ -389,7 +389,7 @@ public class RhinoEngine {
         ReloadableScript parent = getCurrentScript(cx);
         try {
             setCurrentScript(cx, script);
-            module = script.load(topLevelScope, moduleName, cx);
+            module = script.load(topLevelScope, cx);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
@@ -491,10 +491,10 @@ public class RhinoEngine {
     /**
      * Search for a resource in a local path, or the main repository path.
      * @param path the resource name
-     * @param localPath a repository to look first
+     * @param localRoot a repository to look first
      * @return the resource
      */
-    public Resource findResource(String path, Repository localPath) {
+    public Resource findResource(String path, Repository localRoot) {
         // FIXME: we allow absolute module paths, and we do not check
         // if relative paths escape their root repository. These are
         // of course gaping security holes for environments running
@@ -502,8 +502,8 @@ public class RhinoEngine {
         File file = new File(path);
         if (file.isAbsolute()) {
             return new FileResource(file);
-        } else if (localPath != null && path.startsWith(".")) {
-            return localPath.getResource(path);
+        } else if (localRoot != null && path.startsWith(".")) {
+            return findResource(localRoot.getRelativePath() + path, null);
         } else {
             return config.getResource(path);
         }

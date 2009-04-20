@@ -96,6 +96,11 @@ public class FileRepository extends AbstractRepository {
      * @return the child repository
      */
     public Repository getChildRepository(String name) {
+        if (".".equals(name)) {
+            return this;
+        } else if ("..".equals(name)) {
+            return parent;
+        }
         return new FileRepository(new File(directory, name), this);
     }
 

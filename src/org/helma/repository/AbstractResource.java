@@ -7,7 +7,7 @@ import java.io.Reader;
 
 public abstract class AbstractResource implements Resource {
 
-    protected Repository repository;
+    protected AbstractRepository repository;
     protected String path;
     protected String name;
     protected String baseName;
@@ -54,6 +54,38 @@ public abstract class AbstractResource implements Resource {
 
     public String getContent() throws IOException {
         return getContent(null);
+    }
+
+    /**
+     * Get the path of this resource relative to its root repository.
+     *
+     * @return the relative resource path
+     */
+    public String getRelativePath() {
+        if (repository == null) {
+            return name;
+        } else {
+            StringBuffer b = new StringBuffer();
+            repository.getRelativePath(b);
+            b.append(name);
+            return b.toString();
+        }
+    }
+
+    /**
+     * Utility method to get the name for the module defined by this resource.
+     *
+     * @return the module name according to the securable module spec
+     */
+    public String getModuleName() {
+        if (repository == null) {
+            return baseName;
+        } else {
+            StringBuffer b = new StringBuffer();
+            repository.getRelativePath(b);
+            b.append(baseName);
+            return b.toString();
+        }
     }
 
     public long getChecksum() {
