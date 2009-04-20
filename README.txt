@@ -121,7 +121,7 @@ addToClasspath(jarfile)
 
 getResource(path)
 
-    This loads a resource object. See the importModule functions above for a
+    This loads a resource object. See the import functions above for a
     detailed explanation of helma.modulepath and resource lookup.
 
 Building Helma
