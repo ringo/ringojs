@@ -97,6 +97,9 @@ public class Main {
             throws IOException, MalformedURLException {
         // check if home directory is set via system property
         String helmaHome = System.getProperty("helma.home");
+        if (helmaHome == null) {
+            helmaHome = System.getenv("HELMA_HOME");
+        }
 
         if (helmaHome == null) {
 

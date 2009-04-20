@@ -61,8 +61,18 @@ public class HelmaRunner {
             }
         }
 
-        FileRepository home = new FileRepository(System.getProperty("helma.home", "."));
+        String helmaHome = System.getProperty("helma.home");
+        if (helmaHome == null) {
+            helmaHome = System.getenv("HELMA_HOME");
+        }
+        if (helmaHome == null) {
+            helmaHome = ".";
+        }
+        FileRepository home = new FileRepository(helmaHome);
         String modulePath = System.getProperty("helma.modulepath");
+        if (modulePath == null) {
+            modulePath = System.getenv("HELMA_MODULE_PATH");
+        }
         HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
         config.addScriptRepository(scriptName);
         if (optlevel >= -1) {

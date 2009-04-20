@@ -66,7 +66,7 @@ public class HelmaConfiguration {
         }
 
         if (modulePath != null) {
-            String[] paths = StringUtils.split(modulePath, ",");
+            String[] paths = StringUtils.split(modulePath, File.pathSeparator);
             for (int i = 0; i < paths.length; i++) {
                 String path = paths[i].trim();
                 Repository repo = home.getChildRepository(path);
