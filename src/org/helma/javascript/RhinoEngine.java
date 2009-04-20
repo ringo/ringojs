@@ -97,7 +97,7 @@ public class RhinoEngine {
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            evaluate(cx, getScript("global"), topLevelScope);
+            evaluate(cx, getScript("helmaglobal"), topLevelScope);
             if (config.isSealed()) {
                 topLevelScope.sealObject();
             }
