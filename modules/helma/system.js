@@ -3,7 +3,6 @@
  */
 
 require('core/object');
-import('helma/logging');
 
 export('addHostObject',
         'addRepository',
@@ -17,8 +16,7 @@ export('addHostObject',
         'setOptimizationLevel',
         'args');
 
-var log = helma.logging.getLogger(__name__);
-var omj = org.mozilla.javascript;
+var rhino = org.mozilla.javascript;
 
 // mark this module as shared between all requests
 var __shared__ = true;
@@ -39,8 +37,8 @@ function addHostObject(javaClass) {
  */
 function createSandbox(modulePath, globals, shutter, sealed) {
     if (shutter) {
-        if (!(shutter instanceof omj.ClassShutter)) {
-            shutter = new omj.ClassShutter(shutter);
+        if (!(shutter instanceof rhino.ClassShutter)) {
+            shutter = new rhino.ClassShutter(shutter);
         }
     } else {
         shutter = null;
@@ -104,7 +102,7 @@ function evaluate(moduleName, scope) {
  * Get the org.mozilla.javascript.Context associated with the current thread.
  */
 function getRhinoContext() {
-    return omj.Context.getCurrentContext();
+    return rhino.Context.getCurrentContext();
 }
 
 /**
