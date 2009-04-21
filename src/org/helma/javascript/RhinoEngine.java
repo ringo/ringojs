@@ -199,7 +199,7 @@ public class RhinoEngine {
                     Scriptable module = loadModule(cx, moduleName, null);
                     Object function = ScriptableObject.getProperty(module, method);
                     if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
-                        throw new NoSuchMethodException("Function " + method + "() not defined");
+                        throw new NoSuchMethodException("Function " + method + " not defined");
                     }
                     retval = ((Function) function).call(cx, topLevelScope, module, args);
                     break;
@@ -214,6 +214,40 @@ public class RhinoEngine {
                 } catch (RetryException retry) {
                     // request to try again
                     ((Map) cx.getThreadLocal("modules")).clear();                    
+                }
+            }
+            if (retval instanceof Wrapper) {
+                return ((Wrapper) retval).unwrap();
+            }
+            return retval;
+        } finally {
+            Context.exit();
+            resetThreadLocals(cx, threadLocals);
+        }
+    }
+
+    public Object invoke(Callable callable, Object... args)
+            throws IOException, NoSuchMethodException {
+        Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
+        try {
+            initArguments(args);
+            Object retval;
+            while (true) {
+                try {
+                    retval = callable.call(cx, topLevelScope, null, args);
+                    break;
+                } catch (JavaScriptException jsx) {
+                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
+                            (Scriptable) jsx.getValue() : null;
+                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
+                        ((Map) cx.getThreadLocal("modules")).clear();
+                    } else {
+                        throw jsx;
+                    }
+                } catch (RetryException retry) {
+                    // request to try again
+                    ((Map) cx.getThreadLocal("modules")).clear();
                 }
             }
             if (retval instanceof Wrapper) {

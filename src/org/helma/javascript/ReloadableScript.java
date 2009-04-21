@@ -190,7 +190,8 @@ public class ReloadableScript {
     protected synchronized Scriptable load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<Trackable,Scriptable> modules = (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        Map<Trackable,Scriptable> modules =
+                (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
         if (modules.containsKey(source)) {
             return modules.get(source);
         }

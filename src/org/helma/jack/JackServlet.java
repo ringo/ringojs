@@ -21,6 +21,7 @@ import org.helma.repository.Repository;
 import org.helma.repository.FileRepository;
 import org.helma.repository.WebappRepository;
 import org.helma.javascript.RhinoEngine;
+import org.mozilla.javascript.Callable;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,9 +35,15 @@ public class JackServlet extends HttpServlet {
 
     String module, function;
     RhinoEngine engine;
+    Callable callable;
 
     public JackServlet(RhinoEngine engine) throws ServletException {
+        this(engine, null);
+    }
+
+    public JackServlet(RhinoEngine engine, Callable callable) throws ServletException {
         this.engine = engine;
+        this.callable = callable;
         try {
             engine.defineHostClass(JackEnv.class);
         } catch (Exception x) {
@@ -47,11 +54,11 @@ public class JackServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        module = getInitParam(config, "module", "app");
-        function = getInitParam(config, "function", "handler");
+        module = getInitParam(config, "moduleName", "app");
+        function = getInitParam(config, "functionName", "handler");
 
         if (engine == null) {
-            String helmaHome = getInitParam(config, "home", "WEB-INF");
+            String helmaHome = getInitParam(config, "helmaHome", "WEB-INF");
             String modulePath = getInitParam(config, "modulePath", "modules");
 
             Repository home = new WebappRepository(config.getServletContext(), helmaHome);
@@ -72,8 +79,12 @@ public class JackServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            Object result = engine.invoke(module, function, new JackEnv(request));
-            engine.invoke("helma/jack", "applyResponse", response, result);
+            JackEnv env = new JackEnv(request, response);
+            engine.invoke("helma/httpserver", "initRequest", env);
+            Object result = callable == null ?
+                    engine.invoke(module, function, env) :
+                    engine.invoke(callable, env);
+            engine.invoke("helma/httpserver", "commitResponse", env, result);
         } catch (NoSuchMethodException x) {
             throw new ServletException("Method not found", x);
         }

@@ -19,24 +19,29 @@ package org.helma.jack;
 import org.mozilla.javascript.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
 public class JackEnv extends ScriptableObject {
 
-    HttpServletRequest req;
+    HttpServletRequest request;
+    HttpServletResponse response;
 
     public JackEnv() {}
 
-    public JackEnv(Object obj) {
-        if (!(obj instanceof HttpServletRequest)) {
-            throw new IllegalArgumentException("Wrong argument: " + obj);
+    public JackEnv(Object req, Object res) {
+        if (!(req instanceof HttpServletRequest)) {
+            throw new IllegalArgumentException("Wrong argument: " + req);
+        } else if (!(res instanceof HttpServletResponse)) {
+            throw new IllegalArgumentException("Wrong argument: " + res);
         }
-        req = (HttpServletRequest) obj;
-        for (Enumeration e = req.getHeaderNames(); e.hasMoreElements(); ) {
+        this.request = (HttpServletRequest) req;
+        this.response = (HttpServletResponse) res;
+        for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
-            String value = req.getHeader(name);
+            String value = request.getHeader(name);
             name = name.replace('-', '_').toUpperCase();
             if (!"CONTENT_LENGTH".equals(value) && !"CONTENT_TYPE".equals(value)) {
                 name = "HTTP_" + name;
@@ -47,51 +52,59 @@ public class JackEnv extends ScriptableObject {
 
 
     public String getScriptName() {
-        return checkString(req.getServletPath());
+        return checkString(request.getServletPath());
     }
 
     public String getPathInfo() {
-        return checkString(req.getPathInfo());
+        return checkString(request.getPathInfo());
     }
 
     public String getRequestMethod() {
-        return checkString(req.getMethod());
+        return checkString(request.getMethod());
     }
 
     public String getServerName() {
-        return checkString(req.getServerName());
+        return checkString(request.getServerName());
     }
     
     public String getServerPort() {
-        return checkString(Integer.toString(req.getServerPort()));
+        return checkString(Integer.toString(request.getServerPort()));
     }
 
     public String getQueryString() {
-        return checkString(req.getQueryString());
+        return checkString(request.getQueryString());
     }
 
     public String getHttpVersion() {
-        return checkString(req.getProtocol());
+        return checkString(request.getProtocol());
     }
 
     public String getRemoteHost() {
-        return checkString(req.getRemoteHost());
+        return checkString(request.getRemoteHost());
     }
 
     public String getUrlScheme() {
-        return req.isSecure() ? "https" : "http";
+        return request.isSecure() ? "https" : "http";
     }
 
     public Object getInputStream() {
         try {
-            return req.getInputStream();
+            return Context.javaToJS(request.getInputStream(), this);
         } catch (IOException iox) {
             return Undefined.instance;
         }
     }
 
     public Object getErrorStream() {
-        return System.err;
+        return Context.javaToJS(System.err, this);
+    }
+
+    public Object getServletRequest() {
+        return Context.javaToJS(request, this);
+    }
+
+    public Object getServletResponse() {
+        return Context.javaToJS(response, this);
     }
 
     public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
@@ -115,6 +128,8 @@ public class JackEnv extends ScriptableObject {
         ScriptableObject.defineProperty(proto, "jack.multiprocess", Boolean.TRUE, flags);
         ScriptableObject.defineProperty(proto, "jack.run_once", Boolean.FALSE, flags);
         proto.defineProperty("jack.url_scheme", null, getMethod("getUrlScheme"), null, flags);
+        proto.defineProperty("jack.servlet_request", null, getMethod("getServletRequest"), null, flags);
+        proto.defineProperty("jack.servlet_response", null, getMethod("getServletResponse"), null, flags);
     }
 
     private static Method getMethod(String name) throws NoSuchMethodException {
@@ -130,7 +145,7 @@ public class JackEnv extends ScriptableObject {
         // FIXME: implement IO wrappers
         if ("jack.input".equals(name)) {
             try {
-                return Context.toObject(req.getInputStream(), this);
+                return Context.toObject(request.getInputStream(), this);
             } catch (IOException iox) {
                 return Undefined.instance;
             }

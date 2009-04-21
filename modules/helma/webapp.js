@@ -1,4 +1,4 @@
-11/*
+/*
  * The webapp module provides support for building web applications in Helma NG.
  */
 
@@ -17,26 +17,20 @@ export('start', 'stop', 'getConfig', 'handleServletRequest', 'error', 'notfound'
 
 var log = logging.getLogger(__name__);
 
-function handleJackRequest(env) {}
-
-// support old name
-function handleRequest(req, res) {
-    return handleServletRequest(req, res);
-}
+var __shared__ = true;
 
 /**
- * Handler function called by the Helma servlet. 
+ * Handler function called by the Jack servlet.
  *
- * @param req
- * @param res
+ * @param env the jack environment argument
  */
-function handleServletRequest(servletRequest, servletResponse) {
+function handleRequest(env) {
     // get config and apply it to req, res
     var config = getConfig();
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
 
-    var req = new Request(servletRequest);
-    var res = new Response(servletResponse);
+    var req = new Request(env['jack.servlet_request']);
+    var res = new Response(env['jack.servlet_response']);
 
     req.charset = res.charset = config.charset || 'utf8';
     res.contentType = config.contentType || 'text/html';

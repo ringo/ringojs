@@ -2,7 +2,7 @@
  * Module for starting and stopping the jetty http server.
  */
 
-export('start', 'stop');
+export('start', 'stop', 'initRequest', 'commitResponse');
 
 // mark this module as shared between all requests
 var __shared__ = true;
@@ -32,7 +32,7 @@ var log = require('helma/logging').getLogger(__name__);
      *                      function: 'handleServletRequest' })</li>
      * </ul>
      */
-    this.start = function(config) {
+    this.start = function(config, func) {
         config = config || {};
         var configFile = config.configFile || 'config/jetty.xml';
         // var staticIndex = config.staticIndex || config.staticIndex == undefined;
@@ -44,7 +44,7 @@ var log = require('helma/logging').getLogger(__name__);
             }
             var jetty = org.mortbay.jetty;
             var XmlConfiguration = org.mortbay.xml.XmlConfiguration;
-            var HelmaServlet = org.helma.web.HelmaServlet;
+            var Servlet = org.helma.jack.JackServlet;
             server = new jetty.Server();
             try {
                 var xmlconfig = new XmlConfiguration(jettyconfig.inputStream);
@@ -56,7 +56,7 @@ var log = require('helma/logging').getLogger(__name__);
                 xmlconfig.configure(server);
                 //everything else is configured via idmap
                 var idMap = xmlconfig.getIdMap();
-                // java.lang.System.err.println("idmap: " + idMap);
+                // print("idmap: " + idMap);
                 var staticCtx = idMap.get('staticContext');
                 if (staticCtx && typeof config.staticDir == "string") {
                     staticCtx.setResourceBase(getResource(config.staticDir));
@@ -66,11 +66,11 @@ var log = require('helma/logging').getLogger(__name__);
                 // set up helma servlet context
                 var helmaCtx = idMap.get('helmaContext');
                 if (helmaCtx) {
-                    var servlet = new HelmaServlet(engine);
+                    var servlet = func ? new Servlet(engine, func) : new Servlet(engine);
                     var servletHolder = new jetty.servlet.ServletHolder(servlet);
-                    var params = config.servletParams || {
-                        'module': 'helma/webapp',
-                        'function': 'handleServletRequest'
+                    var params = {
+                        'moduleName': config.moduleName || 'helma/webapp',
+                        'functionName': config.functionName || 'handleRequest'
                     };
                     for (var p in params) {
                         servletHolder.setInitParameter(p, params[p]);
@@ -101,3 +101,44 @@ var log = require('helma/logging').getLogger(__name__);
     }
 
 })(this);
+
+/**
+ * Set up the IO related properties of a jack environment object.
+ * @param env a jack request object
+ */
+function initRequest(env) {
+    var IO = require('io').IO;
+    env['jack.input'] = new IO(env['jack.input'], null);
+    env['jack.error'] = new IO(null, env['jack.error']);
+}
+
+/**
+ * Apply the return value of a Jack application to a servlet response.
+ * This is used internally by the org.helma.jack.JackServlet class, so
+ * you won't need this unless you're implementing your own servlet
+ * based jack connector.
+ *
+ * @param env the jack env argument
+ * @param result the object returned by a jack application
+ */
+function commitResponse(env, result) {
+    var response = env['jack.servlet_response'];
+    if (response.isCommitted() || !(result instanceof Array))
+        return;
+	var [status, headers, body] = result;
+	response.status = status;
+	for (var name in headers) {
+		response.setHeader(name, headers[name]);
+	}
+	var writer = response.writer;
+	if (body && typeof body.forEach == "function") {
+		body.forEach(function(chunk) {
+			writer.write(String(chunk));
+			writer.flush();
+		})
+	} else {
+		writer.write(String(body));
+	}
+    writer.close();
+}
+
