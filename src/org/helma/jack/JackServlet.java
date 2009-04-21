@@ -37,6 +37,8 @@ public class JackServlet extends HttpServlet {
     RhinoEngine engine;
     Callable callable;
 
+    public JackServlet() {}
+
     public JackServlet(RhinoEngine engine) throws ServletException {
         this(engine, null);
     }
