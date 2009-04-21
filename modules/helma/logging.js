@@ -34,7 +34,7 @@ exports.getLogger = function(name) {
         // getResource('foo').name gets us the absolute path to a local resource
         this.setConfig(getResource('config/log4j.properties'));
     }
-    return org.apache.log4j.Logger.getLogger(name);
+    return org.apache.log4j.Logger.getLogger(name.replace('/', '.'));
 }
 
 // now that getLogger is installed we can get our own log
