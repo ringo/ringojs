@@ -91,8 +91,14 @@ function Session(servletRequest) {
     define("data", {
         get: function() {
             if (!data) {
-                data = new ScriptableMap();
-                getSession().setAttribute("helma", data);
+                var session = getSession();
+                data = session.getAttribute("helma");
+                if (!data) {
+                    data = new ScriptableMap();
+                    session.setAttribute("helma", data);
+                } else {
+                    data = new ScriptableMap(data);
+                }
             }
             return data;
         }
