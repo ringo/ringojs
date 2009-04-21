@@ -9,7 +9,8 @@ exports.urls = [
 
 exports.middleware = [
     // 'helma/webapp/continuation',
-    'helma/logging'
+    'helma/logging',
+    'helma/profiler'
 ];
 
 exports.charset = 'utf8';

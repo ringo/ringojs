@@ -4,7 +4,7 @@ import('helma/system');
 import('helma/logging');
 import('helma/shell');
 
-export('onRequest', 'onResponse', 'onError', 'Profiler');
+export('handleRequest', 'Profiler');
 
 var system = helma.system;
 var {write, writeln} = helma.shell;
@@ -18,7 +18,7 @@ var log = helma.logging.getLogger(__name__);
     var maxFrames = 20;
     var profiler;
 
-    this.onRequest = function() {
+    this.handleRequest = function(req) {
         if (system.getOptimizationLevel() > -1) {
             system.setOptimizationLevel(-1);
             throw {retry: true};
@@ -27,23 +27,22 @@ var log = helma.logging.getLogger(__name__);
             profiler = new Profiler();
         }
         system.getRhinoContext().setDebugger(profiler, null);
-    };
 
-    this.onResponse = this.onError = function(req, res) {
-        if (system.getOptimizationLevel() > -1) {
-            return;
-        }
+        var res = req.process();
+
         var result = profiler.getResult(maxFrames);
-        var b = new Buffer();
-        b.writeln();
-        b.writeln("     total  average  calls    path");
+        var buffer = new Buffer();
+        buffer.writeln();
+        buffer.writeln("     total  average  calls    path");
         for (var i = 1; i < result.maxLength; i++) {
             // b.write("—");
-            b.write("-");
+            buffer.write("-");
         }
-        b.writeln();
-        b.writeln(result.data);
-        log.info(b.toString());
+        buffer.writeln();
+        buffer.writeln(result.data);
+        log.info(buffer.toString());
+
+        return res;
     };
 }).apply(this);
 

@@ -60,4 +60,10 @@ public interface Trackable {
      */
     public String getModuleName();
 
+    /**
+     * Get the path of this resource relative to its root repository.
+     * @return the relative resource path
+     */
+    public String getRelativePath();
+
 }

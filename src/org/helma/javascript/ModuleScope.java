@@ -47,7 +47,7 @@ public class ModuleScope extends NativeObject {
         defineProperty("exports", exports,  DONTENUM);
         defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
         defineProperty("__name__", moduleName, DONTENUM);
-        defineProperty("__path__", source.getPath(), DONTENUM);
+        defineProperty("__path__", source.getRelativePath(), DONTENUM);
     }
 
     public Repository getRepository() {
