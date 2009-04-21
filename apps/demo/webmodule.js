@@ -1,4 +1,5 @@
 // a simple web app/module
+include('helma/webapp/response');
 
 export('index');
 
@@ -7,5 +8,5 @@ function index(req, res) {
         title: 'Module Demo',
         href: req.path
     };
-    res.render('skins/modules.html', context);
+    return new SkinnedResponse('skins/modules.html', context);
 }

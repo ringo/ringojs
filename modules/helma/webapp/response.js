@@ -1,31 +1,35 @@
+include('hashp');
 include('helma/buffer');
 import('helma/system', 'system');
 
-export('Response');
+export('Response', 'SkinnedResponse', 'RedirectResponse' /*, 'NotFoundResponse', 'ServerErrorResponse'*/);
 
-// FIXME hack to get this to evaluate
-function Response(servletResponse) {
+function Response() {
 
-    var writer;
     var status = 200;
+    var charset;
+    var contentType;
+    var headers = {};
+    var buffer = new Buffer();
 
     Object.defineProperty(this, 'write', {
         value: function write() {
-            writer = writer || servletResponse.getWriter();
             var length = arguments.length;
             for (var i = 0; i < length; i++) {
-                writer.write(String(arguments[i]));
+                buffer.write(String(arguments[i]));
                 if (i < length - 1)
-                    writer.write(' ');
+                    buffer.write(' ');
             }
             return this;
         }
     });
 
+    this.write.apply(this, arguments);
+
     Object.defineProperty(this, 'writeln', {
         value: function writeln() {
             this.write.apply(this, arguments);
-            this.write('\r\n');
+            buffer.write('\r\n');
             return this;
         }
     });
@@ -33,14 +37,14 @@ function Response(servletResponse) {
 
     /**
      * Render a skin to the response's buffer
-     * @param skin
-     * @param context
-     * @param scope
+     * @param skin path to skin resource
+     * @param context context object
+     * @param scope optional scope for relative resource paths
      */
     Object.defineProperty(this, 'render', {
         value: function render(skin, context, scope) {
             var render = require('helma/skin').render;
-            this.write(render(skin, context, scope));
+            buffer.write(render(skin, context, scope));
         }
     });
 
@@ -79,28 +83,27 @@ function Response(servletResponse) {
     });
 
     Object.defineProperty(this, 'redirect', {
-        value: function(target) {
-            servletResponse.sendRedirect(target);
-            // fixme: temporary solution until webapp refactoring
-            throw {redirect: target};
+        value: function(location) {
+            status = 303;
+            HashP.set(headers, 'Location', String(location));
         }
     });
 
     Object.defineProperty(this, 'charset', {
         get: function() {
-            return servletResponse.getCharacterEncoding();
+            return charset;
         },
-        set: function(charset) {
-            servletResponse.setCharacterEncoding(charset);
+        set: function(c) {
+            charset = c;
         }
     });
 
     Object.defineProperty(this, 'contentType', {
         get: function() {
-            return servletResponse.getContentType();
+            return contentType;
         },
-        set: function(contentType) {
-            servletResponse.setContentType(contentType);
+        set: function(c) {
+            contentType = c;
         }
     });
 
@@ -110,8 +113,41 @@ function Response(servletResponse) {
         },
         set: function(s) {
             status = s;
-            servletResponse.setStatus(s);
         }
     });
 
+    Object.defineProperty(this, 'getHeader', {
+        value: function(key) {
+            HashP.get(headers, String(key));
+        }
+    });
+
+    Object.defineProperty(this, 'setHeader', {
+        value: function(key, value) {
+            HashP.set(headers, String(key), String(value));
+        }
+    });
+
+    Object.defineProperty(this, 'close', {
+        value: function() {
+            if (charset) {
+                contentType = contentType || HashP.get('content-type') || "text/html";
+                contentType += "; charset=" + charset;
+            }
+            if (contentType) {
+                HashP.set(headers, "Content-Type", contentType);
+            }
+            return [status, headers, buffer];
+        }
+    })
+
+}
+
+function SkinnedResponse(skin, context, scope) {
+    var render = require('helma/skin').render;
+    return [200, {}, render(skin, context, scope)];
+}
+
+function RedirectResponse(location) {
+    return [303, {Location: location}, "See other: " + location];
 }

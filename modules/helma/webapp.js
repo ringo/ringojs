@@ -30,17 +30,17 @@ function handleRequest(env) {
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
 
     var req = new Request(env['jack.servlet_request']);
-    var res = new Response(env['jack.servlet_response']);
+    var res;
 
-    req.charset = res.charset = config.charset || 'utf8';
-    res.contentType = config.contentType || 'text/html';
+    req.charset = config.charset || 'utf8';
+    // res.contentType = config.contentType || 'text/html';
 
     // invoke onRequest
-    invokeMiddleware('onRequest', config.middleware, [req, res]);
+    // invokeMiddleware('onRequest', config.middleware, [req, res]);
     // resume continuation?
-    if (continuation.resume(req, res)) {
+    /* if (continuation.resume(req, res)) {
         return;
-    }
+    } */
 
     // resolve path and invoke action
     var path = req.path;
@@ -96,31 +96,35 @@ function handleRequest(env) {
                     //split
                     path = path.split(/\/+/);
                     var action = getAction(module, path[0]);
-                    if (typeof action == "function" && path.length < action.length) {
+                    if (typeof action == "function" && path.length <= action.length) {
                         // add remaining path elements as additional action arguments
                         var actionArgs = path.slice(1).map(decodeURIComponent);
-                        var args = [req, res].concat(actionArgs);
-                        invokeMiddleware('onAction',
+                        var args = [req].concat(actionArgs);
+                        /* invokeMiddleware('onAction',
                                 config.middleware,
-                                [req, res, action, actionArgs]);
-                        action.apply(module, args);
-                        return;
+                                [req, action, actionArgs]); */
+                        res = action.apply(module, args);
                     }
                     break;
                 }
             }
         }
-        notfound(req, res);
     } catch (e) {
         if (e.retry) {
             throw e;
         } else if (!e.redirect) {
-            invokeMiddleware('onError', config.middleware, [req, res, e]);
-            error(req, res, e);
+            // invokeMiddleware('onError', config.middleware, [req, res, e]);
+            res = error(req, e);
         }
     } finally {
-        invokeMiddleware('onResponse', config.middleware, [req, res]);
+        // TODO
+        if (!res)
+            res = notfound(req);
+        if (!(res instanceof Array) && res.close)
+            res = res.close();
+        // invokeMiddleware('onResponse', config.middleware, [req, res]);
     }
+    return res;
 }
 
 function invokeMiddleware(hook, middleware, args) {
@@ -146,7 +150,8 @@ function invokeMiddleware(hook, middleware, args) {
  * Standard error page
  * @param e the error that happened
  */
-function error(req, res, e) {
+function error(req, e) {
+    var res = new Response();
     res.status = 500;
     res.contentType = 'text/html';
     res.writeln('<h2>', e, '</h2>');
@@ -165,18 +170,19 @@ function error(req, res, e) {
     } else {
         log.error(e.toString());
     }
-    return null;
+    return res.close();
 }
 
 /**
  * Standard notfound page
  */
-function notfound(req, res) {
+function notfound(req) {
+    var res = new Response();
     res.status = 404;
     res.contentType = 'text/html';
     res.writeln('<h1>Not Found</h1>');
     res.writeln('The requested URL', req.path, 'was not found on the server.');
-    return null;
+    return res.close();
 }
 
 /**

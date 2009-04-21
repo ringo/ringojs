@@ -1,26 +1,25 @@
 import('helma/logging');
+include('helma/webapp/response');
 
 var log = helma.logging.getLogger(__name__);
 
 export('index', 'extra_path', 'skins', 'logging', 'continuation');
 
 // the main action is invoked for http://localhost:8080/
-function index(req, res) {
-    res.render('skins/index.html', { title: 'Welcome to Helma NG' });
-    // res.debug(req.cookies.toSource());
-    // res.debug(req.params.toSource());
+function index(req) {
+    return new SkinnedResponse('skins/index.html', { title: 'Welcome to Helma NG' });
 }
 
 
 // additional path elements are passed to the action as arguments,
 // e.g. /extra.path/2008/09
-function extra_path(req, res, year, month) {
-    res.write("Extra arguments: ", year, month);
+function extra_path(req, year, month) {
+    return new Response("Extra arguments:", year, month);
 }
 
 // demo for skins, macros, filters
-function skins(req, res) {
-    res.render('skins/skins.html', {
+function skins(req) {
+    return new SkinnedResponse('skins/skins.html', {
         title: 'Skin Demo',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
@@ -28,7 +27,7 @@ function skins(req, res) {
 }
 
 // demo for log4j logging
-function logging(req, res) {
+function logging(req) {
     if (req.params.info) {
         log.info("Hello world!");
     } else if (req.params.error) {
@@ -38,18 +37,17 @@ function logging(req, res) {
             log.error(e, e.rhinoException);
         }
     }
-    res.render('skins/logging.html', { title: "Logging Demo" });
+    return new SkinnedResponse('skins/logging.html', { title: "Logging Demo" });
 }
 
 // demo for continuation support
 function continuation(req, res) {
 
-    res.render('skins/continuation.html', {
+    return new SkinnedResponse('skins/continuation.html', {
         title: "Continuations",
         skin: "start",
         note: "NOTE: Continuation support is currently broken, so I have disabled this demo for the time being."
     });
-	return;
 
     // local data - this is the data that is shared between resuming and suspension
     var data = {};

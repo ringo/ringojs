@@ -1,21 +1,21 @@
-import('helma/webapp', 'webapp');
-import('model');
+include('helma/webapp/response');
+include('model');
 
 export('index');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
-function index(req, res) {
+function index(req) {
     if (req.params.save) {
-        createBook(req, res);
+        return createBook(req);
     }
     if (req.params.remove) {
-        removeBook(req, res);
+        return removeBook(req);
     }
-    res.render('skins/index.html', {
+    return SkinnedResponse('skins/index.html', {
         title: 'Storage Demo',
         books: function(/*tag, skin, context*/) {
-            var books = model.Book.all();
+            var books = Book.all();
             return books.map(function(book) {
                 return book.getFullTitle() + ' ' + getDeleteLink(book);
             }).join('<br>\r\n');
@@ -23,19 +23,19 @@ function index(req, res) {
     });
 }
 
-function createBook(req, res) {
-    var author = new model.Author({name: req.params.author});
-    var book = new model.Book({author: author, title: req.params.title});
+function createBook(req) {
+    var author = new Author({name: req.params.author});
+    var book = new Book({author: author, title: req.params.title});
     // author is saved transitively
     book.save();
-    res.redirect('/');
+    return new RedirectResponse('/');
 }
 
-function removeBook(req, res) {
-    var book = model.Book.get(req.params.remove);
+function removeBook(req) {
+    var book = Book.get(req.params.remove);
     // author is removed through cascading delete
     book.remove();
-    res.redirect('/');
+    return new RedirectResponse('/');
 }
 
 function getDeleteLink(book) {
@@ -43,5 +43,5 @@ function getDeleteLink(book) {
 }
 
 if (__name__ == "__main__") {
-    webapp.start();
+    require('helma/webapp').start();
 }

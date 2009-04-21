@@ -31,6 +31,10 @@ function Buffer() {
         return content.join('');
     };
 
+    this.forEach = function(fn) {
+        content.forEach(fn);
+    }
+
     // hack
     this.toFirebugConsole = function() {
         var enc = JSON.stringify(this.toString());

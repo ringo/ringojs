@@ -1,17 +1,18 @@
+include('helma/webapp/response');
 include('model');
 
 export('index');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
-function index(req, res) {
+function index(req) {
     if (req.params.save) {
-        createBook(req, res);
+        return createBook(req);
     }
     if (req.params.remove) {
-        removeBook(req, res);
+        return removeBook(req);
     }
-    res.render('skins/index.html', {
+    return new SkinnedResponse('skins/index.html', {
         title: 'Storage Demo',
         books: function(/*tag, skin, context*/) {
             return Book.all().map(function(book) {
@@ -21,20 +22,20 @@ function index(req, res) {
     });
 }
 
-function createBook(req, res) {
+function createBook(req) {
     var author = new Author({name: req.params.author});
     author.save(); // no cascading save yet
     var book = new Book({author: author, title: req.params.title});
     book.save();
-    res.redirect('/');
+    return new RedirectResponse('/');
 }
 
-function removeBook(req, res) {
+function removeBook(req) {
     var book = Book.get(req.params.remove);
     // no cascading delete
     book.author.remove();
     book.remove();
-    res.redirect('/');
+    return new RedirectResponse('/');
 }
 
 function getDeleteLink(book) {
