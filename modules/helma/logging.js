@@ -34,7 +34,7 @@ exports.getLogger = function(name) {
         // getResource('foo').name gets us the absolute path to a local resource
         this.setConfig(getResource('config/log4j.properties'));
     }
-    return org.apache.log4j.Logger.getLogger(name.replace('/', '.'));
+    return org.apache.log4j.Logger.getLogger(name.replace(/\//g, '.'));
 }
 
 // now that getLogger is installed we can get our own log
@@ -73,7 +73,7 @@ exports.handleRequest = function handleRequest(req) {
         for (var i = 0; i < list.size(); i++) {
             var item = list.get(i);
             var msg = item[0];
-            var multiline = msg && msg.indexOf('\n') > 0 || msg.indexOf('\r')> 0;
+            var multiline = msg && msg.trim().indexOf('\n') > 0 || msg.indexOf('\r')> 0;
             body.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
             body.write("color: black; border-top: 1px solid black;\">");
             if (multiline) {
