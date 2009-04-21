@@ -124,7 +124,9 @@ function handleRequest(env) {
     } catch (e) {
         if (e.retry) {
             throw e;
-        } else if (!e.redirect) {
+        } else if (e.redirect) {
+            return new RedirectResponse(e.redirect);
+        } else {
             // invokeMiddleware('onError', config.middleware, [req, res, e]);
             res = error(req, e);
         }
@@ -154,7 +156,7 @@ function invokeMiddleware(middleware, args) {
         log.debug('invoking middleware: ' + middleware);
         return module[functionName].apply(module, args);
     } catch (e) {
-        if (!e.retry) {
+        if (!e.retry && !e.redirect) {
             log.error('Error in ' + middleware + ': ' + e);
         }
         throw e;
