@@ -33,7 +33,7 @@ a:active {
 
 #header h1 {
     float: left;
-    color: orange;
+    color: #c00;
     margin: 20px 10px;
     padding: 15px 5px;
 }
@@ -60,7 +60,7 @@ a:active {
 }
 
 #menu ul {
-    background-color: #abd;
+    background-color: #abc;
     border-width: 1px 1px 0 1px;
     border-color: white;
     border-style: solid;
@@ -81,7 +81,7 @@ div#menu li {
 }
 
 #menu a:hover {
-    background-color: orange;
+    background-color: #89a;
 }
 
 #footer {
