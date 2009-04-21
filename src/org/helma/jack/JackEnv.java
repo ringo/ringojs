@@ -120,8 +120,8 @@ public class JackEnv extends ScriptableObject {
         proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
         proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
-        proto.defineProperty("jack.input", null, getMethod("getInputStream"), null, flags);
-        proto.defineProperty("jack.error", null, getMethod("getErrorStream"), null, flags);
+        proto.defineProperty("jack.input_stream", null, getMethod("getInputStream"), null, flags);
+        proto.defineProperty("jack.error_stream", null, getMethod("getErrorStream"), null, flags);
         Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
         ScriptableObject.defineProperty(proto, "jack.version", version, flags);
         ScriptableObject.defineProperty(proto, "jack.multithread", Boolean.TRUE, flags);

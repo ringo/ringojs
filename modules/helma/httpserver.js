@@ -108,8 +108,8 @@ var log = require('helma/logging').getLogger(__name__);
  */
 function initRequest(env) {
     var IO = require('io').IO;
-    env['jack.input'] = new IO(env['jack.input'], null);
-    env['jack.error'] = new IO(null, env['jack.error']);
+    env['jack.input'] = new IO(env['jack.input_stream'], null);
+    env['jack.error'] = new IO(null, env['jack.error_stream']);
 }
 
 /**
