@@ -37,6 +37,14 @@ function ContinuationRequest(req, res, key) {
 };
 
 function ContinuationMark(req, key) {
+    if (system.getOptimizationLevel() > -1) {
+        system.setOptimizationLevel(-1);
+        throw { retry: true };
+    }
+    if (!req.params.helma_continuation) {
+        // set query param so helma knows to switch rhino optimization level to -1
+        throw { redirect: ContinuationUrl() };
+    }
     var id = req.params.helma_continuation;
     ids[key] = id;
     var cont = new Continuation();
@@ -51,15 +59,6 @@ function ContinuationMark(req, key) {
  * @return the continuation result
  */
 function handleRequest(req) {
-    if (system.getOptimizationLevel() > -1) {
-        system.setOptimizationLevel(-1);
-        throw { retry: true };
-    }
-    if (!req.params.helma_continuation) {
-        // set query param so helma knows to switch rhino optimization level to -1
-        throw { redirect: ContinuationUrl() };
-    }
-
     var id = req.params.helma_continuation;
     var continuation = getCallback(req, id);
     if (continuation) {
