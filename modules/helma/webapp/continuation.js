@@ -1,150 +1,76 @@
 /**
- * Continuation support for Helma. You need to run Rhino in interpreter mode
- * (rhino.optlevel = -1) for Continuations to work.
- *
- * This framework adds three static methods to the Continuation constructor:
- *
- * <ul>
- *   <li>Continuation.nextUrl()</li>
- *   <li>Continuation.nextPage()</li>
- * </ul>
- *
- * Example usage:
- *
- * <pre><code>
- *    function continuation_action() {
- *        res.write('<form method="post" action="' + Continuation.nextUrl() + '">\
- *                    <input name="foo"/>\
- *                    <input type="submit"/>\
- *                   </form>');
- *        Continuation.nextPage();
- *        var foo = req.params.foo;
- *        res.write('<a href="' + Continuation.nextUrl() + '">click here</a>');
- *        Continuation.nextPage();
- *        res.write("you said: " + foo);
- *    }
- * </code></pre>
- *
+ * Continuation support for Helma NG
  */
 
-import('helma/system', 'system');
+include('helma/webapp/response');
+var system = require('helma/system');
 
-export('resume');
-
+export('handleRequest', "ContinuationMark", "ContinuationRequest", "ContinuationUrl", "ContinuationId");
 
 var log = require('helma/logging').getLogger(__name__);
-var continuation_id = null;
 
+var ids = {};
 
-function onRequest(req) {
-    if (req.params.helma_continuation) {
-        system.setRhinoOptimizationLevel(-1);
-    }
+function ContinuationUrl(key) {
+    return "?helma_continuation=" + ContinuationId(key);
 }
 
-
-/**
- * Get the id for the next continuation, suitable for GET forms where
- * the id has to be set via hidden input field.
- * @param id the continuation id. If not given a new id is generated.
- * @return the continuation url
- */
-Continuation.nextId = function(req, id) {
-    id = getId(req, id);
-    continuation_id = id;
-    return continuation_id;
-};
-
-/**
- * Convenience method that returns the URL for the next continuation,
- * built from the current URL with an added continuation_id parameter.
- * Suitable for POST forms and links.
- * @param id the continuation id. If not given a new id is generated.
- * @return the continuation url
- */
-Continuation.nextUrl = function(req, id) {
-    id = getId(req, id);
-    continuation_id = id;
-    return Continuation.getUrl(req, id);
-};
-
-/**
- * Get the url for a continuation with the given id.
- * @param id the continuation id. If not given a new id is generated.
- * @return the continuation url
- */
-Continuation.getUrl = function(req, id) {
-   return req.path + "?helma_continuation=" + getId(req, id);
+function ContinuationId(key) {
+    if (!key)
+        return generateId();
+    if (!(key in ids))
+        ids[key] = generateId();
+    return ids[key];
 }
 
 /**
  * Stop current execution and register continuation for later resumption.
  * @param id the continuation id. If not given a new id is generated.
  */
-Continuation.nextPage = function(req, id) {
+function ContinuationRequest(req, res, key) {
     // capture continuation and store it in callback container
-    id = getId(req, id);
+    var id = ContinuationId(key);
+    log.info("registering callback for id " + id);
     setCallback(req, id, new Continuation());
     // trick to exit current context: call empty continuation
-    new org.mozilla.javascript.NativeContinuation()();
+    new org.mozilla.javascript.NativeContinuation()(res);
 };
 
-Continuation.startId = function(req, id) {
-    id = req.params.helma_continuation || id;
-    return id;    
+function ContinuationMark(req, key) {
+    var id = req.params.helma_continuation;
+    ids[key] = id;
+    var cont = new Continuation();
+    log.info("Recording continuation start: " + id);
+    setCallback(req, id, cont);
+    return req;
 }
 
 /**
- * This is a utility method used at the start of a continuation action.
- * If the current request does not have a continuation id, it is redirected
- * to a request containing one. If the request does have a continuation id,
- * the current state is registered as continuation start marker. This can be
- * used to avoid re-executing earlier code containing definition of local
- * variables.
- * @param id the continuation id. If not given a new id is generated.
+ * Continuation middleware function
+ * @param req the request
  * @return the continuation result
  */
-Continuation.markStart = function(req, res, id) {
+function handleRequest(req) {
+    if (system.getOptimizationLevel() > -1) {
+        system.setOptimizationLevel(-1);
+        throw { retry: true };
+    }
     if (!req.params.helma_continuation) {
         // set query param so helma knows to switch rhino optimization level to -1
-        res.redirect(Continuation.nextUrl(req, id));
-    } else {
-        id = req.params.helma_continuation;
-        var cont = new Continuation();
-        log.info("Recording continuation start: " + id);
-        setCallback(req, id, cont);
-        continuation_id = null;
-        cont([req, res]);
+        throw { redirect: ContinuationUrl() };
     }
+
+    var id = req.params.helma_continuation;
+    var continuation = getCallback(req, id);
+    if (continuation) {
+        log.info("resuming continuation " + id + " with req " + req);
+        return continuation(req);
+    }
+    return req.process();
 }
 
-/**
- * Register current state with the given id but don't exit execution context
- * @param id the continuation id. If not given a new id is generated.
- * @return the continuation id
- */
-Continuation.registerPage = function(req, id) {
-    id = getId(req, id);
-    setCallback(req, id, new Continuation());
-    return Continuation.getUrl(req, id); 
-}
-
-// Private helper functions
-
-var getId = function(req, id) {
-   if (id == null) {
-      return continuation_id || generateId(req);
-   }
-   return (String(id));
-}
-
-var generateId = function(req) {
-    var id;
-    do {
-        id = Math.ceil(Math.random() * Math.pow(2, 64)).toString(36);
-    } while (getCallback(req, id));
-    log.debug("Generated continuation id: " + id);
-    return id;
+function generateId() {
+    return Math.ceil(Math.random() * Math.pow(2, 32)).toString(36);
 }
 
 var setCallback = function(req, id, func) {
@@ -161,26 +87,3 @@ var getCallback = function(req, id) {
     }
     return req.session.data.continuation[id];
 };
-
-/**
- * Check if there is a helma_continuation http parameter, and if so,
- * check if there is a matching continuation, and if so, invoke the continuation
- * and return null.
- */
-var resume = function(req, res) {
-    var continuationId = req.params.helma_continuation;
-    if (continuationId && req.session.data.continuation) {
-        var continuation = req.session.data.continuation[continuationId];
-        if (continuation) {
-            log.debug("Resuming continuation " + continuationId);
-            try {
-                continuation([req, res]);
-                return true;
-            } catch (e) {
-                error(e);
-                return true;
-            }
-        }
-    }
-    return false;
-}

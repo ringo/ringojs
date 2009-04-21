@@ -20,10 +20,32 @@
 
     <% render 'list' %>
 
-<% subskin 'mask' %>
+<% subskin 'name' %>
 
-    What is your <% input %>? <form method="post" action="<% forward %>">
-    <input name="<% input %>" value="<% value %>">
+    What is your name? <form method="post" action="<% forward %>">
+    <input name="name" value="<% data.name %>">
+    <input type="submit">
+    </form>
+
+    <p><a href="<% back %>">back</a> <a href="<% forward %>">forward</a></p>
+
+    <% render 'list' %>
+
+<% subskin 'food' %>
+
+    What is your favorite food? <form method="post" action="<% forward %>">
+    <input name="food" value="<% data.food %>">
+    <input type="submit">
+    </form>
+
+    <p><a href="<% back %>">back</a> <a href="<% forward %>">forward</a></p>
+
+    <% render 'list' %>
+
+<% subskin 'animal' %>
+
+    What is your favorite animal? <form method="post" action="<% forward %>">
+    <input name="animal" value="<% data.animal %>">
     <input type="submit">
     </form>
 
@@ -33,9 +55,9 @@
 
 <% subskin 'result' %>
 
-    Thanks for your collaboration. Your name is <% data.name %>,
-    you love to eat <% "data.favorite food" %> and your favorite animal
-    is <% "data.favorite animal" %>.
+    Thanks for your collaboration. Your name is <b><% data.name %></b>,
+    you love to eat <b><% data.food %></b> and your favorite animal
+    is <b><% data.animal %></b>.
 
     <p><a href="<% back %>">back</a></p>
 

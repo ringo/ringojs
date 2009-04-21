@@ -1,5 +1,6 @@
 import('helma/logging');
 include('helma/webapp/response');
+include('helma/webapp/continuation');
 
 var log = helma.logging.getLogger(__name__);
 
@@ -41,72 +42,53 @@ function logging(req) {
 }
 
 // demo for continuation support
-function continuation(req, res) {
+function continuation(req) {
 
-    return new SkinnedResponse('skins/continuation.html', {
-        title: "Continuations",
+    // local data - this is the data that is shared between continuations of this function
+    var data = {};
+
+    req = ContinuationMark(req, "start");
+
+    // render intro page
+    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
         skin: "start",
-        note: "NOTE: Continuation support is currently broken, so I have disabled this demo for the time being."
+        title: "Continuations Demo",
+        data: data,
+        forward: ContinuationUrl("name")
+    }), "name");
+    
+    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
+        skin: "name",
+        title: "Question 1",
+        data: data,
+        back: ContinuationUrl("start"),
+        forward: ContinuationUrl("food")
+    }), "food");
+    data.name = req.params.name || data.name;
+
+    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
+        skin: "food",
+        title: "Question 2",
+        data: data,
+        back: ContinuationUrl("name"),
+        forward: ContinuationUrl("animal")
+    }), "animal");
+    data.food = req.params.food || data.food;
+
+    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
+        skin: "animal",
+        title: "Question 3",
+        data: data,
+        back: ContinuationUrl("food"),
+        forward: ContinuationUrl("result")
+    }), "result");
+    data.animal = req.params.animal || data.animal;
+
+    return SkinnedResponse('skins/continuation.html', {
+        skin: "result",
+        title: "Thank you!",
+        data: data,
+        back: ContinuationUrl("animal")
     });
 
-    // local data - this is the data that is shared between resuming and suspension
-    var data = {};
-    var pages = ["start", "name", "favorite food", "favorite animal", "result"];
-    // to have only one continuation per user just give the pages fixed ids
-    // var pageIds = [0, 1, 2, 3, 4];
-    // to have continuations created dynamically start with empty page ids
-    var pageIds = [];
-
-    // mark start of continuation code. We never step back earlier than this
-    // otherwise local data would be re-initialized
-    pageIds[0] = Continuation.startId(req);
-    [req, res] = Continuation.markStart(req, res, pageIds[0]);
-    // render intro page
-    renderPage(0);
-    // render first page
-    renderPage(1)
-    // render second page
-    renderPage(2);
-    // render third page
-    renderPage(3);
-    // render overview page
-    if (!data.name) renderPage(1);
-    renderPage(4);
-
-    // the local function to do the actual work
-    function renderPage(id) {
-        var previous = pages[id - 1]
-        if (req.isPost && previous) {
-           data[previous] = req.params[previous];
-        }
-        if (id < pages.length - 1) {
-            pageIds[id + 1] = Continuation.nextId(req, pageIds[id + 1]);
-            if (id < 1) {
-                res.render('skins/continuation.html', {
-                    title: "Welcome",
-                    skin: "start",
-                    data: data,
-                    forward: Continuation.getUrl(req, pageIds[id + 1])
-                });
-            } else {
-                res.render('skins/continuation.html', {
-                    title: "Question " + id,
-                    skin: "mask",
-                    input: pages[id],
-                    data: data,
-                    value: data[pages[id]],
-                    back: Continuation.getUrl(req, pageIds[id - 1]),
-                    forward: Continuation.getUrl(req, pageIds[id + 1])
-                });
-            }
-            [req, res] = Continuation.nextPage(req, pageIds[id + 1]);
-        } else {
-            res.render('skins/continuation.html', {
-                title: "Thanks!",
-                skin: "result",
-                data: data,
-                back: Continuation.getUrl(req, pageIds[id - 1])
-            });
-        }
-    }
 }
