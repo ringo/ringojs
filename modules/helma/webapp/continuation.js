@@ -30,7 +30,7 @@ function ContinuationId(key) {
 function ContinuationRequest(req, res, key) {
     // capture continuation and store it in callback container
     var id = ContinuationId(key);
-    log.info("registering callback for id " + id);
+    log.debug("registering callback for id " + id);
     setCallback(req, id, new Continuation());
     // trick to exit current context: call empty continuation
     new org.mozilla.javascript.NativeContinuation()(res);
@@ -40,7 +40,7 @@ function ContinuationMark(req, key) {
     var id = req.params.helma_continuation;
     ids[key] = id;
     var cont = new Continuation();
-    log.info("Recording continuation start: " + id);
+    log.debug("Recording continuation start: " + id);
     setCallback(req, id, cont);
     return req;
 }
@@ -63,7 +63,7 @@ function handleRequest(req) {
     var id = req.params.helma_continuation;
     var continuation = getCallback(req, id);
     if (continuation) {
-        log.info("resuming continuation " + id + " with req " + req);
+        log.debug("resuming continuation " + id + " with req " + req);
         return continuation(req);
     }
     return req.process();
