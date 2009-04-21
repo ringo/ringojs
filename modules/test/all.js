@@ -7,6 +7,7 @@ function run() {
     suite.addTest("test/helma/file_test");
     suite.addTest("test/helma/unittest_test");
     suite.addTest("test/helma/skin_test");
+    suite.addTest("test/narwhal/io_test");
     suite.run();
 }
 
