@@ -43,51 +43,55 @@ var log = exports.getLogger(__name__);
 /**
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */
-exports.onRequest = function() {
+exports.handleRequest = function handleRequest(req) {
     // Install list in 'responseLog' threadlocal
-    if (responseLogEnabled) {
-        var cx = system.getRhinoContext();
-        cx.putThreadLocal('responseLog', new java.util.LinkedList());
+    if (!responseLogEnabled) {
+        return req.process();
     }
-}
+    var cx = system.getRhinoContext();
+    cx.putThreadLocal('responseLog', new java.util.LinkedList());
 
-/**
- * Write the log4j response buffer to the main response buffer and reset it.
- * This can either be called manually to insert the log buffer at any given position
- * in the response, or it will called by the log4j response listener after the
- * response has been generated.
- */
-exports.onResponse = exports.onError = function(req, res) {
-    if (!responseLogEnabled || (res.status != 200 && res.status < 400)) {
-        return;
+    var res = req.process();
+
+    if (res && typeof res === 'object' && typeof res.close === 'function') {
+        res = res.close();
     }
-    // flush stuff logged via res.debug()
-    res.flushDebug();
+
+    var [status, headers, body] = res;
+
+    if (status != 200 && status < 400) {
+        return res;
+    }
 
     var cx = system.getRhinoContext();
     var list = cx.getThreadLocal('responseLog');
 
-    if (list) {
+    if (list && !list.isEmpty()) {
+        if (!(body instanceof Buffer)) {
+            body = res[2] = new Buffer(body);
+        }
         for (var i = 0; i < list.size(); i++) {
             var item = list.get(i);
             var msg = item[0];
             var multiline = msg && msg.indexOf('\n') > 0 || msg.indexOf('\r')> 0;
-            res.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
-            res.write("color: black; border-top: 1px solid black;\">");
+            body.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
+            body.write("color: black; border-top: 1px solid black;\">");
             if (multiline) {
-                res.write("<pre>").write(msg).write("</pre>");
+                body.write("<pre>").write(msg).write("</pre>");
             } else {
-                res.write(msg);
+                body.write(msg);
             }
             if (item[1]) {
-                res.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
-                res.write("<pre style='margin: 0;'>", item[1], "</pre>");
+                body.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
+                body.write("<pre style='margin: 0;'>", item[1], "</pre>");
             }
             if (item[2]) {
-                res.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
-                res.write("<pre style='margin: 0;'>", item[2], "</pre>");
+                body.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
+                body.write("<pre style='margin: 0;'>", item[2], "</pre>");
             }
-            res.writeln("</div>");
+            body.writeln("</div>");
         }
     }
+
+    return res;
 };

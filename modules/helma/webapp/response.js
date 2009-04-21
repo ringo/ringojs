@@ -130,6 +130,7 @@ function Response() {
 
     Object.defineProperty(this, 'close', {
         value: function() {
+            this.flushDebug();
             if (charset) {
                 contentType = contentType || HashP.get('content-type') || "text/html";
                 contentType += "; charset=" + charset;

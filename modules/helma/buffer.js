@@ -46,4 +46,10 @@ function Buffer() {
             }\r\n\
         </script>\r\n";
     }
+
+    if (arguments.length > 0) {
+        this.write.apply(this, arguments);
+    }
+
+    return this;
 }

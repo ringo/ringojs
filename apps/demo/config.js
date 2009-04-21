@@ -8,7 +8,7 @@ exports.urls = [
 ];
 
 exports.middleware = [
-    'helma/webapp/continuation',
+    // 'helma/webapp/continuation',
     'helma/logging'
 ];
 
