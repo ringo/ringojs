@@ -415,11 +415,11 @@ public class RhinoEngine {
      * @return the loaded module scope
      * @throws IOException indicates that in input/output related error occurred
      */
-    public Scriptable loadModule(Context cx, String moduleName, Scriptable loadingScope)
+    public ModuleScope loadModule(Context cx, String moduleName, Scriptable loadingScope)
             throws IOException {
         Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
-        Scriptable module;
+        ModuleScope module;
         ReloadableScript parent = getCurrentScript(cx);
         try {
             setCurrentScript(cx, script);
@@ -587,8 +587,8 @@ public class RhinoEngine {
                 protected Object replaceObject(Object obj) throws IOException {
                     if (obj == topLevelScope) {
                         return new SerializedScopeProxy(null);
-                    } else if (obj instanceof ModuleScope) {
-                        return new SerializedScopeProxy(((ModuleScope) obj).getName());
+                    } else if (obj instanceof ModuleScope || obj instanceof ModuleScope.ExportsObject) {
+                        return new SerializedScopeProxy(obj);
                     }
                     return super.replaceObject(obj);
                 }
@@ -629,11 +629,21 @@ public class RhinoEngine {
 
     private static class SerializedScopeProxy implements Serializable {
         String moduleName;
-        SerializedScopeProxy(String moduleName) {
-            this.moduleName = moduleName;
+        boolean isExports;
+        SerializedScopeProxy(Object obj) {
+            if (obj instanceof ModuleScope) {
+                moduleName = ((ModuleScope) obj).getModuleName();
+                isExports = false;
+            } else if (obj instanceof ModuleScope.ExportsObject) {
+                moduleName = ((ModuleScope.ExportsObject) obj).getModuleName();
+                isExports = true;
+            }
         }
 
         Object getObject(Context cx, RhinoEngine engine) throws IOException {
+            if (isExports) {
+                return engine.loadModule(cx, moduleName, null).getExports();
+            }
             return moduleName == null ? engine.topLevelScope : engine.loadModule(cx, moduleName, null);
         }
     }

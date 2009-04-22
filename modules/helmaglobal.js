@@ -19,17 +19,6 @@ Object.defineProperty(this, "global", { value: this });
                 exports = {};
                 Object.defineProperty(module, "exports", { value: exports });
             }
-            // the __exports__ array is an alternative way for a module to export properties.
-            // it contains a list of property names that will be copied to the exports object.
-            if (module.__exports__) {
-                for each (var key in module.__exports__) {
-                    // print("Exporting", moduleName, key, "->", typeof(module[key]));
-                    Object.defineProperty(exports, key, {
-                        value: module[key],
-                        enumerable: true
-                    });
-                }
-            }
             return exports; 
         }
     });

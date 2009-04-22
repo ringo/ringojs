@@ -187,11 +187,11 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected synchronized Scriptable load(Scriptable prototype, Context cx)
+    protected synchronized ModuleScope load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<Trackable,Scriptable> modules =
-                (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        Map<Trackable,ModuleScope> modules =
+                (Map<Trackable,ModuleScope>) cx.getThreadLocal("modules");
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
@@ -209,6 +209,7 @@ public class ReloadableScript {
         }
         modules.put(source, module);
         script.exec(cx, module);
+        module.processExports();
         checkShared(module);
         module.setChecksum(getChecksum());
         return module;
