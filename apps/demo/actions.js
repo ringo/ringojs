@@ -47,48 +47,48 @@ function continuation(req) {
     // local data - this is the data that is shared between continuations of this function
     var data = {};
 
-    req = ContinuationMark(req, "start");
+    req = ContinuationMark(req, "welcome");
 
     // render intro page
-    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
-        skin: "start",
+    req = ContinuationRequest(req, "ask_name", SkinnedResponse('skins/continuation.html', {
+        skin: "welcome",
         title: "Continuations Demo",
         data: data,
-        forward: ContinuationUrl("name")
-    }), "name");
+        forward: ContinuationUrl("ask_name")
+    }));
     
-    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
-        skin: "name",
+    req = ContinuationRequest(req, "ask_food", SkinnedResponse('skins/continuation.html', {
+        skin: "ask_name",
         title: "Question 1",
         data: data,
-        back: ContinuationUrl("start"),
-        forward: ContinuationUrl("food")
-    }), "food");
+        back: ContinuationUrl("welcome"),
+        forward: ContinuationUrl("ask_food")
+    }));
     data.name = req.params.name || data.name;
 
-    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
-        skin: "food",
+    req = ContinuationRequest(req, "ask_animal", SkinnedResponse('skins/continuation.html', {
+        skin: "ask_food",
         title: "Question 2",
         data: data,
-        back: ContinuationUrl("name"),
-        forward: ContinuationUrl("animal")
-    }), "animal");
+        back: ContinuationUrl("ask_name"),
+        forward: ContinuationUrl("ask_animal")
+    }));
     data.food = req.params.food || data.food;
 
-    req = ContinuationRequest(req, SkinnedResponse('skins/continuation.html', {
-        skin: "animal",
+    req = ContinuationRequest(req, "result", SkinnedResponse('skins/continuation.html', {
+        skin: "ask_animal",
         title: "Question 3",
         data: data,
-        back: ContinuationUrl("food"),
+        back: ContinuationUrl("ask_food"),
         forward: ContinuationUrl("result")
-    }), "result");
+    }));
     data.animal = req.params.animal || data.animal;
 
     return SkinnedResponse('skins/continuation.html', {
         skin: "result",
         title: "Thank you!",
         data: data,
-        back: ContinuationUrl("animal")
+        back: ContinuationUrl("ask_animal")
     });
 
 }

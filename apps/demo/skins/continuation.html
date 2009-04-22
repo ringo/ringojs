@@ -3,7 +3,7 @@
 <% subskin 'content' -------------------------------------------------------------------- %>
 <% render <% skin %> %>
 
-<% subskin 'start' %>
+<% subskin 'welcome' %>
 
     <b><% note %></b>        
 
@@ -20,7 +20,7 @@
 
     <% render 'list' %>
 
-<% subskin 'name' %>
+<% subskin 'ask_name' %>
 
     What is your name? <form method="post" action="<% forward %>">
     <input name="name" value="<% data.name %>">
@@ -31,7 +31,7 @@
 
     <% render 'list' %>
 
-<% subskin 'food' %>
+<% subskin 'ask_food' %>
 
     What is your favorite food? <form method="post" action="<% forward %>">
     <input name="food" value="<% data.food %>">
@@ -42,7 +42,7 @@
 
     <% render 'list' %>
 
-<% subskin 'animal' %>
+<% subskin 'ask_animal' %>
 
     What is your favorite animal? <form method="post" action="<% forward %>">
     <input name="animal" value="<% data.animal %>">
