@@ -80,6 +80,13 @@ function setOptimizationLevel(level) {
     getRhinoEngine().setOptimizationLevel(level);
 }
 
+/**
+ * Serialize a JavaScript object graph to a java.io.OutputStream. If the
+ * function is called without second argument the serialized object is
+ * returned as byte array.
+ * @param object the object to serialize
+ * @param output a java.io.OutputStream
+ */
 function serialize(object, output) {
     if (!(output instanceof java.io.OutputStream)) {
         output = new java.io.ByteArrayOutputStream();
@@ -89,6 +96,11 @@ function serialize(object, output) {
     getRhinoEngine().serialize(object, output);    
 }
 
+/**
+ * Deserialize a previously serialized object graph from a java.io.Inputstream
+ * or a byte array.
+ * @param input a InputStream or byte array containing a serialized object
+ */
 function deserialize(input) {
     if (!(input instanceof java.io.InputStream)) {
         input = new java.io.ByteArrayInputStream(input);
