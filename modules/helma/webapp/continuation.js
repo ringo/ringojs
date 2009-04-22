@@ -2,68 +2,92 @@
  * Continuation support for Helma NG
  */
 
-include('helma/webapp/response');
+export('ContinuationSession', 'handleRequest');
+
 var system = require('helma/system');
-
-export('handleRequest', "ContinuationMark", "ContinuationRequest", "ContinuationUrl", "ContinuationId");
-
 var log = require('helma/logging').getLogger(__name__);
 
-var ids = {};
+var __shared__ = true;
 
-function ContinuationUrl(name) {
-    return "?helma_continuation=" + ContinuationId(name);
-}
-
-function ContinuationId(name) {
-    if (!name)
-        return generateId();
-    if (!(name in ids))
-        ids[name] = generateId();
-    return ids[name];
-}
-
-/**
- * Stop current execution and register continuation for later resumption.
- * @param id the continuation id. If not given a new id is generated.
- */
-function ContinuationRequest(req, name, res) {
-    // capture continuation and store it in callback container
-    var id = ContinuationId(name);
-    var continuation = createContinuation();
-    if (continuation instanceof Continuation) {
-        log.debug("Registering continuation for id: " + id);
-        setCallback(req, id, continuation);
-        // Exit current js context by calling empty continuation with return value
-        new org.mozilla.javascript.NativeContinuation()(res);
-    } else {
-        return continuation;
+function ContinuationSession() {
+    var pages = [];
+    var ids = [];
+    var currentstep = 0;
+    for (var i = 0; i < arguments.length; i++) {
+        pages.push(arguments[i]);
     }
-}
+    var length = pages.length;
 
-function ContinuationMark(req, name) {
-    if (!req.params.helma_continuation) {
-        // set query param so helma knows to switch rhino optimization level to -1
-        throw { redirect: ContinuationUrl() };
-    }
-    if (system.getOptimizationLevel() > -1) {
-        system.setOptimizationLevel(-1);
-        throw { retry: true };
-    }
-    var id = req.params.helma_continuation;
-    ids[name] = id;
-    var continuation = createContinuation();
-    if (continuation instanceof Continuation) {
-        log.debug("Recording continuation start: " + id);
-        setCallback(req, id, continuation);
-        return req;
-    } else {
-        return continuation;
-    }
-}
+    this.start = function(req) {
+        if (!req.params.helma_continuation) {
+            // set query param so helma knows to switch rhino optimization level to -1
+            throw { redirect: getContinuationUrl(0) };
+        }
+        if (system.getOptimizationLevel() > -1) {
+            system.setOptimizationLevel(-1);
+            throw { retry: true };
+        }
+        currentstep = 0;
+        ids[0] = id = req.params.helma_continuation;
+        var continuation = createContinuation();
+        if (continuation instanceof Continuation) {
+            log.debug("Recording continuation start: " + id);
+            setCallback(req, id, continuation);
+            return req;
+        } else {
+            return continuation;
+        }
+    };
 
-function createContinuation() {
-    return new Continuation();
+    this.step = function(step) {
+        currentstep = step - 1;
+        return this;
+    };
+
+    this.render = function(req, res) {
+        // capture continuation and store it in callback container
+        var id = getContinuationId(currentstep + 1);
+        var continuation = createContinuation();
+        if (continuation instanceof Continuation) {
+            if (!getCallback(req, id))
+                setCallback(req, id, continuation);
+            // Exit current js context by calling empty continuation with return value
+            new org.mozilla.javascript.NativeContinuation()(res);
+        } else {
+            return continuation;
+        }        
+    };
+
+    this.page = function() {
+        return pages[currentstep];
+    };
+
+    this.back = function() {
+        return currentstep > 0 ? getContinuationUrl(currentstep - 1) : null;
+    };
+
+    this.forward = function() {
+        return currentstep < length ? getContinuationUrl(currentstep + 1) : null;
+    };
+
+    function getContinuationUrl(step) {
+        return "?helma_continuation=" + getContinuationId(step);
+    }
+
+    function getContinuationId(step) {
+        if (ids[step] == null) {
+            ids[step] = generateId();
+        }
+        return ids[step];
+    }
+
+    function createContinuation() {
+        return new Continuation();
+    }
+
+    function generateId() {
+        return Math.ceil(Math.random() * Math.pow(2, 32)).toString(36);
+    }
 }
 
 /**
@@ -85,16 +109,13 @@ function handleRequest(req) {
     return req.process();
 }
 
-function generateId() {
-    return Math.ceil(Math.random() * Math.pow(2, 32)).toString(36);
-}
-
 var setCallback = function(req, id, func) {
     if (!req.session.data.continuation) {
         req.session.data.continuation = {};
     }
     log.debug("Registered continuation: " + id);
     req.session.data.continuation[id] = func;
+    // fauxsessions[id] = func;
 };
 
 var getCallback = function(req, id) {
@@ -102,4 +123,8 @@ var getCallback = function(req, id) {
         return null;
     }
     return req.session.data.continuation[id];
+    // return fauxsessions[id];
 };
+
+// awful hack to make this work on google app engine
+// var fauxsessions = {}

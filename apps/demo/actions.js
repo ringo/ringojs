@@ -46,49 +46,41 @@ function continuation(req) {
 
     // local data - this is the data that is shared between continuations of this function
     var data = {};
-
-    req = ContinuationMark(req, "welcome");
+    var session = new ContinuationSession("welcome", "ask_name", "ask_food", "ask_animal", "result");
+    req = session.start(req);
 
     // render intro page
-    req = ContinuationRequest(req, "ask_name", SkinnedResponse('skins/continuation.html', {
-        skin: "welcome",
+    req = session.step(1).render(req, SkinnedResponse('skins/continuation.html', {
+        session: session,
         title: "Continuations Demo",
-        data: data,
-        forward: ContinuationUrl("ask_name")
+        data: data
     }));
     
-    req = ContinuationRequest(req, "ask_food", SkinnedResponse('skins/continuation.html', {
-        skin: "ask_name",
+    req = session.step(2).render(req, SkinnedResponse('skins/continuation.html', {
+        session: session,
         title: "Question 1",
-        data: data,
-        back: ContinuationUrl("welcome"),
-        forward: ContinuationUrl("ask_food")
+        data: data
     }));
     data.name = req.params.name || data.name;
 
-    req = ContinuationRequest(req, "ask_animal", SkinnedResponse('skins/continuation.html', {
-        skin: "ask_food",
+    req = session.step(3).render(req, SkinnedResponse('skins/continuation.html', {
+        session: session,
         title: "Question 2",
-        data: data,
-        back: ContinuationUrl("ask_name"),
-        forward: ContinuationUrl("ask_animal")
+        data: data
     }));
     data.food = req.params.food || data.food;
 
-    req = ContinuationRequest(req, "result", SkinnedResponse('skins/continuation.html', {
-        skin: "ask_animal",
+    req = session.step(4).render(req, SkinnedResponse('skins/continuation.html', {
+        session: session,
         title: "Question 3",
-        data: data,
-        back: ContinuationUrl("ask_food"),
-        forward: ContinuationUrl("result")
+        data: data
     }));
     data.animal = req.params.animal || data.animal;
 
-    return SkinnedResponse('skins/continuation.html', {
-        skin: "result",
+    session.step(5).render(req, SkinnedResponse('skins/continuation.html', {
+        session: session,
         title: "Thank you!",
-        data: data,
-        back: ContinuationUrl("ask_animal")
-    });
+        data: data
+    }));
 
 }
