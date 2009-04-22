@@ -32,7 +32,7 @@ IO.prototype.read = function(length, encoding) {
             bytes.write(buffer, index, read);
             index = 0;
         } else {
-        	index += read;
+            index += read;
             if (index === buffer.length && readAll) {
                 bytes = new java.io.ByteArrayOutputStream(length * 2);
                 bytes.write(buffer, 0, length);
