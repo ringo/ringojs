@@ -2,12 +2,13 @@ package org.helma.repository;
 
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.io.Serializable;
 
 /**
  * Parent interface for both Repository and Resource interfaces. 
  * Describes an entity defined by a file-system like path.
  */
-public interface Trackable {
+public interface Trackable extends Serializable {
 
     /**
      * Returns the date the resource was last modified

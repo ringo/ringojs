@@ -14,6 +14,8 @@ export('addHostObject',
         'getRhinoEngine',
         'getOptimizationLevel',
         'setOptimizationLevel',
+        'serialize',
+        'deserialize',
         'args');
 
 var rhino = org.mozilla.javascript;
@@ -76,6 +78,22 @@ function getOptimizationLevel() {
  */
 function setOptimizationLevel(level) {
     getRhinoEngine().setOptimizationLevel(level);
+}
+
+function serialize(object, output) {
+    if (!(output instanceof java.io.OutputStream)) {
+        output = new java.io.ByteArrayOutputStream();
+        getRhinoEngine().serialize(object, output);
+        return output.toByteArray();
+    }
+    getRhinoEngine().serialize(object, output);    
+}
+
+function deserialize(input) {
+    if (!(input instanceof java.io.InputStream)) {
+        input = new java.io.ByteArrayInputStream(input);
+    }
+    return getRhinoEngine().deserialize(input);
 }
 
 /**

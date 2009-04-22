@@ -22,10 +22,10 @@ import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.serialize.ScriptableOutputStream;
+import org.mozilla.javascript.serialize.ScriptableInputStream;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -568,6 +568,74 @@ public class RhinoEngine {
 
     public void addToClasspath(Resource resource) throws MalformedURLException {
         loader.addURL(resource.getUrl());
+    }
+
+    /**
+     * Provide object serialization for this engine's scripted objects. If no special
+     * provisions are required, this method should just wrap the stream with an
+     * ObjectOutputStream and write the object.
+     *
+     * @param obj the object to serialize
+     * @param out the stream to write to
+     * @throws java.io.IOException
+     */
+    public void serialize(Object obj, OutputStream out) throws IOException {
+        final Context cx = contextFactory.enterContext();
+        try {
+            // use a special ScriptableOutputStream that unwraps Wrappers
+            ScriptableOutputStream sout = new ScriptableOutputStream(out, topLevelScope) {
+                protected Object replaceObject(Object obj) throws IOException {
+                    if (obj == topLevelScope) {
+                        return new SerializedScopeProxy(null);
+                    } else if (obj instanceof ModuleScope) {
+                        return new SerializedScopeProxy(((ModuleScope) obj).getName());
+                    }
+                    return super.replaceObject(obj);
+                }
+            };
+
+            sout.writeObject(obj);
+            sout.flush();
+        } finally {
+            Context.exit();
+        }
+    }
+
+    /**
+     * Provide object deserialization for this engine's scripted objects. If no special
+     * provisions are required, this method should just wrap the stream with an
+     * ObjectIntputStream and read the object.
+     *
+     * @param in the stream to read from
+     * @return the deserialized object
+     * @throws java.io.IOException
+     */
+    public Object deserialize(InputStream in) throws IOException, ClassNotFoundException {
+        final Context cx = contextFactory.enterContext();
+        try {
+            ObjectInputStream sin = new ScriptableInputStream(in, topLevelScope) {
+                protected Object resolveObject(Object obj) throws IOException {
+                    if (obj instanceof SerializedScopeProxy) {
+                        return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
+                    } 
+                    return super.resolveObject(obj);
+                }
+            };
+            return sin.readObject();
+        } finally {
+            Context.exit();
+        }
+    }
+
+    private static class SerializedScopeProxy implements Serializable {
+        String moduleName;
+        SerializedScopeProxy(String moduleName) {
+            this.moduleName = moduleName;
+        }
+
+        Object getObject(Context cx, RhinoEngine engine) throws IOException {
+            return moduleName == null ? engine.topLevelScope : engine.loadModule(cx, moduleName, null);
+        }
     }
 
     public HelmaContextFactory getContextFactory() {
