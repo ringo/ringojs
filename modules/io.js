@@ -8,48 +8,54 @@ var IO = exports.IO = function(inputStream, outputStream) {
 }
 
 IO.prototype.read = function(length, encoding) {
-    var readAll = true,
+    var readAll = false,
         buffer  = null,
         bytes   = null,
-        read    = 0,
+        total   = 0,
         index   = 0,
-        total   = 0;
-
-    if (typeof length === "number") {
-        readAll = false;
-        buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, length);
-    } else {
-        bytes = new java.io.ByteArrayOutputStream();
-        buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 1024);
+        read    = 0;
+    
+    if (typeof length !== "number") {
+        readAll = true;
+        length = 1024;
     }
 
-    do {
-        read = this.inputStream.read(buffer, index, buffer.length - index);
+    buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, length);
 
+    do {
+        read = this.inputStream.read(buffer, index, length - index);
+        
         if (read < 0)
             break;
-
-        if (readAll) {
+        
+        if (bytes) {
             bytes.write(buffer, index, read);
-            if (index >= buffer.length)
+            index = 0;
+        } else {
+        	index += read;
+            if (index === buffer.length && readAll) {
+                bytes = new java.io.ByteArrayOutputStream(length * 2);
+                bytes.write(buffer, 0, length);
                 index = 0;
-        }
-        index += read;
+            }
+        }	
         total += read;
-
+        
         //print("read="+read+" index="+index+" total="+total+" length="+length+" buffers.length="+buffers.length);
-
-    } while ((readAll || total < length) && read > 0);
-
+        
+    } while ((readAll || total < length) && read > -1);
+    
     var resultBuffer, resultLength;
-
-    if (readAll)
+    
+    if (bytes)
         resultBuffer = bytes.toByteArray();
+    else if (total < buffer.length)
+        resultBuffer = java.util.Arrays.copyOf(buffer, total);
     else
         resultBuffer = buffer;
-
+    
     resultLength = resultBuffer.length;
-
+    
     if (total != resultLength || total !== resultBuffer.length)
         throw new Error("IO.read sanity check failed: total="+total+" resultLength="+resultLength+" resultBuffer.length="+resultBuffer.length);
 
