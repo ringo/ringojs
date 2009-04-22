@@ -5,7 +5,7 @@ export('index');
 
 function index(req, res) {
     var context = {
-        title: 'Module Demo',
+        title: 'Modules',
         href: req.path
     };
     return new SkinnedResponse('skins/modules.html', context);

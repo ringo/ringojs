@@ -21,7 +21,7 @@ function extra_path(req, year, month) {
 // demo for skins, macros, filters
 function skins(req) {
     return new SkinnedResponse('skins/skins.html', {
-        title: 'Skin Demo',
+        title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
     });
@@ -38,7 +38,7 @@ function logging(req) {
             log.error(e, e.rhinoException);
         }
     }
-    return new SkinnedResponse('skins/logging.html', { title: "Logging Demo" });
+    return new SkinnedResponse('skins/logging.html', { title: "Logging" });
 }
 
 // demo for continuation support
@@ -52,7 +52,7 @@ function continuation(req) {
     // render intro page
     req = session.step(1).render(req, SkinnedResponse('skins/continuation.html', {
         session: session,
-        title: "Continuations Demo",
+        title: "Continuations",
         data: data
     }));
     
@@ -89,7 +89,7 @@ function profiler(req) {
     req.process = function() {
         if (profilerCalled)
             return SkinnedResponse('skins/profiler.html', {
-                title: "Profiler Demo"
+                title: "Profiler"
             });
         profilerCalled = true;
         return require('helma/profiler').handleRequest(req);
