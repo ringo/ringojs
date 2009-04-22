@@ -85,14 +85,11 @@ function continuation(req) {
 }
 
 function profiler(req) {
-    var profilerCalled = false;
+    var profiler = require('helma/profiler');
     req.process = function() {
-        if (profilerCalled)
-            return SkinnedResponse('skins/profiler.html', {
-                title: "Profiler"
-            });
-        profilerCalled = true;
-        return require('helma/profiler').handleRequest(req);
+        return SkinnedResponse('skins/profiler.html', {
+            title: "Profiler"
+        });
     }
-    return req.process();
+    return profiler.handleRequest(req);
 }
