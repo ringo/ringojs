@@ -4,7 +4,7 @@ include('helma/webapp/continuation');
 
 var log = helma.logging.getLogger(__name__);
 
-export('index', 'extra_path', 'skins', 'logging', 'continuation');
+export('index', 'extra_path', 'skins', 'logging', 'continuation', 'profiler');
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
@@ -82,5 +82,17 @@ function continuation(req) {
         title: "Thank you!",
         data: data
     }));
+}
 
+function profiler(req) {
+    var profilerCalled = false;
+    req.process = function() {
+        if (profilerCalled)
+            return SkinnedResponse('skins/profiler.html', {
+                title: "Profiler Demo"
+            });
+        profilerCalled = true;
+        return require('helma/profiler').handleRequest(req);
+    }
+    return req.process();
 }
