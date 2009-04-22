@@ -21,7 +21,6 @@ import org.mozilla.javascript.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 public class JackEnv extends ScriptableObject {
@@ -87,18 +86,6 @@ public class JackEnv extends ScriptableObject {
         return request.isSecure() ? "https" : "http";
     }
 
-    public Object getInputStream() {
-        try {
-            return Context.javaToJS(request.getInputStream(), this);
-        } catch (IOException iox) {
-            return Undefined.instance;
-        }
-    }
-
-    public Object getErrorStream() {
-        return Context.javaToJS(System.err, this);
-    }
-
     public Object getServletRequest() {
         return Context.javaToJS(request, this);
     }
@@ -120,8 +107,6 @@ public class JackEnv extends ScriptableObject {
         proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
         proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
-        proto.defineProperty("jack.input_stream", null, getMethod("getInputStream"), null, flags);
-        proto.defineProperty("jack.error_stream", null, getMethod("getErrorStream"), null, flags);
         Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
         ScriptableObject.defineProperty(proto, "jack.version", version, flags);
         ScriptableObject.defineProperty(proto, "jack.multithread", Boolean.TRUE, flags);
@@ -138,21 +123,6 @@ public class JackEnv extends ScriptableObject {
 
     private static String checkString(String str) {
         return str == null ? "" : str;
-    }
-
-    @Override
-    public Object get(String name, Scriptable start) {
-        // FIXME: implement IO wrappers
-        if ("jack.input".equals(name)) {
-            try {
-                return Context.toObject(request.getInputStream(), this);
-            } catch (IOException iox) {
-                return Undefined.instance;
-            }
-        } else if ("jack.error".equals(name)) {
-            return Context.toObject(System.err, this);
-        }
-        return super.get(name, start);
     }
 
     /**

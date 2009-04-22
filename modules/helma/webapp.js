@@ -13,7 +13,7 @@ import('helma/system', 'system');
 import('helma/httpserver', 'server');
 import('helma/logging', 'logging');
 
-export('start', 'stop', 'getConfig', 'handleServletRequest', 'error', 'notfound');
+export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 
 var log = logging.getLogger(__name__);
 
@@ -29,18 +29,11 @@ function handleRequest(env) {
     var config = getConfig();
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
 
-    var req = new Request(env['jack.servlet_request']);
+    var req = new Request(env);
     var res;
 
     req.charset = config.charset || 'utf8';
     // res.contentType = config.contentType || 'text/html';
-
-    // invoke onRequest
-    // invokeMiddleware('onRequest', config.middleware, [req, res]);
-    // resume continuation?
-    /* if (continuation.resume(req, res)) {
-        return;
-    } */
 
     // resolve path and invoke action
     var path = req.path;
@@ -102,9 +95,6 @@ function handleRequest(env) {
                         // add remaining path elements as additional action arguments
                         var actionArgs = path.slice(1).map(decodeURIComponent);
                         var args = [req].concat(actionArgs);
-                        /* invokeMiddleware('onAction',
-                                config.middleware,
-                                [req, action, actionArgs]); */
                         var middleware = config.middleware;
                         var middlewareIndex = 0;
                         // set up middleware chain in request object
@@ -127,7 +117,6 @@ function handleRequest(env) {
         } else if (e.redirect) {
             return new RedirectResponse(e.redirect);
         } else {
-            // invokeMiddleware('onError', config.middleware, [req, res, e]);
             res = error(req, e);
         }
     } finally {
@@ -136,7 +125,6 @@ function handleRequest(env) {
             res = notfound(req);
         if (!(res instanceof Array) && res.close)
             res = res.close();
-        // invokeMiddleware('onResponse', config.middleware, [req, res]);
     }
     return res;
 }

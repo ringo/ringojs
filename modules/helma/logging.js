@@ -1,5 +1,5 @@
 require('core/string');
-import('helma/system', 'system');
+include('helma/system');
 include('helma/buffer');
 
 var __shared__ = true;
@@ -48,8 +48,7 @@ exports.handleRequest = function handleRequest(req) {
     if (!responseLogEnabled) {
         return req.process();
     }
-    var cx = system.getRhinoContext();
-    cx.putThreadLocal('responseLog', new java.util.LinkedList());
+    getRhinoContext().putThreadLocal('responseLog', new java.util.LinkedList());
 
     var res = req.process();
 
@@ -63,8 +62,7 @@ exports.handleRequest = function handleRequest(req) {
         return res;
     }
 
-    var cx = system.getRhinoContext();
-    var list = cx.getThreadLocal('responseLog');
+    var list = getRhinoContext().getThreadLocal('responseLog');
 
     if (list && !list.isEmpty()) {
         if (!(body instanceof Buffer)) {

@@ -6,10 +6,11 @@ export('Request');
 
 // var log = require('helma/logging').getLogger(__name__);
 
-function Request(servletRequest) {
+function Request(env) {
 
     var params, cookies, session, headers;
     var define = bindArguments(Object.defineProperty, this);
+    var servletRequest = env["jack.servlet_request"];
 
     define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
     define("port", readOnlyPropertyDesc(servletRequest, "port"));

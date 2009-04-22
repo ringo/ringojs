@@ -2,6 +2,10 @@
  * Module for starting and stopping the jetty http server.
  */
 
+var IO = require('io').IO;
+var HashP = require('hashp').HashP;
+var Request = require('helma/webapp/request').Request;
+
 export('start', 'stop', 'initRequest', 'commitResponse');
 
 // mark this module as shared between all requests
@@ -107,9 +111,8 @@ var log = require('helma/logging').getLogger(__name__);
  * @param env a jack request object
  */
 function initRequest(env) {
-    var IO = require('io').IO;
-    env['jack.input'] = new IO(env['jack.input_stream'], null);
-    env['jack.error'] = new IO(null, env['jack.error_stream']);
+    env["jack.input"]  = new IO(env['jack.servlet_request'].getInputStream(), null);
+    env["jack.errors"] = new IO(null, java.lang.System.err);
 }
 
 /**
