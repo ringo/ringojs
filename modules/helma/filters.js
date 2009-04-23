@@ -16,9 +16,6 @@
 
 /**
  * @fileoverview Implements some useful macro filters.
- * <br /><br />
- * To use this optional module, its repository needs to be added to the 
- * application, for example by calling app.addRepository('modules/core/Filters.js')
  */
 
 require('core/string');
@@ -27,7 +24,9 @@ export('capitalize_filter',
         'dateFormat_filter',
         'default_filter',
         'escapeHtml_filter',
+        'escapeJavaScript_filter',
         'escapeUrl_filter',
+        'escapeXml_filter',
         'linebreakToHtml_filter',
         'lowercase_filter',
         'prefix_filter',
@@ -91,9 +90,9 @@ function titleize_filter(input) {
  * @param limit Maximum length
  * @param clipping Appended String, default is the empty String
  */
-function truncate_filter(input, param, limit, clipping) {
-   limit = param.limit != null ? param.limit : limit;
-   clipping = param.clipping || clipping || "";
+function truncate_filter(input, tag) {
+   var limit = tag.getParameter("limit") || tag.parameters[0];
+   var clipping = tag.getParameter("clipping") || tag.parameters[1];
    return (input || "").toString().head(limit, clipping);
 }
 
@@ -136,13 +135,12 @@ function escapeXml_filter(input) {
  * @see http://www.google.com/codesearch?q=escapeHtml
  */
 function escapeHtml_filter(input) {
-   var replace = Packages.org.mortbay.util.StringUtil.replace;
    var str = (input || "").toString();
-   return replace(replace(replace(replace(str, '&', '&amp;'), '"', '&quot;'), '>', '&gt;'), '<', '&lt;');
+   return str.replace('&', '&amp;', 'g')
+             .replace('"', '&quot;', 'g')
+             .replace('>', '&gt;', 'g')
+             .replace('<', '&lt;', 'g');
 }
-
-var h_filter = escapeHtml_filter;
-
 
 /**
  * Escapes the characters in a String to be suitable 
@@ -152,8 +150,8 @@ var h_filter = escapeHtml_filter;
  * @param charset Optional String. The name of a supported
  *        character encoding.
  */
-function escapeUrl_filter(input, param, charset) {
-   charset = param.charset || charset || app.getCharset();
+function escapeUrl_filter(input, tag) {
+   var charset = tag.getParameter('charset') || tag.parameters[0] || "utf8";
    return java.net.URLEncoder.encode(input || "", charset);
 }
 
@@ -163,9 +161,12 @@ function escapeUrl_filter(input, param, charset) {
  * definitions.
  */
 function escapeJavaScript_filter(input) {
-   var replace = Packages.org.mortbay.util.StringUtil.replace;
    var str = (input || "").toString();
-   return replace(replace(replace(replace(replace(str, '"', '\\"'), "'", "\\'"), '\n', '\\n'), '\r', '\\r'), '\t', '\\t');
+   return str.replace('"', '\\"', "g")
+             .replace("'", "\\'", "g")
+             .replace('\n', '\\n', "g")
+             .replace('\r', '\\r', "g")
+             .replace('\t', '\\t', "g");
 }
 
 
@@ -185,12 +186,11 @@ function linebreakToHtml_filter(input) {
  * @param old
  * @param new
  */
-function replace_filter(input, param, oldString, newString) {
+function replace_filter(input, tag) {
    var str = (input || "").toString();
-   oldString = param["old"] != null ? param["old"] : oldString;
-   newString = param["new"] != null ? param["new"] : newString;
-   var replace = Packages.org.mortbay.util.StringUtil.replace;
-   return replace(str, oldString, newString);
+   var oldString = tag.getParameter("old") || tag.parameters[0];
+   var newString = tag.getParameter("new") || tag.parameters[1];
+   return str.replace(new RegExp(oldString, "g"), newString);
 }
 
 
@@ -202,9 +202,9 @@ function replace_filter(input, param, oldString, newString) {
  * @param from
  * @param to
  */
-function substring_filter(input, param, from, to) {
-   from = param.from != null ? param.from : from;
-   to = param.to != null ? param.to : to;
+function substring_filter(input, tag) {
+   var from = tag.getParameter("from") || tag.parameters[0];
+   var to = tag.getParameter("to") || tag.parameters[1];
    var str = (input || "").toString();
    return str.substring(from, to);
 }
@@ -216,8 +216,8 @@ function substring_filter(input, param, from, to) {
  * @see Date.prototype.format
  * @param format
  */
-function dateFormat_filter(input, param, format) {
-   format = param.format || format;
+function dateFormat_filter(input, tag) {
+   var format = tag.getParameter("format") || tag.parameters[0];
    if (!input) {
       return;
    } else {
