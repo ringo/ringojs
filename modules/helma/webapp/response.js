@@ -6,9 +6,10 @@ export('Response', 'SkinnedResponse', 'RedirectResponse' /*, 'NotFoundResponse',
 
 function Response() {
 
+    var config = require('helma/webapp/env').config;
     var status = 200;
-    var charset;
-    var contentType;
+    var charset = config.charset || 'utf8';
+    var contentType = config.contentType || 'text/html';
     var headers = {};
     var buffer = new Buffer();
 
@@ -146,7 +147,7 @@ function Response() {
 
 function SkinnedResponse(skin, context, scope) {
     var render = require('helma/skin').render;
-    return [200, {}, render(skin, context, scope)];
+    return new Response(render(skin, context, scope));
 }
 
 function RedirectResponse(location) {

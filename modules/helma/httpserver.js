@@ -3,14 +3,11 @@
  */
 
 var IO = require('io').IO;
-var HashP = require('hashp').HashP;
-var Request = require('helma/webapp/request').Request;
 
 export('start', 'stop', 'initRequest', 'commitResponse');
 
 // mark this module as shared between all requests
 var __shared__ = true;
-
 var log = require('helma/logging').getLogger(__name__);
 
 
@@ -126,8 +123,15 @@ function initRequest(env) {
  */
 function commitResponse(env, result) {
     var response = env['jack.servlet_response'];
-    if (response.isCommitted() || !(result instanceof Array))
+    if (response.isCommitted())
         return;
+    if (!(result instanceof Array)) {
+        // convert helma response to jack response
+        if (result && typeof result.close === "function")
+            result = result.close();
+        else
+            return;
+    }
 	var [status, headers, body] = result;
 	response.status = status;
 	for (var name in headers) {
