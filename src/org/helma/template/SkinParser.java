@@ -210,7 +210,7 @@ public abstract class SkinParser {
                     break;
                 case '=':
                     if (quotechar == 0 && list.type == ObjectList.MACRO) {
-                        list.pushParameterName(buffer);
+                        list.pushMacroParameterName(buffer);
                     } else {
                         buffer.append((char) c);
                     }
@@ -325,15 +325,16 @@ public abstract class SkinParser {
             parameterName = null;
         }
 
-        void pushParameterName(StringBuffer buffer) {
+        void pushMacroParameterName(StringBuffer buffer) {
             String str = buffer.toString().trim();
             buffer.setLength(0);
             // if parameter key is empty string there was whitespace between the
             // name and the '=', so the real name was already added to our
             // unnamed parameter list
-            if (str.length() == 0 && !list.isEmpty() &&
-                    list.get(list.size()-1) instanceof String) {
-                parameterName = (String) list.remove(list.size()-1);
+            LinkedList args = macro.args;
+            if (str.length() == 0 && !args.isEmpty() &&
+                    args.getLast() instanceof String) {
+                parameterName = (String) args.removeLast();
             } else {
                 parameterName = str;
             }

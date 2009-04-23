@@ -22,9 +22,9 @@ import org.helma.util.ScriptableList;
 import org.helma.util.ScriptableMap;
 import org.mozilla.javascript.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedList;
 
 /**
  * A macro tag. Basically a list of unnamed parameters
@@ -33,7 +33,7 @@ import java.util.Map;
 public class MacroTag extends ScriptableObject {
 
     String name;
-    ArrayList<Object> args = new ArrayList<Object>();
+    LinkedList<Object> args = new LinkedList<Object>();
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
     MacroTag filter = null;
     int startLine;
