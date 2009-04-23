@@ -7,7 +7,6 @@ require('core/string');
 
 include('helma/webapp/request');
 include('helma/webapp/response');
-import('helma/webapp/continuation', 'continuation');
 
 import('helma/system', 'system');
 import('helma/httpserver', 'server');
@@ -30,10 +29,12 @@ function handleRequest(env) {
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
 
     var req = new Request(env);
-    var res;
+    var res = null;
+    // set up jack env, request and config properties in per-request env module
+    var webenv = require('helma/webapp/env');
+    webenv.init(env, req, config);
 
     req.charset = config.charset || 'utf8';
-    // res.contentType = config.contentType || 'text/html';
 
     // resolve path and invoke action
     var path = req.path;

@@ -18,7 +18,8 @@ function ContinuationSession() {
     }
     var length = pages.length;
 
-    this.start = function(req) {
+    this.start = function() {
+        var req = require('helma/webapp/env').req;
         if (!req.params.helma_continuation) {
             // set query param so helma knows to switch rhino optimization level to -1
             throw { redirect: getContinuationUrl(0) };
@@ -44,7 +45,8 @@ function ContinuationSession() {
         return this;
     };
 
-    this.render = function(req, res) {
+    this.render = function(res) {
+        var req = require('helma/webapp/env').req;
         // capture continuation and store it in callback container
         var id = getContinuationId(currentstep + 1);
         var continuation = createContinuation();
@@ -71,7 +73,8 @@ function ContinuationSession() {
     };
 
     function getContinuationUrl(step) {
-        return "?helma_continuation=" + getContinuationId(step);
+        var req = require('helma/webapp/env').req;
+        return req.path + "?helma_continuation=" + getContinuationId(step);
     }
 
     function getContinuationId(step) {

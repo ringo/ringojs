@@ -47,37 +47,37 @@ function continuation(req) {
     // local data - this is the data that is shared between continuations of this function
     var data = {};
     var session = new ContinuationSession("welcome", "ask_name", "ask_food", "ask_animal", "result");
-    req = session.start(req);
+    req = session.start();
 
     // render intro page
-    req = session.step(1).render(req, SkinnedResponse('skins/continuation.html', {
+    req = session.step(1).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Continuations",
         data: data
     }));
     
-    req = session.step(2).render(req, SkinnedResponse('skins/continuation.html', {
+    req = session.step(2).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Question 1",
         data: data
     }));
     data.name = req.params.name || data.name;
 
-    req = session.step(3).render(req, SkinnedResponse('skins/continuation.html', {
+    req = session.step(3).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Question 2",
         data: data
     }));
     data.food = req.params.food || data.food;
 
-    req = session.step(4).render(req, SkinnedResponse('skins/continuation.html', {
+    req = session.step(4).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Question 3",
         data: data
     }));
     data.animal = req.params.animal || data.animal;
 
-    session.step(5).render(req, SkinnedResponse('skins/continuation.html', {
+    session.step(5).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Thank you!",
         data: data
