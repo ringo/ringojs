@@ -66,10 +66,9 @@
 
 <% subskin 'list'%>
 
-    <% render 'item' on=<% data %>
-        | prefix "<div style='color: gray;'>"
-        | suffix "</div>"
+    <% for value in <% data %> render 'item'
+        | wrap "<div style='color: gray;'>" "</div>"
     %>
 
 <% subskin 'item' %>
-   <div><% key %>: <% value %></div>
+   <div><% index %>: <% value %></div>
