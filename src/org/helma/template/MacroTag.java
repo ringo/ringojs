@@ -25,6 +25,7 @@ import org.mozilla.javascript.*;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedList;
+import java.util.Iterator;
 
 /**
  * A macro tag. Basically a list of unnamed parameters
@@ -32,7 +33,7 @@ import java.util.LinkedList;
  */
 public class MacroTag extends ScriptableObject {
 
-    String name;
+    Object name;
     LinkedList<Object> args = new LinkedList<Object>();
     Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
     MacroTag filter = null;
@@ -80,7 +81,7 @@ public class MacroTag extends ScriptableObject {
     /**
      * The name of the macro tag.
      */
-    public String jsGet_name() {
+    public Object jsGet_name() {
         return name;
     }
 
@@ -104,10 +105,7 @@ public class MacroTag extends ScriptableObject {
      */
     public Object jsGet_parameters() {
         if (jsParams == null) {
-            Context cx = Context.getCurrentContext();
-            int size = args.size();
-            Object[] values = args.toArray(new Object[size]);
-            jsParams = cx.newArray(getTopLevelScope(this), values);
+            jsParams = new ScriptableList(getTopLevelScope(this), args);
         }
         return jsParams;
     }
@@ -138,6 +136,22 @@ public class MacroTag extends ScriptableObject {
         return "name".equals(name) ||
                 "parameters".equals(name) ||
                 "parameterNames".equals(name) || super.has(name, start);
+    }
+
+    public Object jsFunction_getSubMacro(int start) {
+        MacroTag submacro = new MacroTag(start);
+        submacro.setParentScope(getParentScope());
+        submacro.setPrototype(getPrototype());
+        submacro.filter = filter;
+        submacro.namedArgs = new CaseInsensitiveMap<String,Object>(namedArgs);
+        submacro.args = new LinkedList<Object>();
+        if (start + 1 < args.size()) {
+            for (Iterator i = args.listIterator(start + 1); i.hasNext(); ) {
+                submacro.args.add(i.next());
+            }
+        }
+        submacro.name = args.get(start);
+        return submacro;
     }
 
     /**
@@ -193,7 +207,7 @@ public class MacroTag extends ScriptableObject {
         name = str;
     }
 
-    public String getName() {
+    public Object getName() {
         return name;
     }
 

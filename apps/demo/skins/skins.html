@@ -15,55 +15,55 @@ This page showcases some of the skinning featuers in Helma NG, such as macros, s
 
 <p>And the following subskin in skins.html:</p>
 
-<pre class="code">&lt;% subskin 'hello' %&gt;
+<pre class="code">&lt;% subskin hello %&gt;
 Hello &lt;% name %&gt;!</pre>
 
 
 <p>Your basic skin rendering macro then looks like this:</p>
 
-<pre class="code">&lt;% render 'hello' %&gt;</pre>
+<pre class="code">&lt;% render hello %&gt;</pre>
 
 <p>And this is the output this produces:</p>
 
 <p style="background-color: pink;">
-    <% render 'hello' %>
+    <% render hello %>
 </p>
 
 <p>The render macro also lets you loop through arrays and other iterables:</p>
 
-<pre class="code">&lt;% render 'hello' on=&lt;% names %&gt; as='name' %&gt;</pre>
+<pre class="code">&lt;% for name in &lt;% names %&gt; render hello %&gt;</pre>
 
 <p>This is what you should get:</p>
 
 <p style="background-color: pink;">
-    <% render 'hello' on=<%names%> as='name' %>
+    <% for name in <% names %> render hello %>
 </p>
 
 
 You can also bind values to the macro context in the tag:
 
-<pre class="code">&lt;% render 'hello' bind={ name: "Julia" } %&gt;</pre>
+<pre class="code">&lt;% set {name: Julia} render hello %&gt;</pre>
 
 <p>This gets you</p>
 
 <p style="background-color: pink;">
-    <% render 'hello' bind={ name: 'Julia' } %>
+    <% set {name: Julia } render hello %>
 </p>
 
 <p>Or you can define the objects to loop through using object and array literals in the macro tag:</p>
 
-<pre class="code">&lt;% render 'hello' on=['Gerlinde', 'Thomas'] as='name' %&gt;</pre>
+<pre class="code">&lt;% for name in [Gerlinde, Ralph, Thomas] render hello %&gt;</pre>
 
 <p>Produces:</p>
         
 <p style="background-color: pink;">
-<% render 'hello' on=['Gerlinde', 'Thomas'] as='name'  %>
+<% for name in [Gerlinde, Ralph, Thomas] render hello %>
 </p>
         
 <p>Finally, <a href="http://dev.helma.org/ng/helma.filters/">filters</a> let you do all kinds of post-processing
 on the output of a macro.</p>
 
-<pre class="code">&lt;% render 'hello' | uppercase %&gt;</pre>
+<pre class="code">&lt;% render hello | uppercase %&gt;</pre>
 
 <p>Renders:</p>
 
