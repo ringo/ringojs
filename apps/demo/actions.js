@@ -61,21 +61,24 @@ function continuation(req) {
         title: "Question 1",
         data: data
     }));
-    data.name = req.params.name || data.name;
+    if (req.isPost)
+        data.name = req.params.name;
 
     req = session.step(3).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Question 2",
         data: data
     }));
-    data.food = req.params.food || data.food;
+    if (req.isPost)
+        data.food = req.params.food;
 
     req = session.step(4).render(SkinnedResponse('skins/continuation.html', {
         session: session,
         title: "Question 3",
         data: data
     }));
-    data.animal = req.params.animal || data.animal;
+    if (req.isPost)
+        data.animal = req.params.animal;
 
     session.step(5).render(SkinnedResponse('skins/continuation.html', {
         session: session,
