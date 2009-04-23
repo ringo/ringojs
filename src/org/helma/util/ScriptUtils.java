@@ -35,6 +35,11 @@ public class ScriptUtils {
      */
     public static Object javaToJS(Object obj, Scriptable scope) {
         if (obj instanceof Scriptable) {
+            if (obj instanceof ScriptableObject
+                    && ((Scriptable) obj).getParentScope() == null
+                    && ((Scriptable) obj).getPrototype() == null) {
+                ScriptRuntime.setObjectProtoAndParent((ScriptableObject) obj, scope);
+            }
             return obj;
         } else if (obj instanceof List) {
             return new ScriptableList(scope, (List) obj);
