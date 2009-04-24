@@ -20,6 +20,7 @@ import org.helma.javascript.RhinoEngine;
 import org.helma.util.CaseInsensitiveMap;
 import org.helma.util.ScriptableList;
 import org.helma.util.ScriptableMap;
+import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
 
 import java.util.List;
@@ -79,12 +80,18 @@ public class MacroTag extends ScriptableObject {
     }
 
     /**
-     * The name of the macro tag.
+     * Getter for the macro tag name.
      */
     public Object jsGet_name() {
         return name;
     }
 
+    /**
+     * Setter for the macro tag name.
+     */
+    public void jsSet_name(String name) {
+        this.name = name;
+    }
 
     /**
      * A Javascript array containing all parameter names in this macro tag.
@@ -139,10 +146,15 @@ public class MacroTag extends ScriptableObject {
     }
 
     public Object jsFunction_getSubMacro(int start) {
+        Object obj = args.get(start);
+        if (obj instanceof MacroTag) {
+            return ScriptUtils.javaToJS(obj, getTopLevelScope(this));
+        }
         MacroTag submacro = new MacroTag(start);
         submacro.setParentScope(getParentScope());
         submacro.setPrototype(getPrototype());
-        submacro.filter = filter;
+        // only apply filter to the top-level macro
+        // submacro.filter = filter;
         submacro.namedArgs = new CaseInsensitiveMap<String,Object>(namedArgs);
         submacro.args = new LinkedList<Object>();
         if (start + 1 < args.size()) {
@@ -150,7 +162,7 @@ public class MacroTag extends ScriptableObject {
                 submacro.args.add(i.next());
             }
         }
-        submacro.name = args.get(start);
+        submacro.name = obj;
         return submacro;
     }
 

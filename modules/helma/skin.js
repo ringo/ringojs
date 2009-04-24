@@ -206,51 +206,81 @@ function Skin(mainSkin, subSkins, parentSkin) {
             return self.renderSubskin(skin, context);
         },
 
+        "echo": function(macro, context, separator) {
+            var result = macro.parameters.map(function(elem) {
+                return getEvaluatedParameter(elem, context, 'echo');
+            });
+            var wrapper = macro.getParameter("wrap") || macro.getParameter("echo-wrap");
+            if (wrapper != null) {
+                wrapper = getEvaluatedParameter(wrapper, context);
+                result = result.map(function(part) {return wrapper[0] + part + wrapper[1]});
+            }
+            var separator = macro.getParameter("separator") || separator;
+            if (separator != null) {
+                return result.join(getEvaluatedParameter(separator), context, 'for:separator');
+            }
+            return result.join(' ');
+        },
+
         "for": function(macro, context) {
             if (macro.parameters.length < 4)
-                throw Error("not enough parameters in for-in macro");
+                return "[Error in for-in macro: not enough parameters]";
             if (macro.parameters[1] != "in")
-                throw Error("syntax error in for-in macro: expected in")
+                return "[Error in for-in macro: expected in]";
             var name = getEvaluatedParameter(macro.parameters[0], context, 'for:name');
             var list = getEvaluatedParameter(macro.parameters[2], context, 'for:list');
             var subContext = context.clone();
             var subMacro = macro.getSubMacro(3);
-            result = [];
+            if (subMacro.name == "and") {
+                subMacro.name = "for";
+            }
+            var result = [];
             for (var [index, value] in list) {
                 subContext['index'] = index
                 subContext[name] = getEvaluatedParameter(value, context, 'for:value');
                 result.push(evaluateMacro(subMacro, subContext));
             }
-            var separator = getEvaluatedParameter(macro.getParameter("separator"),
-                    context, 'for:separator');
-            if (separator != null) {
-                return result.join(separator);
+            var wrapper = macro.getParameter("wrap") || macro.getParameter(name + "-wrap");
+            if (wrapper != null) {
+                wrapper = getEvaluatedParameter(wrapper, context);
+                result = result.map(function(part) {return wrapper[0] + part + wrapper[1]});
             }
-            return result;
+            var separator = macro.getParameter("separator");
+            if (separator != null) {
+                return result.join(getEvaluatedParameter(separator), context, 'for:separator');
+            }
+            return result.join('');
         },
 
-        "if": function(macro, context) {
+        "if": function(macro, context, bypass) {
             if (macro.parameters.length < 2)
-                throw Error("not enough parameters in if macro");
+                return "[Error in if macro: not enough parameters]";
             var negated = (macro.parameters[0] == "not");
-            var condition;
-            if (negated) {
-                if (macro.parameters.length < 3)
-                    throw Error("not enough parameters in if macro");
-                condition = getEvaluatedParameter(macro.parameters[1], context, 'if:condition');
+            if (negated && macro.parameters.length < 3)
+                return "[Error in if macro: not enough parameters]";
+            var index = negated ? 1 : 0;
+            var result = true;
+            if (bypass) {
+                index++;
             } else {
-                condition = getEvaluatedParameter(macro.parameters[0], context, 'if:condition');
+                var condition = getEvaluatedParameter(macro.parameters[index++], context, 'if:condition');
+                result = negated ? !condition : !!condition;
             }
-            if (negated ? !!condition : !condition) {
+            var subName = macro.parameters[index];
+            if (!result && macro.parameters[index] != "or") {
                 return "";
             }
-            var subMacro = macro.getSubMacro(negated ? 2 : 1);
+            var subMacro = macro.getSubMacro(index);
+            if (subName == "or" && result)
+                return builtin["if"](subMacro, context, true);
+            else if (subName == "and" || subName == "or")
+                return builtin["if"](subMacro, context);
             return evaluateMacro(subMacro, context);
         },
 
         "set": function(macro, context) {
             if (macro.parameters.length < 2)
-                throw Error("not enough parameters in with macro");
+                return "[Error in set macro: not enough parameters]";
             var map = getEvaluatedParameter(macro.parameters[0], context, 'with:map');
             var subContext = context.clone();
             var subMacro = macro.getSubMacro(1);
