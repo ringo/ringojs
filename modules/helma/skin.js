@@ -206,7 +206,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
             return self.renderSubskin(skin, context);
         },
 
-        "echo": function(macro, context, separator) {
+        "echo": function(macro, context) {
             var result = macro.parameters.map(function(elem) {
                 return getEvaluatedParameter(elem, context, 'echo');
             });
@@ -215,7 +215,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
                 wrapper = getEvaluatedParameter(wrapper, context);
                 result = result.map(function(part) {return wrapper[0] + part + wrapper[1]});
             }
-            var separator = macro.getParameter("separator") || separator;
+            var separator = macro.getParameter("separator");
             if (separator != null) {
                 return result.join(getEvaluatedParameter(separator), context, 'for:separator');
             }
