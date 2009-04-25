@@ -1,0 +1,6 @@
+#!/bin/bash
+# Launches Helma NG
+HELMA_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
+HELMA_HOME=$HELMA_BIN/..
+
+java -jar "$HELMA_HOME/run.jar" $*
