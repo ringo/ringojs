@@ -95,7 +95,8 @@ function handleRequest(env) {
                     if (typeof action == "function" && path.length <= action.length) {
                         // add remaining path elements as additional action arguments
                         var actionArgs = path.slice(1).map(decodeURIComponent);
-                        var args = [req].concat(actionArgs);
+                        var matchedArgs = match.slice(1).map(decodeURIComponent);
+                        var args = [req].concat(matchedArgs).concat(actionArgs);
                         var middleware = config.middleware;
                         var middlewareIndex = 0;
                         // set up middleware chain in request object
