@@ -16,27 +16,29 @@ system.addHostObject(org.helma.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
- * @param skinOrPath a skin object or a file name
+ * @param skinOrResource a skin object, helma resource, or file name
  * @param context the skin render context
  * @param scope optional scope object for relative resource lookup
  */
-function render(skinOrPath, context, scope) {
+function render(skinOrResource, context, scope) {
     scope = scope || this;
     var skin;
-    if (typeof(skinOrPath.render) == "function") {
-        skin = skinOrPath;
-    } else if (typeof(skinOrPath) == "string") {
+    if (typeof(skinOrResource.render) == "function") {
+        skin = skinOrResource;
+    } else if (skinOrResource instanceof org.helma.repository.Resource) {
+        skin = createSkin(skinOrResource, scope);
+    } else if (typeof(skinOrResource) == "string") {
         var subskin;
-        if (skinOrPath.indexOf('#') > -1) {
-            [skinOrPath, subskin] = skinOrPath.split('#');
+        if (skinOrResource.indexOf('#') > -1) {
+            [skinOrResource, subskin] = skinOrResource.split('#');
         }
-        var resource = scope.getResource(skinOrPath);
+        var resource = scope.getResource(skinOrResource);
         skin = createSkin(resource, scope);
         if (subskin) {
             skin = skin.getSubskin(subskin);
         }
     } else {
-        throw Error("Unknown skin object: " + skinOrPath);
+        throw Error("Unknown skin object: " + skinOrResource);
     }
     return skin.render(context);
 }
@@ -177,11 +179,11 @@ function Skin(mainSkin, subSkins, parentSkin) {
         if (isDefined(elem)) {
             if (elem[last + suffix] instanceof Function) {
                 return value === undefined ?
-                       elem[last + suffix].call(elem, macro, self, context) :
-                       elem[last + suffix].call(elem, value, macro, self, context);
+                       elem[last + suffix].call(elem, macro, context, self) :
+                       elem[last + suffix].call(elem, value, macro, context, self);
             } else if (value === undefined && isDefined(elem[last])) {
                 if (elem[last] instanceof Function) {
-                    return elem[last].call(elem, macro, self, context);
+                    return elem[last].call(elem, macro, context, self);
                 } else {
                     return elem[last];
                 }
