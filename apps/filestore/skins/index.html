@@ -1,17 +1,20 @@
-<% extends 'base.html' %>
+<% extends 'skins/base.html' %>
 
-<% subskin 'content' %>
-<h1><% title %></h1>
+<% subskin 'content' ----------------------------------- %>
 <% message | prefix "<p>" | suffix "</p>" %>
 
 <h3>Add a new book</h3>
-<form action="/" method="post">
-    <label>Author: </label><input name="author" size="30"/>
-    <label>Title: </label><input name="title" size="30"/>
-    <input type="submit" name="save" value="Save"/>
+<form action="<% action %>" method="post">
+    <div><label>Author: </label></div><div><input name="author" size="30"/></div>
+    <div><label>Title: </label></div><div><input name="title" size="30"/></div>
+    <p><input type="submit" name="save" value="Save"/></p>
 </form>
 
 <h3>Available Books</h3>
 <p>
-<% books %>
+<% for book in <% books %> render book %>
 </p>
+
+<% subskin 'book'  ----------------------------------- %>
+<div><% book.author.name %>: <% book.title %>
+    <a href="?remove=<% book._id %>">[remove]</a></div>

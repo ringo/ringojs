@@ -1,5 +1,5 @@
 include('helma/webapp/response');
-include('model');
+include('./model');
 
 export('index');
 
@@ -12,13 +12,10 @@ function index(req) {
     if (req.params.remove) {
         return removeBook(req);
     }
-    return new SkinnedResponse('skins/index.html', {
-        title: 'Storage Demo',
-        books: function(/*tag, skin, context*/) {
-            return Book.all().map(function(book) {
-                return book.getFullTitle() + ' ' + getDeleteLink(book);
-            }).join('<br>\r\n');
-        }
+    return SkinnedResponse(getResource('./skins/index.html'), {
+        title: 'Storage',
+        books: Book.all(),
+        action: req.path
     });
 }
 
@@ -27,7 +24,7 @@ function createBook(req) {
     author.save(); // no cascading save yet
     var book = new Book({author: author, title: req.params.title});
     book.save();
-    return new RedirectResponse('/');
+    return new RedirectResponse(req.path);
 }
 
 function removeBook(req) {
@@ -35,9 +32,5 @@ function removeBook(req) {
     // no cascading delete
     book.author.remove();
     book.remove();
-    return new RedirectResponse('/');
-}
-
-function getDeleteLink(book) {
-    return '<a href="/?remove=' + book.getId() + '">delete</a>';
+    return new RedirectResponse(req.path);
 }

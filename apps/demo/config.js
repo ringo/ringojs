@@ -3,15 +3,15 @@ exports.httpConfig = {
 };
 
 exports.urls = [
-    [ /^mount\/point/, 'webmodule' ],
-    [ /^/, 'actions' ],
+    [ '/mount/point', 'webmodule' ],
+    [ '/storage', 'storage/config' ],
+    [ '/', 'actions' ],
 ];
 
 exports.middleware = [
     'helma/webapp/continuation',
-    // 'helma/profiler',
     'helma/logging',
 ];
 
-exports.charset = 'utf8';
+exports.charset = 'UTF-8';
 exports.contentType = 'text/html';

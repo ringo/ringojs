@@ -46,6 +46,8 @@ function handleRequest(env) {
     function getPattern(spec) {
         var pattern = spec[0];
         if (typeof pattern == "string") {
+            if (pattern.startsWith("/"))
+                pattern = pattern.replace("/", "^");
             pattern = spec[0] = new RegExp(pattern);
         } else if (!(pattern instanceof RegExp)) {
             throw Error("Pattern must be a regular expression or string");
@@ -53,10 +55,10 @@ function handleRequest(env) {
         return pattern;
     }
 
-    function getModule(spec) {
+    function getModule(spec, prefix) {
         var module = spec[1];
         if (typeof module == "string") {
-            module = require(module);
+            module = require(prefix + module);
         } else if (!(module instanceof Object)) {
             throw Error("Module must be a string or object");
         }
@@ -72,29 +74,28 @@ function handleRequest(env) {
         return null;
     }
 
-    
-
-    try {
-        log.debug('resolving path ' + path);
+    function resolveInConfig(config, path, prefix) {
+        if (log.isDebugEnabled) log.debug('resolving path ' + path);
         if (config.urls instanceof Array) {
             var urls = config.urls;
             for (var i = 0; i < urls.length; i++) {
-                log.debug("checking url line: " + urls[i]);
+                if (log.isDebugEnabled) log.debug("checking url line: " + urls[i]);
                 var match = getPattern(urls[i]).exec(path);
-                log.debug("got match: " + match);
+                if (log.isDebugEnabled) log.debug("got match: " + match);
                 if (match != null) {
-                    var module = getModule(urls[i]);
-                    log.debug("module: " + module);
+                    var module = getModule(urls[i], prefix);
+                    if (log.isDebugEnabled) log.debug("module: " + module);
                     // cut matching prefix from path
                     path = path.substring(match[0].length);
                     // remove leading and trailing slashes
                     path = path.replace(/^\/+|\/+$/g, "");
                     //split
-                    path = path.split(/\/+/);
-                    var action = getAction(module, path[0]);
-                    if (typeof action == "function" && path.length <= action.length) {
+                    var pathArray = path.split(/\/+/);
+                    var action = getAction(module, pathArray[0]);
+                    // log.debug("got action: " + action);
+                    if (typeof action == "function" && pathArray.length <= action.length) {
                         // add remaining path elements as additional action arguments
-                        var actionArgs = path.slice(1).map(decodeURIComponent);
+                        var actionArgs = pathArray.slice(1).map(decodeURIComponent);
                         var matchedArgs = match.slice(1).map(decodeURIComponent);
                         var args = [req].concat(matchedArgs).concat(actionArgs);
                         var middleware = config.middleware;
@@ -107,12 +108,20 @@ function handleRequest(env) {
                                 return action.apply(module, args);
                             }
                         }
-                        res = req.process();
+                        return req.process();
+                    } else if (module.urls instanceof Array) {
+                        // nested app
+                        return resolveInConfig(module, path, match[0] + "/");
+                    } else {
+                        break;
                     }
-                    break;
                 }
             }
         }
+    }
+
+    try {
+        res = resolveInConfig(config, path, "");
     } catch (e) {
         if (e.retry) {
             throw e;
