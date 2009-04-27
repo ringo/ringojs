@@ -2,7 +2,9 @@
  * Module for starting and stopping the jetty http server.
  */
 
+include('helma/webapp/util');
 var IO = require('io').IO;
+var HashP = require('hashp').HashP;
 
 export('start', 'stop', 'initRequest', 'commitResponse');
 
@@ -108,8 +110,21 @@ var log = require('helma/logging').getLogger(__name__);
  * @param env a jack request object
  */
 function initRequest(env) {
-    env["jack.input"]  = new IO(env['jack.servlet_request'].getInputStream(), null);
-    env["jack.errors"] = new IO(null, java.lang.System.err);
+    var input, errors;
+    Object.defineProperty(env, "jack.input", {
+        get: function() {
+            if (!input)
+                input = new IO(env['jack.servlet_request'].getInputStream(), null);
+            return input;
+        }
+    });
+    Object.defineProperty(env, "jack.errors", {
+        get: function() {
+            if (!errors)
+                errors = new IO(null, java.lang.System.err);
+            return errors;
+        }
+    });
 }
 
 /**
@@ -127,17 +142,22 @@ function commitResponse(env, result) {
         return;
     if (!(result instanceof Array)) {
         // convert helma response to jack response
-        if (result && typeof result.close === "function")
+        if (result && typeof result.close === "function") {
             result = result.close();
-        else
-            return;
+        } else {
+            return; // TODO generate error page?
+        }
     }
 	var [status, headers, body] = result;
 	response.status = status;
 	for (var name in headers) {
 		response.setHeader(name, headers[name]);
 	}
-	var writer = response.writer;
+    var charset = getSubHeader(HashP.get(headers, "content-type"), "charset");
+    if (charset) {
+        response.setCharacterEncoding(charset);
+    }
+	var writer = response.getWriter();
 	if (body && typeof body.forEach == "function") {
 		body.forEach(function(chunk) {
 			writer.write(String(chunk));

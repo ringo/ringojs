@@ -1,6 +1,6 @@
 include('hashp');
 include('helma/buffer');
-import('helma/system', 'system');
+include('helma/webapp/util');
 
 export('Response', 'SkinnedResponse', 'RedirectResponse' /*, 'NotFoundResponse', 'ServerErrorResponse'*/);
 
@@ -125,6 +125,11 @@ function Response() {
 
     Object.defineProperty(this, 'setHeader', {
         value: function(key, value) {
+            key = String(key);
+            if (key.toLowerCase() == "content-type") {
+                contentType = String(value);
+                charset = getSubHeader(contentType, "charset") || charset;
+            }
             HashP.set(headers, String(key), String(value));
         }
     });
@@ -132,11 +137,10 @@ function Response() {
     Object.defineProperty(this, 'close', {
         value: function() {
             this.flushDebug();
-            if (charset) {
-                contentType = contentType || HashP.get('content-type') || "text/html";
-                contentType += "; charset=" + charset;
-            }
-            if (contentType) {
+            if (contentType && !HashP.includes(headers, 'content-type')) {
+                if (charset) {
+                    contentType += "; charset=" + charset;
+                }
                 HashP.set(headers, "Content-Type", contentType);
             }
             return [status, headers, buffer];
