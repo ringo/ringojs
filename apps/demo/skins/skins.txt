@@ -1,0 +1,72 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' | markdown %>
+This page showcases some of the skinning featuers in Helma NG, such as macros, subskins, and filters.
+
+This is the action code that renders the skin:
+
+    function skins(req, res) {
+        res.render('skins/skins.html', {
+            title: 'Skin Demo',
+            name: 'Luisa',
+            names: ['Benni', 'Emma', 'Luca', 'Selma']
+        });
+    }
+  
+And the following subskin in skins.html:
+
+    \<% subskin hello %>
+    Hello \<% name %>!</pre>
+
+Your basic skin rendering macro then looks like this:
+
+    \<% render hello %>
+
+And this is the output this produces:
+
+<p style="background-color: pink;"><% render hello %></p>
+
+The render macro also lets you loop through arrays and other iterables:
+
+    \<% for name in \<% names %> render hello %>
+
+This is what you should get:
+
+<p style="background-color: pink;">
+<% for name in <% names %> render hello %>
+</p>
+
+You can also bind values to the macro context in the tag:
+
+    \<% set {name: Julia} render hello %>
+
+This gets you
+
+<p style="background-color: pink;">
+<% set {name: Julia } render hello %>
+</p>
+
+Or you can define the objects to loop through using object and array literals in the macro tag:
+
+    \<% for name in [Gerlinde, Ralph, Thomas] render hello %>
+
+Produces:
+
+<p style="background-color: pink;">
+<% for name in [Gerlinde, Ralph, Thomas] render hello %>
+</p>
+
+Finally, [filters][ng:helma.filters] let you do all kinds of post-processing
+on the output of a macro.
+
+    \<% render hello | uppercase %>
+
+Renders:
+
+<p style="background-color: pink;">
+    <% render 'hello' | uppercase %>
+</p>
+
+[Visit the Helma NG site][ng:helma.skin] to learn more about skin rendering.
+
+<% subskin 'hello' %>Hello <% name %>! 

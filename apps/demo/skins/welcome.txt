@@ -1,0 +1,8 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' | markdown %>
+Welcome to the Helma NG demo application.
+
+This app shows some of the features in Helma NG. As the version number suggests,
+Helma NG is far from finished. Check [the Helma NG site][ng:]
+regularly to keep up with development.

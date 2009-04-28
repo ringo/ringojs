@@ -8,9 +8,8 @@ export('index', 'extra_path', 'skins', 'logging', 'continuation', 'profiler');
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return new SkinnedResponse('skins/index.html', { title: 'Welcome to Helma NG' });
+    return new SkinnedResponse('skins/welcome.txt', {title: 'Welcome to Helma NG'});
 }
-
 
 // additional path elements are passed to the action as arguments,
 // e.g. /extra.path/2008/09
@@ -20,7 +19,7 @@ function extra_path(req, year, month) {
 
 // demo for skins, macros, filters
 function skins(req) {
-    return new SkinnedResponse('skins/skins.html', {
+    return new SkinnedResponse('skins/skins.txt', {
         title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
