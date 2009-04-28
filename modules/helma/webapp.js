@@ -95,8 +95,8 @@ function handleRequest(env) {
                     // log.debug("got action: " + action);
                     if (typeof action == "function" && pathArray.length <= action.length) {
                         // add remaining path elements as additional action arguments
-                        var actionArgs = pathArray.slice(1).map(decodeURIComponent);
-                        var matchedArgs = match.slice(1).map(decodeURIComponent);
+                        var actionArgs = pathArray.slice(1);
+                        var matchedArgs = match.slice(1);
                         var args = [req].concat(matchedArgs).concat(actionArgs);
                         var middleware = config.middleware;
                         var middlewareIndex = 0;
@@ -121,7 +121,7 @@ function handleRequest(env) {
     }
 
     try {
-        res = resolveInConfig(config, path, "");
+        res = resolveInConfig(config, decodeURI(path), "");
     } catch (e) {
         if (e.retry) {
             throw e;
@@ -197,7 +197,7 @@ function notfound(req) {
     res.status = 404;
     res.contentType = 'text/html';
     res.writeln('<h1>Not Found</h1>');
-    res.writeln('The requested URL', req.path, 'was not found on the server.');
+    res.writeln('The requested URL', req.pathDecoded, 'was not found on the server.');
     return res.close();
 }
 

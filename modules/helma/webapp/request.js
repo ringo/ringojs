@@ -17,6 +17,10 @@ function Request(env) {
     define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
     define("method", readOnlyPropertyDesc(servletRequest, "method"));
 
+    define("pathDecoded", {
+        get: function() { return decodeURI(this.path) }
+    });
+
     define("params", {
         get: function() {
             if (!params)
