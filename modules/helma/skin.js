@@ -77,14 +77,14 @@ function createSkin(resourceOrString, scope) {
         } else if (part.name === 'subskin')  {
             var skinName = part.getParameter('name', 0);
             currentSkin = [];
-            currentSkin.filter = part.filter;
+            currentSkin.subskinFilter = part.filter;
             subSkins[skinName] = currentSkin;
         } else {
             currentSkin[currentSkin.length] = part;
         }
     });
     // normalization: cut trailing whitespace so it's
-    // easier to tell if main skin shoule be inherited
+    // easier to tell if main skin should be inherited
     var lastPart = mainSkin[mainSkin.length - 1];
     if (typeof(lastPart) === 'string' && lastPart.trim() === '') {
         mainSkin.pop();
@@ -139,8 +139,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     function renderInternal(parts, context) {
         var value = [renderPart(part, context) for each (part in parts)].join('');
-        if (parts && parts.filter)
-            return evaluateFilter(value, parts.filter, context);
+        if (parts && parts.subskinFilter)
+            return evaluateFilter(value, parts.subskinFilter, context);
         return value;
     }
 
