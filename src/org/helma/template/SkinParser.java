@@ -45,11 +45,18 @@ public abstract class SkinParser {
                 reader = new LineNumberReader(r);
             }
             int c;
+            boolean escape = false;
             while ((c = reader.read()) > 0) {
                 switch (c) {
+                    case '\\':
+                        if (escape) {
+                            buffer.append('\\');
+                        }
+                        escape = true;
+                        break;
                     case '<':
                         reader.mark(1);
-                        if (reader.read() == '%') {
+                        if (reader.read() == '%' && !escape) {
                             if (buffer.length() > 0) {
                                 renderText(buffer.toString());
                                 buffer.setLength(0);
@@ -58,9 +65,14 @@ public abstract class SkinParser {
                         } else {
                             buffer.append((char) c);
                             reader.reset();
+                            escape = false;
                         }
                         break;
                     default:
+                        if (escape) {
+                            buffer.append('\\');
+                            escape = false;
+                        }
                         buffer.append((char) c);
                         break;
                 }
