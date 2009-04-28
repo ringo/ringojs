@@ -122,6 +122,15 @@ public class MarkdownProcessor {
     }
 
     /**
+     * Method to override to create custom HTML tags.
+     * @param tag the html tag to generate
+     * @param builder the java.lang.StringBuilder to generate the string
+     */
+    protected void openTag(String tag, StringBuilder builder) {
+        builder.append('<').append(tag).append('>');
+    }
+
+    /**
      * First pass: extract links definitions and remove them from the source text.
      */
     private synchronized void firstPass() {
@@ -527,7 +536,8 @@ public class MarkdownProcessor {
             }
             j += 1;
         }
-        buffer.append("<code>").append(code.toString().trim()).append("</code>");
+        openTag("code", buffer);
+        buffer.append(code.toString().trim()).append("</code>");
         i = j + 1;
         return true;
     }
@@ -757,7 +767,7 @@ public class MarkdownProcessor {
             stack.closeElementsExclusive(list);
             buffer.insert(getBufferEnd(), "</li>");
         }
-        buffer.append("<li>");
+        openTag("li", buffer);
         listParagraphs = isParagraphStart();
         lineMarker = paragraphStartMarker = buffer.length();
         state = State.LIST;
@@ -1070,7 +1080,7 @@ public class MarkdownProcessor {
         int nesting, m;
 
         void open() {
-            buffer.append("<").append(tag).append(">");
+            openTag(tag, buffer);
         }
 
         void close() {
@@ -1096,7 +1106,8 @@ public class MarkdownProcessor {
         }
 
         void open() {
-            buffer.append("<pre><code>");
+            openTag("pre", buffer);
+            openTag("code", buffer);
         }
 
         void close() {
