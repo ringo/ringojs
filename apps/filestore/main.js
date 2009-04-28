@@ -1,7 +1,7 @@
 include('helma/webapp/response');
 include('./model');
 
-export('index');
+export('index', 'edit');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
@@ -17,6 +17,23 @@ function index(req) {
         books: Book.all(),
         action: req.path
     });
+}
+
+function edit(req, id) {
+    var book = Book.get(id);
+    if (req.isPost) {
+        var author = book.author;
+        author.name = req.params.author;
+        book.title = req.params.title;
+        author.save();
+        book.save();
+        return new RedirectResponse("../");
+    }
+    return SkinnedResponse(getResource('./skins/edit.html'), {
+        title: 'Storage',
+        book: book,
+        action: req.path
+    })
 }
 
 function createBook(req) {

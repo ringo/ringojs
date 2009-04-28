@@ -17,4 +17,6 @@
 
 <% subskin 'book'  ----------------------------------- %>
 <div><% book.author.name %>: <% book.title %>
-    <a href="?remove=<% book._id %>">[remove]</a></div>
+    <a href="edit/<% book._id %>">[edit]</a>
+    <a href="?remove=<% book._id %>">[remove]</a>
+</div>
