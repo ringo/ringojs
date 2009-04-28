@@ -2,9 +2,7 @@
 
 require('core/string');
 require('core/object');
-import('helma/filters', 'filters');
 import('helma/logging', 'logging');
-import('helma/system', 'system');
 
 export('render', 'createSkin', 'Skin');
 
@@ -12,7 +10,7 @@ var __shared__ = true;
 var log = logging.getLogger(__name__);
 var skincache = false; // {}
 
-system.addHostObject(org.helma.template.MacroTag);
+require('helma/system').addHostObject(org.helma.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
@@ -39,6 +37,14 @@ function render(skinOrResource, context, scope) {
         }
     } else {
         throw Error("Unknown skin object: " + skinOrResource);
+    }
+    // extend context by globally provided macros and filters.
+    // user-provided context overrides globally defined stuff
+    var config = require('helma/webapp/env').config;
+    if (config && config.macros instanceof Array) {
+        for each (var module in config.macros) {
+            context = Object.merge(context, require(module));
+        }
     }
     return skin.render(context);
 }
@@ -71,6 +77,7 @@ function createSkin(resourceOrString, scope) {
         } else if (part.name === 'subskin')  {
             var skinName = part.getParameter('name', 0);
             currentSkin = [];
+            currentSkin.filter = part.filter;
             subSkins[skinName] = currentSkin;
         } else {
             currentSkin[currentSkin.length] = part;
@@ -131,10 +138,10 @@ function Skin(mainSkin, subSkins, parentSkin) {
     };
 
     function renderInternal(parts, context) {
-        // extend context by globally provided filters. user-provided filters
-        // override globally defined ones
-        context = Object.merge(context, filters);
-        return [renderPart(part, context) for each (part in parts)].join('');
+        var value = [renderPart(part, context) for each (part in parts)].join('');
+        if (parts && parts.filter)
+            return evaluateFilter(value, parts.filter, context);
+        return value;
     }
 
     function renderPart(part, context) {
@@ -148,16 +155,21 @@ function Skin(mainSkin, subSkins, parentSkin) {
         if (value instanceof Array) {
             value = value.join('');
         }
+        return evaluateFilter(value, macro.filter, context);
+    }
+
+    function evaluateFilter(value, filter, context) {
         // traverse the linked list of filters
-        for (var filter = macro.filter; filter; filter = filter.filter) {
+        while (filter) {
             // make sure value is not undefined, otherwise evaluateExpression()
             // might become confused
             if (!isVisible(value)) {
                 value = "";
             }
             value = evaluateExpression(filter, context, '_filter', value);
+            filter = filter.filter;
         }
-        return value
+        return value;
     }
 
     function evaluateExpression(macro, context, suffix, value) {
