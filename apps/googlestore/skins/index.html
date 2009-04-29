@@ -11,12 +11,14 @@
 </form>
 
 <h3>Available Books</h3>
-<p>
+<table cellspacing="0" cellpadding="3">
 <% for book in <% books %> render book %>
-</p>
+</table>
 
 <% subskin 'book'  ----------------------------------- %>
-<div><% book.author.name %>: <% book.title %>
-    <a href="edit/<% book.getId %>">[edit]</a>
-    <a href="?remove=<% book.getId %>">[remove]</a>
-</div>
+<tr style="<% ifEven 'background-color: #eee;' %>">
+    <td><% book.author.name %></td>
+    <td><% book.title %></td>
+    <td><a href="edit/<% book.getId %>">[edit]</a></td>
+    <td><a href="remove/<% book.getId %>">[remove]</a></td>
+</tr>
