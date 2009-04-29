@@ -4,7 +4,7 @@ exports.httpConfig = {
 
 exports.urls = [
     [ '/mount/point', 'webmodule' ],
-    [ '/storage', 'storage/config' ],
+    [ '/storage/', 'storage/config' ],
     [ '/', 'actions' ],
 ];
 
@@ -15,7 +15,8 @@ exports.middleware = [
 
 exports.macros = [
     'macros',
-    'helma/filters'
+    'helma/skin/macros',
+    'helma/skin/filters'
 ];
 
 exports.charset = 'UTF-8';
