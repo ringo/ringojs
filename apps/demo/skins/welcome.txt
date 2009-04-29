@@ -1,7 +1,23 @@
 <% extends 'base.html' %>
 
 <% subskin 'content' | markdown %>
-Welcome to the Helma NG demo application.
+**Welcome to the [Helma NG][ng:] demo application.** 
+Helma NG is a Javascript runtime and web application framework running on
+the Java virtual machine.
+"NG" stands for "next generation", meaning that it is a more of a rewrite of
+Helma 1 than simply a new version.
+
+Helma NG consists of several components that can be used together or alone:
+
+  1. A compact JavaScript runtime environment based on Mozilla Rhino. It adds
+     to Rhino a reloading module system that is compatible to the ServerJS
+     Securable Module proposal.
+
+  2. An interactive shell with support for autocompletion and history.
+
+  3. A module library implemented in JavaScript, covering basic functionality
+     such as extensions to the built-in objects, file I/O, logging, persistence,
+     client and server side HTTP support and more.
 
 This app shows some of the features in Helma NG. As the version number suggests,
 Helma NG is far from finished. Check [the Helma NG site][ng:]

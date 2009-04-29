@@ -22,4 +22,4 @@ exports.markdown_filter = function(content) {
         }
     });
     return markdown.process(content);
-}
+};
