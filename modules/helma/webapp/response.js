@@ -2,7 +2,7 @@ include('hashp');
 include('helma/buffer');
 include('helma/webapp/util');
 
-export('Response', 'SkinnedResponse', 'RedirectResponse' /*, 'NotFoundResponse', 'ServerErrorResponse'*/);
+export('Response', 'SkinnedResponse', 'JSONResponse', 'RedirectResponse' /*, 'NotFoundResponse', 'ServerErrorResponse'*/);
 
 function Response() {
 
@@ -152,6 +152,13 @@ function Response() {
 function SkinnedResponse(skin, context, scope) {
     var render = require('helma/skin').render;
     return new Response(render(skin, context, scope));
+}
+
+function JSONResponse(object) {
+    var json = require('core/json2').JSON;
+    var res = new Response(json.stringify(object));
+    res.contentType = 'application/json';
+    return res;
 }
 
 function RedirectResponse(location) {
