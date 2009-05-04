@@ -1,5 +1,16 @@
 require('core/string');
 
+exports.ResponseFilter = function(body, filter) {
+    this.forEach = function(fn) {
+        body.forEach(function(block) {
+            var filtered = filter(block);
+            if (filtered != null) {
+                fn(filtered);
+            }
+        });
+    };
+};
+
 exports.getSubHeader = function(headerValue, subHeaderName) {
     if (!headerValue)
         return null;
@@ -14,4 +25,4 @@ exports.getSubHeader = function(headerValue, subHeaderName) {
         }
     }
     return null;
-}
+};
