@@ -1,5 +1,3 @@
-include('core/json2');
-
 export('Buffer');
 
 /**
