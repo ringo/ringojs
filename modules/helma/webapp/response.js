@@ -162,5 +162,5 @@ function JSONResponse(object) {
 }
 
 function RedirectResponse(location) {
-    return [303, {Location: location}, "See other: " + location];
+    return [303, {Location: location}, ["See other: " + location]];
 }
