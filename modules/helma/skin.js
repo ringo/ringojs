@@ -3,6 +3,7 @@
 require('core/string');
 require('core/object');
 import('helma/logging', 'logging');
+import('helma/system', 'system');
 
 export('render', 'createSkin', 'Skin');
 
@@ -38,14 +39,6 @@ function render(skinOrResource, context, scope) {
     } else {
         throw Error("Unknown skin object: " + skinOrResource);
     }
-    // extend context by globally provided macros and filters.
-    // user-provided context overrides globally defined stuff
-    var config = require('helma/webapp/env').config;
-    if (config && config.macros instanceof Array) {
-        for each (var module in config.macros) {
-            context = Object.merge(context, require(module));
-        }
-    }
     return skin.render(context);
 }
 
@@ -63,26 +56,34 @@ function createSkin(resourceOrString, scope) {
     var subSkins = {};
     var currentSkin = mainSkin;
     var parentSkin = null;
-    parseSkin(resourceOrString, function(part) {
-        if (part.name === 'extends') {
-            var skinPath = part.getParameter(0);
-            var skinResource;
-            if (resourceOrString.parentRepository) {
-                skinResource = resourceOrString.parentRepository.getResource(skinPath);
+    var engine = system.getRhinoEngine();
+    var parser = new org.helma.template.SkinParser({
+        renderText: function(text) {
+            currentSkin[currentSkin.length] = text;
+        },
+        renderMacro: function(macro) {
+            engine.wrapArgument(macro, global);
+            if (macro.name === 'extends') {
+                var skinPath = macro.getParameter(0);
+                var skinResource;
+                if (resourceOrString.parentRepository) {
+                    skinResource = resourceOrString.parentRepository.getResource(skinPath);
+                }
+                if (!skinResource || !skinResource.exists()) {
+                    skinResource = scope.getResource(skinPath);
+                }
+                parentSkin = createSkin(skinResource);
+            } else if (macro.name === 'subskin')  {
+                var skinName = macro.getParameter('name', 0);
+                currentSkin = [];
+                currentSkin.subskinFilter = macro.filter;
+                subSkins[skinName] = currentSkin;
+            } else {
+                currentSkin[currentSkin.length] = macro;
             }
-            if (!skinResource || !skinResource.exists()) {
-                skinResource = scope.getResource(skinPath);
-            }
-            parentSkin = createSkin(skinResource);
-        } else if (part.name === 'subskin')  {
-            var skinName = part.getParameter('name', 0);
-            currentSkin = [];
-            currentSkin.subskinFilter = part.filter;
-            subSkins[skinName] = currentSkin;
-        } else {
-            currentSkin[currentSkin.length] = part;
         }
     });
+    parser.parse(resourceOrString);
     // normalization: cut trailing whitespace so it's
     // easier to tell if main skin should be inherited
     var lastPart = mainSkin[mainSkin.length - 1];
@@ -106,6 +107,14 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var self = this;
 
     this.render = function render(context) {
+        // extend context by globally provided macros and filters.
+        // user-provided context overrides globally defined stuff
+        var config = require('helma/webapp/env').config;
+        if (config && config.macros instanceof Array) {
+            for each (var module in config.macros) {
+                context = Object.merge(context, require(module));
+            }
+        }        
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
         } else {

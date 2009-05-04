@@ -111,26 +111,6 @@ Object.defineProperty(this, "global", { value: this });
     });
 
     /**
-     * Parse a skin resource and pass its tokens to the supplied function.
-     * @param resourceOrString a skin resource or string
-     * @param fn a function to consume the skin tokens
-     */
-    Object.defineProperty(this, "parseSkin", {
-        value: function(resourceOrString, fn) {
-            var engine = getRhinoEngine();
-            var parser = new org.helma.template.SkinParser({
-                renderText: function(text) {
-                    fn(text);
-                },
-                renderMacro: function(macro) {
-                    fn(engine.wrapArgument(macro, {}));
-                }
-            });
-            parser.parse(resourceOrString);
-        }
-    });
-
-    /**
      * Basic print function compatible with other JavaScript implementations.
      */
     Object.defineProperty(this, "print", {
