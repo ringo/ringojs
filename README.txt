@@ -2,7 +2,7 @@ Helma NG
 ========
 
 Helma NG is a Javascript runtime and web application framework written in Java.
-"NG" stands for "next generation", meaning that it is a more of a rewrite of
+"NG" stands for "next generation", meaning that it is more of a rewrite of
 Helma 1 than simply a new version.
 
 Helma NG consists of several components that can be used together or alone:
@@ -17,47 +17,130 @@ Helma NG consists of several components that can be used together or alone:
      such as extensions to the built-in objects, file I/O, logging, persistence,
      client and server side HTTP support and more.
 
-JavaScript Runtime
-==================
+For more information, check out the Helma NG homepage and wiki:
+
+    http://dev.helma.org/ng/
+
+Building Helma
+==============
+
+Helma requires Java 1.5 and uses Apache Ant as its build environment. If you have
+these installed, building Helma NG is straightforward:
+
+  Check out Helma NG from subversion:
+
+      svn co https://dev.helma.org/svn/helma-ng/trunk/ helma-ng
+
+  or, if you prefer git:
+
+      git clone git://github.com/hns/helma-ng.git
+
+  Change to the helma-ng directory and run ant to compile:
+
+      ant jar
+
+If this succeeds you should now have a file called run.jar and be ready to go.
+
+JavaScript Runtime and Shell
+============================
 
 The Helma JavaScript runtime is based on Mozilla Rhino and supports
 JavaScript 1.7 with partial support for JavaScript 1.8 features.
 
-To run a script with Helma, simply pass it as an argument to run.jar:
+To run Helma NG, add the helma-ng/bin directory to your PATH environment
+variable:
 
-    java -jar run.jar somepath/mainfile.js
+    export PATH=$PATH:helma-ng/bin
+
+To start a shell session, just run the helma command without any arguments:
+
+    helma
+
+To run a script simply pass it to helma on the command line:
+
+    helma apps/demo/main.js
 
 If you run a script that is contained in Helma's module path you can also
 use the simpler abstract module name instead of the file name:
 
-    java -jar run.jar helma.unittest
+    helma test/all
 
-Helma takes the first command line argument after run.jar that does not start
-with a "-" as script name. Everything coming after the script name is passed
-to the script as arguments.
+Run helma with the -h or --help switch to get more information about available
+command line options. For exapmle, the -i or --interactive option allows you
+to run an application and use the shell at the same time, which can be really
+handy.
 
-   java -jar run.jar [option] ... [file] [arg] ...
+Module Path Setup
+=================
 
-JavaScript Shell
-================
+Helma NG loads JavaScript resources using a module loader that is compliant with
+the ServerJS Securable Modules proposal:
 
-To start the interactive Helma shell start run.jar without a script file:
+    https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
 
-    java -jar run.jar
+Helma NG actually goes one step further and makes sure every module has its own
+top level scope, so modules are fully isolated from each other, providing a
+programming environment that resembles that of Python environment more than
+the one of ordinary client-side JavaScript runtime.
 
-This starts the Helma shell with the current directory in its module path.
-The module path is the list of places Helma looks for scripts when asked to
-import something. It should contain your application directory. Helma always
-adds the modules directory to the end of the module path.
+Helma uses the concept of a module path to look up and load modules that is
+similar to the PATH environment variable used ot find executables on most
+operating systems. By default, the module path consists of two entries:
 
-You can also start the interactive Helma shell when running a script using
-the -i or --interactive flag:
+    1. The application root, which is the parent directory of the comman line
+       script, or the current working directory if called without script
+       argument.
+    2. The system modules root, which corresponds to the modules directory in
+       the Helma NG home directory.
 
-    java -jar run.jar -i dir/script.js
+Helma NG provides several ways to access and set the module path. The simplest
+is to set the HELMA_MODULE_PATH environment variable, separating multiple entries
+with ':' or whatever character is used to seprate PATH entries on your system:
 
-This will add the script's parent directory to the module path (in this case
-"dir", run the script, then start the shell.
+     export HELMA_MODULE_PATH=../foo/lib:../my/lib
 
+Alternatively, you can define the module path using the helma.modulepath Java
+system property, and you can add entries to the module path using the
+addRepository() method in the helma/system module.
+
+Module and Resource Loading
+===========================
+
+Helma NG provides three functions with different semantics to load modules:
+
+require(moduleName)
+
+    The require function provides the functionality defined in the ServerJS
+    Securable Modules proposal. It tries to locate a module in the module path,
+    loads it and returns its exports object.
+
+import(moduleName)
+
+    The import function builds on top of require, additionally setting a
+    property in the calling module scope whose name is the name of the
+    loaded module and whose value is the loaded module's exports object.
+
+include(moduleName)
+
+    The include function builds on top of require, additionally copying
+    all exported properties of the loaded module to the calling module scope.
+
+export(propertyName[, ...])
+
+    The export function provides an alternative method to the exports object
+    to define exported properties in a module by passing the names of exported
+    properties as arguments.
+
+addToClasspath(pathName)
+
+    This function adds a jar file or directory to the classpath. By default,
+    all jar files in the Helma NG lib directory are included in the classpath.
+
+getResource(pathName)
+
+    This looks for a file with the given path name in the module path and
+    returns a resource object. This can be used to load resources other than
+    JavaScript files using the same lookup rules as the module loader.
 
 Web Framework
 =============
@@ -67,7 +150,7 @@ built on top of the Helma Runtime.
 
 To run the demo application that is part of Helma NG run the following command:
 
-    java -jar run.jar apps/demo/main.js
+    helma apps/demo/main.js
 
 This starts and serves the demo web app on port 8080:
 
@@ -78,64 +161,11 @@ As Helma NG is still pretty young, many features found in Helma 1.6 are still
 missing, most notably a persistence layer. These features are currently being
 implemented.
 
-The exciting thing is thatit will be possible to implement much of it in
+The exciting thing is that it will be possible to implement much of it in
 Javascript, meaning you can help doing so without hacking on helma core.
-The new modular concept will even allow to use helma with several frameworks,
-even on the same server instance.
+The new modular concept will even allow to use Helma NG with several
+frameworks, even on the same server instance.
 
 Visit http://dev.helma.org/ng/ and join the Helma NG mailing list to keep up
-with Helma NG core and module development! 
+with Helma NG core and module development!
 
-Global Functions
-================
-
-In addition to standard Javascript functionality, some useful functions
-Helma adds are:
-
-import(module);
-include(module);
-require(module);
-
-    These functions load Javascript modules and make them available to the
-    current scope in different ways. See
-    http://dev.helma.org/ng/Modules+and+Scopes/ for more info.
-
-    Helma first tries to resolve the path relative to the location of the
-    module calling this method. If that fails, it looks for the resource
-    in the repository path, which usually consists of the current directory
-    (shell) or app directory (web apps) and the modules directory.
-
-    The module path can be set by passing one or more script directories on
-    the command line. As a fallback, Helma checks the helma.modulepath
-    System property:
-
-        java -Dhelma.modulepath=myapp,mylibs -jar run.jar
-
-addToClasspath(jarfile)
-
-    This function adds a jar file or directory to the classpath. by default,
-    all jar files in the lib directory are included in the classpath. You
-    can add also other jar files by starting helma with
-
-       java -Dhelma.classpath=foo.jar,lib0/,lib1/*,lib/** -jar run.jar
-
-getResource(path)
-
-    This loads a resource object. See the import functions above for a
-    detailed explanation of helma.modulepath and resource lookup.
-
-Building Helma
-==============
-
-To build helma yourself follow these steps:
-
-  Check out helma from subversion:
-
-      svn co https://dev.helma.org/svn/helma-ng/trunk/ helma-ng
-
-  Change to the helma-ng directory and run ant to compile:
-
-      ant jar
-
-If this succeeds you should be able to start the helma shell and runtime
-as described above.
