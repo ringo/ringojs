@@ -16,7 +16,7 @@ function Buffer() {
 
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
-            content[content.length] = arguments[i];
+            content[content.length] = String(arguments[i]);
         }
         return this;
     };
