@@ -4,6 +4,7 @@
 
 include('helma/webapp/util');
 var IO = require('io').IO;
+var Binary = require("binary").Binary;
 var HashP = require('hashp').HashP;
 
 export('start', 'stop', 'initRequest', 'commitResponse');
@@ -148,24 +149,31 @@ function commitResponse(env, result) {
             return; // TODO generate error page?
         }
     }
-	var [status, headers, body] = result;
-	response.status = status;
-	for (var name in headers) {
-		response.setHeader(name, headers[name]);
-	}
-    var charset = getSubHeader(HashP.get(headers, "content-type"), "charset");
-    if (charset) {
-        response.setCharacterEncoding(charset);
+    var [status, headers, body] = result;
+    response.status = status;
+    for (var name in headers) {
+        response.setHeader(name, headers[name]);
     }
-	var writer = response.getWriter();
-	if (body && typeof body.forEach == "function") {
-		body.forEach(function(chunk) {
-			writer.write(String(chunk));
-			writer.flush();
-		})
-	} else {
-		writer.write(String(body));
-	}
-    writer.close();
+    var charset = getSubHeader(HashP.get(headers, "content-type"), "charset");
+    var output = response.getOutputStream();
+    if (body && typeof body.forEach == "function") {
+        /* var contentLength = 0;
+        var bytes = [];
+        body.forEach(function(part) {
+            var bin = part.toBinary(charset);
+            contentLength += bin.getLength();
+            bytes.push(bin.bytes);
+        })
+        response.setContentLength(contentLength);
+        for (var i = 0; i < bytes.length; i++) {
+            output.write(bytes[i]);
+        } */
+        body.forEach(function(part) {
+            output.write(part.toBinary(charset).bytes);
+        });
+    } else {
+        throw new Error("Unsupported response body: " + body);
+    }
+    output.close();
 }
 
