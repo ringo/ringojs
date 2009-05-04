@@ -2,6 +2,9 @@ require('core/string');
 include('helma/system');
 include('helma/buffer');
 
+importPackage(org.apache.log4j);
+importClass(org.apache.log4j.xml.DOMConfigurator);
+
 var __shared__ = true;
 
 var configured = false;
@@ -12,11 +15,10 @@ var responseLogEnabled = true;
  * Make sure to set the reset property to true in the <log4j:configuration> header
  * e.g. <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/' reset="true">
  */
-exports.setConfig = function(resource) {
+var setConfig = exports.setConfig = function(resource) {
     var {path, url} = resource;
     var configurator = path.endsWith('.properties') || path.endsWith('.props') ?
-                       org.apache.log4j.PropertyConfigurator :
-                       org.apache.log4j.xml.DOMConfigurator;
+                       PropertyConfigurator : DOMConfigurator;
     configurator.configure(url);
     try {
         configurator.configureAndWatch(path, 2000);
@@ -29,16 +31,16 @@ exports.setConfig = function(resource) {
 /**
  * Get a logger for the given name.
  */
-exports.getLogger = function(name) {
+var getLogger = exports.getLogger = function(name) {
     if (!configured) {
         // getResource('foo').name gets us the absolute path to a local resource
         this.setConfig(getResource('config/log4j.properties'));
     }
-    return org.apache.log4j.Logger.getLogger(name.replace(/\//g, '.'));
+    return Logger.getLogger(name.replace(/\//g, '.'));
 }
 
 // now that getLogger is installed we can get our own log
-var log = exports.getLogger(__name__);
+var log = getLogger(__name__);
 
 /**
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
@@ -48,47 +50,60 @@ exports.handleRequest = function handleRequest(req) {
     if (!responseLogEnabled) {
         return req.process();
     }
-    getRhinoContext().putThreadLocal('responseLog', new java.util.LinkedList());
 
-    var res = req.process();
+    var messages = [];
+    var appender = Logger.getRootLogger().getAppender("rhino") || {};
+
+    appender.callback = function(message, scriptStack, javaStack) {
+        messages.push([message, scriptStack, javaStack]);
+    };
+
+    var res;
+    try {
+        res = req.process();
+    } finally {
+        appender.callback = null;
+    }
 
     if (res && typeof res === 'object' && typeof res.close === 'function') {
         res = res.close();
     }
 
-    var [status, headers, body] = res;
-
-    if (status != 200 && status < 400) {
+    if (res[0] != 200 && res[0] < 400) {
         return res;
     }
 
-    var list = getRhinoContext().getThreadLocal('responseLog');
-
-    if (list && !list.isEmpty()) {
-        if (!(body instanceof Buffer)) {
-            body = res[2] = new Buffer(body);
-        }
-        for (var i = 0; i < list.size(); i++) {
-            var item = list.get(i);
-            var msg = item[0];
-            var multiline = msg && msg.trim().indexOf('\n') > 0 || msg.indexOf('\r')> 0;
-            body.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
-            body.write("color: black; border-top: 1px solid black;\">");
-            if (multiline) {
-                body.write("<pre>").write(msg).write("</pre>");
-            } else {
-                body.write(msg);
+    if (messages.length > 0) {
+        var ResponseFilter = require("helma/webapp/util").ResponseFilter;
+        res[2] = new ResponseFilter(res[2], function(part) {
+            if (typeof part != "string" && part.lastIndexOf("</body>") == -1) {
+                return part;
             }
-            if (item[1]) {
-                body.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
-                body.write("<pre style='margin: 0;'>", item[1], "</pre>");
+            var buffer = new Buffer();
+            for (var i = 0; i < messages.length; i++) {
+                var item = messages[i];
+                var msg = item[0];
+                var multiline = msg && msg.trim().indexOf('\n') > 0 || msg.indexOf('\r')> 0;
+                buffer.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
+                buffer.write("color: black; border-top: 1px solid black;\">");
+                if (multiline) {
+                    buffer.write("<pre>").write(msg).write("</pre>");
+                } else {
+                    buffer.write(msg);
+                }
+                if (item[1]) {
+                    buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
+                    buffer.write("<pre style='margin: 0;'>", item[1], "</pre>");
+                }
+                if (item[2]) {
+                    buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
+                    buffer.write("<pre style='margin: 0;'>", item[2], "</pre>");
+                }
+                buffer.writeln("</div>");
             }
-            if (item[2]) {
-                body.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
-                body.write("<pre style='margin: 0;'>", item[2], "</pre>");
-            }
-            body.writeln("</div>");
-        }
+            var insert = part.lastIndexOf("</body>");
+            return part.substring(0, insert) + buffer + part.substring(insert);
+        });
     }
 
     return res;

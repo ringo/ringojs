@@ -6,14 +6,15 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.helma.javascript.RhinoEngine;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
-
-import java.util.List;
+import org.mozilla.javascript.Function;
 
 /**
  * A log4j appender that passes log events to a Rhino callback function
  * named <code>onLogEvent</code>.
  */
 public class RhinoAppender extends AppenderSkeleton {
+
+    private static ThreadLocal<Function> callback = new ThreadLocal<Function>();
 
     /**
      * Tries to get the current {@link RhinoEngine} and invoke a callback named
@@ -23,15 +24,10 @@ public class RhinoAppender extends AppenderSkeleton {
      */
     protected void append(LoggingEvent event) {
         Context cx = Context.getCurrentContext();
-        if (cx == null) {
+        Function cb = callback.get();
+        if (cx == null || cb == null) {
             return;
         }
-        Object responseLog = cx.getThreadLocal("responseLog");
-        if (responseLog == null || !(responseLog instanceof List)) {
-            return;
-        }
-
-        List logList = (List) responseLog;
 
         if(this.layout == null) {
             errorHandler.error("No layout set for the appender named ["+ name+"].");
@@ -60,8 +56,16 @@ public class RhinoAppender extends AppenderSkeleton {
             }
         }
 
-        logList.add(new String[] {message, scriptStack, javaStack});
+        Object[] args = new Object[] {message, scriptStack, javaStack};
+        cb.call(cx, cb.getParentScope(), null, args);
+    }
 
+    public static Function getCallback() {
+        return callback.get();
+    }
+
+    public static void setCallback(Function callback) {
+        RhinoAppender.callback.set(callback);
     }
 
     /**
