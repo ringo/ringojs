@@ -656,6 +656,21 @@ public class RhinoEngine {
         return loader;
     }
 
+    /**
+     * Get a wrapper for an object that exposes it as Java object to JavaScript.
+     * This is useful for accessing strings and other primitives as their
+     * java.lang.* counterparts from JavaScript using the existing instance rather
+     * than allocating a new object via new java.lang.Foo() constructor.
+     * @param object an object
+     * @return the object wrapped as native java object
+     */
+    public Object asJavaObject(Object object) {
+        if (object instanceof Wrapper) {
+            return object;
+        }
+        return wrapFactory.wrapAsJavaObject(Context.getCurrentContext(), topLevelScope, object, null);
+    }
+
     public WrapFactory getWrapFactory() {
         return wrapFactory;
     }

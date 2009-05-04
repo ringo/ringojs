@@ -6,6 +6,7 @@ require('core/object');
 
 export('addHostObject',
         'addRepository',
+        'asJavaObject',
         'createSandbox',
         'evaluate',
         'extendJavaClass',
@@ -56,6 +57,18 @@ function createSandbox(modulePath, globals, shutter, sealed) {
  */
 function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
+}
+
+/**
+ * Get a wrapper for an object that exposes it as Java object to JavaScript.
+ * This is useful for accessing strings and other primitives as their
+ * java.lang.* counterparts from JavaScript using the existing instance rather
+ * than allocating a new object via new java.lang.Foo() constructor.
+ * @param object an object
+ * @return the object wrapped as native java object
+ */
+function asJavaObject(object) {
+    return getRhinoEngine().asJavaObject(object);
 }
 
 /**
