@@ -35,18 +35,6 @@ function Buffer() {
         content.forEach(fn);
     }
 
-    // hack
-    this.toFirebugConsole = function() {
-        var enc = JSON.stringify(this.toString());
-        return "<script>\r\n\
-            if (console && typeof console.debug == 'function') {\r\n\
-                console.info(" + enc + ");\r\n\
-            } else {\r\n\
-                document.write('<p>' + " + enc + " + '<p>');\r\n\
-            }\r\n\
-        </script>\r\n";
-    }
-
     if (arguments.length > 0) {
         this.write.apply(this, arguments);
     }
