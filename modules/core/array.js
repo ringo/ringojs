@@ -39,6 +39,23 @@ Object.defineProperty(Array.prototype, "contains", {
 });
 
 /**
+ * Remove the first occurrence of the argument value from this array. This method
+ * mutates and returns the array on which it is called and does not create a
+ * new array instance.
+ * @param {Object} val the value to remove
+ * @return {Array} this array
+ */
+Object.defineProperty(Array.prototype, "remove", {
+    value: function(val) {
+        var index = this.indexOf(val);
+        if(index > -1) {
+            this.splice(index, 1);
+        }
+        return this;
+    }
+})
+
+/**
  * Retrieve the union set of a bunch of arrays
  * @param {Array} array1,... the arrays to unify
  * @return {Array} the union set
