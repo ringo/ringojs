@@ -147,19 +147,12 @@ function invokeMiddleware(middleware, args) {
         functionName = middleware.substring(dot + 1);
         middleware = middleware.substring(0, dot);
     }
-    try {
-        var module = require(middleware);
-        if (typeof module[functionName] !== 'function') {
-            throw new Error('Middleware function ' + functionName + ' is not defined in ' + middleware);
-        }
-        log.debug('invoking middleware: ' + middleware);
-        return module[functionName].apply(module, args);
-    } catch (e) {
-        if (!e.retry && !e.redirect) {
-            log.error('Error in ' + middleware + ': ' + e);
-        }
-        throw e;
+    var module = require(middleware);
+    if (typeof module[functionName] !== 'function') {
+        throw new Error('Middleware function ' + functionName + ' is not defined in ' + middleware);
     }
+    log.debug('invoking middleware: ' + middleware);
+    return module[functionName].apply(module, args);
 }
 
 /**
