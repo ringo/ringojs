@@ -19,14 +19,14 @@ function Storable(type, arg) {
     }
 
 	// if called with one argument, return a constructor for a concrete type.
-	if (arguments.length == 1) {
-		var ctor = bindArguments(Storable, type);
+    if (arguments.length == 1) {
+        var ctor = bindArguments(Storable, type);
         ctor.all = bindArguments(store.all, type);
         ctor.get = bindArguments(store.get, type);
         ctor.prototype.__proto__ = Storable.prototype;
         typeRegistry[type] = ctor;
         return ctor;
-	}
+    }
 
     // if a constructor is registered make sure we use it to get the
     // right prototype chain on the instance object
