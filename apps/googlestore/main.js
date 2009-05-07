@@ -47,8 +47,10 @@ function remove(req, id) {
 
 function createBook(req) {
     var author = new Author({name: req.params.author});
-    author.save(); // no cascading save yet
     var book = new Book({author: author, title: req.params.title});
+    author.books = [book];
+    // author is saved transitively
+    // author.save();
     book.save();
     return new RedirectResponse(req.path);
 }
@@ -58,4 +60,8 @@ function removeBook(req, book) {
     book.author.remove();
     book.remove();
     return new RedirectResponse("../");
+}
+
+if (__name__ == "__main__") {
+    require('helma/webapp').start();
 }

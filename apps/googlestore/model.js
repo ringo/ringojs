@@ -1,4 +1,4 @@
-include('helma/googlestore');
+include('helma/storage/googlestore');
 
 export('Book', 'Author');
 

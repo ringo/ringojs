@@ -1,16 +1,13 @@
 include('helma/webapp/response');
 include('./model');
 
-export('index', 'edit');
+export('index', 'edit', 'remove');
 
 // the main action is invoked for http://localhost:8080/
 // this also shows simple skin rendering
 function index(req) {
     if (req.params.save) {
         return createBook(req);
-    }
-    if (req.params.remove) {
-        return removeBook(req);
     }
     return SkinnedResponse(getResource('./skins/index.html'), {
         title: 'Storage',
@@ -36,19 +33,33 @@ function edit(req, id) {
     })
 }
 
+function remove(req, id) {
+    var book = Book.get(id);
+    if (req.params.remove && req.isPost) {
+        return removeBook(req, book);
+    }
+    return SkinnedResponse(getResource('./skins/remove.html'), {
+        title: 'Storage',
+        book: book,
+        action: req.path
+    })
+}
+
 function createBook(req) {
     var author = new Author({name: req.params.author});
     var book = new Book({author: author, title: req.params.title});
+    author.books = [book];
     // author is saved transitively
+    // author.save();
     book.save();
     return new RedirectResponse(req.path);
 }
 
-function removeBook(req) {
-    var book = Book.get(req.params.remove);
-    // author is removed through cascading delete
+function removeBook(req, book) {
+    // no cascading delete
+    book.author.remove();
     book.remove();
-    return new RedirectResponse(req.path);
+    return new RedirectResponse("../");
 }
 
 if (__name__ == "__main__") {
