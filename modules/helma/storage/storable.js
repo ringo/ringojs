@@ -18,7 +18,7 @@ function Storable(type, arg) {
         throw new Error("Store implementation not set. Use one of the helma/storage/* submodules!");
     }
 
-	// if called with one argument, return a constructor for a concrete type.
+    // if called with one argument, return a constructor for a concrete type.
     if (arguments.length == 1) {
         var ctor = bindArguments(Storable, type);
         ctor.all = bindArguments(store.all, type);
@@ -34,36 +34,36 @@ function Storable(type, arg) {
         return new typeRegistry[type](arg);
     }
 
-	// arg must be one of these, and we have methods to convert from one to the other:
+    // arg must be one of these, and we have methods to convert from one to the other:
     var key, entity, props;
 
     function ensureEntity() {
-    	if (!entity) {
+        if (!entity) {
             entity = store.getEntity(type, arg);
             // key = store.getKey(type, entity);
-    	}
+        }
         return entity;
     }
 
     function ensureKey() {
-    	if (!key) {
+        if (!key) {
             key = store.getKey(type, arg) || store.getKey(type, ensureEntity());
-    	}
-    	return key;
+        }
+        return key;
     }
 
     function ensureProps() {
         if (!props) {
             props = store.getProps(type, arg) || store.getProps(type, ensureEntity());
         }
-    	return props;
+        return props;
     }
 
     var storable = new JavaAdapter(NativeObject, {
         get: function(name, start) {
-    	    if (this.super$get(name, start) != Scriptable.NOT_FOUND) {
-    	    	return this.super$get(name, start);
-    	    } else if (ensureProps()) {
+            if (this.super$get(name, start) != Scriptable.NOT_FOUND) {
+                return this.super$get(name, start);
+            } else if (ensureProps()) {
                 var value = props[name];
                 if (value === undefined) {
                     return Scriptable.NOT_FOUND;
@@ -75,25 +75,25 @@ function Storable(type, arg) {
         },
 
         put: function(name, start, value) {
-        	if (typeof value == "function") {
-        		return this.super$put(name, start, value);
-        	} else if (ensureProps()) {
+            if (typeof value == "function") {
+                return this.super$put(name, start, value);
+            } else if (ensureProps()) {
                 props[name] = value;
             }
         },
 
         has: function(name, start) {
-        	return this.super$has(name, start) ||
+            return this.super$has(name, start) ||
                    (ensureProps() && name in props);
         },
 
         getIds: function() {
             var ids = this.super$getIds().concat();
-        	if (ensureProps()) {
-        		for (var id in props) {
+            if (ensureProps()) {
+                for (var id in props) {
                     ids.push(id);
                 }
-        	}
+            }
             return ids;
         },
 
@@ -128,19 +128,19 @@ function Storable(type, arg) {
 
     Object.defineProperty(storable, "_key", {
         get: function() {
-    	    if (ensureKey()) {
-    		    return key;
-    	    }
-    	    throw Error("Can't get key from " + arg);
+            if (ensureKey()) {
+                return key;
+            }
+            throw Error("Can't get key from " + arg);
         }
     });
 
     Object.defineProperty(storable, "_id", {
         get: function() {
-    	    if (ensureKey()) {
-    		    return store.getId(key);
-    	    }
-    	    throw Error("Can't get id from " + arg);
+            if (ensureKey()) {
+                return store.getId(key);
+            }
+            throw Error("Can't get id from " + arg);
         }
     });
 
