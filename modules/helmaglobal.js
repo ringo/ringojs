@@ -16,6 +16,7 @@ Object.defineProperty(this, "global", { value: this });
             var module = getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
             var exports = module.exports;
             if (!exports || typeof exports != "object") {
+                // should never happen with helma modules
                 exports = {};
                 Object.defineProperty(module, "exports", { value: exports });
             }
@@ -66,13 +67,21 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(this, "export", {
         value: function() {
-            var list = this.__exports__ || [];
-            for (var i = 0; i < arguments.length; i++) {
-                list.push(arguments[i]);
+            var module = this;
+            var exports = this.exports;
+            if (!exports || typeof exports != "object") {
+                // this should never happen with helma modules
+                exports = {};
+                Object.defineProperty(module, "exports", { value: exports });
             }
-            if (this.__exports__ != list) {
-                Object.defineProperty(this, "__exports__", { value: list });
-            }
+            Array.forEach(arguments, function(name) {
+                Object.defineProperty(exports, name, {
+                    get: function() {
+                        return module[name];
+                    },
+                    enumerable: true
+                });
+            });
         }
     });
 

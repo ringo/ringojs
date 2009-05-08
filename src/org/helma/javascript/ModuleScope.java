@@ -42,7 +42,6 @@ public class ModuleScope extends NativeObject {
         this.name = moduleName;
         this.exports = new ExportsObject();
         defineProperty("exports", exports,  DONTENUM);
-        defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
         defineProperty("__name__", moduleName, DONTENUM);
         defineProperty("__path__", source.getRelativePath(), DONTENUM);
     }
@@ -55,7 +54,6 @@ public class ModuleScope extends NativeObject {
         this.exports = new ExportsObject();
         defineProperty("exports", exports,  DONTENUM);
         delete("__shared__");     
-        defineProperty("__exports__", cx.newArray(this, 0), DONTENUM);
     }
 
     public long getChecksum() {
@@ -72,26 +70,6 @@ public class ModuleScope extends NativeObject {
 
     public Scriptable getExports() {
         return exports;
-    }
-
-    protected void processExports() {
-        // the __exports__ array is an alternative way for a module to export properties.
-        // it contains a list of property names that will be copied to the exports object.
-        Object e = get("__exports__", this);
-        if (e instanceof NativeArray) {
-            NativeArray array = (NativeArray) e;
-            long length = array.getLength();
-            int flags = READONLY | PERMANENT;
-            for (int i = 0; i < length; i++) {
-                // print("Exporting", moduleName, key, "->", typeof(module[key]));
-                Object key = array.get(i, array);
-                if (key instanceof String) {
-                    Object value = get((String) key, this);
-                    ScriptableObject.defineProperty(exports, (String) key, value, flags);
-                }
-            }
-        }
-
     }
 
     @Override

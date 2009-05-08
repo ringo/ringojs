@@ -209,7 +209,6 @@ public class ReloadableScript {
         }
         modules.put(source, module);
         script.exec(cx, module);
-        module.processExports();
         checkShared(module);
         module.setChecksum(getChecksum());
         return module;
