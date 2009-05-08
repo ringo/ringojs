@@ -20,6 +20,9 @@ function Storable(type, arg) {
 
     // if called with one argument, return a constructor for a concrete type.
     if (arguments.length == 1) {
+        if (type in typeRegistry) {
+            return typeRegistry[type];
+        }
         var ctor = bindArguments(Storable, type);
         ctor.all = bindArguments(store.all, type);
         ctor.get = bindArguments(store.get, type);
