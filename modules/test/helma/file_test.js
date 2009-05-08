@@ -1,6 +1,5 @@
 include('helma/unittest');
-include('helma/shell');
-var {File} = require('helma/file');
+var File = require('helma/file').File;
 require('core/string');
 
 export('testCase');
