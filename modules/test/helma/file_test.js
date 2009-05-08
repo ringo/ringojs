@@ -1,4 +1,5 @@
 include('helma/unittest');
+include('helma/shell');
 var {File} = require('helma/file');
 require('core/string');
 
@@ -18,6 +19,12 @@ testCase.setUp = testCase.tearDown = function() {
     }
 }
 
+testCase.removeFile = function() {
+    var file = new File(filename);
+    file.remove();
+    assertFalse(file.exists());
+}
+
 testCase.testReadWriteFile = function() {
     var file = new File(filename);
     file.remove();
@@ -35,6 +42,7 @@ testCase.testReadWriteFile = function() {
     file.open();
     var line = file.readln();
     assertEqual(line, string1 + string2);
+    file.close();
 }
 
 testCase.testEncoding = function() {

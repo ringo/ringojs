@@ -66,7 +66,7 @@ use the simpler abstract module name instead of the file name:
     helma test/all
 
 Run helma with the -h or --help switch to get more information about available
-command line options. For exapmle, the -i or --interactive option allows you
+command line options. For example, the -i or --interactive option allows you
 to run an application and use the shell at the same time, which can be really
 handy.
 
@@ -84,10 +84,10 @@ programming environment that resembles that of Python environment more than
 the one of ordinary client-side JavaScript runtime.
 
 Helma uses the concept of a module path to look up and load modules that is
-similar to the PATH environment variable used ot find executables on most
+similar to the PATH environment variable used to find executables on most
 operating systems. By default, the module path consists of two entries:
 
-    1. The application root, which is the parent directory of the comman line
+    1. The application root, which is the parent directory of the command line
        script, or the current working directory if called without script
        argument.
     2. The system modules root, which corresponds to the modules directory in
@@ -95,7 +95,7 @@ operating systems. By default, the module path consists of two entries:
 
 Helma NG provides several ways to access and set the module path. The simplest
 is to set the HELMA_MODULE_PATH environment variable, separating multiple entries
-with ':' or whatever character is used to seprate PATH entries on your system:
+with ':' or whatever character is used to separate PATH entries on your system:
 
      export HELMA_MODULE_PATH=../foo/lib:../my/lib
 
