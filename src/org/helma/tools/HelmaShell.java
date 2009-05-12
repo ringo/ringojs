@@ -44,7 +44,7 @@ public class HelmaShell {
     boolean debug;
 
     public HelmaShell(HelmaConfiguration config, RhinoEngine engine, boolean debug)
-            throws Exception {
+            throws IOException {
         this.config = config;
         this.engine = engine;
     	this.scope = engine.getShellScope();

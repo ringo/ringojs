@@ -21,7 +21,7 @@ import org.helma.repository.FileRepository;
 
 public class HelmaRunner {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String scriptName = null;
         String[] scriptArgs = new String[0];
         boolean interactive = false;
@@ -73,18 +73,29 @@ public class HelmaRunner {
         if (modulePath == null) {
             modulePath = System.getenv("HELMA_MODULE_PATH");
         }
-        HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
-        config.addScriptRepository(scriptName);
-        if (optlevel >= -1) {
-            config.setOptLevel(optlevel);
+
+        try {
+            HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
+            config.addScriptRepository(scriptName);
+            if (optlevel >= -1) {
+                config.setOptLevel(optlevel);
+            }
+            RhinoEngine engine = new RhinoEngine(config, null);
+            if (scriptName != null) {
+                engine.runScript(scriptName, scriptArgs);
+            }
+            if (scriptName == null || interactive) {
+                new HelmaShell(config, engine, debug).run();
+            }
+        } catch (Exception x) {
+            if (debug) {
+                x.printStackTrace();
+            } else {
+                System.err.println(x);
+            }
+            System.exit(-1);
         }
-        RhinoEngine engine = new RhinoEngine(config, null);
-        if (scriptName != null) {
-        	engine.runScript(scriptName, scriptArgs);
-        }
-        if (scriptName == null || interactive) {
-            new HelmaShell(config, engine, debug).run();
-        }
+
     }
 
     public static void printUsage() {
