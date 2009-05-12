@@ -59,7 +59,7 @@ public class WebappRepository extends AbstractRepository {
         if (".".equals(name)) {
             return this;
         } else if ("..".equals(name)) {
-            return parent;
+            return getParentRepository();
         }        
         return new WebappRepository(context, this, name);
     }

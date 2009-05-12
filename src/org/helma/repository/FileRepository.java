@@ -99,7 +99,7 @@ public class FileRepository extends AbstractRepository {
         if (".".equals(name)) {
             return this;
         } else if ("..".equals(name)) {
-            return parent;
+            return getParentRepository();
         }
         return new FileRepository(new File(directory, name), this);
     }

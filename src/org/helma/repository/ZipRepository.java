@@ -225,7 +225,7 @@ public final class ZipRepository extends AbstractRepository {
         if (".".equals(name)) {
             return this;
         } else if ("..".equals(name)) {
-            return parent;
+            return getParentRepository();
         }
         return new ZipRepository(file, this, new ZipEntry(entryPath + "/" + name));
     }
