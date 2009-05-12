@@ -84,10 +84,9 @@ var log = require('helma/logging').getLogger(__name__);
                 // start server
                 server.start();
             } catch (error) {
-                java.lang.System.err.println("Error starting jetty: " + error);
-                error.rhinoException.printStackTrace();
                 server.stop();
                 server = null;
+                throw error;
             }
         }
     }
