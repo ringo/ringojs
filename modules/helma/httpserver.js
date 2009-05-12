@@ -141,12 +141,12 @@ function commitResponse(env, result) {
     var response = env['jack.servlet_response'];
     if (response.isCommitted())
         return;
-    if (!(result instanceof Array)) {
+    if (!result || typeof result.forEach != "function") {
         // convert helma response to jack response
         if (result && typeof result.close === "function") {
             result = result.close();
         } else {
-            return; // TODO generate error page?
+            throw "Unsupported response object: " + result;
         }
     }
     var [status, headers, body] = result;
