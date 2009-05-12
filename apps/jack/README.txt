@@ -13,6 +13,6 @@ modules directory.
 
 Finally, to start the app from the Helma NG directory:
 
-  java -jar run.jar apps/jack/main.js
+  bin/helma apps/jack/main.js
 
 You should be able to access the demo app on http://localhost:8080/
