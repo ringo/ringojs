@@ -656,6 +656,10 @@ public class RhinoEngine {
         return loader;
     }
 
+    public HelmaConfiguration getConfiguration() {
+        return config;
+    }
+
     /**
      * Get a wrapper for an object that exposes it as Java object to JavaScript.
      * This is useful for accessing strings and other primitives as their
