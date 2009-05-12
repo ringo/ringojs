@@ -143,8 +143,8 @@ public class HelmaConfiguration {
             if (!script.exists() && !repositories.isEmpty()) {
                 script = getResource(scriptName);
                 if (!script.exists()) {
-                    scriptName = scriptName.replace('.', File.separatorChar) + ".js";
-                    script = getResource(scriptName);
+                    // try converting module name to file path
+                    script = getResource(scriptName.replace('/', File.separatorChar) + ".js");
                 }
             } else {
                 // found script file outside the module path, add its parent directory
