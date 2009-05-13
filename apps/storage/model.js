@@ -1,4 +1,9 @@
-include('helma/storage/filestore');
+// use google datastore if it is available, else fall back to filestore
+try {
+    include('helma/storage/googlestore');
+} catch (error) {
+    include('helma/storage/filestore');
+}
 
 export('Book', 'Author');
 
