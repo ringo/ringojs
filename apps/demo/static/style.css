@@ -61,9 +61,6 @@ a:active {
 
 #menu ul {
     background-color: #abc;
-    border-width: 1px 1px 0 1px;
-    border-color: white;
-    border-style: solid;
     margin: 10px;
     padding: 0;
 }
@@ -80,7 +77,11 @@ div#menu li {
     display: block;
 }
 
-#menu a:hover {
+#menu a.highlight {
+    background-color: #cde;
+}
+
+#menu a:hover, #menu a.highlight#hover {
     background-color: #89a;
 }
 
