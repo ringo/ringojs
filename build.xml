@@ -10,7 +10,6 @@
         <echo message=" jar        --> generates the ./lib/helma.jar file"/>
         <echo message=" test       --> run JUnit and Helma tests"/>
         <echo message=" apidocs    --> generates the API docs"/>
-        <echo message=" rhinodocs  --> generate Javascript API for host classes as JSON file"/>
         <echo message=" package    --> creates Helma distribution"/>
         <echo message=" dpkg       --> creates Helma debian package"/>
         <echo message=" clean      --> clean up compiled resources"/>
@@ -134,11 +133,11 @@
     <target name="package" depends="jar,apidocs,test">
         <zip zipfile="../${project}-${version}.zip">
             <zipfileset dir="${home}" prefix="${project}-${version}"
-             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,**/CVS" />
+             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </zip>
         <tar tarfile="../${project}-${version}.tar">
             <tarfileset dir="${home}" prefix="${project}-${version}"
-             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,**/CVS" />
+             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </tar>
         <gzip src="../${project}-${version}.tar" destfile="../${project}-${version}.tar.gz"/>
         <delete file="../${project}-${version}.tar"/>
