@@ -1,0 +1,24 @@
+<% extends 'base.html' %>
+
+<% subskin 'content' | markdown %>
+
+Helma NG implements the [Securable Modules proposal][1] defined by the
+[ServerJS working group][2] that describes an interoperable JavaScript module system.
+Helma NG even goes beyond that by providing each module its own top-level scope,
+allowing for [full namespace isolation][ng:modules and scopes] similar to the way Python does.
+
+  [1]: https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
+  [2]: http://groups.google.com/group/serverjs
+
+Modules are also used as building blocks for web applications. Web developers simply map
+modules to the URI namespace of their web app and all exported functions in the module
+will be callable through the web.
+
+For example, the following code in a web app's config.js
+mapps the module named "webmodule" to <a href="<% href %>"><% href %></a>:
+
+    exports.urls = [
+        [ '/mount/point', 'webmodule' ]
+    ]
+
+You can learn more about modules on the [Helma NG wiki][ng:modules and scopes]. 

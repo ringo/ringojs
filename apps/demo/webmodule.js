@@ -8,5 +8,5 @@ function index(req, res) {
         title: 'Modules',
         href: req.pathDecoded
     };
-    return new SkinnedResponse('skins/modules.html', context);
+    return new SkinnedResponse('skins/modules.txt', context);
 }

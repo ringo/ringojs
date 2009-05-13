@@ -5,8 +5,6 @@
 
 <% subskin 'welcome' %>
 
-    <b><% note %></b>        
-
     <p>This is a little game to show off continuations support in Helma NG.
     All you'll have to do is answer a few easy questions.</p>
 

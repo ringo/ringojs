@@ -36,8 +36,16 @@ function logging(req) {
         } catch (e) {
             log.error(e, e.rhinoException);
         }
+    } else if (req.params.profile) {
+        var profiler = require('helma/profiler');
+        req.process = function() {
+            return SkinnedResponse('skins/logging.txt', {
+                title: "Logging &amp; Profiling"
+            });
+        }
+        return profiler.handleRequest(req);
     }
-    return new SkinnedResponse('skins/logging.html', { title: "Logging" });
+    return new SkinnedResponse('skins/logging.txt', { title: "Logging &amp; Profiling" });
 }
 
 // demo for continuation support
@@ -49,13 +57,13 @@ function continuation(req) {
     req = session.start();
 
     // render intro page
-    req = session.step(1).render(SkinnedResponse('skins/continuation.html', {
+    req = session.step(1).render(SkinnedResponse('skins/continuation.txt', {
         session: session,
         title: "Continuations",
         data: data
     }));
     
-    req = session.step(2).render(SkinnedResponse('skins/continuation.html', {
+    req = session.step(2).render(SkinnedResponse('skins/continuation.txt', {
         session: session,
         title: "Question 1",
         data: data
@@ -63,7 +71,7 @@ function continuation(req) {
     if (req.isPost)
         data.name = req.params.name;
 
-    req = session.step(3).render(SkinnedResponse('skins/continuation.html', {
+    req = session.step(3).render(SkinnedResponse('skins/continuation.txt', {
         session: session,
         title: "Question 2",
         data: data
@@ -71,7 +79,7 @@ function continuation(req) {
     if (req.isPost)
         data.food = req.params.food;
 
-    req = session.step(4).render(SkinnedResponse('skins/continuation.html', {
+    req = session.step(4).render(SkinnedResponse('skins/continuation.txt', {
         session: session,
         title: "Question 3",
         data: data
@@ -79,19 +87,9 @@ function continuation(req) {
     if (req.isPost)
         data.animal = req.params.animal;
 
-    session.step(5).render(SkinnedResponse('skins/continuation.html', {
+    session.step(5).render(SkinnedResponse('skins/continuation.txt', {
         session: session,
         title: "Thank you!",
         data: data
     }));
-}
-
-function profiler(req) {
-    var profiler = require('helma/profiler');
-    req.process = function() {
-        return SkinnedResponse('skins/profiler.html', {
-            title: "Profiler"
-        });
-    }
-    return profiler.handleRequest(req);
 }
