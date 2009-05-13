@@ -1,7 +1,9 @@
 <% extends 'skins/base.html' %>
 
-<% subskin 'content' %>
-<h3>Remove book</h3>
+<% subskin 'content' | markdown %>
+
+### Remove book
+
 <form action="<% action %>" method="post">
     <div>Do you really want to remove book "<% book.title %>"?</div>
     <p><input type="submit" name="remove" value="Remove"/> <a href="../">Cancel</a></p>
