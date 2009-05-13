@@ -66,11 +66,7 @@ public class FileRepository extends AbstractRepository {
     protected FileRepository(File dir, FileRepository parent) {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-        try {
-            directory = dir.getCanonicalFile();
-        } catch (IOException iox) {
-            directory = dir.getAbsoluteFile();
-        }
+        directory = dir.getAbsoluteFile();
 
         if (parent == null) {
             path = name = directory.getAbsolutePath();

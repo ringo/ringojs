@@ -32,11 +32,7 @@ public class FileResource extends AbstractResource {
     protected FileResource(File file, FileRepository repository) {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-        try {
-            file = file.getCanonicalFile();
-        } catch (IOException iox) {
-            file = file.getAbsoluteFile();
-        }
+        file = file.getAbsoluteFile();
 
         this.file = file;
         this.repository = repository == null ?
