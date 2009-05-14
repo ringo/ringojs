@@ -30,18 +30,21 @@ if (!path) {
 var destination = new File(path);
 
 if (destination.exists() && !destination.isDirectory()) {
-    print(destination, "exists but not a directory, exiting");
-    quit();
+    exit(destination, "exists but is not a directory, exiting.");
 } else if (destination.isDirectory() && destination.list().length > 0) {
-    print("Directory", destination, "exists but is not empty, exiting");
-    quit()
+    exit("Directory", destination, "exists but is not empty, exiting.");
 }
 
 var skeleton = new File(properties["helma.home"], "apps/skeleton");
 if (!skeleton.exists() || !skeleton.isDirectory()) {
-    print("Can't find skeleton app in " + skeleton + ", exiting");
-    quit();
+    exit("Can't find skeleton app in " + skeleton + ", exiting.");
 }
-print("Copying application files to", destination, "...");
+
+write("Copying application files to", destination, "...");
 skeleton.hardCopy(destination);
 print("done");
+
+function exit() {
+    print.apply(null, arguments);
+    quit();
+}
