@@ -100,7 +100,6 @@ function handleRequest(env) {
                         // set req.actionPath to the part of the path that resolves to the action
                         actionPath.push(match[0], pathArray[0] || "index");
                         req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
-                        print(req.actionPath);
                         // add remaining path elements as additional action arguments
                         var actionArgs = pathArray.slice(1);
                         var matchedArgs = match.slice(1);
