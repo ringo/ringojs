@@ -6,13 +6,14 @@ Helma NG uses [Apache log4j](http://logging.apache.org/log4j/1.2/index.html) as 
 The helma/logging modules also acts as [middleware][ng:middleware] that allows you to append log
 messages to the page being rendered, which is very useful during development.
 
- * <a href="?info=1">Click here</a> to generate a simple log message.
- * <a href="?error=1">Click here</a> to gnereate an error log message including a stack trace.
+> [Click here](?info=1) to generate a simple log message.
+
+> [Click here](?error=1) to generate an error log message including stack traces.
 
 Helma NG also comes with a JavaScript profiler middleware that gives you information on what functions
 were invoked how often and how long they took to execute. The profiler uses the logging module
 to display this data.
 
- * <a href="?profile=1">Click here</a> to enable the profiler and see its output.
+> [Click here](?profile=1) to enable the profiler and see its output.
 
 Learn more about [logging][ng:helma.logging] and [profiling][ng:helma.profiler] at the Helma NG wiki.
