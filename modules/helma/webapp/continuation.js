@@ -2,11 +2,12 @@
  * Continuation support for Helma NG
  */
 
-export('ContinuationSession');
-
+require('core/string');
 var system = require('helma/system');
 var log = require('helma/logging').getLogger(__name__);
 importClass(java.util.HashMap);
+
+export('ContinuationSession');
 
 function ContinuationSession(req, id, step) {
 
@@ -81,7 +82,11 @@ function ContinuationSession(req, id, step) {
     }
 
     function generateId() {
-        return Math.ceil(Math.random() * Math.pow(2, 32)).toString(36);
+        var id;
+        do {
+            id = String.random(5);
+        } while (getData(req, id))
+        return id;
     }
 }
 
