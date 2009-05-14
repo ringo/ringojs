@@ -89,7 +89,6 @@ function Request(env) {
     define("checkTrailingSlash", {
         value: function checkTrailingSlash() {
             // only redirect for GET requests
-            print(this.path, this.isGet);
             if (!this.path.endsWith("/") && this.isGet) {
                 var path = this.queryString ?
                            this.path + "/?" + this.queryString : this.path + "/";
