@@ -49,47 +49,54 @@ function logging(req) {
 }
 
 // demo for continuation support
-function continuation(req) {
+function continuation(req, run) {
 
-    // local data - this is the data that is shared between continuations of this function
-    var data = {};
-    var session = new ContinuationSession("welcome", "ask_name", "ask_food", "ask_animal", "result");
-    req = session.start();
+    if (!run) {
+        return SkinnedResponse('skins/continuation.txt', {
+            page: "welcome",
+            title: "Continuations"
+        });
+    }
 
-    // render intro page
-    req = session.step(1).render(SkinnedResponse('skins/continuation.txt', {
-        session: session,
-        title: "Continuations",
-        data: data
-    }));
-    
-    req = session.step(2).render(SkinnedResponse('skins/continuation.txt', {
-        session: session,
-        title: "Question 1",
-        data: data
-    }));
-    if (req.isPost)
-        data.name = req.params.name;
+    var session = new ContinuationSession(req);
 
-    req = session.step(3).render(SkinnedResponse('skins/continuation.txt', {
-        session: session,
-        title: "Question 2",
-        data: data
-    }));
-    if (req.isPost)
-        data.food = req.params.food;
+    session.addPage("ask_name", function(req) {
+        return SkinnedResponse('skins/continuation.txt', {
+            session: session,
+            page: session.page,
+            title: "Question 1"
+        })
+    });
 
-    req = session.step(4).render(SkinnedResponse('skins/continuation.txt', {
-        session: session,
-        title: "Question 3",
-        data: data
-    }));
-    if (req.isPost)
-        data.animal = req.params.animal;
+    session.addPage("ask_food", function(req) {
+        if (req.isPost)
+            session.data.name = req.params.name;
+        return SkinnedResponse('skins/continuation.txt', {
+            session: session,
+            page: session.page,
+            title: "Question 2"
+        });
+    });
 
-    session.step(5).render(SkinnedResponse('skins/continuation.txt', {
-        session: session,
-        title: "Thank you!",
-        data: data
-    }));
+    session.addPage("ask_animal", function(req) {
+        if (req.isPost)
+            session.data.food = req.params.food;
+        return SkinnedResponse('skins/continuation.txt', {
+            session: session,
+            page: session.page,
+            title: "Question 3"
+        });
+    });
+
+    session.addPage("result", function(req) {
+        if (req.isPost)
+            session.data.animal = req.params.animal;
+        return SkinnedResponse('skins/continuation.txt', {
+            session: session,
+            page: session.page,
+            title: "Thank you!"
+        });
+    });
+
+    return session.run();
 }
