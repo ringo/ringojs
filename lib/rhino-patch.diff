@@ -1,10 +1,10 @@
 Index: src/org/mozilla/javascript/IRFactory.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/IRFactory.java,v
-retrieving revision 1.122
-diff -u -r1.122 IRFactory.java
---- src/org/mozilla/javascript/IRFactory.java	3 Mar 2009 16:02:09 -0000	1.122
-+++ src/org/mozilla/javascript/IRFactory.java	8 May 2009 20:46:17 -0000
+retrieving revision 1.124
+diff -u -r1.124 IRFactory.java
+--- src/org/mozilla/javascript/IRFactory.java	11 May 2009 15:44:04 -0000	1.124
++++ src/org/mozilla/javascript/IRFactory.java	14 May 2009 11:03:25 -0000
 @@ -398,7 +398,7 @@
              // Bug: for code like "var obj={p:3};[obj.p]=[9];", "left" will
              // be ARRAYLITERAL with an embedded GETPROP. This causes errors
@@ -14,14 +14,144 @@ diff -u -r1.122 IRFactory.java
              target = left;
          } else {
              target = transform(left);
+Index: src/org/mozilla/javascript/JavaAdapter.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaAdapter.java,v
+retrieving revision 1.117
+diff -u -r1.117 JavaAdapter.java
+--- src/org/mozilla/javascript/JavaAdapter.java	14 Nov 2008 13:52:29 -0000	1.117
++++ src/org/mozilla/javascript/JavaAdapter.java	14 May 2009 11:03:26 -0000
+@@ -131,6 +131,10 @@
+ 
+     public static Object convertResult(Object result, Class<?> c)
+     {
++        return convertResult(result, c, true);
++    }
++
++    public static Object convertResult(Object result, Class<?> c, boolean unwrap) {
+         if (result == Undefined.instance &&
+             (c != ScriptRuntime.ObjectClass &&
+              c != ScriptRuntime.StringClass))
+@@ -138,7 +142,7 @@
+             // Avoid an error for an undefined value; return null instead.
+             return null;
+         }
+-        return Context.jsToJava(result, c);
++        return unwrap ? Context.jsToJava(result, c) : result;        
+     }
+ 
+     public static Scriptable createAdapterWrapper(Scriptable obj,
+@@ -353,9 +357,13 @@
+                      (short) (ClassFileWriter.ACC_PUBLIC |
+                               ClassFileWriter.ACC_FINAL));
+         int interfacesCount = interfaces == null ? 0 : interfaces.length;
++        boolean isScriptable = Scriptable.class.isAssignableFrom(superClass);
+         for (int i=0; i < interfacesCount; i++) {
+-            if (interfaces[i] != null)
++            if (interfaces[i] != null) {
+                 cfw.addInterface(interfaces[i].getName());
++                isScriptable = isScriptable
++                        || Scriptable.class.isAssignableFrom(interfaces[i]);
++            }
+         }
+ 
+         String superName = superClass.getName().replace('.', '/');
+@@ -395,7 +403,7 @@
+                 String methodKey = methodName + methodSignature;
+                 if (! generatedOverrides.has(methodKey)) {
+                     generateMethod(cfw, adapterName, methodName,
+-                                   argTypes, method.getReturnType());
++                                   argTypes, method.getReturnType(), !isScriptable);
+                     generatedOverrides.put(methodKey, 0);
+                     generatedMethods.put(methodName, 0);
+                 }
+@@ -423,7 +431,7 @@
+                 String methodKey = methodName + methodSignature;
+                 if (! generatedOverrides.has(methodKey)) {
+                     generateMethod(cfw, adapterName, methodName,
+-                                   argTypes, method.getReturnType());
++                                   argTypes, method.getReturnType(), !isScriptable);
+                     generatedOverrides.put(methodKey, 0);
+                     generatedMethods.put(methodName, 0);
+                     
+@@ -450,7 +458,7 @@
+             for (int k=0; k < length; k++)
+                 parms[k] = ScriptRuntime.ObjectClass;
+             generateMethod(cfw, adapterName, functionName, parms,
+-                           ScriptRuntime.ObjectClass);
++                           ScriptRuntime.ObjectClass, !isScriptable);
+         }
+         return cfw.toByteArray();
+     }
+@@ -817,7 +825,7 @@
+      * Generates the appropriate RETURN bytecode.
+      */
+     static void generateReturnResult(ClassFileWriter cfw, Class<?> retType,
+-                                     boolean callConvertResult)
++                                     boolean convertResult)
+     {
+         // wrap boolean values with java.lang.Boolean, convert all other
+         // primitive values to java.lang.Double.
+@@ -874,20 +882,19 @@
+ 
+         } else {
+             String retTypeStr = retType.getName();
+-            if (callConvertResult) {
+-                cfw.addLoadConstant(retTypeStr);
+-                cfw.addInvoke(ByteCode.INVOKESTATIC,
+-                              "java/lang/Class",
+-                              "forName",
+-                              "(Ljava/lang/String;)Ljava/lang/Class;");
+-
+-                cfw.addInvoke(ByteCode.INVOKESTATIC,
+-                              "org/mozilla/javascript/JavaAdapter",
+-                              "convertResult",
+-                              "(Ljava/lang/Object;"
+-                              +"Ljava/lang/Class;"
+-                              +")Ljava/lang/Object;");
+-            }
++            cfw.addLoadConstant(retTypeStr);
++            cfw.addInvoke(ByteCode.INVOKESTATIC,
++                          "java/lang/Class",
++                          "forName",
++                          "(Ljava/lang/String;)Ljava/lang/Class;");
++            cfw.addLoadConstant(convertResult ? 1 : 0);
++            cfw.addInvoke(ByteCode.INVOKESTATIC,
++                          "org/mozilla/javascript/JavaAdapter",
++                          "convertResult",
++                          "(Ljava/lang/Object;"
++                          +"Ljava/lang/Class;"
++                          +"Z"
++                          +")Ljava/lang/Object;");
+             // Now cast to return type
+             cfw.add(ByteCode.CHECKCAST, retTypeStr);
+             cfw.add(ByteCode.ARETURN);
+@@ -896,7 +903,7 @@
+ 
+     private static void generateMethod(ClassFileWriter cfw, String genName,
+                                        String methodName, Class<?>[] parms,
+-                                       Class<?> returnType)
++                                       Class<?> returnType, boolean convertResult)
+     {
+         StringBuffer sb = new StringBuffer();
+         int paramsEnd = appendMethodSignature(parms, returnType, sb);
+@@ -959,7 +966,7 @@
+                       +"J"
+                       +")Ljava/lang/Object;");
+ 
+-        generateReturnResult(cfw, returnType, true);
++        generateReturnResult(cfw, returnType, convertResult);
+ 
+         cfw.stopMethod((short)paramsEnd);
+     }
 Index: src/org/mozilla/javascript/Parser.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Parser.java,v
-retrieving revision 1.135
-diff -u -r1.135 Parser.java
---- src/org/mozilla/javascript/Parser.java	7 Apr 2009 21:12:33 -0000	1.135
-+++ src/org/mozilla/javascript/Parser.java	8 May 2009 20:46:19 -0000
-@@ -3439,6 +3439,7 @@
+retrieving revision 1.138
+diff -u -r1.138 Parser.java
+--- src/org/mozilla/javascript/Parser.java	11 May 2009 15:44:04 -0000	1.138
++++ src/org/mozilla/javascript/Parser.java	14 May 2009 11:03:26 -0000
+@@ -3491,6 +3491,7 @@
                int type;
                if (nodeType == Token.GETPROP) {
                    type = Token.SETPROP;
