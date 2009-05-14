@@ -24,11 +24,10 @@ plain JavaScript object references and arrays.
 ### Available Books
 
 <table cellspacing="0" cellpadding="3">
-<% for book in <% books %> render book %>
+  <% for book in <% books %> render book %>
 </table>
 
 <% subskin 'book'  ----------------------------------- %>
-        
 <tr style="<% ifEven 'background-color: #eee;' %>">
    <td><% book.author.name %></td>
    <td><% book.title %></td>
