@@ -11,11 +11,6 @@ importClass(java.util.HashMap);
 function ContinuationSession(req) {
 
     var id = req.params._cid;
-
-    if (!id) {
-        throw {redirect: getContinuationUrl(0)};
-    }
-
     var data = getData(req) || new HashMap();
     var pages = [];
     var callbacks = [];
@@ -29,6 +24,9 @@ function ContinuationSession(req) {
     }
 
     this.run = function() {
+        if (!this.isActive()) {
+            throw {redirect: this.first()};
+        }
         var callback = callbacks[step];
         if (!(typeof callback === "function")) {
             throw new Error("invalid continuation step: " + step);
@@ -37,6 +35,10 @@ function ContinuationSession(req) {
         setData(req, id, data);
         return result;
     };
+
+    this.isActive = function() {
+        return id != null;
+    }
 
     Object.defineProperty(this, "data", {
         value: new ScriptableMap(data)
@@ -51,11 +53,23 @@ function ContinuationSession(req) {
         set: function(s) { step = s; }
     })
 
-    this.back = function() {
+    this.first = function() {
+        return getContinuationUrl(0);
+    }
+
+    this.last = function() {
+        return getContinuationUrl(length - 1);
+    }
+
+    this.current = function() {
+        return getContinuationUrl(step);
+    }
+
+    this.previous = function() {
         return step > 0 ? getContinuationUrl(step - 1) : null;
     };
 
-    this.forward = function() {
+    this.next = function() {
         return step < length ? getContinuationUrl(step + 1) : null;
     };
 

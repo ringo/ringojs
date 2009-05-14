@@ -49,16 +49,18 @@ function logging(req) {
 }
 
 // demo for continuation support
-function continuation(req, run) {
+function continuation(req) {
 
-    if (!run) {
+    var session = new ContinuationSession(req);
+
+    if (!session.isActive()) {
+        // render welcome page
         return SkinnedResponse('skins/continuation.txt', {
+            session: session,
             page: "welcome",
             title: "Continuations"
         });
     }
-
-    var session = new ContinuationSession(req);
 
     session.addPage("ask_name", function(req) {
         return SkinnedResponse('skins/continuation.txt', {
