@@ -226,7 +226,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
     var builtin = {
         "render": function(macro, context) {
             var skin = getEvaluatedParameter(macro.getParameter(0), context, 'render:skin');
-            return self.renderSubskin(skin, context);
+            return skin == null ? "" : self.renderSubskin(skin, context);
         },
 
         "echo": function(macro, context) {
