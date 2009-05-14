@@ -42,6 +42,9 @@ function handleRequest(env) {
         // strip leading slash
         path = path.slice(1);
     }
+    // used to compose req.actionPath, which is the part of the path
+    // that resolves to the action (req.path minus argument elements)
+    var actionPath = ["/"];
 
     function getPattern(spec) {
         var pattern = spec[0];
@@ -94,6 +97,10 @@ function handleRequest(env) {
                     var action = getAction(module, pathArray[0]);
                     // log.debug("got action: " + action);
                     if (typeof action == "function" && pathArray.length <= action.length) {
+                        // set req.actionPath to the part of the path that resolves to the action
+                        actionPath.push(match[0], pathArray[0] || "index");
+                        req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
+                        print(req.actionPath);
                         // add remaining path elements as additional action arguments
                         var actionArgs = pathArray.slice(1);
                         var matchedArgs = match.slice(1);
@@ -111,7 +118,8 @@ function handleRequest(env) {
                         return req.process();
                     } else if (module.urls instanceof Array) {
                         // nested app
-                        return resolveInConfig(module, path, match[0] + "/");
+                        actionPath.push(match[0]);
+                        return resolveInConfig(module, path, match[0]);
                     } else {
                         break;
                     }
