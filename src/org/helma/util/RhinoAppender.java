@@ -56,7 +56,7 @@ public class RhinoAppender extends AppenderSkeleton {
             }
         }
 
-        Object[] args = new Object[] {message, scriptStack, javaStack};
+        Object[] args = new Object[] {event.getLevel(), message, scriptStack, javaStack};
         cb.call(cx, cb.getParentScope(), null, args);
     }
 

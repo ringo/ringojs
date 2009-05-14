@@ -1,4 +1,5 @@
 require('core/string');
+include('hashp');
 include('helma/system');
 include('helma/buffer');
 
@@ -54,8 +55,8 @@ exports.handleRequest = function handleRequest(req) {
     var messages = [];
     var appender = Logger.getRootLogger().getAppender("rhino") || {};
 
-    appender.callback = function(message, scriptStack, javaStack) {
-        messages.push([message, scriptStack, javaStack]);
+    appender.callback = function(level, message, scriptStack, javaStack) {
+        messages.push([level, message, scriptStack, javaStack]);
     };
 
     var res;
@@ -69,42 +70,66 @@ exports.handleRequest = function handleRequest(req) {
         res = res.close();
     }
 
-    if (res[0] != 200 && res[0] < 400) {
+    var [status, headers, body] = res;
+
+    // only do this for ordinary HTML responses
+    var contentType = HashP.get(headers, "content-type");
+    if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
         return res;
     }
 
     if (messages.length > 0) {
         var ResponseFilter = require("helma/webapp/util").ResponseFilter;
-        res[2] = new ResponseFilter(res[2], function(part) {
+        res[2] = new ResponseFilter(body, function(part) {
             if (typeof part != "string" && part.lastIndexOf("</body>") == -1) {
                 return part;
             }
-            var buffer = new Buffer();
-            for (var i = 0; i < messages.length; i++) {
-                var item = messages[i];
-                var msg = item[0];
-                var multiline = msg && msg.trim().indexOf('\n') > 0 || msg.indexOf('\r')> 0;
-                buffer.write("<div class=\"helma-debug-line\" style=\"background: #fc3;");
-                buffer.write("color: black; border-top: 1px solid black;\">");
-                if (multiline) {
-                    buffer.write("<pre>").write(msg).write("</pre>");
-                } else {
-                    buffer.write(msg);
-                }
-                if (item[1]) {
-                    buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Script Stack</h4>");
-                    buffer.write("<pre style='margin: 0;'>", item[1], "</pre>");
-                }
-                if (item[2]) {
-                    buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>Java Stack</h4>");
-                    buffer.write("<pre style='margin: 0;'>", item[2], "</pre>");
-                }
-                buffer.writeln("</div>");
-            }
-            var insert = part.lastIndexOf("</body>");
-            return part.substring(0, insert) + buffer + part.substring(insert);
+            return injectMessages(part, messages);
         });
     }
 
     return res;
 };
+
+function injectMessages(part, messages) {
+    var buffer = new Buffer();
+    for (var i = 0; i < messages.length; i++) {
+        appendMessage(buffer, messages[i]);
+    }
+    var insert = part.lastIndexOf("</body>");
+    return part.substring(0, insert) + buffer + part.substring(insert);
+}
+
+function appendMessage(buffer, item) {
+    var [level, message, jsstack, javastack] = item;
+    var multiline = message
+            && (message.trim().indexOf('\n') > 0 || message.indexOf('\r')> 0);
+    var bgcolor = colors[level.toString()] || '#fff';
+    buffer.write("<div class='helma-debug-line' style='background:", bgcolor,
+                 "; color: black; border-top: 1px solid black;'>");
+    if (multiline) {
+        buffer.write("<pre>", message, "</pre>");
+    } else {
+        buffer.write(message);
+    }
+    appendStackTrace(buffer, "Script Stack", jsstack);
+    appendStackTrace(buffer, "Java Stack", javastack);
+    buffer.writeln("</div>");    
+}
+
+function appendStackTrace(buffer, header, stack) {
+    if (stack) {
+        buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>");
+        buffer.write(header);
+        buffer.write("</h4>");
+        buffer.write("<pre style='margin: 0;'>", stack, "</pre>");
+    }
+}
+
+var colors = {
+    DEBUG: '#fff',
+    INFO: '#ff6',
+    WARN: '#ff0',
+    ERROR: '#f90',
+    FATAL: '#f30'
+}
