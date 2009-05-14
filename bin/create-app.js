@@ -23,8 +23,7 @@ var path = args[1]
   || readln("Please enter the directory path for your application:\n");
 
 if (!path) {
-    print("No path, exiting.");
-    quit();
+    exit("No path, exiting.");
 }
 
 var destination = new File(path);
