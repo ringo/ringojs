@@ -49,6 +49,7 @@ public class MarkdownProcessor {
         blockTags.add("blockquote");
         blockTags.add("pre");
         blockTags.add("table");
+        blockTags.add("tr"); // handle <tr> as block tag for pragmatical reasons
         blockTags.add("dl");
         blockTags.add("ol");
         blockTags.add("ul");
