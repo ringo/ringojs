@@ -9,20 +9,20 @@ At its simplest, creating and rendering a skin looks like this:
     helma> skin.render({ name: 'World' });
     Hello World!
 
-The part wrapped in \<% %> is called macro tag in Helma NG. Macros are replaced at render time
+The part wrapped in `\<% %>` is called macro tag in Helma NG. Macros are replaced at render time
 by looking for corresponding properties or functions in the context argument passed to `Skin.render()`. 
 Helma also provides a number of built-in macros which are described below.
 
 ### Subskins
 
 A very important feature are subskins, which are named skin fragments that work pretty much like functions work in
-JavaScript. A subskin is created using the builtin \<% subskin %> tag and ends with the begin of the
+JavaScript. A subskin is created using the built-in `\<% subskin %>` tag and ends with the begin of the
 next subskin or the skin end.
 
     \<% subskin hello %>
     Hello \<% name %>!</pre>
 
-Use the built-in \<% render %> macro to render a subskin with the current context:
+Use the built-in `\<% render %>` macro to render a subskin with the current context:
 
     \<% render hello %>
 
