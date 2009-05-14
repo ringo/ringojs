@@ -110,7 +110,8 @@ function handleRequest(env) {
                         var middlewareIndex = 0;
                         // set up middleware chain in request object
                         req.process = function() {
-                            if (middlewareIndex < middleware.length) {
+                            if (middleware instanceof Array
+                                    && middlewareIndex < middleware.length) {
                                 return invokeMiddleware(middleware[middlewareIndex++], [req]);
                             } else {
                                 return action.apply(module, args);
