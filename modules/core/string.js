@@ -454,7 +454,7 @@ Object.defineProperty(String.prototype, "startsWith", {
  */
 Object.defineProperty(String.prototype, "endsWith", {
     value: function(str) {
-        return this.lastIndexOf(str) == this.length - str.length;
+        return this.length >= str.length && this.lastIndexOf(str) == this.length - str.length;
     }
 });
 
