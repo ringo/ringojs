@@ -4,7 +4,9 @@
 
 require('core/object');
 
-export('addHostObject',
+export('args',
+        'env',
+        'addHostObject',
         'addRepository',
         'asJavaObject',
         'createSandbox',
@@ -16,8 +18,7 @@ export('addHostObject',
         'getOptimizationLevel',
         'setOptimizationLevel',
         'serialize',
-        'deserialize',
-        'args');
+        'deserialize');
 
 var rhino = org.mozilla.javascript;
 
@@ -178,4 +179,8 @@ function addRepository(repo) {
 
 Object.defineProperty(this, "args", {
     value: new ScriptableList(getRhinoEngine().getCommandLineArguments())
+});
+
+Object.defineProperty(this, "env", {
+    value: new ScriptableMap(java.lang.System.getenv())
 });
