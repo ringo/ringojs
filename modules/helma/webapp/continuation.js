@@ -8,14 +8,13 @@ var system = require('helma/system');
 var log = require('helma/logging').getLogger(__name__);
 importClass(java.util.HashMap);
 
-function ContinuationSession(req) {
+function ContinuationSession(req, id, step) {
 
-    var id = req.params._cid;
-    var data = getData(req) || new HashMap();
+    step = parseInt(step) || 0;
+    var data = getData(req, id);
     var pages = [];
     var callbacks = [];
     var length = 0;
-    var step = parseInt(req.params._cstep) || 0;
 
     this.addPage = function(name, callback) {
         pages.push(name);
@@ -41,7 +40,10 @@ function ContinuationSession(req) {
     }
 
     Object.defineProperty(this, "data", {
-        value: new ScriptableMap(data)
+        get: function() {
+            data = data || new HashMap();
+            return new ScriptableMap(data)
+        }
     });
 
     Object.defineProperty(this, "page", {
@@ -75,7 +77,7 @@ function ContinuationSession(req) {
 
     function getContinuationUrl(step) {
         id = id || generateId();
-        return req.path + "?_cid=" + id + "&_cstep=" + String(step);
+        return [req.actionPath, id, String(step)].join("/");
     }
 
     function generateId() {
@@ -89,7 +91,6 @@ var setData = function(req, id, data) {
 };
 
 var getData = function(req, id) {
-    id = id || req.params._cid;
     if (!id) {
         return null;
     }

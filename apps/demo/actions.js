@@ -49,9 +49,9 @@ function logging(req) {
 }
 
 // demo for continuation support
-function continuation(req) {
+function continuation(req, cont_id, cont_step) {
 
-    var session = new ContinuationSession(req);
+    var session = new ContinuationSession(req, cont_id, cont_step);
 
     if (!session.isActive()) {
         // render welcome page
