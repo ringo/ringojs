@@ -133,11 +133,11 @@
     <target name="package" depends="jar,apidocs,test">
         <zip zipfile="../${project}-${version}.zip">
             <zipfileset dir="${home}" prefix="${project}-${version}"
-             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
+             excludes="build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </zip>
         <tar tarfile="../${project}-${version}.tar">
             <tarfileset dir="${home}" prefix="${project}-${version}"
-             excludes="classes/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
+             excludes="build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </tar>
         <gzip src="../${project}-${version}.tar" destfile="../${project}-${version}.tar.gz"/>
         <delete file="../${project}-${version}.tar"/>
