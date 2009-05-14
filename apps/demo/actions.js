@@ -39,7 +39,7 @@ function logging(req) {
     } else if (req.params.profile) {
         var profiler = require('helma/profiler');
         req.process = function() {
-            return SkinnedResponse('skins/logging.txt', {
+            return new SkinnedResponse('skins/logging.txt', {
                 title: "Logging &amp; Profiling"
             });
         }
@@ -55,7 +55,7 @@ function continuation(req, cont_id, cont_step) {
 
     if (!session.isActive()) {
         // render welcome page
-        return SkinnedResponse('skins/continuation.txt', {
+        return new SkinnedResponse('skins/continuation.txt', {
             session: session,
             page: "welcome",
             title: "Continuations"
@@ -63,7 +63,7 @@ function continuation(req, cont_id, cont_step) {
     }
 
     session.addPage("ask_name", function(req) {
-        return SkinnedResponse('skins/continuation.txt', {
+        return new SkinnedResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 1"
@@ -73,7 +73,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_food", function(req) {
         if (req.isPost)
             session.data.name = req.params.name;
-        return SkinnedResponse('skins/continuation.txt', {
+        return new SkinnedResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 2"
@@ -83,7 +83,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_animal", function(req) {
         if (req.isPost)
             session.data.food = req.params.food;
-        return SkinnedResponse('skins/continuation.txt', {
+        return new SkinnedResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 3"
@@ -93,7 +93,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("result", function(req) {
         if (req.isPost)
             session.data.animal = req.params.animal;
-        return SkinnedResponse('skins/continuation.txt', {
+        return new SkinnedResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Thank you!"

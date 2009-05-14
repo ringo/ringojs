@@ -9,7 +9,7 @@ function index(req) {
     if (req.params.save) {
         return createBook(req);
     }
-    return SkinnedResponse(getResource('./skins/index.html'), {
+    return new SkinnedResponse(getResource('./skins/index.html'), {
         title: 'Storage',
         books: Book.all(),
         action: req.path
@@ -26,7 +26,7 @@ function edit(req, id) {
         book.save();
         return new RedirectResponse("../");
     }
-    return SkinnedResponse(getResource('./skins/edit.html'), {
+    return new SkinnedResponse(getResource('./skins/edit.html'), {
         title: 'Storage',
         book: book,
         action: req.path
@@ -38,7 +38,7 @@ function remove(req, id) {
     if (req.params.remove && req.isPost) {
         return removeBook(req, book);
     }
-    return SkinnedResponse(getResource('./skins/remove.html'), {
+    return new SkinnedResponse(getResource('./skins/remove.html'), {
         title: 'Storage',
         book: book,
         action: req.path
