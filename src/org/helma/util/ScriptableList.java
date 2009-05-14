@@ -20,6 +20,8 @@ import org.mozilla.javascript.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * ScriptableList is a wrapper for java.util.List instances that allows developers 
@@ -58,6 +60,10 @@ public class ScriptableList extends NativeJavaObject {
         }
         if (obj instanceof List) {
             this.javaObject = this.list = (List) obj;
+        } else if (obj instanceof Collection) {
+            this.javaObject = this.list = new ArrayList<Object>((Collection<?>) obj);
+        } else if (obj instanceof Map) {
+            this.javaObject = this.list = new ArrayList<Object>(((Map<?,?>)obj).values());
         } else if (obj == Undefined.instance) {
             this.javaObject = this.list = new ArrayList();
         } else {
