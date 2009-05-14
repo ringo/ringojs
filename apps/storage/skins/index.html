@@ -29,8 +29,8 @@ plain JavaScript object references and arrays.
 
 <% subskin 'book'  ----------------------------------- %>
 <tr style="<% ifEven 'background-color: #eee;' %>">
-   <td><% book.author.name %></td>
-   <td><% book.title %></td>
+   <td><% book.author.name | escapeHtml %></td>
+   <td><% book.title | escapeHtml %></td>
    <td><a href="edit/<% book._id %>">[edit]</a></td>
    <td><a href="remove/<% book._id %>">[remove]</a></td>
 </tr>
