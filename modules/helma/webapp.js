@@ -90,13 +90,15 @@ function handleRequest(env) {
                     if (log.isDebugEnabled) log.debug("module: " + module);
                     // cut matching prefix from path
                     path = path.substring(match[0].length);
-                    // remove leading and trailing slashes
-                    path = path.replace(/^\/+|\/+$/g, "");
-                    //split
-                    var pathArray = path.split(/\/+/);
+                    //remove leading and trailing slashes and split
+                    var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
                     var action = getAction(module, pathArray[0]);
                     // log.debug("got action: " + action);
                     if (typeof action == "function" && pathArray.length <= action.length) {
+                        // default action - make sure request path has trailing slash
+                        if (!pathArray[0]) {
+                            req.checkTrailingSlash() 
+                        }
                         // set req.actionPath to the part of the path that resolves to the action
                         actionPath.push(match[0], pathArray[0] || "index");
                         req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
@@ -116,9 +118,12 @@ function handleRequest(env) {
                         }
                         return req.process();
                     } else if (module.urls instanceof Array) {
-                        // nested app
+                        // nested app - make sure request path has trailing slash
+                        if (!path) {
+                            req.checkTrailingSlash();
+                        }
                         actionPath.push(match[0]);
-                        return resolveInConfig(module, path, match[0]);
+                        return resolveInConfig(module, path, match[0] + "/");
                     } else {
                         break;
                     }

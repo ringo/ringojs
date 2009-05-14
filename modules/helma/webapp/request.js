@@ -17,6 +17,7 @@ function Request(env) {
     define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
     define("port", readOnlyPropertyDesc(servletRequest, "port"));
     define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
+    define("queryString", readOnlyPropertyDesc(servletRequest, "queryString"));
     define("method", readOnlyPropertyDesc(servletRequest, "method"));
 
     define("pathDecoded", {
@@ -82,6 +83,18 @@ function Request(env) {
             while (servletHeaders.hasMoreElements())
                 headers.push(servletHeaders.nextElement());
             return headers;
+        }
+    });
+
+    define("checkTrailingSlash", {
+        value: function checkTrailingSlash() {
+            // only redirect for GET requests
+            print(this.path, this.isGet);
+            if (!this.path.endsWith("/") && this.isGet) {
+                var path = this.queryString ?
+                           this.path + "/?" + this.queryString : this.path + "/";
+                throw {redirect: path};
+            }
         }
     });
 }

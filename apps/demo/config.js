@@ -4,7 +4,7 @@ exports.httpConfig = {
 
 exports.urls = [
     [ '/mount/point', 'webmodule' ],
-    [ '/storage/', 'storage/config' ],
+    [ '/storage', 'storage/config' ],
     [ '/', 'actions' ],
 ];
 
