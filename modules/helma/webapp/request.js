@@ -1,6 +1,8 @@
 require('core/string');
 include('helma/functional');
 include('helma/util');
+importClass(org.mozilla.javascript.Context);
+importClass(org.mozilla.javascript.Scriptable);
 
 export('Request');
 
@@ -96,14 +98,16 @@ function Session(servletRequest) {
     define("data", {
         get: function() {
             if (!data) {
-                var session = getSession();
-                data = session.getAttribute("helma");
-                if (!data) {
-                    data = new ScriptableMap();
-                    session.setAttribute("helma", data);
-                } else {
-                    data = new ScriptableMap(data);
-                }
+                // session.data is a JavaAdapter that directly proxies property access
+                // to the attributes in the servlet session object.
+                data = new JavaAdapter(Scriptable, {
+                    put: function(name, start, value) {
+                        getSession().setAttribute(name, Context.jsToJava(value, java.lang.Object));
+                    },
+                    get: function(name, start) {
+                        return Context.javaToJS(getSession().getAttribute(name), global);
+                    }
+                });
             }
             return data;
         }
