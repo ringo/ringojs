@@ -54,6 +54,7 @@ public class RhinoEngine {
     ModuleScope                        mainScope          = null;
 
     public static final Object[]       EMPTY_ARGS         = new Object[0];
+    public static final List<Integer>  VERSION            = Collections.unmodifiableList(Arrays.asList(0, 3));
 
     private Logger                     log                = Logger.getLogger("org.helma.javascript.RhinoEngine");
 

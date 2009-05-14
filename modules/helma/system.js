@@ -6,6 +6,7 @@ require('core/object');
 
 export('args',
         'env',
+        'properties',
         'addHostObject',
         'addRepository',
         'asJavaObject',
@@ -18,7 +19,8 @@ export('args',
         'getOptimizationLevel',
         'setOptimizationLevel',
         'serialize',
-        'deserialize');
+        'deserialize',
+        'version');
 
 var rhino = org.mozilla.javascript;
 
@@ -184,3 +186,11 @@ Object.defineProperty(this, "args", {
 Object.defineProperty(this, "env", {
     value: new ScriptableMap(java.lang.System.getenv())
 });
+
+Object.defineProperty(this, "properties", {
+    value: new ScriptableMap(java.lang.System.getProperties())
+});
+
+Object.defineProperty(this, "version", {
+    value: new ScriptableList(org.helma.javascript.RhinoEngine.VERSION)
+})
