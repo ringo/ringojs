@@ -80,13 +80,12 @@ function handleRequest(env) {
     function resolveInConfig(config, path, prefix) {
         if (log.isDebugEnabled) log.debug('resolving path ' + path);
         if (config.urls instanceof Array) {
-            var urls = config.urls;
-            for (var i = 0; i < urls.length; i++) {
-                if (log.isDebugEnabled) log.debug("checking url line: " + urls[i]);
-                var match = getPattern(urls[i]).exec(path);
+            for each (var url in config.urls) {
+                if (log.isDebugEnabled) log.debug("checking url line: " + url);
+                var match = getPattern(url).exec(path);
                 if (log.isDebugEnabled) log.debug("got match: " + match);
                 if (match != null) {
-                    var module = getModule(urls[i], prefix);
+                    var module = getModule(url, prefix);
                     if (log.isDebugEnabled) log.debug("module: " + module);
                     // cut matching prefix from path
                     path = path.substring(match[0].length);
