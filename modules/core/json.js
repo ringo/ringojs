@@ -165,28 +165,32 @@ if (!this.JSON) {
 }
 (function () {
 
-    function f(n) {
+    function pad(n) {
         // Format integers to have at least two digits.
         return n < 10 ? '0' + n : n;
     }
 
+    // standard replacer for strings, numbers, booleans
+    function toJSON(key) {
+        return this.valueOf();
+    }
+
     if (typeof Date.prototype.toJSON !== 'function') {
 
-        Date.prototype.toJSON = function (key) {
+        Object.defineProperty(Date.prototype, 'toJSON', {
+            value: function (key) {
+                return this.getUTCFullYear()   + '-' +
+                    pad(this.getUTCMonth() + 1) + '-' +
+                    pad(this.getUTCDate())      + 'T' +
+                    pad(this.getUTCHours())     + ':' +
+                    pad(this.getUTCMinutes())   + ':' +
+                    pad(this.getUTCSeconds())   + 'Z';
+            }
+        });
 
-            return this.getUTCFullYear()   + '-' +
-                 f(this.getUTCMonth() + 1) + '-' +
-                 f(this.getUTCDate())      + 'T' +
-                 f(this.getUTCHours())     + ':' +
-                 f(this.getUTCMinutes())   + ':' +
-                 f(this.getUTCSeconds())   + 'Z';
-        };
-
-        String.prototype.toJSON =
-        Number.prototype.toJSON =
-        Boolean.prototype.toJSON = function (key) {
-            return this.valueOf();
-        };
+        Object.defineProperty(String.prototype, 'toJSON', {value: toJSON});
+        Object.defineProperty(Number.prototype, 'toJSON', {value: toJSON});
+        Object.defineProperty(Boolean.prototype, 'toJSON', {value: toJSON});
     }
 
     var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,

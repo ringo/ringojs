@@ -1,6 +1,6 @@
 require('core/object');
 require('core/array');
-require('core/JSON');
+include('core/json');
 include('helma/file');
 include('helma/functional');
 
@@ -189,7 +189,7 @@ function Store(path) {
             log.debug("Storing object: " + object.toSource());
 
         tempfile.open({ append: true });
-        tempfile.write(entity.toJSON());
+        tempfile.write(JSON.stringify(entity));
         tempfile.close();
         txn.updateResource({ file: file, tempfile: tempfile });
     };
@@ -205,7 +205,7 @@ function Store(path) {
         }
 
         var content = file.readAll();
-        var entity = content.parseJSON();
+        var entity = JSON.parse(content);
         Object.defineProperty(entity, "_key", {
             value: [type, file.getName()]
         });

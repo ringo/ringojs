@@ -1,6 +1,6 @@
 require('core/object');
 require('core/array');
-require('core/JSON');
+include('core/json');
 include('helma/functional');
 
 export("Storable");
@@ -164,7 +164,7 @@ function MemStore() {
         if (!dir) {
             data[type] = dir = {};
         }
-        dir[id] = entity.toJSON();
+        dir[id] = JSON.stringify(entity);
     };
 
     this.load = function(type, id) {
@@ -172,7 +172,7 @@ function MemStore() {
         if (!dir || !dir[id]) {
             return null;
         }
-        var entity = dir[id].parseJSON();
+        var entity = JSON.parse(dir[id]);
         Object.defineProperty(entity, "_key", {
             value: [type, id]
         });
