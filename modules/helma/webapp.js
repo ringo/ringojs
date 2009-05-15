@@ -113,7 +113,12 @@ function handleRequest(env) {
                                     && middlewareIndex < middleware.length) {
                                 return invokeMiddleware(middleware[middlewareIndex++], [req]);
                             } else {
-                                return action.apply(module, args);
+                                var res = action.apply(module, args);
+                                if (res && typeof res === 'object'
+                                        && typeof res.close === 'function') {
+                                    return res.close();
+                                }
+                                return res;
                             }
                         }
                         return req.process();

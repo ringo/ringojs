@@ -66,10 +66,6 @@ exports.handleRequest = function handleRequest(req) {
         appender.callback = null;
     }
 
-    if (res && typeof res === 'object' && typeof res.close === 'function') {
-        res = res.close();
-    }
-
     var [status, headers, body] = res;
 
     // only do this for ordinary HTML responses
