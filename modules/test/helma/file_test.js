@@ -8,7 +8,7 @@ var testCase = new TestCase('helma/file');
 
 var filename = 'helma_file_test_' + String.random(10);
 var string1 = 'Hallo Welt!';
-var string2 = 'Schöne Grüße aus Hildesheim!'
+var string2 = 'Sch\u00f6ne Gr\u00fc\u00dfe aus Hildesheim!'
 
 testCase.setUp = testCase.tearDown = function() {
     var file = new File(filename);
