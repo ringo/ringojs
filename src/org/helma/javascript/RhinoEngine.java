@@ -662,10 +662,22 @@ public class RhinoEngine {
     }
 
     /**
+     * Get a wrapper for a string that exposes the java.lang.String methods to JavaScript
+     * This is useful for accessing strings as java.lang.String without the cost of
+     * creating a new instance.
+     * @param object an object
+     * @return the object converted to a string and wrapped as native java object
+     */
+    public Object asJavaString(Object object) {
+        if (!(object instanceof String)) {
+            object = object.toString();
+        }
+        Context cx = Context.getCurrentContext();
+        return wrapFactory.wrapAsJavaObject(cx, topLevelScope, object, null);
+    }
+
+    /**
      * Get a wrapper for an object that exposes it as Java object to JavaScript.
-     * This is useful for accessing strings and other primitives as their
-     * java.lang.* counterparts from JavaScript using the existing instance rather
-     * than allocating a new object via new java.lang.Foo() constructor.
      * @param object an object
      * @return the object wrapped as native java object
      */
@@ -677,10 +689,19 @@ public class RhinoEngine {
         return wrapFactory.wrapAsJavaObject(cx, topLevelScope, object, null);
     }
 
+    /**
+     * Get the engine's WrapFactory.
+     * @return
+     */
     public WrapFactory getWrapFactory() {
         return wrapFactory;
     }
 
+    /**
+     * Get a class wrapper that can be extended by adding properties to its prototype property.
+     * @param type a Java class
+     * @return an extensible wrapper for the class
+     */
     public ExtendedJavaClass getExtendedClass(Class type) {
         ExtendedJavaClass wrapper = javaWrappers.get(type.getName());
         if (wrapper == null || wrapper == ExtendedJavaClass.NONE) {

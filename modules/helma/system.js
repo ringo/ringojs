@@ -9,6 +9,7 @@ export('args',
         'properties',
         'addHostObject',
         'addRepository',
+        'asJavaString',
         'asJavaObject',
         'createSandbox',
         'evaluate',
@@ -64,14 +65,22 @@ function extendJavaClass(javaClass) {
 
 /**
  * Get a wrapper for an object that exposes it as Java object to JavaScript.
- * This is useful for accessing strings and other primitives as their
- * java.lang.* counterparts from JavaScript using the existing instance rather
- * than allocating a new object via new java.lang.Foo() constructor.
  * @param object an object
  * @return the object wrapped as native java object
  */
 function asJavaObject(object) {
     return getRhinoEngine().asJavaObject(object);
+}
+
+/**
+ * Get a wrapper for a string that exposes the java.lang.String methods to JavaScript
+ * This is useful for accessing strings as java.lang.String without the cost of
+ * creating a new instance.
+ * @param object an object
+ * @return the object converted to a string and wrapped as native java object
+ */
+function asJavaString(object) {
+    return getRhinoEngine().asJavaString(object);
 }
 
 /**

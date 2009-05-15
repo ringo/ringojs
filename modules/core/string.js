@@ -14,6 +14,8 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
+var asJavaString = require('helma/system').asJavaString;
+
 __shared__ = true;
 
 Object.defineProperty(String, 'ANUMPATTERN', { value: /[^a-zA-Z0-9]/ });
@@ -394,7 +396,7 @@ Object.defineProperty(String.prototype, "unwrap", {
  */
 Object.defineProperty(String.prototype, "md5", {
     value: function() {
-        var str = new java.lang.String(this);
+        var str = asJavaString(this);
         var md = java.security.MessageDigest.getInstance('MD5');
         var b = md.digest(str.getBytes())
         var buf = new java.lang.StringBuffer(b.length * 2);
@@ -640,7 +642,7 @@ Object.defineProperty(String.prototype, "count", {
  */
 Object.defineProperty(String.prototype, "enbase64", {
     value: function() {
-        var bytes = new java.lang.String(this) . getBytes();
+        var bytes = asJavaString(this).getBytes();
         return new Packages.sun.misc.BASE64Encoder().encode(bytes);
     }
 });

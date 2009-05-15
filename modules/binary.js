@@ -1,5 +1,5 @@
 
-var asJavaObject = require('helma/system').asJavaObject;
+var asJavaString = require('helma/system').asJavaString;
 
 var Binary = exports.Binary = function(bytes) {
     this.bytes = bytes;
@@ -18,8 +18,8 @@ Binary.prototype.toString = function(encoding) {
 
 String.prototype.toBinary = function(encoding) {
     var bytes = encoding ?
-                asJavaObject(this.toString()).getBytes(encoding) :
-                asJavaObject(this.toString()).getBytes();
+                asJavaString(this).getBytes(encoding) :
+                asJavaString(this).getBytes();
     return new Binary(bytes);
 };
 
