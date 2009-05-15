@@ -47,12 +47,14 @@ IO.prototype.read = function(length, encoding) {
     
     var resultBuffer, resultLength;
     
-    if (bytes)
+    if (bytes) {
         resultBuffer = bytes.toByteArray();
-    else if (total < buffer.length)
-        resultBuffer = java.util.Arrays.copyOf(buffer, total);
-    else
+    } else if (total < buffer.length) {
+        resultBuffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, total);
+        java.lang.System.arraycopy(buffer, 0, resultBuffer, 0, total);
+    } else {
         resultBuffer = buffer;
+    }
     
     resultLength = resultBuffer.length;
     
