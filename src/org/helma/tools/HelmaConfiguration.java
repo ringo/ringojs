@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.MalformedURLException;
 
 /**
  * This class describes the configuration for a Helma NG application or shell session.
@@ -33,15 +34,15 @@ import java.util.List;
  */
 public class HelmaConfiguration {
 
-    Repository home;
-    List<Repository> repositories;
-    String mainModule;
-    int optimizationLevel = 0;
-    int languageVersion = 180;
-    Class<?>[] hostClasses = null;
-    HelmaClassLoader loader;
-    ClassShutter classShutter = null;
-    boolean sealed = false;
+    private Repository home;
+    private List<Repository> repositories;
+    private String mainModule;
+    private int optimizationLevel = 0;
+    private int languageVersion = 180;
+    private Class<?>[] hostClasses = null;
+    private HelmaClassLoader loader;
+    private ClassShutter classShutter = null;
+    private boolean sealed = false;
 
     /**
      * Create a new Helma configuration and sets up its module search path.
@@ -73,7 +74,7 @@ public class HelmaConfiguration {
                 if (repository != null && repository.exists()) {
                     repositories.add(repository);
                 } else {
-                    getLogger().error("Cannot resolve module path entry: " + path);
+                    System.err.println("Cannot resolve module path entry: " + path);
                 }
             }
         }
@@ -84,10 +85,19 @@ public class HelmaConfiguration {
                 if (repository != null && repository.exists()) {
                     repositories.add(repository);
                 } else {
-                    getLogger().error("Cannot resolve system module root: " + systemModules);
+                    System.err.println("Cannot resolve system module root: " + systemModules);
                 }
         }
 
+        // now that repositories are set up try to set default log4j configuration file
+        if (System.getProperty("log4j.configuration") == null) {
+            Resource log4jConfig = getResource("config/log4j.properties");
+            try {
+                System.setProperty("log4j.configuration", log4jConfig.getUrl().toString());
+            } catch (MalformedURLException x) {
+                System.setProperty("log4j.configuration", "file:" + log4jConfig.getPath());
+            }
+        }
         getLogger().debug("Parsed repository list: " + repositories);
     }
 

@@ -43,12 +43,6 @@ public class Main {
             File home = getHelmaHome();
             ClassLoader loader = createClassLoader(home);
 
-            // set default log4j configuration file
-            if (System.getProperty("log4j.configuration") == null) {
-                File file = new File(home, "modules/config/log4j.properties"); 
-                System.setProperty("log4j.configuration", "file:" + file.getPath());
-            }
-
             Class clazz = loader.loadClass("org.helma.tools.HelmaRunner");
             Class[] cargs = new Class[] {args.getClass()};
             Method main = clazz.getMethod("main", cargs);
