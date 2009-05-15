@@ -8,7 +8,7 @@ function Response() {
 
     var config = require('helma/webapp/env').config;
     var status = 200;
-    var charset = config.charset || 'utf8';
+    var charset = config.charset || 'utf-8';
     var contentType = config.contentType || 'text/html';
     var headers = {};
     var buffer = new Buffer();
@@ -155,8 +155,8 @@ function SkinnedResponse(skin, context, scope) {
 }
 
 function JSONResponse(object) {
-    var json = require('core/json2').JSON;
-    var res = new Response(json.stringify(object));
+    var JSON = require('core/json').JSON;
+    var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
 }
