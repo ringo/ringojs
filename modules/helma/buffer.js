@@ -1,3 +1,6 @@
+require('core/string');
+include('helma/system');
+
 export('Buffer');
 
 /**
@@ -31,6 +34,23 @@ function Buffer() {
 
     this.forEach = function(fn) {
         content.forEach(fn);
+    }
+
+    this.digest = function(algorithm) {
+        var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
+        content.forEach(function(part) {
+            md.update(asJavaString(part).getBytes());
+        });
+        var b = md.digest();
+        var buf = new java.lang.StringBuffer(b.length * 2);
+        var j;
+        for (var i in b) {
+            j = (b[i] < 0) ? (256 + b[i]) : b[i];
+            if (j < 16)
+                buf.append('0');
+            buf.append(java.lang.Integer.toHexString(j));
+        }
+        return buf.toString();
     }
 
     if (arguments.length > 0) {

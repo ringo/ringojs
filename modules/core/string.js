@@ -391,13 +391,15 @@ Object.defineProperty(String.prototype, "unwrap", {
 
 
 /**
- * function calculates the md5 hash of a string
- * @return String md5 hash of the string
+ * function calculates a message digest of a string. If no
+ * argument is passed, the MD5 algorithm is used.
+ * @param algorithm the name of the algorithm to use
+ * @return String message digest of the string
  */
-Object.defineProperty(String.prototype, "md5", {
-    value: function() {
+Object.defineProperty(String.prototype, "digest", {
+    value: function(algorithm) {
         var str = asJavaString(this);
-        var md = java.security.MessageDigest.getInstance('MD5');
+        var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
         var b = md.digest(str.getBytes())
         var buf = new java.lang.StringBuffer(b.length * 2);
         var j;
