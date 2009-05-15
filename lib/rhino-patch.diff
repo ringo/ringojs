@@ -4,7 +4,7 @@ RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/IRFactory.java,v
 retrieving revision 1.124
 diff -u -r1.124 IRFactory.java
 --- src/org/mozilla/javascript/IRFactory.java	11 May 2009 15:44:04 -0000	1.124
-+++ src/org/mozilla/javascript/IRFactory.java	14 May 2009 11:03:25 -0000
++++ src/org/mozilla/javascript/IRFactory.java	15 May 2009 14:24:38 -0000
 @@ -398,7 +398,7 @@
              // Bug: for code like "var obj={p:3};[obj.p]=[9];", "left" will
              // be ARRAYLITERAL with an embedded GETPROP. This causes errors
@@ -20,7 +20,7 @@ RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaAdapter.java,
 retrieving revision 1.117
 diff -u -r1.117 JavaAdapter.java
 --- src/org/mozilla/javascript/JavaAdapter.java	14 Nov 2008 13:52:29 -0000	1.117
-+++ src/org/mozilla/javascript/JavaAdapter.java	14 May 2009 11:03:26 -0000
++++ src/org/mozilla/javascript/JavaAdapter.java	15 May 2009 14:24:38 -0000
 @@ -131,6 +131,10 @@
  
      public static Object convertResult(Object result, Class<?> c)
@@ -32,16 +32,23 @@ diff -u -r1.117 JavaAdapter.java
          if (result == Undefined.instance &&
              (c != ScriptRuntime.ObjectClass &&
               c != ScriptRuntime.StringClass))
-@@ -138,7 +142,7 @@
+@@ -138,7 +142,14 @@
              // Avoid an error for an undefined value; return null instead.
              return null;
          }
 -        return Context.jsToJava(result, c);
-+        return unwrap ? Context.jsToJava(result, c) : result;        
++        if (!unwrap) {
++            // Scriptable.NOT_FOUND requires special handling
++            if (result instanceof Wrapper &&
++                    ((Wrapper)result).unwrap() == Scriptable.NOT_FOUND) {
++               return Scriptable.NOT_FOUND;
++            }
++        }
++        return unwrap ? Context.jsToJava(result, c) : result;
      }
  
      public static Scriptable createAdapterWrapper(Scriptable obj,
-@@ -353,9 +357,13 @@
+@@ -353,9 +364,13 @@
                       (short) (ClassFileWriter.ACC_PUBLIC |
                                ClassFileWriter.ACC_FINAL));
          int interfacesCount = interfaces == null ? 0 : interfaces.length;
@@ -56,7 +63,7 @@ diff -u -r1.117 JavaAdapter.java
          }
  
          String superName = superClass.getName().replace('.', '/');
-@@ -395,7 +403,7 @@
+@@ -395,7 +410,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -65,7 +72,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                  }
-@@ -423,7 +431,7 @@
+@@ -423,7 +438,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -74,7 +81,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                      
-@@ -450,7 +458,7 @@
+@@ -450,7 +465,7 @@
              for (int k=0; k < length; k++)
                  parms[k] = ScriptRuntime.ObjectClass;
              generateMethod(cfw, adapterName, functionName, parms,
@@ -83,7 +90,7 @@ diff -u -r1.117 JavaAdapter.java
          }
          return cfw.toByteArray();
      }
-@@ -817,7 +825,7 @@
+@@ -817,7 +832,7 @@
       * Generates the appropriate RETURN bytecode.
       */
      static void generateReturnResult(ClassFileWriter cfw, Class<?> retType,
@@ -92,7 +99,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          // wrap boolean values with java.lang.Boolean, convert all other
          // primitive values to java.lang.Double.
-@@ -874,20 +882,19 @@
+@@ -874,20 +889,19 @@
  
          } else {
              String retTypeStr = retType.getName();
@@ -126,7 +133,7 @@ diff -u -r1.117 JavaAdapter.java
              // Now cast to return type
              cfw.add(ByteCode.CHECKCAST, retTypeStr);
              cfw.add(ByteCode.ARETURN);
-@@ -896,7 +903,7 @@
+@@ -896,7 +910,7 @@
  
      private static void generateMethod(ClassFileWriter cfw, String genName,
                                         String methodName, Class<?>[] parms,
@@ -135,7 +142,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          StringBuffer sb = new StringBuffer();
          int paramsEnd = appendMethodSignature(parms, returnType, sb);
-@@ -959,7 +966,7 @@
+@@ -959,7 +973,7 @@
                        +"J"
                        +")Ljava/lang/Object;");
  
@@ -150,7 +157,7 @@ RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Parser.java,v
 retrieving revision 1.138
 diff -u -r1.138 Parser.java
 --- src/org/mozilla/javascript/Parser.java	11 May 2009 15:44:04 -0000	1.138
-+++ src/org/mozilla/javascript/Parser.java	14 May 2009 11:03:26 -0000
++++ src/org/mozilla/javascript/Parser.java	15 May 2009 14:24:39 -0000
 @@ -3491,6 +3491,7 @@
                int type;
                if (nodeType == Token.GETPROP) {
