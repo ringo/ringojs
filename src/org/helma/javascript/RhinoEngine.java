@@ -673,7 +673,8 @@ public class RhinoEngine {
         if (object instanceof Wrapper) {
             object = ((Wrapper) object).unwrap();
         }
-        return wrapFactory.wrapAsJavaObject(Context.getCurrentContext(), topLevelScope, object, null);
+        Context cx = Context.getCurrentContext();
+        return wrapFactory.wrapAsJavaObject(cx, topLevelScope, object, null);
     }
 
     public WrapFactory getWrapFactory() {
