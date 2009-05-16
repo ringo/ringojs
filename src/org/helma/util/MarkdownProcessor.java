@@ -595,9 +595,9 @@ public class MarkdownProcessor {
         String linkId;
         int k = j;
         j += 1;
-        while (j < length && Character.isWhitespace(chars[j])) {
+        /* if (j < length && isSpace(chars[j])) {
             j += 1;
-        }
+        } */
         c = chars[j++];
         if (c == '[') {
             while (j < length && chars[j] != ']') {
