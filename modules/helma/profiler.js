@@ -1,50 +1,7 @@
-require('core/string');
-include('helma/buffer');
-import('helma/system');
-import('helma/logging');
-import('helma/shell');
 
-export('handleRequest', 'Profiler');
+var log = require('helma/logging').getLogger(__name__);
 
-var system = helma.system;
-var {write, writeln} = helma.shell;
-var log = helma.logging.getLogger(__name__);
-
-/**
- * Register a request listener that automatically sets rhino optimization
- * level to -1 and adds a profiler.
- */
-(function() {
-    var maxFrames = 20;
-    var profiler;
-
-    this.handleRequest = function(req) {
-        if (system.getOptimizationLevel() > -1) {
-            system.setOptimizationLevel(-1);
-            throw {retry: true};
-        }
-        if (!profiler) {
-            profiler = new Profiler();
-        }
-        system.getRhinoContext().setDebugger(profiler, null);
-
-        var res = req.process();
-
-        var result = profiler.getResult(maxFrames);
-        var buffer = new Buffer();
-        buffer.writeln();
-        buffer.writeln("     total  average  calls    path");
-        for (var i = 1; i < result.maxLength; i++) {
-            // b.write("—");
-            buffer.write("-");
-        }
-        buffer.writeln();
-        buffer.writeln(result.data);
-        log.info(buffer.toString());
-
-        return res;
-    };
-}).apply(this);
+export('Profiler');
 
 function Profiler() {
     var frames = {};

@@ -37,7 +37,7 @@ function logging(req) {
             log.error(e, e.rhinoException);
         }
     } else if (req.params.profile) {
-        var profiler = require('helma/profiler');
+        var profiler = require('helma/middleware/profiler');
         req.process = function() {
             return new SkinnedResponse('skins/logging.txt', {
                 title: "Logging &amp; Profiling"

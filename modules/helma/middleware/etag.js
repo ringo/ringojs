@@ -21,8 +21,8 @@ function handleRequest(req) {
         digest = '"' + res[2].digest() + '"';
         headers["ETag"] = digest;
         if (etags && etags.contains(digest)) {
-            res[0] = 304;
-            res[2] = [];
+            // return not-modified response
+            return [304, headers, []];
         }
     }
     return res;
