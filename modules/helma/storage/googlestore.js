@@ -60,6 +60,9 @@ function save(props, entity, entities) {
                 }
             });
             value = list;
+        } else if (typeof value === 'string' && value.length > 500) {
+            // maximal length for ordinary strings is 500 chars in datastore
+            value = new Text(value); 
         }
         entity.setProperty(id, value);
     }
@@ -133,6 +136,8 @@ function getProps(type, arg) {
                                new Storable(obj.getKind(), obj) : obj);
                 }
                 value = array;
+            } else if (value instanceof Text) {
+                value = value.getValue();
             } else {
                 value = Context.javaToJS(value, global);
             }
