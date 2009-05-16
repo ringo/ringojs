@@ -595,9 +595,13 @@ public class MarkdownProcessor {
         String linkId;
         int k = j;
         j += 1;
-        /* if (j < length && isSpace(chars[j])) {
+        // this is weird, bug we follow the official markup implementation here:
+        // only accept space between link text and link target for [][], not for []()
+        boolean extraSpace = false;
+        if (j < length && isSpace(chars[j])) {
             j += 1;
-        } */
+            extraSpace = true;
+        }
         c = chars[j++];
         if (c == '[') {
             while (j < length && chars[j] != ']') {
@@ -620,7 +624,7 @@ public class MarkdownProcessor {
                     return false;
                 }
             }
-        } else if (c == '(') {
+        } else if (c == '(' && !extraSpace) {
             link = new String[2];
             while (j < length && chars[j] != ')' && !isSpace(chars[j])) {
                 if (chars[j] == '\n') {
