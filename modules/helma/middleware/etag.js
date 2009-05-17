@@ -18,7 +18,7 @@ function handleRequest(req) {
     var res = req.process();
     var [status, headers, body] = res;
     if (status === 200 && typeof body.digest === "function") {
-        digest = '"' + res[2].digest() + '"';
+        digest = '"' + body.digest() + '"';
         headers["ETag"] = digest;
         if (etags && etags.contains(digest)) {
             // return not-modified response
