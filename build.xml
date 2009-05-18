@@ -156,6 +156,9 @@
             </filterset>
             <fileset dir="${dpkg.src}"/>
         </copy>
+        <copy todir="${dpkg.tmp}/usr/share/helma/apps/skeleton">
+            <fileset dir="${home}/apps/skeleton"/>
+        </copy>
         <copy todir="${dpkg.tmp}/usr/share/helma/modules">
             <fileset dir="${home}/modules"/>
         </copy>
