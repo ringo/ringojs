@@ -50,7 +50,7 @@ JavaScript 1.7 with partial support for JavaScript 1.8 features.
 To run Helma NG, add the helma-ng/bin directory to your PATH environment
 variable:
 
-    export PATH=$PATH:helma-ng/bin
+    export PATH=$PATH:/path/to/helma-ng/bin
 
 To start a shell session, just run the helma command without any arguments:
 
