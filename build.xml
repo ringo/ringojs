@@ -137,7 +137,7 @@
         </zip>
         <tar tarfile="../${project}-${version}.tar">
             <tarfileset dir="${home}" prefix="${project}-${version}"
-             mode="755" includes="bin/helma" />
+             filemode="755" includes="bin/helma" />
             <tarfileset dir="${home}" prefix="${project}-${version}"
              excludes="bin/helma,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </tar>
