@@ -8,14 +8,13 @@ var responseLogEnabled = true;
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */
 exports.handleRequest = function handleRequest(req) {
-    // Install list in 'responseLog' threadlocal
-    if (!responseLogEnabled) {
+    var appender;
+
+    if (!responseLogEnabled || !(appender = Logger.getRootLogger().getAppender("rhino"))) {
         return req.process();
     }
 
     var messages = [];
-    var appender = Logger.getRootLogger().getAppender("rhino") || {};
-
     appender.callback = function(level, message, scriptStack, javaStack) {
         messages.push([level, message, scriptStack, javaStack]);
     };
