@@ -61,9 +61,17 @@ To run a script simply pass it to helma on the command line:
     helma apps/demo/main.js
 
 If you run a script that is contained in Helma's module path you can also
-use the simpler abstract module name instead of the file name:
+use the simpler abstract module name instead of the file name. For example,
+to run the helma test suite:
 
     helma test/all
+
+To create a new web application, use the admin/create script. This will copy
+an simple skeleton app to the location you define. You can pass the
+application directory as command line argument, or the script will prompt you
+for it.
+
+    helma admin/create [appdir]
 
 Run helma with the -h or --help switch to get more information about available
 command line options. For example, the -i or --interactive option allows you
