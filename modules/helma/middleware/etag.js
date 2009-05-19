@@ -1,5 +1,6 @@
 require('core/string');
 require('core/array');
+include('hashp');
 
 export('handleRequest');
 
@@ -22,6 +23,7 @@ function handleRequest(req) {
         headers["ETag"] = digest;
         if (etags && etags.contains(digest)) {
             // return not-modified response
+            HashP.unset(headers, 'Content-Length');
             return [304, headers, []];
         }
     }
