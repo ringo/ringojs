@@ -530,10 +530,8 @@ public class RhinoEngine {
      * @return the resource
      */
     public Resource findResource(String path, Repository localRoot) {
-        // FIXME: we allow absolute module paths, and we do not check
-        // if relative paths escape their root repository. These are
-        // of course gaping security holes for environments running
-        // non-trusted code.
+        // Note: as an extension to the securable modules API
+        // we allow absolute module paths for resources
         File file = new File(path);
         if (file.isAbsolute()) {
             return new FileResource(file);
