@@ -115,7 +115,7 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(this, "getResources", {
         value: function(resourcePath, nested) {
             var engine = getRhinoEngine();
-            return new ScriptableList(engine.getResources(resourcePath, !!nested));
+            return new ScriptableList(engine.findResources(resourcePath, Boolean(nested)));
         }
     });
 
