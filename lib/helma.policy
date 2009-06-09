@@ -21,3 +21,12 @@ grant codeBase "file:${helma.home}/modules/-" {
 grant codeBase "file:${helma.home}/apps/-" {
         permission java.security.AllPermission;
 };
+
+// example sandbox setup
+grant codeBase "file:${helma.sandbox}/-" {
+        permission java.io.FilePermission "${helma.sandbox}/-", "read";
+        permission java.util.PropertyPermission "*", "read";
+        permission java.lang.RuntimePermission "getenv.*";
+        permission java.lang.RuntimePermission "accessDeclaredMembers";
+        permission java.lang.RuntimePermission "getProtectionDomain";
+};
