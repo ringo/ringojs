@@ -1,50 +1,76 @@
 include("helma/unittest");
+var shell = require("helma/shell");
 
-export('testCase');
-
-var testCase = new TestCase("helma/unittest");
-
-testCase.testAssertTrue = function() {
+exports.testAssertTrue = function() {
     assertTrue(true);
     return;
 };
 
-testCase.testAssertFalse = function() {
+exports.testAssertFalse = function() {
     assertFalse(false);
     return;
 };
 
-testCase.testAssertEqual = function() {
+exports.testAssertEqual = function() {
+    // primitives
     assertEqual(true, true);
+    assertEqual(1, 1);
+    assertEqual("one", "one");
+    assertEqual(NaN, NaN);
+    assertEqual(undefined, undefined);
+    assertEqual(null, null);
+
+    // arrays
+    assertEqual([], []);
+    assertEqual(["one"], ["one"]);
+    assertEqual(["one", "two"], ["one", "two"]);
+
+    // objects
+    assertEqual({}, {});
+    assertEqual({a: 1}, {a: 1});
+    assertEqual({a: 1, b: 2}, {a: 1, b: 2});
+    assertEqual({a: 1, b: 2}, {b: 2, a: 1});
+    assertEqual({a: {b: 1}}, {a: {b: 1}});
+
+    // regexp
+    assertEqual(/^test.*/, /^test.*/);
+    assertEqual(/^test.*/gim, /^test.*/gim);
+
+    // dates
+    var date1 = new Date(2009, 5, 6, 12, 31, 27);
+    var date2 = new Date(date1.getTime());
+    assertEqual(date1, date2);
+    // functions
+    var func1 = function() {
+        var x = 0;
+        x += 1;
+        return;
+    };
+    var func2 = function() {
+        var x = 0;
+        x += 1;
+        return;
+    };
+    assertEqual(func1, func2);
     return;
 };
 
-testCase.testAssertNotEqual = function() {
+exports.testAssertNotEqual = function() {
+    // primitives
     assertNotEqual(true, false);
+    assertNotEqual(true, "true");
+    assertNotEqual(true, 1);
+    assertNotEqual("one", true);
+    assertNotEqual(1, true);
     return;
 };
 
-testCase.testAssertEqualArrays = function() {
-    assertEqualArrays([], []);
-    assertEqualArrays(["one"], ["one"]);
-    assertEqualArrays(["one", "two"], ["one", "two"]);
-    return;
-}
-
-testCase.testAssertEqualObjects = function() {
-    assertEqualObjects({}, {});
-    assertEqualObjects({a: 1}, {a: 1});
-    assertEqualObjects({a: 1, b: 2}, {a: 1, b: 2});
-    assertEqualObjects({a: 1, b: 2}, {b: 2, a: 1});
-    return;
-};
-
-testCase.testAssertNull = function() {
+exports.testAssertNull = function() {
     assertNull(null);
     return;
 };
 
-testCase.testAssertNotNull = function() {
+exports.testAssertNotNull = function() {
     assertNotNull(0);
     assertNotNull("");
     assertNotNull(undefined);
@@ -52,37 +78,37 @@ testCase.testAssertNotNull = function() {
     return;
 };
 
-testCase.testAssertUndefined = function() {
+exports.testAssertUndefined = function() {
     assertUndefined(undefined);
     return;
 };
 
-testCase.testAssertNotUndefined = function() {
+exports.testAssertNotUndefined = function() {
     assertNotUndefined(null);
     return;
 };
 
-testCase.testAssertNaN = function() {
+exports.testAssertNaN = function() {
     assertNaN("a");
     return;
 };
 
-testCase.testAssertNotNaN = function() {
+exports.testAssertNotNaN = function() {
     assertNotNaN(1);
     return;
 };
 
-testCase.testAssertStringContains = function() {
+exports.testAssertStringContains = function() {
     assertStringContains("just a test", "test");
     return;
 };
 
-testCase.testAssertMatch = function() {
+exports.testAssertMatch = function() {
     assertMatch("just a test", /t.?st/);
     return;
 };
 
-testCase.testAssertThrows = function() {
+exports.testAssertThrows = function() {
     // throw undefined (yes, you can do that...)
     assertThrows(function() {
         throw undefined;
@@ -104,5 +130,134 @@ testCase.testAssertThrows = function() {
     assertThrows(function() {
         throw new Date();
     });
+    return;
+};
+
+
+
+/***** jsDump tests *****/
+
+
+
+exports.testDumpObject = function() {
+    assertEqual(
+        jsDump({
+            "a": 1,
+            "b": {
+                "c": 2
+            },
+            "e": 23
+        }),
+        [
+            '{',
+            '    "a": 1,',
+            '    "b": {',
+            '        "c": 2',
+            '    },',
+            '    "e": 23',
+            '}'
+        ].join("\n")
+    );
+    return;
+};
+
+exports.testDumpSimpleArray = function() {
+    assertEqual(
+        jsDump([0, "eins", 2, 3]),
+        [
+            '[',
+            '    0,',
+            '    "eins",',
+            '    2,',
+            '    3',
+            ']'
+        ].join("\n")
+    );
+    return;
+};
+
+exports.testDumpMultiDimensionalArray = function() {
+    assertEqual(
+        jsDump([0, "eins", ["a", ["one", "two"], "c"], 3]),
+        [
+            '[',
+            '    0,',
+            '    "eins",',
+            '    [',
+            '        "a",',
+            '        [',
+            '            "one",',
+            '            "two"',
+            '        ],',
+            '        "c"',
+            '    ],',
+            '    3',
+            ']'
+        ].join("\n")
+    );
+    return;
+};
+
+exports.testDumpMixedArray = function() {
+    assertEqual(
+        jsDump([0, "eins", ["a", {"a": 0, "b": {"c": 3}, "d": 4}, "c"], 3]),
+        [
+            '[',
+            '    0,',
+            '    "eins",',
+            '    [',
+            '        "a",',
+            '        {',
+            '            "a": 0,',
+            '            "b": {',
+            '                "c": 3',
+            '            },',
+            '            "d": 4',
+            '        },',
+            '        "c"',
+            '    ],',
+            '    3',
+            ']'
+        ].join("\n")
+    );
+    return;
+};
+
+exports.testDumpString = function() {
+    assertEqual(jsDump("one"), '"one"');
+    assertEqual(jsDump("0"), '"0"');
+    return;
+};
+
+exports.testDumpNumber = function() {
+    assertEqual(jsDump(12), "12");
+    assertEqual(jsDump(Infinity), "Infinity");
+    return;
+};
+
+exports.testDumpNaN = function() {
+    assertEqual(jsDump(NaN), "NaN");
+    return;
+};
+
+exports.testDumpBoolean = function() {
+    assertEqual(jsDump(true), "true");
+    return;
+};
+
+exports.testDumpDate = function() {
+    var d = new Date();
+    assertEqual(jsDump(d), d.toString());
+    return;
+};
+
+exports.testDumpRegExp = function() {
+    var re = /^test(.*)/gim;
+    assertEqual(jsDump(re), "/^test(.*)/gim");
+    return;
+};
+
+exports.testDumpFunction = function() {
+    assertEqual(jsDump(exports.testDumpObject), exports.testDumpObject.toSource());
     return;
 };
