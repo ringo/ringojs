@@ -25,6 +25,8 @@ import org.apache.log4j.Logger;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.security.CodeSource;
+import java.security.CodeSigner;
 
 /**
  * This class represents a JavaScript Resource.
@@ -105,7 +107,8 @@ public class ReloadableScript {
         Resource resource = (Resource) source;
         try {
             exception = null;
-            script = cx.compileReader(resource.getReader(), resource.getRelativePath(), 1, null);
+            CodeSource source = new CodeSource(resource.getUrl(), (CodeSigner[]) null);
+            script = cx.compileReader(resource.getReader(), resource.getRelativePath(), 1, source);
         } catch (Exception x) {
             exception = x;
         } finally {
@@ -133,7 +136,8 @@ public class ReloadableScript {
             exception = null;
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {
-                    scripts.add(cx.compileReader(res.getReader(), res.getRelativePath(), 1, null));
+                    CodeSource source = new CodeSource(res.getUrl(), (CodeSigner[]) null);                    
+                    scripts.add(cx.compileReader(res.getReader(), res.getRelativePath(), 1, source));
                 }
            }
         } catch (Exception x) {

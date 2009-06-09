@@ -14,6 +14,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.ErrorReporter;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.PolicySecurityController;
 import org.helma.repository.Trackable;
 import org.helma.tools.HelmaConfiguration;
 
@@ -64,6 +65,7 @@ public class HelmaContextFactory extends ContextFactory {
         cx.setWrapFactory(engine.wrapFactory);
         cx.setLanguageVersion(languageVersion);
         cx.setOptimizationLevel(optimizationLevel);
+        cx.setSecurityController(new PolicySecurityController());
         if (errorReporter != null) {
             cx.setErrorReporter(errorReporter);
         }
