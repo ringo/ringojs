@@ -20,6 +20,7 @@ import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.repository.Trackable;
 import org.mozilla.javascript.*;
+import org.apache.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class ReloadableScript {
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
 
+    private static Logger log = Logger.getLogger(ReloadableScript.class);
 
     /**
      * Construct a Script from the given script resource.
@@ -206,6 +208,9 @@ public class ReloadableScript {
             module.reset(cx);
         } else {
             module = new ModuleScope(moduleName, source, prototype, cx);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Loading module: " + moduleName);
         }
         modules.put(source, module);
         script.exec(cx, module);
