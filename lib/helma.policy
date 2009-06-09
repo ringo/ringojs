@@ -1,0 +1,21 @@
+// Example policy file for Helma NG
+// Run Helma with the following flags to activate this:
+//    java -Djava.security.manager -Djava.security.policy=lib/helma.policy -jar run.jar
+// See http://java.sun.com/j2se/1.4.2/docs/guide/security/PolicyFiles.html
+// for more information.
+
+grant codeBase "file:/home/hannes/git/helma-ng/run.jar" {
+        permission java.security.AllPermission;
+};
+
+grant codeBase "file:/home/hannes/git/helma-ng/lib/-" {
+        permission java.security.AllPermission;
+};
+
+grant codeBase "file:/home/hannes/git/helma-ng/modules/-" {
+        permission java.security.AllPermission;
+};
+
+grant codeBase "file:/home/hannes/git/helma-ng/apps/-" {
+        permission java.security.AllPermission;
+};
