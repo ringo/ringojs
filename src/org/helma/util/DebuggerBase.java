@@ -24,9 +24,11 @@ public abstract class DebuggerBase implements Debugger {
 
     public DebugFrame getFrame(Context cx, DebuggableScript fnOrScript) {
         String path = fnOrScript.getSourceName();
-        log.debug("Getting Frame for " + path +
-                ", debugger script depth is " + debuggerScriptDepth);
-        if (path.equals(debuggerScript) || debuggerScriptDepth > 0) {
+        if (log.isDebugEnabled()) {
+            log.debug("Getting Frame for " + path +
+                      ", debugger script depth is " + debuggerScriptDepth);
+        }
+        if (debuggerScriptDepth > 0 || path.equals(debuggerScript)) {
             return new DebuggerScriptFrame();
         } else {
             return getScriptFrame(cx, fnOrScript);
