@@ -1,35 +1,31 @@
 include('helma/unittest');
 include('helma/skin');
 
-export('testCase');
-
-var testCase = new TestCase('helma/skin');
-
-testCase.testBasic = function() {
+exports.testBasic = function() {
     var skin = createSkin('simple');
     assertEqual('simple', render(skin));
     assertEqual('simple', render(skin, {}));
 };
 
-testCase.testValue = function() {
+exports.testValue = function() {
     var skin = createSkin('before <% value %> after');
     var context = {value: 'HERE'};
     assertEqual('before HERE after', render(skin, context));
 };
 
-testCase.testMacro = function() {
+exports.testMacro = function() {
     var skin = createSkin('before <% macro %> after');
     var context = {macro_macro: function () 'HERE'};
     assertEqual('before HERE after', render(skin, context));
 };
 
-testCase.testFilter = function() {
+exports.testFilter = function() {
     var skin = createSkin('before <% x | filter %> after');
     var context = {filter_filter: function (str) 'HERE'};
     assertEqual('before HERE after', render(skin, context));
 };
 
-testCase.testSubskin = function() {
+exports.testSubskin = function() {
     var skin;
     var context;
 
@@ -44,7 +40,7 @@ testCase.testSubskin = function() {
     assertEqual('ab', render(skin, context));
 };
 
-testCase.testSubskinWhitespace = function() {
+exports.testSubskinWhitespace = function() {
     var skin;
 
     skin = createSkin('a\n<% subskin sub %>\nb\n');

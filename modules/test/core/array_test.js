@@ -1,11 +1,5 @@
 include("helma/unittest");
 require("core/array");
-var logging = require("helma/logging");
-var log = logging.getLogger(__name__);
-
-export('testCase');
-
-var testCase = new TestCase("core/array");
 
 // test data
 var empty = [];
@@ -31,13 +25,13 @@ var arrayWithTwoThreeObjects = [obj2, obj3];
 var arrayWithFiveObjects = [obj1, obj2, obj3, obj4, obj1];
 
 
-testCase.testAssertTrue = function() {
+exports.testAssertTrue = function() {
    // testing the test environment
    assertTrue(true);
    return;
 };
 
-testCase.testArrayIndexOf = function() {
+exports.testArrayIndexOf = function() {
    
    // test with empty array   
    assertEqual( empty.indexOf(string3), -1 );
@@ -66,7 +60,7 @@ testCase.testArrayIndexOf = function() {
 };
 
 
-testCase.testArrayLastIndexOf = function() {
+exports.testArrayLastIndexOf = function() {
    
    // test with empty array
    assertEqual( empty.lastIndexOf(string3), -1 );
@@ -74,10 +68,10 @@ testCase.testArrayLastIndexOf = function() {
    assertEqual( empty.lastIndexOf(undefined), -1 );
 
    // test with strings
-      assertEqual( arrayWithOneString.lastIndexOf(string1), 0 );
-      assertEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
-      assertEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
-      assertEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
+   assertEqual( arrayWithOneString.lastIndexOf(string1), 0 );
+   assertEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
+   assertEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
+   assertEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
 
 
    assertNotEqual( arrayWithTwoStrings.lastIndexOf(string3), 2 );
@@ -85,19 +79,19 @@ testCase.testArrayLastIndexOf = function() {
    assertEqual( arrayWithFiveStrings.lastIndexOf(string3), 2 );
    
    // test with objects
-    assertEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
-    assertEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
-    assertEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
+   assertEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
+   assertEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
+   assertEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
 
 
-    assertEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
-    assertEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
+   assertEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
+   assertEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
 
    return;
 };
 
 
-testCase.testArrayContains = function() {
+exports.testArrayContains = function() {
 
    // Array.prototype.contains = Array.prototype.include;
    
@@ -127,141 +121,141 @@ testCase.testArrayContains = function() {
 };
 
 
-testCase.testArrayUnion = function() {
+exports.testArrayUnion = function() {
 
    // test with empty
-   assertEqualArrays(
+   assertEqual(
       Array.union(empty, empty), 
       []
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(empty, arrayWithTwoStrings), 
       ["one", "two"]
    );
    
    // test with strings
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithOneString, arrayWithOneString), 
       ["one"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithOneString, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithOneString, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoThreeStrings, arrayWithOneString), 
       ["two", "three", "one"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two", "three", "one"]
    );
    
    // test with objects
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
    );
 
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
-   assertEqualArrays(
+   assertEqual(
       Array.union(arrayWithFiveObjects, empty),
-      [obj1, obj2, obj3] // breaks
+      [obj1, obj2, obj3]
    );
 
    return;
 };
 
 
-testCase.testArrayIntersection = function() {
+exports.testArrayIntersection = function() {
 
    // test with empty
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(empty, empty), 
       []
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(empty, arrayWithTwoStrings), 
       []
    );
    
    // test with strings
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithOneString, arrayWithOneString), 
       ["one"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithOneString, arrayWithTwoStrings), 
       ["one"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithTwoStrings
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       ["one"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithOneString, arrayWithTwoThreeStrings), 
       []
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["two"]
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithOneString), 
       []
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two"]
    );
    
    // test with objects
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
    );
 
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithFiveObjects, arrayWithTwoObjects),
       [obj1, obj2]
    );
 
-   assertEqualArrays(
+   assertEqual(
       Array.intersection(arrayWithFiveObjects, empty), 
       []
    );

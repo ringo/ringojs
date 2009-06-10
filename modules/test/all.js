@@ -1,16 +1,8 @@
-var TestSuite = require("helma/unittest").TestSuite;
+import("helma/unittest");
 
-function run() {
-    var suite = new TestSuite("Helma Testsuite");
-    suite.addTest("test/core/array_test");
-    suite.addTest("test/core/object_test");
-    suite.addTest("test/helma/file_test");
-    suite.addTest("test/helma/unittest_test");
-    suite.addTest("test/helma/skin_test");
-    suite.addTest("test/narwhal/io_test");
-    suite.run();
-}
-
-if (__name__ == "__main__") {
-    run();
-}
+exports.array = require("test/core/array_test");
+exports.object = require("test/core/object_test");
+exports.file = require("test/helma/file_test");
+exports.skin = require("test/helma/skin_test");
+exports.unittest = require("test/helma/unittest_test");
+exports.narwhal = require("test/narwhal/io_test");
