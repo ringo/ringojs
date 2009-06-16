@@ -15,7 +15,7 @@
   Local variables are stored in the HTTP user session, so no extra effort is required to
   manage state between pages.
 
-  [1]: http://dev.helma.org/trac/helma/browser/helma-ng/trunk/apps/demo/actions.js#L51
+  [1]: http://github.com/hns/helma-ng/blob/master/apps/demo/actions.js#L51
 
 <% subskin 'ask_name' | markdown %>
 
