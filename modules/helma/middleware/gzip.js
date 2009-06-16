@@ -11,10 +11,11 @@ export('handleRequest');
  * @return the HTTP response object
  */
 function handleRequest(req) {
-    var header = req.getHeader("accept-encoding");
     var res = req.process();
     var [status, headers, body] = res;
-    if (status == 200 && header &&  header.indexOf('gzip') > -1) {
+    if (canCompress(status,
+            req.getHeader("accept-encoding"),
+            HashP.get(headers, 'content-type'))) {
         var bytes = new ByteArrayOutputStream();
         var gzip = new GZIPOutputStream(bytes);
         body.forEach(function(block) {
@@ -26,4 +27,10 @@ function handleRequest(req) {
         HashP.set(headers, 'Content-Encoding', 'gzip');
     }
     return res;
+}
+
+function canCompress(status, acceptEncoding, contentType) {
+    return status == 200 && acceptEncoding &&
+           acceptEncoding.indexOf('gzip') > -1 && contentType &&
+           contentType.match(/^text|xml|json|javascript/);
 }
