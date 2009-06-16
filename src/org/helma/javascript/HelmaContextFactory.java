@@ -65,7 +65,9 @@ public class HelmaContextFactory extends ContextFactory {
         cx.setWrapFactory(engine.wrapFactory);
         cx.setLanguageVersion(languageVersion);
         cx.setOptimizationLevel(optimizationLevel);
-        cx.setSecurityController(new PolicySecurityController());
+        if (engine.useSecurity()) {
+            cx.setSecurityController(new PolicySecurityController());
+        }
         if (errorReporter != null) {
             cx.setErrorReporter(errorReporter);
         }

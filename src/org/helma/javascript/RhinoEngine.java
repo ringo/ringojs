@@ -453,6 +453,11 @@ public class RhinoEngine {
         return new RhinoEngine(sandbox, globals);
     }
 
+    protected boolean useSecurity() {
+        // TODO this is just a hack to disable security on google app engine
+        return System.getProperty("java.security.manager") != null;
+    }
+
     private ReloadableScript getCurrentScript(Context cx) {
         return (ReloadableScript) cx.getThreadLocal("current_script");
     }

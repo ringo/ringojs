@@ -107,7 +107,8 @@ public class ReloadableScript {
         Resource resource = (Resource) source;
         try {
             exception = null;
-            CodeSource source = new CodeSource(resource.getUrl(), (CodeSigner[]) null);
+            CodeSource source = engine.useSecurity() ?
+                    new CodeSource(resource.getUrl(), (CodeSigner[]) null) : null;
             script = cx.compileReader(resource.getReader(), resource.getRelativePath(), 1, source);
         } catch (Exception x) {
             exception = x;
@@ -136,7 +137,8 @@ public class ReloadableScript {
             exception = null;
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {
-                    CodeSource source = new CodeSource(res.getUrl(), (CodeSigner[]) null);                    
+                    CodeSource source = engine.useSecurity() ?
+                            new CodeSource(res.getUrl(), (CodeSigner[]) null) : null;
                     scripts.add(cx.compileReader(res.getReader(), res.getRelativePath(), 1, source));
                 }
            }
