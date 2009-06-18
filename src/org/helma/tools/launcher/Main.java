@@ -19,7 +19,6 @@ package org.helma.tools.launcher;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -30,34 +29,68 @@ import java.net.URLDecoder;
  * sets up the classpath, and launches one of the Helma tools.
  */
 public class Main {
-        
+
+    private Class runnerClass;
+    private Object runnerInstance;
+
     /**
-     * Helma boot method. This retrieves the Helma home directory, creates the
+     * Helma main method. This retrieves the Helma home directory, creates the
      * classpath and invokes main() in one of the helma tool classes.
      *
      * @param args command line arguments
      *
      */
     public static void main(String[] args) {
+        Main main = new Main();
+        main.init(args);
+        main.start();
+    }
+
+    public void init(String[] args) {
         try {
             File home = getHelmaHome();
             ClassLoader loader = createClassLoader(home);
 
-            Class clazz = loader.loadClass("org.helma.tools.HelmaRunner");
-            Class[] cargs = new Class[] {args.getClass()};
-            Method main = clazz.getMethod("main", cargs);
-            Object[] nargs = new Object[] {args};
-
-            // and invoke the static main(String, String[]) method
-            main.invoke(null, nargs);
+            runnerClass = loader.loadClass("org.helma.tools.HelmaRunner");
+            runnerInstance = runnerClass.newInstance();
+            runnerClass.getMethod("init", args.getClass())
+                    .invoke(runnerInstance, (Object) args);
         } catch (Exception x) {
-            // unable to get Helma installation dir from launcher jar
             System.err.println("Uncaught exception: ");
             x.printStackTrace();
             System.exit(2);
         }
     }
 
+    public void start() {
+        try {
+            runnerClass.getMethod("start").invoke(runnerInstance);
+        } catch (Exception x) {
+            System.err.println("Uncaught exception: ");
+            x.printStackTrace();
+            System.exit(2);
+        }
+    }
+
+    public void stop() {
+        try {
+            runnerClass.getMethod("stop").invoke(runnerInstance);
+        } catch (Exception x) {
+            System.err.println("Uncaught exception: ");
+            x.printStackTrace();
+            System.exit(2);
+        }
+    }
+
+    public void destroy() {
+        try {
+            runnerClass.getMethod("destroy").invoke(runnerInstance);
+        } catch (Exception x) {
+            System.err.println("Uncaught exception: ");
+            x.printStackTrace();
+            System.exit(2);
+        }
+    }
 
     /**
      * Create a server-wide ClassLoader from our install directory.
@@ -88,7 +121,7 @@ public class Main {
      * @throws MalformedURLException the jar URL couldn't be parsed
      */
     public static File getHelmaHome()
-            throws IOException, MalformedURLException {
+            throws IOException {
         // check if home directory is set via system property
         String helmaHome = System.getProperty("helma.home");
         if (helmaHome == null) {

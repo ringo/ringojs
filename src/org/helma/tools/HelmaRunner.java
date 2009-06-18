@@ -21,12 +21,24 @@ import org.helma.repository.FileRepository;
 
 public class HelmaRunner {
 
+
+    FileRepository home;
+    String modulePath;
+    String scriptName = null;
+    String[] scriptArgs = new String[0];
+    boolean interactive = false;
+    boolean debug = false;
+    int optlevel = -2;
+
+    public HelmaRunner() {}
+
     public static void main(String[] args) {
-        String scriptName = null;
-        String[] scriptArgs = new String[0];
-        boolean interactive = false;
-        boolean debug = false;
-        int optlevel = -2;
+        HelmaRunner runner = new HelmaRunner();
+        runner.init(args);
+        runner.start();
+    }
+
+    public void init(String[] args) {
 
         if (args != null && args.length > 0) {
             int i;
@@ -68,12 +80,15 @@ public class HelmaRunner {
         if (helmaHome == null) {
             helmaHome = ".";
         }
-        FileRepository home = new FileRepository(helmaHome);
-        String modulePath = System.getProperty("helma.modulepath");
+        home = new FileRepository(helmaHome);
+        modulePath = System.getProperty("helma.modulepath");
         if (modulePath == null) {
             modulePath = System.getenv("HELMA_MODULE_PATH");
         }
 
+    }
+
+    public void start() {
         try {
             HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
             config.addScriptRepository(scriptName);
@@ -95,8 +110,11 @@ public class HelmaRunner {
             }
             System.exit(-1);
         }
-
     }
+
+    public void stop() {}
+
+    public void destroy() {}
 
     public static void printUsage() {
         System.out.println("Usage:");
