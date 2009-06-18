@@ -14,6 +14,6 @@ Depends: default-jre-headless | system-java (>= 1.5) |
   jsvc, adduser, lsb-base (>= 3)
 Description: A Javascript runtime and web application framework written in Java.
  .
- Helma NG is an open-source JavaScript framework written in Java. 
+ Helma NG is an open-source JavaScript framework written in Java.
  Helma NG uses the Mozilla Rhino JavaScript implementation to provide
  a comprehensive framework for server-side application development.

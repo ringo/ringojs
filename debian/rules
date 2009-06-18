@@ -20,7 +20,7 @@ DEB_ANT_BUILD_TARGET := jar
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_clean -k
 	dh_installdirs
 
 binary-indep: build install
