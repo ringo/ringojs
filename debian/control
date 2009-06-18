@@ -2,15 +2,15 @@ Source: helma-ng
 Section: web
 Priority: optional
 Maintainer: Hannes Wallnoefer <hannes@helma.at>
-Build-Depends: debhelper (>= 7), default-jdk, cdbs
+Build-Depends: debhelper (>= 7), cdbs, default-jdk | java5-sdk | java6-sdk
 Build-Depends-Indep: ant
 Standards-Version: 3.8.0
 Homepage: http://www.helma.org/ng/
 
 Package: helma-ng
 Architecture: all
-Depends: default-jre-headless | java2-runtime-headless | 
-  java5-runtime-headless | sun-java5-jre | system-java, 
+Depends: default-jre-headless | system-java (>= 1.5) |
+  java5-runtime-headless | java6-runtime-headless,
   jsvc, adduser, lsb-base (>= 3)
 Description: A Javascript runtime and web application framework written in Java.
  .
