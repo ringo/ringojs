@@ -27,11 +27,7 @@ Building Helma
 Helma requires Java 1.5 and uses Apache Ant as its build environment. If you have
 these installed, building Helma NG is straightforward:
 
-  Check out Helma NG from subversion:
-
-      svn co https://dev.helma.org/svn/helma-ng/trunk/ helma-ng
-
-  or, if you prefer git:
+  Check out Helma NG from Git:
 
       git clone git://github.com/hns/helma-ng.git
 
