@@ -1,0 +1,38 @@
+#!/usr/bin/make -f
+# debian/rules for helma-ng (uses CDBS)
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/ant.mk
+#include /usr/share/cdbs/1/rules/dpatch.mk
+#include /usr/share/cdbs/1/rules/simple-patchsys.mk
+
+JAVA_HOME       := /usr/lib/jvm/default-java
+DEB_ANT_BUILD_TARGET := jar
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	dh_installdirs
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	# dh_installinit --error-handler=true -- start 90 2 3 4 5 . stop 10 1 .
+	dh_install
+	dh_installdebconf
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch: build install
+
+binary: binary-indep binary-arch
+
