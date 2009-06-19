@@ -3,8 +3,9 @@
 //    java -Dhelma.home=... -Djava.security.manager -Djava.security.policy=file:/.../lib/helma.policy
 // replacing "..." with the location of your Helma NG installation.
 // 
-// See <http://java.sun.com/j2se/1.4.2/docs/guide/security/PolicyFiles.html>
-// for more information.
+// The following URLs provide more information:
+//     http://java.sun.com/j2se/1.4.2/docs/guide/security/PolicyFiles.html
+//     http://java.sun.com/j2se/1.4.2/docs/guide/security/permissions.html
 
 grant codeBase "file:${helma.home}/run.jar" {
         permission java.security.AllPermission;
