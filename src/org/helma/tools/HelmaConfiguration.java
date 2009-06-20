@@ -39,6 +39,7 @@ public class HelmaConfiguration {
     private String mainModule;
     private int optimizationLevel = 0;
     private int languageVersion = 180;
+    private boolean parentProtoProperties = true;
     private Class<?>[] hostClasses = null;
     private HelmaClassLoader loader;
     private ClassShutter classShutter = null;
@@ -64,6 +65,10 @@ public class HelmaConfiguration {
         String langVersion = System.getProperty("rhino.langversion");
         if (langVersion != null) {
             languageVersion = Integer.parseInt(langVersion);
+        }
+        String parentProto = System.getProperty("rhino.parentproto");
+        if (parentProto != null) {
+            parentProtoProperties = Integer.parseInt(parentProto) != 0;
         }
 
         if (modulePath != null) {
@@ -235,6 +240,22 @@ public class HelmaConfiguration {
      */
     public int getLanguageVersion() {
         return languageVersion;
+    }
+
+    /**
+     * Get the flag to enable __parent__ and __proto__ properties on JS objects
+     * @return true if __parent__ and __proto__ properties should be enabled
+     */
+    public boolean hasParentProtoProperties() {
+        return parentProtoProperties;
+    }
+
+    /**
+     * Set the flag to enable __parent__ and __proto__ properties on JS objects
+     * @param flag true to enable __parent__ and __proto__ properties
+     */
+    public void setParentProtoProperties(boolean flag) {
+        this.parentProtoProperties = flag;
     }
 
     /**

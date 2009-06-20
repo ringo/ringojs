@@ -27,6 +27,7 @@ public class HelmaContextFactory extends ContextFactory {
     int languageVersion = Context.VERSION_1_8;
     boolean strictMode = false;
     boolean warningAsError = false;
+    boolean parentProtoProperties = true;
     int optimizationLevel = 0;
     boolean generatingDebug = true;
     ErrorReporter errorReporter;
@@ -36,6 +37,7 @@ public class HelmaContextFactory extends ContextFactory {
         this.engine = engine;
         optimizationLevel = config.getOptLevel();
         languageVersion = config.getLanguageVersion();
+        parentProtoProperties = config.hasParentProtoProperties();
     }
 
     @Override
@@ -51,6 +53,9 @@ public class HelmaContextFactory extends ContextFactory {
 
           case Context.FEATURE_WARNING_AS_ERROR:
             return warningAsError;
+
+          case Context.FEATURE_PARENT_PROTO_PROPERTIES:
+            return parentProtoProperties;
         }
 
         return super.hasFeature(cx, featureIndex);
@@ -84,6 +89,11 @@ public class HelmaContextFactory extends ContextFactory {
     public void setStrictMode(boolean flag) {
         checkNotSealed();
         this.strictMode = flag;
+    }
+
+    public void setParentProtoProperties(boolean flag) {
+        checkNotSealed();
+        this.parentProtoProperties = flag;
     }
 
     public void setWarningAsError(boolean flag) {
