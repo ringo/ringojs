@@ -9,6 +9,7 @@ exports.urls = [
 ];
 
 exports.middleware = [
+    'helma/middleware/gzip',
     'helma/middleware/etag',
     'helma/middleware/responselog',
     // 'helma/middleware/profiler'
