@@ -14,6 +14,7 @@ function Request(env) {
     var define = bindArguments(Object.defineProperty, this);
     var servletRequest = env["jack.servlet_request"];
 
+    define("servletRequest", {get: function() servletRequest});
     define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
     define("port", readOnlyPropertyDesc(servletRequest, "port"));
     define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
