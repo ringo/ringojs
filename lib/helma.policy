@@ -1,7 +1,7 @@
 // Example policy file for Helma NG
-// Run Helma with the following flags to activate this:
-//    java -Dhelma.home=... -Djava.security.manager -Djava.security.policy=file:/.../lib/helma.policy
-// replacing "..." with the location of your Helma NG installation.
+// Run Helma with the -p or --policy option to activate this:
+//    helma -p file:/.../helma.policy
+// replacing "..." with the absolute path of the policy file.
 // 
 // The following URLs provide more information:
 //     http://java.sun.com/j2se/1.4.2/docs/guide/security/PolicyFiles.html

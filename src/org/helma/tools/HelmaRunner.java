@@ -55,12 +55,14 @@ public class HelmaRunner {
                 } else if ("--debug".equals(arg) || "-d".equals(arg)) {
                     debug = true;
                 } else if ("--optlevel".equals(arg) || "-o".equals(arg)) {
-                    optlevel = Integer.parseInt(args[i+1]);
+                    optlevel = Integer.parseInt(args[++i]);
                     if (optlevel < -1 || optlevel > 9) {
                         throw new IllegalArgumentException(
                                 arg + " value must be between -1 and 9");
                     }
-                    i += 1;
+                } else if ("--policy".equals(arg) || "-p".equals(arg)) {
+                    System.setProperty("java.security.policy", args[++i]);
+                    System.setSecurityManager(new SecurityManager());
                 } else {
                     printUsage();
                     System.exit(1);
@@ -91,6 +93,7 @@ public class HelmaRunner {
     public void start() {
         try {
             HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
+            config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.addScriptRepository(scriptName);
             if (optlevel >= -1) {
                 config.setOptLevel(optlevel);
@@ -124,5 +127,6 @@ public class HelmaRunner {
         System.out.println("  -h, --help         : Display this help message");
         System.out.println("  -i, --interactive  : Start shell after script file has run");
         System.out.println("  -o, --optlevel n   : Set Rhino optimization level (-1 to 9)");
+        System.out.println("  -p, --policy url   : Set java policy file and enable security manager");
     }
 }

@@ -44,6 +44,7 @@ public class HelmaConfiguration {
     private HelmaClassLoader loader;
     private ClassShutter classShutter = null;
     private boolean sealed = false;
+    private boolean policyEnabled = false;
 
     /**
      * Create a new Helma configuration and sets up its module search path.
@@ -317,6 +318,14 @@ public class HelmaConfiguration {
 
     public void setSealed(boolean sealed) {
         this.sealed = sealed;
+    }
+
+    public boolean isPolicyEnabled() {
+        return policyEnabled;
+    }
+
+    public void setPolicyEnabled(boolean hasPolicy) {
+        this.policyEnabled = hasPolicy;
     }
 
     private Logger getLogger() {
