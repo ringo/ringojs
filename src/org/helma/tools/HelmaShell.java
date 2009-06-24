@@ -21,6 +21,7 @@ import jline.ConsoleReader;
 import jline.History;
 import org.helma.javascript.ModuleScope;
 import org.helma.javascript.RhinoEngine;
+import org.helma.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
@@ -31,6 +32,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.security.CodeSource;
+import java.security.CodeSigner;
+import java.net.URL;
 
 /**
  * HelmaShell is a simple interactive shell that provides the
@@ -42,6 +46,7 @@ public class HelmaShell {
     RhinoEngine engine;
     Scriptable scope;
     boolean debug;
+    CodeSource codeSource = null;
 
     public HelmaShell(HelmaConfiguration config, RhinoEngine engine, boolean debug)
             throws IOException {
@@ -49,6 +54,11 @@ public class HelmaShell {
         this.engine = engine;
     	this.scope = engine.getShellScope();
         this.debug = debug;
+        // FIXME give shell code a trusted code source in case security is on
+        if (config.isPolicyEnabled()) {
+            Repository modules = config.getHelmaHome().getChildRepository("modules");
+            codeSource = new CodeSource(modules.getUrl(), (CodeSigner[])null);
+        }
     }
     
     public void run() throws IOException {
@@ -62,6 +72,7 @@ public class HelmaShell {
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             cx.setErrorReporter(new ToolErrorReporter(true, System.out));
+            cx.setOptimizationLevel(-1);
             String source = "";
             String prompt = "helma> ";
             while (true) {
@@ -79,7 +90,7 @@ public class HelmaShell {
                 prompt = "     > ";
             }
             try {
-                Object result = cx.evaluateString(scope, source, "<shell>", lineno, null);
+                Object result = cx.evaluateString(scope, source, "<shell>", lineno, codeSource);
                 // Avoid printing out undefined or function definitions.
                 if (result != Context.getUndefinedValue()) {
                     out.println(Context.toString(result));
