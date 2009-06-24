@@ -10,11 +10,7 @@
  */
 package org.helma.javascript;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.ErrorReporter;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.PolicySecurityController;
+import org.mozilla.javascript.*;
 import org.helma.repository.Trackable;
 import org.helma.tools.HelmaConfiguration;
 
@@ -31,6 +27,7 @@ public class HelmaContextFactory extends ContextFactory {
     int optimizationLevel = 0;
     boolean generatingDebug = true;
     ErrorReporter errorReporter;
+    ClassShutter classShutter;
 
 
     public HelmaContextFactory(RhinoEngine engine, HelmaConfiguration config) {
@@ -38,6 +35,7 @@ public class HelmaContextFactory extends ContextFactory {
         optimizationLevel = config.getOptLevel();
         languageVersion = config.getLanguageVersion();
         parentProtoProperties = config.hasParentProtoProperties();
+        classShutter = config.getClassShutter();
     }
 
     @Override
@@ -70,6 +68,9 @@ public class HelmaContextFactory extends ContextFactory {
         cx.setWrapFactory(engine.wrapFactory);
         cx.setLanguageVersion(languageVersion);
         cx.setOptimizationLevel(optimizationLevel);
+        if (classShutter != null) {
+            cx.setClassShutter(classShutter);
+        }
         if (engine.isPolicyEnabled()) {
             cx.setSecurityController(new PolicySecurityController());
         }

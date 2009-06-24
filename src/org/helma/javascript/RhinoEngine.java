@@ -75,9 +75,6 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
         try {
-            if (config.getClassShutter() != null) {
-                cx.setClassShutter(config.getClassShutter());
-            }
             topLevelScope = new ImporterTopLevel(cx);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
