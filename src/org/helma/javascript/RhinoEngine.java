@@ -75,7 +75,7 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
         try {
-            topLevelScope = new ImporterTopLevel(cx);
+            topLevelScope = new HelmaGlobal(cx);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
                 // for (int i=0; i<classes.length; i++) {
@@ -83,7 +83,6 @@ public class RhinoEngine {
                     defineHostClass(clazz);
                 }
             }
-            StaticMethods.init(topLevelScope);
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
             ScriptableObject.defineClass(topLevelScope, ScriptableWrapper.class);
