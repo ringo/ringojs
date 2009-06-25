@@ -18,6 +18,7 @@ package org.helma.tools;
 
 import org.helma.javascript.RhinoEngine;
 import org.helma.repository.FileRepository;
+import org.mozilla.javascript.RhinoSecurityManager;
 
 public class HelmaRunner {
 
@@ -62,7 +63,7 @@ public class HelmaRunner {
                     }
                 } else if ("--policy".equals(arg) || "-p".equals(arg)) {
                     System.setProperty("java.security.policy", args[++i]);
-                    System.setSecurityManager(new SecurityManager());
+                    System.setSecurityManager(new RhinoSecurityManager());
                 } else {
                     printUsage();
                     System.exit(1);
