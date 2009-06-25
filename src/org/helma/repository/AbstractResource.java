@@ -30,6 +30,14 @@ public abstract class AbstractResource implements Resource {
         return baseName;
     }
 
+    public Repository getParentRepository() {
+        return repository;
+    }
+
+    public Repository getRootRepository() {
+        return repository.getRootRepository();
+    }
+
     public Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream());
     }

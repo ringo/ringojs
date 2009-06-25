@@ -85,11 +85,6 @@ public class FileResource extends AbstractResource {
         return file.exists();
     }
 
-    public Repository getParentRepository() {
-        return repository;
-    }
-
-
     public boolean getStripShebang() {
         return stripShebang;
     }

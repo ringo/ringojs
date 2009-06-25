@@ -56,6 +56,12 @@ public interface Trackable extends Serializable {
     public Repository getParentRepository();
 
     /**
+     * Returns the root repository of this resource
+     * @return root repository
+     */
+    public Repository getRootRepository();
+
+    /**
      * Utility method to get the name for the module defined by this resource.
      * @return the module name according to the securable module spec
      */

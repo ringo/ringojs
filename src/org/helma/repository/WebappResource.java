@@ -46,10 +46,6 @@ public class WebappResource extends AbstractResource {
         return context.getResource(path);
     }
 
-    public Repository getParentRepository() {
-        return repository;
-    }
-
     @Override
     public String toString() {
         return "WebappResource[" + path + "]";

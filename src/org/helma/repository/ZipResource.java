@@ -144,10 +144,6 @@ public final class ZipResource extends AbstractResource {
         }
     }
 
-    public Repository getParentRepository() {
-        return repository;
-    }
-
     @Override
     public int hashCode() {
         return 17 + path.hashCode();

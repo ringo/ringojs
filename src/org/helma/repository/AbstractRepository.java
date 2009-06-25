@@ -189,6 +189,16 @@ public abstract class AbstractRepository implements Repository {
     }
 
     /**
+     * Get the repository's root repository
+     */
+    public Repository getRootRepository() {
+        if (parent == null) {
+            return this;
+        }
+        return parent.getRootRepository();
+    }
+
+    /**
      * Get a deep list of this repository's resources, including all resources
      * contained in sub-reposotories.
      */
