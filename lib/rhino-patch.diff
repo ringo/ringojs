@@ -1,26 +1,10 @@
-Index: src/org/mozilla/javascript/IRFactory.java
-===================================================================
-RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/IRFactory.java,v
-retrieving revision 1.124
-diff -u -r1.124 IRFactory.java
---- src/org/mozilla/javascript/IRFactory.java	11 May 2009 15:44:04 -0000	1.124
-+++ src/org/mozilla/javascript/IRFactory.java	15 May 2009 14:24:38 -0000
-@@ -398,7 +398,7 @@
-             // Bug: for code like "var obj={p:3};[obj.p]=[9];", "left" will
-             // be ARRAYLITERAL with an embedded GETPROP. This causes errors
-             // at codegen.
--            Kit.codeBug();
-+            // Kit.codeBug();
-             target = left;
-         } else {
-             target = transform(left);
 Index: src/org/mozilla/javascript/JavaAdapter.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaAdapter.java,v
 retrieving revision 1.117
 diff -u -r1.117 JavaAdapter.java
 --- src/org/mozilla/javascript/JavaAdapter.java	14 Nov 2008 13:52:29 -0000	1.117
-+++ src/org/mozilla/javascript/JavaAdapter.java	15 May 2009 14:24:38 -0000
++++ src/org/mozilla/javascript/JavaAdapter.java	25 Jun 2009 08:53:10 -0000
 @@ -131,6 +131,10 @@
  
      public static Object convertResult(Object result, Class<?> c)
@@ -151,18 +135,157 @@ diff -u -r1.117 JavaAdapter.java
  
          cfw.stopMethod((short)paramsEnd);
      }
-Index: src/org/mozilla/javascript/Parser.java
+Index: src/org/mozilla/javascript/JavaMembers.java
 ===================================================================
-RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Parser.java,v
-retrieving revision 1.138
-diff -u -r1.138 Parser.java
---- src/org/mozilla/javascript/Parser.java	11 May 2009 15:44:04 -0000	1.138
-+++ src/org/mozilla/javascript/Parser.java	15 May 2009 14:24:39 -0000
-@@ -3491,6 +3491,7 @@
-               int type;
-               if (nodeType == Token.GETPROP) {
-                   type = Token.SETPROP;
-+                  id.setType(Token.STRING);
-               } else {
-                   type = Token.SETELEM;
-               }
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaMembers.java,v
+retrieving revision 1.80
+diff -u -r1.80 JavaMembers.java
+--- src/org/mozilla/javascript/JavaMembers.java	6 Jun 2009 14:11:24 -0000	1.80
++++ src/org/mozilla/javascript/JavaMembers.java	25 Jun 2009 08:53:10 -0000
+@@ -54,6 +54,8 @@
+  */
+ class JavaMembers
+ {
++    static RuntimePermission permission = new RuntimePermission("accessDeclaredMembers");
++
+     JavaMembers(Scriptable scope, Class<?> cl)
+     {
+         this(scope, cl, false);
+@@ -92,6 +94,10 @@
+     Object get(Scriptable scope, String name, Object javaObject,
+                boolean isStatic)
+     {
++        SecurityManager sm = System.getSecurityManager();
++        if (sm != null) {
++            sm.checkPermission(permission);
++        }
+         Map<String,Object> ht = isStatic ? staticMembers : members;
+         Object member = ht.get(name);
+         if (!isStatic && member == null) {
+@@ -133,6 +139,10 @@
+     void put(Scriptable scope, String name, Object javaObject,
+              Object value, boolean isStatic)
+     {
++        SecurityManager sm = System.getSecurityManager();
++        if (sm != null) {
++            sm.checkPermission(permission);
++        }
+         Map<String,Object> ht = isStatic ? staticMembers : members;
+         Object member = ht.get(name);
+         if (!isStatic && member == null) {
+@@ -197,6 +207,10 @@
+ 
+     Object[] getIds(boolean isStatic)
+     {
++        SecurityManager sm = System.getSecurityManager();
++        if (sm != null) {
++            sm.checkPermission(permission);
++        }
+         Map<String,Object> map = isStatic ? staticMembers : members;
+         return map.keySet().toArray(new Object[map.size()]);
+     }
+Index: src/org/mozilla/javascript/PolicySecurityController.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/PolicySecurityController.java,v
+retrieving revision 1.10
+diff -u -r1.10 PolicySecurityController.java
+--- src/org/mozilla/javascript/PolicySecurityController.java	25 Mar 2008 14:32:26 -0000	1.10
++++ src/org/mozilla/javascript/PolicySecurityController.java	25 Jun 2009 08:53:10 -0000
+@@ -42,6 +42,7 @@
+ import java.security.PrivilegedAction;
+ import java.security.PrivilegedActionException;
+ import java.security.PrivilegedExceptionAction;
++import java.security.ProtectionDomain;
+ import java.security.SecureClassLoader;
+ import java.util.Map;
+ import java.util.WeakHashMap;
+@@ -116,9 +117,10 @@
+     @Override
+     public Object getDynamicSecurityDomain(Object securityDomain)
+     {
+-        // No separate notion of dynamic security domain - just return what was
+-        // passed in.
+-        return securityDomain;
++        // if RhinoSecurityManager is installed, try to get the protection domain
++        // of the topmost script in the current stack.
++        ProtectionDomain dynamicDomain = SecurityUtilities.getDynamicScriptProtectionDomain();
++        return dynamicDomain == null ? securityDomain : dynamicDomain.getCodeSource();
+     }
+ 
+     @Override
+Index: src/org/mozilla/javascript/RhinoSecurityManager.java
+===================================================================
+RCS file: src/org/mozilla/javascript/RhinoSecurityManager.java
+diff -N src/org/mozilla/javascript/RhinoSecurityManager.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/org/mozilla/javascript/RhinoSecurityManager.java	25 Jun 2009 08:53:10 -0000
+@@ -0,0 +1,27 @@
++package org.mozilla.javascript;
++
++import java.security.ProtectionDomain;
++
++/**
++ * A java.lang.SecurityManager subclass that provides access to the security domain
++ * of the top-most script in the currently executing stack. This is useful to
++ * provide the same protection domain to scripts created by other scripts
++ * (e.g. JavaAdapters).
++ */
++public class RhinoSecurityManager extends SecurityManager {
++
++    /**
++     * Find the top-most stack element representing a script and return its protection domain.
++     * @return The protection of the top-most script in the current stack
++     */
++    protected ProtectionDomain getScriptProtectionDomain() {
++        Class[] context = getClassContext();
++        for (Class c : context) {
++            if (c != InterpretedFunction.class && NativeFunction.class.isAssignableFrom(c) ||
++                    PolicySecurityController.SecureCaller.class.isAssignableFrom(c)) {
++                return c.getProtectionDomain();
++            }
++        }
++        return null;
++    }
++}
+Index: src/org/mozilla/javascript/SecurityUtilities.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/SecurityUtilities.java,v
+retrieving revision 1.6
+diff -u -r1.6 SecurityUtilities.java
+--- src/org/mozilla/javascript/SecurityUtilities.java	18 Mar 2008 15:10:18 -0000	1.6
++++ src/org/mozilla/javascript/SecurityUtilities.java	25 Jun 2009 08:53:10 -0000
+@@ -65,7 +65,7 @@
+                 }
+             });
+     }
+-    
++
+     public static ProtectionDomain getProtectionDomain(final Class<?> clazz)
+     {
+         return (ProtectionDomain)AccessController.doPrivileged(
+@@ -77,4 +77,25 @@
+                     }
+                 });
+     }
++
++    /**
++     * Look up the top-most element in the current stack representing a
++     * script and return its protection domain. This relies on the system-wide
++     * SecurityManager being an instance of {@link RhinoSecurityManager},
++     * otherwise it returns <code>null</code>.
++     * @return The protection of the top-most script in the current stack, or null
++     */
++    public static ProtectionDomain getDynamicScriptProtectionDomain() {
++        return AccessController.doPrivileged(
++                new PrivilegedAction<ProtectionDomain>() {
++                    public ProtectionDomain run() {
++                        SecurityManager securityManager = System.getSecurityManager();
++                        if (securityManager instanceof RhinoSecurityManager) {
++                            return ((RhinoSecurityManager) securityManager)
++                                    .getScriptProtectionDomain();
++                        }
++                        return null;
++                    }
++                });
++    }
+ }
