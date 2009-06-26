@@ -18,20 +18,23 @@ package org.helma.tools;
 
 import org.helma.javascript.RhinoEngine;
 import org.helma.repository.FileRepository;
+import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HelmaRunner {
 
-
-    FileRepository home;
-    String modulePath;
+    HelmaConfiguration config;
+    RhinoEngine engine;
     String scriptName = null;
     String[] scriptArgs = new String[0];
-    boolean interactive = false;
+    boolean runShell = false;
     boolean debug = false;
-    int optlevel = -2;
 
-    public HelmaRunner() {}
+    public HelmaRunner() {
+    }
 
     public static void main(String[] args) {
         HelmaRunner runner = new HelmaRunner();
@@ -41,32 +44,61 @@ public class HelmaRunner {
 
     public void init(String[] args) {
 
+        int optlevel = 0;
+        List<String> bootstrapScripts = new ArrayList<String>();
+
+        String helmaHome = System.getProperty("helma.home");
+        if (helmaHome == null) {
+            helmaHome = System.getenv("HELMA_HOME");
+        }
+        if (helmaHome == null) {
+            helmaHome = ".";
+        }
+        Repository home = new FileRepository(helmaHome);
+        String modulePath = System.getProperty("helma.modulepath");
+        if (modulePath == null) {
+            modulePath = System.getenv("HELMA_MODULE_PATH");
+        }
+
         if (args != null && args.length > 0) {
             int i;
             for (i = 0; i < args.length; i++) {
-            	String arg = args[i];
-            	if (!arg.startsWith("-")) {
-            		break;
-            	}
-            	if ("--help".equals(arg) || "-h".equals(arg)) {
-            		printUsage();
-            		return;
-            	} else if ("--interactive".equals(arg) || "-i".equals(arg)) {
-            		interactive = true;
+                String arg = args[i];
+                if (!arg.startsWith("-")) {
+                    break;
+                }
+                if ("--help".equals(arg) || "-h".equals(arg)) {
+                    printUsage();
+                    return;
+                } else if ("--interactive".equals(arg) || "-i".equals(arg)) {
+                    runShell = true;
                 } else if ("--debug".equals(arg) || "-d".equals(arg)) {
                     debug = true;
                 } else if ("--optlevel".equals(arg) || "-o".equals(arg)) {
-                    optlevel = Integer.parseInt(args[++i]);
+                    if (++i == args.length) {
+                        exitWithError(arg + " option requires a value.");
+                    }
+                    try {
+                        optlevel = Integer.parseInt(args[i]);
+                    } catch (NumberFormatException x) {
+                        exitWithError(arg + " value must be a number between -1 and 9.");
+                    }
                     if (optlevel < -1 || optlevel > 9) {
-                        throw new IllegalArgumentException(
-                                arg + " value must be between -1 and 9");
+                        exitWithError(arg + " value must be a number between -1 and 9.");
                     }
                 } else if ("--policy".equals(arg) || "-p".equals(arg)) {
-                    System.setProperty("java.security.policy", args[++i]);
+                    if (++i == args.length) {
+                        exitWithError(arg + " option requires a value.");
+                    }
+                    System.setProperty("java.security.policy", args[i]);
                     System.setSecurityManager(new RhinoSecurityManager());
+                } else if ("--bootstrap".equals(arg) || "-b".equals(arg)) {
+                    if (++i == args.length) {
+                        exitWithError(arg + " option requires a value.");
+                    }
+                    bootstrapScripts.add(args[i]);
                 } else {
-                    printUsage();
-                    System.exit(1);
+                    exitWithError("Unknown option: " + arg);
                 }
             }
             if (i < args.length) {
@@ -76,34 +108,32 @@ public class HelmaRunner {
             }
         }
 
-        String helmaHome = System.getProperty("helma.home");
-        if (helmaHome == null) {
-            helmaHome = System.getenv("HELMA_HOME");
+        try {
+            config = new HelmaConfiguration(home, modulePath, "modules");
+            config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
+            config.addScriptRepository(scriptName);
+            config.setOptLevel(optlevel);
+            config.setBootstrapScripts(bootstrapScripts);
+            engine = new RhinoEngine(config, null);
+        } catch (Exception x) {
+            if (debug) {
+                x.printStackTrace();
+            } else {
+                System.err.println(x);
+            }
+            System.exit(-1);
         }
-        if (helmaHome == null) {
-            helmaHome = ".";
-        }
-        home = new FileRepository(helmaHome);
-        modulePath = System.getProperty("helma.modulepath");
-        if (modulePath == null) {
-            modulePath = System.getenv("HELMA_MODULE_PATH");
-        }
-
     }
 
     public void start() {
+        if (engine == null) {
+            return;
+        }
         try {
-            HelmaConfiguration config = new HelmaConfiguration(home, modulePath, "modules");
-            config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
-            config.addScriptRepository(scriptName);
-            if (optlevel >= -1) {
-                config.setOptLevel(optlevel);
-            }
-            RhinoEngine engine = new RhinoEngine(config, null);
             if (scriptName != null) {
                 engine.runScript(scriptName, scriptArgs);
             }
-            if (scriptName == null || interactive) {
+            if (scriptName == null || runShell) {
                 new HelmaShell(config, engine, debug).run();
             }
         } catch (Exception x) {
@@ -116,18 +146,33 @@ public class HelmaRunner {
         }
     }
 
-    public void stop() {}
+    public void stop() {
+        if (engine == null) {
+            return;
+        }
+    }
 
-    public void destroy() {}
+    public void destroy() {
+        if (engine == null) {
+            return;
+        }
+    }
+
+    private static void exitWithError(String errorMessage) {
+        System.err.println(errorMessage);
+        System.err.println("Run with -h flag for more information on supported options.");
+        System.exit(-1);
+    }
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("  java -jar run.jar [option] ... [file] [arg] ...");
+        System.out.println("  helma [option] ... [file] [arg] ...");
         System.out.println("Options:");
-        System.out.println("  -d, --debug        : Print stack traces for shell errors");
-        System.out.println("  -h, --help         : Display this help message");
-        System.out.println("  -i, --interactive  : Start shell after script file has run");
-        System.out.println("  -o, --optlevel n   : Set Rhino optimization level (-1 to 9)");
-        System.out.println("  -p, --policy url   : Set java policy file and enable security manager");
+        System.out.println("  -b, -bootstrap script : Run additional bootstrap script");
+        System.out.println("  -d, --debug           : Print stack traces for shell errors");
+        System.out.println("  -h, --help            : Display this help message");
+        System.out.println("  -i, --interactive     : Start shell after script file has run");
+        System.out.println("  -o, --optlevel n      : Set Rhino optimization level (-1 to 9)");
+        System.out.println("  -p, --policy url      : Set java policy file and enable security manager");
     }
 }

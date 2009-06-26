@@ -95,6 +95,13 @@ public class RhinoEngine {
                 }
             }
             evaluate(cx, getScript("helmaglobal"), topLevelScope);
+            List<String> bootstrapScripts = config.getBootstrapScripts();
+            if (bootstrapScripts != null) {
+                for(String script : bootstrapScripts) {
+                    Resource resource = new FileResource(new File(script));
+                    evaluate(cx, new ReloadableScript(resource, this), topLevelScope);
+                }
+            }
             if (config.isSealed()) {
                 topLevelScope.sealObject();
             }

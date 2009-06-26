@@ -43,6 +43,7 @@ public class HelmaConfiguration {
     private Class<?>[] hostClasses = null;
     private HelmaClassLoader loader;
     private ClassShutter classShutter = null;
+    private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
 
@@ -326,6 +327,14 @@ public class HelmaConfiguration {
 
     public void setPolicyEnabled(boolean hasPolicy) {
         this.policyEnabled = hasPolicy;
+    }
+
+    public List<String> getBootstrapScripts() {
+        return bootstrapScripts;
+    }
+
+    public void setBootstrapScripts(List<String> bootstrapScripts) {
+        this.bootstrapScripts = bootstrapScripts;
     }
 
     private Logger getLogger() {
