@@ -3,6 +3,7 @@ package org.helma.repository;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.Serializable;
+import java.io.IOException;
 
 /**
  * Parent interface for both Repository and Resource interfaces. 
@@ -22,7 +23,7 @@ public interface Trackable extends Serializable {
      *
      * @return checksum
      */
-    public long getChecksum();
+    public long getChecksum() throws IOException;
 
     /**
      * Checks wether this resource actually (still) exists

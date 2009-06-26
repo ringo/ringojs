@@ -6,14 +6,18 @@ Object.defineProperty(this, "global", { value: this });
 
 (function() {
 
+    var out = java.lang.System.out;
+    const engine = org.mozilla.javascript.Context
+            .getCurrentContext().getThreadLocal("engine");
+
     /**
      * Load a module and return its module scope.
-     * @param moduleName the module name
+     * @param {String} moduleName the module name
      * @return {Object} the module scope
      */
     Object.defineProperty(this, "require", {
         value: function(moduleName) {
-            var module = getRhinoEngine().loadModule(getRhinoContext(), moduleName, this);
+            var module = engine.loadModule(moduleName, this);
             var exports = module.exports;
             if (!exports || typeof exports != "object") {
                 // should never happen with helma modules
@@ -24,11 +28,15 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
+    Object.defineProperty(this.require, "main", {
+        value: engine.getConfiguration().getMainModule(null)
+    })
+
     /**
      * Import a module and set the module scope in the calling scope, using the
      * module's name as property name or path.
-     * @param moduleName the module name
-     * @param propertyName optional property name to use for setting the
+     * @param {String} moduleName the module name
+     * @param {String} propertyName optional property name to use for setting the
      *        module in the calling scope
      */
     Object.defineProperty(this, "import", {
@@ -50,7 +58,7 @@ Object.defineProperty(this, "global", { value: this });
 
     /**
      * Load a module and include all its properties in the calling scope.
-     * @param moduleName the module name such as 'core.object'
+     * @param {String} moduleName the module name such as 'core.object'
      */
     Object.defineProperty(this, "include", {
         value: function(moduleName) {
@@ -91,7 +99,6 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(this, "getResource", {
         value: function(resourceName) {
-            var engine = getRhinoEngine();
             return engine.findResource(resourceName, engine.getParentRepository(this));
         }
     });
@@ -103,7 +110,7 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(this, "addToClasspath", {
         value: function(resourcePath) {
             var resource = this.getResource(resourcePath);
-            getRhinoEngine().addToClasspath(resource);
+            engine.addToClasspath(resource);
         }
     });
 
@@ -114,7 +121,6 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(this, "getResources", {
         value: function(resourcePath, nested) {
-            var engine = getRhinoEngine();
             return new ScriptableList(engine.findResources(resourcePath, Boolean(nested)));
         }
     });
@@ -133,21 +139,5 @@ Object.defineProperty(this, "global", { value: this });
             out.println();
         }
     });
-
-    var out = java.lang.System.out;
-
-    /**
-     * Get the org.mozilla.javascript.Context associated with the current thread.
-     */
-    var getRhinoContext = function getRhinoContext() {
-        return org.mozilla.javascript.Context.getCurrentContext();
-    };
-
-    /**
-     * Get the org.helma.javascript.RhinoEngine associated with this application.
-     */
-    var getRhinoEngine = function getRhinoEngine() {
-        return getRhinoContext().getThreadLocal("engine");
-    };
 
 })(global);

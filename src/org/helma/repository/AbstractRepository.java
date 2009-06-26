@@ -19,6 +19,7 @@ package org.helma.repository;
 import org.helma.util.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -67,13 +68,16 @@ public abstract class AbstractRepository implements Repository {
 
     /**
      * Called to check the repository's content.
+     * @throws IOException an IOException occurred
      */
-    public abstract void update();
+    public abstract void update() throws IOException;
 
     /**
      * Called to create a child resource for this repository
+     * @param name the name of the child resource
+     * @return the child resource
      */
-    protected abstract Resource createResource(String name);
+    protected abstract Resource createResource(String name) throws IOException;
 
     /**
      * Get the full name that identifies this repository globally
@@ -133,7 +137,7 @@ public abstract class AbstractRepository implements Repository {
      * If the name can't be resolved to a resource, a resource object is returned
      * for which {@link Resource exists()} returns <code>false<code>.
      */
-    public synchronized Resource getResource(String path) {
+    public synchronized Resource getResource(String path) throws IOException {
         String[] subs = StringUtils.split(path, separator);
         if (subs.length == 1) {
             Resource resource = resources.get(subs[0]);
@@ -158,7 +162,7 @@ public abstract class AbstractRepository implements Repository {
      * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public List<Resource> getResources(String path, boolean recursive) {
+    public List<Resource> getResources(String path, boolean recursive) throws IOException {
         String[] subs = StringUtils.split(path, separator);
         Repository repository = this;
         for (String sub: subs) {
@@ -173,7 +177,7 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Get an iterator over the sub-repositories contained in this repository.
      */
-    public synchronized Repository[] getRepositories() {
+    public synchronized Repository[] getRepositories() throws IOException {
         update();
         return repositories;
     }
@@ -202,7 +206,7 @@ public abstract class AbstractRepository implements Repository {
      * Get a deep list of this repository's resources, including all resources
      * contained in sub-reposotories.
      */
-    public synchronized List<Resource> getResources(boolean recursive) {
+    public synchronized List<Resource> getResources(boolean recursive) throws IOException {
         update();
         ArrayList<Resource> allResources = new ArrayList<Resource>();
         allResources.addAll(resources.values());

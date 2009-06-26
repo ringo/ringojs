@@ -39,24 +39,23 @@ import java.util.*;
  */
 public class RhinoEngine {
 
-    HelmaConfiguration                 config;
-    List<Repository>                   repositories;
-    ScriptableObject                   topLevelScope;
-    List<String>                       commandLineArgs;
-    Map<Trackable, ReloadableScript>   compiledScripts    = new HashMap<Trackable, ReloadableScript>();
-    Map<Trackable, ReloadableScript>   interpretedScripts = new HashMap<Trackable, ReloadableScript>();
-    AppClassLoader                     loader             = new AppClassLoader();
-    HelmaWrapFactory                   wrapFactory        = new HelmaWrapFactory();
-    Map<String, ExtendedJavaClass>     javaWrappers       = new HashMap<String, ExtendedJavaClass>();
-    Set<Class>                         hostClasses        = new HashSet<Class>();
+    private HelmaConfiguration config;
+    private List<Repository> repositories;
+    private ScriptableObject topLevelScope;
+    private List<String> commandLineArgs;
+    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
+    private AppClassLoader loader = new AppClassLoader();
+    private HelmaWrapFactory wrapFactory = new HelmaWrapFactory();
+    private Map<String, ExtendedJavaClass> javaWrappers = new HashMap<String, ExtendedJavaClass>();
+    private Set<Class> hostClasses = new HashSet<Class>();
 
-    HelmaContextFactory                contextFactory     = null;
-    ModuleScope                        mainScope          = null;
+    private HelmaContextFactory contextFactory = null;
+    private ModuleScope mainScope = null;
 
-    public static final Object[]       EMPTY_ARGS         = new Object[0];
-    public static final List<Integer>  VERSION            = Collections.unmodifiableList(Arrays.asList(0, 3));
+    public static final Object[] EMPTY_ARGS = new Object[0];
+    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 3));
 
-    private Logger                     log                = Logger.getLogger("org.helma.javascript.RhinoEngine");
+    private Logger log = Logger.getLogger("org.helma.javascript.RhinoEngine");
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
@@ -66,7 +65,10 @@ public class RhinoEngine {
      */
     public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals) {
         this.config = config;
-        contextFactory = new HelmaContextFactory(this, config);
+        this.compiledScripts = new HashMap<Trackable, ReloadableScript>();
+        this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
+        this.sharedScripts = new HashMap<Trackable, ReloadableScript>();
+        this.contextFactory = new HelmaContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
@@ -147,9 +149,8 @@ public class RhinoEngine {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
         try {
-        	Object retval;
-            Map<Trackable,ReloadableScript> scripts = cx.getOptimizationLevel() == -1 ?
-                    interpretedScripts : compiledScripts;
+            Object retval;
+            Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
             commandLineArgs = Arrays.asList(scriptArgs);
             Resource resource = findResource(scriptName, null);
             if (resource == null || !resource.exists()) {
@@ -166,12 +167,9 @@ public class RhinoEngine {
             scripts.put(resource, script);
             mainScope = new ModuleScope("__main__", resource, topLevelScope, cx);
             retval = evaluate(cx, script, mainScope);
-        	if (retval instanceof Wrapper) {
-        		return ((Wrapper) retval).unwrap();
-        	}
-        	return retval;
+            return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
-        	Context.exit();
+            Context.exit();
             resetThreadLocals(cx, threadLocals);
         }   	
     }
@@ -369,8 +367,7 @@ public class RhinoEngine {
     public ReloadableScript getScript(String moduleName, Repository localPath)
             throws JavaScriptException, IOException {
         Context cx = Context.getCurrentContext();
-        Map<Trackable,ReloadableScript> scripts = cx.getOptimizationLevel() == -1 ?
-                interpretedScripts : compiledScripts;
+        Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
         Trackable source;
         boolean isWildcard = moduleName.endsWith(".*");
@@ -384,6 +381,8 @@ public class RhinoEngine {
         }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
+        } else if (sharedScripts.containsKey(source)) {
+            script = sharedScripts.get(source);
         } else {
             script = new ReloadableScript(source, this);
             if (source.exists()) {
@@ -409,6 +408,19 @@ public class RhinoEngine {
         return result;
 
     }
+
+    /**
+     * Load a Javascript module into a module scope. This checks if the module has already
+     * been loaded in the current context and if so returns the existing module scope.
+     * @param moduleName the module name
+     * @param loadingScope the scope requesting the module
+     * @return the loaded module scope
+     * @throws IOException indicates that in input/output related error occurred
+     */
+    public ModuleScope loadModule(String moduleName, Scriptable loadingScope)
+            throws IOException {
+        return loadModule(Context.getCurrentContext(), moduleName, loadingScope);
+     }
 
     /**
      * Load a Javascript module into a module scope. This checks if the module has already
@@ -449,7 +461,7 @@ public class RhinoEngine {
      */
     public RhinoEngine createSandbox(String modulePath, Map<String,Object> globals,
                                      ClassShutter shutter, boolean sealed)
-            throws FileNotFoundException {
+            throws IOException {
         HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, null);
         sandbox.setClassShutter(shutter);
         sandbox.setSealed(sealed);
@@ -460,6 +472,21 @@ public class RhinoEngine {
         // only use security when helma runs standalone with default security manager,
         // not with google app engine
         return config.isPolicyEnabled();
+    }
+
+    protected void registerSharedScript(Trackable resource, ReloadableScript script) {
+        sharedScripts.put(resource, script);
+    }
+
+    protected void removeSharedScript(Trackable resource) {
+        if (sharedScripts.containsKey(resource)) {
+            sharedScripts.remove(resource);
+        }
+    }
+
+    private Map getScriptCache(Context cx) {
+        return cx.getOptimizationLevel() == -1 ?
+                interpretedScripts : compiledScripts;
     }
 
     private ReloadableScript getCurrentScript(Context cx) {
@@ -528,7 +555,7 @@ public class RhinoEngine {
      * @param recursive whether to include nested resources
      * @return a list of all contained child resources
      */
-    public List<Resource> findResources(String path, boolean recursive) {
+    public List<Resource> findResources(String path, boolean recursive) throws IOException {
         return config.getResources(path, recursive);
     }
 
@@ -538,7 +565,7 @@ public class RhinoEngine {
      * @param localRoot a repository to look first
      * @return the resource
      */
-    public Resource findResource(String path, Repository localRoot) {
+    public Resource findResource(String path, Repository localRoot) throws IOException {
         // Note: as an extension to the securable modules API
         // we allow absolute module paths for resources
         File file = new File(path);
@@ -557,7 +584,7 @@ public class RhinoEngine {
      * @param localPath a repository to look first
      * @return the repository
      */
-    public Repository findRepository(String path, Repository localPath) {
+    public Repository findRepository(String path, Repository localPath) throws IOException {
         // To be consistent, always return absolute repository if path is absolute
         // if we make this dependent on whether files exist we introduce a lot of
         // vague and undetermined behaviour.

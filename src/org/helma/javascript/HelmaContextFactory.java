@@ -64,8 +64,8 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
         cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
-        cx.setApplicationClassLoader(engine.loader);
-        cx.setWrapFactory(engine.wrapFactory);
+        cx.setApplicationClassLoader(engine.getClassLoader());
+        cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);
         cx.setOptimizationLevel(optimizationLevel);
         if (classShutter != null) {

@@ -211,7 +211,7 @@ public class ReloadableScript {
                 modules.put(source, module);
                 return module;
             }
-            module.reset(cx);
+            module.reset();
         } else {
             module = new ModuleScope(moduleName, source, prototype, cx);
         }
@@ -240,7 +240,13 @@ public class ReloadableScript {
      */
     protected void checkShared(ModuleScope module) {
         shared = module.get("__shared__", module) == Boolean.TRUE;
-        moduleScope = shared ? module : null;
+        if (shared) {
+            engine.registerSharedScript(source, this);
+            moduleScope = module;
+        } else {
+            engine.removeSharedScript(source);
+            moduleScope = null;
+        }
     }
 
     /**
@@ -249,7 +255,7 @@ public class ReloadableScript {
      * @return true if none of the included files has been updated since
      * we last checked.
      */
-    protected boolean isUpToDate() {
+    protected boolean isUpToDate() throws IOException {
         return source.getChecksum() == checksum;
     }
 
@@ -260,7 +266,7 @@ public class ReloadableScript {
      * even if just a dependency has been updated.
      * @return the evaluation checksum for this script
      */
-    protected long getChecksum() {
+    protected long getChecksum() throws IOException {
         long cs = checksum;
         if (shared) {
             Set<ReloadableScript> set = new HashSet<ReloadableScript>();
@@ -278,7 +284,7 @@ public class ReloadableScript {
      * @param set visited script set to prevent cyclic invokation
      * @return the nested checksum
      */
-    protected long getNestedChecksum(Set<ReloadableScript> set) {
+    protected long getNestedChecksum(Set<ReloadableScript> set) throws IOException {
         if (set.contains(this)) {
             return 0;
         }

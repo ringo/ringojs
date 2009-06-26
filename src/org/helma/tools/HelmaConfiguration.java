@@ -24,6 +24,7 @@ import org.mozilla.javascript.ClassShutter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.MalformedURLException;
@@ -56,7 +57,7 @@ public class HelmaConfiguration {
      * @throws FileNotFoundException if a moudule path item does not exist
      */
     public HelmaConfiguration(Repository helmaHome, String modulePath, String systemModules)
-            throws FileNotFoundException {
+            throws IOException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
 
@@ -114,7 +115,7 @@ public class HelmaConfiguration {
      * @return a repository
      * @throws FileNotFoundException if the path couldn't be resolved
      */
-    public Repository resolveRootRepository(String path) throws FileNotFoundException {
+    public Repository resolveRootRepository(String path) throws IOException {
         Repository repository = home.getChildRepository(path);
         if (repository != null && repository.exists()) {
             repository.setRoot();
@@ -135,40 +136,55 @@ public class HelmaConfiguration {
         if (path.toLowerCase().endsWith(".zip")) {
             return new ZipRepository(file);
         } else {
-            if (file.isFile()) {
-                Resource res = new FileResource(file);
-                mainModule = res.getBaseName();
-                return res.getParentRepository();
-            } else {
-                return new FileRepository(file);
-            }
+            return new FileRepository(file);
         }
     }
 
     /**
-     * If the scriptName argument is not null, prepend the script's parent repository
-     * to the module path. Otherwise, prepend the current working directory to the module path.
+     * Set the main script for this configuration. If the scriptName argument is not null,
+     * we check whether the script is already contained in the helma module path.
+     *
+     * If not, the script's parent repository is prepended to the module path. If scriptName is
+     * null, we prepend the current working directory to the module path.
      * @param scriptName the name of the script, or null.
      * @throws FileNotFoundException if the script repository does not exist
      */
-    public void addScriptRepository(String scriptName) throws FileNotFoundException {
-        // add script's parent directory to repository path,
-        // or the current directory if no script is run
+    public void setMainScript(String scriptName) throws IOException {
         if (scriptName != null) {
+            // first check if the script exists as a standalone file
             Resource script = new FileResource(new File(scriptName));
-            // check if the script can be found in the module path
-            if (!script.exists() && !repositories.isEmpty()) {
-                script = getResource(scriptName);
-                if (!script.exists()) {
-                    // try converting module name to file path
-                    script = getResource(scriptName.replace('/', File.separatorChar) + ".js");
+            if (script.exists()) {
+                // check if we are contained in one of the existing repositories
+                String scriptPath = script.getPath();
+                for (Repository repo : repositories) {
+                    if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
+                        // found a repository that contains main script - use it as base for module name
+                        script = repo.getResource(scriptPath.substring(repo.getPath().length()));
+                        mainModule = script.getModuleName();
+                        return;
+                    }
                 }
-            } else {
-                // found script file outside the module path, add its parent directory
+                // not found in the existing repositories - add parent as first element of module path
                 repositories.add(0, script.getParentRepository());
-            }
-            if (!script.exists()) {
-                throw new FileNotFoundException("Can't find file " + scriptName);
+                mainModule = script.getModuleName();
+            } else {
+                // check if the script can be found in the module path
+                Resource module = getResource(scriptName);
+                if (!module.exists()) {
+                    // try converting module name to file path
+                    module = getResource(scriptName.replace('/', File.separatorChar) + ".js");
+                }
+                if (module.exists()) {
+                    // found module in existing path, just set mainModule name
+                    mainModule = module.getModuleName();
+                } else {
+                    if (!script.exists()) {
+                        throw new FileNotFoundException("Can't find file " + scriptName);
+                    }
+                    // found script file outside the module path, add its parent directory
+                    repositories.add(0, script.getParentRepository());
+                    mainModule = script.getModuleName();
+                }
             }
         } else {
             // no script file, add current directory to module search path
@@ -265,7 +281,7 @@ public class HelmaConfiguration {
      * @param path the resource path
      * @return the resource
      */
-    public Resource getResource(String path) {
+    public Resource getResource(String path) throws IOException {
         for (Repository repo: repositories) {
             Resource res = repo.getResource(path);
             if (res != null && res.exists()) {
@@ -280,7 +296,7 @@ public class HelmaConfiguration {
      * @param path the resource path
      * @return the resource
      */
-    public Repository getRepository(String path) {
+    public Repository getRepository(String path) throws IOException {
         for (Repository repo: repositories) {
             Repository repository = repo.getChildRepository(path);
             if (repository.exists()) {
@@ -297,7 +313,7 @@ public class HelmaConfiguration {
      * @param recursive whether to include nested resources
      * @return a list of all contained child resources
      */
-    public List<Resource> getResources(String path, boolean recursive) {
+    public List<Resource> getResources(String path, boolean recursive) throws IOException {
         List<Resource> list = new ArrayList<Resource>();
         for (Repository repo: repositories) {
             list.addAll(repo.getResources(path, recursive));

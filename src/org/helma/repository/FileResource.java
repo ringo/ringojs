@@ -25,14 +25,14 @@ public class FileResource extends AbstractResource {
     File file;
     boolean stripShebang = false;
 
-    public FileResource(File file) {
+    public FileResource(File file) throws IOException {
         this(file, null);
     }
 
-    protected FileResource(File file, FileRepository repository) {
+    protected FileResource(File file, FileRepository repository) throws IOException {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-        file = file.getAbsoluteFile();
+        file = file.getCanonicalFile();
 
         this.file = file;
         this.repository = repository == null ?

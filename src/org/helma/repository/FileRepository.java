@@ -17,6 +17,7 @@
 package org.helma.repository;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.net.URL;
@@ -43,7 +44,7 @@ public class FileRepository extends AbstractRepository {
      * Constructs a FileRepository using the given argument
      * @param initArgs absolute path to the directory
      */
-    public FileRepository(String initArgs) {
+    public FileRepository(String initArgs) throws IOException {
         this(new File(initArgs), null);
     }
 
@@ -52,7 +53,7 @@ public class FileRepository extends AbstractRepository {
      * repository
      * @param dir directory
      */
-    public FileRepository(File dir) {
+    public FileRepository(File dir) throws IOException {
         this(dir, null);
     }
 
@@ -62,10 +63,10 @@ public class FileRepository extends AbstractRepository {
      * @param dir directory
      * @param parent top-level repository
      */
-    protected FileRepository(File dir, FileRepository parent) {
+    protected FileRepository(File dir, FileRepository parent) throws IOException {
         // make sure our directory has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-        directory = dir.getAbsoluteFile();
+        directory = dir.getCanonicalFile();
 
         if (parent == null) {
             path = name = directory.getAbsolutePath();
@@ -90,7 +91,7 @@ public class FileRepository extends AbstractRepository {
      * @param name the name of the repository
      * @return the child repository
      */
-    public Repository getChildRepository(String name) {
+    public Repository getChildRepository(String name) throws IOException {
         if (".".equals(name)) {
             return this;
         } else if ("..".equals(name)) {
@@ -115,7 +116,7 @@ public class FileRepository extends AbstractRepository {
      *
      * @return checksum
      */
-    public synchronized long getChecksum() {
+    public synchronized long getChecksum() throws IOException {
         // delay checksum check if already checked recently
         if (System.currentTimeMillis() > lastChecksumTime + cacheTime) {
 
@@ -139,7 +140,7 @@ public class FileRepository extends AbstractRepository {
      * resources
      */
     @Override
-    public synchronized void update() {
+    public synchronized void update() throws IOException {
         if (!directory.exists()) {
             repositories = emptyRepositories;
             if (resources == null) {
@@ -182,7 +183,7 @@ public class FileRepository extends AbstractRepository {
      * Called to create a child resource for this repository
      */
     @Override
-    protected Resource createResource(String name) {
+    protected Resource createResource(String name) throws IOException {
         return new FileResource(new File(directory, name), this);
     }
 

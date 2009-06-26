@@ -21,8 +21,11 @@ import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
 
+import static java.lang.System.err;
+import static java.lang.System.out;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
 
 public class HelmaRunner {
 
@@ -36,13 +39,13 @@ public class HelmaRunner {
     public HelmaRunner() {
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         HelmaRunner runner = new HelmaRunner();
         runner.init(args);
         runner.start();
     }
 
-    public void init(String[] args) {
+    public void init(String[] args) throws IOException {
 
         int optlevel = 0;
         List<String> bootstrapScripts = new ArrayList<String>();
@@ -63,42 +66,42 @@ public class HelmaRunner {
         if (args != null && args.length > 0) {
             int i;
             for (i = 0; i < args.length; i++) {
-                String arg = args[i];
-                if (!arg.startsWith("-")) {
+                String option = args[i];
+                if (!option.startsWith("-")) {
                     break;
                 }
-                if ("--help".equals(arg) || "-h".equals(arg)) {
+                if ("--help".equals(option) || "-h".equals(option)) {
                     printUsage();
                     return;
-                } else if ("--interactive".equals(arg) || "-i".equals(arg)) {
+                } else if ("--interactive".equals(option) || "-i".equals(option)) {
                     runShell = true;
-                } else if ("--debug".equals(arg) || "-d".equals(arg)) {
+                } else if ("--debug".equals(option) || "-d".equals(option)) {
                     debug = true;
-                } else if ("--optlevel".equals(arg) || "-o".equals(arg)) {
+                } else if ("--optlevel".equals(option) || "-o".equals(option)) {
                     if (++i == args.length) {
-                        exitWithError(arg + " option requires a value.");
+                        missingValueError(option);
                     }
                     try {
                         optlevel = Integer.parseInt(args[i]);
                     } catch (NumberFormatException x) {
-                        exitWithError(arg + " value must be a number between -1 and 9.");
+                        rangeError(option);
                     }
                     if (optlevel < -1 || optlevel > 9) {
-                        exitWithError(arg + " value must be a number between -1 and 9.");
+                        rangeError(option);
                     }
-                } else if ("--policy".equals(arg) || "-p".equals(arg)) {
+                } else if ("--policy".equals(option) || "-p".equals(option)) {
                     if (++i == args.length) {
-                        exitWithError(arg + " option requires a value.");
+                        missingValueError(option);
                     }
                     System.setProperty("java.security.policy", args[i]);
                     System.setSecurityManager(new RhinoSecurityManager());
-                } else if ("--bootstrap".equals(arg) || "-b".equals(arg)) {
+                } else if ("--bootstrap".equals(option) || "-b".equals(option)) {
                     if (++i == args.length) {
-                        exitWithError(arg + " option requires a value.");
+                        missingValueError(option);
                     }
                     bootstrapScripts.add(args[i]);
                 } else {
-                    exitWithError("Unknown option: " + arg);
+                    unknownOptionError(option);
                 }
             }
             if (i < args.length) {
@@ -111,7 +114,7 @@ public class HelmaRunner {
         try {
             config = new HelmaConfiguration(home, modulePath, "modules");
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
-            config.addScriptRepository(scriptName);
+            config.setMainScript(scriptName);
             config.setOptLevel(optlevel);
             config.setBootstrapScripts(bootstrapScripts);
             engine = new RhinoEngine(config, null);
@@ -158,21 +161,33 @@ public class HelmaRunner {
         }
     }
 
-    private static void exitWithError(String errorMessage) {
-        System.err.println(errorMessage);
-        System.err.println("Run with -h flag for more information on supported options.");
-        System.exit(-1);
+    private static void missingValueError(String option) {
+        exitWithError(option + " option requires a value.", -1);
+    }
+
+    private static void rangeError(String option) {
+        exitWithError(option + " value must be a number between -1 and 9.", -1);
+    }
+
+    private static void unknownOptionError(String option) {
+        exitWithError(option + " option requires a value.", -1);
+    }
+
+    private static void exitWithError(String message, int code) {
+        err.println(message);
+        err.println("Run with -h flag for more information on supported options.");
+        System.exit(code);
     }
 
     public static void printUsage() {
-        System.out.println("Usage:");
-        System.out.println("  helma [option] ... [file] [arg] ...");
-        System.out.println("Options:");
-        System.out.println("  -b, -bootstrap script : Run additional bootstrap script");
-        System.out.println("  -d, --debug           : Print stack traces for shell errors");
-        System.out.println("  -h, --help            : Display this help message");
-        System.out.println("  -i, --interactive     : Start shell after script file has run");
-        System.out.println("  -o, --optlevel n      : Set Rhino optimization level (-1 to 9)");
-        System.out.println("  -p, --policy url      : Set java policy file and enable security manager");
+        out.println("Usage:");
+        out.println("  helma [option] ... [file] [arg] ...");
+        out.println("Options:");
+        out.println("  -b, -bootstrap script : Run additional bootstrap script");
+        out.println("  -d, --debug           : Print stack traces for shell errors");
+        out.println("  -h, --help            : Display this help message");
+        out.println("  -i, --interactive     : Start shell after script file has run");
+        out.println("  -o, --optlevel n      : Set Rhino optimization level (-1 to 9)");
+        out.println("  -p, --policy url      : Set java policy file and enable security manager");
     }
 }

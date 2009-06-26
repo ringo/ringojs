@@ -30,7 +30,7 @@ public class ModuleScope extends NativeObject {
     Repository repository;
     String name;
     long checksum;
-    Scriptable exports;
+    Scriptable exportsObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
     public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {
@@ -40,8 +40,15 @@ public class ModuleScope extends NativeObject {
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
         this.name = moduleName;
-        this.exports = new ExportsObject();
-        defineProperty("exports", exports,  DONTENUM);
+        // create and define exports object
+        this.exportsObject = new ExportsObject();
+        defineProperty("exports", exportsObject,  DONTENUM);
+        // create and define module meta-object
+        Scriptable metaObject = cx.newObject(this);
+        ScriptableObject.defineProperty(metaObject, "id", moduleName, DONTENUM);
+        ScriptableObject.defineProperty(metaObject, "path", source.getRelativePath(), DONTENUM);
+        defineProperty("module", metaObject, DONTENUM);
+        // define old deprecated meta properties
         defineProperty("__name__", moduleName, DONTENUM);
         defineProperty("__path__", source.getRelativePath(), DONTENUM);
     }
@@ -50,9 +57,9 @@ public class ModuleScope extends NativeObject {
         return repository;
     }
 
-    public void reset(Context cx) {
-        this.exports = new ExportsObject();
-        defineProperty("exports", exports,  DONTENUM);
+    public void reset() {
+        this.exportsObject = new ExportsObject();
+        defineProperty("exports", exportsObject,  DONTENUM);
         delete("__shared__");     
     }
 
@@ -69,7 +76,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public Scriptable getExports() {
-        return exports;
+        return exportsObject;
     }
 
     @Override
