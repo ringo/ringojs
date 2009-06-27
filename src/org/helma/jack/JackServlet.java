@@ -64,14 +64,16 @@ public class JackServlet extends HttpServlet {
             String modulePath = getInitParam(config, "modulePath", "modules");
 
             Repository home = new WebappRepository(config.getServletContext(), helmaHome);
-            if (!home.exists()) {
-                home = new FileRepository(helmaHome);
-            }
             try {
+                if (!home.exists()) {
+                    home = new FileRepository(helmaHome);
+                }
                 HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
                 helmaConfig.setHostClasses(new Class[] { JackEnv.class });
                 engine = new RhinoEngine(helmaConfig, null);
             } catch (FileNotFoundException x) {
+                throw new ServletException(x);
+            } catch (IOException x) {
                 throw new ServletException(x);
             }
         }
