@@ -94,6 +94,10 @@ exports.getName = function(node) {
     return exports.isName(node) ? node.getString() : "";
 }
 
+exports.getTypeName = function(node) {
+    return org.mozilla.javascript.Token.typeToName(node.getType());
+}
+
 function getParser() {
     var ce = new CompilerEnvirons();
     ce.setRecordingComments(true);

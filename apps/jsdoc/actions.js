@@ -12,9 +12,13 @@ exports.index = function index(req, module) {
         parseScriptResource(res, function(node) {
             if (node.jsDoc) {
                 currentDoc = extractTags(node.jsDoc)
+                print(currentDoc[0][1]);
                 jsdoc.push(currentDoc);
-            } else if (isName(node) && currentDoc && !currentDoc.name) {
-                currentDoc.name = getName(node);
+            } else {
+                print(getTypeName(node) + " // " + getName(node));
+                if (isName(node) && getName(node) != "exports" && currentDoc && !currentDoc.name) {
+                    currentDoc.name = getName(node);
+                }
             }
             return true;
         });
