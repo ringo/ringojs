@@ -1,31 +1,48 @@
 require('core/string');
+include('helma/file');
 importPackage(org.mozilla.javascript);
+importClass(org.helma.repository.FileRepository);
+importClass(org.helma.repository.FileResource);
 
-exports.dump = function(path) {
-    var resources = getResources(path, true);
-    if (resources.length == 0) {
-        resources = [getResource(path)];
+/**
+ * Get a list of resources with the given path prefix, optionally descending into subdirectories.
+ * @param path {String} the base path
+ * @param recursive {Boolean} whether to descend into subdirectories
+ * @return an Array of Resource objects
+ */
+exports.getScriptResources = function(path, recursive) {
+    var file = new File(path);
+    var list;
+    if (!file.exists()) {
+        return [];
+    } else if (file.isDirectory()) {
+        list = new ScriptableList(new FileRepository(file).getResources(Boolean(recursive)));
+    } else {
+        list = [new FileResource(new java.io.File(path))];
     }
-    for each (var resource in resources) {
-        if (!resource.name.endsWith(".js")) {
-            continue;
-        }
-        print("PARSING", resource.path);
-        try {
-            var ast = getParser().parse(resource.content, resource.name, 0);
-            ast.visit(new org.mozilla.javascript.ast.NodeVisitor({
-                visit: function(n) {
-                   if (n.jsDoc)
-                       print("JSDOC: ", n.jsDoc);
-                   if (n.name)
-                       print("NAME: ", n.name);
-                   return true;
-                }
-            }));
-        } catch (x) {
-            print("error parsing", resource, x);
-        }
-    }
+    return list.filter(function(resource) resource.name.endsWith(".js"));
+}
+
+/**
+ * Parse a script resource and apply the visitorFunction to the script's nodes.
+ * The function takes one argument which is a org.mozilla.javascript.ast.AstNode.
+ * The function must return true to visit child nodes of the current node.
+ * @param resource {Resource} an instance of org.helma.repository.Resource
+ * @param visitorFunction {Function} the visitor function
+ */
+exports.parseScriptResource = function(resource, visitorFunction) {
+    var ast = getParser().parse(resource.content, resource.name, 0);
+    ast.visit(new org.mozilla.javascript.ast.NodeVisitor({
+        visit: visitorFunction
+    }));
+}
+
+exports.isName = function(node) {
+    return node instanceof org.mozilla.javascript.ast.Name;
+}
+
+exports.getName = function(node) {
+    return exports.isName(node) ? node.getString() : "";
 }
 
 function getParser() {
