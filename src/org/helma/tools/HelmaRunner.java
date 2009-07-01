@@ -25,6 +25,7 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 import java.io.IOException;
 
 public class HelmaRunner {
@@ -105,7 +106,7 @@ public class HelmaRunner {
                 }
             }
             if (i < args.length) {
-                scriptName = args[i];
+                scriptName = args[i++];
                 scriptArgs = new String[args.length - i];
                 System.arraycopy(args, i, scriptArgs, 0, scriptArgs.length);
             }
