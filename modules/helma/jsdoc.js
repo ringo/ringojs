@@ -5,22 +5,27 @@ importClass(org.helma.repository.FileRepository);
 importClass(org.helma.repository.FileResource);
 
 /**
- * Get a list of resources with the given path prefix, optionally descending into subdirectories.
+ * Get a script repository from the given path
  * @param path {String} the base path
- * @param recursive {Boolean} whether to descend into subdirectories
- * @return an Array of Resource objects
+ * @return an script repository
  */
-exports.getScriptResources = function(path, recursive) {
-    var file = new File(path);
-    var list;
-    if (!file.exists()) {
-        return [];
-    } else if (file.isDirectory()) {
-        list = new ScriptableList(new FileRepository(file).getResources(Boolean(recursive)));
-    } else {
-        list = [new FileResource(new java.io.File(path))];
+exports.ScriptRepository = function(path) {
+    return new ScriptRepository(path);
+}
+
+function ScriptRepository(path) {
+    var repo = path instanceof org.helma.repository.Repository ?
+               path : new FileRepository(new java.io.File(path));
+
+    this.getScriptResources = function(recurse) {
+        var list = new ScriptableList(repo.getResources(Boolean(recurse)));
+        return list.filter(function(r) {return r.name.endsWith('.js');});
     }
-    return list.filter(function(resource) resource.name.endsWith(".js"));
+
+    this.getScriptResource = function(path) {
+        return repo.getResource(path);
+    }
+
 }
 
 /**
