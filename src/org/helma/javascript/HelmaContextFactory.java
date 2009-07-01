@@ -29,6 +29,7 @@ public class HelmaContextFactory extends ContextFactory {
     ErrorReporter errorReporter;
     ClassShutter classShutter;
 
+    static int instructionLimit = 0xfffffff;
 
     public HelmaContextFactory(RhinoEngine engine, HelmaConfiguration config) {
         this.engine = engine;
@@ -72,6 +73,7 @@ public class HelmaContextFactory extends ContextFactory {
             cx.setClassShutter(classShutter);
         }
         if (engine.isPolicyEnabled()) {
+            cx.setInstructionObserverThreshold(instructionLimit);
             cx.setSecurityController(new PolicySecurityController());
         }
         if (errorReporter != null) {
@@ -85,6 +87,19 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextReleased(cx);
         cx.removeThreadLocal("engine");
         cx.removeThreadLocal("modules");
+    }
+
+    /**
+     * Implementation of
+     * {@link org.mozilla.javascript.Context#observeInstructionCount(int instructionCount)}.
+     * This can be used to customize {@link org.mozilla.javascript.Context} without introducing
+     * additional subclasses.
+     */
+    @Override
+    protected void observeInstructionCount(Context cx, int instructionCount) {
+        if (instructionCount > instructionLimit) {
+            throw new Error("Maximum instruction count exceeded");
+        }
     }
 
     public void setStrictMode(boolean flag) {
