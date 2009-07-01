@@ -38,6 +38,7 @@ public class HelmaConfiguration {
     private Repository home;
     private List<Repository> repositories;
     private String mainModule;
+    private String[] arguments;
     private int optimizationLevel = 0;
     private int languageVersion = 180;
     private boolean parentProtoProperties = true;
@@ -347,6 +348,14 @@ public class HelmaConfiguration {
 
     public List<String> getBootstrapScripts() {
         return bootstrapScripts;
+    }
+
+    public String[] getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(String[] arguments) {
+        this.arguments = arguments;
     }
 
     public void setBootstrapScripts(List<String> bootstrapScripts) {

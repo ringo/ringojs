@@ -449,6 +449,21 @@ public class RhinoEngine {
         return module;
     }
 
+    public String getMainModule() {
+        return config.getMainModule(null);
+    }
+
+    public Scriptable getArguments() {
+        String[] args = config.getArguments();
+        if (args == null) {
+            return Context.getCurrentContext().newArray(topLevelScope, 0);
+        } else {
+            Object[] array = new Object[args.length];
+            System.arraycopy(args, 0, array, 0, args.length);
+            return Context.getCurrentContext().newArray(topLevelScope, array);
+        }
+    };
+
     /**
      * Create a sandboxed scripting engine with the same install directory as this and the
      * given module paths, global properties, class shutter and sealing

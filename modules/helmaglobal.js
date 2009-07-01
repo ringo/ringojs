@@ -29,8 +29,12 @@ Object.defineProperty(this, "global", { value: this });
     });
 
     Object.defineProperty(this.require, "main", {
-        value: engine.getConfiguration().getMainModule(null)
+        value: engine.getMainModule()
     })
+
+    Object.defineProperty(this, "arguments", {
+        value: new ScriptableList(engine.getArguments())
+    });
 
     /**
      * Import a module and set the module scope in the calling scope, using the

@@ -115,6 +115,7 @@ public class HelmaRunner {
             config = new HelmaConfiguration(home, modulePath, "modules");
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
+            config.setArguments(scriptArgs);
             config.setOptLevel(optlevel);
             config.setBootstrapScripts(bootstrapScripts);
             engine = new RhinoEngine(config, null);
