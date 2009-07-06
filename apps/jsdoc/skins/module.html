@@ -4,4 +4,8 @@
 <% for item in <% jsdoc %> render jsdoc %>
 
 <% subskin jsdoc %>
-<p><b><% item.name %></b>: <% item.0.1 %></p>       
+<p><b><% item.name %></b>: <% item.0.1 %></p>
+<% for doctag in <%item%> render doctag %>
+
+<% subskin doctag %>
+<div> <span style="color: green;"><% doctag.0 %></span>: <%doctag.1%></div>
