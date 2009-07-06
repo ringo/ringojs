@@ -4,7 +4,7 @@
 <% for item in <% jsdoc %> render jsdoc %>
 
 <% subskin jsdoc %>
-<p><b><% item.name %></b>: <% item.0.1 %></p>
+<h3><% item.name %></h3>
 <% for doctag in <%item%> render doctag %>
 
 <% subskin doctag %>

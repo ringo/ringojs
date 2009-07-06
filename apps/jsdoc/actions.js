@@ -17,7 +17,7 @@ exports.index = function index(req, module) {
             } else {
                 print(getTypeName(node) + " // " + getName(node));
                 if (isName(node) && getName(node) != "exports" && currentDoc && !currentDoc.name) {
-                    currentDoc.name = getName(node);
+                    Object.defineProperty(currentDoc, 'name', {value: getName(node)});
                 }
             }
             return true;
