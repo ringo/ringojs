@@ -34,7 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.security.CodeSource;
 import java.security.CodeSigner;
-import java.net.URL;
 
 /**
  * HelmaShell is a simple interactive shell that provides the
