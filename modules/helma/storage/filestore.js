@@ -113,7 +113,7 @@ function getEntity(type, arg) {
     } else if (isEntity(arg)) {
         return arg;
     } else if (arg instanceof Object) {
-        var entity = arg.clone();
+        var entity = arg.clone({});
         Object.defineProperty(entity, "_key", {
             value: [type, datastore.generateId(type)]
         });
