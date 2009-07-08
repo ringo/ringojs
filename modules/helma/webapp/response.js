@@ -8,8 +8,8 @@ function Response() {
 
     var config = require('helma/webapp/env').config;
     var status = 200;
-    var charset = config.charset || 'utf-8';
-    var contentType = config.contentType || 'text/html';
+    var charset = config && config.charset || 'utf-8';
+    var contentType = config && config.contentType || 'text/html';
     var headers = {};
     var buffer = new Buffer();
 
