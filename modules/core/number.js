@@ -1,7 +1,7 @@
 /**
  * Time unit conversion utility methods.
  *
- *   (5).minutes()
+ * @example <pre>  (5).minutes()
  *   300000
  *
  *   (5).minutes().inSeconds()
@@ -11,8 +11,10 @@
  *   Fri Oct 31 2008 12:54:31 GMT+0100 (MEZ)
  *
  *   (5).minutes().fromNow()
- *   Fri Oct 31 2008 13:04:34 GMT+0100 (MEZ)
+ *   Fri Oct 31 2008 13:04:34 GMT+0100 (MEZ)</pre>
  */
+
+__shared__ = true;
 
 Object.defineProperty(Number.prototype, 'format', {
     value: function(fmt, locale) {
