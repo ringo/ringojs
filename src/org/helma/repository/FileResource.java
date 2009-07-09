@@ -82,7 +82,7 @@ public class FileResource extends AbstractResource {
     }
 
     public boolean exists() {
-        return file.exists();
+        return file.exists() && file.isFile();
     }
 
     public boolean getStripShebang() {
