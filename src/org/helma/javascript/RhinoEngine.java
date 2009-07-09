@@ -22,6 +22,7 @@ import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
 import org.mozilla.javascript.serialize.ScriptableInputStream;
 
@@ -69,6 +70,7 @@ public class RhinoEngine {
         this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
         this.sharedScripts = new HashMap<Trackable, ReloadableScript>();
         this.contextFactory = new HelmaContextFactory(this, config);
+        contextFactory.setErrorReporter(new ToolErrorReporter(false));
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
