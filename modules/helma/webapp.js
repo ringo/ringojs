@@ -245,7 +245,7 @@ function stop() {
     server.stop();
 }
 
-if (__name__ == '__main__') {
+if (require.main == module.id) {
     for (var i = 1; i < system.args.length; i++) {
         var arg = system.args[i];
         if (arg.indexOf('-') == 0) {

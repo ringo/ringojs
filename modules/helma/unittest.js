@@ -834,7 +834,7 @@ this.assertThrows = function assertThrows(func, exception) {
 /**
  * Executed when called from the command line
  */
-if (__name__ == "__main__") {
+if (require.main == module.id) {
     if (system.args.length == 1) {
         shell.writeln("Usage: bin/helma helma/unittest test/file1 test/file2");
     } else {

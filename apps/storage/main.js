@@ -62,6 +62,6 @@ function removeBook(req, book) {
     return new RedirectResponse("../");
 }
 
-if (__name__ == "__main__") {
+if (require.main == module.id) {
     require('helma/webapp').start();
 }

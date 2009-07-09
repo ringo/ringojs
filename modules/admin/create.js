@@ -53,7 +53,7 @@ function main(args) {
     }
 }
 
-if (__name__ == "__main__") {
+if (require.main == module.id) {
     try {
         main(args);
     } catch (err) {
