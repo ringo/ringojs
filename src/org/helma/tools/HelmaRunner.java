@@ -136,7 +136,7 @@ public class HelmaRunner {
         }
         try {
             if (scriptName != null) {
-                engine.runScript(scriptName, scriptArgs);
+                engine.runScript(config.getMainResource(), scriptArgs);
             }
             if (scriptName == null || runShell) {
                 new HelmaShell(config, engine, debug).run();

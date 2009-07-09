@@ -137,14 +137,14 @@ public class RhinoEngine {
 
     /**
      * Invoke a script from the command line.
-     * @param scriptName the name of the script
+     * @param resource the script resource
      * @param scriptArgs an array of command line arguments
      * @return the return value
      * @throws IOException an I/O related error occurred
      * @throws JavaScriptException the script threw an error during
      *         compilation or execution
      */
-    public Object runScript(String scriptName, String... scriptArgs)
+    public Object runScript(Resource resource, String... scriptArgs)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
@@ -152,20 +152,12 @@ public class RhinoEngine {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
             commandLineArgs = Arrays.asList(scriptArgs);
-            Resource resource = findResource(scriptName, null);
-            if (resource == null || !resource.exists()) {
-                resource = new FileResource(new File(scriptName));
-            }
-            if (!resource.exists()) {
-                String moduleName = scriptName + ".js";
-                resource = findResource(moduleName, null);
-            }
             if (resource instanceof FileResource) {
                 ((FileResource) resource).setStripShebang(true);
             }
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope("__main__", resource, topLevelScope, cx);
+            mainScope = new ModuleScope(resource.getModuleName(), resource, topLevelScope, cx);
             retval = evaluate(cx, script, mainScope);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {

@@ -37,7 +37,7 @@ public class HelmaConfiguration {
 
     private Repository home;
     private List<Repository> repositories;
-    private String mainModule;
+    private Resource mainResource;
     private String[] arguments;
     private int optimizationLevel = 0;
     private int languageVersion = 180;
@@ -161,13 +161,13 @@ public class HelmaConfiguration {
                     if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
                         // found a repository that contains main script - use it as base for module name
                         script = repo.getResource(scriptPath.substring(repo.getPath().length()));
-                        mainModule = script.getModuleName();
+                        mainResource = script;
                         return;
                     }
                 }
                 // not found in the existing repositories - add parent as first element of module path
                 repositories.add(0, script.getParentRepository());
-                mainModule = script.getModuleName();
+                mainResource = script;
             } else {
                 // check if the script can be found in the module path
                 Resource module = getResource(scriptName);
@@ -177,20 +177,24 @@ public class HelmaConfiguration {
                 }
                 if (module.exists()) {
                     // found module in existing path, just set mainModule name
-                    mainModule = module.getModuleName();
+                    mainResource = module;
                 } else {
                     if (!script.exists()) {
                         throw new FileNotFoundException("Can't find file " + scriptName);
                     }
                     // found script file outside the module path, add its parent directory
                     repositories.add(0, script.getParentRepository());
-                    mainModule = script.getModuleName();
+                    mainResource = script;
                 }
             }
         } else {
             // no script file, add current directory to module search path
             repositories.add(0, new FileRepository(new File(".")));
         }
+    }
+
+    public Resource getMainResource() {
+        return mainResource;
     }
 
     /**
@@ -218,7 +222,7 @@ public class HelmaConfiguration {
      * @return the main module
      */
     public String getMainModule(String defaultValue) {
-        return (mainModule == null)? defaultValue : mainModule;
+        return (mainResource == null)? defaultValue : mainResource.getModuleName();
     }
 
     /**
