@@ -18,6 +18,7 @@ package org.helma.javascript;
 
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
+import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -51,7 +52,8 @@ public class HelmaGlobal extends Global {
         defineFunctionProperties(names, Global.class,
                                  ScriptableObject.DONTENUM);
         names = new String[] {
-            "privileged"
+            "privileged",
+            "trycatch"
         };
         defineFunctionProperties(names, HelmaGlobal.class,
                                  ScriptableObject.DONTENUM);
@@ -77,5 +79,17 @@ public class HelmaGlobal extends Global {
         return AccessController.doPrivileged(action);
     }
 
+    public static Object trycatch(final Context cx, Scriptable thisObj, Object[] args,
+                                    Function funObj) {
+        if (args.length != 1 || !(args[0] instanceof Function)) {
+            throw Context.reportRuntimeError("trycatch() requires a function argument");
+        }
+        Scriptable scope = getTopLevelScope(thisObj);
+        try {
+            return ((Function)args[0]).call(cx, scope, thisObj, RhinoEngine.EMPTY_ARGS);
+        } catch (RhinoException re) {
+            return new NativeJavaObject(scope, re, null);
+        }
+    }
 
 }
