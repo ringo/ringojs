@@ -14,6 +14,7 @@ export('args',
         'createSandbox',
         'evaluate',
         'extendJavaClass',
+        'getErrors',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
@@ -165,6 +166,13 @@ function getRhinoContext() {
  */
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
+}
+
+/**
+ * Get a list containing the syntax errors encountered in the current context.
+ */
+function getErrors() {
+    return new ScriptableList(getRhinoContext().getThreadLocal("errors"));
 }
 
 /**

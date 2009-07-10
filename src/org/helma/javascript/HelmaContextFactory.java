@@ -15,6 +15,7 @@ import org.helma.repository.Trackable;
 import org.helma.tools.HelmaConfiguration;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class HelmaContextFactory extends ContextFactory {
 
@@ -65,6 +66,7 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
         cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
+        cx.putThreadLocal("errors", new ArrayList<ReloadableScript.Error>());
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);
@@ -87,6 +89,7 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextReleased(cx);
         cx.removeThreadLocal("engine");
         cx.removeThreadLocal("modules");
+        cx.removeThreadLocal("errors");
     }
 
     /**
