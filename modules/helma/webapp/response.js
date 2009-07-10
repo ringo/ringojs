@@ -96,7 +96,7 @@ function Response() {
         },
         set: function(c) {
             charset = c;
-        }
+        }, writable: true
     });
 
     Object.defineProperty(this, 'contentType', {
@@ -104,8 +104,9 @@ function Response() {
             return contentType;
         },
         set: function(c) {
+            print("SETTING CONTENT TYPE TO " + c);
             contentType = c;
-        }
+        }, writable: true
     });
 
     Object.defineProperty(this, 'status', {
@@ -114,7 +115,7 @@ function Response() {
         },
         set: function(s) {
             status = s;
-        }
+        }, writable: true
     });
 
     Object.defineProperty(this, 'getHeader', {

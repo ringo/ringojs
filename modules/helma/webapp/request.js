@@ -156,7 +156,7 @@ function Cookie(servletCookie) {
                 getCookie().setName(name);
             }
             return name;
-        }
+        }, writable: true
     });
 
     define("value", {
@@ -172,7 +172,7 @@ function Cookie(servletCookie) {
                 getCookie().setValue(value);
             }
             return value;
-        }
+        }, writable: true
     });
 
     define("domain", {
@@ -188,7 +188,7 @@ function Cookie(servletCookie) {
                 getCookie().setDomain(domain);
             }
             return domain;
-        }
+        }, writable: true
     });
 
     define("path", {
@@ -204,7 +204,7 @@ function Cookie(servletCookie) {
                 getCookie().setPath(path);
             }
             return path;
-        }
+        }, writable: true
     });
 
     define("maxAge", {
@@ -220,7 +220,7 @@ function Cookie(servletCookie) {
                 getCookie().setMaxAge(maxAge);
             }
             return maxAge;
-        }
+        }, writable: true
     });
 
     define("comment", {
@@ -236,7 +236,7 @@ function Cookie(servletCookie) {
                 getCookie().setComment(comment);
             }
             return comment;
-        }
+        }, writable: true
     });
 
     define("isSecure", {
@@ -252,7 +252,7 @@ function Cookie(servletCookie) {
                 getCookie().setSecure(isSecure);
             }
             return isSecure;
-        }
+        }, writable: true
     });
 
     define("version", {
@@ -268,7 +268,7 @@ function Cookie(servletCookie) {
                 getCookie().setVersion(version);
             }
             return version;
-        }
+        }, writable: true
     });
 }
 

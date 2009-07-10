@@ -53,7 +53,8 @@ function ContinuationSession(req, id, step) {
 
     Object.defineProperty(this, "step", {
         get: function() step,
-        set: function(s) { step = s; }
+        set: function(s) { step = s; },
+        writable: true
     })
 
     this.first = function() {
