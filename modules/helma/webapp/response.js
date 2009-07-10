@@ -2,7 +2,7 @@ include('hashp');
 include('helma/buffer');
 include('helma/webapp/util');
 
-export('Response', 'SkinnedResponse', 'JSONResponse', 'RedirectResponse' /*, 'NotFoundResponse', 'ServerErrorResponse'*/);
+export('Response', 'SkinnedResponse', 'JSONResponse', 'RedirectResponse', 'StaticResponse');
 
 function Response() {
 
@@ -159,6 +159,25 @@ function JSONResponse(object) {
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
+}
+
+function StaticResponse(resource) {
+    if (typeof resource == 'string') {
+        resource = getResource(resource);
+    }
+    if (!(resource instanceof org.helma.repository.Resource)) {
+        throw Error("Wrong argument for StaticResponse: " + typeof(resource));
+    }
+    require('binary');
+    var contentType = require('./mime').mimeType(resource.name);
+    var content = resource.content.toBinary();
+    return [200, {'Content-Type': contentType}, {
+        digest: resource.digest,
+        forEach: function(block) {
+            // FIXME
+            block(content);
+        }
+    }];
 }
 
 function RedirectResponse(location) {
