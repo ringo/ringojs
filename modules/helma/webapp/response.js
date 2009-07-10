@@ -104,7 +104,6 @@ function Response() {
             return contentType;
         },
         set: function(c) {
-            print("SETTING CONTENT TYPE TO " + c);
             contentType = c;
         }, writable: true
     });
