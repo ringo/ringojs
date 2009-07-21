@@ -63,11 +63,11 @@ function Storable(type, arg) {
     }
 
     var storable = new JavaAdapter(NativeObject, {
-        get: function(name, start) {
-            if (this.super$get(name, start) != Scriptable.NOT_FOUND) {
-                return this.super$get(name, start);
+        get: function(id, start) {
+            if (this.super$get(id, start) != Scriptable.NOT_FOUND) {
+                return this.super$get(id, start);
             } else if (ensureProps()) {
-                var value = props[name];
+                var value = props[id];
                 if (value === undefined) {
                     return Scriptable.NOT_FOUND;
                 } else {
@@ -77,17 +77,25 @@ function Storable(type, arg) {
             return Scriptable.NOT_FOUND;
         },
 
-        put: function(name, start, value) {
+        put: function(id, start, value) {
             if (typeof value == "function") {
-                return this.super$put(name, start, value);
+                return this.super$put(id, start, value);
             } else if (ensureProps()) {
-                props[name] = value;
+                props[id] = value;
             }
         },
 
-        has: function(name, start) {
-            return this.super$has(name, start) ||
-                   (ensureProps() && name in props);
+        has: function(id, start) {
+            return this.super$has(id, start) ||
+                   (ensureProps() && id in props);
+        },
+
+        "delete": function(id) {
+            if (ensureProps() && id in props) {
+                delete(props[id]);
+            } else {
+                this.super$delete(id);
+            }
         },
 
         getIds: function() {
