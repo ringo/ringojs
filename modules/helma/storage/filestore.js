@@ -3,6 +3,7 @@ require('core/array');
 include('core/json');
 include('helma/file');
 include('helma/functional');
+include('./storeutils');
 
 export("Store", "Storable", "Transaction");
 
@@ -43,7 +44,7 @@ function list(type, options, thisObj) {
         }
     }
     return array;
-};
+}
 
 function all(type) {
     return datastore.retrieveAll(type);
@@ -54,39 +55,19 @@ function get(type, id) {
 }
 
 function save(props, entity, txn) {
-    var wrapTransaction = !txn;
-    if (wrapTransaction) {
+    var wrapTransaction = false;
+    if (!txn) {
         txn = new Transaction();
+        wrapTransaction = true;
     }
-    if (txn.hasKey(entity._key)) {
-        return;
-    } else {
-        txn.registerKey(entity._key);
-    }
-    for (var i in props) {
-        var value = props[i];
-        if (isStorable(value)) {
-            value.save(txn);
-            value = value._key;
-        } else if (value instanceof Array) {
-            value = value.map(function(obj) {
-                if (obj instanceof Storable) {
-                    obj.save(txn);
-                    return obj._key;
-                } else {
-                    return obj;
-                }
-            });
+
+    if (updateEntity(props, entity, txn)) {
+        datastore.store(entity, txn);
+        if (wrapTransaction) {
+            txn.commit();
         }
-        entity[i] = value;
     }
-
-    datastore.store(entity, txn);
-
-    if (wrapTransaction) {
-        txn.commit();
-    }
-};
+}
 
 function remove(key, txn) {
     var wrapTransaction = !txn;
@@ -99,63 +80,26 @@ function remove(key, txn) {
     if (wrapTransaction) {
         txn.commit();
     }
-};
+}
 
-function equalKeys(key1, key2) {
-    return key1 && key2
-            && key1[0] == key2[0]
-            && key1[1] == key2[1];
+function query() {
+    // TODO
 }
 
 function getEntity(type, arg) {
     if (isKey(arg)) {
-        return datastore.load(arg[0], arg[1]);
+        var [type, id] = arg.$ref.split(":");
+        return datastore.load(type, id);
     } else if (isEntity(arg)) {
         return arg;
     } else if (arg instanceof Object) {
         var entity = arg.clone({});
         Object.defineProperty(entity, "_key", {
-            value: [type, datastore.generateId(type)]
+            value: createKey(type, datastore.generateId(type))
         });
         return entity;
     }
     return null;
-}
-
-function getProps(type, arg) {
-    if (isEntity(arg)) {
-        var props = {};
-        for (var i in arg) {
-            var value = arg[i];
-            if (isKey(value)) {
-                props[i] = new Storable(value[0], value);
-            } else if (value instanceof Array) {
-                props[i] = value.map(function(obj) {
-                    return isKey(obj) ?
-                           new Storable(obj[0], obj) : obj;
-                });
-            } else {
-                props[i] = value;
-            }
-        }
-        return props;
-    } else if (!isKey(arg) && arg instanceof Object) {
-        return arg;
-    }
-    return null;
-}
-
-function getKey(type, arg) {
-    if (isEntity(arg)) {
-        return arg._key;
-    } else if (isKey(arg)) {
-        return arg;
-    }
-    return null;
-}
-
-function getId(key) {
-    return key[1];
 }
 
 /**
@@ -168,7 +112,7 @@ function Store(path) {
     var idMap = {};
 
     this.store = function(entity, txn) {
-        var [type, id] = entity._key;
+        var [type, id] = entity._key.$ref.split(":");
 
         var dir = new File(base, type);
         if (!dir.exists()) {
@@ -195,8 +139,7 @@ function Store(path) {
     };
 
     this.load = function(type, id) {
-        var dir = new File(base, type);
-        var file = new File(dir, id);
+        var file = new File(new File(base, type), id);
 
         if (!file.exists()) {
             return null;
@@ -207,7 +150,7 @@ function Store(path) {
         var content = file.readAll();
         var entity = JSON.parse(content);
         Object.defineProperty(entity, "_key", {
-            value: [type, file.getName()]
+            value: createKey(type, id)
         });
         return entity;
     };
@@ -232,7 +175,7 @@ function Store(path) {
             if (!file.isFile() || file.isHidden()) {
                 continue;
             }
-            list.push(new Storable(type, [type, file.getName()]));
+            list.push(new Storable(type, createKey(type, file.getName())));
         }
         return list;
     };
@@ -241,7 +184,8 @@ function Store(path) {
         if (!isKey(key)) {
             throw new Error("Invalid key object: " + key);
         }
-        var file = new File(new File(base, key[0]), key[1]);
+        var [type, id] = key.$ref.split(":");
+        var file = new File(new File(base, type), id);
         txn.deleteResource({ file: file });        
     };
 
@@ -263,46 +207,22 @@ function Store(path) {
 
 };
 
-function isEntity(value) {
-    return value instanceof Object
-            && !isStorable(value)
-            && value._key instanceof Object;
-}
-
-function isKey(value) {
-    return value instanceof Array
-            && value.length == 2
-            && typeof value[0] == 'string'
-            && typeof value[1] == 'string';
-}
-
-function isStorable(value) {
-    return value instanceof Storable;
-}
-
 function Transaction() {
 
     var updateList = [];
     var deleteList = [];
-    var keys = [];
 
-    this.deleteResource = function(res) {
+    var tx = new BaseTransaction();
+
+    tx.deleteResource = function(res) {
         deleteList.push(res);
     }
 
-    this.updateResource = function(res) {
+    tx.updateResource = function(res) {
         updateList.push(res);
     }
 
-    this.registerKey = function(key) {
-        keys.push(key.join('/'));
-    }
-
-    this.hasKey = function(key) {
-        return keys.contains(key.join('/'));
-    }
-
-    this.commit = function() {
+    tx.commit = function() {
         for each (var res in updateList) {
             // because of a Java/Windows quirk, we have to delete
             // the existing file before trying to overwrite it
@@ -327,9 +247,11 @@ function Transaction() {
         deleteList = [];
     }
 
-   this.abort = function() {
-      for each (var res in updateList) {
-         res.tempfile.remove();
-      }
-   }
+    tx.abort = function() {
+        for each (var res in updateList) {
+            res.tempfile.remove();
+        }
+    }
+
+    return tx;
 }

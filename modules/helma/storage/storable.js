@@ -26,6 +26,7 @@ function Storable(type, arg) {
         var ctor = bindArguments(Storable, type);
         ctor.all = bindArguments(store.all, type);
         ctor.get = bindArguments(store.get, type);
+        ctor.query = bindArguments(store.query, type);
         ctor.prototype.__proto__ = Storable.prototype;
         typeRegistry[type] = ctor;
         return ctor;
@@ -43,7 +44,6 @@ function Storable(type, arg) {
     function ensureEntity() {
         if (!entity) {
             entity = store.getEntity(type, arg);
-            // key = store.getKey(type, entity);
         }
         return entity;
     }
