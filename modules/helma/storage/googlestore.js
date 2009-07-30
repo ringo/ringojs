@@ -15,6 +15,72 @@ var datastore = DatastoreServiceFactory.getDatastoreService();
 // into one big entity group
 var rootKey = KeyFactory.createKey("Root", "root");
 
+var EQUAL =                 Query.FilterOperator.EQUAL;
+var GREATER_THAN =          Query.FilterOperator.GREATER_THAN;
+var GREATER_THAN_OR_EQUAL = Query.FilterOperator.GREATER_THAN_OR_EQUAL;
+var LESS_THAN =             Query.FilterOperator.LESS_THAN;
+var LESS_THAN_OR_EQUAL =    Query.FilterOperator.LESS_THAN_OR_EQUAL;
+
+function BaseQuery(type) {
+    this.select = function(property) {
+        return this.mapProperty(all(type), property);
+    };
+    this.getQuery = function() {
+        return new Query(type);
+    };
+}
+
+function OperatorQuery(parentQuery, operator, property, value) {
+    this.select = function(selectProperty) {
+        var result = [];
+        var query = this.getQuery();
+        var type = query.getKind();
+        var i = datastore.prepare(query).asIterator();
+        while (i.hasNext()) {
+            result.push(new Storable(type, i.next()));
+        }
+        return this.mapProperty(result, selectProperty);
+    };
+
+    this.getQuery = function() {
+        var query = parentQuery.getQuery();
+        return query.addFilter(property, operator, value);
+    };
+}
+
+BaseQuery.prototype.mapProperty = function(list, property) {
+    if (property) {
+        return list.map(function(e) {
+            return e[property];
+        });
+    } else {
+        return list;
+    }
+};
+
+BaseQuery.prototype.equals = function(property, value) {
+    return new OperatorQuery(this, EQUAL, property, value);
+};
+
+BaseQuery.prototype.greater = function(property, value) {
+    return new OperatorQuery(this, GREATER_THAN, property, value);
+};
+
+BaseQuery.prototype.greaterEquals = function(property, value) {
+    return new OperatorQuery(this, GREATER_THAN_OR_EQUAL, property, value);
+};
+
+BaseQuery.prototype.less = function(property, value) {
+    return new OperatorQuery(this, LESS_THAN, property, value);
+};
+
+BaseQuery.prototype.lessEquals = function(property, value) {
+    return new OperatorQuery(this, LESS_THAN_OR_EQUAL, property, value);
+};
+
+BaseQuery.prototype.clone(OperatorQuery.prototype);
+
+
 function all(type) {
     var result = [];
     var i = datastore.prepare(new Query(type)).asIterator();
@@ -22,6 +88,10 @@ function all(type) {
         result.push(new Storable(type, i.next()));
     }
     return result;
+}
+
+function query(type) {
+    return new BaseQuery(type);
 }
 
 function get(type, id) {
