@@ -4,6 +4,7 @@ include('core/json');
 include('helma/file');
 include('helma/functional');
 include('./storeutils');
+include('./querysupport');
 
 export("Store", "Storable", "Transaction");
 
@@ -82,8 +83,8 @@ function remove(key, txn) {
     }
 }
 
-function query() {
-    // TODO
+function query(type) {
+    return new BaseQuery(bindArguments(all, type));
 }
 
 function getEntity(type, arg) {

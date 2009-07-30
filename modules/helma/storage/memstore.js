@@ -3,6 +3,7 @@ require('core/array');
 include('core/json');
 include('helma/functional');
 include('./storeutils');
+include('./querysupport');
 
 export("Storable");
 
@@ -62,8 +63,8 @@ function save(props, entity, txn) {
     }
 }
 
-function query() {
-    // TODO
+function query(type) {
+    return new BaseQuery(bindArguments(all, type));
 }
 
 function remove(key, txn) {
