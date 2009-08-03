@@ -12,6 +12,7 @@ var __shared__ = true;
 // must be set to a store implementation using Storable.setStoreImplementation()
 var store;
 
+// TODO make store a Storable argument instead of a module variable
 function Storable(type, arg) {
 
     if (!store) {
@@ -27,7 +28,7 @@ function Storable(type, arg) {
         ctor.all = bindArguments(store.all, type);
         ctor.get = bindArguments(store.get, type);
         ctor.query = bindArguments(store.query, type);
-        ctor.prototype.__proto__ = Storable.prototype;
+        ctor.prototype = Object.create(Storable.prototype);
         typeRegistry[type] = ctor;
         return ctor;
     }
@@ -116,6 +117,10 @@ function Storable(type, arg) {
                 return true;
             }
             return Scriptable.NOT_FOUND;
+        },
+
+        getPrototype: function() {
+            return typeRegistry[type].prototype;
         }
     });
 
@@ -155,7 +160,6 @@ function Storable(type, arg) {
         }
     });
 
-    storable.__proto__ = this.__proto__;
     return storable;
 }
 
