@@ -55,6 +55,7 @@ var log = require('helma/logging').getLogger(__name__);
                 // port config is done via properties
                 var props = xmlconfig.getProperties();
                 props.put('port', (config.port || 8080).toString());
+                if (config.host) props.put('host', config.host);
                 props.put('mountpoint', config.mountpoint || '/');
                 props.put('staticMountpoint', config.staticMountpoint || '/static');
                 xmlconfig.configure(server);
