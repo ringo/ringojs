@@ -36,7 +36,6 @@ function readOnlyPropertyDesc(obj, name, desc) {
 function writeOnlyPropertyDesc(obj, name, desc) {
     desc = desc || {};
     desc.set = function(value) { obj[name] = value; }
-    desk.writable = true;
     return desc;
 }
 
@@ -57,6 +56,5 @@ function readWritePropertyDesc(obj, name, desc) {
     desc = desc || {};
     desc.get = function() { return obj[name]; }
     desc.set = function(value) { obj[name] = value; }
-    desc.writable = true;
     return desc;
 }
