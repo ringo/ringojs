@@ -17,9 +17,11 @@
 package org.helma.tools;
 
 import org.helma.javascript.RhinoEngine;
+import org.helma.javascript.ModuleScope;
 import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
+import org.mozilla.javascript.Context;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -32,6 +34,8 @@ public class HelmaRunner {
 
     HelmaConfiguration config;
     RhinoEngine engine;
+    Context cx;
+    ModuleScope module;
     String scriptName = null;
     String[] scriptArgs = new String[0];
     boolean runShell = false;
@@ -42,11 +46,10 @@ public class HelmaRunner {
 
     public static void main(String[] args) throws IOException {
         HelmaRunner runner = new HelmaRunner();
-        runner.init(args);
-        runner.start();
+        runner.run(args);
     }
 
-    public void init(String[] args) throws IOException {
+    public void parseArgs(String[] args) throws IOException {
 
         int optlevel = 0;
         List<String> bootstrapScripts = new ArrayList<String>();
@@ -121,20 +124,16 @@ public class HelmaRunner {
             config.setBootstrapScripts(bootstrapScripts);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            if (debug) {
-                x.printStackTrace();
-            } else {
-                System.err.println(x);
-            }
-            System.exit(-1);
+            handleException(x);
         }
     }
 
-    public void start() {
-        if (engine == null) {
-            return;
-        }
+    public void run(String[] args) {
         try {
+            parseArgs(args);
+            if (engine == null) {
+                return;
+            }
             if (scriptName != null) {
                 engine.runScript(config.getMainResource(), scriptArgs);
             }
@@ -142,24 +141,55 @@ public class HelmaRunner {
                 new HelmaShell(config, engine, debug).run();
             }
         } catch (Exception x) {
-            if (debug) {
-                x.printStackTrace();
-            } else {
-                System.err.println(x);
-            }
-            System.exit(-1);
+            handleException(x);
         }
     }
 
+    public void init(String[] args) {
+        try {
+            parseArgs(args);
+            if (engine == null) {
+                return;
+            }
+            if (scriptName == null) {
+                throw new RuntimeException("daemon interface requires a script argument");
+            }
+            cx = engine.getContextFactory().enterContext();
+            module = engine.loadModule(cx, config.getMainResource().getModuleName(), null);
+            engine.invoke(module, "init", (Object[]) scriptArgs);
+        } catch (Exception x) {
+            handleException(x);
+        }
+    }
+
+    public void start() {
+        if (cx != null) {
+            try {
+                engine.invoke(module, "start");
+            } catch (Exception x) {
+                handleException(x);
+            }
+        }
+    }
+
+
     public void stop() {
-        if (engine == null) {
-            return;
+        if (cx != null) {
+            try {
+                engine.invoke(module, "stop");
+            } catch (Exception x) {
+                handleException(x);
+            }
         }
     }
 
     public void destroy() {
-        if (engine == null) {
-            return;
+        if (cx != null) {
+            try {
+                engine.invoke(module, "destroy");
+            } catch (Exception x) {
+                handleException(x);
+            }
         }
     }
 
@@ -179,6 +209,19 @@ public class HelmaRunner {
         err.println(message);
         err.println("Run with -h flag for more information on supported options.");
         System.exit(code);
+    }
+
+    private void handleException(Exception x) {
+        if (x instanceof NoSuchMethodException) {
+            // ignore unimplemented dameon life cycle methods
+            return;
+        }
+        if (debug) {
+            x.printStackTrace();
+        } else {
+            System.err.println(x);
+        }
+        System.exit(-1);
     }
 
     public static void printUsage() {

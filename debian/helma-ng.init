@@ -50,7 +50,11 @@ fi
 HELMA_USER=helma-ng
 
 # Run this application
-HELMA_APPLICATION=apps/demo/main.js
+HELMA_APPLICATION=modules/helma/webapp.js
+
+# Set the Helma module search path
+HELMA_MODULE_PATH=apps/demo
+export HELMA_MODULE_PATH
 
 # The first existing directory is used for JAVA_HOME (if JAVA_HOME is not
 # defined in $DEFAULT)

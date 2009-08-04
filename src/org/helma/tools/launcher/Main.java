@@ -42,19 +42,37 @@ public class Main {
      */
     public static void main(String[] args) {
         Main main = new Main();
-        main.init(args);
-        main.start();
+        main.run(args);
     }
 
-    public void init(String[] args) {
+    public Main() {
         try {
             File home = getHelmaHome();
             ClassLoader loader = createClassLoader(home);
 
             runnerClass = loader.loadClass("org.helma.tools.HelmaRunner");
             runnerInstance = runnerClass.newInstance();
-            runnerClass.getMethod("init", args.getClass())
-                    .invoke(runnerInstance, (Object) args);
+        } catch (Exception x) {
+            System.err.println("Uncaught exception: ");
+            x.printStackTrace();
+            System.exit(2);
+        }
+
+    }
+
+    private void run(String[] args) {
+        try {
+            runnerClass.getMethod("run", args.getClass()).invoke(runnerInstance, (Object) args);
+        } catch (Exception x) {
+            System.err.println("Uncaught exception: ");
+            x.printStackTrace();
+            System.exit(2);
+        }
+    }
+
+    public void init(String[] args) {
+        try {
+            runnerClass.getMethod("init", args.getClass()).invoke(runnerInstance, (Object) args);
         } catch (Exception x) {
             System.err.println("Uncaught exception: ");
             x.printStackTrace();

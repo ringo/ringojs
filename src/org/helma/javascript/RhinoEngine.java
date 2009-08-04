@@ -173,31 +173,34 @@ public class RhinoEngine {
      * a new per-thread scope, calls the function, exits the context and returns
      * the return value of the invocation.
      *
-     * @param moduleName the name of the script module, or null for the main module
+     * @param module the module name or object, or null for the main module
      * @param method the method name to call in the script
      * @param args the arguments to pass to the method
      * @return the return value of the invocation
      * @throws NoSuchMethodException the method is not defined
      * @throws IOException an I/O related error occurred
      */
-    public Object invoke(String moduleName, String method, Object... args)
+    public Object invoke(Object module, String method, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             initArguments(args);
-            if (moduleName == null) {
-                moduleName = config.getMainModule("main");
+            if (module == null) {
+                module = config.getMainModule("main");
+            } else if (!(module instanceof String) && !(module instanceof Scriptable)) {
+                throw new IllegalArgumentException("module argument must be a Scriptable or String object");
             }
             Object retval;
             while (true) {
                 try {
-                    Scriptable module = loadModule(cx, moduleName, null);
-                    Object function = ScriptableObject.getProperty(module, method);
+                    Scriptable scriptable = module instanceof Scriptable ?
+                            (Scriptable) module : loadModule(cx, (String) module, null);
+                    Object function = ScriptableObject.getProperty(scriptable, method);
                     if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
                         throw new NoSuchMethodException("Function " + method + " not defined");
                     }
-                    retval = ((Function) function).call(cx, topLevelScope, module, args);
+                    retval = ((Function) function).call(cx, topLevelScope, scriptable, args);
                     break;
                 } catch (JavaScriptException jsx) {
                     Scriptable thrown = jsx.getValue() instanceof Scriptable ?
@@ -498,6 +501,7 @@ public class RhinoEngine {
                 interpretedScripts : compiledScripts;
     }
 
+    // helpers for script dependency tracking
     private ReloadableScript getCurrentScript(Context cx) {
         return (ReloadableScript) cx.getThreadLocal("current_script");
     }
@@ -506,6 +510,7 @@ public class RhinoEngine {
         cx.putThreadLocal("current_script", script);
     }
 
+    // helpers for multi-engine isolation and sandboxing
     private Object[] checkThreadLocals(Context cx) {
         if (cx.getThreadLocal("engine") == this) {
             return null;

@@ -41,7 +41,7 @@ public class HelmaConfiguration {
     private String[] arguments;
     private int optimizationLevel = 0;
     private int languageVersion = 180;
-    private boolean parentProtoProperties = true;
+    private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
     private HelmaClassLoader loader;
     private ClassShutter classShutter = null;
