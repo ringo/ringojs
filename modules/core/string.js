@@ -661,9 +661,24 @@ Object.defineProperty(String.prototype, "debase64", {
 });
 
 
+/**
+ * Remove all potential HTML/XML tags from this string.
+ */
 Object.defineProperty(String.prototype, "stripTags", {
     value: function() {
         return this.replace(/<\/?[^>]+>/gi, '');
+    }
+});
+
+/**
+ * Escape the string to make it safe for use within an HTML document.
+ */
+Object.defineProperty(String.prototype, "escapeHtml", {
+    value: function() {
+        return this.replace(/&/g, '&amp;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/</g, '&lt;');
     }
 });
 

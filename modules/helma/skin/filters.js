@@ -111,35 +111,28 @@ function trim_filter(input) {
  * Removes all tags from a String.
  * Currently simply wraps Helma's stripTags-method.
  *
- * @see global.stripTags
+ * @see String.prototype.stripTags
  */
 function stripTags_filter(input) {
-   return stripTags((input || "").toString());
+   return String(input || "").stripTags();
 };
 
 
 /**
  * Escapes the characters in a String using XML entities.
- * Currently simply wraps Helma's encodeXml-method.
- *
- * @see global.encodeXml
  */
 function escapeXml_filter(input) {
-   return encodeXml((input || "").toString());
+   throw new Error("not implemented");
 }
 
 
 /**
  * Escapes the characters in a String using HTML entities.
  *
- * @see http://www.google.com/codesearch?q=escapeHtml
+ * @see String.prototype.escapeHtml
  */
 function escapeHtml_filter(input) {
-   var str = (input || "").toString();
-   return str.replace('&', '&amp;', 'g')
-             .replace('"', '&quot;', 'g')
-             .replace('>', '&gt;', 'g')
-             .replace('<', '&lt;', 'g');
+    return String(input || "").escapeHtml();
 }
 
 /**
