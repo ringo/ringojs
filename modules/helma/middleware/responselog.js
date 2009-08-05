@@ -37,7 +37,7 @@ exports.handleRequest = function handleRequest(req) {
     if (messages.length > 0) {
         var ResponseFilter = require("helma/webapp/util").ResponseFilter;
         res[2] = new ResponseFilter(body, function(part) {
-            if (typeof part != "string" && part.lastIndexOf("</body>") == -1) {
+            if (typeof part != "string" || part.lastIndexOf("</body>") == -1) {
                 return part;
             }
             return injectMessages(part, messages);
