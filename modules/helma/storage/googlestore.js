@@ -21,9 +21,20 @@ var GREATER_THAN_OR_EQUAL = Query.FilterOperator.GREATER_THAN_OR_EQUAL;
 var LESS_THAN =             Query.FilterOperator.LESS_THAN;
 var LESS_THAN_OR_EQUAL =    Query.FilterOperator.LESS_THAN_OR_EQUAL;
 
+function evaluateQuery(query, property) {
+    var result = [];
+    var type = query.getKind();
+    var i = datastore.prepare(query).asIterator();
+    while (i.hasNext()) {
+        var s = new Storable(type, i.next());
+        result.push(property ? s[property] : s);
+    }
+    return result;
+}
+
 function BaseQuery(type) {
     this.select = function(property) {
-        return this.mapProperty(all(type), property);
+        return evaluateQuery(this.getQuery(), property);
     };
     this.getQuery = function() {
         return new Query(type);
@@ -32,31 +43,13 @@ function BaseQuery(type) {
 
 function OperatorQuery(parentQuery, operator, property, value) {
     this.select = function(selectProperty) {
-        var result = [];
-        var query = this.getQuery();
-        var type = query.getKind();
-        var i = datastore.prepare(query).asIterator();
-        while (i.hasNext()) {
-            result.push(new Storable(type, i.next()));
-        }
-        return this.mapProperty(result, selectProperty);
+        return evaluateQuery(this.getQuery(), selectProperty);
     };
-
     this.getQuery = function() {
         var query = parentQuery.getQuery();
         return query.addFilter(property, operator, value);
     };
 }
-
-BaseQuery.prototype.mapProperty = function(list, property) {
-    if (property) {
-        return list.map(function(e) {
-            return e[property];
-        });
-    } else {
-        return list;
-    }
-};
 
 BaseQuery.prototype.equals = function(property, value) {
     return new OperatorQuery(this, EQUAL, property, value);
@@ -82,12 +75,7 @@ BaseQuery.prototype.clone(OperatorQuery.prototype);
 
 
 function all(type) {
-    var result = [];
-    var i = datastore.prepare(new Query(type)).asIterator();
-    while (i.hasNext()) {
-        result.push(new Storable(type, i.next()));
-    }
-    return result;
+    return evaluateQuery(new Query(type));
 }
 
 function query(type) {

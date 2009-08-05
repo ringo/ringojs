@@ -26,7 +26,7 @@ var LESS_THAN_OR_EQUAL = function(a, b) a <= b;
  */
 function BaseQuery(all) {
     this.select = function(property) {
-        return this.mapProperty(all(), property);
+        return mapProperty(all(), property);
     };
 }
 
@@ -36,18 +36,17 @@ function OperatorQuery(parentQuery, operator, property, value) {
         var list = base.filter(function(e) {
             return operator(e[property], value);
         });
-        return this.mapProperty(list, selectProperty);
+        return mapProperty(list, selectProperty);
     };
 }
 
-BaseQuery.prototype.mapProperty = function(list, property) {
+function mapProperty(list, property) {
     if (property) {
         return list.map(function(e) {
             return e[property];
         });
-    } else {
-        return list;
     }
+    return list;
 };
 
 BaseQuery.prototype.equals = function(property, value) {
