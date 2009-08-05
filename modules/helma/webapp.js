@@ -56,71 +56,63 @@ function handleRequest(env) {
         } else {
             res = error(req, e);
         }
-    } finally {
-        // TODO
-        if (!res)
-            res = notfound(req);
-        if (!(res instanceof Array) && res.close)
-            res = res.close();
     }
     return res;
 }
 
 function resolveInConfig(req, config, actionPath, path, prefix) {
     if (log.isDebugEnabled) log.debug('resolving path ' + path);
-    if (config.urls instanceof Array) {
+    if (Array.isArray(config.urls)) {
         for each (var url in config.urls) {
             if (log.isDebugEnabled) log.debug("checking url line: " + url);
             var match = getPattern(url).exec(path);
             if (log.isDebugEnabled) log.debug("got match: " + match);
             if (match != null) {
-                var module = getModule(url, prefix);
-                if (log.isDebugEnabled) log.debug("module: " + module);
-                // cut matching prefix from path
-                path = path.substring(match[0].length);
-                //remove leading and trailing slashes and split
-                var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
-                var action = getAction(module, pathArray[0]);
-                // log.debug("got action: " + action);
-                if (typeof action == "function" && pathArray.length <= action.length) {
-                    // default action - make sure request path has trailing slash
-                    if (!pathArray[0]) {
-                        req.checkTrailingSlash()
-                    }
-                    // set req.actionPath to the part of the path that resolves to the action
-                    actionPath.push(match[0], pathArray[0] || "index");
-                    req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
-                    // add remaining path elements as additional action arguments
-                    var actionArgs = pathArray.slice(1);
-                    var matchedArgs = match.slice(1);
-                    var args = [req].concat(matchedArgs).concat(actionArgs);
-                    var middleware = config.middleware;
-                    var middlewareIndex = 0;
-                    // set up middleware chain in request object
-                    req.process = function() {
-                        if (middleware instanceof Array
-                                && middlewareIndex < middleware.length) {
-                            return invokeMiddleware(middleware[middlewareIndex++], [req]);
-                        } else {
+                var middleware = config.middleware;
+                var middlewareIndex = 0;
+                req.process = function() {
+                    if (Array.isArray(middleware) && middlewareIndex < middleware.length) {
+                        return invokeMiddleware(middleware[middlewareIndex++], [req]);
+                    } else {
+                        var module = getModule(url, prefix);
+                        if (log.isDebugEnabled) log.debug("module: " + module);
+                        // cut matching prefix from path
+                        path = path.substring(match[0].length);
+                        //remove leading and trailing slashes and split
+                        var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
+                        var action = getAction(module, pathArray[0]);
+                        // log.debug("got action: " + action);
+                        if (typeof action == "function" && pathArray.length <= action.length) {
+                            // default action - make sure request path has trailing slash
+                            if (!pathArray[0]) {
+                                req.checkTrailingSlash()
+                            }
+                            // set req.actionPath to the part of the path that resolves to the action
+                            actionPath.push(match[0], pathArray[0] || "index");
+                            req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
+                            // add remaining path elements as additional action arguments
+                            var actionArgs = pathArray.slice(1);
+                            var matchedArgs = match.slice(1);
+                            var args = [req].concat(matchedArgs).concat(actionArgs);
                             var res = action.apply(module, args);
-                            if (res && typeof res === 'object'
-                                    && typeof res.close === 'function') {
+                            if (res && !Array.isArray(res) && typeof res.close === 'function') {
                                 return res.close();
                             }
                             return res;
+                        } else if (Array.isArray(module.urls)) {
+                            // nested app - make sure request path has trailing slash
+                            if (!path) {
+                                req.checkTrailingSlash();
+                            }
+                            actionPath.push(match[0]);
+                            return resolveInConfig(req, module, actionPath, path, match[0] + "/");
+                        } else {
+                            return notfound(req);
                         }
                     }
-                    return req.process();
-                } else if (module.urls instanceof Array) {
-                    // nested app - make sure request path has trailing slash
-                    if (!path) {
-                        req.checkTrailingSlash();
-                    }
-                    actionPath.push(match[0]);
-                    return resolveInConfig(req, module, actionPath, path, match[0] + "/");
-                } else {
-                    break;
                 }
+                return req.process();
+
             }
         }
     }
@@ -182,7 +174,9 @@ function error(req, e) {
     var res = new Response();
     res.status = 500;
     res.contentType = 'text/html';
-    res.writeln('<h2>', e, '</h2>');
+    var msg = String(e).escapeHtml();
+    res.writeln('<html><title>', msg, '</title>');
+    res.writeln('<body><h1>', msg, '</h1>');
     if (e.fileName && e.lineNumber) {
         res.writeln('<p>In file<b>', e.fileName, '</b>at line<b>', e.lineNumber, '</b></p>');
     }
@@ -193,11 +187,12 @@ function error(req, e) {
         var writer = new java.io.StringWriter();
         var printer = new java.io.PrintWriter(writer);
         e.rhinoException.printStackTrace(printer);
-        res.writeln('<pre>', writer.toString(), '</pre>');
-        log.error(e.toString(), e.rhinoException);
+        res.writeln('<pre>', writer.toString().escapeHtml(), '</pre>');
+        log.error(msg, e.rhinoException);
     } else {
-        log.error(e.toString());
+        log.error(msg);
     }
+    res.writeln('</body></html>');
     return res.close();
 }
 
@@ -206,10 +201,13 @@ function error(req, e) {
  */
 function notfound(req) {
     var res = new Response();
+    var msg = 'Not Found';
     res.status = 404;
     res.contentType = 'text/html';
-    res.writeln('<h1>Not Found</h1>');
-    res.writeln('The requested URL', req.pathDecoded, 'was not found on the server.');
+    res.writeln('<html><title>', msg, '</title>');
+    res.writeln('<body><h2>', msg, '</h2>');
+    res.writeln('<p>The requested URL', req.pathDecoded, 'was not found on the server.</p>');
+    res.writeln('</body></html>');
     return res.close();
 }
 
