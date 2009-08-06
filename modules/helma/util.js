@@ -58,3 +58,23 @@ function readWritePropertyDesc(obj, name, desc) {
     desc.set = function(value) { obj[name] = value; }
     return desc;
 }
+
+/**
+ * JSON reviver function for Date values. Pass this as second argument to
+ * JSON.parse to convert stringified dates back into Date objects. Borrowed
+ * from http://www.west-wind.com/weblog/posts/729630.aspx
+ *
+ * @param key the JSON key
+ * @param value the JSON value
+ */
+function jsonDateReviver(key, value) {
+    if (typeof value === 'string') {
+        var a = jsonDateRegexp.exec(value);
+        if (a) {
+            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4], +a[5], +a[6]));
+        }
+    }
+    return value;
+}
+
+var jsonDateRegexp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
