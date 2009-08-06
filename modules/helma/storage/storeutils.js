@@ -1,7 +1,7 @@
 include('./storable');
 
 export('equalKeys', 'updateEntity', 'getProps', 'getType', 'getKey', 'getId',
-        'isEntity', 'isKey', 'createKey', 'isStorable', 'BaseTransaction');
+        'isEntity', 'isKey', 'createKey', 'isStorable', 'isStorableDate', 'BaseTransaction');
 
 function equalKeys(key1, key2) {
     return key1 && key2 && key1.$ref == key2.$ref;
@@ -27,6 +27,8 @@ function updateEntity(props, entity, txn) {
                     return obj;
                 }
             });
+        } else if (value instanceof Date) {
+            value = {$timestamp: value.getTime()};
         }
         entity[i] = value;
     }
@@ -45,6 +47,8 @@ function getProps(type, arg) {
                     return isKey(obj) ?
                            new Storable(getType(obj), obj) : obj;
                 });
+            } else if (isStorableDate(value)) {
+                props[i] = new Date(+value.$timestamp);
             } else {
                 props[i] = value;
             }
@@ -94,6 +98,15 @@ function isEntity(value) {
 function isKey(value) {
     return value instanceof Object
            && typeof(value.$ref) === 'string';
+}
+
+/**
+ *
+ * @param value
+ */
+function isStorableDate(value) {
+    return value instanceof Object
+           && isFinite(value.$timestamp);
 }
 
 function isStorable(value) {
