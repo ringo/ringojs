@@ -4,7 +4,7 @@
 
 export('BaseQuery');
 
-var EQUAL = function(a, b) a == b;
+var EQUAL = function(a, b) a === b || a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
 var GREATER_THAN = function(a, b) a > b;
 var GREATER_THAN_OR_EQUAL = function(a, b) a >= b;
 var LESS_THAN = function(a, b) a < b;
