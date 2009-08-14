@@ -146,8 +146,4 @@ Object.defineProperty(this, "global", { value: this });
 
 })(global);
 
-// Hack to get narwhal running
-try {
-    global.system = {};
-    global.system = require('system');
-} catch (ignore) {}
+global.system = require('system');

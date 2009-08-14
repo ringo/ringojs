@@ -1,13 +1,13 @@
-// IO: Rhino
-
 var Binary = require("./binary").Binary;
 
-var IO = exports.IO = function(inputStream, outputStream) {
+export('IO', 'TextInputStream', 'TextOutputStream');
+
+function IO(inputStream, outputStream) {
     this.inputStream = inputStream;
     this.outputStream = outputStream;
 }
 
-IO.prototype.read = function(length, encoding) {
+IO.prototype.read = function(length) {
     var readAll = false,
         buffer  = null,
         bytes   = null,
@@ -40,9 +40,7 @@ IO.prototype.read = function(length, encoding) {
             }
         }	
         total += read;
-        
-        //print("read="+read+" index="+index+" total="+total+" length="+length+" buffers.length="+buffers.length);
-        
+
     } while ((readAll || total < length) && read > -1);
     
     var resultBuffer, resultLength;
@@ -70,22 +68,152 @@ IO.prototype.write = function(object, encoding) {
 
     var binary = object.toBinary(encoding);
     this.outputStream.write(binary.bytes);
+    return this;
 }
 
 IO.prototype.flush = function() {
     this.outputStream.flush();
-}
+    return this;
+};
 
 IO.prototype.close = function() {
     if (this.inputStream)
         this.inputStream.close();
     if (this.outputStream)
         this.outputStream.close();
-}
+};
 
 // IO: platform independent
 
 IO.prototype.puts = function() {
     this.write(arguments.length === 0 ? "\n" : Array.prototype.join.apply(arguments, ["\n"]) + "\n");
+}
+
+function TextInputStream(io, charset, buffering) {
+    var stream;
+
+    if (charset === undefined)
+        stream = new java.io.InputStreamReader(io.inputStream);
+    else
+        stream = new java.io.InputStreamReader(io.inputStream, charset);
+
+    if (buffering === undefined)
+        stream = new java.io.BufferedReader(stream);
+    else
+        stream = new java.io.BufferedReader(stream, buffering);
+
+    this.readLine = function () {
+        var line = stream.readLine();
+        if (line === null)
+            return '';
+        return String(line) + "\n";
+    };
+
+    this.itertor = function () {
+        return this;
+    };
+
+    this.next = function () {
+        var line = stream.readLine();
+        if (line === null)
+            throw StopIteration;
+        return String(line);
+    };
+
+    this.forEach = function (block, context) {
+        var line;
+        while (true) {
+            try {
+                line = this.next();
+            } catch (exception) {
+                break;
+            }
+            block.call(context, line);
+        }
+    };
+
+    this.input = function () {
+        throw "NYI";
+    };
+
+    this.readLines = function () {
+        var lines = [];
+        do {
+            var line = this.readLine();
+            if (line.length)
+                lines.push(line);
+        } while (line.length);
+        return lines;
+    };
+
+    this.read = function () {
+        return this.readLines().join('');
+    };
+
+    this.readInto = function (buffer) {
+        throw "NYI";
+    };
+
+    this.copy = function (output, mode, options) {
+        do {
+            var line = this.readLine();
+            output.write(this);
+        } while (line.length);
+        output.flush();
+        return this;
+    };
+
+    this.close = function () {
+        io.close();
+    };
+
+    return this;
+}
+
+function TextOutputStream(io, charset, buffering) {
+    var stream;
+
+    if (charset === undefined)
+        stream = new java.io.OutputStreamWriter(io.outputStream);
+    else
+        stream = new java.io.OutputStreamWriter(io.outputStream, charset);
+
+    if (buffering === undefined)
+        stream = new java.io.BufferedWriter(stream);
+    else
+        stream = new java.io.BufferedWriter(stream, buffering);
+
+    this.write = function () {
+        stream.write.apply(stream, arguments);
+        return this;
+    };
+
+    this.writeLine = function (line) {
+        this.write(line + "\n"); // todo recordSeparator
+        return this;
+    };
+
+    this.writeLines = function (lines) {
+        lines.forEach(this.writeLine);
+        return this;
+    };
+
+    this.print = function () {
+        this.write(Array.prototype.join.call(arguments, " ") + "\n");
+        this.flush();
+        // todo recordSeparator, fieldSeparator
+        return this;
+    };
+
+    this.flush = function () {
+        stream.flush();
+        return this;
+    };
+
+    this.close = function () {
+        io.close();
+    };
+
+    return this;
 }
 
