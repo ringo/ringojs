@@ -3,7 +3,7 @@
 require('core/string');
 require('core/object');
 import('helma/logging', 'logging');
-import('helma/system', 'system');
+import('helma/engine', 'engine');
 
 export('render', 'createSkin', 'Skin');
 
@@ -11,7 +11,7 @@ var __shared__ = true;
 var log = logging.getLogger(__name__);
 var skincache = false; // {}
 
-require('helma/system').addHostObject(org.helma.template.MacroTag);
+engine.addHostObject(org.helma.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
@@ -56,13 +56,13 @@ function createSkin(resourceOrString, scope) {
     var subSkins = {};
     var currentSkin = mainSkin;
     var parentSkin = null;
-    var engine = system.getRhinoEngine();
+    var eng = engine.getRhinoEngine();
     var parser = new org.helma.template.SkinParser({
         renderText: function(text) {
             currentSkin[currentSkin.length] = text;
         },
         renderMacro: function(macro) {
-            engine.wrapArgument(macro, global);
+            eng.wrapArgument(macro, global);
             if (macro.name === 'extends') {
                 var skinPath = macro.getParameter(0);
                 var skinResource;

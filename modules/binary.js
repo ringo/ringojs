@@ -1,5 +1,5 @@
 
-var asJavaString = require('helma/system').asJavaString;
+var asJavaString = require('helma/engine').asJavaString;
 
 var Binary = exports.Binary = function(bytes) {
     this.bytes = bytes;

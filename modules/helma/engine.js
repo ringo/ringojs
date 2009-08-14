@@ -4,9 +4,7 @@
 
 require('core/object');
 
-export('args',
-        'env',
-        'properties',
+export( 'properties',
         'addHostObject',
         'addRepository',
         'asJavaString',
@@ -195,14 +193,6 @@ function addRepository(repo) {
         path.add(Math.max(0, path.length) - 1, repo);
     }
 }
-
-Object.defineProperty(this, "args", {
-    value: new ScriptableList(getRhinoEngine().getCommandLineArguments())
-});
-
-Object.defineProperty(this, "env", {
-    value: new ScriptableMap(java.lang.System.getenv())
-});
 
 Object.defineProperty(this, "properties", {
     value: new ScriptableMap(java.lang.System.getProperties())

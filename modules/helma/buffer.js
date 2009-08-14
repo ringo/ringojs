@@ -1,5 +1,5 @@
 require('core/string');
-include('helma/system');
+include('helma/engine');
 
 export('Buffer');
 

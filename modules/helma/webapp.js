@@ -8,7 +8,7 @@ require('core/string');
 include('helma/webapp/request');
 include('helma/webapp/response');
 
-import('helma/system', 'system');
+import('helma/engine', 'engine');
 import('helma/httpserver', 'server');
 import('helma/logging', 'logging');
 
@@ -251,8 +251,8 @@ if (require.main == module.id) {
         if (arg.indexOf('-') == 0) {
             break;
         }
-        system.addRepository(arg);
+        engine.addRepository(arg);
     }
-    log.info('Setup module search: ' + system.getRepositories());
+    log.info('Setup module search: ' + engine.getRepositories());
     start();
 }

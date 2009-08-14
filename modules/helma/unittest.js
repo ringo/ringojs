@@ -1,5 +1,4 @@
 import("core/string");
-var system = require("helma/system");
 var shell = require("helma/shell");
 
 var __shared__ = true;

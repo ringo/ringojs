@@ -1,4 +1,4 @@
-var system = require('helma/system');
+var engine = require('helma/engine');
 var Profiler = require('helma/profiler').Profiler;
 var Buffer = require('helma/buffer').Buffer;
 var log = require('helma/logging').getLogger(__name__);
@@ -11,12 +11,12 @@ var maxFrames = 20;
  * level to -1 and adds a profiler.
  */
 exports.handleRequest = function(req) {
-    if (system.getOptimizationLevel() > -1) {
-        system.setOptimizationLevel(-1);
+    if (engine.getOptimizationLevel() > -1) {
+        engine.setOptimizationLevel(-1);
         throw {retry: true};
     }
     var profiler = new Profiler();
-    system.getRhinoContext().setDebugger(profiler, null);
+    engine.getRhinoContext().setDebugger(profiler, null);
 
     // get the response passing the request on to the middleware chain
     var res = req.process();

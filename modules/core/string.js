@@ -14,7 +14,7 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-var asJavaString = require('helma/system').asJavaString;
+var asJavaString = require('helma/engine').asJavaString;
 
 __shared__ = true;
 

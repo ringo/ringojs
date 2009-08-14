@@ -3,7 +3,6 @@
  */
 
 require('core/string');
-var system = require('helma/system');
 var log = require('helma/logging').getLogger(__name__);
 importClass(java.util.HashMap);
 
