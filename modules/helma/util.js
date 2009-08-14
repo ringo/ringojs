@@ -1,5 +1,5 @@
 
-export('readOnlyPropertyDesc', 'writeOnlyPropertyDesc', 'readWritePropertyDesc');
+export('readOnlyPropertyDesc', 'writeOnlyPropertyDesc', 'readWritePropertyDesc', 'jsonDateReviver', 'timer');
 
 /**
  * Create a read-only property descriptor to be used as third argument in
@@ -78,3 +78,10 @@ function jsonDateReviver(key, value) {
 }
 
 var jsonDateRegexp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
+
+function timer(fn) {
+    var start = java.lang.System.nanoTime();
+    fn();
+    var stop = java.lang.System.nanoTime();
+    print(Math.round((stop - start) / 1000000), 'millis');
+}
