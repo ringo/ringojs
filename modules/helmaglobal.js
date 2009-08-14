@@ -33,7 +33,7 @@ Object.defineProperty(this, "global", { value: this });
     })
 
     Object.defineProperty(this, "arguments", {
-        value: new ScriptableList(engine.getArguments())
+        value: Array.apply(null, engine.getArguments())
     });
 
     /**
@@ -145,3 +145,9 @@ Object.defineProperty(this, "global", { value: this });
     });
 
 })(global);
+
+// Hack to get narwhal running
+try {
+    global.system = {};
+    global.system = require('system');
+} catch (ignore) {}
