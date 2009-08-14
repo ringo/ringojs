@@ -109,7 +109,7 @@ public class HelmaRunner {
                 }
             }
             if (i < args.length) {
-                scriptName = args[i++];
+                scriptName = args[i];
                 scriptArgs = new String[args.length - i];
                 System.arraycopy(args, i, scriptArgs, 0, scriptArgs.length);
             }
