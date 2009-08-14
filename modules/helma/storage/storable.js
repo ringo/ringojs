@@ -68,12 +68,7 @@ function Storable(type, arg) {
             if (this.super$get(id, start) != Scriptable.NOT_FOUND) {
                 return this.super$get(id, start);
             } else if (ensureProps()) {
-                var value = props[id];
-                if (value === undefined) {
-                    return Scriptable.NOT_FOUND;
-                } else {
-                    return value;
-                }
+                return props[id];
             }
             return Scriptable.NOT_FOUND;
         },
