@@ -140,7 +140,7 @@ public class ScriptUtils {
             if (allowNull) return null;
             throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
         }
-        return Context.jsToJava(args[pos], Object.class);
+        return args[pos];
     }
 
 }
