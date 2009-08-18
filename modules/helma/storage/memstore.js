@@ -2,18 +2,35 @@ require('core/object');
 require('core/array');
 include('core/json');
 include('helma/functional');
+include('helma/engine');
 include('./storeutils');
 include('./querysupport');
 
-export("Storable");
+export("defineClass");
 
 var __shared__ = true;
 var log = require('helma/logging').getLogger(__name__);
 
-var Storable = require('./storable').Storable;
-Storable.setStoreImplementation(this);
-
+var self = this;
+var registry = {};
 var datastore = datastore || new MemStore();
+addHostObject(org.helma.util.Storable);
+
+function defineClass(type) {
+    var ctor = registry[type];
+    if (!ctor) {
+        ctor = registry[type] = Storable.defineClass(self, type);
+        ctor.all = bindArguments(all, type);
+        ctor.get = bindArguments(get, type);
+        ctor.query = bindArguments(query, type);
+    }
+    return ctor;
+}
+
+function createStorable(type, key, entity) {
+    var ctor = registry[type];
+    return ctor.createInstance(key, entity);
+}
 
 function list(type, options, thisObj) {
     var array = getAll(type);
@@ -126,7 +143,7 @@ function MemStore() {
     this.retrieve = function(type, id) {
         var entity = this.load(type, id);
         if (entity) {
-            return new Storable(type, entity);
+            return createStorable(type, entity._key, entity);
         }
         return null;
     };
@@ -135,7 +152,7 @@ function MemStore() {
         var dir = data[type];
         var list = []
         for (var id in dir) {
-            list.push(new Storable(type, createKey(type, id)));
+            list.push(createStorable(type, createKey(type, id)));
         }
         return list;
     };

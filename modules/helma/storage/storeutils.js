@@ -1,5 +1,3 @@
-include('./storable');
-
 export('equalKeys', 'updateEntity', 'getProps', 'getType', 'getKey', 'getId',
         'isEntity', 'isKey', 'createKey', 'isStorable', 'isStorableDate', 'BaseTransaction');
 
@@ -41,11 +39,12 @@ function getProps(type, arg) {
         for (var i in arg) {
             var value = arg[i];
             if (isKey(value)) {
-                props[i] = new Storable(getType(value), value);
+                props[i] = this.createStorable(getType(value), value);
             } else if (value instanceof Array) {
+                var self = this;
                 props[i] = value.map(function(obj) {
                     return isKey(obj) ?
-                           new Storable(getType(obj), obj) : obj;
+                           self.createStorable(getType(obj), obj) : obj;
                 });
             } else if (isStorableDate(value)) {
                 props[i] = new Date(+value.$timestamp);

@@ -2,9 +2,6 @@ package org.helma.util;
 
 import org.mozilla.javascript.*;
 
-import java.lang.reflect.Method;
-
-
 public class Storable extends ScriptableObject {
 
     private Scriptable store;
@@ -15,7 +12,23 @@ public class Storable extends ScriptableObject {
     private Object key;
     private Object entity;
 
-    enum FactoryType {CTOR, KEY, ENTITY};
+    enum FactoryType {CONSTRUCTOR, FACTORY};
+
+    public Storable() {
+        this.isPrototype = true;
+    }
+
+    private Storable(Scriptable store, String type) {
+        this.store = store;
+        this.type = type;
+        this.isPrototype = true;
+    }
+
+    private Storable(Storable prototype) {
+        this.store = prototype.store;
+        this.type = prototype.type;
+        this.isPrototype = false;
+    }
 
     static class FactoryFunction extends BaseFunction {
 
@@ -28,32 +41,22 @@ public class Storable extends ScriptableObject {
             ScriptRuntime.setFunctionProtoAndParent(this, scope);
         }
 
-        /**
-         * Performs conversions on argument types if needed and
-         * invokes the underlying Java method or constructor.
-         * <p/>
-         * Implements Function.call.
-         *
-         * @see org.mozilla.javascript.Function#call(
-         *org.mozilla.javascript.Context , org.mozilla.javascript.Scriptable , org.mozilla.javascript.Scriptable , Object[])
-         */
         @Override
         public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-            ScriptUtils.checkArguments(args, 0, 1);
-            Storable storable = new Storable(prototype.store, prototype.type, false);
+            Storable storable = new Storable(prototype);
             switch (type) {
-                case CTOR:
+                case CONSTRUCTOR:
+                    ScriptUtils.checkArguments(args, 0, 1);
                     Scriptable properties = ScriptUtils.getScriptableArgument(args, 0, true);
                     if (properties == null) {
                         properties = cx.newObject(scope);
                     }
                     storable.properties = properties;
                     break;
-                case KEY:
+                case FACTORY:
+                    ScriptUtils.checkArguments(args, 1, 2);
                     storable.key = ScriptUtils.getObjectArgument(args, 0, false);
-                    break;
-                case ENTITY:
-                    storable.entity = ScriptUtils.getObjectArgument(args, 0, false);
+                    storable.entity = ScriptUtils.getObjectArgument(args, 1, true);
                     break;
             }
             storable.setParentScope(scope);
@@ -62,56 +65,22 @@ public class Storable extends ScriptableObject {
         }
     }
 
-    public Storable() {
-        isPrototype = true;
-    }
-
-    private Storable(Scriptable store, String type, boolean isPrototype) {
-        this.store = store;
-        this.type = type;
-        this.isPrototype = isPrototype;
-    }
-
-    public static Object createStorable(Context cx, Object[] args, Function ctorObj, boolean inNewExpr) {
-        ScriptUtils.checkArguments(args, 0, 1);
-        Scriptable scope = ctorObj.getParentScope();
-        FactoryFunction fun = (FactoryFunction) ctorObj;
-        Storable prototype = fun.prototype;
-        Storable storable = new Storable(prototype.store, prototype.type, false);
-        switch (fun.type) {
-            case CTOR:
-                Scriptable properties = ScriptUtils.getScriptableArgument(args, 0, true);
-                if (properties == null) {
-                    properties = cx.newObject(scope);
-                }
-                storable.properties = properties;
-                break;
-            case KEY:
-                storable.key = ScriptUtils.getObjectArgument(args, 0, false);
-                break;
-            case ENTITY:
-                storable.entity = ScriptUtils.getObjectArgument(args, 0, false);
-                break;
-        }
-        storable.setParentScope(scope);
-        storable.setPrototype(prototype);
-        return storable;
-    }
-
-    public static Scriptable jsStaticFunction_defineStorable(Scriptable store, String type)
+    public static Scriptable jsStaticFunction_defineClass(Scriptable store, String type)
             throws NoSuchMethodException {
         int attr = DONTENUM | PERMANENT | READONLY;
         Scriptable scope = ScriptRuntime.getTopCallScope(Context.getCurrentContext());
-        Storable prototype = new Storable(store, type, true);
+        Storable prototype = new Storable(store, type);
         prototype.setParentScope(scope);
         prototype.setPrototype(ScriptableObject.getClassPrototype(scope, "Storable"));
-        BaseFunction func = new FactoryFunction(prototype, scope, FactoryType.CTOR);
-        func.setImmunePrototypeProperty(prototype);
-        prototype.setParentScope(func);
-        defineProperty(prototype, "constructor", func, attr);
-        func.defineProperty("fromKey", new FactoryFunction(prototype, scope, FactoryType.KEY), attr);
-        func.defineProperty("fromEntity", new FactoryFunction(prototype, scope, FactoryType.ENTITY), attr);
-        return func;
+        // create the constructor, visible to the application
+        BaseFunction ctor = new FactoryFunction(prototype, scope, FactoryType.CONSTRUCTOR);
+        ctor.setImmunePrototypeProperty(prototype);
+        prototype.setParentScope(ctor);
+        defineProperty(prototype, "constructor", ctor, attr);
+        // create the factory function, visible to the store implementation
+        BaseFunction factory = new FactoryFunction(prototype, scope, FactoryType.FACTORY);
+        ScriptableObject.defineProperty(ctor, "createInstance", factory, attr);
+        return ctor;
     }
 
     public String getClassName() {
@@ -133,26 +102,58 @@ public class Storable extends ScriptableObject {
      */
     @Override
     protected Object equivalentValues(Object value) {
-        if (value instanceof Storable) {
-            return this == value;
+        if (this == value) {
+            return Boolean.TRUE;
+        }
+        if (value instanceof Storable && isPersistent()) {
+            Storable s = (Storable) value;
+            return invokeStoreMethod("equalKeys", key, s.key);
         }
         return NOT_FOUND;
     }
 
-    public void jsFunction_save() {
-        System.err.println("SAVING");
+    public void jsFunction_save(Object transaction) {
+        if (!isPrototype) {
+            if (entity == null) {
+                entity = invokeStoreMethod("getEntity", type, properties != null ? properties : key);
+            }
+            if (transaction == Undefined.instance) {
+                invokeStoreMethod("save", properties, entity);                
+            } else {
+                invokeStoreMethod("save", properties, entity, transaction);
+            }
+        }
     }
 
-    public void jsFunction_remove() {
-        System.err.println("REMOVING");
+    public void jsFunction_remove(Object transaction) {
+        if (!isPrototype && isPersistent()) {
+            if (key == null) {
+                key = invokeStoreMethod("getKey", type, entity);
+            }
+            if (transaction == Undefined.instance) {
+                invokeStoreMethod("remove", key);
+            } else {
+                invokeStoreMethod("remove", key, transaction);
+            }
+        }
     }
 
-    public String jsGet__key() {
-        return "KEY";
+    public Object jsGet__key() {
+        if (!isPrototype && isPersistent()) {
+            if (key == null) {
+                key = invokeStoreMethod("getKey", type, entity);
+            }
+            return key;
+        }
+        return Undefined.instance;
     }
 
-    public String jsGet__id() {
-        return "ID";
+    public Object jsGet__id() {
+        Object k = jsGet__key();
+        if (k != Undefined.instance) {
+            return invokeStoreMethod("getId", k);
+        }
+        return Undefined.instance;
     }
 
     @Override
@@ -160,26 +161,21 @@ public class Storable extends ScriptableObject {
         if (isPrototype) {
             return super.has(name, start);
         }
-        if (properties != null && properties.has(name, properties)) {
-            return true;
+        if (properties == null && isPersistent()) {
+            properties = loadProperties();
         }
-        Object[] args = {key, entity, name};
-        Object value = invokeStoreMethod("hasProperty", args);
-        return value == NOT_FOUND ? false : ScriptRuntime.toBoolean(value);
+        return properties != null && properties.has(name, properties);
     }
 
     @Override
     public Object get(String name, Scriptable start) {
         if (isPrototype) {
-            return super.get(name, this);
+            return super.get(name, start);
         }
-        if (properties != null && properties.has(name, properties)) {
-            return properties.get(name, properties);
+        if (properties == null && isPersistent()) {
+            properties = loadProperties();
         }
-        Object[] args = {key, entity, name};
-        Object value = invokeStoreMethod("getProperty", args);
-        super.put(name, this, value);
-        return value;
+        return properties == null ? Scriptable.NOT_FOUND : properties.get(name, properties);
     }
 
     @Override
@@ -216,19 +212,18 @@ public class Storable extends ScriptableObject {
         return properties.getIds();
     }
 
-    private Scriptable loadProperties() {
-        Object[] args = new Object[] {key};
-        if (entity == null) {
-            entity = args[0] = invokeStoreMethod("loadEntity", args);
-        }
-        Object props = invokeStoreMethod("getProperties", args);
-        if (props == NOT_FOUND) {
-            return Context.getCurrentContext().newObject(getParentScope());
-        }
-        return (Scriptable) props;
+    private boolean isPersistent() {
+        return key != null || entity != null;
     }
 
-    private Object invokeStoreMethod(String method, Object[] args) {
+    private Scriptable loadProperties() {
+        if (entity == null) {
+            entity = invokeStoreMethod("getEntity", type, key);
+        }
+        return (Scriptable) invokeStoreMethod("getProps", type, entity);
+    }
+
+    private Object invokeStoreMethod(String method, Object... args) {
         Object value = ScriptableObject.getProperty(store, method);
         if (value instanceof Callable) {
             return ((Callable) value).call(Context.getCurrentContext(), getParentScope(), store, args);

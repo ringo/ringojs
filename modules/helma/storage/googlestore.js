@@ -1,14 +1,17 @@
 
 require('core/string');
+include('helma/engine');
+include('helma/functional');
+
+export('defineClass');
+
 importPackage(com.google.appengine.api.datastore);
-
-export('Storable');
-
-var Storable = require('./storable').Storable;
-Storable.setStoreImplementation(this);
+addHostObject(org.helma.util.Storable);
 
 var __shared__ = true;
 var datastore = DatastoreServiceFactory.getDatastoreService();
+var registry = {};
+var self = this;
 
 // HACK: google datastore only allows entities in the same entity group
 // to be modified in the same transaction, so we put all our app's data
@@ -21,12 +24,29 @@ var GREATER_THAN_OR_EQUAL = Query.FilterOperator.GREATER_THAN_OR_EQUAL;
 var LESS_THAN =             Query.FilterOperator.LESS_THAN;
 var LESS_THAN_OR_EQUAL =    Query.FilterOperator.LESS_THAN_OR_EQUAL;
 
+function defineClass(type) {
+    var ctor = registry[type];
+    if (!ctor) {
+        ctor = registry[type] = Storable.defineClass(self, type);
+        ctor.all = bindArguments(all, type);
+        ctor.get = bindArguments(get, type);
+        ctor.query = bindArguments(query, type);
+    }
+    return ctor;
+}
+
+function createStorable(type, key, entity) {
+    var ctor = registry[type];
+    return ctor.createInstance(key, entity);
+}
+
 function evaluateQuery(query, property) {
     var result = [];
     var type = query.getKind();
     var i = datastore.prepare(query).asIterator();
     while (i.hasNext()) {
-        var s = new Storable(type, i.next());
+        var entity = i.next();
+        var s = createStorable(type, entity.getKey(), entity);
         result.push(property ? s[property] : s);
     }
     return result;
@@ -87,7 +107,7 @@ function get(type, id) {
 	if (!isKey(key)) {
 		throw Error("Storable.get() called with non-key argument");
 	}
-	return new Storable(key.getKind(), datastore.get(key));
+	return createStorable(key.getKind(), key, datastore.get(key));
 }
 
 function save(props, entity, entities) {
@@ -185,13 +205,13 @@ function getProps(type, arg) {
         for (var i in map) {
             var value = map[i];
             if (isKey(value)) {
-                value = new Storable(value.getKind(), value);
+                value = createStorable(value.getKind(), value);
             } else if (value instanceof java.util.List) {
                 var array = [];
                 for (var it = value.iterator(); it.hasNext(); ) {
                     var obj = it.next();
                     array.push(isKey(obj) ?
-                               new Storable(obj.getKind(), obj) : obj);
+                               createStorable(obj.getKind(), obj) : obj);
                 }
                 value = array;
             } else if (value instanceof Text) {

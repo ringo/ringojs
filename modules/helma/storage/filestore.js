@@ -1,50 +1,36 @@
 require('core/object');
 require('core/array');
 include('core/json');
+include('helma/engine');
 include('helma/file');
 include('helma/functional');
 include('./storeutils');
 include('./querysupport');
 
-export("Store", "Storable", "Transaction");
+export("Store", "defineClass", "Transaction");
 
 var __shared__ = true;
 var log = require('helma/logging').getLogger(__name__);
 
-var Storable = require('./storable').Storable;
-Storable.setStoreImplementation(this);
-
+var self = this;
+var registry = {};
 var datastore = new Store("db");
+addHostObject(org.helma.util.Storable);
 
-function list(type, options, thisObj) {
-    var array = getAll(type);
-    if (options) {
-        // first filter out the the items we're not interested in
-        var filter = options.filter;
-        if (typeof filter == "function") {
-            array = array.filter(filter, thisObj);
-        }
-        // then put them into order
-        var orderBy = options.orderBy,
-                ascDesc = options.order == "desc" ? -1 : 1;
-        if (options.orderBy) {
-            array = array.sort(function(o1, o2) {
-                var p1 = o1[orderBy],
-                        p2 = o2[orderBy];
-                if (p1 < p2) return -1 * ascDesc;
-                if (p1 > p2) return  1 * ascDesc;
-                return 0;
-            })
-        }
-        // finally apply pagination/slicing
-        var start = parseInt(options.start, 10),
-                max = parseInt(options.max, 10);
-        if (isFinite(start) || isFinite(max)) {
-            start = start || 0;
-            array = array.slice(start, start + max || array.length);
-        }
+function defineClass(type) {
+    var ctor = registry[type];
+    if (!ctor) {
+        ctor = registry[type] = Storable.defineClass(self, type);
+        ctor.all = bindArguments(all, type);
+        ctor.get = bindArguments(get, type);
+        ctor.query = bindArguments(query, type);
     }
-    return array;
+    return ctor;
+}
+
+function createStorable(type, key, entity) {
+    var ctor = registry[type];
+    return ctor.createInstance(key, entity);
 }
 
 function all(type) {
@@ -159,7 +145,7 @@ function Store(path) {
     this.retrieve = function(type, id) {
         var entity = this.load(type, id);
         if (entity) {
-            return new Storable(type, entity);
+            return createStorable(type, createKey(type, id), entity);
         }
         return null;
     };
@@ -176,7 +162,7 @@ function Store(path) {
             if (!file.isFile() || file.isHidden()) {
                 continue;
             }
-            list.push(new Storable(type, createKey(type, file.getName())));
+            list.push(createStorable(type, createKey(type, file.getName())));
         }
         return list;
     };

@@ -2,6 +2,7 @@
 try {
     include('helma/storage/googlestore');
 } catch (error) {
+    print(error);
     include('helma/storage/filestore');
 }
 
@@ -13,7 +14,7 @@ var __shared__ = true;
  * Book class
  * @param properties object containing persistent properties
  */
-var Book = Storable('Book');
+var Book = defineClass('Book');
 
 Book.prototype.getFullTitle = function() {
     return this.author.name + ": " + this.title;
@@ -23,5 +24,5 @@ Book.prototype.getFullTitle = function() {
  * Author class
  * @param properties object containing persistent properties
  */
-var Author = Storable('Author');
+var Author = defineClass('Author');
 
