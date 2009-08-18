@@ -220,7 +220,7 @@ public class Storable extends ScriptableObject {
         if (entity == null) {
             entity = invokeStoreMethod("getEntity", type, key);
         }
-        return (Scriptable) invokeStoreMethod("getProps", type, entity);
+        return (Scriptable) invokeStoreMethod("getProps", store, entity);
     }
 
     private Object invokeStoreMethod(String method, Object... args) {

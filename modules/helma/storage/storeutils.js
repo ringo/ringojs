@@ -33,30 +33,25 @@ function updateEntity(props, entity, txn) {
     return true;
 }
 
-function getProps(type, arg) {
-    if (isEntity(arg)) {
-        var props = {};
-        for (var i in arg) {
-            var value = arg[i];
-            if (isKey(value)) {
-                props[i] = this.createStorable(getType(value), value);
-            } else if (value instanceof Array) {
-                var self = this;
-                props[i] = value.map(function(obj) {
-                    return isKey(obj) ?
-                           self.createStorable(getType(obj), obj) : obj;
-                });
-            } else if (isStorableDate(value)) {
-                props[i] = new Date(+value.$timestamp);
-            } else {
-                props[i] = value;
-            }
+function getProps(store, entity) {
+    var props = {};
+    for (var i in entity) {
+        var value = entity[i];
+        if (isKey(value)) {
+            props[i] = store.create(getType(value), value);
+        } else if (value instanceof Array) {
+            var self = this;
+            props[i] = value.map(function(obj) {
+                return isKey(obj) ?
+                       store.create(getType(obj), obj) : obj;
+            });
+        } else if (isStorableDate(value)) {
+            props[i] = new Date(+value.$timestamp);
+        } else {
+            props[i] = value;
         }
-        return props;
-    } else if (!isKey(arg) && arg instanceof Object) {
-        return arg;
     }
-    return null;
+    return props;
 }
 
 function getKey(type, arg) {

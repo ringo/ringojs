@@ -7,87 +7,11 @@ include('helma/functional');
 include('./storeutils');
 include('./querysupport');
 
-export("Store", "defineClass", "Transaction");
+export("Store", "Transaction");
 
 var __shared__ = true;
 var log = require('helma/logging').getLogger(__name__);
-
-var self = this;
-var registry = {};
-var datastore = new Store("db");
 addHostObject(org.helma.util.Storable);
-
-function defineClass(type) {
-    var ctor = registry[type];
-    if (!ctor) {
-        ctor = registry[type] = Storable.defineClass(self, type);
-        ctor.all = bindArguments(all, type);
-        ctor.get = bindArguments(get, type);
-        ctor.query = bindArguments(query, type);
-    }
-    return ctor;
-}
-
-function createStorable(type, key, entity) {
-    var ctor = registry[type];
-    return ctor.createInstance(key, entity);
-}
-
-function all(type) {
-    return datastore.retrieveAll(type);
-}
-
-function get(type, id) {
-    return datastore.retrieve(type, id);
-}
-
-function save(props, entity, txn) {
-    var wrapTransaction = false;
-    if (!txn) {
-        txn = new Transaction();
-        wrapTransaction = true;
-    }
-
-    if (updateEntity(props, entity, txn)) {
-        datastore.store(entity, txn);
-        if (wrapTransaction) {
-            txn.commit();
-        }
-    }
-}
-
-function remove(key, txn) {
-    var wrapTransaction = !txn;
-    if (wrapTransaction) {
-        txn = new Transaction();
-    }
-
-    datastore.remove(key, txn);
-
-    if (wrapTransaction) {
-        txn.commit();
-    }
-}
-
-function query(type) {
-    return new BaseQuery(bindArguments(all, type));
-}
-
-function getEntity(type, arg) {
-    if (isKey(arg)) {
-        var [type, id] = arg.$ref.split(":");
-        return datastore.load(type, id);
-    } else if (isEntity(arg)) {
-        return arg;
-    } else if (arg instanceof Object) {
-        var entity = arg.clone({});
-        Object.defineProperty(entity, "_key", {
-            value: createKey(type, datastore.generateId(type))
-        });
-        return entity;
-    }
-    return null;
-}
 
 /**
  * File Store class
@@ -97,8 +21,97 @@ function Store(path) {
 
     // map of type to current id tip
     var idMap = {};
+    var self = this;
 
-    this.store = function(entity, txn) {
+    var proxy = {
+        all: all,
+        get: get,
+        query: query,
+        create: create,
+        save: save,
+        remove: remove,
+        getEntity: getEntity,
+        getKey: getKey,
+        getProps: getProps,
+        getId: getId,
+        equalKeys: equalKeys
+    };
+    var registry = {};
+
+    this.defineClass = function(type) {
+        var ctor = registry[type];
+        if (!ctor) {
+            ctor = registry[type] = Storable.defineClass(proxy, type);
+            ctor.all = bindArguments(all, type);
+            ctor.get = bindArguments(get, type);
+            ctor.query = bindArguments(query, type);
+        }
+        return ctor;
+    }
+
+    function create(type, key, entity) {
+        var ctor = registry[type];
+        return ctor.createInstance(key, entity);
+    }
+
+    function all(type) {
+        return retrieveAll(type);
+    }
+
+    function get(type, id) {
+        return retrieve(type, id);
+    }
+
+    function save(props, entity, txn) {
+        var wrapTransaction = false;
+        if (!txn) {
+            txn = new Transaction();
+            wrapTransaction = true;
+        }
+
+        if (updateEntity(props, entity, txn)) {
+            store(entity, txn);
+            if (wrapTransaction) {
+                txn.commit();
+            }
+        }
+    }
+
+    function remove(key, txn) {
+        var wrapTransaction = !txn;
+        if (wrapTransaction) {
+            txn = new Transaction();
+        }
+
+        remove(key, txn);
+
+        if (wrapTransaction) {
+            txn.commit();
+        }
+    }
+
+    function query(type) {
+        return new BaseQuery(bindArguments(all, type));
+    }
+
+    function getEntity(type, arg) {
+        if (isKey(arg)) {
+            var [type, id] = arg.$ref.split(":");
+            return load(type, id);
+        } else if (isEntity(arg)) {
+            return arg;
+        } else if (arg instanceof Object) {
+            var entity = arg.clone({});
+            Object.defineProperty(entity, "_key", {
+                value: createKey(type, generateId(type))
+            });
+            return entity;
+        }
+        return null;
+    }
+
+
+    function store(entity, txn) {
         var [type, id] = entity._key.$ref.split(":");
 
         var dir = new File(base, type);
@@ -125,7 +138,7 @@ function Store(path) {
         txn.updateResource({ file: file, tempfile: tempfile });
     };
 
-    this.load = function(type, id) {
+    function load(type, id) {
         var file = new File(new File(base, type), id);
 
         if (!file.exists()) {
@@ -142,15 +155,15 @@ function Store(path) {
         return entity;
     };
 
-    this.retrieve = function(type, id) {
-        var entity = this.load(type, id);
+    function retrieve(type, id) {
+        var entity = load(type, id);
         if (entity) {
-            return createStorable(type, createKey(type, id), entity);
+            return create(type, createKey(type, id), entity);
         }
         return null;
     };
 
-    this.retrieveAll = function(type) {
+    function retrieveAll(type) {
         var dir = new File(base, type);
         if (!dir.exists() || !dir.isDirectory()) {
             return [];
@@ -162,12 +175,12 @@ function Store(path) {
             if (!file.isFile() || file.isHidden()) {
                 continue;
             }
-            list.push(createStorable(type, createKey(type, file.getName())));
+            list.push(create(type, createKey(type, file.getName())));
         }
         return list;
     };
 
-    this.remove = function(key, txn) {
+    function remove(key, txn) {
         if (!isKey(key)) {
             throw new Error("Invalid key object: " + key);
         }
@@ -176,7 +189,7 @@ function Store(path) {
         txn.deleteResource({ file: file });        
     };
 
-    this.generateId = function(type) {
+    function generateId(type) {
         var dir = new File(base, type);
         var id = idMap[type] || 1;
         var file = new File(dir, id.toString(36));

@@ -35,7 +35,7 @@ function defineClass(type) {
     return ctor;
 }
 
-function createStorable(type, key, entity) {
+function create(type, key, entity) {
     var ctor = registry[type];
     return ctor.createInstance(key, entity);
 }
@@ -46,7 +46,7 @@ function evaluateQuery(query, property) {
     var i = datastore.prepare(query).asIterator();
     while (i.hasNext()) {
         var entity = i.next();
-        var s = createStorable(type, entity.getKey(), entity);
+        var s = create(type, entity.getKey(), entity);
         result.push(property ? s[property] : s);
     }
     return result;
@@ -107,7 +107,7 @@ function get(type, id) {
 	if (!isKey(key)) {
 		throw Error("Storable.get() called with non-key argument");
 	}
-	return createStorable(key.getKind(), key, datastore.get(key));
+	return create(key.getKind(), key, datastore.get(key));
 }
 
 function save(props, entity, entities) {
@@ -196,34 +196,29 @@ function getKey(type, arg) {
     return null;
 }
 
-function getProps(type, arg) {
-    if (arg instanceof Object) {
-        return arg;
-    } else if (arg instanceof Entity) {
-        var props = {};
-        var map = new ScriptableMap(arg.getProperties());
-        for (var i in map) {
-            var value = map[i];
-            if (isKey(value)) {
-                value = createStorable(value.getKind(), value);
-            } else if (value instanceof java.util.List) {
-                var array = [];
-                for (var it = value.iterator(); it.hasNext(); ) {
-                    var obj = it.next();
-                    array.push(isKey(obj) ?
-                               createStorable(obj.getKind(), obj) : obj);
-                }
-                value = array;
-            } else if (value instanceof Text) {
-                value = value.getValue();
-            } else {
-                value = Context.javaToJS(value, global);
+function getProps(store, entity) {
+    var props = {};
+    var map = new ScriptableMap(entity.getProperties());
+    for (var i in map) {
+        var value = map[i];
+        if (isKey(value)) {
+            value = create(value.getKind(), value);
+        } else if (value instanceof java.util.List) {
+            var array = [];
+            for (var it = value.iterator(); it.hasNext(); ) {
+                var obj = it.next();
+                array.push(isKey(obj) ?
+                           create(obj.getKind(), obj) : obj);
             }
-            props[i] = value;
+            value = array;
+        } else if (value instanceof Text) {
+            value = value.getValue();
+        } else {
+            value = Context.javaToJS(value, global);
         }
-        return props;
+        props[i] = value;
     }
-    return null;
+    return props;
 }
 
 function getId(key) {
