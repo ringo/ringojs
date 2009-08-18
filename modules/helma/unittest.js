@@ -6,6 +6,7 @@ var __shared__ = true;
 export(
     "run",
     "jsDump", // this is needed in selftests
+    "ShellWriter",
     "assertTrue",
     "assertFalse",
     "assertEqual",
@@ -115,17 +116,28 @@ var evalArguments = function(args, argsExpected) {
 
 /**
  * The main runner method
- * @param {String} modulePath The path to a module containing unit tests to execute
+ * @param {String|Object} modulePathOrScope Either the path to a module containing unit
+ * tests to execute, or an object containing the exported test methods or nested scopes.
+ * @param {Object} writer Optional writer to use for displaying the test results. Defaults
+ * to ShellWriter.
  */
-this.run = function(modulePath, writer) {
+this.run = function(modulePathOrScope, writer) {
+    var scope;
+    if (typeof(modulePathOrScope) === "string") {
+        scope = require(modulePathOrScope);
+    } else {
+        scope = modulePathOrScope;
+    }
+    if (!writer) {
+        writer = new ShellWriter();
+    }
     var summary = {
         "testsRun": 0,
         "errors": 0,
         "failures": 0,
         "time": 0
     };
-    var scope = require(modulePath);
-    writer.writeHeader(modulePath);
+    writer.writeHeader(modulePathOrScope);
     executeTestScope(scope, summary, writer, []);
     scope = null;
     writer.writeSummary(summary);
@@ -199,69 +211,6 @@ var executeTestScope = function(scope, summary, writer, path) {
  * @constructor
  */
 var ShellWriter = function() {
-    
-    /**
-     * Write a header at the beginning of a unit test(suite)
-     * @param {String} name The name of the unit test about to be executed
-     */
-    this.writeHeader = function(name) {
-        shell.writeln("=".repeat(80));
-        shell.writeln("Starting unit test", name, "...");
-        return;
-    };
-    
-    /**
-     * Display the beginning of a test function execution
-     * @param {String} name The name of the test function about to be executed
-     */
-    this.writeTestStart = function(name) {
-        shell.write("Executing", "'" + name + "'", "...");
-        return;
-    };
-    
-    /**
-     * Display a passed test method execution
-     * @param {Number} time The time the execution of the test method took
-     */
-    this.writeTestPassed = function(time) {
-        shell.writeln(" PASSED", "(" + time + " ms)");
-        return;
-    };
-
-    /**
-     * Display a failed test
-     * @param {Object} exception The exception thrown during test method execution
-     */
-    this.writeTestFailed = function(exception) {
-        shell.writeln(" FAILED");
-        exception.message.split(/\n/).forEach(function(line) {
-            shell.writeln(" ".repeat(2), line);
-        });
-        if (exception.stackTrace != null) {
-            exception.stackTrace.forEach(function(line) {
-                shell.writeln(" ".repeat(2), line);
-            });
-        }
-        shell.writeln("");
-        return;
-    };
-
-    /**
-     * Display the summary of a unit test(suite) execution
-     * @param {Object} summary The unit test summary
-     */
-    this.writeSummary = function(summary) {
-        if (summary.testsRun > 0) {
-            shell.writeln("-".repeat(80));
-            shell.write("FINISHED: executed", summary.testsRun, "tests in", summary.time, "ms ");
-            shell.write("(" + summary.failures, ShellWriter.pluralize("failure", "failures", summary.failures) + ", ");
-            shell.writeln(summary.errors, ShellWriter.pluralize("error", "errors", summary.errors) + ")");
-        } else {
-            shell.writeln("No tests found");
-        }
-        return;
-    };
-
     return this;
 };
 
@@ -280,12 +229,70 @@ ShellWriter.pluralize = function(singular, plural, cnt) {
     return singular;
 };
 
-
 /** @ignore */
 ShellWriter.prototype.toString = function() {
     return "[ShellWriter]";
 };
 
+/**
+ * Write a header at the beginning of a unit test(suite)
+ */
+ShellWriter.prototype.writeHeader = function() {
+    shell.writeln("=".repeat(80));
+    return;
+};
+
+/**
+ * Display the beginning of a test function execution
+ * @param {String} name The name of the test function about to be executed
+ */
+ShellWriter.prototype.writeTestStart = function(name) {
+    shell.write("Executing", "'" + name + "'", "...");
+    return;
+};
+
+/**
+ * Display a passed test method execution
+ * @param {Number} time The time the execution of the test method took
+ */
+ShellWriter.prototype.writeTestPassed = function(time) {
+    shell.writeln(" PASSED", "(" + time + " ms)");
+    return;
+};
+
+/**
+ * Display a failed test
+ * @param {Object} exception The exception thrown during test method execution
+ */
+ShellWriter.prototype.writeTestFailed = function(exception) {
+    shell.writeln(" FAILED");
+    exception.message.split(/\n/).forEach(function(line) {
+        shell.writeln(" ".repeat(2), line);
+    });
+    if (exception.stackTrace != null) {
+        exception.stackTrace.forEach(function(line) {
+            shell.writeln(" ".repeat(2), line);
+        });
+    }
+    shell.writeln("");
+    return;
+};
+
+/**
+ * Display the summary of a unit test(suite) execution
+ * @param {Object} summary The unit test summary
+ */
+ShellWriter.prototype.writeSummary = function(summary) {
+    if (summary.testsRun > 0) {
+        shell.writeln("-".repeat(80));
+        shell.write("FINISHED: executed", summary.testsRun, "tests in", summary.time, "ms ");
+        shell.write("(" + summary.failures, ShellWriter.pluralize("failure", "failures", summary.failures) + ", ");
+        shell.writeln(summary.errors, ShellWriter.pluralize("error", "errors", summary.errors) + ")");
+    } else {
+        shell.writeln("No tests found");
+    }
+    return;
+};
 
 
 
