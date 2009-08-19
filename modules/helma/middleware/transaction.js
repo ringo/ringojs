@@ -11,7 +11,7 @@ function handleRequest(req) {
     if (!store || typeof(store.beginTransaction) != 'function') {
         return req.process;
     }
-    print(store.beginTransaction());
+    store.beginTransaction();
     try {
         var res = req.process();
         store.commitTransaction();
