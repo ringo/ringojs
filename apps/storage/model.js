@@ -1,11 +1,5 @@
 // use google datastore if it is available, else fall back to filestore
-try {
-    store = require('helma/storage/googlestore');
-} catch (error) {
-    print(error);
-    include('helma/storage/filestore');
-    store = new Store();
-}
+var store = require('./config').store;
 
 export('Book', 'Author');
 

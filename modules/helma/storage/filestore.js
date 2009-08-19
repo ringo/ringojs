@@ -22,6 +22,7 @@ function Store(path) {
     // map of type to current id tip
     var idMap = {};
     var self = this;
+    var registry = {};
 
     var proxy = {
         all: all,
@@ -36,7 +37,6 @@ function Store(path) {
         getId: getId,
         equalKeys: equalKeys
     };
-    var registry = {};
 
     this.defineClass = function(type) {
         var ctor = registry[type];
