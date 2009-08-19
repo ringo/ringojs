@@ -1,8 +1,12 @@
+// shared in order not to recreate Store for each request 
+__shared__ = true;
+
 exports.urls = [
     [ '/', 'main' ]
 ];
 
 exports.middleware = [
+    'helma/middleware/transaction',
     // 'helma/middleware/gzip',
     'helma/middleware/etag',
     'helma/middleware/responselog',
