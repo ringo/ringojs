@@ -7,6 +7,7 @@ require('core/string');
 
 include('helma/webapp/request');
 include('helma/webapp/response');
+include('helma/buffer');
 
 import('helma/engine', 'engine');
 import('helma/httpserver', 'server');
@@ -180,6 +181,10 @@ function error(req, e) {
     var msg = String(e).escapeHtml();
     res.writeln('<html><title>', msg, '</title>');
     res.writeln('<body><h1>', msg, '</h1>');
+    var errors = engine.getErrors();
+    for each (var error in errors) {
+        res.writeln(renderSyntaxError(error));
+    }
     if (e.fileName && e.lineNumber) {
         res.writeln('<p>In file<b>', e.fileName, '</b>at line<b>', e.lineNumber, '</b></p>');
     }
@@ -197,6 +202,21 @@ function error(req, e) {
     }
     res.writeln('</body></html>');
     return res.close();
+}
+
+function renderSyntaxError(error) {
+    var buffer = new Buffer();
+    buffer.write("<div class='stack'>in ").write(error.sourceName);
+    buffer.write(", line ").write(error.line);
+    buffer.write(": <b>").write(error.message).write("</b></div>");
+    if (error.lineSource) {
+        buffer.write("<pre>").write(error.lineSource).write("\n");
+        for (var i = 0; i < error.offset - 1; i++) {
+            buffer.write(' ');
+        }
+        buffer.write("<b>^</b></pre>");
+    }
+    return buffer;
 }
 
 /**
