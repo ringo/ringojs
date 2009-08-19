@@ -28,11 +28,10 @@ function handleRequest(env) {
     var config = getConfig();
     if (log.debugEnabled) log.debug('got config: ' + config.toSource());
 
-    var req = new Request(env);
-    var res = null;
-    // set up jack env, request and config properties in per-request env module
     var webenv = require('helma/webapp/env');
-    webenv.init(env, req, config);
+    webenv.env = env;
+    var req = webenv.req = new Request(env);
+    var res = null;
 
     req.charset = config.charset || 'utf8';
 
@@ -62,6 +61,10 @@ function handleRequest(env) {
 
 function resolveInConfig(req, config, actionPath, path, prefix) {
     if (log.isDebugEnabled) log.debug('resolving path ' + path);
+    // set config property in webapp env module
+    var webenv = require('helma/webapp/env');
+    webenv.config = config;
+
     if (Array.isArray(config.urls)) {
         for each (var url in config.urls) {
             if (log.isDebugEnabled) log.debug("checking url line: " + url);
