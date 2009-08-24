@@ -59,6 +59,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
                 }
                 bytes = buffer;
                 length = count;
+                in.close();
             } catch (IOException iox) {
                 throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
             }
@@ -71,31 +72,31 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @Override
-    public Object get(int i, Scriptable scriptable) {
-        if (i < 0 || i >= length) {
+    public Object get(int index, Scriptable start) {
+        if (index < 0 || index >= length) {
             return Undefined.instance;
         }
-        return Integer.valueOf(0xff & bytes[i]);
+        return Integer.valueOf(0xff & bytes[index]);
     }
 
     @Override
-    public boolean has(int i, Scriptable scriptable) {
-        return i >= 0 && i < length;
+    public boolean has(int index, Scriptable start) {
+        return index >= 0 && index < length;
     }
 
     @Override
-    public void put(int i, Scriptable scriptable, Object value) {
-        if (i < 0) {
+    public void put(int index, Scriptable start, Object value) {
+        if (index < 0) {
             throw ScriptRuntime.typeError("Negative ByteArray index");
         }
         if (!(value instanceof Number)) {
             throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
         }
-        if (i >= bytes.length) {
-            setSize(i + 1);
+        if (index >= bytes.length) {
+            setSize(index + 1);
         }
         int n = ((Number) value).intValue();
-        bytes[i] = (byte) (0xff & n);
+        bytes[index] = (byte) (0xff & n);
     }
 
     public int jsGet_length() {
