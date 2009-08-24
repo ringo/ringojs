@@ -13,21 +13,21 @@ public class ByteArray extends ScriptableObject implements Wrapper {
 
     public ByteArray() {}
 
-    public ByteArray(Object arg, Object encoding) {
+    public ByteArray(Object arg, Object charset) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
-        if (encoding != Undefined.instance) {
+        if (charset != Undefined.instance) {
             if (!(arg instanceof String)) {
                 throw ScriptRuntime.typeError("Expected string as first argument");
-            } else if (!(encoding instanceof String)) {
+            } else if (!(charset instanceof String)) {
                 throw ScriptRuntime.typeError("Expected string as second argument");
             }
             try {
-                bytes = ((String) arg).getBytes((String) encoding);
+                bytes = ((String) arg).getBytes((String) charset);
                 length = bytes.length;
             } catch (UnsupportedEncodingException uee) {
-                throw ScriptRuntime.typeError("Unsupported encoding: " + encoding);
+                throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
             }
         } else if (arg instanceof Number) {
             length = ((Number) arg).intValue();
@@ -105,6 +105,25 @@ public class ByteArray extends ScriptableObject implements Wrapper {
 
     public void jsSet_length(int l) {
         setSize(l);
+    }
+
+    public int jsFunction_get(int index) {
+        if (index < 0 || index >= length) {
+            return 0;
+        }
+        return 0xff & bytes[index];
+    }
+
+    public Object jsFunction_toByteArray() {
+        return this;
+    }
+
+    public String jsFunction_decodeToString(String charset) {
+        try {
+            return new String(bytes, 0, length, charset);
+        } catch (UnsupportedEncodingException uee) {
+            throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
+        }
     }
 
     public int jsFunction_indexOf(int n) {

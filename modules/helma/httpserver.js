@@ -4,7 +4,7 @@
 
 include('helma/webapp/util');
 var IO = require('io').IO;
-var Binary = require("binary").Binary;
+var ByteArray = require("binary").ByteArray;
 var HashP = require('hashp').HashP;
 
 export('start', 'stop', 'initRequest', 'commitResponse');
@@ -169,7 +169,7 @@ function commitResponse(env, result) {
             output.write(bytes[i]);
         } */
         body.forEach(function(part) {
-            output.write(part.toBinary(charset).bytes);
+            output.write(part.toByteArray(charset));
         });
     } else {
         throw new Error("Unsupported response body: " + body);

@@ -19,11 +19,12 @@ function handleRequest(req) {
         var bytes = new ByteArrayOutputStream();
         var gzip = new GZIPOutputStream(bytes);
         body.forEach(function(block) {
-            gzip.write(block.toBinary().bytes);
+            gzip.write(block.toByteArray());
         });
         gzip.close();
-        res[2] = body = new Binary(bytes.toByteArray());
-        HashP.set(headers, 'Content-Length', body.getLength())
+        body = new ByteArray(bytes.toByteArray());
+        res[2] = [body]; 
+        HashP.set(headers, 'Content-Length', body.length)
         HashP.set(headers, 'Content-Encoding', 'gzip');
     }
     return res;
