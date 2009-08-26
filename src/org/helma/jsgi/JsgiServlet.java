@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.helma.jack;
+package org.helma.jsgi;
 
 import org.helma.tools.HelmaConfiguration;
 import org.helma.repository.Repository;
@@ -30,23 +30,23 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
-public class JackServlet extends HttpServlet {
+public class JsgiServlet extends HttpServlet {
 
     String module, function;
     RhinoEngine engine;
     Callable callable;
 
-    public JackServlet() {}
+    public JsgiServlet() {}
 
-    public JackServlet(RhinoEngine engine) throws ServletException {
+    public JsgiServlet(RhinoEngine engine) throws ServletException {
         this(engine, null);
     }
 
-    public JackServlet(RhinoEngine engine, Callable callable) throws ServletException {
+    public JsgiServlet(RhinoEngine engine, Callable callable) throws ServletException {
         this.engine = engine;
         this.callable = callable;
         try {
-            engine.defineHostClass(JackEnv.class);
+            engine.defineHostClass(JsgiEnv.class);
         } catch (Exception x) {
             throw new ServletException(x);
         }
@@ -68,7 +68,7 @@ public class JackServlet extends HttpServlet {
                     home = new FileRepository(helmaHome);
                 }
                 HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
-                helmaConfig.setHostClasses(new Class[] { JackEnv.class });
+                helmaConfig.setHostClasses(new Class[] { JsgiEnv.class });
                 engine = new RhinoEngine(helmaConfig, null);
             } catch (IOException x) {
                 throw new ServletException(x);
@@ -80,7 +80,7 @@ public class JackServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            JackEnv env = new JackEnv(request, response);
+            JsgiEnv env = new JsgiEnv(request, response);
             engine.invoke("helma/httpserver", "initRequest", env);
             Object result = callable == null ?
                     engine.invoke(module, function, env) :

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.helma.jack;
+package org.helma.jsgi;
 
 import org.mozilla.javascript.*;
 
@@ -23,14 +23,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.lang.reflect.Method;
 
-public class JackEnv extends ScriptableObject {
+public class JsgiEnv extends ScriptableObject {
 
     HttpServletRequest request;
     HttpServletResponse response;
 
-    public JackEnv() {}
+    public JsgiEnv() {}
 
-    public JackEnv(Object req, Object res) {
+    public JsgiEnv(Object req, Object res) {
         if (!(req instanceof HttpServletRequest)) {
             throw new IllegalArgumentException("Wrong argument: " + req);
         } else if (!(res instanceof HttpServletResponse)) {
@@ -108,17 +108,17 @@ public class JackEnv extends ScriptableObject {
         proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
         Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
-        ScriptableObject.defineProperty(proto, "jack.version", version, flags);
-        ScriptableObject.defineProperty(proto, "jack.multithread", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(proto, "jack.multiprocess", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(proto, "jack.run_once", Boolean.FALSE, flags);
-        proto.defineProperty("jack.url_scheme", null, getMethod("getUrlScheme"), null, flags);
-        proto.defineProperty("jack.servlet_request", null, getMethod("getServletRequest"), null, flags);
-        proto.defineProperty("jack.servlet_response", null, getMethod("getServletResponse"), null, flags);
+        ScriptableObject.defineProperty(proto, "jsgi.version", version, flags);
+        ScriptableObject.defineProperty(proto, "jsgi.multithread", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(proto, "jsgi.multiprocess", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(proto, "jsgi.run_once", Boolean.FALSE, flags);
+        proto.defineProperty("jsgi.url_scheme", null, getMethod("getUrlScheme"), null, flags);
+        proto.defineProperty("jsgi.servlet_request", null, getMethod("getServletRequest"), null, flags);
+        proto.defineProperty("jsgi.servlet_response", null, getMethod("getServletResponse"), null, flags);
     }
 
     private static Method getMethod(String name) throws NoSuchMethodException {
-        return JackEnv.class.getDeclaredMethod(name);
+        return JsgiEnv.class.getDeclaredMethod(name);
     }
 
     private static String checkString(String str) {

@@ -20,9 +20,9 @@ var log = logging.getLogger(__name__);
 var __shared__ = true;
 
 /**
- * Handler function called by the Jack servlet.
+ * Handler function called by the JSGI servlet.
  *
- * @param env the jack environment argument
+ * @param env the JSGI environment argument
  */
 function handleRequest(env) {
     // get config and apply it to req, res

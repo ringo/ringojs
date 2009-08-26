@@ -12,7 +12,7 @@ function Request(env) {
 
     var params, cookies, session, headers;
     var define = bindArguments(Object.defineProperty, this);
-    var servletRequest = env["jack.servlet_request"];
+    var servletRequest = env["jsgi.servlet_request"];
 
     define("servletRequest", {get: function() servletRequest});
     define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));

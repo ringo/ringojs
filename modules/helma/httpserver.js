@@ -48,7 +48,7 @@ var log = require('helma/logging').getLogger(__name__);
             }
             var jetty = org.mortbay.jetty;
             var XmlConfiguration = org.mortbay.xml.XmlConfiguration;
-            var Servlet = org.helma.jack.JackServlet;
+            var Servlet = org.helma.jsgi.JsgiServlet;
             server = new jetty.Server();
             try {
                 var xmlconfig = new XmlConfiguration(jettyconfig.inputStream);
@@ -107,19 +107,19 @@ var log = require('helma/logging').getLogger(__name__);
 })(this);
 
 /**
- * Set up the IO related properties of a jack environment object.
- * @param env a jack request object
+ * Set up the IO related properties of a jsgi environment object.
+ * @param env a jsgi request object
  */
 function initRequest(env) {
     var input, errors;
-    Object.defineProperty(env, "jack.input", {
+    Object.defineProperty(env, "jsgi.input", {
         get: function() {
             if (!input)
-                input = new IO(env['jack.servlet_request'].getInputStream(), null);
+                input = new IO(env['jsgi.servlet_request'].getInputStream(), null);
             return input;
         }
     });
-    Object.defineProperty(env, "jack.errors", {
+    Object.defineProperty(env, "jsgi.errors", {
         get: function() {
             if (!errors)
                 errors = new IO(null, java.lang.System.err);
@@ -129,20 +129,20 @@ function initRequest(env) {
 }
 
 /**
- * Apply the return value of a Jack application to a servlet response.
- * This is used internally by the org.helma.jack.JackServlet class, so
+ * Apply the return value of a JSGI application to a servlet response.
+ * This is used internally by the org.helma.jsgi.JsgiServlet class, so
  * you won't need this unless you're implementing your own servlet
- * based jack connector.
+ * based JSGI connector.
  *
- * @param env the jack env argument
- * @param result the object returned by a jack application
+ * @param env the JSGI env argument
+ * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
-    var response = env['jack.servlet_response'];
+    var response = env['jsgi.servlet_response'];
     if (response.isCommitted())
         return;
     if (!result || typeof result.forEach != "function") {
-        // convert helma response to jack response
+        // convert helma response to jsgi response
         if (result && typeof result.close === "function") {
             result = result.close();
         } else {
