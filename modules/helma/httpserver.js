@@ -7,7 +7,7 @@ var IO = require('io').IO;
 var ByteArray = require("binary").ByteArray;
 var HashP = require('hashp').HashP;
 
-export('start', 'stop', 'initRequest', 'commitResponse');
+export('start', 'stop', 'handleRequest');
 
 // mark this module as shared between all requests
 var __shared__ = true;
@@ -105,6 +105,21 @@ var log = require('helma/logging').getLogger(__name__);
     }
 
 })(this);
+
+/**
+ * Handle a JSGI request.
+ * @param module the module. Ignored if func is already a function.
+ * @param func the function, either as function object or function name to be
+ *             imported from module.
+ * @param env the JSGI env object
+ */
+function handleRequest(module, func, env) {
+    initRequest(env);
+    var result = typeof(func) == 'function' ?
+                 func(env) :
+                 require(module)[func](env);
+    commitResponse(env, result);
+}
 
 /**
  * Set up the IO related properties of a jsgi environment object.

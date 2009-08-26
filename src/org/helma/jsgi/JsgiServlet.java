@@ -32,9 +32,9 @@ import java.io.IOException;
 
 public class JsgiServlet extends HttpServlet {
 
-    String module, function;
+    String module;
+    Object function;
     RhinoEngine engine;
-    Callable callable;
 
     public JsgiServlet() {}
 
@@ -44,7 +44,7 @@ public class JsgiServlet extends HttpServlet {
 
     public JsgiServlet(RhinoEngine engine, Callable callable) throws ServletException {
         this.engine = engine;
-        this.callable = callable;
+        this.function = callable;
         try {
             engine.defineHostClass(JsgiEnv.class);
         } catch (Exception x) {
@@ -81,11 +81,7 @@ public class JsgiServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             JsgiEnv env = new JsgiEnv(request, response);
-            engine.invoke("helma/httpserver", "initRequest", env);
-            Object result = callable == null ?
-                    engine.invoke(module, function, env) :
-                    engine.invoke(callable, env);
-            engine.invoke("helma/httpserver", "commitResponse", env, result);
+            engine.invoke("helma/httpserver", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
             throw new ServletException("Method not found", x);
         }
