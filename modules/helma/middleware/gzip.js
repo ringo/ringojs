@@ -15,7 +15,8 @@ function handleRequest(req) {
     var [status, headers, body] = res;
     if (canCompress(status,
             req.getHeader("accept-encoding"),
-            HashP.get(headers, 'content-type'))) {
+            HashP.get(headers, 'content-type'),
+            HashP.get(headers, 'content-encoding'))) {
         var bytes = new ByteArrayOutputStream();
         var gzip = new GZIPOutputStream(bytes);
         body.forEach(function(block) {
@@ -30,8 +31,9 @@ function handleRequest(req) {
     return res;
 }
 
-function canCompress(status, acceptEncoding, contentType) {
-    return status == 200 && acceptEncoding &&
-           acceptEncoding.indexOf('gzip') > -1 && contentType &&
-           contentType.match(/^text|xml|json|javascript/);
+function canCompress(status, acceptEncoding, contentType, contentEncoding) {
+    return status == 200 && acceptEncoding
+            && acceptEncoding.indexOf('gzip') > -1
+            && contentType && contentType.match(/^text|xml|json|javascript/)
+            && contentEncoding != 'gzip';
 }
