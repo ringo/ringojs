@@ -160,7 +160,7 @@ function getRhinoContext() {
 }
 
 /**
- * Get the org.helma.javascript.RhinoEngine associated with this application.
+ * Get the org.helma.engine.RhinoEngine associated with this application.
  */
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
@@ -199,5 +199,5 @@ Object.defineProperty(this, "properties", {
 });
 
 Object.defineProperty(this, "version", {
-    value: new ScriptableList(org.helma.javascript.RhinoEngine.VERSION)
+    value: new ScriptableList(org.helma.engine.RhinoEngine.VERSION)
 })

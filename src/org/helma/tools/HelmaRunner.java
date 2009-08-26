@@ -16,8 +16,8 @@
 
 package org.helma.tools;
 
-import org.helma.javascript.RhinoEngine;
-import org.helma.javascript.ModuleScope;
+import org.helma.engine.RhinoEngine;
+import org.helma.engine.ModuleScope;
 import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
@@ -27,7 +27,6 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 import java.io.IOException;
 
 public class HelmaRunner {

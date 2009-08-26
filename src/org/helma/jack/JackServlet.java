@@ -20,7 +20,7 @@ import org.helma.tools.HelmaConfiguration;
 import org.helma.repository.Repository;
 import org.helma.repository.FileRepository;
 import org.helma.repository.WebappRepository;
-import org.helma.javascript.RhinoEngine;
+import org.helma.engine.RhinoEngine;
 import org.mozilla.javascript.Callable;
 
 import javax.servlet.http.HttpServlet;
@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class JackServlet extends HttpServlet {

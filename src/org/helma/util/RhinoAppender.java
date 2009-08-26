@@ -3,7 +3,6 @@ package org.helma.util;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
-import org.helma.javascript.RhinoEngine;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Function;
@@ -17,8 +16,7 @@ public class RhinoAppender extends AppenderSkeleton {
     private static ThreadLocal<Function> callback = new ThreadLocal<Function>();
 
     /**
-     * Tries to get the current {@link RhinoEngine} and invoke a callback named
-     * <code>onLogEvent</code>, passing the log message and the stack trace rendered
+     * Invoke the callback, passing the log message and the stack trace rendered
      * as a string as optional second argument. 
      * @param event the log event
      */

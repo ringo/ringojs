@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.helma.javascript;
+package org.helma.engine;
 
 import org.apache.log4j.Logger;
 import org.helma.repository.*;

@@ -14,11 +14,10 @@
  *  limitations under the License.
  */
 
-package org.helma.javascript;
+package org.helma.engine;
 
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
-import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;

@@ -16,7 +16,7 @@
 
 package org.helma.template;
 
-import org.helma.javascript.RhinoEngine;
+import org.helma.engine.RhinoEngine;
 import org.helma.util.CaseInsensitiveMap;
 import org.helma.util.ScriptableList;
 import org.helma.util.ScriptableMap;

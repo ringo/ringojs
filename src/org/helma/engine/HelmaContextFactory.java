@@ -8,7 +8,7 @@
  *
  * Copyright 2005 Hannes Wallnoefer. All Rights Reserved.
  */
-package org.helma.javascript;
+package org.helma.engine;
 
 import org.mozilla.javascript.*;
 import org.helma.repository.Trackable;

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.helma.javascript;
+package org.helma.engine;
 
 import org.helma.repository.Repository;
 import org.helma.repository.Resource;
