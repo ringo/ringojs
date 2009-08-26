@@ -6,7 +6,7 @@ include('helma/functional');
 export('defineClass', 'beginTransaction', 'getTransaction', 'commitTransaction', 'abortTransaction');
 
 importPackage(com.google.appengine.api.datastore);
-addHostObject(org.helma.util.Storable);
+addHostObject(org.helma.wrappers.Storable);
 
 var __shared__ = true;
 var datastore = DatastoreServiceFactory.getDatastoreService();

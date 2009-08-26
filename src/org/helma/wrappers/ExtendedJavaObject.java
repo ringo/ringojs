@@ -29,7 +29,7 @@
  * $Id$
  */
 
-package org.helma.util;
+package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
 

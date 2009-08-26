@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
-package org.helma.util;
+package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.helma.util.ScriptUtils;
 
 import java.util.Map;
 import java.util.HashMap;

@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
-package org.helma.util;
+package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.helma.util.ScriptUtils;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -26,7 +27,6 @@ import java.util.Map;
 /**
  * ScriptableList is a wrapper for java.util.List instances that allows developers 
  * to interact with them like it was a native JavaScript array.
- * @desc Wraps a Java List into a JavaScript Array
  */
 public class ScriptableList extends NativeJavaObject {
 

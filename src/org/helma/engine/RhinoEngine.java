@@ -21,6 +21,7 @@ import org.helma.repository.*;
 import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
+import org.helma.wrappers.*;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;

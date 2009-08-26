@@ -18,8 +18,8 @@ package org.helma.template;
 
 import org.helma.engine.RhinoEngine;
 import org.helma.util.CaseInsensitiveMap;
-import org.helma.util.ScriptableList;
-import org.helma.util.ScriptableMap;
+import org.helma.wrappers.ScriptableList;
+import org.helma.wrappers.ScriptableMap;
 import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
 

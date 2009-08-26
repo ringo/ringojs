@@ -1,4 +1,4 @@
-defineClass(org.helma.util.ByteArray);
+defineClass(org.helma.wrappers.ByteArray);
 
 export('ByteArray');
 

@@ -17,6 +17,8 @@
 package org.helma.util;
 
 import org.mozilla.javascript.*;
+import org.helma.wrappers.ScriptableMap;
+import org.helma.wrappers.ScriptableList;
 
 import java.util.List;
 import java.util.Map;

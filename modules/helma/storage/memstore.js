@@ -10,7 +10,7 @@ export("Store");
 
 var __shared__ = true;
 var log = require('helma/logging').getLogger(__name__);
-addHostObject(org.helma.util.Storable);
+addHostObject(org.helma.wrappers.Storable);
 
 /**
  * File Store class

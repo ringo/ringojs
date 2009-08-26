@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.helma.util;
+package org.helma.wrappers;
 
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Scriptable;

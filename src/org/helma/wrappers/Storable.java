@@ -1,6 +1,7 @@
-package org.helma.util;
+package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.helma.util.ScriptUtils;
 
 public class Storable extends ScriptableObject {
 
