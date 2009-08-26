@@ -9,7 +9,7 @@ export('handleRequest');
 function handleRequest(req) {
     var store = require('helma/webapp/env').config.store;
     if (!store || typeof(store.beginTransaction) != 'function') {
-        return req.process;
+        return req.process();
     }
     store.beginTransaction();
     try {
