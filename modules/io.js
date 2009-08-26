@@ -1,4 +1,4 @@
-var Binary = require("./binary").Binary;
+var ByteArray = require("./binary").ByteArray;
 
 export('IO', 'TextInputStream', 'TextOutputStream');
 
@@ -59,7 +59,7 @@ IO.prototype.read = function(length) {
     if (total != resultLength || total !== resultBuffer.length)
         throw new Error("IO.read sanity check failed: total="+total+" resultLength="+resultLength+" resultBuffer.length="+resultBuffer.length);
 
-    return new Binary(resultBuffer);
+    return new ByteArray(resultBuffer);
 }
 
 IO.prototype.write = function(object, encoding) {

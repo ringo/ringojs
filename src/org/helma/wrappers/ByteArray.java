@@ -118,9 +118,12 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return this;
     }
 
-    public String jsFunction_decodeToString(String charset) {
+    public String jsFunction_decodeToString(Object charset) {
+        String cs = toCharset(charset);
         try {
-            return new String(bytes, 0, length, charset);
+            return cs == null ?
+                    new String(bytes, 0, length) : 
+                    new String(bytes, 0, length, cs);
         } catch (UnsupportedEncodingException uee) {
             throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
         }
@@ -174,5 +177,12 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         System.arraycopy(bytes, 0, b, 0, Math.min(length, size));
         bytes = b;
         length = size;
+    }
+
+    private String toCharset(Object charset) {
+        if (charset != Undefined.instance && !(charset instanceof String)) {
+            throw ScriptRuntime.typeError("Unsupported charset: " + charset);
+        }
+        return charset instanceof String ? (String) charset : null;
     }
 }
