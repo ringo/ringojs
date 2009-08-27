@@ -10,7 +10,7 @@ exports.testReadFixed = function() {
 };
 
 exports.testReadIndefinite = function() {
-    var resource = getResource('test/io_test.js');
+    var resource = getResource('test/helma/unittest_test.js');
     var io = new IOStream(resource.inputStream);
     var bytes = io.read();
     assertEqual(bytes.length, resource.length);
