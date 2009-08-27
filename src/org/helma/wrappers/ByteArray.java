@@ -1,19 +1,43 @@
 package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.helma.util.ScriptUtils;
 
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+/**
+ * <p>A growable wrapper around a Java byte array compliant to the ByteBuffer class defined
+ * in the <a href="https://wiki.mozilla.org/ServerJS/Binary/B">Binary/B proposal</a>.
+ * To register ByteBuffer as a host object in Rhino call the <code>defineClass()</code>
+ * function with the class.</p>
+ *
+ * <pre><code>defineClass(org.helma.wrappers.ByteBuffer);</code></pre>
+ *
+ * <p>The ByteArray constructor can take several arguments. Have a look at the proposal for
+ * details.</p>
+ *
+ * <p>When passed to a Java method that expects a byte array, ByteBuffer wrappers
+ * are automatically unwrapped. use the {@link #unwrap()} method to explicitly get the
+ * wrapped stream.</p>
+ */
 public class ByteArray extends ScriptableObject implements Wrapper {
 
     private byte[] bytes;
     private int length;
 
+    private final static String CLASSNAME = "ByteArray";
+
     public ByteArray() {}
 
-    public ByteArray(Object arg, Object charset) {
+    public ByteArray(Scriptable scope, byte[] bytes) {
+        super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
+        this.bytes = bytes;
+        this.length = bytes.length;
+    }
+
+    public void jsConstructor(Object arg, Object charset) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
@@ -93,7 +117,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
         }
         if (index >= bytes.length) {
-            setSize(index + 1);
+            setLength(index + 1);
         }
         int n = ((Number) value).intValue();
         bytes[index] = (byte) (0xff & n);
@@ -104,7 +128,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     public void jsSet_length(int l) {
-        setSize(l);
+        setLength(l);
     }
 
     public int jsFunction_get(int index) {
@@ -147,18 +171,32 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return -1;
     }
 
+    public Object jsFunction_unwrap() {
+        return new NativeJavaObject(getParentScope(), getBytes(), null);
+    }
+
     /**
      * Unwrap the object by returning the wrapped value.
      *
      * @return a wrapped value
      */
     public Object unwrap() {
+        return getBytes();
+    }
+
+    public byte[] getBytes() {
         normalize();
         return bytes;
     }
 
+    public void ensureCapacity(int capacity) {
+        if (capacity > length) {
+            setLength(capacity);
+        }
+    }
+
     public String getClassName() {
-        return "ByteArray";
+        return CLASSNAME;
     }
 
     private synchronized void normalize() {
@@ -169,14 +207,15 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         }
     }
 
-    private synchronized void setSize(int size) {
+    public synchronized void setLength(int size) {
         if (size < 0) {
             throw ScriptRuntime.typeError("Negative ByteArray length");
+        } else if (size != length) {
+            byte[] b = new byte[size];
+            System.arraycopy(bytes, 0, b, 0, Math.min(length, size));
+            bytes = b;
+            length = size;
         }
-        byte[] b = new byte[size];
-        System.arraycopy(bytes, 0, b, 0, Math.min(length, size));
-        bytes = b;
-        length = size;
     }
 
     private String toCharset(Object charset) {

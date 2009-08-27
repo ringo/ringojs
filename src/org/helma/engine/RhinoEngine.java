@@ -83,7 +83,6 @@ public class RhinoEngine {
             topLevelScope = new HelmaGlobal(cx);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
-                // for (int i=0; i<classes.length; i++) {
                 for (Class clazz: classes) {
                     defineHostClass(clazz);
                 }
@@ -798,7 +797,7 @@ public class RhinoEngine {
         public Object wrap(Context cx, Scriptable scope, Object obj, Class staticType) {
             if (obj instanceof CaseInsensitiveMap) {
                 return new ScriptableMap(scope, (CaseInsensitiveMap) obj);
-            }            
+            }
             return super.wrap(cx, scope, obj, staticType);
         }
 

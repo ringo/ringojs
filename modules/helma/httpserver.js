@@ -130,14 +130,14 @@ function initRequest(env) {
     Object.defineProperty(env, "jsgi.input", {
         get: function() {
             if (!input)
-                input = new IO(env['jsgi.servlet_request'].getInputStream(), null);
+                input = new IOStream(env['jsgi.servlet_request'].getInputStream());
             return input;
         }
     });
     Object.defineProperty(env, "jsgi.errors", {
         get: function() {
             if (!errors)
-                errors = new IO(null, java.lang.System.err);
+                errors = new IOStream(java.lang.System.err);
             return errors;
         }
     });

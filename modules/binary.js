@@ -1,5 +1,4 @@
 defineClass(org.helma.wrappers.ByteArray);
-
 export('ByteArray');
 
 __shared__ = true;
