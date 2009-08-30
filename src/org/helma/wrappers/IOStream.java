@@ -1,6 +1,8 @@
 package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.annotations.JSFunction;
+import org.mozilla.javascript.annotations.JSConstructor;
 import org.helma.util.ScriptUtils;
 
 import java.io.InputStream;
@@ -37,10 +39,11 @@ public class IOStream extends ScriptableObject implements Wrapper {
 
     public IOStream(Scriptable scope, Object arg) {
         super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
-        jsConstructor(arg);
+        init(arg);
     }
 
-    public void jsConstructor(Object arg) {
+    @JSConstructor
+    public void init(Object arg) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
@@ -55,7 +58,8 @@ public class IOStream extends ScriptableObject implements Wrapper {
         }
     }
 
-    public Object jsFunction_read(Object limit) {
+    @JSFunction
+    public Object read(Object limit) {
         if (input == null) {
             throw ScriptRuntime.typeError("no input stream");
         }
@@ -77,6 +81,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
         }
     }
 
+    @JSFunction
     public int readInto(ByteArray bytes, Object offset, Object length) {
         if (input == null) {
             throw ScriptRuntime.typeError("no input stream");
@@ -89,7 +94,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
                     bytes.ensureCapacity(off + len);
                 } else {
                     bytes.ensureCapacity(off + 1);
-                    len = bytes.jsGet_length() - off;
+                    len = bytes.getLength() - off;
                 }
                 byte[] b = bytes.getBytes();
                 return input.read(b, off, len);
@@ -101,18 +106,30 @@ public class IOStream extends ScriptableObject implements Wrapper {
         }
     }
 
-    public void jsFunction_write(ByteArray bytes, Object offset, Object length) {
+    @JSFunction
+    public void write(ByteArray bytes, Object offset, Object length) {
         if (output == null) {
             throw ScriptRuntime.typeError("no output stream");
         }
+        int off = offset == Undefined.instance ? -1 : ScriptRuntime.toInt32(offset);
+        int len = length == Undefined.instance ? -1 : ScriptRuntime.toInt32(length);
         try {
-            output.write(bytes.getBytes());
+            byte[] b = bytes.getBytes();
+            if (off > -1) {
+                if (len < 0) {
+                    len = b.length - off;
+                }
+                output.write(b, off, len);
+            } else {
+                output.write(bytes.getBytes());
+            }
         } catch (IOException iox) {
-            throw new WrappedException(iox);
+            throw Context.throwAsScriptRuntimeEx(iox);
         }
     }
 
-    public void jsFunction_flush() {
+    @JSFunction
+    public void flush() {
         if (output == null) {
             throw ScriptRuntime.typeError("no output stream");
         }
@@ -123,7 +140,8 @@ public class IOStream extends ScriptableObject implements Wrapper {
         }
     }
 
-    public void jsFunction_close() {
+    @JSFunction
+    public void close() {
         try {
             if (output != null) {
                 output.close();
@@ -135,7 +153,8 @@ public class IOStream extends ScriptableObject implements Wrapper {
         }
     }
 
-    public Object jsFunction_unwrap() {
+    @JSFunction("unwrap")
+    public Object jsunwrap() {
         return new NativeJavaObject(getParentScope(), unwrap(), null);
     }
 

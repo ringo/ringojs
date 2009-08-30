@@ -1,6 +1,10 @@
 package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.annotations.JSFunction;
+import org.mozilla.javascript.annotations.JSGetter;
+import org.mozilla.javascript.annotations.JSSetter;
+import org.mozilla.javascript.annotations.JSConstructor;
 import org.helma.util.ScriptUtils;
 
 import java.io.InputStream;
@@ -37,7 +41,8 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         this.length = bytes.length;
     }
 
-    public void jsConstructor(Object arg, Object charset) {
+    @JSConstructor
+    public ByteArray(Object arg, Object charset) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
@@ -123,26 +128,39 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         bytes[index] = (byte) (0xff & n);
     }
 
-    public int jsGet_length() {
+    @JSGetter
+    public int getLength() {
         return length;
     }
 
-    public void jsSet_length(int l) {
-        setLength(l);
-    }
-
-    public int jsFunction_get(int index) {
-        if (index < 0 || index >= length) {
-            return 0;
+    @JSSetter
+    public synchronized void setLength(int l) {
+        if (l < 0) {
+            throw ScriptRuntime.typeError("Negative ByteArray length");
+        } else if (l != length) {
+            byte[] b = new byte[l];
+            System.arraycopy(bytes, 0, b, 0, Math.min(l, length));
+            bytes = b;
+            length = l;
         }
-        return 0xff & bytes[index];
     }
 
-    public Object jsFunction_toByteArray() {
+    @JSFunction
+    public Object get(Object index) {
+        double d = ScriptRuntime.toNumber(index);
+        if (d == ScriptRuntime.NaN || (int)d != d || d < 0 || d >= length) {
+            return Undefined.instance;
+        }
+        return Integer.valueOf(0xff & bytes[(int) d]);
+    }
+
+    @JSFunction
+    public Object toByteArray() {
         return this;
     }
 
-    public String jsFunction_decodeToString(Object charset) {
+    @JSFunction
+    public String decodeToString(Object charset) {
         String cs = toCharset(charset);
         try {
             return cs == null ?
@@ -153,7 +171,8 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         }
     }
 
-    public int jsFunction_indexOf(int n) {
+    @JSFunction
+    public int indexOf(int n) {
         byte b = (byte) (0xff & n);
         for (int i = 0; i < length; i++) {
             if (bytes[i] == b)
@@ -162,7 +181,8 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return -1;
     }
 
-    public int jsFunction_lastIndexOf(int n) {
+    @JSFunction
+    public int lastIndexOf(int n) {
         byte b = (byte) (0xff & n);
         for (int i = length - 1; i >= 0; i--) {
             if (bytes[i] == b)
@@ -171,8 +191,9 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return -1;
     }
 
-    public Object jsFunction_unwrap() {
-        return new NativeJavaObject(getParentScope(), getBytes(), null);
+    @JSFunction("unwrap")
+    public Object jsunwrap() {
+        return NativeJavaArray.wrap(getParentScope(), getBytes());
     }
 
     /**
@@ -204,17 +225,6 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             byte[] b = new byte[length];
             System.arraycopy(bytes, 0, b, 0, length);
             bytes = b;
-        }
-    }
-
-    public synchronized void setLength(int size) {
-        if (size < 0) {
-            throw ScriptRuntime.typeError("Negative ByteArray length");
-        } else if (size != length) {
-            byte[] b = new byte[size];
-            System.arraycopy(bytes, 0, b, 0, Math.min(length, size));
-            bytes = b;
-            length = size;
         }
     }
 
