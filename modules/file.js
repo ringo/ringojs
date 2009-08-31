@@ -22,7 +22,7 @@ export('open',
 
 function open(path, mode, options) {
     options = checkOptions(mode, options);
-    var file = new FixedFile(String(path));
+    var file = new FixedFile(path);
     var {read, write, append, update, binary, charset} = options;
     if (!read && !write && !append && !update) {
         read = true;
@@ -59,7 +59,7 @@ function write(path, content, options) {
 }
 
 function size(path) {
-    var file = new File(path);
+    var file = new FixedFile(path);
     return file.length();
 }
 
@@ -87,14 +87,14 @@ function move(from, to) {
 }
 
 function remove(path) {
-    var file = new FixedFile(String(path));
+    var file = new FixedFile(path);
     if (!file['delete']()) {
         throw new Error("Failed to remove file " + path);
     }
 }
 
 function exists(path) {
-    var file = new FixedFile(String(path));
+    var file = new FixedFile(path);
     return file.exists();
 }
 
@@ -108,19 +108,19 @@ function chdir(path) {
 }
 
 function isReadable(path) {
-    return new FixedFile(String(path)).canRead();
+    return new FixedFile(path).canRead();
 }
 
 function isWritable(path) {
-    return new FixedFile(String(path)).canWrite();
+    return new FixedFile(path).canWrite();
 }
 
 function isFile(path) {
-    return new FixedFile(String(path)).isFile();
+    return new FixedFile(path).isFile();
 }
 
 function isDirectory(path) {
-    return new FixedFile(String(path)).isDirectory();
+    return new FixedFile(path).isDirectory();
 }
 
 var optionsMask = {
@@ -182,6 +182,9 @@ function checkOptions(mode, options) {
 function FixedFile(path) {
     // Fix: relative files are not resolved against cwd/user.dir in java
     // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-    var file = new File(path);
+    if (path == undefined) {
+        throw new Error('undefined path argument');
+    }
+    var file = new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
 }
