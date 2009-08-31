@@ -1,6 +1,9 @@
 package org.helma.wrappers;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.annotations.JSStaticFunction;
+import org.mozilla.javascript.annotations.JSFunction;
+import org.mozilla.javascript.annotations.JSGetter;
 import org.helma.util.ScriptUtils;
 
 public class Storable extends ScriptableObject {
@@ -66,7 +69,8 @@ public class Storable extends ScriptableObject {
         }
     }
 
-    public static Scriptable jsStaticFunction_defineClass(Scriptable store, String type)
+    @JSStaticFunction
+    public static Scriptable defineClass(Scriptable store, String type)
             throws NoSuchMethodException {
         int attr = DONTENUM | PERMANENT | READONLY;
         Scriptable scope = ScriptRuntime.getTopCallScope(Context.getCurrentContext());
@@ -113,7 +117,8 @@ public class Storable extends ScriptableObject {
         return NOT_FOUND;
     }
 
-    public void jsFunction_save(Object transaction) {
+    @JSFunction
+    public void save(Object transaction) {
         if (!isPrototype) {
             if (entity == null) {
                 entity = invokeStoreMethod("getEntity", type, properties != null ? properties : key);
@@ -126,7 +131,8 @@ public class Storable extends ScriptableObject {
         }
     }
 
-    public void jsFunction_remove(Object transaction) {
+    @JSFunction("remove")
+    public void jsremove(Object transaction) {
         if (!isPrototype && isPersistent()) {
             if (key == null) {
                 key = invokeStoreMethod("getKey", type, entity);
@@ -139,7 +145,8 @@ public class Storable extends ScriptableObject {
         }
     }
 
-    public Object jsGet__key() {
+    @JSGetter("_key")
+    public Object getKey() {
         if (!isPrototype && isPersistent()) {
             if (key == null) {
                 key = invokeStoreMethod("getKey", type, entity);
@@ -149,8 +156,9 @@ public class Storable extends ScriptableObject {
         return Undefined.instance;
     }
 
-    public Object jsGet__id() {
-        Object k = jsGet__key();
+    @JSGetter("_id")
+    public Object getId() {
+        Object k = getKey();
         if (k != Undefined.instance) {
             return invokeStoreMethod("getId", k);
         }
