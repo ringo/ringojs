@@ -33,7 +33,7 @@ public class CaseInsensitiveMapTest extends TestCase {
     }
 
     public void testAddRemove() {
-        Map<String, Boolean> map = new CaseInsensitiveMap<String, Boolean>();
+        Map<String, Boolean> map = new CaseInsensitiveMap<Boolean>();
         map.put("AAA", true);
         map.put("Bbb", true);
         map.put("cCC", true);
@@ -43,7 +43,7 @@ public class CaseInsensitiveMapTest extends TestCase {
     }
 
     public void testOverwrite() {
-        Map<String, Boolean> map = new CaseInsensitiveMap<String, Boolean>();
+        Map<String, Boolean> map = new CaseInsensitiveMap<Boolean>();
         map.put("AAA", true);
         map.put("Bbb", true);
         map.put("CCC", false);

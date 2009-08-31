@@ -25,22 +25,22 @@ import java.util.HashMap;
  * Map wrapper that makes a string-keyed map case insensitive while
  * still preserving case in key collections.
  */
-public class CaseInsensitiveMap<K,V> implements Map<K,V> {
+public class CaseInsensitiveMap<V> implements Map<String,V> {
 
-    Map<K,V> wrapped;
-    Map<String,K> keymap;
+    Map<String,V> wrapped;
+    Map<String,String> keymap;
     boolean ignoreCase = true;
 
     public CaseInsensitiveMap() {
-        wrapped = new HashMap<K,V>();
-        keymap = new HashMap<String, K>();
+        wrapped = new HashMap<String,V>();
+        keymap = new HashMap<String, String>();
     }
 
-    public CaseInsensitiveMap(Map<K,V> map) {
+    public CaseInsensitiveMap(Map<String,V> map) {
         assert map != null;
         wrapped = map;
-        keymap = new HashMap<String, K>();
-        for (K key: map.keySet()) {
+        keymap = new HashMap<String, String>();
+        for (String key: map.keySet()) {
             keymap.put(processKey(key), key);
         }
     }
@@ -72,9 +72,9 @@ public class CaseInsensitiveMap<K,V> implements Map<K,V> {
      * @param value value
      * @return the old value, if an old value got replaced
      */
-    public V put(K key, V value) {
+    public V put(String key, V value) {
         String pkey = processKey(key);
-        K previousKey = keymap.put(pkey, key);
+        String previousKey = keymap.put(pkey, key);
         V previousValue = wrapped.put(key, value);
         if (previousValue == null && previousKey != null)
             previousValue = wrapped.remove(previousKey);
@@ -83,13 +83,13 @@ public class CaseInsensitiveMap<K,V> implements Map<K,V> {
 
     public V remove(Object key) {
         String pkey = processKey(key);
-        Object previousKey = keymap.remove(pkey);
+        String previousKey = keymap.remove(pkey);
         return previousKey == null ? null : wrapped.remove(previousKey);
     }
 
-    public void putAll(Map<? extends K, ? extends V> t) {
-        for (K key: t.keySet()) {
-            K previousKey = keymap.put(processKey(key), key);
+    public void putAll(Map<? extends String, ? extends V> t) {
+        for (String key: t.keySet()) {
+            String previousKey = keymap.put(processKey(key), key);
             if (previousKey != null) {
                 wrapped.remove(previousKey);
             }
@@ -102,7 +102,7 @@ public class CaseInsensitiveMap<K,V> implements Map<K,V> {
         wrapped.clear();
     }
 
-    public Set<K> keySet() {
+    public Set<String> keySet() {
         return wrapped.keySet();
     }
 
@@ -110,7 +110,7 @@ public class CaseInsensitiveMap<K,V> implements Map<K,V> {
         return wrapped.values();
     }
 
-    public Set<Map.Entry<K,V>> entrySet() {
+    public Set<Map.Entry<String,V>> entrySet() {
         return wrapped.entrySet();
     }
 
@@ -128,6 +128,7 @@ public class CaseInsensitiveMap<K,V> implements Map<K,V> {
 
     private String processKey(Object key) {
         assert key != null;
-        return key.toString().toLowerCase();
+        return key instanceof String ?
+                ((String) key).toLowerCase() : key.toString().toLowerCase();
     }
 }

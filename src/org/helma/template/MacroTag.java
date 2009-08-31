@@ -36,7 +36,7 @@ public class MacroTag extends ScriptableObject {
 
     Object name;
     LinkedList<Object> args = new LinkedList<Object>();
-    Map<String,Object> namedArgs = new CaseInsensitiveMap<String,Object>();
+    Map<String,Object> namedArgs = new CaseInsensitiveMap<Object>();
     MacroTag filter = null;
     int startLine;
 
@@ -155,7 +155,7 @@ public class MacroTag extends ScriptableObject {
         submacro.setPrototype(getPrototype());
         // only apply filter to the top-level macro
         // submacro.filter = filter;
-        submacro.namedArgs = new CaseInsensitiveMap<String,Object>(namedArgs);
+        submacro.namedArgs = new CaseInsensitiveMap<Object>(namedArgs);
         submacro.args = new LinkedList<Object>();
         if (start + 1 < args.size()) {
             for (Iterator i = args.listIterator(start + 1); i.hasNext(); ) {
