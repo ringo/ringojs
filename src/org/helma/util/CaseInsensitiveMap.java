@@ -27,9 +27,8 @@ import java.util.HashMap;
  */
 public class CaseInsensitiveMap<V> implements Map<String,V> {
 
-    Map<String,V> wrapped;
-    Map<String,String> keymap;
-    boolean ignoreCase = true;
+    private Map<String,V> wrapped;
+    private Map<String,String> keymap;
 
     public CaseInsensitiveMap() {
         wrapped = new HashMap<String,V>();
