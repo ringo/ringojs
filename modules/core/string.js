@@ -604,16 +604,6 @@ Object.defineProperty(String.prototype, "diff", {
 
 
 /**
- * remove leading and trailing whitespace
- */
-Object.defineProperty(String.prototype, "trim", {
-    value: function () {
-        return this.replace(/^\s+|\s+$/g, '');
-    }
-});
-
-
-/**
  * returns true if the string looks like an e-mail
  */
 Object.defineProperty(String.prototype, "isEmail", {
