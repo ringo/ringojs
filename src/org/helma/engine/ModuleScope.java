@@ -46,7 +46,7 @@ public class ModuleScope extends NativeObject {
         // create and define module meta-object
         Scriptable metaObject = cx.newObject(this);
         ScriptableObject.defineProperty(metaObject, "id", moduleName, DONTENUM);
-        ScriptableObject.defineProperty(metaObject, "path", source.getRelativePath(), DONTENUM);
+        ScriptableObject.defineProperty(metaObject, "path", source.getPath(), DONTENUM);
         defineProperty("module", metaObject, DONTENUM);
         // define old deprecated meta properties
         defineProperty("__name__", moduleName, DONTENUM);
