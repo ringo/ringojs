@@ -50,7 +50,8 @@ function read(path, options) {
 }
 
 function write(path, content, options) {
-    var stream = open(path, 'w', options);
+    var mode = content instanceof ByteArray ? 'wb' : 'w';
+    var stream = open(path, mode, options);
     try {
         stream.write(content);
     } finally {
@@ -137,42 +138,57 @@ function checkOptions(mode, options) {
     if (!options) {
         options = {};
     } else if (typeof options != 'object') {
-        throw new Error('object expected for options argument');
+        if (typeof options == 'string') {
+            // if options is a mode string convert it to options object
+            options = applyMode(options);
+        } else {
+            throw new Error('object expected for options argument');
+        }
     } else {
+        // run sanity check on user-provided options object
         for (var key in options) {
             if (!(key in optionsMask)) {
                 throw new Error("Unsupported option: " + key);
             }
-            options[key] = key == charset ? String(options[key]) : Boolean(options[key]);
+            options[key] = key == 'charset' ?
+                    String(options[key]) : Boolean(options[key]);
         }
     }
     if (typeof mode == 'string') {
-        for (var i = 0; i < mode.length; i++) {
-            switch (mode[i]) {
-            case 'r':
-                options.read = true;
-                break;
-            case 'w':
-                options.write = true;
-                break;
-            case 'a':
-                options.append = true;
-                break;
-            case '+':
-                options.update = true;
-                break;
-            case 'b':
-                options.binary = true;
-                break;
-            case 'x':
-                options.exclusive = true;
-                break;
-            case 'c':
-                options.canonical = true;
-                break;
-            default:
-                throw new Error("Unsupported mode argument: " + options);
-            }
+        // apply mode string to options object
+        applyMode(mode, options);
+    }
+    return options;
+}
+
+// apply mode string to options object
+function applyMode(mode, options) {
+    options = options || {};
+    for (var i = 0; i < mode.length; i++) {
+        switch (mode[i]) {
+        case 'r':
+            options.read = true;
+            break;
+        case 'w':
+            options.write = true;
+            break;
+        case 'a':
+            options.append = true;
+            break;
+        case '+':
+            options.update = true;
+            break;
+        case 'b':
+            options.binary = true;
+            break;
+        case 'x':
+            options.exclusive = true;
+            break;
+        case 'c':
+            options.canonical = true;
+            break;
+        default:
+            throw new Error("Unsupported mode argument: " + options);
         }
     }
     return options;
