@@ -1,5 +1,6 @@
 include('io');
 include('binary');
+require('core/array');
 
 importClass(java.io.File,
             java.io.FileInputStream,
@@ -18,11 +19,20 @@ export('open',
        'isDirectory',
        'size',
        'cwd',
-       'chdir');
+       'chdir',
+       'join',
+       'split',
+       'resolve',
+       'normal');
+
+var SEPARATOR = File.separator;
+var SEPARATOR_RE = SEPARATOR == '/' ?
+                   new RegExp(SEPARATOR) :
+                   new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
 function open(path, mode, options) {
     options = checkOptions(mode, options);
-    var file = new FixedFile(path);
+    var file = resolveFile(path);
     var {read, write, append, update, binary, charset} = options;
     if (!read && !write && !append && !update) {
         read = true;
@@ -60,13 +70,13 @@ function write(path, content, options) {
 }
 
 function size(path) {
-    var file = new FixedFile(path);
+    var file = resolveFile(path);
     return file.length();
 }
 
 function copy(from, to) {
-    var source = new FixedFile(from);
-    var target = new FixedFile(to);
+    var source = resolveFile(from);
+    var target = resolveFile(to);
     var input = new FileInputStream(source).getChannel();
     var output = new FileOutputStream(target).getChannel();
     var size = source.length();
@@ -79,22 +89,22 @@ function copy(from, to) {
 }
 
 function move(from, to) {
-    var source = new FixedFile(from);
-    var target = new FixedFile(to);
+    var source = resolveFile(from);
+    var target = resolveFile(to);
     if (!source.renameTo(target)) {
-        throw new Error("Failed to move file from " + from + " to " + to);
+        throw new Error("failed to move file from " + from + " to " + to);
     }
 }
 
 function remove(path) {
-    var file = new FixedFile(path);
+    var file = resolveFile(path);
     if (!file['delete']()) {
-        throw new Error("Failed to remove file " + path);
+        throw new Error("failed to remove file " + path);
     }
 }
 
 function exists(path) {
-    var file = new FixedFile(path);
+    var file = resolveFile(path);
     return file.exists();
 }
 
@@ -108,19 +118,77 @@ function chdir(path) {
 }
 
 function isReadable(path) {
-    return new FixedFile(path).canRead();
+    return resolveFile(path).canRead();
 }
 
 function isWritable(path) {
-    return new FixedFile(path).canWrite();
+    return resolveFile(path).canWrite();
 }
 
 function isFile(path) {
-    return new FixedFile(path).isFile();
+    return resolveFile(path).isFile();
 }
 
 function isDirectory(path) {
-    return new FixedFile(path).isDirectory();
+    return resolveFile(path).isDirectory();
+}
+
+function isAbsolute(path) {
+    return new File(path).isAbsolute();
+}
+
+function join() {
+    return normal(Array.join(arguments, SEPARATOR));
+}
+
+function split(path) {
+    return String(path).split(SEPARATOR_RE);
+}
+
+// adapted from narwhal
+function resolve() {
+    var root = '';
+    var elements = [];
+    var leaf = '';
+    var path;
+    for (var i = 0; i < arguments.length; i++) {
+        path = String(arguments[i]);
+        if (path.trim() == '') {
+            continue;
+        }
+        var parts = path.split(SEPARATOR_RE);
+        if (isAbsolute(path)) {
+            // path is absolute, throw away everyting we have so far
+            root = parts.shift() + SEPARATOR;
+            elements = [];
+        }
+        leaf = parts.pop();
+        if (leaf == '.' || leaf == '..') {
+            parts.push(leaf);
+            leaf = '';
+        }
+        for (var j = 0; j < parts.length; j++) {
+            var part = parts[j];
+            if (part == '..') {
+                if (elements.length > 0 && elements.peek() != '..') {
+                    elements.pop();
+                } else if (!root) {
+                    elements.push(part);
+                }
+            } else if (part != '' && part != '.') {
+                elements.push(part);
+            }
+        }
+    }
+    path = elements.join(SEPARATOR);
+    if (path.length > 0) {
+        leaf = SEPARATOR + leaf;
+    }
+    return root + path + leaf;
+}
+
+function normal(path) {
+    return resolve(path);
 }
 
 var optionsMask = {
@@ -142,13 +210,13 @@ function checkOptions(mode, options) {
             // if options is a mode string convert it to options object
             options = applyMode(options);
         } else {
-            throw new Error('object expected for options argument');
+            throw new Error('unsupported options argument');
         }
     } else {
         // run sanity check on user-provided options object
         for (var key in options) {
             if (!(key in optionsMask)) {
-                throw new Error("Unsupported option: " + key);
+                throw new Error("unsupported option: " + key);
             }
             options[key] = key == 'charset' ?
                     String(options[key]) : Boolean(options[key]);
@@ -188,15 +256,16 @@ function applyMode(mode, options) {
             options.canonical = true;
             break;
         default:
-            throw new Error("Unsupported mode argument: " + options);
+            throw new Error("unsupported mode argument: " + options);
         }
     }
     return options;
 }
 
-function FixedFile(path) {
-    // Fix: relative files are not resolved against cwd/user.dir in java
-    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
+function resolveFile(path) {
+    // Fix for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
+    // relative files are not resolved against cwd/user.dir in java,
+    // making the file absolute makes sure it is resolved correctly.
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
