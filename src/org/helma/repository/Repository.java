@@ -17,7 +17,7 @@
 package org.helma.repository;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -26,6 +26,13 @@ import java.util.List;
  * a hierarchical structure.
  */
 public interface Repository extends Trackable {
+
+    /**
+     * String containing file separator characters. Always include slash character,
+     * plus the native separator char if it isn't the slash.
+     */
+    final public static String SEPARATOR =
+            File.separatorChar == '/' ? "/" : File.separator + "/";
 
     /**
      * Returns a specific direct resource of the repository

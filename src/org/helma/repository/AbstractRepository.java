@@ -18,7 +18,6 @@ package org.helma.repository;
 
 import org.helma.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -58,13 +57,6 @@ public abstract class AbstractRepository implements Repository {
      * empty repository array for convenience
      */
     final static Repository[] emptyRepositories = new Repository[0];
-
-    /**
-     * String containing file separator characters. Always include slash character,
-     * plus the native separator char if it isn't the slash.
-     */
-    final static String separator =
-            File.separatorChar == '/' ? "/" : File.separator + "/";
 
     /**
      * Called to check the repository's content.
@@ -138,7 +130,7 @@ public abstract class AbstractRepository implements Repository {
      * for which {@link Resource exists()} returns <code>false<code>.
      */
     public synchronized Resource getResource(String path) throws IOException {
-        String[] subs = StringUtils.split(path, separator);
+        String[] subs = StringUtils.split(path, SEPARATOR);
         if (subs.length == 1) {
             Resource resource = resources.get(subs[0]);
             if (resource != null) {
@@ -163,7 +155,7 @@ public abstract class AbstractRepository implements Repository {
      * @return a list of all nested child resources
      */
     public List<Resource> getResources(String path, boolean recursive) throws IOException {
-        String[] subs = StringUtils.split(path, separator);
+        String[] subs = StringUtils.split(path, SEPARATOR);
         Repository repository = this;
         for (String sub: subs) {
             repository = repository.getChildRepository(sub);

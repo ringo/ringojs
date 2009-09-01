@@ -85,7 +85,7 @@ public final class ZipRepository extends AbstractRepository {
             depth = 0;
             entryPath = "";
         } else {
-            String[] pathArray = StringUtils.split(zipentry.getName(), separator);
+            String[] pathArray = StringUtils.split(zipentry.getName(), SEPARATOR);
             depth = pathArray.length;
             name = pathArray[depth - 1];
             entryPath = zipentry.getName();
@@ -126,7 +126,7 @@ public final class ZipRepository extends AbstractRepository {
                         // names don't match - not a child of ours
                         continue;
                     }
-                    String[] entrypath = StringUtils.split(eName, separator);
+                    String[] entrypath = StringUtils.split(eName, SEPARATOR);
                     if (depth > 0 && !name.equals(entrypath[depth-1])) {
                         // catch case where our name is Foo and other's is FooBar
                         continue;
