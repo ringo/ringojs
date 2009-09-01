@@ -156,7 +156,11 @@ public class HelmaShell {
                         for(Object id: ids) {
                             String str = id.toString();
                             if (str.startsWith(lastpart) || word.endsWith(".")) {
-                                list.add(str);
+                                if (obj.get(str, obj) instanceof Callable) {
+                                    list.add(str + "(");
+                                } else {
+                                    list.add(str);
+                                }
                             }
                         }
                         if (word.endsWith(".") && obj instanceof ModuleScope) {
