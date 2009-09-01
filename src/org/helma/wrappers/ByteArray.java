@@ -172,9 +172,13 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public int indexOf(int n) {
+    public int indexOf(int n, Object from, Object to) {
+        int start = from == Undefined.instance ?
+                0 : Math.max(0, Math.min(length - 1, ScriptRuntime.toInt32(from)));
+        int end = to == Undefined.instance ?
+                length : Math.max(0, Math.min(length, ScriptRuntime.toInt32(to)));
         byte b = (byte) (0xff & n);
-        for (int i = 0; i < length; i++) {
+        for (int i = start; i < end; i++) {
             if (bytes[i] == b)
                 return i;
         }
@@ -182,9 +186,13 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public int lastIndexOf(int n) {
+    public int lastIndexOf(int n, Object from, Object to) {
+        int start = from == Undefined.instance ?
+                0 : Math.max(0, Math.min(length - 1, ScriptRuntime.toInt32(from)));
+        int end = to == Undefined.instance ?
+                length : Math.max(0, Math.min(length, ScriptRuntime.toInt32(to)));
         byte b = (byte) (0xff & n);
-        for (int i = length - 1; i >= 0; i--) {
+        for (int i = end - 1; i >= start; i--) {
             if (bytes[i] == b)
                 return i;
         }
