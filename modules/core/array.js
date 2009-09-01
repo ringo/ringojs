@@ -39,6 +39,17 @@ Object.defineProperty(Array.prototype, "contains", {
 });
 
 /**
+ * Return the last element of this array. This is like pop(), but
+ * without modifying the array.
+ * @return {Object} the last element of the array, or undefined if the array is empty.
+ */
+Object.defineProperty(Array.prototype, "peek", {
+    value: function() {
+       return this[this.length - 1];
+    }
+});
+
+/**
  * Remove the first occurrence of the argument value from this array. This method
  * mutates and returns the array on which it is called and does not create a
  * new array instance.
