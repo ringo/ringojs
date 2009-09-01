@@ -25,7 +25,7 @@ function TextInputStream(io, charset, buffering) {
         return String(line) + "\n";
     };
 
-    this.itertor = function () {
+    this.iterator = function () {
         return this;
     };
 
@@ -46,10 +46,6 @@ function TextInputStream(io, charset, buffering) {
             }
             block.call(context, line);
         }
-    };
-
-    this.input = function () {
-        throw "NYI";
     };
 
     this.readLines = function () {
