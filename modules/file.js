@@ -64,14 +64,13 @@ function size(path) {
 }
 
 function copy(from, to) {
-    var input = open(from, 'rb');
-    var output = open(to, 'wb');
-    var buffer = new ByteArray(Math.min(size(from), 4096));
+    var source = new FixedFile(from);
+    var target = new FixedFile(to);
+    var input = new FileInputStream(source).getChannel();
+    var output = new FileOutputStream(target).getChannel();
+    var size = source.length();
     try {
-        var read;
-        while((read = input.readInto(buffer, 0, buffer.length)) > -1) {
-            output.write(buffer, 0, read);
-        }
+        input.transferTo(0, size, output);
     } finally {
         input.close();
         output.close();
