@@ -6,24 +6,39 @@ importClass(java.io.File,
             java.io.FileInputStream,
             java.io.FileOutputStream);
 
-export('open',
-       'read',
-       'write',
+export('absolute',
+        // 'basename',
+        // 'canonical',
+       'chdir',
        'copy',
-       'move',
-       'remove',
+       'cwd',
        'exists',
+        // 'extension',
+       'isDirectory',
+       'isFile',
        'isReadable',
        'isWritable',
-       'isFile',
-       'isDirectory',
-       'size',
-       'cwd',
-       'chdir',
        'join',
-       'split',
+       'list',
+        // 'mkdir',
+        // 'mkdirs',
+       'move',
+        // 'mtime',
+       'normal',
+       'open',
+       'read',
+       'remove',
+        // 'rename',
        'resolve',
-       'normal');
+       'rmdir',
+       'rmtree',
+       'size',
+       'split',
+        // 'stat',
+        // 'symlink',
+        // 'touch',
+       'write',
+       'Path');
 
 var SEPARATOR = File.separator;
 var SEPARATOR_RE = SEPARATOR == '/' ?
@@ -117,6 +132,38 @@ function chdir(path) {
     java.lang.System.setProperty('user.dir', path);
 }
 
+function rmdir(path) {
+    var file = resolveFile(path);
+    if (!file['delete']()) {
+        throw new Error("failed to remove directory " + path);
+    }
+}
+
+function rmtree(path) {
+    var file = resolveFile(path);
+    if (file.isDirectory()) {
+        Array.forEach(file.list(), function(child) {
+            rmtree(join(file, child));
+        })
+    }
+    if (!file['delete']()) {
+        throw new Error("failed to remove " + path);
+    }
+}
+
+function list(path) {
+    var file = resolveFile(path);
+    var list = file.list();
+    if (list == null) {
+        throw new Error("failed to list directory " + path);
+    }
+    var result = [];
+    for (var i = 0; i < list.length; i++) {
+        result[i] = list[i];
+    }
+    return result;
+}
+
 function isReadable(path) {
     return resolveFile(path).canRead();
 }
@@ -135,6 +182,10 @@ function isDirectory(path) {
 
 function isAbsolute(path) {
     return new File(path).isAbsolute();
+}
+
+function absolute(path) {
+    return resolve(join(cwd(), ''), path);
 }
 
 function join() {
@@ -190,6 +241,73 @@ function resolve() {
 function normal(path) {
     return resolve(path);
 }
+
+exports.path = function() {
+    return Path(join.apply(null, arguments));
+}
+
+function Path(path) {
+    if (!(this instanceof Path)) {
+        return new Path(path);
+    }
+    this.toString = function() path;
+}
+
+Path.prototype = new String();
+
+Path.prototype.join = function() {
+    return Path(join.apply(null, 
+            [this.toString()].concat(Array.slice(arguments))));
+}
+
+var trivia = [
+    // 'chmod',
+    // 'chown',
+    'copy',
+    'exists',
+    // 'extname',
+    'isDirectory',
+    'isFile',
+    // 'isLink',
+    'isReadable',
+    'isWritable',
+    // 'link',
+    // 'linkExists',
+    'list',
+    // 'listTree',
+    // 'mkdir',
+    // 'mkdirs',
+    'move',
+    'mtime',
+    'open',
+    'read',
+    'remove',
+    'rename',
+    'rmdir',
+    'rmtree',
+    'size',
+    'split',
+    // 'stat',
+    // 'symlink',
+    // 'touch',
+    'write'
+];
+
+for (var i = 0; i < trivia.length; i++) {
+    var name = trivia[i];
+    Path.prototype[name] = (function (name) {
+        return function () {
+            var result = exports[name].apply(
+                this,
+                [this.toString()].concat(Array.slice(arguments))
+            );
+            if (result === undefined)
+                result = this;
+            return result;
+        };
+    })(name);
+}
+
 
 var optionsMask = {
     read: 1,
