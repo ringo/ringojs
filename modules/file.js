@@ -7,13 +7,14 @@ importClass(java.io.File,
             java.io.FileOutputStream);
 
 export('absolute',
-        // 'basename',
-        // 'canonical',
+       'basename',
+       'canonical',
        'chdir',
        'copy',
        'cwd',
+       'dirname',
        'exists',
-        // 'extension',
+       'extension',
        'isAbsolute',
        'isDirectory',
        'isFile',
@@ -21,10 +22,10 @@ export('absolute',
        'isWritable',
        'join',
        'list',
-        // 'mkdir',
-        // 'mkdirs',
+       'mkdir',
+       'mkdirs',
        'move',
-        // 'mtime',
+       'mtime',
        'normal',
        'open',
        'read',
@@ -83,11 +84,6 @@ function write(path, content, options) {
     } finally {
         stream.close();
     }
-}
-
-function size(path) {
-    var file = resolveFile(path);
-    return file.length();
 }
 
 function copy(from, to) {
@@ -165,6 +161,30 @@ function list(path) {
     return result;
 }
 
+function size(path) {
+    var file = resolveFile(path);
+    return file.length();
+}
+
+function mtime(path) {
+    var file = resolveFile(path);
+    return new Date(file.lastModified());
+}
+
+function mkdir(path) {
+    var file = resolveFile(path);
+    if (!file.mkdir()) {
+        throw new Error("failed to make directory " + path);
+    }
+}
+
+function mkdirs(path) {
+    var file = resolveFile(path);
+    if (!file.mkdirs()) {
+        throw new Error("failed to make directories " + path);
+    }
+}
+
 function isReadable(path) {
     return resolveFile(path).canRead();
 }
@@ -189,11 +209,43 @@ function absolute(path) {
     return resolve(join(cwd(), ''), path);
 }
 
+function canonical(path) {
+    return resolveFile(path).getCanonicalPath();
+}
+
+function basename(path, ext) {
+    var name = split(path).peek();
+    if (ext && name) {
+        var diff = name.length - ext.length;
+        if (diff > -1 && name.lastIndexOf(ext) == diff) {
+            return name.substring(0, diff);
+        }
+    }
+    return name;
+}
+
+function dirname(path) {
+    return new File(path).getParent() || '.';
+}
+
+function extension(path) {
+    var name = basename(path);
+    if (!name) {
+        return '';
+    }
+    name = name.replace(/^\.+/, '');
+    var index = name.lastIndexOf('.');
+    return index > 0 ? name.substring(index) : '';
+}
+
 function join() {
     return normal(Array.join(arguments, SEPARATOR));
 }
 
 function split(path) {
+    if (!path) {
+        return [];
+    }
     return String(path).split(SEPARATOR_RE);
 }
 
@@ -261,12 +313,34 @@ Path.prototype.join = function() {
             [this.toString()].concat(Array.slice(arguments))));
 }
 
+ var pathed = [
+    'absolute',
+    'basename',
+    'canonical',
+    'dirname',
+    'normal',
+    'relative'
+];
+
+for (var i = 0; i < pathed.length; i++) {
+    var name = pathed[i];
+    Path.prototype[name] = (function (name) {
+        return function () {
+            return exports.Path(exports[name].apply(
+                this,
+                [this.toString()].concat(Array.prototype.slice.call(arguments))
+            ));
+        };
+    })(name);
+}
+
 var trivia = [
+    'basename',
     // 'chmod',
     // 'chown',
     'copy',
     'exists',
-    // 'extname',
+    'extension',
     'isDirectory',
     'isFile',
     // 'isLink',
@@ -276,8 +350,8 @@ var trivia = [
     // 'linkExists',
     'list',
     // 'listTree',
-    // 'mkdir',
-    // 'mkdirs',
+    'mkdir',
+    'mkdirs',
     'move',
     'mtime',
     'open',
