@@ -3,7 +3,7 @@
  */
 
 include('helma/webapp/util');
-var IO = require('io').IO;
+var IOStream = require('io').IOStream;
 var ByteArray = require("binary").ByteArray;
 var HashP = require('hashp').HashP;
 
@@ -122,11 +122,15 @@ function handleRequest(module, func, env) {
 }
 
 /**
- * Set up the IO related properties of a jsgi environment object.
+ * Set up the I/O related properties of a jsgi environment object.
  * @param env a jsgi request object
  */
 function initRequest(env) {
     var input, errors;
+    if (env.hasOwnProperty('jsgi.input')) {
+        // already set up, probably because the original request threw a retry
+        return;
+    }
     Object.defineProperty(env, "jsgi.input", {
         get: function() {
             if (!input)
