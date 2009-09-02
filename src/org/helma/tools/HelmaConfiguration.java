@@ -170,29 +170,36 @@ public class HelmaConfiguration {
                 mainResource = script;
             } else {
                 // check if the script can be found in the module path
-                Resource module = getResource(scriptName);
-                if (!module.exists()) {
-                    // try converting module name to file path
-                    module = getResource(scriptName.replace('/', File.separatorChar) + ".js");
+                script = getResource(scriptName);
+                if (!script.exists()) {
+                    // try converting module name to file path and lookup in module path
+                    script = getResource(scriptName + ".js");
                 }
-                if (module.exists()) {
-                    // found module in existing path, just set mainModule name
-                    mainResource = module;
-                } else {
+                if (!script.exists()) {
+                    // try to resolve script as module name in current directory
+                    Repository current = new FileRepository(new File(System.getProperty("user.dir")));
+                    script = current.getResource(scriptName + ".js");
                     if (!script.exists()) {
+                        // no luck resolving the script name, give up
                         throw new FileNotFoundException("Can't find file " + scriptName);
                     }
-                    // found script file outside the module path, add its parent directory
-                    repositories.add(0, script.getParentRepository());
-                    mainResource = script;
+                    // found as module name in current directory, so add it to module path
+                    repositories.add(0, current);
                 }
+                // found the script, so set mainModule
+                mainResource = script;
             }
         } else {
-            // no script file, add current directory to module search path
-            repositories.add(0, new FileRepository(new File(".")));
+            // no script file, add current directory to module path
+            File currentDir = new File(System.getProperty("user.dir"));
+            repositories.add(0, new FileRepository(currentDir));
         }
     }
 
+    /**
+     * Get the main script resource resolved by calling {@link #setMainScript(String)}.
+     * @return the main script resource, or null
+     */
     public Resource getMainResource() {
         return mainResource;
     }
