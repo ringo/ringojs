@@ -13,15 +13,13 @@ var log = require('helma/logging').getLogger(__name__);
 addHostObject(org.helma.wrappers.Storable);
 
 /**
- * File Store class
- * @param path the database directory
+ * Memory Store class
  */
 function Store() {
 
     // map of type to current id tip
     var idMap = {};
     var data = {};
-    var self = this;
     var registry = {};
 
     this.dump = function() {
@@ -79,9 +77,6 @@ function Store() {
         return new BaseQuery(bindArguments(all, type));
     }
 
-    function remove(key, txn) {
-        datastore.remove(key, txn);
-    }
 
     function getEntity(type, arg) {
         if (isKey(arg)) {

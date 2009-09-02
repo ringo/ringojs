@@ -83,7 +83,7 @@ function Store(path) {
             txn = new Transaction();
         }
 
-        remove(key, txn);
+        removeImpl(key, txn);
 
         if (wrapTransaction) {
             txn.commit();
@@ -180,7 +180,7 @@ function Store(path) {
         return list;
     };
 
-    function remove(key, txn) {
+    function removeImpl(key, txn) {
         if (!isKey(key)) {
             throw new Error("Invalid key object: " + key);
         }
