@@ -22,6 +22,9 @@ import org.helma.wrappers.ScriptableList;
 import org.helma.wrappers.ScriptableMap;
 import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.annotations.JSGetter;
+import org.mozilla.javascript.annotations.JSSetter;
+import org.mozilla.javascript.annotations.JSFunction;
 
 import java.util.List;
 import java.util.Map;
@@ -75,28 +78,32 @@ public class MacroTag extends ScriptableObject {
     /**
      * Get the number of the line where this macro tag starts.
      */
-    public int jsGet_startLine() {
+    @JSGetter
+    public int getStartLine() {
         return startLine;
     }
 
     /**
      * Getter for the macro tag name.
      */
-    public Object jsGet_name() {
+    @JSGetter
+    public Object getName() {
         return name;
     }
 
     /**
      * Setter for the macro tag name.
      */
-    public void jsSet_name(String name) {
+    @JSSetter
+    public void setName(String name) {
         this.name = name;
     }
 
     /**
      * A Javascript array containing all parameter names in this macro tag.
      */
-    public Object jsGet_parameterNames() {
+    @JSGetter
+    public Object getParameterNames() {
         if (jsNames == null) {
             Context cx = Context.getCurrentContext();
             int size = namedArgs.size();
@@ -110,7 +117,8 @@ public class MacroTag extends ScriptableObject {
      * A Javascript array containing all unnamed parameters in this macro tag, in the
      * order in which they appear in the tag.
      */
-    public Object jsGet_parameters() {
+    @JSGetter
+    public Object getParameters() {
         if (jsParams == null) {
             jsParams = new ScriptableList(getTopLevelScope(this), args);
         }
@@ -121,7 +129,8 @@ public class MacroTag extends ScriptableObject {
      * The next macro tag in the filter chain, or undefined if the macro tag does not contain
      * a filter chain. The filter chain is defined by the pipe character '|' within within macro tags.
      */
-    public Object jsGet_filter() {
+    @JSGetter
+    public Object getFilter() {
         if (filter != null) {
             filter.setParentScope(getParentScope());
             filter.setPrototype(getPrototype());
@@ -145,7 +154,8 @@ public class MacroTag extends ScriptableObject {
                 "parameterNames".equals(name) || super.has(name, start);
     }
 
-    public Object jsFunction_getSubMacro(int start) {
+    @JSFunction
+    public Object getSubMacro(int start) {
         Object obj = args.get(start);
         if (obj instanceof MacroTag) {
             return ScriptUtils.javaToJS(obj, getTopLevelScope(this));
@@ -174,7 +184,8 @@ public class MacroTag extends ScriptableObject {
      * @rhinoparam nameOrIndex StringOrInteger one or more parameter names or indices.
      * @return Object The first parameter that matches one of the arguments.
      */
-    public static Object jsFunction_getParameter(Context cx, Scriptable thisObj,
+    @JSFunction
+    public static Object getParameter(Context cx, Scriptable thisObj,
                                       Object[] args, Function funObj) {
         try {
             MacroTag macro = (MacroTag) thisObj;
@@ -213,14 +224,6 @@ public class MacroTag extends ScriptableObject {
             }
         }
         return null;
-    }
-
-    protected void setName(String str) {
-        name = str;
-    }
-
-    public Object getName() {
-        return name;
     }
 
     protected void addNamedParameter(String key, Object value) {
