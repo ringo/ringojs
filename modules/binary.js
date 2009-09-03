@@ -68,3 +68,18 @@ Object.defineProperty(ByteArray.prototype, 'reduceRight', {
                Array.reduceRight(this, fn, initialValue);
     }
 });
+
+Object.defineProperty(ByteArray.prototype, 'pop', {
+    value: function() {
+        return Array.pop(this);
+    }
+});
+
+Object.defineProperty(ByteArray.prototype, 'push', {
+    value: function() {
+        for (var i = 0; i < arguments.length; i++) {
+            this[this.length] = arguments[i];
+        }
+        return this.length;
+    }
+});
