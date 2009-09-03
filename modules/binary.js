@@ -10,25 +10,6 @@ Object.defineProperty(String.prototype, 'toByteArray', {
     }
 });
 
-Object.defineProperty(ByteArray.prototype, 'toArray', {
-    value: function(charset) {
-        if (charset) {
-            var str = this.decodeToString(charset);
-            var result = new Array(str.length);
-            for (var i = 0; i < str.length; i++) {
-                result[i] = str.charCodeAt(i);
-            }
-            return result;
-        } else {
-            var result = new Array(this.length);
-            for (var i = 0; i < this.length; i++) {
-                result[i] = this[i];
-            }
-            return result;
-        }
-    }
-});
-
 Object.defineProperty(ByteArray.prototype, 'reverse', {
     value: function() {
         return Array.reverse(this);

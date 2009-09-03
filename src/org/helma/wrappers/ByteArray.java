@@ -179,6 +179,25 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
+    public synchronized Object toArray(Object charset)
+            throws UnsupportedEncodingException {
+        Object[] elements;
+        if (charset != Undefined.instance) {
+            String str = new String(bytes, 0, length, ScriptRuntime.toString(charset));
+            elements = new Object[str.length()];
+            for (int i = 0; i < elements.length; i++) {
+                elements[i] = Integer.valueOf(str.charAt(i));
+            }
+        } else {
+            elements = new Object[length];
+            for (int i = 0; i < length; i++) {
+                elements[i] = Integer.valueOf(0xff & bytes[i]);
+            }
+        }
+        return Context.getCurrentContext().newArray(getParentScope(), elements);
+    }
+
+    @JSFunction
     public String decodeToString(Object charset) {
         String cs = toCharset(charset);
         try {
