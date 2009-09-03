@@ -218,6 +218,21 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
+    public Object slice(Object begin, Object end) {
+        if (begin == Undefined.instance && end == Undefined.instance) {
+            return new ByteArray(getParentScope(), bytes, 0, length);
+        }
+        int from = ScriptUtils.toInt(begin, 0);
+        if (from < 0) {
+            from = length + from;
+        }
+        from = Math.min(length, Math.max(0, from));
+        int to = end == Undefined.instance ? length : ScriptUtils.toInt(end, from);
+        int len = Math.max(0, Math.min(length - from,  to - from));
+        return new ByteArray(getParentScope(), bytes, from, len);
+    }
+
+    @JSFunction
     public String decodeToString(Object charset) {
         String cs = toCharset(charset);
         try {
