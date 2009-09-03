@@ -1,5 +1,9 @@
 
-export('readOnlyPropertyDesc', 'writeOnlyPropertyDesc', 'readWritePropertyDesc', 'jsonDateReviver', 'timer');
+export('readOnlyPropertyDesc',
+        'writeOnlyPropertyDesc',
+        'readWritePropertyDesc',
+        'jsonDateReviver',
+        'timer');
 
 /**
  * Create a read-only property descriptor to be used as third argument in
