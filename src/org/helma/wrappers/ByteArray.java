@@ -10,6 +10,9 @@ import org.helma.util.ScriptUtils;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * <p>A growable wrapper around a Java byte array compliant to the ByteBuffer class defined
@@ -37,8 +40,9 @@ public class ByteArray extends ScriptableObject implements Wrapper {
 
     public ByteArray(Scriptable scope, byte[] bytes) {
         super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
-        this.bytes = bytes;
+        this.bytes = new byte[bytes.length];
         this.length = bytes.length;
+        System.arraycopy(bytes, 0, this.bytes, 0, length);
     }
 
     @JSConstructor
@@ -155,8 +159,18 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
+    public void set(Object index, int value) {
+        double d = ScriptRuntime.toNumber(index);
+        if (d != ScriptRuntime.NaN && (int)d == d && d >= 0) {
+            int i = (int) d;
+            ensureCapacity(i);
+            bytes[i] = (byte) (0xff & value);
+        }
+    }
+
+    @JSFunction
     public Object toByteArray() {
-        return this;
+        return new ByteArray(getParentScope(), getBytes());
     }
 
     @JSFunction
@@ -199,6 +213,47 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return -1;
     }
 
+    @JSFunction
+    public synchronized Object split(Object delim, Object options) {
+        byte[][] delimiters = getSplitDelimiters(delim);
+        boolean includeDelimiter = false;
+        if (options instanceof Scriptable) {
+            Scriptable o = (Scriptable) options;
+            Object include = o.get("includeDelimiter", o);
+            includeDelimiter = o != NOT_FOUND && ScriptRuntime.toBoolean(include);
+        }
+        List<ByteArray> list = new ArrayList<ByteArray>();
+        Scriptable scope = getParentScope();
+        int index = 0;
+        outer:
+        for (int i = 0; i < length; i++) {
+            inner:
+            for (byte[] delimiter : delimiters) {
+                if (i + delimiter.length > length) {
+                    continue;
+                }
+                for (int j = 0; j < delimiter.length; j++) {
+                    if (bytes[i + j] != delimiter[j]) {
+                        continue inner;
+                    }
+                }
+                list.add(new ByteArray(scope, copyRange(index, i)));
+                if (includeDelimiter) {
+                    list.add(new ByteArray(scope, delimiter));
+                }
+                index = i + delimiter.length;
+                i = index - 1;
+                continue outer;
+            }
+        }
+        if (index == 0) {
+            list.add(this);
+        } else {
+            list.add(new ByteArray(scope, copyRange(index, bytes.length)));
+        }
+        return Context.getCurrentContext().newArray(scope, list.toArray());
+    }
+
     @JSFunction("unwrap")
     public Object jsunwrap() {
         return NativeJavaArray.wrap(getParentScope(), getBytes());
@@ -234,6 +289,36 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             System.arraycopy(bytes, 0, b, 0, length);
             bytes = b;
         }
+    }
+
+    private byte[][] getSplitDelimiters(Object delim) {
+        List<byte[]> list = new ArrayList<byte[]>();
+        if (delim instanceof NativeArray) {
+            Collection values = ((NativeArray) delim).values();
+            for (Object value : values) {
+                if (value instanceof Number) {
+                    list.add(new byte[] {(byte) (0xff & ((Number) value).intValue())});
+                } else if (value instanceof ByteArray) {
+                    list.add(((ByteArray) value).getBytes());
+                } else {
+                    throw new RuntimeException("unsupported delimiter: " + value);
+                }
+            }
+        } else if (delim instanceof Number) {
+            list.add(new byte[] {(byte) (0xff & ((Number) delim).intValue())});
+        } else if (delim instanceof ByteArray) {
+            list.add(((ByteArray) delim).getBytes());
+        } else {
+            throw new RuntimeException("unsupported delimiter: " + delim);
+        }
+        return list.toArray(new byte[list.size()][]);
+    }
+
+    private synchronized byte[] copyRange(int from, int to) {
+        int len = to - from;
+        byte[] b = new byte[len];
+        System.arraycopy(bytes, from, b, 0, len);
+        return b;
     }
 
     private String toCharset(Object charset) {
