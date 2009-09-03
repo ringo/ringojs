@@ -145,4 +145,18 @@ public class ScriptUtils {
         return args[pos];
     }
 
+    /**
+     * Try to convert an object to an int value, returning the default value if conversion fails.
+     * @param obj the value
+     * @param defaultValue the default value
+     * @return the converted value
+     */
+    public static int toInt(Object obj, int defaultValue) {
+        double d = ScriptRuntime.toNumber(obj);
+        if (d == ScriptRuntime.NaN || (int)d != d) {
+            return defaultValue;
+        }
+        return (int) d;
+    }
+
 }

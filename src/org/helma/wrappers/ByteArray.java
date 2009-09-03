@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Arrays;
 
 /**
  * <p>A growable wrapper around a Java byte array compliant to the ByteBuffer class defined
@@ -68,12 +69,12 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             }
         } else if (arg instanceof Number) {
             length = ((Number) arg).intValue();
-            bytes = new byte[length];
+            bytes = new byte[Math.max(length, 8)];
         } else if (arg instanceof NativeArray) {
             NativeArray array = (NativeArray) arg;
             Integer ids[] = array.getIndexIds();
             length = ids.length;
-            bytes = new byte[length];
+            bytes = new byte[Math.max(length, 8)];
             for (int id : ids) {
                 Object value = array.get(id, array);
                 put(id, this, value);
@@ -101,7 +102,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
                 throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
             }
         } else if (arg == Undefined.instance) {
-            bytes = new byte[0];
+            bytes = new byte[8];
             length = 0;
         } else {
             throw ScriptRuntime.typeError("Unsupported argument: " + arg);
@@ -129,7 +130,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         if (!(value instanceof Number)) {
             throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
         }
-        if (index >= bytes.length) {
+        if (index >= length) {
             setLength(index + 1);
         }
         int n = ((Number) value).intValue();
@@ -142,32 +143,44 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSSetter
-    public synchronized void setLength(int l) {
+    public synchronized void setLength(Object length) {
+        int l = ScriptUtils.toInt(length, -1);
         if (l < 0) {
-            throw ScriptRuntime.typeError("Negative ByteArray length");
-        } else if (l != length) {
-            byte[] b = new byte[l];
-            System.arraycopy(bytes, 0, b, 0, Math.min(l, length));
-            bytes = b;
-            length = l;
+            throw ScriptRuntime.typeError("Inappropriate ByteArray length");
         }
+        setLength(l);
+    }
+
+    protected synchronized void setLength(int newLength) {
+        if (newLength < length) {
+            // if shrinking clear the old buffer
+            Arrays.fill(bytes, newLength, length, (byte) 0);
+        } else if (newLength > bytes.length) {
+            // if growing make sure the buffer is large enough
+            int newSize = Math.max(newLength, bytes.length * 2);
+            byte[] b = new byte[newSize];
+            System.arraycopy(bytes, 0, b, 0, length);
+            bytes = b;
+        }
+        length = newLength;
     }
 
     @JSFunction
     public Object get(Object index) {
-        double d = ScriptRuntime.toNumber(index);
-        if (d == ScriptRuntime.NaN || (int)d != d || d < 0 || d >= length) {
+        int i = ScriptUtils.toInt(index, -1);
+        if (i < 0 || i >= length) {
             return Undefined.instance;
         }
-        return Integer.valueOf(0xff & bytes[(int) d]);
+        return Integer.valueOf(0xff & bytes[i]);
     }
 
     @JSFunction
     public void set(Object index, int value) {
-        double d = ScriptRuntime.toNumber(index);
-        if (d != ScriptRuntime.NaN && (int)d == d && d >= 0) {
-            int i = (int) d;
-            ensureCapacity(i);
+        int i = ScriptUtils.toInt(index, -1);
+        if (i > -1) {
+            if (i >= length) {
+                setLength(i + 1);
+            }
             bytes[i] = (byte) (0xff & value);
         }
     }
@@ -218,10 +231,8 @@ public class ByteArray extends ScriptableObject implements Wrapper {
 
     @JSFunction
     public int indexOf(int n, Object from, Object to) {
-        int start = from == Undefined.instance ?
-                0 : Math.max(0, Math.min(length - 1, ScriptRuntime.toInt32(from)));
-        int end = to == Undefined.instance ?
-                length : Math.max(0, Math.min(length, ScriptRuntime.toInt32(to)));
+        int start = Math.max(0, Math.min(length - 1, ScriptUtils.toInt(from, 0)));
+        int end = Math.max(0, Math.min(length, ScriptUtils.toInt(to, length)));
         byte b = (byte) (0xff & n);
         for (int i = start; i < end; i++) {
             if (bytes[i] == b)
@@ -232,10 +243,8 @@ public class ByteArray extends ScriptableObject implements Wrapper {
 
     @JSFunction
     public int lastIndexOf(int n, Object from, Object to) {
-        int start = from == Undefined.instance ?
-                0 : Math.max(0, Math.min(length - 1, ScriptRuntime.toInt32(from)));
-        int end = to == Undefined.instance ?
-                length : Math.max(0, Math.min(length, ScriptRuntime.toInt32(to)));
+        int start = Math.max(0, Math.min(length - 1, ScriptUtils.toInt(from, 0)));
+        int end = Math.max(0, Math.min(length, ScriptUtils.toInt(to, length)));
         byte b = (byte) (0xff & n);
         for (int i = end - 1; i >= start; i--) {
             if (bytes[i] == b)
@@ -304,14 +313,14 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         return bytes;
     }
 
-    public void ensureCapacity(int capacity) {
-        if (capacity > length) {
-            setLength(capacity);
-        }
-    }
-
     public String getClassName() {
         return CLASSNAME;
+    }
+
+    protected synchronized void ensureLength(int minLength) {
+        if (minLength > length) {
+            setLength(minLength);
+        }
     }
 
     private synchronized void normalize() {

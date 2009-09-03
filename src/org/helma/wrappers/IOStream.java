@@ -86,14 +86,14 @@ public class IOStream extends ScriptableObject implements Wrapper {
         if (input == null) {
             throw ScriptRuntime.typeError("no input stream");
         }
-        int off = offset == Undefined.instance ? -1 : ScriptRuntime.toInt32(offset);
-        int len = length == Undefined.instance ? -1 : ScriptRuntime.toInt32(length);
+        int off = ScriptUtils.toInt(offset, -1);
+        int len = ScriptUtils.toInt(length, -1);
         try {
             if (off > -1) {
                 if (len > -1) {
-                    bytes.ensureCapacity(off + len);
+                    bytes.ensureLength(off + len);
                 } else {
-                    bytes.ensureCapacity(off + 1);
+                    bytes.ensureLength(off + 1);
                     len = bytes.getLength() - off;
                 }
                 byte[] b = bytes.getBytes();
@@ -101,6 +101,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
             } else {
                 return input.read(bytes.getBytes());
             }
+            // FIXME: should we set the length of the byte buffer to the number of read bytes?
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }
