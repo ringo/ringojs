@@ -39,10 +39,14 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     public ByteArray() {}
 
     public ByteArray(Scriptable scope, byte[] bytes) {
+        this(scope, bytes, 0, bytes.length);
+    }
+
+    public ByteArray(Scriptable scope, byte[] bytes, int offset, int length) {
         super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
-        this.bytes = new byte[bytes.length];
-        this.length = bytes.length;
-        System.arraycopy(bytes, 0, this.bytes, 0, length);
+        this.bytes = new byte[length];
+        this.length = length;
+        System.arraycopy(bytes, offset, this.bytes, 0, length);
     }
 
     @JSConstructor
@@ -169,21 +173,24 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public Object toByteArray(Object fromCharset, Object toCharset)
+    public synchronized Object toByteArray(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
-        if (fromCharset != Undefined.instance && toCharset != Undefined.instance) {
-            String str = new String(bytes, 0, length, ScriptRuntime.toString(fromCharset));
-            return new ByteArray(getParentScope(), str.getBytes(ScriptRuntime.toString(toCharset)));
+        String source = toCharset(sourceCharset);
+        String target = toCharset(targetCharset);
+        if (source != null && target != null) {
+            String str = new String(bytes, 0, length, source);
+            return new ByteArray(getParentScope(), str.getBytes(target));
         }
-        return new ByteArray(getParentScope(), getBytes());
+        return new ByteArray(getParentScope(), bytes, 0, length);
     }
 
     @JSFunction
     public synchronized Object toArray(Object charset)
             throws UnsupportedEncodingException {
         Object[] elements;
-        if (charset != Undefined.instance) {
-            String str = new String(bytes, 0, length, ScriptRuntime.toString(charset));
+        String cs = toCharset(charset);
+        if (cs != null) {
+            String str = new String(bytes, 0, length, cs);
             elements = new Object[str.length()];
             for (int i = 0; i < elements.length; i++) {
                 elements[i] = Integer.valueOf(str.charAt(i));
@@ -261,7 +268,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
                         continue inner;
                     }
                 }
-                list.add(new ByteArray(scope, copyRange(index, i)));
+                list.add(new ByteArray(scope, bytes, index, i - index));
                 if (includeDelimiter) {
                     list.add(new ByteArray(scope, delimiter));
                 }
@@ -273,7 +280,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         if (index == 0) {
             list.add(this);
         } else {
-            list.add(new ByteArray(scope, copyRange(index, bytes.length)));
+            list.add(new ByteArray(scope, bytes, index, length - index));
         }
         return Context.getCurrentContext().newArray(scope, list.toArray());
     }
@@ -336,13 +343,6 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             throw new RuntimeException("unsupported delimiter: " + delim);
         }
         return list.toArray(new byte[list.size()][]);
-    }
-
-    private synchronized byte[] copyRange(int from, int to) {
-        int len = to - from;
-        byte[] b = new byte[len];
-        System.arraycopy(bytes, from, b, 0, len);
-        return b;
     }
 
     private String toCharset(Object charset) {
