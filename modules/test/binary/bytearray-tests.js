@@ -1,6 +1,6 @@
-include('helma/unittest');
 
-var ByteArray = require("binary").ByteArray;
+include('helma/unittest');
+include("binary");
 
 exports.testByteArrayConstructor = function() {
     var testArray = [1,2,3,4],
@@ -312,7 +312,7 @@ exports.testByteArrayConcat = function() {
     assertEqual(4, b2.get(3));
     assertEqual(6, b2.get(5));
     
-    var b3 = b2.concat([b, b1, b2, new ByteString(), new ByteArray()]);
+    var b3 = b2.concat(b, b1, b2, new ByteString(), new ByteArray());
     assertEqual(b.length + b1.length + b2.length + b2.length, b3.length);
     
 };

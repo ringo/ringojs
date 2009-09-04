@@ -1,6 +1,6 @@
-include('helma/unittest');
 
-var ByteArray = require("binary").ByteArray;
+include('helma/unittest');
+include("binary");
 
 exports.testByteArrayConstructorEncodings = function() {
     // ByteString(string, charset)

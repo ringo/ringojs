@@ -1,5 +1,6 @@
-defineClass(org.helma.wrappers.ByteArray);
-export('ByteArray');
+
+defineClass(org.helma.wrappers.Binary);
+export('Binary', 'ByteArray', 'ByteString');
 
 __shared__ = true;
 

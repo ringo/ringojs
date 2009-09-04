@@ -7,81 +7,110 @@ import org.mozilla.javascript.annotations.JSSetter;
 import org.mozilla.javascript.annotations.JSConstructor;
 import org.helma.util.ScriptUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Arrays;
+import java.lang.reflect.Method;
 
 /**
- * <p>A growable wrapper around a Java byte array compliant to the ByteBuffer class defined
- * in the <a href="https://wiki.mozilla.org/ServerJS/Binary/B">Binary/B proposal</a>.
- * To register ByteBuffer as a host object in Rhino call the <code>defineClass()</code>
- * function with the class.</p>
+ * <p>A wrapper around a Java byte array compliant to the Binary/ByteArray/ByteString
+ * classes defined in the <a href="https://wiki.mozilla.org/ServerJS/Binary/B">Binary/B proposal</a>.
+ * To register Binary, ByteArray and ByteString as a host objects in Rhino call the
+ * <code>defineClass()</code> function with this class as argument.</p>
  *
- * <pre><code>defineClass(org.helma.wrappers.ByteBuffer);</code></pre>
+ * <pre><code>defineClass(org.helma.wrappers.Binary);</code></pre>
  *
- * <p>The ByteArray constructor can take several arguments. Have a look at the proposal for
- * details.</p>
+ * <p>The JavaScript Binary class serves as common base class for ByteArray and ByteString
+ * and can't be instantiated. ByteArray implements a modifiable and resizable byte buffer,
+ * while ByteString implements an immutable byte sequence. The ByteArray and ByteString
+ * constructors can take several arguments. Have a look at the proposal for details.</p>
  *
- * <p>When passed to a Java method that expects a byte array, ByteBuffer wrappers
- * are automatically unwrapped. use the {@link #unwrap()} method to explicitly get the
+ * <p>When passed to a Java method that expects a byte array, instances of thes class
+ * are automatically unwrapped. Use the {@link #unwrap()} method to explicitly get the
  * wrapped stream.</p>
  */
-public class ByteArray extends ScriptableObject implements Wrapper {
+public class Binary extends ScriptableObject implements Wrapper {
 
     private byte[] bytes;
     private int length;
+    private final Type type;
 
-    private final static String CLASSNAME = "ByteArray";
-
-    public ByteArray() {}
-
-    public ByteArray(Scriptable scope, byte[] bytes) {
-        this(scope, bytes, 0, bytes.length);
+    enum Type {
+        Binary, ByteArray, ByteString
     }
 
-    public ByteArray(Scriptable scope, byte[] bytes, int offset, int length) {
-        super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
+    public Binary() {
+        type = Type.Binary;
+    }
+
+    public Binary(Type type) {
+        this.type = type;
+    }
+
+    public Binary(Scriptable scope, Type type, int length) {
+        super(scope, ScriptUtils.getClassOrObjectProto(scope, type.toString()));
+        this.type = type;
+        this.bytes = new byte[Math.max(length, 8)];
+        this.length = length;
+    }
+
+    public Binary(Scriptable scope, Type type, byte[] bytes) {
+        this(scope, type, bytes, 0, bytes.length);
+    }
+
+    public Binary(Scriptable scope, Type type, byte[] bytes, int offset, int length) {
+        super(scope, ScriptUtils.getClassOrObjectProto(scope, type.toString()));
         this.bytes = new byte[length];
         this.length = length;
+        this.type = type;
         System.arraycopy(bytes, offset, this.bytes, 0, length);
     }
 
     @JSConstructor
-    public ByteArray(Object arg, Object charset) {
+    public static Object construct(Context cx, Object[] args, Function ctorObj, boolean inNewExpr) {
+        ScriptUtils.checkArguments(args, 0, 2);
+        Scriptable scope = ctorObj.getParentScope();
+        Type type = Type.valueOf((String) ctorObj.get("name", ctorObj));
+        if (type == Type.Binary) {
+            throw ScriptRuntime.typeError("cannot instantiate Binary base class");
+        }
+        if (args.length == 0) {
+            return new Binary(scope, type, 0);
+        }
+        Object arg = args[0];
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
-        if (charset != Undefined.instance) {
+        if (args.length == 2) {
             if (!(arg instanceof String)) {
                 throw ScriptRuntime.typeError("Expected string as first argument");
-            } else if (!(charset instanceof String)) {
+            } else if (!(args[1] instanceof String)) {
                 throw ScriptRuntime.typeError("Expected string as second argument");
             }
             try {
-                bytes = ((String) arg).getBytes((String) charset);
-                length = bytes.length;
+                return new Binary(scope, type, ((String) arg).getBytes((String) args[1]));
             } catch (UnsupportedEncodingException uee) {
-                throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
+                throw ScriptRuntime.typeError("Unsupported encoding: " + args[1]);
             }
         } else if (arg instanceof Number) {
-            length = ((Number) arg).intValue();
-            bytes = new byte[Math.max(length, 8)];
+            return new Binary(scope, type, ((Number) arg).intValue());
         } else if (arg instanceof NativeArray) {
             NativeArray array = (NativeArray) arg;
             Integer ids[] = array.getIndexIds();
-            length = ids.length;
-            bytes = new byte[Math.max(length, 8)];
+            Binary bytes = new Binary(scope, type, ids.length);
             for (int id : ids) {
                 Object value = array.get(id, array);
-                put(id, this, value);
+                bytes.put(id, bytes, value);
             }
+            return bytes;
         } else if (arg instanceof byte[]) {
-            bytes = (byte[]) arg;
-            length = bytes.length;
+            return new Binary(scope, type, (byte[]) arg);
+        } else if (arg instanceof Binary) {
+            return new Binary(scope, type, ((Binary) arg).getBytes());
         } else if (arg instanceof InputStream) {
             InputStream in = (InputStream) arg;
             byte[] buffer = new byte[1024];
@@ -95,18 +124,37 @@ public class ByteArray extends ScriptableObject implements Wrapper {
                         buffer = b;
                     }
                 }
-                bytes = buffer;
-                length = count;
-                in.close();
+                return new Binary(scope, type, buffer, 0, count);
             } catch (IOException iox) {
                 throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException ignore) {}
             }
         } else if (arg == Undefined.instance) {
-            bytes = new byte[8];
-            length = 0;
+            return new Binary(scope, type, 0);
         } else {
             throw ScriptRuntime.typeError("Unsupported argument: " + arg);
         }
+    }
+
+    // Called after the host class has been defined.
+    public static void finishInit(Scriptable scope, FunctionObject ctor, Scriptable prototype)
+            throws NoSuchMethodException{
+        initClass(scope, prototype, Type.ByteArray);
+        initClass(scope, prototype, Type.ByteString);
+    }
+
+    private static void initClass(Scriptable scope, Scriptable parentProto, Type type)
+            throws NoSuchMethodException {
+        Binary prototype = new Binary(type);
+        prototype.setPrototype(parentProto);
+        Method ctorMember = Binary.class.getMethod("construct", new Class[] {
+                Context.class, Object[].class, Function.class, Boolean.TYPE
+        });
+        FunctionObject constructor = new FunctionObject(type.toString(), ctorMember, scope);
+        constructor.addAsConstructor(scope, prototype);
     }
 
     @Override
@@ -188,13 +236,23 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     @JSFunction
     public synchronized Object toByteArray(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
+        return makeCopy(Type.ByteArray, sourceCharset, targetCharset);
+    }
+    @JSFunction
+    public synchronized Object toByteString(Object sourceCharset, Object targetCharset)
+            throws UnsupportedEncodingException {
+        return makeCopy(Type.ByteString, sourceCharset, targetCharset);
+    }
+
+    private Binary makeCopy(Type type, Object sourceCharset, Object targetCharset)
+            throws UnsupportedEncodingException {
         String source = toCharset(sourceCharset);
         String target = toCharset(targetCharset);
         if (source != null && target != null) {
             String str = new String(bytes, 0, length, source);
-            return new ByteArray(getParentScope(), str.getBytes(target));
+            return new Binary(getParentScope(), type, str.getBytes(target));
         }
-        return new ByteArray(getParentScope(), bytes, 0, length);
+        return new Binary(getParentScope(), type, bytes, 0, length);
     }
 
     @JSFunction
@@ -220,7 +278,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     @JSFunction
     public Object slice(Object begin, Object end) {
         if (begin == Undefined.instance && end == Undefined.instance) {
-            return new ByteArray(getParentScope(), bytes, 0, length);
+            return new Binary(getParentScope(), type, bytes, 0, length);
         }
         int from = ScriptUtils.toInt(begin, 0);
         if (from < 0) {
@@ -232,7 +290,32 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             to += length;
         }
         int len = Math.max(0, Math.min(length - from,  to - from));
-        return new ByteArray(getParentScope(), bytes, from, len);
+        return new Binary(getParentScope(), type, bytes, from, len);
+    }
+
+    @JSFunction
+    public static Object concat(Context cx, Scriptable thisObj,
+                                      Object[] args, Function func) {
+        int arglength = 0;
+        List<byte[]> arglist = new ArrayList<byte[]>(args.length);
+        for (Object arg : args) {
+            if (arg instanceof Binary) {
+                byte[] b = ((Binary) arg).getBytes();
+                arglength += b.length;
+                arglist.add(b);
+            }
+        }
+        Binary thisByteArray = (Binary) thisObj;
+        synchronized (thisByteArray) {
+            byte[] newBytes = new byte[thisByteArray.length + arglength];
+            System.arraycopy(thisByteArray.bytes, 0, newBytes, 0, thisByteArray.length);
+            int index = thisByteArray.length;
+            for (byte[] b : arglist) {
+                System.arraycopy(b, 0, newBytes, index, b.length);
+                index += b.length;
+            }
+            return new Binary(thisObj.getParentScope(), thisByteArray.type, newBytes);
+        }
     }
 
     @JSFunction
@@ -280,7 +363,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             Object include = o.get("includeDelimiter", o);
             includeDelimiter = o != NOT_FOUND && ScriptRuntime.toBoolean(include);
         }
-        List<ByteArray> list = new ArrayList<ByteArray>();
+        List<Binary> list = new ArrayList<Binary>();
         Scriptable scope = getParentScope();
         int index = 0;
         outer:
@@ -295,9 +378,9 @@ public class ByteArray extends ScriptableObject implements Wrapper {
                         continue inner;
                     }
                 }
-                list.add(new ByteArray(scope, bytes, index, i - index));
+                list.add(new Binary(scope, type, bytes, index, i - index));
                 if (includeDelimiter) {
-                    list.add(new ByteArray(scope, delimiter));
+                    list.add(new Binary(scope, type, delimiter));
                 }
                 index = i + delimiter.length;
                 i = index - 1;
@@ -307,7 +390,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
         if (index == 0) {
             list.add(this);
         } else {
-            list.add(new ByteArray(scope, bytes, index, length - index));
+            list.add(new Binary(scope, type, bytes, index, length - index));
         }
         return Context.getCurrentContext().newArray(scope, list.toArray());
     }
@@ -332,7 +415,7 @@ public class ByteArray extends ScriptableObject implements Wrapper {
     }
 
     public String getClassName() {
-        return CLASSNAME;
+        return type.toString();
     }
 
     protected synchronized void ensureLength(int minLength) {
@@ -356,16 +439,16 @@ public class ByteArray extends ScriptableObject implements Wrapper {
             for (Object value : values) {
                 if (value instanceof Number) {
                     list.add(new byte[] {(byte) (0xff & ((Number) value).intValue())});
-                } else if (value instanceof ByteArray) {
-                    list.add(((ByteArray) value).getBytes());
+                } else if (value instanceof Binary) {
+                    list.add(((Binary) value).getBytes());
                 } else {
                     throw new RuntimeException("unsupported delimiter: " + value);
                 }
             }
         } else if (delim instanceof Number) {
             list.add(new byte[] {(byte) (0xff & ((Number) delim).intValue())});
-        } else if (delim instanceof ByteArray) {
-            list.add(((ByteArray) delim).getBytes());
+        } else if (delim instanceof Binary) {
+            list.add(((Binary) delim).getBytes());
         } else {
             throw new RuntimeException("unsupported delimiter: " + delim);
         }

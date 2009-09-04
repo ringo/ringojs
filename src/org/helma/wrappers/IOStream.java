@@ -69,7 +69,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
             try {
                 byte[] bytes = new byte[max];
                 int read = input.read(bytes);
-                ByteArray b = new ByteArray(scope, bytes);
+                Binary b = new Binary(scope, Binary.Type.ByteArray, bytes);
                 b.setLength(read);
                 return b;
             } catch (IOException iox) {
@@ -82,7 +82,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public int readInto(ByteArray bytes, Object offset, Object length) {
+    public int readInto(Binary bytes, Object offset, Object length) {
         if (input == null) {
             throw ScriptRuntime.typeError("no input stream");
         }
@@ -108,7 +108,7 @@ public class IOStream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void write(ByteArray bytes, Object offset, Object length) {
+    public void write(Binary bytes, Object offset, Object length) {
         if (output == null) {
             throw ScriptRuntime.typeError("no output stream");
         }
