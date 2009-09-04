@@ -133,6 +133,7 @@ this.run = function(modulePathOrScope, writer) {
     }
     var summary = {
         "testsRun": 0,
+        "passed": 0,
         "errors": 0,
         "failures": 0,
         "time": 0
@@ -157,7 +158,7 @@ var executeTestScope = function(scope, summary, writer, path) {
     for (var name in scope) {
         var value = scope[name];
         if (name.startsWith("test") && value instanceof Function) {
-            writer.writeTestStart(path.concat([name]).join("."));
+            writer.writeTestStart(name);
             var start = null;
             var time = 0;
             try {
@@ -174,6 +175,7 @@ var executeTestScope = function(scope, summary, writer, path) {
                     scope.tearDown();
                 }
                 writer.writeTestPassed(time);
+                summary.passed += 1;
             } catch (e) {
                 if (!(e instanceof TestException)) {
                     e = new EvaluatorException(e);
@@ -189,7 +191,9 @@ var executeTestScope = function(scope, summary, writer, path) {
                 summary.time += time;
             }
         } else if (value.constructor === Object) {
+            writer.enterScope(name);
             executeTestScope(value, summary, writer, path.concat([name]));
+            writer.exitScope(name);
         }
     }
     return;
@@ -211,6 +215,7 @@ var executeTestScope = function(scope, summary, writer, path) {
  * @constructor
  */
 var ShellWriter = function() {
+    this.indent = "";
     return this;
 };
 
@@ -243,11 +248,28 @@ ShellWriter.prototype.writeHeader = function() {
 };
 
 /**
+ * Notification that we're entering a new test scope.
+ * @param name the name of the test scope
+ */
+ShellWriter.prototype.enterScope = function(name) {
+    shell.writeln(this.indent, "+ Running", name, "...");
+    this.indent += "  ";
+};
+
+/**
+ * Notification that we're leaving a test scope.
+ * @param name the name of the test scope
+ */
+ShellWriter.prototype.exitScope = function(name) {
+    this.indent = this.indent.substring(2);
+};
+
+/**
  * Display the beginning of a test function execution
  * @param {String} name The name of the test function about to be executed
  */
 ShellWriter.prototype.writeTestStart = function(name) {
-    shell.write("Executing", "'" + name + "'", "...");
+    shell.write(this.indent, "+ Running", name, "...");
     return;
 };
 
@@ -285,9 +307,8 @@ ShellWriter.prototype.writeTestFailed = function(exception) {
 ShellWriter.prototype.writeSummary = function(summary) {
     if (summary.testsRun > 0) {
         shell.writeln("-".repeat(80));
-        shell.write("FINISHED: executed", summary.testsRun, "tests in", summary.time, "ms ");
-        shell.write("(" + summary.failures, ShellWriter.pluralize("failure", "failures", summary.failures) + ", ");
-        shell.writeln(summary.errors, ShellWriter.pluralize("error", "errors", summary.errors) + ")");
+        shell.writeln("Executed", summary.testsRun, "tests in", summary.time, "ms ");
+        shell.writeln("Passed", summary.passed + ";", "Failed", summary.failures + ";", "Errors", summary.errors + ";");
     } else {
         shell.writeln("No tests found");
     }
