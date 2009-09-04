@@ -1,7 +1,7 @@
 
 exports.dirname = require('./dirname');
 exports.extension = require('./extension');
-exports.isabsolute = require('./is-absolute');
+exports.isAbsolute = require('./is-absolute');
 exports.iterator = require('./iterator');
 exports.normal = require('./normal');
 // not implemented
