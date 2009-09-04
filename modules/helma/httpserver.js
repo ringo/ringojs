@@ -165,7 +165,7 @@ function commitResponse(env, result) {
         if (result && typeof result.close === "function") {
             result = result.close();
         } else {
-            throw "Unsupported response object: " + result;
+            throw "Response doesn't implement close: " + result;
         }
     }
     var [status, headers, body] = result;
@@ -176,22 +176,11 @@ function commitResponse(env, result) {
     var charset = getSubHeader(HashP.get(headers, "content-type"), "charset");
     var output = response.getOutputStream();
     if (body && typeof body.forEach == "function") {
-        /* var contentLength = 0;
-        var bytes = [];
         body.forEach(function(part) {
-            var bin = part.toBinary(charset);
-            contentLength += bin.getLength();
-            bytes.push(bin.bytes);
-        })
-        response.setContentLength(contentLength);
-        for (var i = 0; i < bytes.length; i++) {
-            output.write(bytes[i]);
-        } */
-        body.forEach(function(part) {
-            output.write(part.toByteArray(charset));
+            output.write(part.toByteString(charset));
         });
     } else {
-        throw new Error("Unsupported response body: " + body);
+        throw new Error("Response body doesn't implement forEach: " + body);
     }
     output.close();
 }
