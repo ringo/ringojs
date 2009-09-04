@@ -55,8 +55,12 @@ public class JsgiServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        module = getInitParam(config, "moduleName", "helma/webapp");
-        function = getInitParam(config, "functionName", "handleRequest");
+
+        // don't overwrite function if it was set in constructor
+        if (function == null) {
+            module = getInitParam(config, "moduleName", "helma/webapp");
+            function = getInitParam(config, "functionName", "handleRequest");
+        }
 
         if (engine == null) {
             String helmaHome = getInitParam(config, "helmaHome", "WEB-INF");
