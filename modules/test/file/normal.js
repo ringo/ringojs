@@ -16,7 +16,7 @@ var tests = [
 ];
 
 tests.forEach(function([path, expected]) {
-    exports['test ' + path] = function () {
+    exports['test "' + path + '"'] = function () {
         var result = fs.normal(path);
         assertEqual(expected, result);
     };
