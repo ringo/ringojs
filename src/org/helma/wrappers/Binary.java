@@ -273,6 +273,9 @@ public class Binary extends ScriptableObject implements Wrapper {
     @JSFunction
     public synchronized Object toByteString(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
+        if (type == Type.ByteString) {
+            return this;
+        }
         return makeCopy(Type.ByteString, sourceCharset, targetCharset);
     }
 
