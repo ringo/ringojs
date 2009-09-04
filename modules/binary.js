@@ -11,6 +11,13 @@ Object.defineProperty(String.prototype, 'toByteArray', {
     }
 });
 
+Object.defineProperty(String.prototype, 'toByteString', {
+    value: function(charset) {
+        charset = charset || 'utf8';
+        return new ByteString(String(this), charset);
+    }
+});
+
 Object.defineProperty(ByteArray.prototype, 'reverse', {
     value: function() {
         return Array.reverse(this);

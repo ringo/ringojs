@@ -96,7 +96,7 @@ public class Binary extends ScriptableObject implements Wrapper {
             } catch (UnsupportedEncodingException uee) {
                 throw ScriptRuntime.typeError("Unsupported encoding: " + args[1]);
             }
-        } else if (arg instanceof Number) {
+        } else if (arg instanceof Number && type == Type.ByteArray) {
             return new Binary(scope, type, ((Number) arg).intValue());
         } else if (arg instanceof NativeArray) {
             NativeArray array = (NativeArray) arg;
@@ -104,7 +104,7 @@ public class Binary extends ScriptableObject implements Wrapper {
             Binary bytes = new Binary(scope, type, ids.length);
             for (int id : ids) {
                 Object value = array.get(id, array);
-                bytes.put(id, bytes, value);
+                bytes.putInternal(id, value);
             }
             return bytes;
         } else if (arg instanceof byte[]) {
@@ -172,6 +172,13 @@ public class Binary extends ScriptableObject implements Wrapper {
 
     @Override
     public void put(int index, Scriptable start, Object value) {
+        if (type != Type.ByteArray) {
+            return;
+        }
+        putInternal(index, value);
+    }
+
+    private void putInternal(int index, Object value) {
         if (index < 0) {
             throw ScriptRuntime.typeError("Negative ByteArray index");
         }
@@ -200,6 +207,9 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     protected synchronized void setLength(int newLength) {
+        if (type != Type.ByteArray) {
+            return;
+        }
         if (newLength < length) {
             // if shrinking clear the old buffer
             Arrays.fill(bytes, newLength, length, (byte) 0);
@@ -223,7 +233,29 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
+    public Object charCodeAt(Object index) {
+        return get(index);
+    }
+
+    @JSFunction
+    public Object byteAt(Object index) {
+        int i = ScriptUtils.toInt(index, -1);
+        if (i < 0 || i >= length) {
+            return new Binary(getParentScope(), type, 0);
+        }
+        return new Binary(getParentScope(), type, new byte[] {bytes[i]});
+    }
+
+    @JSFunction
+    public Object charAt(Object index) {
+        return byteAt(index);
+    }
+
+    @JSFunction
     public void set(Object index, int value) {
+        if (type != Type.ByteArray) {
+            return;
+        }
         int i = ScriptUtils.toInt(index, -1);
         if (i > -1) {
             if (i >= length) {
@@ -273,6 +305,15 @@ public class Binary extends ScriptableObject implements Wrapper {
             }
         }
         return Context.getCurrentContext().newArray(getParentScope(), elements);
+    }
+
+    @Override
+    @JSFunction
+    public String toString() {
+        if (bytes != null) {
+            return "[" + type.toString() + " " + length + "]";
+        }
+        return "[object " + type.toString() + "]";
     }
 
     @JSFunction
