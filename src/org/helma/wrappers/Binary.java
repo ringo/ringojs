@@ -111,27 +111,6 @@ public class Binary extends ScriptableObject implements Wrapper {
             return new Binary(scope, type, (byte[]) arg);
         } else if (arg instanceof Binary) {
             return new Binary(scope, type, ((Binary) arg).getBytes());
-        } else if (arg instanceof InputStream) {
-            InputStream in = (InputStream) arg;
-            byte[] buffer = new byte[1024];
-            int read, count = 0;
-            try {
-                while ((read = in.read(buffer, count, buffer.length - count)) > -1) {
-                    count += read;
-                    if (count == buffer.length) {
-                        byte[] b = new byte[buffer.length * 2];
-                        System.arraycopy(buffer, 0, b, 0, count);
-                        buffer = b;
-                    }
-                }
-                return new Binary(scope, type, buffer, 0, count);
-            } catch (IOException iox) {
-                throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
-            } finally {
-                try {
-                    in.close();
-                } catch (IOException ignore) {}
-            }
         } else if (arg == Undefined.instance) {
             return new Binary(scope, type, 0);
         } else {

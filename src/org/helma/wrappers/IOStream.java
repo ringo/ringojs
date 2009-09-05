@@ -69,15 +69,30 @@ public class IOStream extends ScriptableObject implements Wrapper {
             try {
                 byte[] bytes = new byte[max];
                 int read = input.read(bytes);
-                Binary b = new Binary(scope, Binary.Type.ByteArray, bytes);
-                b.setLength(read);
-                return b;
+                return new Binary(scope, Binary.Type.ByteString, bytes, 0, read);
             } catch (IOException iox) {
                 throw new WrappedException(iox);
             }
         } else {
-            Context cx = Context.getCurrentContext();
-            return cx.newObject(scope, "ByteArray", new Object[] {input});
+            byte[] buffer = new byte[8192];
+            int read, count = 0;
+            try {
+                while ((read = input.read(buffer, count, buffer.length - count)) > -1) {
+                    count += read;
+                    if (count == buffer.length) {
+                        byte[] b = new byte[buffer.length * 2];
+                        System.arraycopy(buffer, 0, b, 0, count);
+                        buffer = b;
+                    }
+                }
+                return new Binary(scope, Binary.Type.ByteString, buffer, 0, count);
+            } catch (IOException iox) {
+                throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
+            } finally {
+                try {
+                    input.close();
+                } catch (IOException ignore) {}
+            }
         }
     }
 
