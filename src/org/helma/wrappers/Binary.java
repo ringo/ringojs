@@ -354,25 +354,35 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public int indexOf(int n, Object from, Object to) {
+    public int indexOf(Object arg, Object from, Object to) {
+        byte[] b = getBytesArgument(arg);
         int start = Math.max(0, Math.min(length - 1, ScriptUtils.toInt(from, 0)));
-        int end = Math.max(0, Math.min(length, ScriptUtils.toInt(to, length)));
-        byte b = (byte) (0xff & n);
+        int end = Math.max(0, Math.min(length - b.length + 1, ScriptUtils.toInt(to, length)));
+        outer:
         for (int i = start; i < end; i++) {
-            if (bytes[i] == b)
-                return i;
+            for (int j = 0; j < b.length; j++) {
+                if (bytes[i + j] != b[j]) {
+                    continue outer;
+                }
+            }
+            return i;
         }
         return -1;
     }
 
     @JSFunction
-    public int lastIndexOf(int n, Object from, Object to) {
+    public int lastIndexOf(Object arg, Object from, Object to) {
+        byte[] b = getBytesArgument(arg);
         int start = Math.max(0, Math.min(length - 1, ScriptUtils.toInt(from, 0)));
-        int end = Math.max(0, Math.min(length, ScriptUtils.toInt(to, length)));
-        byte b = (byte) (0xff & n);
+        int end = Math.max(0, Math.min(length - b.length + 1, ScriptUtils.toInt(to, length)));
+        outer:
         for (int i = end - 1; i >= start; i--) {
-            if (bytes[i] == b)
-                return i;
+            for (int j = 0; j < b.length; j++) {
+                if (bytes[i + j] != b[j]) {
+                    continue outer;
+                }
+            }
+            return i;
         }
         return -1;
     }
@@ -455,25 +465,25 @@ public class Binary extends ScriptableObject implements Wrapper {
         }
     }
 
+    private byte[] getBytesArgument(Object arg) {
+        if (arg instanceof Number) {
+            return new byte[] {(byte) (0xff & ((Number) arg).intValue())};
+        } else if (arg instanceof Binary) {
+            return ((Binary) arg).getBytes();
+        } else {
+            throw new RuntimeException("unsupported delimiter: " + arg);
+        }
+    }
+
     private byte[][] getSplitDelimiters(Object delim) {
         List<byte[]> list = new ArrayList<byte[]>();
         if (delim instanceof NativeArray) {
             Collection values = ((NativeArray) delim).values();
             for (Object value : values) {
-                if (value instanceof Number) {
-                    list.add(new byte[] {(byte) (0xff & ((Number) value).intValue())});
-                } else if (value instanceof Binary) {
-                    list.add(((Binary) value).getBytes());
-                } else {
-                    throw new RuntimeException("unsupported delimiter: " + value);
-                }
+                list.add(getBytesArgument(value));
             }
-        } else if (delim instanceof Number) {
-            list.add(new byte[] {(byte) (0xff & ((Number) delim).intValue())});
-        } else if (delim instanceof Binary) {
-            list.add(((Binary) delim).getBytes());
         } else {
-            throw new RuntimeException("unsupported delimiter: " + delim);
+            list.add(getBytesArgument(delim));
         }
         return list.toArray(new byte[list.size()][]);
     }
