@@ -167,7 +167,7 @@ function Client() {
      */
     this.setContent = function(stringOrObject) {
         if (stringOrObject != null) {
-            if (stringOrObject.constructor == Object) {
+            if (stringOrObject instanceof Object) {
                 var Buffer = require('helma/buffer').Buffer;
                 var buf = new Buffer();
                 var value;
@@ -192,7 +192,7 @@ function Client() {
                 content = buf.toString();
                 content = content.substring(0, content.length-1);
             } else {
-                content = stringOrObject.toString();
+                content = String(stringOrObject);
             }
         } else {
            content = null;
