@@ -168,7 +168,8 @@ function Client() {
     this.setContent = function(stringOrObject) {
         if (stringOrObject != null) {
             if (stringOrObject.constructor == Object) {
-                res.push();
+                var Buffer = require('helma/buffer').Buffer;
+                var buf = new Buffer();
                 var value;
                 for (var key in stringOrObject) {
                     value = stringOrObject[key];
@@ -176,19 +177,19 @@ function Client() {
                         if (key.substring(key.length - 6) == "_array") 
                             key = key.substring(0,key.length - 6); 
                         for (var i = 0; i < value.length; i++) {
-                            res.write(encodeURIComponent(key));
-                            res.write("=");
-                            res.write(encodeURIComponent(value[i]));
-                            res.write("&");
+                            buf.write(encodeURIComponent(key));
+                            buf.write("=");
+                            buf.write(encodeURIComponent(value[i]));
+                            buf.write("&");
                         }        
                     } else {
-                       res.write(encodeURIComponent(key));
-                       res.write("=");
-                       res.write(encodeURIComponent(value));
-                       res.write("&");
+                       buf.write(encodeURIComponent(key));
+                       buf.write("=");
+                       buf.write(encodeURIComponent(value));
+                       buf.write("&");
                     }
                 }               
-                content = res.pop();
+                content = buf.toString();
                 content = content.substring(0, content.length-1);
             } else {
                 content = stringOrObject.toString();
@@ -658,30 +659,6 @@ function getProxy() {
     if (sys.get("http.proxySet") == "true")
         return sys.get("http.proxyHost") + ":" + sys.get("http.proxyPort");
     return false;
-};
-
-
-/**
- * Static helper method to check if a request issued agains a
- * Helma application is authorized or not.
- * @param {String} name The username to check req.username against
- * @param {String} pwd The password to check req.password against
- * @return True if the request is authorized, false otherwise. In
- * the latter case the current response is reset and the response code
- * is set to "401" ("Authentication required").
- * @type Boolean
- */
-function isAuthorized(name, pwd) {
-    if (!req.username || !req.password || 
-        req.username != name || req.password != pwd) {
-        res.reset();
-        res.status = 401;
-        res.realm = "Helma Http Authorization";
-        res.write("Authorization required.");
-        return false;
-    } else {
-        return true;
-    }
 };
 
 /** @ignore */
