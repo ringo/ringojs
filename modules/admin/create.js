@@ -55,7 +55,7 @@ function main(args) {
 
 if (require.main == module.id) {
     try {
-        main(args);
+        main(system.args);
     } catch (err) {
         print("Error: " + err);
         print("Exiting.");
