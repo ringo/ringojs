@@ -6,8 +6,10 @@
  * @example
  *
  *     helma> include('helma/term')                                              
- *     helma> print(YELLOW, "foo", MAGENTA, "bar", BLUE, "baz");
- *     foo bar baz
+ *     helma> print(YELLOW, "foo", MAGENTA, "bar");
+ *     foo bar
+ *     helma> print(YELLOW, ONBLUE, "IKEA");        
+ *     IKEA
  *     helma> print(RED, BOLD, INVERSE, "Red Alert!");
  *     Red Alert!
  * 
