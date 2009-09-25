@@ -66,7 +66,6 @@ public class HelmaContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         cx.putThreadLocal("engine", engine);
         cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
-        cx.putThreadLocal("errors", new ArrayList<ReloadableScript.Error>());
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);
@@ -81,6 +80,7 @@ public class HelmaContextFactory extends ContextFactory {
         if (errorReporter != null) {
             cx.setErrorReporter(errorReporter);
         }
+        RhinoEngine.errors.set(new ArrayList<SyntaxError>());
         cx.setGeneratingDebug(generatingDebug);
     }
 

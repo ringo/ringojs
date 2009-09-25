@@ -18,10 +18,13 @@ package org.helma.tools;
 
 import org.helma.engine.RhinoEngine;
 import org.helma.engine.ModuleScope;
+import org.helma.engine.SyntaxError;
 import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.EcmaError;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -215,10 +218,22 @@ public class HelmaRunner {
             // ignore unimplemented dameon life cycle methods
             return;
         }
+        if (x instanceof RhinoException) {
+            System.err.println(x.getMessage());
+        } else {
+            System.err.println(x.toString());
+        }
+        List<SyntaxError> errors = RhinoEngine.errors.get();
+        if (errors != null && !errors.isEmpty()) {
+            for (SyntaxError error : errors) {
+                System.err.println(error);
+            }
+        }
+        if (x instanceof RhinoException) {
+            System.err.println(((RhinoException) x).getScriptStackTrace());
+        }
         if (debug) {
             x.printStackTrace();
-        } else {
-            System.err.println(x);
         }
         System.exit(-1);
     }

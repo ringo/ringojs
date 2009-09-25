@@ -57,6 +57,8 @@ public class RhinoEngine {
     public static final Object[] EMPTY_ARGS = new Object[0];
     public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 3));
 
+    public static ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
+
     private Logger log = Logger.getLogger("org.helma.javascript.RhinoEngine");
 
     /**

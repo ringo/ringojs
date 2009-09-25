@@ -49,7 +49,7 @@ public class ReloadableScript {
     // we keep this around in order to be able to rethrow without trying
     // to recompile if the underlying resource or repository hasn't changed
     Exception exception = null;
-    List<Error> errors;
+    List<SyntaxError> errors;
     // the loaded module scope is cached for shared modules
     ModuleScope moduleScope = null;
     // Set of direct module dependencies
@@ -84,7 +84,7 @@ public class ReloadableScript {
                 throw new FileNotFoundException(source + " not found or not readable");
             }
             exception = null;
-            errors = new ArrayList<Error>();
+            errors = new ArrayList<SyntaxError>();
             if (source instanceof Repository) {
                 script = getComposedScript(cx);
             } else {
@@ -92,7 +92,7 @@ public class ReloadableScript {
             }
         }
         if (!errors.isEmpty()) {
-            ((List) cx.getThreadLocal("errors")).addAll(errors);
+            RhinoEngine.errors.get().addAll(errors);
         }
         if (exception != null) {
             throw exception instanceof RhinoException ?
@@ -348,42 +348,17 @@ public class ReloadableScript {
     class ErrorCollector implements ErrorReporter {
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            // errors.add(new Error(message, sourceName, line, lineSource, lineOffset));
+            // errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
                           int line, String lineSource, int lineOffset) {
-            errors.add(new Error(message, sourceName, line, lineSource, lineOffset));
+            errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
         }
 
         public EvaluatorException runtimeError(String message, String sourceName,
                                                int line, String lineSource, int lineOffset) {
             return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
-        }
-    }
-
-    public static class Error {
-        public final String message, sourceName, lineSource;
-        public final int line, offset;
-
-        Error(String message, String sourceName, int line, String lineSource, int offset) {
-            this.message = message;
-            this.sourceName = sourceName;
-            this.lineSource = lineSource;
-            this.line = line;
-            this.offset = offset;
-        }
-
-        public String toString() {
-            String lineSeparator = System.getProperty("line.separator", "\n");
-            StringBuffer b = new StringBuffer(sourceName).append(", line ").append(line)
-                    .append(": ").append(message).append(lineSeparator)
-                    .append(lineSource).append(lineSeparator);
-            for(int i = 0; i < offset - 1; i++) {
-                b.append(' ');
-            }
-            b.append('^').append(lineSeparator);
-            return b.toString();
         }
     }
 
