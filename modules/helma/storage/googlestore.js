@@ -230,7 +230,7 @@ function getProps(store, entity) {
         } else if (value instanceof Text) {
             value = value.getValue();
         } else if (value instanceof java.util.Date) {
-            value = new Date(value.geTime());
+            value = new Date(value.getTime());
         } else {
             value = Context.javaToJS(value, global);
         }
