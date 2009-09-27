@@ -24,11 +24,11 @@ function Profiler() {
 
     var getScriptName = function(script) {
         if (script.isFunction()) {
+            var name = [script.sourceName,  " #", script.lineNumbers[0]];
             if (script.functionName) {
-                return script.sourceName + ": " + script.functionName;
-            } else {
-                return script.sourceName + ": #" + script.lineNumbers[0];
+                name.push(": ", script.functionName);
             }
+            return name.join("");
         } else {
             return script.sourceName;
         }
@@ -64,30 +64,23 @@ function Profiler() {
 
     function Frame(name) {
 
-        var time = 0, runtime = 0, invocations = 0;
-        var lineNumber = 0;
+        var starttime = [];
+        var runtime = 0, invocations = 0;
         this.name = name;
 
         this.onEnter = function(cx, activation, thisObj, args) {
-            // log.debug("Enter: " + name);
-            time = java.lang.System.nanoTime();
+            starttime.push(java.lang.System.nanoTime());
         };
 
         this.onExceptionThrown = function(cx, ex) {
-            // log.debug("Exception: " + name);
-            invocations += 1;
-            runtime += (java.lang.System.nanoTime() - time);
+            // TODO is this called in addition to or instead of onExit?
+            // invocations += 1;
+            // runtime += (java.lang.System.nanoTime() - starttime.pop());
         };
 
         this.onExit = function(cx, byThrow, resultOrException) {
-            // log.debug("Exit: " + name);
             invocations += 1;
-            runtime += (java.lang.System.nanoTime() - time);
-        };
-
-        this.onLineChange = function(cx, line) {
-            // log.debug("Line number: " + line);
-            lineNumber = line;
+            runtime += (java.lang.System.nanoTime() - starttime.pop());
         };
 
         this.getRuntime = function() {
