@@ -161,6 +161,8 @@ function save(props, entity, entities) {
         } else if (typeof value === 'string' && value.length > 500) {
             // maximal length for ordinary strings is 500 chars in datastore
             value = new Text(value); 
+        } else if (value instanceof Date) {
+            value = new java.util.Date(value.getTime());
         }
         entity.setProperty(id, value);
     }
@@ -227,6 +229,8 @@ function getProps(store, entity) {
             value = array;
         } else if (value instanceof Text) {
             value = value.getValue();
+        } else if (value instanceof java.util.Date) {
+            value = new Date(value.getTime());
         } else {
             value = Context.javaToJS(value, global);
         }
