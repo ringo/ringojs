@@ -170,7 +170,7 @@ function getRhinoEngine() {
  * Get a list containing the syntax errors encountered in the current context.
  */
 function getErrors() {
-    return new ScriptableList(getRhinoContext().getThreadLocal("errors"));
+    return new ScriptableList(org.helma.engine.RhinoEngine.errors.get());
 }
 
 /**
