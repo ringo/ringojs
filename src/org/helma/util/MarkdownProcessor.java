@@ -61,27 +61,30 @@ public class MarkdownProcessor {
     public MarkdownProcessor() {}
 
     public MarkdownProcessor(String text) {
-        length = text.length();
-        chars = new char[length + 2];
-        text.getChars(0, length, chars, 0);
-        chars[length] = chars[length + 1] = '\n';
+        init(text);
     }
 
     public MarkdownProcessor(File file) throws IOException {
         length = (int) file.length();
         chars = new char[length + 2];
         FileReader reader = new FileReader(file);
-        if (reader.read(chars) != length) {
-            throw new IOException("Couldn't read file");
+        int read = 0;
+        try {
+            while (read < length) {
+                int r = reader.read(chars, read, length - read);
+                if (r == -1)
+                    break;
+                read += r;
+            }
+        } finally {
+            reader.close();
         }
+        length = read;
         chars[length] = chars[length + 1] = '\n';
     }
 
     public synchronized String process(String text) {
-        length = text.length();
-        chars = new char[length + 2];
-        text.getChars(0, length, chars, 0);
-        chars[length] = chars[length + 1] = '\n';
+        init(text);
         return process();
     }
 
@@ -94,6 +97,18 @@ public class MarkdownProcessor {
             cleanup();
         }
         return result;
+    }
+
+    public synchronized String processLinkText(String text) {
+        init(text);
+        return processLinkText();
+    }
+
+    private void init(String text) {
+        length = text.length();
+        chars = new char[length + 2];
+        text.getChars(0, length, chars, 0);
+        chars[length] = chars[length + 1] = '\n';
     }
 
    /**
@@ -233,7 +248,7 @@ public class MarkdownProcessor {
                             // no valid link title - escape
                             state = State.NONE;
                         }
-                    } else {
+                    } else if (!isSpace(c) || buffer.length() > 0) {
                         buffer.append(c);
                     }
             }
@@ -450,6 +465,8 @@ public class MarkdownProcessor {
                             escape = true;
                         } else if (chars[k] == '`') {
                             k = skipCodeSpan(k);
+                        } else if (chars[k] == '[') {
+                            k = skipLink(k);
                         } else if (chars[k] == c) {
                             count += 1;
                         } else {
@@ -576,6 +593,83 @@ public class MarkdownProcessor {
         return j;
     }
 
+    private int skipLink(int start) {
+        boolean escape = false;
+        int nesting = 0;
+        int j = start + 1;
+        char c;
+        while (j < length && (escape || chars[j] != ']' || nesting != 0)) {
+            c = chars[j];
+            if (c == '\n' && chars[j - 1] == '\n') {
+                return start;
+            }
+
+            if (escape) {
+                escape = false;
+            } else {
+                escape = c == '\\';
+                if (!escape) {
+                    if (c == '[') {
+                        nesting += 1;
+                    } else if (c == ']') {
+                        nesting -= 1;
+                    }
+                }
+            }
+            j += 1;
+        }
+        int k = j;
+        j += 1;
+        boolean extraSpace = false;
+        if (j < length && Character.isWhitespace(chars[j])) {
+            j += 1;
+            extraSpace = true;
+        }
+        c = chars[j++];
+        if (c == '[') {
+            while (j < length && chars[j] != ']') {
+                if (chars[j] == '\n') {
+                    return start;
+                }
+                j += 1;
+            }
+        } else if (c == '(' && !extraSpace) {
+            while (j < length && chars[j] != ')' && !isSpace(chars[j])) {
+                if (chars[j] == '\n') {
+                    return start;
+                }
+                j += 1;
+            }
+            if (j < length && chars[j] != ')') {
+                while (j < length && chars[j] != ')' && Character.isWhitespace(chars[j])) {
+                    j += 1;
+                }
+                if (chars[j] == '"') {
+                    int quoteStart = j = j + 1;
+                    int len = -1;
+                    while (j < length && chars[j] != '\n') {
+                        if (chars[j] == '"') {
+                            len = j - quoteStart;
+                        } else if (len > -1) {
+                            if (chars[j] == ')') {
+                                break;
+                            } else if (!isSpace(chars[j])) {
+                                len = -1;
+                            }
+                        }
+                        j += 1;
+                    }
+                }
+                if (chars[j] != ')') {
+                    return start;
+                }
+            }
+        } else {
+            j = k;
+        }
+        return j;
+    }
+
     private boolean checkLink(char c) {
         return checkLinkInternal(c, i + 1, false);
     }
@@ -610,7 +704,7 @@ public class MarkdownProcessor {
                     } else if (c == ']') {
                         nesting -= 1;
                     }
-                    if (c == '*' || c == '_' || c == '`') {
+                    if (c == '*' || c == '_' || c == '`' || c == '[') {
                         needsEncoding = true;
                     }
                     boolean s = Character.isWhitespace(chars[j]);
@@ -628,10 +722,10 @@ public class MarkdownProcessor {
         String linkId;
         int k = j;
         j += 1;
-        // this is weird, bug we follow the official markup implementation here:
+        // this is weird, but we follow the official markup implementation here:
         // only accept space between link text and link target for [][], not for []()
         boolean extraSpace = false;
-        if (j < length && isSpace(chars[j])) {
+        if (j < length && Character.isWhitespace(chars[j])) {
             j += 1;
             extraSpace = true;
         }
@@ -716,19 +810,13 @@ public class MarkdownProcessor {
             }
             buffer.append(">");
             if (needsEncoding) {
-                b.append(escapeHtml(text)).append("</a>");
+                MarkdownProcessor wrapped = new MarkdownProcessor();
+                buffer.append(wrapped.processLinkText(text)).append("</a>");
             } else {
                 buffer.append(escapeHtml(text)).append("</a>");
             }
         }
-        if (b.length() > 0) {
-            System.arraycopy(chars, j + 1, chars, i + b.length(), length - j - 1);
-            b.getChars(0, b.length(), chars, i);
-            length = i + (length - j - 1) + b.length();
-        } else {
-            System.arraycopy(chars, j + 1, chars, i, length - j - 1);
-            length -= 1 + j - i;
-        }
+        i = j + 1;
         return true;
     }
 
@@ -1019,6 +1107,51 @@ public class MarkdownProcessor {
             }
         }
         return b.toString();
+    }
+
+    private synchronized String processLinkText() {
+        buffer = new StringBuilder((int) (length * 1.2));
+        line = 1;
+        boolean escape = false;
+
+        for (i = 0; i < length; ) {
+            char c = chars[i];
+
+            if (escape) {
+                buffer.append(c);
+                escape = false;
+                i += 1;
+                continue;
+            } else if (c == '\\') {
+                escape = true;
+                i += 1;
+                continue;
+            }
+            switch (c) {
+                case '*':
+                case '_':
+                    if (checkEmphasis(c)) {
+                        continue;
+                    }
+                    break;
+
+                case '`':
+                    if (checkCodeSpan(c)) {
+                        continue;
+                    }
+                    break;
+
+                case '!':
+                    if (checkImage()) {
+                        continue;
+                    }
+                    break;
+            }
+
+            buffer.append(c);
+            i += 1;
+        }
+        return buffer.toString().trim();
     }
 
     boolean isLinkQuote(char c) {
