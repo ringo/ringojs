@@ -63,8 +63,10 @@
             debug="${debug}"
             deprecation="${deprecation}"
             optimize="${optimize}">
-        	<!-- compilerarg value="-Xlint"/ -->
-            <classpath refid="classpath"/>
+                <!-- compilerarg value="-Xlint"/ -->
+                <classpath refid="classpath"/>
+                <!-- fix for openjdk rhino bootclasspath bug -->
+                <compilerarg value="-Xbootclasspath/p:${lib}/js.jar"/>
         </javac>
     </target>
 
