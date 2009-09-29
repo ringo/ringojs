@@ -24,7 +24,6 @@ import org.helma.repository.Repository;
 import org.mozilla.javascript.RhinoSecurityManager;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.EcmaError;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
@@ -126,7 +125,7 @@ public class HelmaRunner {
             config.setBootstrapScripts(bootstrapScripts);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            handleException(x);
+            reportError(x, debug);
         }
     }
 
@@ -143,7 +142,8 @@ public class HelmaRunner {
                 new HelmaShell(config, engine, debug).run();
             }
         } catch (Exception x) {
-            handleException(x);
+            reportError(x, debug);
+            System.exit(-1);
         }
     }
 
@@ -159,8 +159,11 @@ public class HelmaRunner {
             cx = engine.getContextFactory().enterContext();
             module = engine.loadModule(cx, config.getMainResource().getModuleName(), null);
             engine.invoke(module, "init", (Object[]) scriptArgs);
+        } catch (NoSuchMethodException nsm) {
+            // daemon life-cycle method not implemented
         } catch (Exception x) {
-            handleException(x);
+            reportError(x, debug);
+            System.exit(-1);
         }
     }
 
@@ -168,8 +171,11 @@ public class HelmaRunner {
         if (cx != null) {
             try {
                 engine.invoke(module, "start");
+            } catch (NoSuchMethodException nsm) {
+                // daemon life-cycle method not implemented
             } catch (Exception x) {
-                handleException(x);
+                reportError(x, debug);
+                System.exit(-1);
             }
         }
     }
@@ -179,8 +185,11 @@ public class HelmaRunner {
         if (cx != null) {
             try {
                 engine.invoke(module, "stop");
+            } catch (NoSuchMethodException nsm) {
+                // daemon life-cycle method not implemented
             } catch (Exception x) {
-                handleException(x);
+                reportError(x, debug);
+                System.exit(-1);
             }
         }
     }
@@ -189,8 +198,11 @@ public class HelmaRunner {
         if (cx != null) {
             try {
                 engine.invoke(module, "destroy");
+            } catch (NoSuchMethodException nsm) {
+                // daemon life-cycle method not implemented
             } catch (Exception x) {
-                handleException(x);
+                reportError(x, debug);
+                System.exit(-1);
             }
         }
     }
@@ -213,11 +225,7 @@ public class HelmaRunner {
         System.exit(code);
     }
 
-    private void handleException(Exception x) {
-        if (x instanceof NoSuchMethodException) {
-            // ignore unimplemented dameon life cycle methods
-            return;
-        }
+    public static void reportError(Exception x, boolean debug) {
         if (x instanceof RhinoException) {
             System.err.println(x.getMessage());
         } else {
@@ -235,7 +243,6 @@ public class HelmaRunner {
         if (debug) {
             x.printStackTrace();
         }
-        System.exit(-1);
     }
 
     public static void printUsage() {

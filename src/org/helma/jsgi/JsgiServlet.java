@@ -17,6 +17,7 @@
 package org.helma.jsgi;
 
 import org.helma.tools.HelmaConfiguration;
+import org.helma.tools.HelmaRunner;
 import org.helma.repository.Repository;
 import org.helma.repository.FileRepository;
 import org.helma.repository.WebappRepository;
@@ -87,7 +88,10 @@ public class JsgiServlet extends HttpServlet {
             JsgiEnv env = new JsgiEnv(request, response);
             engine.invoke("helma/httpserver", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
-            throw new ServletException("Method not found", x);
+            throw new ServletException(x);
+        } catch (Exception x) {
+            HelmaRunner.reportError(x, false);
+            throw(new ServletException(x));
         }
     }
 

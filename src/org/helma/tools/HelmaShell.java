@@ -96,17 +96,8 @@ public class HelmaShell {
                 }
                 out.flush();
                 lineno++;
-            } catch (RhinoException ex) {
-                Context.reportError(ex.getMessage(), ex.sourceName(),
-                        ex.lineNumber(), ex.lineSource(), ex.columnNumber());
-                if (debug) {
-                    ex.printStackTrace();
-                }
             } catch (Exception ex) {
-                Context.reportError(ex.toString());
-                if (debug) {
-                    ex.printStackTrace();
-                }
+                HelmaRunner.reportError(ex, debug);
             } finally {
                 Context.exit();
             }
