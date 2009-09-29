@@ -156,9 +156,7 @@ public class RhinoEngine {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
             commandLineArgs = Arrays.asList(scriptArgs);
-            if (resource instanceof FileResource) {
-                ((FileResource) resource).setStripShebang(true);
-            }
+            resource.setStripShebang(true);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, topLevelScope, cx);
@@ -271,9 +269,8 @@ public class RhinoEngine {
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             Repository repository = repositories.get(0);
-            Resource resource = repository.getResource("<shell>");
             Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
-            ModuleScope scope = new ModuleScope("<shell>", resource, parentScope, cx);
+            ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
             try {
                 evaluate(cx, getScript("helma/shell"), scope);
             } catch (Exception x) {

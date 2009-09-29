@@ -23,7 +23,6 @@ import java.net.URL;
 public class FileResource extends AbstractResource {
 
     File file;
-    boolean stripShebang = false;
 
     public FileResource(File file) throws IOException {
         this(file, null);
@@ -45,28 +44,7 @@ public class FileResource extends AbstractResource {
     }
 
     public InputStream getInputStream() throws IOException {
-        InputStream stream = new FileInputStream(file);
-        if (stripShebang) {
-            stream = new BufferedInputStream(stream);
-            stream.mark(2);
-            if (stream.read() == '#' && stream.read() == '!') {
-                // skip a line: a line is terminated by \n or \r or \r\n (just as
-                // in BufferedReader#readLine)
-                for (int c = stream.read(); c != -1; c = stream.read()) {
-                    if (c == '\n')
-                        break;
-                    if (c == '\r') {
-                        stream.mark(1);
-                        if (stream.read() != '\n')
-                            stream.reset();
-                        break;
-                    }
-                }
-            } else {
-                stream.reset();
-            }
-        }
-        return stream;
+        return stripShebang(new FileInputStream(file));
     }
 
     public URL getUrl() throws MalformedURLException {
@@ -82,15 +60,7 @@ public class FileResource extends AbstractResource {
     }
 
     public boolean exists() {
-        return file.exists() && file.isFile();
-    }
-
-    public boolean getStripShebang() {
-        return stripShebang;
-    }
-
-    public void setStripShebang(boolean stripShebang) {
-        this.stripShebang = stripShebang;
+        return file.exists();
     }
 
     @Override

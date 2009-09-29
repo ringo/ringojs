@@ -45,12 +45,9 @@ public interface Repository extends Trackable {
     /**
      * Get a list of resources contained in this repository identified by the
      * given local name.
-     * @param resourcePath the repository path
-     * @param recursive whether to include nested resources
-     * @return a list of all nested child resources
+     * @return a list of all direct child resources
      */
-    public List<Resource> getResources(String resourcePath, boolean recursive) throws IOException;
-
+    public Resource[] getResources() throws IOException;
 
     /**
      * Get a list of resources contained in this repository identified by the
@@ -58,7 +55,16 @@ public interface Repository extends Trackable {
      * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public List<Resource> getResources(boolean recursive) throws IOException;
+    public Resource[] getResources(boolean recursive) throws IOException;
+
+    /**
+     * Get a list of resources contained in this repository identified by the
+     * given local name.
+     * @param resourcePath the repository path
+     * @param recursive whether to include nested resources
+     * @return a list of all nested child resources
+     */
+    public Resource[] getResources(String resourcePath, boolean recursive) throws IOException;
 
     /**
      * Returns this repository's direct child repositories
@@ -77,7 +83,7 @@ public interface Repository extends Trackable {
     public Repository getChildRepository(String name) throws IOException;
 
     /**
-     * Mark this repository as root repository.
+     * Mark this repository as root repository, disabling any parent access.
      */
     public void setRoot();
 

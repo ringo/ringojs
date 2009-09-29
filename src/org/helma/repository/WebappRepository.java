@@ -1,11 +1,10 @@
 package org.helma.repository;
 
 import javax.servlet.ServletContext;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.io.IOException;
 
 public class WebappRepository extends AbstractRepository {
 
@@ -60,8 +59,13 @@ public class WebappRepository extends AbstractRepository {
             return this;
         } else if ("..".equals(name)) {
             return getParentRepository();
-        }        
-        return new WebappRepository(context, this, name);
+        }
+        AbstractRepository repo = repositories.get(name);
+        if (repo == null) {
+            repo = new WebappRepository(context, this, name);
+            repositories.put(name, repo);
+        }
+        return repo;
     }
 
     public URL getUrl() throws MalformedURLException {
@@ -69,38 +73,51 @@ public class WebappRepository extends AbstractRepository {
     }
 
     @Override
-    public void update() {
+    protected Resource lookupResource(String name) {
+        AbstractResource res = resources.get(name);
+        if (res == null) {
+            res = new WebappResource(context, this, name);
+            resources.put(name, res);
+        }
+        return res;
+    }
+
+    protected void getResources(List<Resource> list, boolean recursive)
+            throws IOException {
         Set paths = context.getResourcePaths(path);
+
         if (paths != null) {
+            for (Object obj: paths) {
+                String path = (String) obj;
+                if (!path.endsWith("/")) {
+                    int n = path.lastIndexOf('/', path.length() - 1);
+                    String name = path.substring(n + 1);
+                    list.add(lookupResource(name));
+                } else if (recursive) {
+                    int n = path.lastIndexOf('/', path.length() - 2);
+                    String name = path.substring(n + 1, path.length() - 1);
+                    AbstractRepository repo = (AbstractRepository) getChildRepository(name);
+                    repo.getResources(list, true);
+                }
+            }
+        }
+    }
 
-            ArrayList<Repository> newRepositories = new ArrayList<Repository>(paths.size());
-            HashMap<String,Resource> newResources = new HashMap<String,Resource>(paths.size());
+    public Repository[] getRepositories() throws IOException {
+        Set paths = context.getResourcePaths(path);
+        List<Repository> list = new ArrayList<Repository>();
 
+        if (paths != null) {
             for (Object obj: paths) {
                 String path = (String) obj;
                 if (path.endsWith("/")) {
                     int n = path.lastIndexOf('/', path.length() - 2);
                     String name = path.substring(n + 1, path.length() - 1);
-                    newRepositories.add(new WebappRepository(context, this, name));
-                } else {
-                    int n = path.lastIndexOf('/', path.length() - 1);
-                    String name = path.substring(n + 1);
-                    newResources.put(name, new WebappResource(context, this, name));
+                    list.add(getChildRepository(name));
                 }
             }
-
-            repositories = newRepositories.toArray(new Repository[newRepositories.size()]);
-            resources = newResources;
-
-        } else {
-            repositories = emptyRepositories;
-            resources = new HashMap<String,Resource>();
         }
-    }
-
-    @Override
-    protected Resource createResource(String name) {
-        return new WebappResource(context, this, name);
+        return list.toArray(new Repository[list.size()]);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package org.helma.repository;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 
 public abstract class AbstractResource implements Resource {
 
@@ -11,6 +8,7 @@ public abstract class AbstractResource implements Resource {
     protected String path;
     protected String name;
     protected String baseName;
+    private boolean stripShebang = false;
 
     protected void setBaseNameFromName(String name) {
         // base name is short name with extension cut off
@@ -38,26 +36,62 @@ public abstract class AbstractResource implements Resource {
         return repository.getRootRepository();
     }
 
+    protected InputStream stripShebang(InputStream stream) throws IOException {
+        if (stripShebang) {
+            stream = new BufferedInputStream(stream);
+            stream.mark(2);
+            if (stream.read() == '#' && stream.read() == '!') {
+                // skip a line: a line is terminated by \n or \r or \r\n (just as
+                // in BufferedReader#readLine)
+                for (int c = stream.read(); c != -1; c = stream.read()) {
+                    if (c == '\n') {
+                        break;
+                    } else if (c == '\r') {
+                        stream.mark(1);
+                        if (stream.read() != '\n') {
+                            stream.reset();
+                        }
+                        break;
+                    }
+                }
+            } else {
+                stream.reset();
+            }
+        }
+        return stream;
+    }
+
     public Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream());
     }
 
     public String getContent(String encoding) throws IOException {
         InputStream in = getInputStream();
-        int size = (int) getLength();
-        byte[] buf = new byte[size];
-        int read = 0;
-        while (read < size) {
-            int r = in.read(buf, read, size - read);
-            if (r == -1)
-                break;
-            read += r;
+        try {
+            byte[] buf = new byte[1024];
+            int read = 0;
+            while (read < buf.length) {
+                int r = in.read(buf, read, buf.length - read);
+                if (r == -1) {
+                    break;
+                }
+                read += r;
+                if (read == buf.length) {
+                    byte[] b = new byte[buf.length * 2];
+                    System.arraycopy(buf, 0, b, 0, buf.length);
+                    buf = b;
+                }
+            }
+            return encoding == null ?
+                    new String(buf, 0, read) :
+                    new String(buf, 0, read, encoding);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ignore) {}
+            }
         }
-        if (in != null)
-            in.close();
-        return encoding == null ?
-                new String(buf) :
-                new String(buf, encoding);
     }
 
     public String getContent() throws IOException {
@@ -73,10 +107,7 @@ public abstract class AbstractResource implements Resource {
         if (repository == null) {
             return name;
         } else {
-            StringBuffer b = new StringBuffer();
-            repository.getRelativePath(b);
-            b.append(name);
-            return b.toString();
+            return repository.getRelativePath() + name;
         }
     }
 
@@ -89,14 +120,19 @@ public abstract class AbstractResource implements Resource {
         if (repository == null) {
             return baseName;
         } else {
-            StringBuffer b = new StringBuffer();
-            repository.getRelativePath(b);
-            b.append(baseName);
-            return b.toString();
+            return repository.getRelativePath() + baseName;
         }
     }
 
     public long getChecksum() {
         return lastModified();
+    }
+
+    public boolean getStripShebang() {
+        return stripShebang;
+    }
+
+    public void setStripShebang(boolean stripShebang) {
+        this.stripShebang = stripShebang;
     }
 }

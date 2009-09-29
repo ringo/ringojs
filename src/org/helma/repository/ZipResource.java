@@ -18,26 +18,28 @@ package org.helma.repository;
 
 import java.io.*;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public final class ZipResource extends AbstractResource {
 
     private String entryName;
+    private boolean exists;
+    long length;
+    long lastModified;
 
-    protected ZipResource(String zipentryName, ZipRepository repository) {
-        this.entryName = zipentryName;
+    protected ZipResource(String childName, ZipRepository repository, ZipEntry entry) {
         this.repository = repository;
+        this.entryName = childName;
+        exists = entry != null;
+        length = exists ? entry.getSize() : 0;
+        lastModified = repository.lastModified();
 
-        int lastSlash = entryName.lastIndexOf('/');
-
-        name = entryName.substring(lastSlash + 1);
-        path = new StringBuffer(repository.getPath()).append('/')
-                .append(name).toString();
-
-        // base name is short name with extension cut off
-        int lastDot = name.lastIndexOf(".");
-        baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
+        int slash = entryName.lastIndexOf('/');
+        this.name = slash < 0 ? entryName : entryName.substring(slash + 1);
+        this.path = repository.getPath() + '/' + name;
+        setBaseNameFromName(name);
     }
 
     public long lastModified() {
@@ -49,99 +51,45 @@ public final class ZipResource extends AbstractResource {
     }
 
     public InputStream getInputStream() throws IOException {
-        ZipFile zipfile = null;
-        try {
-            zipfile = getZipFile();
-            ZipEntry entry = zipfile.getEntry(entryName);
-            if (entry == null) {
-                throw new IOException("Zip resource " + this + " does not exist");
-            }
-            int size = (int) entry.getSize();
-            byte[] buf = new byte[size];
-            InputStream in = zipfile.getInputStream(entry);
-            int read = 0;
-            while (read < size) {
-                int r = in.read(buf, read, size-read);
-                if (r == -1)
-                    break;
-                read += r;
-            }
-            in.close();
-            return new ByteArrayInputStream(buf);
-        } finally {
-            try {
-                if (zipfile != null) zipfile.close();
-            } catch (Exception ex) {
-                // ignore exception in close
-            }
+        ZipFile zipfile = getZipFile();
+        ZipEntry entry = zipfile.getEntry(entryName);
+        if (entry == null) {
+            throw new IOException("Zip resource " + this + " does not exist");
         }
+        return stripShebang(zipfile.getInputStream(entry));
     }
 
-    public boolean exists() {
-        ZipFile zipfile = null;
+    private void update() {
         try {
-            zipfile = getZipFile();
-            return (zipfile.getEntry(entryName) != null);
-        } catch (Exception ex) {
-            return false;
-        } finally {
-            try {
-                if (zipfile != null) zipfile.close();
-            } catch (Exception ex) {
-                // ignore exception in close
-            }
+            ZipEntry entry = getZipFile().getEntry(entryName);
+            exists = entry != null;
+            length = exists ? entry.getSize() : 0;
+            lastModified = repository.lastModified();
+        } catch (IOException ex) {
+            exists = false;
         }
+
     }
 
-    public String getContent(String encoding) throws IOException {
-        ZipFile zipfile = null;
-        try {
-            zipfile = getZipFile();
-            ZipEntry entry = zipfile.getEntry(entryName);
-            if (entry == null) {
-                return "";
-            }
-            InputStream in = zipfile.getInputStream(entry);
-            int size = (int) entry.getSize();
-            byte[] buf = new byte[size];
-            int read = 0;
-            while (read < size) {
-                int r = in.read(buf, read, size-read);
-                if (r == -1)
-                    break;
-                read += r;
-            }
-            in.close();
-            return encoding == null ?
-                    new String(buf) :
-                    new String(buf, encoding);
-        } finally {
-            if (zipfile != null) {
-                zipfile.close();
-            }
+    public boolean exists() throws IOException {
+        if (lastModified != repository.lastModified()) {
+            update();
         }
+        return exists;
     }
 
-    public URL getUrl() {
-        // TODO: we might want to return a Jar URL
+
+    public URL getUrl() throws MalformedURLException {
+        // return a Jar URL as defined in
         // http://java.sun.com/j2se/1.5.0/docs/api/java/net/JarURLConnection.html
-        throw new UnsupportedOperationException("getUrl() not implemented for ZipResource");
+        return new URL(repository.getUrl() + name);
     }
 
     public long getLength() {
-        ZipFile zipfile = null;
-        try {
-            zipfile = getZipFile();
-            return zipfile.getEntry(entryName).getSize();            
-        } catch (Exception ex) {
-            return 0;
-        } finally {
-            try {
-                if (zipfile != null) zipfile.close();
-            } catch (Exception ex) {
-                // ignore exception in close
-            }
+        if (lastModified != repository.lastModified()) {
+            update();
         }
+        return length;
     }
 
     @Override

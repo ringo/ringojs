@@ -16,12 +16,15 @@
 
 package org.helma.repository;
 
+import org.helma.util.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Repository implementation for directories providing file resources
@@ -97,7 +100,13 @@ public class FileRepository extends AbstractRepository {
         } else if ("..".equals(name)) {
             return getParentRepository();
         }
-        return new FileRepository(new File(directory, name), this);
+        AbstractRepository child = repositories.get(name);
+        if (child == null) {
+            File f = new File(directory, name);
+            child = new FileRepository(f, this);
+            repositories.put(name, child);
+        }
+        return child;
     }
 
     /**
@@ -119,8 +128,7 @@ public class FileRepository extends AbstractRepository {
     public synchronized long getChecksum() throws IOException {
         // delay checksum check if already checked recently
         if (System.currentTimeMillis() > lastChecksumTime + cacheTime) {
-
-            update();
+            // FIXME
             long checksum = lastModified;
 
             for (Resource res: resources.values()) {
@@ -135,63 +143,43 @@ public class FileRepository extends AbstractRepository {
     }
 
     /**
-     * Updates the content cache of the repository
-     * Gets called from within all methods returning sub-repositories or
-     * resources
-     */
-    @Override
-    public synchronized void update() throws IOException {
-        if (!directory.exists()) {
-            repositories = emptyRepositories;
-            if (resources == null) {
-                resources = new HashMap<String,Resource>();
-            } else {
-                resources.clear();
-            }
-            lastModified = 0;
-            return;
-        }
-
-        if (directory.lastModified() != lastModified) {
-            lastModified = directory.lastModified();
-
-            File[] list = directory.listFiles();
-
-            ArrayList<Repository> newRepositories = new ArrayList<Repository>(list.length);
-            HashMap<String,Resource> newResources = new HashMap<String,Resource>(list.length);
-
-            for (File file: list) {
-                if (file.isDirectory()) {
-                    // a nested directory aka child file repository
-                    newRepositories.add(new FileRepository(file, this));
-                } else if (file.getName().endsWith(".zip")) {
-                    // a nested zip repository
-                    newRepositories.add(new ZipRepository(file, this));
-                } else if (file.isFile()) {
-                    // a file resource
-                    FileResource resource = new FileResource(file, this);
-                    newResources.put(resource.getName(), resource);
-                }
-            }
-
-            repositories = newRepositories.toArray(new Repository[newRepositories.size()]);
-            resources = newResources;
-        }
-    }
-
-    /**
      * Called to create a child resource for this repository
      */
     @Override
-    protected Resource createResource(String name) throws IOException {
-        return new FileResource(new File(directory, name), this);
+    protected Resource lookupResource(String name) throws IOException {
+        AbstractResource res = resources.get(name);
+        if (res == null) {
+            res = new FileResource(new File(directory, name), this);
+            resources.put(name, res);
+        }
+        return res;
     }
 
-    /**
-     * Get the repository's directory
-     */
-    public File getDirectory() {
-        return directory;
+    protected void getResources(List<Resource> list, boolean recursive)
+            throws IOException {
+        File[] dir = directory.listFiles();
+
+        for (File file: dir) {
+            if (file.isFile()) {
+                Resource resource = lookupResource(file.getName());
+                list.add(resource);
+            } else if (recursive && file.isDirectory()) {
+                AbstractRepository repo = (AbstractRepository) getChildRepository(file.getName());
+                repo.getResources(list, true);
+            }
+        }
+    }
+
+    public Repository[] getRepositories() throws IOException {
+        File[] dir = directory.listFiles();
+        List<Repository> list = new ArrayList<Repository>(dir.length);
+
+        for (File file: dir) {
+            if (file.isDirectory()) {
+                list.add(getChildRepository(file.getName()));
+            }
+        }
+        return list.toArray(new Repository[list.size()]);
     }
 
     public URL getUrl() throws MalformedURLException {

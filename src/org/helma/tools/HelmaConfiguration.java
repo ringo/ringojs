@@ -25,9 +25,12 @@ import org.mozilla.javascript.ClassShutter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * This class describes the configuration for a Helma NG application or shell session.
@@ -153,6 +156,17 @@ public class HelmaConfiguration {
     public void setMainScript(String scriptName) throws IOException {
         if (scriptName != null) {
             // first check if the script exists as a standalone file
+            int zip = scriptName.indexOf(".zip/");
+            if (zip > -1) {
+                String zipFile = scriptName.substring(0, zip + 4);
+                String scriptPath = scriptName.substring(zip + 5);
+                ZipRepository zipRepo = new ZipRepository(new File(zipFile));
+                mainResource = zipRepo.getResource(scriptPath);
+                if (mainResource.exists()) {
+                    repositories.add(0, zipRepo);
+                    return;
+                }
+            }
             Resource script = new FileResource(new File(scriptName));
             if (script.exists()) {
                 // check if we are contained in one of the existing repositories
@@ -300,7 +314,7 @@ public class HelmaConfiguration {
                 return res;
             }
         }
-        return repositories.get(0).getResource(path);
+        return new NotFound(path);
     }
 
     /**
@@ -315,7 +329,7 @@ public class HelmaConfiguration {
                 return repository;
             }
         }
-        return repositories.get(0).getChildRepository(path);
+        return null;
     }
 
     /**
@@ -328,7 +342,7 @@ public class HelmaConfiguration {
     public List<Resource> getResources(String path, boolean recursive) throws IOException {
         List<Resource> list = new ArrayList<Resource>();
         for (Repository repo: repositories) {
-            list.addAll(repo.getResources(path, recursive));
+            Collections.addAll(list, repo.getResources(path, recursive));
         }
         return list;
     }
@@ -377,4 +391,38 @@ public class HelmaConfiguration {
         return Logger.getLogger("org.helma.tools");
     }
 
+}
+
+class NotFound extends AbstractResource {
+
+    NotFound(String path) {
+        this.path = path;
+        int slash = path.lastIndexOf('/');
+        this.name = slash < 0 ? path : path.substring(slash + 1);
+        setBaseNameFromName(name);
+    }
+
+    public long getLength() {
+        return 0;
+    }
+
+    public InputStream getInputStream() throws IOException {
+        return null;
+    }
+
+    public long lastModified() {
+        return 0;
+    }
+
+    public boolean exists() {
+        return false;
+    }
+
+    public URL getUrl() throws UnsupportedOperationException, MalformedURLException {
+        throw new UnsupportedOperationException("NotFound does not implement getUrl()");
+    }
+
+    public String toString() {
+        return "Resource \"" + path + "\"";
+    }
 }

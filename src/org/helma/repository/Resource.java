@@ -75,4 +75,18 @@ public interface Resource extends Trackable {
      */
     public String getRelativePath();
 
+
+    /**
+     * Returns true if the input stream for this resource will look for a
+     * first line starting with the characters #! and suppress it if found
+     * @return true if shebang stripping is enabled
+     */
+    public boolean getStripShebang();
+
+    /**
+     * Switch shebang stripping on or off
+     * @param stripShebang true to enable shebang stripping
+     */
+    public void setStripShebang(boolean stripShebang);
+
 }

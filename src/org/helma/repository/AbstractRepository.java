@@ -34,14 +34,14 @@ public abstract class AbstractRepository implements Repository {
     AbstractRepository parent;
 
     /**
-     * Holds direct child repositories
+     * Cache for direct child repositories
      */
-    Repository[] repositories;
+    Map<String, AbstractRepository> repositories = new WeakHashMap<String, AbstractRepository>();
 
     /**
-     * Holds direct resources
+     * Cache for direct resources
      */
-    Map<String,Resource> resources = new HashMap<String,Resource>();
+    Map<String, AbstractResource> resources = new WeakHashMap<String, AbstractResource>();
 
     /**
      * Cached name for faster access
@@ -53,23 +53,23 @@ public abstract class AbstractRepository implements Repository {
      */
     String name;
 
-    /*
-     * empty repository array for convenience
-     */
-    final static Repository[] emptyRepositories = new Repository[0];
-
     /**
-     * Called to check the repository's content.
-     * @throws IOException an IOException occurred
-     */
-    public abstract void update() throws IOException;
-
-    /**
-     * Called to create a child resource for this repository
+     * Called to create a child resource for this repository if it exists.
      * @param name the name of the child resource
-     * @return the child resource
+     * @return the child resource, or null if no resource with the given name exists
+     * @throws IOException an I/O error occurred
      */
-    protected abstract Resource createResource(String name) throws IOException;
+    protected abstract Resource lookupResource(String name) throws IOException;
+
+    /**
+     * Add the repository's resources into the list, optionally descending into
+     * nested repositories.
+     * @param list the list to add the resources to
+     * @param recursive whether to descend into nested repositories
+     * @throws IOException an I/O related error occurred
+     */
+    protected abstract void getResources(List<Resource> list, boolean recursive)
+            throws IOException;
 
     /**
      * Get the full name that identifies this repository globally
@@ -130,56 +130,23 @@ public abstract class AbstractRepository implements Repository {
      * for which {@link Resource exists()} returns <code>false<code>.
      */
     public synchronized Resource getResource(String path) throws IOException {
-        String[] subs = StringUtils.split(path, SEPARATOR);
-        if (subs.length == 1) {
-            Resource resource = resources.get(subs[0]);
-            if (resource != null) {
-                return resource;
-            }
-            // if resource does not exist, create it
-            return createResource(subs[0]);
+        String[] ids = StringUtils.split(path, SEPARATOR);
+        if (ids.length == 1) {
+            return lookupResource(path);
         }
         Repository repository = this;
-        int i = 0;
-        while (repository != null && i < subs.length - 1) {
-            repository = repository.getChildRepository(subs[i++]);
+        for (int i = 0; i < ids.length - 1 && repository != null; i++) {
+            repository = repository.getChildRepository(ids[i]);
         }
-        return repository == null ? null : repository.getResource(subs[i]);
-    }
-
-    /**
-     * Get a list of resources contained in this repository identified by the
-     * given local name.
-     * @param path the repository path
-     * @param recursive whether to include nested resources
-     * @return a list of all nested child resources
-     */
-    public List<Resource> getResources(String path, boolean recursive) throws IOException {
-        String[] subs = StringUtils.split(path, SEPARATOR);
-        Repository repository = this;
-        for (String sub: subs) {
-            repository = repository.getChildRepository(sub);
-        }
-        if (!repository.exists()) {
-            return Collections.emptyList();
-        }
-        return repository.getResources(recursive);
-    }
-
-    /**
-     * Get an iterator over the sub-repositories contained in this repository.
-     */
-    public synchronized Repository[] getRepositories() throws IOException {
-        update();
-        return repositories;
+        return repository == null ? null : repository.getResource(ids[ids.length - 1]);
     }
 
     /**
      * Get this repository's parent repository.
      */
-    public Repository getParentRepository() {
+    public AbstractRepository getParentRepository() {
         if (parent == null) {
-            throw new RuntimeException("Tried to escape repository root");
+            throw new RuntimeException("Tried to escape root repository");
         }
         return parent;
     }
@@ -194,25 +161,28 @@ public abstract class AbstractRepository implements Repository {
         return parent.getRootRepository();
     }
 
-    /**
-     * Get a deep list of this repository's resources, including all resources
-     * contained in sub-reposotories.
-     */
-    public synchronized List<Resource> getResources(boolean recursive) throws IOException {
-        update();
-        ArrayList<Resource> allResources = new ArrayList<Resource>();
-        allResources.addAll(resources.values());
-
-        if (recursive) {
-            for (Repository repository: repositories) {
-                allResources.addAll(repository.getResources(true));
-            }
-        }
-
-        return allResources;
+    public Resource[] getResources() throws IOException {
+        return getResources(false);
     }
 
+    public Resource[] getResources(boolean recursive) throws IOException {
+        List<Resource> list = new ArrayList<Resource>();
+        getResources(list, recursive);
+        return list.toArray(new Resource[list.size()]);
+    }
 
+    public Resource[] getResources(String resourcePath, boolean recursive)
+            throws IOException {
+        String[] subs = StringUtils.split(resourcePath, SEPARATOR);
+        Repository repository = this;
+        for (String sub : subs) {
+            repository = repository.getChildRepository(sub);
+            if (repository == null || !repository.exists()) {
+                return new Resource[0];
+            }
+        }
+        return repository.getResources(recursive);
+    }
 
     /**
      * Returns the repositories full name as string representation.

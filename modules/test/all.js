@@ -5,6 +5,7 @@ exports.file = require("./helma/file_test");
 exports.skin = require("./helma/skin_test");
 exports.file = require("./file/all");
 exports.binary = require("./binary/all");
+exports.repository = require("./repository/all");
 
 exports.io = require("./io_test");
 

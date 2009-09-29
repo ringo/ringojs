@@ -29,7 +29,7 @@ public interface Trackable extends Serializable {
      * Checks wether this resource actually (still) exists
      * @return true if the resource exists
      */
-    public boolean exists();
+    public boolean exists() throws IOException;
 
     /**
      * Returns the path of the resource.

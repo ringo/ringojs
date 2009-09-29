@@ -81,7 +81,7 @@ public class ReloadableScript {
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
             if (!source.exists()) {
-                throw new FileNotFoundException(source + " not found or not readable");
+                throw new IOException(source + " not found or not readable");
             }
             exception = null;
             errors = new ArrayList<SyntaxError>();
@@ -139,7 +139,7 @@ public class ReloadableScript {
     protected synchronized Script getComposedScript(Context cx)
             throws JavaScriptException, IOException {
         Repository repository = (Repository) source;
-        List<Resource> resources = repository.getResources(false);
+        Resource[] resources = repository.getResources(false);
         final List<Script> scripts = new ArrayList<Script>();
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());

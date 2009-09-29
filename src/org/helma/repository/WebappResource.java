@@ -39,7 +39,7 @@ public class WebappResource extends AbstractResource {
     }
 
     public InputStream getInputStream() throws IOException {
-        return context.getResourceAsStream(path);
+        return stripShebang(context.getResourceAsStream(path));
     }
 
     public URL getUrl() throws MalformedURLException {
