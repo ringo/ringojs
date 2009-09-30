@@ -270,6 +270,29 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
+    public void copy(int srcStartIndex, int srcEndIndex, Binary target, Object targetIndex) {
+        if (target.type != Type.ByteArray) {
+            throw ScriptRuntime.typeError("Target object is not writable");
+        } else if (srcStartIndex < 0 || srcStartIndex >= length) {
+            throw ScriptRuntime.typeError("Invalid start index: " + srcStartIndex);
+        } else if (srcEndIndex < srcStartIndex || srcEndIndex > length) {
+            throw ScriptRuntime.typeError("Invalid end index: " + srcEndIndex);
+        }
+        int targetIdx = ScriptUtils.toInt(targetIndex, 0);
+        if (targetIdx < 0) {
+            throw ScriptRuntime.typeError("Invalid target index: " + targetIndex);
+        }
+        int size = srcEndIndex - srcStartIndex;
+        target.copyFrom(bytes, srcStartIndex, size, targetIdx);
+
+    }
+
+    private synchronized void copyFrom(byte[] source, int srcIndex, int length, int targetIndex) {
+        ensureLength(srcIndex + length);
+        System.arraycopy(source, srcIndex, bytes, targetIndex,  length);
+    }
+
+    @JSFunction
     public synchronized Object toArray(Object charset)
             throws UnsupportedEncodingException {
         Object[] elements;
