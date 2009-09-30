@@ -59,7 +59,7 @@ function mergeParameter(params, names, value) {
         // a simple property - push or set depending on params' type
         Array.isArray(params) ? params.push(value) : params[names[0]] = value;
     } else {
-        // we have an property path - consume first token and recurse
+        // we have a property path - consume first token and recurse
         var name = names.shift();
         if (names[0]) {
             // foo[bar] - parse as object property
@@ -84,9 +84,9 @@ function mergeParameter(params, names, value) {
 // convert + to spaces, decode %ff hex sequences,
 // then decode to string using the specified encoding.
 function decodeToString(bytes, encoding) {
-    var k;
-    while((k = bytes.indexOf(PLUS)) > -1) {
-        bytes[k] = SPACE;
+    var k = 0;
+    while((k = bytes.indexOf(PLUS, k)) > -1) {
+        bytes[k++] = SPACE;
     }
     var i, j = 0;
     while((i = bytes.indexOf(PERCENT, j)) > -1) {
