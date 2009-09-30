@@ -1,7 +1,7 @@
 var engine = require('helma/engine');
 var Profiler = require('helma/profiler').Profiler;
 var Buffer = require('helma/buffer').Buffer;
-var log = require('helma/logging').getLogger(__name__);
+var log = require('helma/logging').getLogger(module.id);
 
 // limit frames shown in the profiler
 var maxFrames = 20;

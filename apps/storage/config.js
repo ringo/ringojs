@@ -1,5 +1,5 @@
 // shared in order not to recreate Store for each request 
-__shared__ = true;
+module.shared = true;
 
 exports.urls = [
     [ '/', 'main' ]

@@ -1,5 +1,5 @@
 
-var log = require('helma/logging').getLogger(__name__);
+var log = require('helma/logging').getLogger(module.id);
 
 export('Profiler');
 

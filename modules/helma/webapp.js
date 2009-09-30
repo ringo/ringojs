@@ -15,9 +15,9 @@ import('helma/logging', 'logging');
 
 export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
 
-var log = logging.getLogger(__name__);
+var log = logging.getLogger(module.id);
 
-var __shared__ = true;
+module.shared = true;
 
 /**
  * Handler function called by the JSGI servlet.

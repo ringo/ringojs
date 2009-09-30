@@ -25,7 +25,7 @@ export( 'properties',
 var rhino = org.mozilla.javascript;
 
 // mark this module as shared between all requests
-var __shared__ = true;
+module.shared = true;
 
 function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);

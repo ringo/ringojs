@@ -1,7 +1,7 @@
 import("core/string");
 var shell = require("helma/shell");
 
-var __shared__ = true;
+module.shared = true;
 
 export(
     "run",

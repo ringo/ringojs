@@ -14,7 +14,7 @@
  *   Fri Oct 31 2008 13:04:34 GMT+0100 (MEZ)</pre>
  */
 
-__shared__ = true;
+module.shared = true;
 
 Object.defineProperty(Number.prototype, 'format', {
     value: function(fmt, locale) {

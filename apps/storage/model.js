@@ -3,7 +3,7 @@ var store = require('./config').store;
 
 export('Book', 'Author');
 
-var __shared__ = true;
+module.shared = true;
 
 /**
  * Book class

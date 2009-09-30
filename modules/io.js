@@ -3,7 +3,7 @@ include('binary');
 defineClass(org.helma.wrappers.IOStream);
 export('IOStream', 'TextInputStream', 'TextOutputStream');
 
-__shared__ = true;
+module.shared = true;
 
 function TextInputStream(io, charset, buffering) {
     var stream;

@@ -2,7 +2,7 @@
 defineClass(org.helma.wrappers.Binary);
 export('Binary', 'ByteArray', 'ByteString');
 
-__shared__ = true;
+module.shared = true;
 
 Object.defineProperty(String.prototype, 'toByteArray', {
     value: function(charset) {

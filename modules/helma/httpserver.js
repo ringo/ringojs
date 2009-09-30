@@ -10,8 +10,8 @@ var HashP = require('hashp').HashP;
 export('start', 'stop', 'handleRequest');
 
 // mark this module as shared between all requests
-var __shared__ = true;
-var log = require('helma/logging').getLogger(__name__);
+module.shared = true;
+var log = require('helma/logging').getLogger(module.id);
 
 
 (function() {

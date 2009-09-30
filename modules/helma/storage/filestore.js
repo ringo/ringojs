@@ -9,8 +9,8 @@ include('./querysupport');
 
 export("Store", "Transaction");
 
-var __shared__ = true;
-var log = require('helma/logging').getLogger(__name__);
+module.shared = true;
+var log = require('helma/logging').getLogger(module.id);
 addHostObject(org.helma.wrappers.Storable);
 
 /**

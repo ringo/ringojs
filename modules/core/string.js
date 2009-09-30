@@ -16,7 +16,7 @@
 
 var asJavaString = require('helma/engine').asJavaString;
 
-__shared__ = true;
+module.shared = true;
 
 Object.defineProperty(String, 'ANUMPATTERN', { value: /[^a-zA-Z0-9]/ });
 Object.defineProperty(String, 'APATTERN', { value: /[^a-zA-Z]/ });

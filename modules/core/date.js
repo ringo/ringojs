@@ -14,7 +14,7 @@
  * $Date: 2007-12-13 19:25:41 +0100 (Don, 13 Dez 2007) $
  */
 
-__shared__ = true;
+module.shared = true;
 
 /**
  * @fileoverview Adds useful methods to the JavaScript Date type.

@@ -2,7 +2,7 @@ import('helma/logging');
 include('helma/webapp/response');
 include('helma/webapp/continuation');
 
-var log = helma.logging.getLogger(__name__);
+var log = helma.logging.getLogger(module.id);
 
 export('index', 'extra_path', 'skins', 'logging', 'continuation', 'profiler');
 

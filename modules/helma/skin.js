@@ -1,4 +1,3 @@
-/*global getResource importModule parseSkin */
 
 require('core/string');
 require('core/object');
@@ -7,8 +6,8 @@ import('helma/engine', 'engine');
 
 export('render', 'createSkin', 'Skin');
 
-var __shared__ = true;
-var log = logging.getLogger(__name__);
+module.shared = true;
+var log = logging.getLogger(module.id);
 var skincache = false; // {}
 
 engine.addHostObject(org.helma.template.MacroTag);

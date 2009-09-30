@@ -3,7 +3,7 @@ require('core/string');
 importPackage(org.apache.log4j);
 importClass(org.apache.log4j.xml.DOMConfigurator);
 
-var __shared__ = true;
+module.shared = true;
 var configured = false;
 
 /**
