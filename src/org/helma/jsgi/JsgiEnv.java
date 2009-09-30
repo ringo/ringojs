@@ -42,7 +42,7 @@ public class JsgiEnv extends ScriptableObject {
             String name = (String) e.nextElement();
             String value = request.getHeader(name);
             name = name.replace('-', '_').toUpperCase();
-            if (!"CONTENT_LENGTH".equals(value) && !"CONTENT_TYPE".equals(value)) {
+            if (!"CONTENT_LENGTH".equals(name) && !"CONTENT_TYPE".equals(name)) {
                 name = "HTTP_" + name;
             }
             put(name, this, value);
