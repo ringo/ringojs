@@ -1,12 +1,14 @@
 require('core/string');
 include('helma/functional');
 include('helma/util');
+include('./parameters');
 importClass(org.mozilla.javascript.Context);
 importClass(org.mozilla.javascript.Scriptable);
 
 export('Request');
 
 // var log = require('helma/logging').getLogger(module.id);
+module.shared = true;
 
 function Request(env) {
 
@@ -28,9 +30,7 @@ function Request(env) {
     define("params", {
         get: function() {
             if (!params)
-                params = new ScriptableMap(
-                        new org.helma.util.ParameterMap(
-                                servletRequest.getParameterMap()));
+                params = parseParameters(this.queryString, this.charset);
             return params;
         }
     });
