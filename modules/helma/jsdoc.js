@@ -18,7 +18,7 @@ function ScriptRepository(path) {
                path : new FileRepository(new java.io.File(path));
 
     this.getScriptResources = function(recurse) {
-        var list = new ScriptableList(repo.getResources(Boolean(recurse)));
+        var list = repo.getResources(Boolean(recurse));
         return list.filter(function(r) {return r.name.endsWith('.js');});
     }
 
