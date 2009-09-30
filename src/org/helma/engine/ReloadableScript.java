@@ -249,7 +249,9 @@ public class ReloadableScript {
      * @param module the module scope
      */
     protected void checkShared(ModuleScope module) {
-        shared = module.get("__shared__", module) == Boolean.TRUE;
+        Scriptable meta = module.getMetaObject();
+        shared = meta.get("shared", meta) == Boolean.TRUE
+                || module.get("__shared__", module) == Boolean.TRUE;
         if (shared) {
             engine.registerSharedScript(source, this);
             moduleScope = module;

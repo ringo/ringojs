@@ -30,7 +30,7 @@ public class ModuleScope extends NativeObject {
     Repository repository;
     String name;
     long checksum;
-    Scriptable exportsObject;
+    Scriptable exportsObject, metaObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
     public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {
@@ -44,7 +44,7 @@ public class ModuleScope extends NativeObject {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
-        Scriptable metaObject = cx.newObject(this);
+        metaObject = cx.newObject(this);
         ScriptableObject.defineProperty(metaObject, "id", moduleName, DONTENUM);
         ScriptableObject.defineProperty(metaObject, "path", source.getPath(), DONTENUM);
         defineProperty("module", metaObject, DONTENUM);
@@ -60,7 +60,8 @@ public class ModuleScope extends NativeObject {
     public void reset() {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
-        delete("__shared__");     
+        delete("__shared__");
+        metaObject.delete("shared");
     }
 
     public long getChecksum() {
@@ -77,6 +78,10 @@ public class ModuleScope extends NativeObject {
 
     public Scriptable getExports() {
         return exportsObject;
+    }
+
+    public Scriptable getMetaObject() {
+        return metaObject;
     }
 
     @Override
