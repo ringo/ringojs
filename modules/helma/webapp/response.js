@@ -4,6 +4,8 @@ include('helma/webapp/util');
 
 export('Response', 'SkinnedResponse', 'JSONResponse', 'RedirectResponse', 'StaticResponse');
 
+module.shared = true;
+
 function Response() {
 
     var config = require('helma/webapp/env').config;
@@ -13,27 +15,23 @@ function Response() {
     var headers = {};
     var buffer = new Buffer();
 
-    Object.defineProperty(this, 'write', {
-        value: function write() {
-            var length = arguments.length;
-            for (var i = 0; i < length; i++) {
-                buffer.write(String(arguments[i]));
-                if (i < length - 1)
-                    buffer.write(' ');
-            }
-            return this;
+    this.write = function write() {
+        var length = arguments.length;
+        for (var i = 0; i < length; i++) {
+            buffer.write(String(arguments[i]));
+            if (i < length - 1)
+                buffer.write(' ');
         }
-    });
+        return this;
+    }
 
     this.write.apply(this, arguments);
 
-    Object.defineProperty(this, 'writeln', {
-        value: function writeln() {
-            this.write.apply(this, arguments);
-            buffer.write('\r\n');
-            return this;
-        }
-    });
+    this.writeln = function writeln() {
+        this.write.apply(this, arguments);
+        buffer.write('\r\n');
+        return this;
+    }
 
 
     /**
@@ -42,53 +40,45 @@ function Response() {
      * @param context context object
      * @param scope optional scope for relative resource paths
      */
-    Object.defineProperty(this, 'render', {
-        value: function render(skin, context, scope) {
-            var render = require('helma/skin').render;
-            buffer.write(render(skin, context, scope));
-        }
-    });
+    this.render = function render(skin, context, scope) {
+        var render = require('helma/skin').render;
+        buffer.write(render(skin, context, scope));
+    }
 
     /**
      * Print a debug message to the rendered page.
      */
-    Object.defineProperty(this, 'debug', {
-        value: function debug() {
-            var buffer = this.debugBuffer || new Buffer();
-            buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow;");
-            buffer.write("color: black; border-top: 1px solid black;\">");
-            var length = arguments.length;
-            for (var i = 0; i < length; i++) {
-                buffer.write(arguments[i]);
-                if (i < length - 1) {
-                    buffer.write(" ");
-                }
+    this.debug =  function debug() {
+        var buffer = this.debugBuffer || new Buffer();
+        buffer.write("<div class=\"helma-debug-line\" style=\"background: yellow;");
+        buffer.write("color: black; border-top: 1px solid black;\">");
+        var length = arguments.length;
+        for (var i = 0; i < length; i++) {
+            buffer.write(arguments[i]);
+            if (i < length - 1) {
+                buffer.write(" ");
             }
-            buffer.writeln("</div>");
-            this.debugBuffer = buffer;
-            return null;
         }
-    });
+        buffer.writeln("</div>");
+        this.debugBuffer = buffer;
+        return null;
+    }
 
     /**
      * Write the debug buffer to the response's main buffer.
      */
-    Object.defineProperty(this, 'flushDebug', {
-        value: function() {
-            if (this.debugBuffer != null) {
-                this.write(this.debugBuffer);
-                this.debugBuffer.reset();
-            }
-            return null;
+    this.flushDebug = function() {
+        if (this.debugBuffer != null) {
+            this.write(this.debugBuffer);
+            this.debugBuffer.reset();
         }
-    });
+        return null;
+    };
 
-    Object.defineProperty(this, 'redirect', {
-        value: function(location) {
-            status = 303;
-            HashP.set(headers, 'Location', String(location));
-        }
-    });
+    this.redirect = function(location) {
+        status = 303;
+        HashP.set(headers, 'Location', String(location));
+    }
 
     Object.defineProperty(this, 'charset', {
         get: function() {
@@ -117,35 +107,29 @@ function Response() {
         }
     });
 
-    Object.defineProperty(this, 'getHeader', {
-        value: function(key) {
-            HashP.get(headers, String(key));
-        }
-    });
+    this.getHeader = function(key) {
+        HashP.get(headers, String(key));
+    }
 
-    Object.defineProperty(this, 'setHeader', {
-        value: function(key, value) {
-            key = String(key);
-            if (key.toLowerCase() == "content-type") {
-                contentType = String(value);
-                charset = getSubHeader(contentType, "charset") || charset;
-            }
-            HashP.set(headers, String(key), String(value));
+    this.setHeader = function(key, value) {
+        key = String(key);
+        if (key.toLowerCase() == "content-type") {
+            contentType = String(value);
+            charset = getSubHeader(contentType, "charset") || charset;
         }
-    });
+        HashP.set(headers, String(key), String(value));
+    }
 
-    Object.defineProperty(this, 'close', {
-        value: function() {
-            this.flushDebug();
-            if (contentType && !HashP.includes(headers, 'content-type')) {
-                if (charset) {
-                    contentType += "; charset=" + charset;
-                }
-                HashP.set(headers, "Content-Type", contentType);
+    this.close = function() {
+        this.flushDebug();
+        if (contentType && !HashP.includes(headers, 'content-type')) {
+            if (charset) {
+                contentType += "; charset=" + charset;
             }
-            return [status, headers, buffer];
+            HashP.set(headers, "Content-Type", contentType);
         }
-    })
+        return [status, headers, buffer];
+    }
 
 }
 
@@ -170,7 +154,7 @@ function StaticResponse(resource) {
     }
     require('binary');
     var contentType = require('./mime').mimeType(resource.name);
-    var content = resource.content.toBinary();
+    var content = resource.content.toByteString("utf-8");
     return [200, {'Content-Type': contentType}, {
         digest: resource.digest,
         forEach: function(block) {
