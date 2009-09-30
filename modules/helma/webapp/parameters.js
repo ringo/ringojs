@@ -1,4 +1,6 @@
 
+include('binary');
+
 export('parseParameters');
 
 var log = require('helma/logging').getLogger(module.id);
@@ -22,18 +24,18 @@ var CHAR_f = String.charCodeAt("f", 0);
  * Parse a byte array representing a query string or post data into an
  * JavaScript object structure using the specified encoding.
  * @param bytes a Binary object
+ * @param params a parameter object to parse into
  * @param encoding a valid encoding name, defaults to UTF-8
  */
-function parseParameters(bytes, encoding) {
+function parseParameters(bytes, params, encoding) {
     if (!bytes) {
-        return {};
-    } else if (typeof bytes == "string") {
+        return;
+    } else if (typeof bytes == "string" || bytes instanceof ByteString) {
+        // stream.read() should really return ByteArray in the first place...
         bytes = bytes.toByteArray();
     }
     encoding = encoding || "UTF-8";
-    var result = {};
-    var params = bytes.split(AMPERSAND);
-    for each (param in params) {
+    for each (param in bytes.split(AMPERSAND)) {
         var [name, value] = param.split(EQUALS);
         if (name && value) {
             name = decodeToString(name, encoding);
@@ -45,10 +47,9 @@ function parseParameters(bytes, encoding) {
                 // produces a superfluous empty string as last element
                 names.pop();
             }
-            mergeParameter(result, names, value);
+            mergeParameter(params, names, value);
         }
     }
-    return result;
 }
 
 // transforms query string "foo[bar][][baz]=hello" into

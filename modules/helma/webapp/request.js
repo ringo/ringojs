@@ -16,12 +16,16 @@ function Request(env) {
     var define = bindArguments(Object.defineProperty, this);
     var servletRequest = env["jsgi.servlet_request"];
 
+    define("contentType", {value: env.CONTENT_TYPE});
+    define("contentLength", {value: env.CONTENT_LENGTH});
     define("servletRequest", {get: function() servletRequest});
     define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
     define("port", readOnlyPropertyDesc(servletRequest, "port"));
     define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
-    define("queryString", readOnlyPropertyDesc(servletRequest, "queryString"));
-    define("method", readOnlyPropertyDesc(servletRequest, "method"));
+    define("pathInfo", {value: env.PATH_INFO});
+    define("scriptName", {value: env.SCRIPT_NAME});
+    define("queryString", {value: env.QUERY_STRING});
+    define("method", {value: env.REQUEST_METHOD});
 
     define("pathDecoded", {
         get: function() { return decodeURI(this.path) }
@@ -29,8 +33,16 @@ function Request(env) {
 
     define("params", {
         get: function() {
-            if (!params)
-                params = parseParameters(this.queryString, this.charset);
+            if (!params) {
+                params = {};
+                if (this.isPost && this.contentType
+                        && this.contentType.toLowerCase()
+                        .startsWith("application/x-www-form-urlencoded")) {
+                    var body = env["jsgi.input"].read();
+                    parseParameters(body, params, this.charset);
+                }
+                parseParameters(this.queryString, params, this.charset);
+            }
             return params;
         }
     });
