@@ -77,7 +77,7 @@ function read(path, options) {
 }
 
 function write(path, content, options) {
-    var mode = content instanceof ByteArray ? 'wb' : 'w';
+    var mode = content instanceof Binary ? 'wb' : 'w';
     var stream = open(path, mode, options);
     try {
         stream.write(content);
