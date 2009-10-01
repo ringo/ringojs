@@ -59,7 +59,7 @@ function parseFileUpload(env, params, encoding) {
                     data.contentType = header.substring(13).trim();
                 }
             };
-            var headers = part.slice(0, delim).split(END_OF_LINE).forEach(checkHeader);
+            part.slice(0, delim).split(END_OF_LINE).forEach(checkHeader);
             data.value = part.slice(delim + END_OF_LINE.length + 2);
             // use parameters.mergeParameter() to group and slice parameters
             if (data.filename) {
