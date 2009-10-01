@@ -24,7 +24,7 @@ exports.getMimeParameter = function(headerValue, paramName) {
         if (eq > start && eq < end) {
             var name = headerValue.slice(start, eq);
             if (name.toLowerCase().trim() == paramName) {
-                value = headerValue.slice(eq + 1, end).trim();
+                var value = headerValue.slice(eq + 1, end).trim();
                 if (value.startsWith('"') && value.endsWith('"')) {
                     return value.slice(1, -1).replace('\\\\', '\\').replace('\\"', '"');
                 } else if (value.startsWith('<') && value.endsWith('>')) {
