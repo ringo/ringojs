@@ -115,7 +115,7 @@ function Response() {
         key = String(key);
         if (key.toLowerCase() == "content-type") {
             contentType = String(value);
-            charset = getSubHeader(contentType, "charset") || charset;
+            charset = getMimeParameter(contentType, "charset") || charset;
         }
         HashP.set(headers, String(key), String(value));
     }

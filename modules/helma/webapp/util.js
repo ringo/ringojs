@@ -11,16 +11,27 @@ exports.ResponseFilter = function(body, filter) {
     };
 };
 
-exports.getSubHeader = function(headerValue, subHeaderName) {
+exports.getMimeParameter = function(headerValue, paramName) {
     if (!headerValue)
         return null;
-    var parts = String(headerValue).split(/;/);
-    for (var i = 1; i < parts.length; i++) {
-        var part = parts[i].trim()
-        if (part.startsWith(subHeaderName)) {
-            var eq = part.indexOf("=");
-            if (eq > -1) {
-                 return part.substring(eq + 1).trim();
+    var start, end = 0;
+    paramName = paramName.toLowerCase();
+    while((start = headerValue.indexOf(";", end)) > -1) {
+        end = headerValue.indexOf(";", ++start);
+        if (end < 0)
+            end = headerValue.length;
+        var eq = headerValue.indexOf("=", start);
+        if (eq > start && eq < end) {
+            var name = headerValue.slice(start, eq);
+            if (name.toLowerCase().trim() == paramName) {
+                value = headerValue.slice(eq + 1, end).trim();
+                if (value.startsWith('"') && value.endsWith('"')) {
+                    return value.slice(1, -1).replace('\\\\', '\\').replace('\\"', '"');
+                } else if (value.startsWith('<') && value.endsWith('>')) {
+                    return value.slice(1, -1);
+                }
+                print(paramName, "->", value);
+                return value;
             }
         }
     }

@@ -16,6 +16,7 @@ function Request(env) {
     var define = bindArguments(Object.defineProperty, this);
     var servletRequest = env["jsgi.servlet_request"];
 
+    define("env", {value: env});
     define("contentType", {value: env.CONTENT_TYPE});
     define("contentLength", {value: env.CONTENT_LENGTH});
     define("servletRequest", {get: function() servletRequest});
