@@ -40,7 +40,7 @@ function parseFileUpload(env, params, encoding) {
     boundary = new ByteArray("--" + boundary, "ASCII");
     var body = env["jsgi.input"].read();
     var start = body.indexOf(boundary), end;
-    while(start > -1) {
+    while (start > -1) {
         start += boundary.length + 1;
         if (body[start++] == HYPHEN &&  body[start++] == HYPHEN)
             break;
@@ -61,7 +61,7 @@ function parseFileUpload(env, params, encoding) {
                     headers.push(line);
                 }
             });
-            for each (header in headers) {
+            for each (var header in headers) {
                 if (header.toLowerCase().startsWith("content-disposition:")) {
                     data.name = getMimeParameter(header, "name");
                     data.filename = getMimeParameter(header, "filename");
