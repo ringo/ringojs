@@ -30,7 +30,7 @@ exports.getMimeParameter = function(headerValue, paramName) {
                 } else if (value.startsWith('<') && value.endsWith('>')) {
                     return value.slice(1, -1);
                 }
-                print(paramName, "->", value);
+
                 return value;
             }
         }
