@@ -1,5 +1,6 @@
 
 require('core/string');
+require('core/array');
 include('binary');
 include('./util');
 include('./parameters');
@@ -9,7 +10,7 @@ export('isFileUpload', 'parseFileUpload');
 var log = require('helma/logging').getLogger(module.id);
 
 var HYPHEN  = "-".charCodeAt(0);
-var END_OF_LINE = new ByteString("\r\n", "ASCII");
+var CRLF = new ByteString("\r\n", "ASCII");
 var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 
 /**
@@ -50,17 +51,25 @@ function parseFileUpload(env, params, encoding) {
         var delim = part.indexOf(EMPTY_LINE);
         if (delim > 0) {
             var data = {};
-            var checkHeader = function(header) {
-                header = header.decodeToString("ASCII");
+            var headers = [];
+            part.slice(0, delim).split(CRLF).forEach(function(line) {
+                line = line.decodeToString("ASCII");
+                // unfold multiline headers
+                if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
+                    headers.peek() += line; 
+                } else {
+                    headers.push(line);
+                }
+            });
+            for each (header in headers) {
                 if (header.toLowerCase().startsWith("content-disposition:")) {
                     data.name = getMimeParameter(header, "name");
                     data.filename = getMimeParameter(header, "filename");
                 } else if (header.toLowerCase().startsWith("content-type:")) {
                     data.contentType = header.substring(13).trim();
                 }
-            };
-            part.slice(0, delim).split(END_OF_LINE).forEach(checkHeader);
-            data.value = part.slice(delim + END_OF_LINE.length + 2);
+            }
+            data.value = part.slice(delim + 4);
             // use parameters.mergeParameter() to group and slice parameters
             if (data.filename) {
                 mergeParameter(params, data.name, data);
