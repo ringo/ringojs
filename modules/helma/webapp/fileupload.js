@@ -1,0 +1,71 @@
+
+require('core/string');
+include('binary');
+include('./util');
+
+export('isFileUpload', 'parseFileUpload');
+
+var log = require('helma/logging').getLogger(module.id);
+
+var HYPHEN  = "-".charCodeAt(0);
+var END_OF_LINE = new ByteString("\r\n", "ASCII");
+var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
+
+/**
+ * Find out whether the content type denotes a format this module can parse.
+ * @param contentType a HTTP request Content-Type header
+ * @return true if the content type can be parsed as form data by this module
+ */
+function isFileUpload(contentType) {
+    return contentType && String(contentType)
+            .toLowerCase().startsWith("multipart/form-data");
+}
+
+
+/**
+ * Rough but working first draft of file upload support.
+ * Everything's done in memory so beware of large files.
+ * @param env the JSGI env object
+ * @param params the parameter object to parse into
+ * @param encoding the encoding to apply to non-file parameters
+ */
+function parseFileUpload(env, params, encoding) {
+    encoding = encoding || "UTF-8";
+    var boundary = getMimeParameter(env.CONTENT_TYPE, "boundary");
+    if (!boundary) {
+        return;
+    }
+    boundary = new ByteArray("--" + boundary, "ASCII");
+    var body = env["jsgi.input"].read();
+    var i = 0;
+    while((i = body.indexOf(boundary, i)) > -1) {
+        var start = i + boundary.length + 1;
+        if (body[start++] == HYPHEN &&  body[start++] == HYPHEN)
+            break;
+        var end = body.indexOf(boundary, start);
+        if (end < 0)
+            break;
+        var part = body.slice(start, end - 2);
+        var delim = part.indexOf(EMPTY_LINE);
+        if (delim > 0) {
+            var data = {};
+            var checkHeader = function(header) {
+                header = header.decodeToString("ASCII");
+                if (header.toLowerCase().startsWith("content-disposition:")) {
+                    data.name = getMimeParameter(header, "name");
+                    data.filename = getMimeParameter(header, "filename");
+                } else if (header.toLowerCase().startsWith("content-type:")) {
+                    data.contentType = header.substring(13).trim();
+                }
+            };
+            var headers = part.slice(0, delim).split(END_OF_LINE).forEach(checkHeader);
+            data.value = part.slice(delim + END_OF_LINE.length + 2);
+            if (data.filename) {
+                params[data.name] = data;
+            } else {
+                params[data.name] = data.value.decodeToString(encoding);
+            }
+        }
+        i = end;
+    }
+}

@@ -2,6 +2,7 @@ require('core/string');
 include('helma/functional');
 include('helma/util');
 include('./parameters');
+include('./fileupload');
 importClass(org.mozilla.javascript.Context);
 importClass(org.mozilla.javascript.Scriptable);
 
@@ -36,9 +37,13 @@ function Request(env) {
         get: function() {
             if (!params) {
                 params = {};
-                if (this.isPost && isUrlEncoded(this.contentType)) {
-                    var body = env["jsgi.input"].read();
-                    parseParameters(body, params, this.charset);
+                if (this.isPost) {
+                    if (isUrlEncoded(this.contentType)) {
+                        var body = env["jsgi.input"].read();
+                        parseParameters(body, params, this.charset);
+                    } else if (isFileUpload(this.contentType)) {
+                        parseFileUpload(env, params, this.charset);
+                    }
                 }
                 parseParameters(this.queryString, params, this.charset);
             }
