@@ -2,6 +2,7 @@
 require('core/string');
 include('binary');
 include('./util');
+include('./parameters');
 
 export('isFileUpload', 'parseFileUpload');
 
@@ -37,12 +38,12 @@ function parseFileUpload(env, params, encoding) {
     }
     boundary = new ByteArray("--" + boundary, "ASCII");
     var body = env["jsgi.input"].read();
-    var i = 0;
-    while((i = body.indexOf(boundary, i)) > -1) {
-        var start = i + boundary.length + 1;
+    var start = body.indexOf(boundary), end;
+    while(start > -1) {
+        start += boundary.length + 1;
         if (body[start++] == HYPHEN &&  body[start++] == HYPHEN)
             break;
-        var end = body.indexOf(boundary, start);
+        end = body.indexOf(boundary, start);
         if (end < 0)
             break;
         var part = body.slice(start, end - 2);
@@ -60,12 +61,13 @@ function parseFileUpload(env, params, encoding) {
             };
             var headers = part.slice(0, delim).split(END_OF_LINE).forEach(checkHeader);
             data.value = part.slice(delim + END_OF_LINE.length + 2);
+            // use parameters.mergeParameter() to group and slice parameters
             if (data.filename) {
-                params[data.name] = data;
+                mergeParameter(params, data.name, data);
             } else {
-                params[data.name] = data.value.decodeToString(encoding);
+                mergeParameter(params, data.name, data.value.decodeToString(encoding));
             }
         }
-        i = end;
+        start = end;
     }
 }

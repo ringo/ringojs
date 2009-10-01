@@ -1,7 +1,7 @@
 
 include('binary');
 
-export('isUrlEncoded', 'parseParameters');
+export('isUrlEncoded', 'parseParameters', 'mergeParameter');
 
 var log = require('helma/logging').getLogger(module.id);
 
@@ -50,22 +50,32 @@ function parseParameters(bytes, params, encoding) {
         if (name && value) {
             name = decodeToString(name, encoding);
             value = decodeToString(value, encoding);
-            // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
-            // FIXME - this regexp swallows far more than it should
-            var names = name.split(/\]\[|\[|\]/);
-            if (names.length > 1) {
-                // if there are square brackets in the name, the split
-                // produces a superfluous empty string as last element
-                names.pop();
-            }
-            mergeParameter(params, names, value);
+            mergeParameter(params, name, value);
         }
     }
 }
 
-// transforms query string "foo[bar][][baz]=hello" into
-// object structure {foo: {bar: [{baz : "hello"}]}}
-function mergeParameter(params, names, value) {
+/**
+ * Adds a value to a parameter object using a square bracket property syntax.
+ * For example, parameter <code>foo[bar][][baz]=hello</code> will result in
+ * object structure <code>{foo: {bar: [{baz : "hello"}]}}</code>.
+ * @param params the top level parameter object
+ * @param name the parameter name
+ * @param value the parameter value
+ */
+function mergeParameter(params, name, value) {
+    // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
+    // FIXME - this regexp swallows far more than it should
+    var names = name.split(/\]\[|\[|\]/);
+    if (names.length > 1) {
+        // if there are square brackets in the name, the split
+        // produces a superfluous empty string as last element
+        names.pop();
+    }
+    mergeParameterInternal(params, names, value);
+}
+
+function mergeParameterInternal(params, names, value) {
     if (names.length == 1) {
         // a simple property - push or set depending on params' type
         Array.isArray(params) ? params.push(value) : params[names[0]] = value;
@@ -79,7 +89,7 @@ function mergeParameter(params, names, value) {
                 obj = {};
                 Array.isArray(params) ? params.push(obj) : params[name] = obj;
             }
-            mergeParameter(obj, names, value);
+            mergeParameterInternal(obj, names, value);
         } else {
             // foo[] - parse as array
             var array = params[name];
@@ -87,7 +97,7 @@ function mergeParameter(params, names, value) {
                 array = array == null ? [] : [array];
                 Array.isArray(params) ? params.push(array) : params[name] = array;
             }
-            mergeParameter(array, names, value);
+            mergeParameterInternal(array, names, value);
         }
     }
 }
