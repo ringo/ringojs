@@ -6,19 +6,19 @@ export('isUrlEncoded', 'parseParameters', 'mergeParameter');
 var log = require('helma/logging').getLogger(module.id);
 
 // character codes used for slicing and decoding
-var SPACE     = String.charCodeAt(" ", 0);
-var PERCENT   = String.charCodeAt("%", 0);
-var AMPERSAND = String.charCodeAt("&", 0);
-var PLUS      = String.charCodeAt("+", 0);
-var EQUALS    = String.charCodeAt("=", 0);
+var SPACE     = " ".charCodeAt(0);
+var PERCENT   = "%".charCodeAt(0);
+var AMPERSAND = "&".charCodeAt(0);
+var PLUS      = "+".charCodeAt(0);
+var EQUALS    = "=".charCodeAt(0);
 
 // character codes used for hex decoding
-var CHAR_0 = String.charCodeAt("0", 0);
-var CHAR_9 = String.charCodeAt("9", 0);
-var CHAR_A = String.charCodeAt("A", 0);
-var CHAR_F = String.charCodeAt("F", 0);
-var CHAR_a = String.charCodeAt("a", 0);
-var CHAR_f = String.charCodeAt("f", 0);
+var CHAR_0 = "0".charCodeAt(0);
+var CHAR_9 = "9".charCodeAt(0);
+var CHAR_A = "A".charCodeAt(0);
+var CHAR_F = "F".charCodeAt(0);
+var CHAR_a = "a".charCodeAt(0);
+var CHAR_f = "f".charCodeAt(0);
 
 /**
  * Find out whether the content type denotes a format this module can parse.
