@@ -35,9 +35,7 @@ function Request(env) {
         get: function() {
             if (!params) {
                 params = {};
-                if (this.isPost && this.contentType
-                        && this.contentType.toLowerCase()
-                        .startsWith("application/x-www-form-urlencoded")) {
+                if (this.isPost && isUrlEncoded(this.contentType)) {
                     var body = env["jsgi.input"].read();
                     parseParameters(body, params, this.charset);
                 }

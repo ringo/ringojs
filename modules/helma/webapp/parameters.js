@@ -1,7 +1,7 @@
 
 include('binary');
 
-export('parseParameters');
+export('isUrlEncoded', 'parseParameters');
 
 var log = require('helma/logging').getLogger(module.id);
 
@@ -19,6 +19,16 @@ var CHAR_A = String.charCodeAt("A", 0);
 var CHAR_F = String.charCodeAt("F", 0);
 var CHAR_a = String.charCodeAt("a", 0);
 var CHAR_f = String.charCodeAt("f", 0);
+
+/**
+ * Find out whether the content type denotes a format this module can parse.
+ * @param contentType a HTTP request Content-Type header
+ * @return true if the content type can be parsed as form data by this module
+ */
+function isUrlEncoded(contentType) {
+    return contentType && String(contentType)
+            .toLowerCase().startsWith("application/x-www-form-urlencoded");
+}
 
 /**
  * Parse a byte array representing a query string or post data into an
@@ -41,6 +51,7 @@ function parseParameters(bytes, params, encoding) {
             name = decodeToString(name, encoding);
             value = decodeToString(value, encoding);
             // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
+            // FIXME - this regexp swallows far more than it should
             var names = name.split(/\]\[|\[|\]/);
             if (names.length > 1) {
                 // if there are square brackets in the name, the split
