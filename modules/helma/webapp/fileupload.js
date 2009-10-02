@@ -53,7 +53,7 @@ function parseFileUpload(env, params, encoding) {
             var data = {};
             var headers = [];
             part.slice(0, delim).split(CRLF).forEach(function(line) {
-                line = line.decodeToString("ASCII");
+                line = line.decodeToString(encoding);
                 // unfold multiline headers
                 if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
                     headers.peek() += line; 
