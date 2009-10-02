@@ -66,15 +66,15 @@ function parseFileUpload(env, params, encoding) {
         return read;
     }
     refill();
-    var boundaryFound = buffer.indexOf(boundary, position, end);
+    var boundaryPos = buffer.indexOf(boundary, position, end);
 
     while (!eof) {
         if (!data) {
-            if (boundaryFound < 0) {
+            if (boundaryPos < 0) {
                 throw new Error("boundary not found in multipart stream");
             }
             // move position past boundary to beginning of multipart headers
-            position = boundaryFound + boundary.length + CRLF.length;
+            position = boundaryPos + boundary.length + CRLF.length;
             if (buffer[position - 2] == HYPHEN && buffer[position - 1] == HYPHEN) {
                 // reached final boundary
                 break;
@@ -105,8 +105,8 @@ function parseFileUpload(env, params, encoding) {
             // move position after the empty line that separates headers from body
             position = b + EMPTY_LINE.length;
         }
-        boundaryFound = buffer.indexOf(boundary, position, end);
-        if (boundaryFound < 0) {
+        boundaryPos = buffer.indexOf(boundary, position, end);
+        if (boundaryPos < 0) {
             // no terminating boundary found, slurp bytes and check for
             // partial boundary at buffer end which we know starts with "--".
             var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
@@ -118,8 +118,8 @@ function parseFileUpload(env, params, encoding) {
             }
         } else {
             // found terminating boundary, complete data and merge into parameters
-            buffer.copy(position, boundaryFound - CRLF.length, data.value, data.value.length);
-            position = boundaryFound;
+            buffer.copy(position, boundaryPos - CRLF.length, data.value, data.value.length);
+            position = boundaryPos;
             if (data.filename) {
                 mergeParameter(params, data.name, data);
             } else {
