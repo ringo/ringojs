@@ -70,7 +70,7 @@ public class HelmaShell {
         int lineno = 0;
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
-            cx.setErrorReporter(new ToolErrorReporter(true, System.out));
+            cx.setErrorReporter(new ToolErrorReporter(false, System.out));
             cx.setOptimizationLevel(-1);
             String source = "";
             String prompt = "helma> ";

@@ -11,6 +11,7 @@
 package org.helma.engine;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.helma.repository.Trackable;
 import org.helma.tools.HelmaConfiguration;
 
@@ -27,7 +28,6 @@ public class HelmaContextFactory extends ContextFactory {
     boolean parentProtoProperties = true;
     int optimizationLevel = 0;
     boolean generatingDebug = true;
-    ErrorReporter errorReporter;
     ClassShutter classShutter;
 
     static int instructionLimit = 0xfffffff;
@@ -43,19 +43,22 @@ public class HelmaContextFactory extends ContextFactory {
     @Override
     protected boolean hasFeature(Context cx, int featureIndex) {
         switch (featureIndex) {
-          case Context.FEATURE_STRICT_VARS:
-          case Context.FEATURE_STRICT_EVAL:
-          case Context.FEATURE_STRICT_MODE:
-            return strictMode;
+            case Context.FEATURE_STRICT_VARS:
+                // missing vars suck - always print a warning message
+                return true;
 
-          case Context.FEATURE_RESERVED_KEYWORD_AS_IDENTIFIER:
-            return true;
+            case Context.FEATURE_STRICT_EVAL:
+            case Context.FEATURE_STRICT_MODE:
+                return strictMode;
 
-          case Context.FEATURE_WARNING_AS_ERROR:
-            return warningAsError;
+            case Context.FEATURE_RESERVED_KEYWORD_AS_IDENTIFIER:
+                return true;
 
-          case Context.FEATURE_PARENT_PROTO_PROPERTIES:
-            return parentProtoProperties;
+            case Context.FEATURE_WARNING_AS_ERROR:
+                return warningAsError;
+
+            case Context.FEATURE_PARENT_PROTO_PROPERTIES:
+                return parentProtoProperties;
         }
 
         return super.hasFeature(cx, featureIndex);
@@ -77,9 +80,7 @@ public class HelmaContextFactory extends ContextFactory {
             cx.setInstructionObserverThreshold(instructionLimit);
             cx.setSecurityController(new PolicySecurityController());
         }
-        if (errorReporter != null) {
-            cx.setErrorReporter(errorReporter);
-        }
+        cx.setErrorReporter(new ToolErrorReporter(true));
         RhinoEngine.errors.set(new ArrayList<SyntaxError>());
         cx.setGeneratingDebug(generatingDebug);
     }
@@ -130,11 +131,6 @@ public class HelmaContextFactory extends ContextFactory {
         Context.checkOptimizationLevel(optimizationLevel);
         checkNotSealed();
         this.optimizationLevel = optimizationLevel;
-    }
-
-    public void setErrorReporter(ErrorReporter errorReporter) {
-        if (errorReporter == null) throw new IllegalArgumentException();
-        this.errorReporter = errorReporter;
     }
 
     public void setGeneratingDebug(boolean generatingDebug) {

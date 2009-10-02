@@ -20,9 +20,9 @@ import org.helma.repository.Repository;
 import org.helma.repository.Resource;
 import org.helma.repository.Trackable;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.apache.log4j.Logger;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.security.CodeSource;
@@ -229,7 +229,20 @@ public class ReloadableScript {
             log.debug("Loading module: " + moduleName);
         }
         modules.put(source, module);
-        script.exec(cx, module);
+        // warnings are disabled in shell - enable warnings for module loading
+        ToolErrorReporter reporter =
+                cx.getErrorReporter() instanceof ToolErrorReporter ?
+                (ToolErrorReporter) cx.getErrorReporter() : null;
+        if (reporter != null && !reporter.isReportingWarnings()) {
+            try {
+                reporter.setIsReportingWarnings(true);
+                script.exec(cx, module);
+            } finally {
+                reporter.setIsReportingWarnings(false);
+            }
+        } else {
+            script.exec(cx, module);
+        }
         checkShared(module);
         module.setChecksum(getChecksum());
         return module;
@@ -347,15 +360,30 @@ public class ReloadableScript {
                 && source.equals(((ReloadableScript) obj).source);
     }
 
+    /**
+     * An ErrorReporter instance used during compilation that records SyntaxErrors.
+     * This way, we can reproduce the error messages for a faulty module without
+     * having to recompile it each time it is required.
+     */
     class ErrorCollector implements ErrorReporter {
+
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            // errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            System.err.println("Warning: " + new SyntaxError(message, sourceName, line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
                           int line, String lineSource, int lineOffset) {
             errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            String error = "SyntaxError";
+            if (message.startsWith("TypeError: ")) {
+                error = "TypeError";
+                message = message.substring(11);
+            }
+            // we could collect more syntax errors here by not throwing an exception
+            // but reporting multiple errors may be just confusing
+            throw ScriptRuntime.constructError(error, message, sourceName,
+                                               line, lineSource, lineOffset);
         }
 
         public EvaluatorException runtimeError(String message, String sourceName,
