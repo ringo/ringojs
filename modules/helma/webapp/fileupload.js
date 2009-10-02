@@ -38,25 +38,54 @@ function parseFileUpload(env, params, encoding) {
         return;
     }
     boundary = new ByteArray("--" + boundary, "ASCII");
-    var body = env["jsgi.input"].read();
-    var start = body.indexOf(boundary), end;
-    while (start > -1) {
-        start += boundary.length + 1;
-        if (body[start++] == HYPHEN &&  body[start++] == HYPHEN)
-            break;
-        end = body.indexOf(boundary, start);
-        if (end < 0)
-            break;
-        var part = body.slice(start, end - 2);
-        var delim = part.indexOf(EMPTY_LINE);
-        if (delim > 0) {
-            var data = {};
+    var input = env["jsgi.input"];
+    var buflen = 8192;
+    var refillThreshold = 6144;
+    var buffer = new ByteArray(buflen);
+    var data;
+    var eof = false;
+    var position = 0, end = 0;
+
+    var refill = function() {
+        if (position < end) {
+            buffer.copy(position, end, buffer, 0);
+            end -= position;
+            position = 0;
+        } else {
+            position = end = 0;
+        }
+        var read = input.readInto(buffer, end)
+        if (read > -1) {
+            end += read;
+        } else {
+            eof = true;
+        }
+        return read;
+    }
+    refill();
+
+    while (!eof) {
+        if (!data) {
+            var a = buffer.indexOf(boundary, position, end);
+            if (a < 0) {
+                throw new Error("boundary not found in multipart stream");
+            }
+            a += boundary.length;
+            if (buffer[a++] == HYPHEN &&  buffer[a++] == HYPHEN) {
+                break;
+            }
+            position = a + 1;
+            var b = buffer.indexOf(EMPTY_LINE, position, end);
+            if (b < 0) {
+                throw new Error("could not parse headers");
+            }
+            data = {value: new ByteArray(0)};
             var headers = [];
-            part.slice(0, delim).split(CRLF).forEach(function(line) {
+            buffer.slice(position, b).split(CRLF).forEach(function(line) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
                 if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
-                    headers.peek() += line; 
+                    headers.peek() += line;
                 } else {
                     headers.push(line);
                 }
@@ -69,14 +98,34 @@ function parseFileUpload(env, params, encoding) {
                     data.contentType = header.substring(13).trim();
                 }
             }
-            data.value = part.slice(delim + 4);
-            // use parameters.mergeParameter() to group and slice parameters
+            // move position after the empty line that separates headers from body
+            position = b + 4;
+        }
+        var c = buffer.indexOf(boundary, position, end);
+        // no
+        if (c < 0) {
+            // no terminating boundary found, slurp bytes and check for
+            // partial boundary at buffer end which we know starts with "--".
+            var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
+            var copyTo =  (hyphen < 0) ? end : hyphen;
+            buffer.copy(position, copyTo, data.value, data.value.length)
+            position = copyTo;
+            if (!eof) {
+                refill();
+            }
+        } else {
+            // found terminating boundary, complete data and merge into parameters
+            buffer.copy(position, c - 2, data.value, data.value.length);
+            position = c;
             if (data.filename) {
                 mergeParameter(params, data.name, data);
             } else {
                 mergeParameter(params, data.name, data.value.decodeToString(encoding));
             }
+            data = null;
+            if (position > refillThreshold && !eof) {
+                refill();
+            }
         }
-        start = end;
     }
 }
