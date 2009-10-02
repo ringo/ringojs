@@ -45,12 +45,12 @@ function parseParameters(bytes, params, encoding) {
         bytes = bytes.toByteArray();
     }
     encoding = encoding || "UTF-8";
-    for each (param in bytes.split(AMPERSAND)) {
+    for each (var param in bytes.split(AMPERSAND)) {
         var [name, value] = param.split(EQUALS);
         if (name && value) {
             name = decodeToString(name, encoding);
             value = decodeToString(value, encoding);
-            mergeParameter(params, name, value);
+            mergeParameter(params, name.trim(), value);
         }
     }
 }
@@ -65,14 +65,13 @@ function parseParameters(bytes, params, encoding) {
  */
 function mergeParameter(params, name, value) {
     // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
-    // FIXME - this regexp swallows far more than it should
-    var names = name.split(/\]\[|\[|\]/);
-    if (names.length > 1) {
-        // if there are square brackets in the name, the split
-        // produces a superfluous empty string as last element
-        names.pop();
+    if (name.match(/^\w+(?:\[[^\]]*\]\s*)+$/)) {
+        var names = name.split(/\]\s*\[|\[|\]/).map(function(s) s.trim()).slice(0, -1);
+        mergeParameterInternal(params, names, value);
+    } else {
+        // not matching the foo[bar] pattern, add param as is
+        params[name] = value;
     }
-    mergeParameterInternal(params, names, value);
 }
 
 function mergeParameterInternal(params, names, value) {
