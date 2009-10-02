@@ -44,6 +44,8 @@ function parseFileUpload(env, params, encoding) {
     var buffer = new ByteArray(buflen);
     var data;
     var eof = false;
+    // the central variables for managing the buffer:
+    // current position and end of read bytes
     var position = 0, end = 0;
 
     var refill = function() {
@@ -54,6 +56,7 @@ function parseFileUpload(env, params, encoding) {
         } else {
             position = end = 0;
         }
+        // read into buffer starting at index end
         var read = input.readInto(buffer, end)
         if (read > -1) {
             end += read;
@@ -63,18 +66,19 @@ function parseFileUpload(env, params, encoding) {
         return read;
     }
     refill();
+    var boundaryFound = buffer.indexOf(boundary, position, end);
 
     while (!eof) {
         if (!data) {
-            var a = buffer.indexOf(boundary, position, end);
-            if (a < 0) {
+            if (boundaryFound < 0) {
                 throw new Error("boundary not found in multipart stream");
             }
-            a += boundary.length;
-            if (buffer[a++] == HYPHEN &&  buffer[a++] == HYPHEN) {
+            // move position past boundary to beginning of multipart headers
+            position = boundaryFound + boundary.length + CRLF.length;
+            if (buffer[position - 2] == HYPHEN && buffer[position - 1] == HYPHEN) {
+                // reached final boundary
                 break;
             }
-            position = a + 1;
             var b = buffer.indexOf(EMPTY_LINE, position, end);
             if (b < 0) {
                 throw new Error("could not parse headers");
@@ -99,11 +103,10 @@ function parseFileUpload(env, params, encoding) {
                 }
             }
             // move position after the empty line that separates headers from body
-            position = b + 4;
+            position = b + EMPTY_LINE.length;
         }
-        var c = buffer.indexOf(boundary, position, end);
-        // no
-        if (c < 0) {
+        boundaryFound = buffer.indexOf(boundary, position, end);
+        if (boundaryFound < 0) {
             // no terminating boundary found, slurp bytes and check for
             // partial boundary at buffer end which we know starts with "--".
             var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
@@ -115,8 +118,8 @@ function parseFileUpload(env, params, encoding) {
             }
         } else {
             // found terminating boundary, complete data and merge into parameters
-            buffer.copy(position, c - 2, data.value, data.value.length);
-            position = c;
+            buffer.copy(position, boundaryFound - CRLF.length, data.value, data.value.length);
+            position = boundaryFound;
             if (data.filename) {
                 mergeParameter(params, data.name, data);
             } else {
