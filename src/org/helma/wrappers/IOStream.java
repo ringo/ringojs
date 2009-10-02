@@ -97,26 +97,19 @@ public class IOStream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public int readInto(Binary bytes, Object offset, Object length) {
+    public int readInto(Binary bytes, Object start, Object end) {
         if (input == null) {
             throw ScriptRuntime.typeError("no input stream");
+        } else if (bytes == Undefined.instance || bytes == null) {
+            throw ScriptRuntime.typeError("readInto called without Binary argument");
+        } else if (bytes.getType() != Binary.Type.ByteArray) {
+            throw ScriptRuntime.typeError("argument to readInto must be ByteArray");
         }
-        int off = ScriptUtils.toInt(offset, -1);
-        int len = ScriptUtils.toInt(length, -1);
+        int from = ScriptUtils.toInt(start, 0);
+        int to = ScriptUtils.toInt(end, bytes.getLength());
         try {
-            if (off > -1) {
-                if (len > -1) {
-                    bytes.ensureLength(off + len);
-                } else {
-                    bytes.ensureLength(off + 1);
-                    len = bytes.getLength() - off;
-                }
-                byte[] b = bytes.getBytes();
-                return input.read(b, off, len);
-            } else {
-                return input.read(bytes.getBytes());
-            }
-            // FIXME: should we set the length of the byte buffer to the number of read bytes?
+            byte[] b = bytes.getBytes();
+            return input.read(b, from, to - from);
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }

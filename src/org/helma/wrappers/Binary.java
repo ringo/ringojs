@@ -136,6 +136,10 @@ public class Binary extends ScriptableObject implements Wrapper {
         constructor.addAsConstructor(scope, prototype);
     }
 
+    public Type getType() {
+        return type;
+    }
+
     @Override
     public Object get(int index, Scriptable start) {
         if (index < 0 || index >= length) {
@@ -288,7 +292,7 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     private synchronized void copyFrom(byte[] source, int srcIndex, int length, int targetIndex) {
-        ensureLength(srcIndex + length);
+        ensureLength(targetIndex + length);
         System.arraycopy(source, srcIndex, bytes, targetIndex,  length);
     }
 
