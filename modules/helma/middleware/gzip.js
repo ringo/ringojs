@@ -12,7 +12,7 @@ export('handleRequest');
  */
 function handleRequest(req) {
     var res = req.process();
-    var [status, headers, body] = res;
+    var {status, headers, body} = res;
     if (canCompress(status,
             req.getHeader("accept-encoding"),
             HashP.get(headers, 'content-type'),
@@ -24,7 +24,7 @@ function handleRequest(req) {
         });
         gzip.close();
         body = new ByteArray(bytes.toByteArray());
-        res[2] = [body]; 
+        res.body = [body];
         HashP.set(headers, 'Content-Length', body.length)
         HashP.set(headers, 'Content-Encoding', 'gzip');
     }

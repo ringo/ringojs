@@ -26,7 +26,7 @@ exports.handleRequest = function handleRequest(req) {
         appender.callback = null;
     }
 
-    var [status, headers, body] = res;
+    var {status, headers, body} = res;
 
     // only do this for ordinary HTML responses
     var contentType = HashP.get(headers, "content-type");
@@ -36,7 +36,7 @@ exports.handleRequest = function handleRequest(req) {
 
     if (messages.length > 0) {
         var ResponseFilter = require("helma/webapp/util").ResponseFilter;
-        res[2] = new ResponseFilter(body, function(part) {
+        res.body = new ResponseFilter(body, function(part) {
             if (typeof part != "string" || part.lastIndexOf("</body>") == -1) {
                 return part;
             }

@@ -86,7 +86,7 @@ public class JsgiServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             JsgiEnv env = new JsgiEnv(request, response);
-            engine.invoke("helma/httpserver", "handleRequest", module, function, env);
+            engine.invoke("helma/jsgi", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
             throw new ServletException(x);
         } catch (Exception x) {

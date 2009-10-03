@@ -128,7 +128,11 @@ function Response() {
             }
             HashP.set(headers, "Content-Type", contentType);
         }
-        return [status, headers, buffer];
+        return {
+            status: status,
+            headers: headers,
+            body: buffer
+        };
     }
 
 }
@@ -155,15 +159,23 @@ function StaticResponse(resource) {
     require('binary');
     var contentType = require('./mime').mimeType(resource.name);
     var content = resource.content.toByteString("utf-8");
-    return [200, {'Content-Type': contentType}, {
-        digest: resource.digest,
-        forEach: function(block) {
-            // FIXME
-            block(content);
+    return {
+        status: 200,
+        headers: {'Content-Type': contentType},
+        body: {
+            digest: resource.digest,
+            forEach: function(block) {
+                // FIXME
+                block(content);
+            }
         }
-    }];
+    };
 }
 
 function RedirectResponse(location) {
-    return [303, {Location: location}, ["See other: " + location]];
+    return {
+        status: 303,
+        headers: {Location: location},
+        body: ["See other: " + location]
+    };
 }
