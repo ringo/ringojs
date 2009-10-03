@@ -110,9 +110,9 @@ function parseFileUpload(env, params, encoding) {
             // no terminating boundary found, slurp bytes and check for
             // partial boundary at buffer end which we know starts with "--".
             var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
-            var copyTo =  (hyphen < 0) ? end : hyphen;
-            buffer.copy(position, copyTo, data.value, data.value.length)
-            position = copyTo;
+            var copyEnd =  (hyphen < 0) ? end : hyphen;
+            buffer.copy(position, copyEnd, data.value, data.value.length)
+            position = copyEnd;
             if (!eof) {
                 refill();
             }
