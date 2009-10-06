@@ -37,13 +37,13 @@ function logging(req) {
             log.error(e, e.rhinoException);
         }
     } else if (req.params.profile) {
+        // build and run a small profiler middleware stack
         var profiler = require('helma/middleware/profiler');
-        req.process = function() {
+        return profiler.middleware(function() {
             return new SkinnedResponse('skins/logging.txt', {
                 title: "Logging &amp; Profiling"
             });
-        }
-        return profiler.handleRequest(req);
+        })(req.env);
     }
     return new SkinnedResponse('skins/logging.txt', { title: "Logging &amp; Profiling" });
 }

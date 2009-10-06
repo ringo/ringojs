@@ -72,51 +72,41 @@ function resolveInConfig(req, config, actionPath, path, prefix) {
             var match = getPattern(url).exec(path);
             if (log.isDebugEnabled) log.debug("got match: " + match);
             if (match != null) {
-                var middleware = config.middleware;
-                var middlewareIndex = 0;
-                req.process = function() {
-                    if (Array.isArray(middleware) && middlewareIndex < middleware.length) {
-                        return invokeMiddleware(middleware[middlewareIndex++], [req]);
-                    } else {
-                        var module = getModule(url, prefix);
-                        if (log.isDebugEnabled) log.debug("module: " + module);
-                        // cut matching prefix from path
-                        path = path.substring(match[0].length);
-                        //remove leading and trailing slashes and split
-                        var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
-                        var action = getAction(module, pathArray[0]);
-                        // log.debug("got action: " + action);
-                        if (typeof action == "function" && pathArray.length <= action.length) {
-                            // default action - make sure request path has trailing slash
-                            if (!pathArray[0]) {
-                                req.checkTrailingSlash()
-                            }
-                            // set req.actionPath to the part of the path that resolves to the action
-                            actionPath.push(match[0], pathArray[0] || "index");
-                            req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
-                            // add remaining path elements as additional action arguments
-                            var actionArgs = pathArray.slice(1);
-                            var matchedArgs = match.slice(1);
-                            var args = [req].concat(matchedArgs).concat(actionArgs);
-                            var res = action.apply(module, args);
-                            if (res && !Array.isArray(res) && typeof res.close === 'function') {
-                                return res.close();
-                            }
-                            return res;
-                        } else if (Array.isArray(module.urls)) {
-                            // nested app - make sure request path has trailing slash
-                            if (!path) {
-                                req.checkTrailingSlash();
-                            }
-                            actionPath.push(match[0]);
-                            return resolveInConfig(req, module, actionPath, path, match[0] + "/");
-                        } else {
-                            return notfound(req);
-                        }
+                var module = getModule(url, prefix);
+                if (log.isDebugEnabled) log.debug("module: " + module);
+                // cut matching prefix from path
+                path = path.substring(match[0].length);
+                //remove leading and trailing slashes and split
+                var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
+                var action = getAction(module, pathArray[0]);
+                // log.debug("got action: " + action);
+                if (typeof action == "function" && pathArray.length <= action.length) {
+                    // default action - make sure request path has trailing slash
+                    if (!pathArray[0]) {
+                        req.checkTrailingSlash()
                     }
+                    // set req.actionPath to the part of the path that resolves to the action
+                    actionPath.push(match[0], pathArray[0] || "index");
+                    req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
+                    // add remaining path elements as additional action arguments
+                    var actionArgs = pathArray.slice(1);
+                    var matchedArgs = match.slice(1);
+                    var args = [req].concat(matchedArgs).concat(actionArgs);
+                    var res = action.apply(module, args);
+                    if (res && !Array.isArray(res) && typeof res.close === 'function') {
+                        return res.close();
+                    }
+                    return res;
+                } else if (Array.isArray(module.urls)) {
+                    // nested app - make sure request path has trailing slash
+                    if (!path) {
+                        req.checkTrailingSlash();
+                    }
+                    actionPath.push(match[0]);
+                    return resolveInConfig(req, module, actionPath, path, match[0] + "/");
+                } else {
+                    return notfound(req);
                 }
-                return req.process();
-
             }
         }
     }
@@ -152,22 +142,6 @@ function getAction(module, name) {
         return action;
     }
     return null;
-}
-
-
-function invokeMiddleware(middleware, args) {
-    var functionName = 'handleRequest';
-    var dot = middleware.indexOf('.');
-    if (dot > -1) {
-        functionName = middleware.substring(dot + 1);
-        middleware = middleware.substring(0, dot);
-    }
-    var module = require(middleware);
-    if (typeof module[functionName] !== 'function') {
-        throw new Error('Middleware function ' + functionName + ' is not defined in ' + middleware);
-    }
-    log.debug('invoking middleware: ' + middleware);
-    return module[functionName].apply(module, args);
 }
 
 /**

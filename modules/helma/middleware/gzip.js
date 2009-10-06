@@ -3,33 +3,35 @@ include('helma/webapp/util');
 importClass(java.io.ByteArrayOutputStream);
 importClass(java.util.zip.GZIPOutputStream);
 
-export('handleRequest');
+export('middleware');
 
 /**
- * Middleware for GZIP compression.
- * @param req the HTTP request
- * @return the HTTP response object
+ * JSGI middleware for GZIP compression.
+ * @param app the JSGI application
+ * @return the wrapped JSGI app
  */
-function handleRequest(req) {
-    var res = req.process();
-    var {status, headers, body} = res;
-    headers = Headers(headers);
-    if (canCompress(status,
-            req.getHeader("Accept-Encoding"),
-            headers.get('Content-Type'),
-            headers.get('Content-Encoding'))) {
-        var bytes = new ByteArrayOutputStream();
-        var gzip = new GZIPOutputStream(bytes);
-        body.forEach(function(block) {
-            gzip.write(block.toByteArray());
-        });
-        gzip.close();
-        body = new ByteArray(bytes.toByteArray());
-        res.body = [body];
-        headers.set('Content-Length', body.length)
-        headers.set('Content-Encoding', 'gzip');
+function middleware(app) {
+    return function(env) {
+        var res = app(env);
+        var {status, headers, body} = res;
+        headers = Headers(headers);
+        if (canCompress(status,
+                env.HTTP_ACCEPT_ENCODING,
+                headers.get('Content-Type'),
+                headers.get('Content-Encoding'))) {
+            var bytes = new ByteArrayOutputStream();
+            var gzip = new GZIPOutputStream(bytes);
+            body.forEach(function(block) {
+                gzip.write(block.toByteArray());
+            });
+            gzip.close();
+            body = new ByteArray(bytes.toByteArray());
+            res.body = [body];
+            headers.set('Content-Length', body.length)
+            headers.set('Content-Encoding', 'gzip');
+        }
+        return res;
     }
-    return res;
 }
 
 function canCompress(status, acceptEncoding, contentType, contentEncoding) {

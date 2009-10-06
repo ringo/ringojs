@@ -7,45 +7,46 @@ var responseLogEnabled = true;
 /**
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */
-exports.handleRequest = function handleRequest(req) {
-    var appender;
+exports.middleware = function(app) {
+    return function(env) {
+        var appender;
 
-    if (!responseLogEnabled || !(appender = Logger.getRootLogger().getAppender("rhino"))) {
-        return req.process();
-    }
+        if (!responseLogEnabled || !(appender = Logger.getRootLogger().getAppender("rhino"))) {
+            return app(env);
+        }
 
-    var messages = [];
-    appender.callback = function(level, message, scriptStack, javaStack) {
-        messages.push([level, message, scriptStack, javaStack]);
-    };
+        var messages = [];
+        appender.callback = function(level, message, scriptStack, javaStack) {
+            messages.push([level, message, scriptStack, javaStack]);
+        };
 
-    var res;
-    try {
-        res = req.process();
-    } finally {
-        appender.callback = null;
-    }
+        var res;
+        try {
+            res = app(env);
+        } finally {
+            appender.callback = null;
+        }
 
-    var {status, headers, body} = res;
+        var {status, headers, body} = res;
 
-    // only do this for ordinary HTML responses
-    var contentType = Headers(headers).get("content-type");
-    if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
+        // only do this for ordinary HTML responses
+        var contentType = Headers(headers).get("content-type");
+        if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
+            return res;
+        }
+
+        if (messages.length > 0) {
+            var ResponseFilter = require("helma/webapp/util").ResponseFilter;
+            res.body = new ResponseFilter(body, function(part) {
+                if (typeof part != "string" || part.lastIndexOf("</body>") == -1) {
+                    return part;
+                }
+                return injectMessages(part, messages);
+            });
+        }
         return res;
     }
-
-    if (messages.length > 0) {
-        var ResponseFilter = require("helma/webapp/util").ResponseFilter;
-        res.body = new ResponseFilter(body, function(part) {
-            if (typeof part != "string" || part.lastIndexOf("</body>") == -1) {
-                return part;
-            }
-            return injectMessages(part, messages);
-        });
-    }
-
-    return res;
-};
+}
 
 function injectMessages(part, messages) {
     var buffer = new Buffer();

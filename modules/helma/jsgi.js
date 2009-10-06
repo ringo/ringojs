@@ -16,9 +16,14 @@ module.shared = true;
  */
 function handleRequest(module, func, env) {
     initRequest(env);
-    var result = typeof(func) == 'function' ?
-                 func(env) :
-                 require(module)[func](env);
+    var config = require("config");
+    var middleware = config.middleware || [];
+    // FIXME - app and middleware should be defined in the same module
+    var app =  typeof(func) == 'function' ?
+               func(env) : require(module)[func];
+    app = middleware.reduceRight(middlewareWrapper, app);
+
+    var result = app(env);
     commitResponse(env, result);
 }
 
@@ -83,4 +88,20 @@ function commitResponse(env, result) {
         throw new Error("Response body doesn't implement forEach: " + body);
     }
     output.close();
+}
+
+/**
+ * Helper function for wrapping middleware stacks
+ * @param inner an app or middleware module or function wrapped by outer
+ * @param outer a middleware module or function wrapping inner
+ */
+function middlewareWrapper(inner, outer) {
+    var resolve = function(module) {
+        if (typeof module == 'string') {
+            module = require(module);
+            return module.middleware || module.handleRequest;
+        }
+        return module;
+    };
+    return resolve(outer)(resolve(inner));
 }
