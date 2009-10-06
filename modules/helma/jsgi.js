@@ -73,7 +73,7 @@ function commitResponse(env, result) {
     for (var name in headers) {
         response.setHeader(name, headers[name]);
     }
-    var charset = getMimeParameter(HeaderMap(headers).get("Content-Type"), "charset") || "UTF-8";
+    var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset") || "UTF-8";
     var output = response.getOutputStream();
     if (body && typeof body.forEach == "function") {
         body.forEach(function(part) {

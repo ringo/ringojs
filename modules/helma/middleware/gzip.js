@@ -13,7 +13,7 @@ export('handleRequest');
 function handleRequest(req) {
     var res = req.process();
     var {status, headers, body} = res;
-    headers = HeaderMap(headers);
+    headers = Headers(headers);
     if (canCompress(status,
             req.getHeader("Accept-Encoding"),
             headers.get('Content-Type'),

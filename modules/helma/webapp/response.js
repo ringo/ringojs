@@ -11,7 +11,7 @@ function Response() {
     var status = 200;
     var charset = config && config.charset || 'utf-8';
     var contentType = config && config.contentType || 'text/html';
-    var headers = new HeaderMap();
+    var headers = new Headers();
     var buffer = new Buffer();
 
     this.write = function write() {

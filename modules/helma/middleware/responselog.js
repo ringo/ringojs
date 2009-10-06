@@ -29,7 +29,7 @@ exports.handleRequest = function handleRequest(req) {
     var {status, headers, body} = res;
 
     // only do this for ordinary HTML responses
-    var contentType = HeaderMap(headers).get("content-type");
+    var contentType = Headers(headers).get("content-type");
     if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
         return res;
     }

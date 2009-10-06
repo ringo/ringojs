@@ -20,7 +20,7 @@ function handleRequest(req) {
             etags = header.split(",").map(function(s) s.trim());
         }
         var digest = '"' + body.digest() + '"';
-        headers = HeaderMap(headers);
+        headers = Headers(headers);
         headers.set("ETag", digest);
         if (etags && etags.contains(digest)) {
             // return not-modified response

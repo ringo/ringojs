@@ -4,7 +4,7 @@ include('helma/buffer');
 
 module.shared = true;
 
-export('ResponseFilter', 'HeaderMap', 'getMimeParameter');
+export('ResponseFilter', 'Headers', 'getMimeParameter');
 
 /**
  * A utility class for implementing JSGI response filters. Each part of the
@@ -32,7 +32,7 @@ function ResponseFilter(body, filter) {
  * This function can be used as mixin for an existing JavaScript object or as a constructor.
  * @param headers an existing JS object. If undefined, a new object is created
  */
-function HeaderMap(headers) {
+function Headers(headers) {
     // when is a duck a duck?
     if (headers && headers.get && headers.set) {
         return headers;
