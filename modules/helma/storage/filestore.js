@@ -130,7 +130,7 @@ function Store(path) {
         var tempfile = base.createTempFile(tempFileName, ".tmp");
 
         if(log.isDebugEnabled())
-            log.debug("Storing object: " + object.toSource());
+            log.debug("Storing object: " + entity.toSource());
 
         tempfile.open({ append: true });
         tempfile.write(JSON.stringify(entity));

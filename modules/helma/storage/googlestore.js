@@ -172,7 +172,7 @@ function save(props, entity, entities) {
 }
 
 function remove(key) {
-    datastore['delete'](getTransaction(), key);
+    datastore['delete(com.google.appengine.api.datastore.Transaction,com.google.appengine.api.datastore.Key[])'](getTransaction(), [key]);
 }
 
 function equalKeys(key1, key2) {
