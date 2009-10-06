@@ -1,5 +1,5 @@
-include('hashp');
 include('binary');
+include('helma/webapp/util');
 importClass(java.io.ByteArrayOutputStream);
 importClass(java.util.zip.GZIPOutputStream);
 
@@ -13,10 +13,11 @@ export('handleRequest');
 function handleRequest(req) {
     var res = req.process();
     var {status, headers, body} = res;
+    headers = HeaderMap(headers);
     if (canCompress(status,
-            req.getHeader("accept-encoding"),
-            HashP.get(headers, 'content-type'),
-            HashP.get(headers, 'content-encoding'))) {
+            req.getHeader("Accept-Encoding"),
+            headers.get('Content-Type'),
+            headers.get('Content-Encoding'))) {
         var bytes = new ByteArrayOutputStream();
         var gzip = new GZIPOutputStream(bytes);
         body.forEach(function(block) {
@@ -25,8 +26,8 @@ function handleRequest(req) {
         gzip.close();
         body = new ByteArray(bytes.toByteArray());
         res.body = [body];
-        HashP.set(headers, 'Content-Length', body.length)
-        HashP.set(headers, 'Content-Encoding', 'gzip');
+        headers.set('Content-Length', body.length)
+        headers.set('Content-Encoding', 'gzip');
     }
     return res;
 }

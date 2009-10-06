@@ -1,8 +1,7 @@
 
 include('helma/webapp/util');
-var IOStream = require('io').IOStream;
-var ByteArray = require("binary").ByteArray;
-var HashP = require('hashp').HashP;
+include('io');
+include("binary");
 
 export('handleRequest');
 
@@ -74,7 +73,7 @@ function commitResponse(env, result) {
     for (var name in headers) {
         response.setHeader(name, headers[name]);
     }
-    var charset = getMimeParameter(HashP.get(headers, "content-type"), "charset") || "UTF-8";
+    var charset = getMimeParameter(HeaderMap(headers).get("Content-Type"), "charset") || "UTF-8";
     var output = response.getOutputStream();
     if (body && typeof body.forEach == "function") {
         body.forEach(function(part) {

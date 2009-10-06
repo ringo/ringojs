@@ -1,4 +1,3 @@
-include('hashp');
 include('helma/buffer');
 include('helma/webapp/util');
 
@@ -12,7 +11,7 @@ function Response() {
     var status = 200;
     var charset = config && config.charset || 'utf-8';
     var contentType = config && config.contentType || 'text/html';
-    var headers = {};
+    var headers = new HeaderMap();
     var buffer = new Buffer();
 
     this.write = function write() {
@@ -77,7 +76,7 @@ function Response() {
 
     this.redirect = function(location) {
         status = 303;
-        HashP.set(headers, 'Location', String(location));
+        headers.set('Location', String(location));
     }
 
     Object.defineProperty(this, 'charset', {
@@ -108,7 +107,7 @@ function Response() {
     });
 
     this.getHeader = function(key) {
-        HashP.get(headers, String(key));
+        headers.get(String(key));
     }
 
     this.setHeader = function(key, value) {
@@ -117,16 +116,16 @@ function Response() {
             contentType = String(value);
             charset = getMimeParameter(contentType, "charset") || charset;
         }
-        HashP.set(headers, String(key), String(value));
+        headers.set(String(key), String(value));
     }
 
     this.close = function() {
         this.flushDebug();
-        if (contentType && !HashP.includes(headers, 'content-type')) {
+        if (contentType && !headers.contains('content-type')) {
             if (charset) {
                 contentType += "; charset=" + charset;
             }
-            HashP.set(headers, "Content-Type", contentType);
+            headers.set("Content-Type", contentType);
         }
         return {
             status: status,

@@ -1,6 +1,6 @@
-include('hashp');
 include('helma/engine');
 include('helma/buffer');
+include('helma/webapp/util');
 
 var responseLogEnabled = true;
 
@@ -29,7 +29,7 @@ exports.handleRequest = function handleRequest(req) {
     var {status, headers, body} = res;
 
     // only do this for ordinary HTML responses
-    var contentType = HashP.get(headers, "content-type");
+    var contentType = HeaderMap(headers).get("content-type");
     if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
         return res;
     }

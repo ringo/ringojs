@@ -1,6 +1,6 @@
 require('core/string');
 require('core/array');
-include('hashp');
+include('helma/webapp/util');
 
 export('handleRequest');
 
@@ -11,19 +11,20 @@ export('handleRequest');
  * @return the HTTP response object
  */
 function handleRequest(req) {
-    var etags, digest;
-    var header = req.getHeader("If-None-Match");
-    if (header) {
-        etags = header.split(",").map(function(s) s.trim());
-    }
     var res = req.process();
     var {status, headers, body} = res;
     if (status === 200 && typeof body.digest === "function") {
-        digest = '"' + body.digest() + '"';
-        headers["ETag"] = digest;
+        var etags;
+        var header = req.getHeader("If-None-Match");
+        if (header) {
+            etags = header.split(",").map(function(s) s.trim());
+        }
+        var digest = '"' + body.digest() + '"';
+        headers = HeaderMap(headers);
+        headers.set("ETag", digest);
         if (etags && etags.contains(digest)) {
             // return not-modified response
-            HashP.unset(headers, 'Content-Length');
+            headers.unset('Content-Length');
             return {status: 304, headers: headers, body: []};
         }
     }
