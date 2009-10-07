@@ -1,6 +1,9 @@
 <% extends 'base.html' %>
 
 <% subskin 'content' | markdown %>
+
+### Note: skin/templating features are undergoing redesign for the 0.5 release.
+
 The `helma/skin` module provides web application developers with a flexible templating framework.
 At its simplest, creating and rendering a skin looks like this:
 

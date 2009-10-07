@@ -4,7 +4,7 @@ include('helma/webapp/continuation');
 
 var log = helma.logging.getLogger(module.id);
 
-export('index', 'extra_path', 'upload', 'skins', 'logging', 'continuation', 'profiler');
+export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continuation');
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
@@ -27,6 +27,17 @@ function upload(req) {
     }
     return new SkinnedResponse('skins/upload.txt', {
         title: "File Upload"
+    });
+}
+
+function testing(req) {
+    var tests = require("test/all");
+    var HtmlTestFormatter = require("helpers").HtmlTestFormatter;
+    var result = new HtmlTestFormatter();
+    require("helma/unittest").run(tests, result);
+    return new SkinnedResponse('skins/testing.txt', {
+        title: "Unit Testing",
+        result: result
     });
 }
 

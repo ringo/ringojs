@@ -4,7 +4,7 @@ body, html {
 }
 
 body {
-    min-width: 780px;
+    min-width: 830px;
     font-family: sans-serif;
     font-size: 80%;
     line-height: 170%;
@@ -24,7 +24,7 @@ a:active {
 
 #wrap {
     margin: 0 auto;
-    width: 750px;
+    width: 800px;
 }
 
 #header {
@@ -56,7 +56,7 @@ a:active {
 
 #menu {
     float: right;
-    width: 150px;
+    width: 200px;
 }
 
 #menu ul {
