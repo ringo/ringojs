@@ -4,7 +4,7 @@ include('helma/webapp/continuation');
 
 var log = helma.logging.getLogger(module.id);
 
-export('index', 'extra_path', 'skins', 'logging', 'continuation', 'profiler');
+export('index', 'extra_path', 'upload', 'skins', 'logging', 'continuation', 'profiler');
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
@@ -15,6 +15,26 @@ function index(req) {
 // e.g. /extra.path/2008/09
 function extra_path(req, year, month) {
     return new Response("Extra arguments:", year, month);
+}
+
+function upload(req) {
+    if (req.isPost && req.params.file) {
+        return {
+            status: 200,
+            headers: {"Content-Type": req.params.file.contentType},
+            body: [req.params.file.value]
+        };
+    }
+    return new SkinnedResponse('skins/upload.txt', {
+        title: "File Upload"
+    });
+}
+
+exports.params = function(req) {
+   // if (req.isPost) {
+        return new Response(JSON.stringify(req.params));
+   // }
+    return new SkinnedResponse('skins/form.html');
 }
 
 // demo for skins, macros, filters
