@@ -3,6 +3,9 @@ var log = require('helma/logging').getLogger(module.id);
 
 export('Profiler');
 
+/**
+ * A class for measuring the frequency and runtime of function invocations.
+ */
 function Profiler() {
     var frames = {};
     var currentFrame = null;

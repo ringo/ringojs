@@ -5,6 +5,7 @@ exports.httpConfig = {
 exports.urls = [
     [ '/mount/point', 'webmodule' ],
     [ '/storage', 'storage/config' ],
+    [ '/jsdoc', 'jsdoc/config' ],
     [ '/', 'actions' ],
 ];
 
@@ -14,6 +15,8 @@ exports.middleware = [
     'helma/middleware/responselog',
     // 'helma/middleware/profiler'
 ];
+
+exports.app = require('helma/webapp').handleRequest;
 
 exports.macros = [
     'macros',

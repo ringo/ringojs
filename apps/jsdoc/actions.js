@@ -5,7 +5,7 @@ require('core/array');
 
 exports.index = function index(req, module) {
     var repo = new ScriptRepository(getRepositories()[1]);
-    if (module) {
+    if (module && module != "/") {
         var jsdoc = [];
         res = repo.getScriptResource(module);
         var currentDoc;
@@ -22,12 +22,14 @@ exports.index = function index(req, module) {
             }
             return true;
         });
-        return new SkinnedResponse('skins/module.html', {
+        return new SkinnedResponse(getResource('./skins/module.html'), {
+            title: "Module " + res.moduleName,
             jsdoc: jsdoc
         });
     } else {
         var modules = repo.getScriptResources(true).sort(function(a, b) {return a.relativePath > b.relativePath});
-        return new SkinnedResponse('skins/index.html', {
+        return new SkinnedResponse(getResource('./skins/index.html'), {
+            title: "API Documentation",
             modules: modules
         });
     }
