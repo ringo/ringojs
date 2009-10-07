@@ -8,8 +8,6 @@ import org.mozilla.javascript.annotations.JSConstructor;
 import org.helma.util.ScriptUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.io.InputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +29,7 @@ import java.lang.reflect.Method;
  *
  * <p>When passed to a Java method that expects a byte array, instances of thes class
  * are automatically unwrapped. Use the {@link #unwrap()} method to explicitly get the
- * wrapped stream.</p>
+ * wrapped Java byte array.</p>
  */
 public class Binary extends ScriptableObject implements Wrapper {
 

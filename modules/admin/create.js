@@ -5,6 +5,10 @@ include('helma/shell');
 
 export('createApplication');
 
+/**
+ * Create a new Helma NG web application at the given path.
+ * @param path the path where to create the application
+ */
 function createApplication(path) {
     if (!path) {
         throw "No destination path given.";
@@ -27,6 +31,10 @@ function createApplication(path) {
     print("done");
 }
 
+/**
+ * Create a new Helma NG web application from the command line.
+ * @param args
+ */
 function main(args) {
     if (args[1] && args[1].startsWith("-")) {
         switch (args[1]) {
