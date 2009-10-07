@@ -19,6 +19,7 @@
  */
 
 require('core/string');
+require('core/date');
 
 export('capitalize_filter',
         'dateFormat_filter',
