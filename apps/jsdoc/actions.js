@@ -7,15 +7,15 @@ exports.index = function index(req, module) {
     var repo = new ScriptRepository(getRepositories()[1]);
     if (module && module != "/") {
         var jsdoc = [];
-        res = repo.getScriptResource(module);
+        var res = repo.getScriptResource(module);
         var currentDoc;
         parseScriptResource(res, function(node) {
             if (node.jsDoc) {
                 currentDoc = extractTags(node.jsDoc)
-                print(currentDoc[0][1]);
+                // print(currentDoc[0][1]);
                 jsdoc.push(currentDoc);
             } else {
-                print(getTypeName(node) + " // " + getName(node));
+                // print(getTypeName(node) + " // " + getName(node));
                 if (isName(node) && getName(node) != "exports" && currentDoc && !currentDoc.name) {
                     Object.defineProperty(currentDoc, 'name', {value: getName(node)});
                 }
