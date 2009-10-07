@@ -50,7 +50,7 @@ function parseFileUpload(env, params, encoding) {
 
     var refill = function() {
         if (position < end) {
-            buffer.copy(position, end, buffer, 0);
+            buffer.copy(buffer, position, end, 0);
             end -= position;
             position = 0;
         } else {
@@ -111,14 +111,14 @@ function parseFileUpload(env, params, encoding) {
             // partial boundary at buffer end which we know starts with "--".
             var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
             var copyEnd =  (hyphen < 0) ? end : hyphen;
-            buffer.copy(position, copyEnd, data.value, data.value.length)
+            buffer.copy(data.value, position, copyEnd, data.value.length)
             position = copyEnd;
             if (!eof) {
                 refill();
             }
         } else {
             // found terminating boundary, complete data and merge into parameters
-            buffer.copy(position, boundaryPos - CRLF.length, data.value, data.value.length);
+            buffer.copy(data.value, position, boundaryPos - CRLF.length, data.value.length);
             position = boundaryPos;
             if (data.filename) {
                 mergeParameter(params, data.name, data);

@@ -116,7 +116,7 @@ function decodeToString(bytes, encoding) {
                         + convertHexDigit(bytes[i++]);
         }
         if (i < bytes.length) {
-            bytes.copy(i, bytes.length, bytes, j);
+            bytes.copy(bytes, i, bytes.length, j);
         }
         bytes.length -= i - j;
     }

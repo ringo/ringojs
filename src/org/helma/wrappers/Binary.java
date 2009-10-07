@@ -272,7 +272,7 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void copy(int srcStartIndex, int srcEndIndex, Binary target, Object targetIndex) {
+    public void copy(Binary target, int srcStartIndex, int srcEndIndex, Object targetIndex) {
         if (target.type != Type.ByteArray) {
             throw ScriptRuntime.typeError("Target object is not writable");
         } else if (srcStartIndex < 0 || srcStartIndex >= length) {
