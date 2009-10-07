@@ -64,7 +64,7 @@ function resolveInConfig(req, config, actionPath, path, prefix) {
     if (log.isDebugEnabled) log.debug('resolving path ' + path);
     // set config property in webapp env module
     var webenv = require('helma/webapp/env');
-    webenv.config = config;
+    webenv.addConfig(config);
 
     if (Array.isArray(config.urls)) {
         for each (var url in config.urls) {

@@ -6,3 +6,16 @@
  * it to make sure we get a fresh version. Otherwise, the state of the
  * loaded module will depend on whether the loading module is shared or not.
  */
+
+/**
+ * Adds a config module to the config module array and sets it as the
+ * current module.
+ */
+exports.addConfig = function(config) {
+    if (!exports.configs) {
+        exports.configs = [config];
+    } else {
+        exports.configs.push(config);
+    }
+    exports.config = config;
+}

@@ -108,10 +108,12 @@ function Skin(mainSkin, subSkins, parentSkin) {
     this.render = function render(context) {
         // extend context by globally provided macros and filters.
         // user-provided context overrides globally defined stuff
-        var config = require('helma/webapp/env').config;
-        if (config && config.macros instanceof Array) {
-            for each (var module in config.macros) {
-                context = Object.merge(context, require(module));
+        var configs = require('helma/webapp/env').configs;
+        for each (var config in configs) {
+            if (config && config.macros instanceof Array) {
+                for each (var module in config.macros) {
+                    context = Object.merge(context, require(module));
+                }
             }
         }        
         if (mainSkin.length === 0 && parentSkin) {
