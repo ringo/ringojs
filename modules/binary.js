@@ -1,6 +1,6 @@
 /**
  * <p>This module provides implementations of the Binary/ByteArray/ByteString
- * classes defined in the <a href="https://wiki.mozilla.org/ServerJS/Binary/B">Binary/B proposal</a>.
+ * classes defined in the <a href="http://wiki.commonjs.org/wiki/Binary/B">Binary/B proposal</a>.
  *
  * <p>The JavaScript Binary class serves as common base class for ByteArray and ByteString
  * and can't be instantiated. ByteArray implements a modifiable and resizable byte buffer,

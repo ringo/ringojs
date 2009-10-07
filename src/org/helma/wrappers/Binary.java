@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 
 /**
  * <p>A wrapper around a Java byte array compliant to the Binary/ByteArray/ByteString
- * classes defined in the <a href="https://wiki.mozilla.org/ServerJS/Binary/B">Binary/B proposal</a>.
+ * classes defined in the <a href="http://wiki.commonjs.org/wiki/Binary/B">Binary/B proposal</a>.
  * To register Binary, ByteArray and ByteString as a host objects in Rhino call the
  * <code>defineClass()</code> function with this class as argument.</p>
  *
