@@ -6,11 +6,15 @@ exports.urls = [
     [ '/(.*)', 'actions' ]
 ];
 
+// the middleware stack
 exports.middleware = [
     'helma/middleware/etag',
     'helma/middleware/responselog',
     // 'helma/middleware/profiler'
 ];
+
+// the JSGI app
+exports.app = require('helma/webapp').handleRequest;
 
 exports.macros = [
     'helma/skin/macros',

@@ -69,8 +69,8 @@ var log = require('helma/logging').getLogger(module.id);
                     var servlet = func ? new Servlet(engine, func) : new Servlet(engine);
                     var servletHolder = new jetty.servlet.ServletHolder(servlet);
                     var params = {
-                        'moduleName': config.moduleName || 'helma/webapp',
-                        'functionName': config.functionName || 'handleRequest'
+                        'moduleName': config.moduleName || 'config',
+                        'functionName': config.functionName || 'app'
                     };
                     for (var p in params) {
                         servletHolder.setInitParameter(p, params[p]);

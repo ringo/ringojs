@@ -13,6 +13,9 @@ exports.middleware = [
     // 'helma/middleware/profiler'
 ];
 
+// the JSGI app
+exports.app = require('helma/webapp').handleRequest;
+
 exports.macros = [
     'helma/skin/macros',
     'helma/skin/filters'

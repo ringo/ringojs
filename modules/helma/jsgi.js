@@ -16,13 +16,15 @@ module.shared = true;
  */
 function handleRequest(module, func, env) {
     initRequest(env);
-    var config = require("config");
-    var middleware = config.middleware || [];
-    // FIXME - app and middleware should be defined in the same module
-    var app =  typeof(func) == 'function' ?
-               func(env) : require(module)[func];
-    app = middleware.reduceRight(middlewareWrapper, app);
-
+    var app;
+    if (typeof(func) == 'function') {
+        app = func;
+    } else {
+        module = require(module);
+        app = module[func];
+        var middleware = module.middleware || [];
+        app = middleware.reduceRight(middlewareWrapper, app);
+    }
     var result = app(env);
     commitResponse(env, result);
 }
