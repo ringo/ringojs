@@ -81,9 +81,16 @@ function commitResponse(env, result) {
     var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset") || "UTF-8";
     var output = response.getOutputStream();
     if (body && typeof body.forEach == "function") {
-        body.forEach(function(part) {
-            output.write(part.toByteString(charset));
-        });
+        var writer = function(part) {
+            if (!(part instanceof Binary)) {
+                part = part.toByteString(charset);
+            }
+            output.write(part);
+        };
+        body.forEach(writer);
+        if (typeof body.close == "function") {
+            body.close(writer);
+        }
     } else {
         throw new Error("Response body doesn't implement forEach: " + body);
     }
