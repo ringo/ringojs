@@ -13,21 +13,30 @@ export('middleware');
 function middleware(app) {
     return function(env) {
         var res = app(env);
-        var {status, headers, body} = res;
-        headers = Headers(headers);
-        if (canCompress(status,
+        var headers = Headers(res.headers);
+        if (canCompress(res.status,
                 env.HTTP_ACCEPT_ENCODING,
                 headers.get('Content-Type'),
                 headers.get('Content-Encoding'))) {
             var bytes = new ByteArrayOutputStream();
             var gzip = new GZIPOutputStream(bytes);
-            body.forEach(function(block) {
-                gzip.write(block.toByteArray());
+            res.body = new ResponseFilter(res.body, function(part) {
+                if (!(part instanceof Binary)) {
+                    part = part.toByteString();
+                }
+                gzip.write(part);
+                if (bytes.size() > 1024) {
+                    var zipped = bytes.toByteArray();
+                    bytes.reset();
+                    return new ByteString(zipped);
+                }
+                return null;
             });
-            gzip.close();
-            body = new ByteArray(bytes.toByteArray());
-            res.body = [body];
-            headers.set('Content-Length', body.length)
+            res.body.close = function(fn) {
+                gzip.close();
+                fn(new ByteString(bytes.toByteArray()));
+            }
+            // headers.set('Content-Length', res.body.length)
             headers.set('Content-Encoding', 'gzip');
         }
         return res;
@@ -35,6 +44,7 @@ function middleware(app) {
 }
 
 function canCompress(status, acceptEncoding, contentType, contentEncoding) {
+    // currently only returns true for text/xml/json/javascript content types
     return status == 200 && acceptEncoding
             && acceptEncoding.indexOf('gzip') > -1
             && contentType && contentType.match(/^text|xml|json|javascript/)
