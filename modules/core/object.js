@@ -38,7 +38,7 @@ Object.defineProperty(Object.prototype, "clone", {
         var value;
         for (var propName in this) {
             value = this[propName];
-            if (recursive && (value.constructor == HopObject || value.constructor == Object)) {
+            if (recursive && value instanceof Object) {
                 clone[propName] = value.clone(new value.constructor(), recursive);
             } else {
                 clone[propName] = value;
