@@ -1,7 +1,15 @@
+include('binary');
+include('io');
 include('helma/buffer');
-include('helma/webapp/util');
+include('./util');
+include('./mime');
 
-export('Response', 'SkinnedResponse', 'JSONResponse', 'RedirectResponse', 'StaticResponse');
+export('Response',
+       'SkinnedResponse',
+       'JSONResponse',
+       'RedirectResponse',
+       'StaticResponse',
+       'NotFoundResponse');
 
 module.shared = true;
 
@@ -155,17 +163,28 @@ function StaticResponse(resource) {
     if (!(resource instanceof org.helma.repository.Resource)) {
         throw Error("Wrong argument for StaticResponse: " + typeof(resource));
     }
-    require('binary');
-    var contentType = require('./mime').mimeType(resource.name);
-    var content = resource.content.toByteString("utf-8");
+    if (!resource.exists()) {
+        return new NotFoundResponse(String(resource));
+    }
+    var contentType = mimeType(resource.name);
+    var input = new IOStream(resource.getInputStream());
+    var bufsize = 8192;
+    var buffer = new ByteArray(bufsize);
     return {
         status: 200,
-        headers: {'Content-Type': contentType},
+        headers: {
+            'Content-Type': contentType
+        },
         body: {
-            digest: resource.digest,
+            digest: function() resource.lastModified().toString(36)
+                             + resource.length.toString(36),
             forEach: function(block) {
-                // FIXME
-                block(content);
+                var read;
+                while ((read = input.readInto(buffer)) > -1) {
+                    buffer.length = read;
+                    block(buffer);
+                    buffer.length = bufsize;
+                }
             }
         }
     };
@@ -176,5 +195,19 @@ function RedirectResponse(location) {
         status: 303,
         headers: {Location: location},
         body: ["See other: " + location]
+    };
+}
+
+function NotFoundResponse(location) {
+    var msg = 'Not Found';
+    return {
+        status: 404,
+        headers: {
+            'Content-Type': 'text/html'
+        },
+        body: [ '<html><title>', msg, '</title>',
+                '<body><h2>', msg, '</h2>',
+                '<p>The requested URL ', location, ' was not found on the server.</p>',
+                '</body></html>']
     };
 }
