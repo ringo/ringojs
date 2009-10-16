@@ -58,14 +58,12 @@ function open(path, mode, options) {
     if (!read && !write && !append && !update) {
         read = true;
     }
-    var stream = new IOStream(read ?
+    var stream = new Stream(read ?
             new FileInputStream(file) : new FileOutputStream(file, Boolean(append)));
     if (binary) {
         return stream;
-    } else if (read) {
-        return new TextInputStream(stream, charset);
-    } else if (write || append) {
-        return new TextOutputStream(stream, charset);
+    } else if (read || write || append) {
+        return new TextStream(stream, charset);
     } else if (update) {
         throw new Error("update not yet implemented");
     }

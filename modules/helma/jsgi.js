@@ -42,14 +42,14 @@ function initRequest(env) {
     Object.defineProperty(env, "jsgi.input", {
         get: function() {
             if (!input)
-                input = new IOStream(env['jsgi.servlet_request'].getInputStream());
+                input = new Stream(env['jsgi.servlet_request'].getInputStream());
             return input;
         }
     });
     Object.defineProperty(env, "jsgi.errors", {
         get: function() {
             if (!errors)
-                errors = new IOStream(java.lang.System.err);
+                errors = new Stream(java.lang.System.err);
             return errors;
         }
     });

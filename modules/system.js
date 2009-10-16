@@ -4,9 +4,9 @@ export('print', 'stdin', 'stdout', 'stderr', 'args', 'env');
 
 var print = global.print;
 
-var stdin = new TextInputStream(new IOStream(java.lang.System['in']));
-var stdout = new TextOutputStream(new IOStream(java.lang.System.out));
-var stderr = new TextOutputStream(new IOStream(java.lang.System.err));
+var stdin = new TextStream(new Stream(java.lang.System['in']));
+var stdout = new TextStream(new Stream(java.lang.System.out));
+var stderr = new TextStream(new Stream(java.lang.System.err));
 
 var args = global.arguments || [];
 

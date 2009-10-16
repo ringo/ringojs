@@ -1,25 +1,46 @@
 include('binary');
 
-defineClass(org.helma.wrappers.IOStream);
-export('IOStream', 'TextInputStream', 'TextOutputStream');
+defineClass(org.helma.wrappers.Stream);
+export('Stream', 'TextStream');
+
+importClass(java.io.InputStreamReader, 
+            java.io.BufferedReader,
+            java.io.OutputStreamWriter,
+            java.io.BufferedWriter);
 
 module.shared = true;
 
-function TextInputStream(io, charset, buffering) {
-    var stream;
+function TextStream(io, charset, buflen) {
+    var reader, writer;
 
-    if (charset === undefined)
-        stream = new java.io.InputStreamReader(io);
-    else
-        stream = new java.io.InputStreamReader(io, charset);
+    if (io.readable()) {
+        reader = charset == undefined ?
+                 new InputStreamReader(io.inputStream) : 
+                 new InputStreamReader(io.inputStream, charset);
+        reader = new BufferedReader(reader, buflen || 8192);
+    }
 
-    if (buffering === undefined)
-        stream = new java.io.BufferedReader(stream);
-    else
-        stream = new java.io.BufferedReader(stream, buffering);
+    if (io.writable()) {
+        writer = charset == undefined ?
+                 new OutputStreamWriter(io.outputStream):
+                 new OutputStreamWriter(io.outputStream, charset);
+        writer = new BufferedWriter(writer, buflen || 8192);
+    }
+
+    this.readable = function() {
+       return io.readable();
+    }
+
+    this.writable = function() {
+        return io.writable();
+    }
+
+    this.seekable = function() {
+        return false;
+    }
 
     this.readLine = function () {
-        var line = stream.readLine();
+        var line = reader.readLine();
         if (line === null)
             return '';
         return String(line) + "\n";
@@ -30,7 +51,7 @@ function TextInputStream(io, charset, buffering) {
     };
 
     this.next = function () {
-        var line = stream.readLine();
+        var line = reader.readLine();
         if (line === null)
             throw StopIteration;
         return String(line);
@@ -75,28 +96,8 @@ function TextInputStream(io, charset, buffering) {
         return this;
     };
 
-    this.close = function () {
-        io.close();
-    };
-
-    return this;
-}
-
-function TextOutputStream(io, charset, buffering) {
-    var stream;
-
-    if (charset === undefined)
-        stream = new java.io.OutputStreamWriter(io);
-    else
-        stream = new java.io.OutputStreamWriter(io, charset);
-
-    if (buffering === undefined)
-        stream = new java.io.BufferedWriter(stream);
-    else
-        stream = new java.io.BufferedWriter(stream, buffering);
-
     this.write = function () {
-        stream.write.apply(stream, arguments);
+        writer.write.apply(writer, arguments);
         return this;
     };
 
@@ -118,12 +119,12 @@ function TextOutputStream(io, charset, buffering) {
     };
 
     this.flush = function () {
-        stream.flush();
+        writer.flush();
         return this;
     };
 
     this.close = function () {
-        stream.close();
+        io.close();
     };
 
     return this;

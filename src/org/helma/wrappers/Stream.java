@@ -3,6 +3,7 @@ package org.helma.wrappers;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.annotations.JSFunction;
 import org.mozilla.javascript.annotations.JSConstructor;
+import org.mozilla.javascript.annotations.JSGetter;
 import org.helma.util.ScriptUtils;
 
 import java.io.InputStream;
@@ -11,51 +12,69 @@ import java.io.IOException;
 
 /**
  * <p>A CommonJS-compliant wrapper around a Java input or output stream. To
- * register IOStream as a host object in Rhino call the <code>defineClass()</code> function
+ * register Stream as a host object in Rhino call the <code>defineClass()</code> function
  * with this class.</p>
  *
- * <pre><code>defineClass(org.helma.wrappers.IOStream);</code></pre>
+ * <pre><code>defineClass(org.helma.wrappers.Stream);</code></pre>
  *
- * <p>To create an IOStream wrapper around an instance of <code>java.io.InputStream</code>
+ * <p>To create an Stream wrapper around an instance of <code>java.io.InputStream</code>
  * or <code>java.io.OutputStream</code> call the constructor with the stream as argument:</p>
  *
- * <pre><code>var io = new IOStream(javaInputStream);</code></pre>
+ * <pre><code>var io = new Stream(javaInputStream);</code></pre>
  *
- * <p>When passed to a Java method that expects an input or output stream, IOStream wrappers
+ * <p>When passed to a Java method that expects an input or output stream, Stream wrappers
  * are automatically unwrapped. use the {@link #unwrap()} method to explicitly get the
  * wrapped stream.</p>
  */
-public class IOStream extends ScriptableObject implements Wrapper {
+public class Stream extends ScriptableObject implements Wrapper {
 
     private InputStream input;
     private OutputStream output;
 
-    private final static String CLASSNAME = "IOStream";
+    private final static String CLASSNAME = "Stream";
 
-    public IOStream() {
+    public Stream() {
         input = null;
         output = null;
     }
 
-    public IOStream(Scriptable scope, Object arg) {
+    public Stream(Scriptable scope, Object arg1, Object arg2) {
         super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
-        init(arg);
+        init(arg1, arg2);
     }
 
     @JSConstructor
-    public void init(Object arg) {
+    public void init(Object arg1, Object arg2) {
+        setStream(arg1);
+        setStream(arg2);
+    }
+
+    private void setStream(Object arg) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
         if (arg instanceof InputStream) {
             input = (InputStream) arg;
-            output = null;
         } else if (arg instanceof OutputStream) {
             output = (OutputStream) arg;
-            input = null;
-        } else {
+        } else if (arg != Undefined.instance && arg != null) {
             throw ScriptRuntime.typeError("Unsupported argument: " + arg);
         }
+    }
+
+    @JSFunction
+    public boolean readable() {
+        return input != null;
+    }
+
+    @JSFunction
+    public boolean writable() {
+        return output != null;
+    }
+
+    @JSFunction
+    public boolean seekable() {
+        return false;
     }
 
     @JSFunction
@@ -158,7 +177,8 @@ public class IOStream extends ScriptableObject implements Wrapper {
         try {
             if (output != null) {
                 output.close();
-            } else if (input != null) {
+            }
+            if (input != null) {
                 input.close();
             }
         } catch (IOException iox) {
@@ -170,6 +190,16 @@ public class IOStream extends ScriptableObject implements Wrapper {
     public Object jsunwrap() {
         return new NativeJavaObject(getParentScope(), unwrap(), null);
     }
+
+    @JSGetter
+    public Object getInputStream() {
+        return input == null ? null : new NativeJavaObject(getParentScope(), input, null);
+    }
+
+    @JSGetter
+    public Object getOutputStream() {
+        return output == null ? null : new NativeJavaObject(getParentScope(), output, null);
+    }    
 
     /**
      * Unwrap the object by returning the wrapped value.
