@@ -115,7 +115,7 @@ public class ModulePath extends ScriptableObject {
             return (Repository) value;
         } if (value instanceof String) {
             String str = (String) value;
-            if (str.endsWith(".zip")) {
+            if (str.toLowerCase().endsWith(".zip")) {
                 return new ZipRepository(str);
             } else {
                 return new FileRepository(str);
