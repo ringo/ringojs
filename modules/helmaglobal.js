@@ -7,8 +7,7 @@ Object.defineProperty(this, "global", { value: this });
 (function() {
 
     var out = java.lang.System.out;
-    const engine = org.mozilla.javascript.Context
-            .getCurrentContext().getThreadLocal("engine");
+    const engine = org.mozilla.javascript.Context.getCurrentContext().getThreadLocal("engine");
 
     /**
      * Load a module and return its module scope.
@@ -27,6 +26,12 @@ Object.defineProperty(this, "global", { value: this });
             return exports; 
         }
     });
+
+    defineClass(org.helma.wrappers.ModulePath);
+    Object.defineProperty(this.require, "paths", {
+        value: new ModulePath(engine.getRepositories())
+    });
+
 
     Object.defineProperty(this.require, "main", {
         value: engine.getMainModule()
