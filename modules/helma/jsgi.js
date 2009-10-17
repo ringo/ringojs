@@ -25,6 +25,9 @@ function handleRequest(module, func, env) {
         var middleware = module.middleware || [];
         app = middleware.reduceRight(middlewareWrapper, app);
     }
+    if (!(typeof(app) == 'function')) {
+        throw new Error('No valid JSGI app: ' + app);
+    }
     var result = app(env);
     commitResponse(env, result);
 }
@@ -65,6 +68,9 @@ function initRequest(env) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
+    if (!result || !result.status || !result.headers || !result.body) {
+        throw new Error('No valid JSGI response: ' + result);
+    }
     var response = env['jsgi.servlet_response'];
     if (response.isCommitted()) {
         return;
