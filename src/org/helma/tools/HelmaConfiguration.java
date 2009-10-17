@@ -155,8 +155,17 @@ public class HelmaConfiguration {
      */
     public void setMainScript(String scriptName) throws IOException {
         if (scriptName != null) {
-            // first check if the script exists as a standalone file
-            int zip = scriptName.indexOf(".zip/");
+            // check if the script is a zip file
+            if (scriptName.toLowerCase().endsWith(".zip")) {
+                ZipRepository zipRepo = new ZipRepository(new File(scriptName));
+                mainResource = zipRepo.getResource("main.js");
+                if (mainResource.exists()) {
+                    repositories.add(0, zipRepo);
+                    return;
+                }
+            }
+            // check if script is a path within a zip file
+            int zip = scriptName.toLowerCase().indexOf(".zip/");
             if (zip > -1) {
                 String zipFile = scriptName.substring(0, zip + 4);
                 String scriptPath = scriptName.substring(zip + 5);
@@ -167,6 +176,7 @@ public class HelmaConfiguration {
                     return;
                 }
             }
+            // check if the script exists as a standalone file
             Resource script = new FileResource(new File(scriptName));
             if (script.exists()) {
                 // check if we are contained in one of the existing repositories
