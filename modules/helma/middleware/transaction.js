@@ -8,9 +8,10 @@ export('handleRequest');
  */
 function handleRequest(app) {
     return function(env) {
-        var store = require('helma/webapp/env').config.store;
+        // FIXME: we used to run after helma/webapp so things used to be set up
+        var store = require('config').store;
         if (!store || typeof(store.beginTransaction) != 'function') {
-            return req.process();
+            return app(env);
         }
         store.beginTransaction();
         try {
