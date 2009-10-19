@@ -20,6 +20,8 @@ import org.helma.repository.Repository;
 import org.helma.repository.Trackable;
 import org.mozilla.javascript.*;
 
+import java.net.URL;
+
 /**
  * A scriptable object that keeps track of the resource it has been loaded from
  * so requests to load other stuff can look for local resources.
@@ -45,8 +47,15 @@ public class ModuleScope extends NativeObject {
         defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
         metaObject = cx.newObject(this);
-        ScriptableObject.defineProperty(metaObject, "id", moduleName, DONTENUM);
-        ScriptableObject.defineProperty(metaObject, "path", source.getPath(), DONTENUM);
+        int attr = READONLY | PERMANENT;
+        ScriptableObject.defineProperty(metaObject, "id", moduleName, attr);
+        ScriptableObject.defineProperty(metaObject, "path", source.getPath(), attr);
+        try {
+            URL url = source.getUrl();
+            ScriptableObject.defineProperty(metaObject, "uri", url.toString(), attr);
+        } catch (Exception nourl) {
+            // uri property not available
+        }
         defineProperty("module", metaObject, DONTENUM);
         // define old deprecated meta properties
         defineProperty("__name__", moduleName, DONTENUM);
