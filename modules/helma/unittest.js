@@ -1,5 +1,5 @@
 import("core/string");
-var shell = require("helma/shell");
+var term = require("helma/term");
 
 module.shared = true;
 
@@ -119,7 +119,7 @@ var evalArguments = function(args, argsExpected) {
  * @param {String|Object} modulePathOrScope Either the path to a module containing unit
  * tests to execute, or an object containing the exported test methods or nested scopes.
  * @param {Object} writer Optional writer to use for displaying the test results. Defaults
- * to ShellWriter.
+ * to TermWriter.
  */
 this.run = function(modulePathOrScope, writer) {
     var scope;
@@ -129,7 +129,7 @@ this.run = function(modulePathOrScope, writer) {
         scope = modulePathOrScope;
     }
     if (!writer) {
-        writer = new ShellWriter();
+        writer = new TermWriter();
     }
     var summary = {
         "testsRun": 0,
@@ -208,42 +208,27 @@ var executeTestScope = function(scope, summary, writer, path) {
 
 
 /**
- * Constructs a new ShellWriter instance
+ * Constructs a new TermWriter instance
  * @class Instances of this class represent a writer for displaying test results
  * in the shell
- * @returns A newly created ShellWriter instance
+ * @returns A newly created TermWriter instance
  * @constructor
  */
-var ShellWriter = function() {
+var TermWriter = function() {
     this.indent = "";
     return this;
 };
 
-/**
- * Simple helper method for pluralizing a word.
- * @param {String} singular The singular form of the word
- * @param {String} plural The plural form of the word
- * @param {Number} cnt The counter used to determine singular or plural
- * @returns The singular or plural version, depending on the counter
- * @type String
- */
-ShellWriter.pluralize = function(singular, plural, cnt) {
-    if (cnt === 0 || cnt > 1) {
-        return plural;
-    }
-    return singular;
-};
-
 /** @ignore */
-ShellWriter.prototype.toString = function() {
-    return "[ShellWriter]";
+TermWriter.prototype.toString = function() {
+    return "[TermWriter]";
 };
 
 /**
  * Write a header at the beginning of a unit test(suite)
  */
-ShellWriter.prototype.writeHeader = function() {
-    shell.writeln("=".repeat(80));
+TermWriter.prototype.writeHeader = function() {
+    term.writeln("=".repeat(80));
     return;
 };
 
@@ -251,8 +236,8 @@ ShellWriter.prototype.writeHeader = function() {
  * Notification that we're entering a new test scope.
  * @param name the name of the test scope
  */
-ShellWriter.prototype.enterScope = function(name) {
-    shell.writeln(this.indent, "+ Running", name, "...");
+TermWriter.prototype.enterScope = function(name) {
+    term.writeln(this.indent, "+ Running", name, "...");
     this.indent += "  ";
 };
 
@@ -260,7 +245,7 @@ ShellWriter.prototype.enterScope = function(name) {
  * Notification that we're leaving a test scope.
  * @param name the name of the test scope
  */
-ShellWriter.prototype.exitScope = function(name) {
+TermWriter.prototype.exitScope = function(name) {
     this.indent = this.indent.substring(2);
 };
 
@@ -268,8 +253,8 @@ ShellWriter.prototype.exitScope = function(name) {
  * Display the beginning of a test function execution
  * @param {String} name The name of the test function about to be executed
  */
-ShellWriter.prototype.writeTestStart = function(name) {
-    shell.write(this.indent, "+ Running", name, "...");
+TermWriter.prototype.writeTestStart = function(name) {
+    term.write(this.indent, "+ Running", name, "...");
     return;
 };
 
@@ -277,8 +262,8 @@ ShellWriter.prototype.writeTestStart = function(name) {
  * Display a passed test method execution
  * @param {Number} time The time the execution of the test method took
  */
-ShellWriter.prototype.writeTestPassed = function(time) {
-    shell.writeln(" PASSED", "(" + time + " ms)");
+TermWriter.prototype.writeTestPassed = function(time) {
+    term.writeln(term.BOLD, " PASSED", term.RESET, "(" + time + " ms)");
     return;
 };
 
@@ -286,17 +271,17 @@ ShellWriter.prototype.writeTestPassed = function(time) {
  * Display a failed test
  * @param {Object} exception The exception thrown during test method execution
  */
-ShellWriter.prototype.writeTestFailed = function(exception) {
-    shell.writeln(" FAILED");
+TermWriter.prototype.writeTestFailed = function(exception) {
+    term.writeln(term.BOLD, term.WHITE, term.ONRED, " FAILED ");
     exception.message.split(/\n/).forEach(function(line) {
-        shell.writeln(" ".repeat(2), line);
+        term.writeln(" ".repeat(2), term.BOLD, term.RED, line);
     });
     if (exception.stackTrace != null) {
         exception.stackTrace.forEach(function(line) {
-            shell.writeln(" ".repeat(2), line);
+            term.writeln(" ".repeat(2), term.BOLD, line);
         });
     }
-    shell.writeln("");
+    term.writeln("");
     return;
 };
 
@@ -304,13 +289,13 @@ ShellWriter.prototype.writeTestFailed = function(exception) {
  * Display the summary of a unit test(suite) execution
  * @param {Object} summary The unit test summary
  */
-ShellWriter.prototype.writeSummary = function(summary) {
+TermWriter.prototype.writeSummary = function(summary) {
     if (summary.testsRun > 0) {
-        shell.writeln("-".repeat(80));
-        shell.writeln("Executed", summary.testsRun, "tests in", summary.time, "ms ");
-        shell.writeln("Passed", summary.passed + ";", "Failed", summary.failures + ";", "Errors", summary.errors + ";");
+        term.writeln("-".repeat(80));
+        term.writeln("Executed", summary.testsRun, "tests in", summary.time, "ms ");
+        term.writeln(term.BOLD, "Passed", summary.passed + ";", "Failed", summary.failures + ";", "Errors", summary.errors + ";");
     } else {
-        shell.writeln("No tests found");
+        term.writeln("No tests found");
     }
     return;
 };
@@ -337,8 +322,10 @@ var TestException = function(message) {
      * The exception message
      * @type String
      */
-    this.__defineGetter__("message", function() {
-        return message;
+    Object.defineProperty(this, "message", {
+        get: function() {
+            return message;
+        }
     });
 
     return this;
@@ -362,12 +349,16 @@ var ArgumentsException = function(message) {
 
     var stackTrace = getStackTrace();
 
-    this.__defineGetter__("message", function() {
-        return message;
+    Object.defineProperty(this, "message", {
+        get: function() {
+            return message;
+        }
     });
 
-    this.__defineGetter__("stackTrace", function() {
-        return stackTrace;
+    Object.defineProperty(this, "stackTrace", {
+        get: function() {
+            return stackTrace;
+        }
     });
 
     return this;
@@ -388,16 +379,22 @@ var AssertionException = function(message, comment) {
 
     var stackTrace = getStackTrace();
 
-    this.__defineGetter__("comment", function() {
-        return comment;
+    Object.defineProperty(this, "comment", {
+        get: function() {
+            return comment;
+        }
     });
 
-    this.__defineGetter__("message", function() {
-        return message;
+    Object.defineProperty(this, "message", {
+        get: function() {
+            return message;
+        }
     });
 
-    this.__defineGetter__("stackTrace", function() {
-        return stackTrace;
+    Object.defineProperty(this, "stackTrace", {
+        get: function() {
+            return stackTrace;
+        }
     });
 
     return this;
@@ -421,20 +418,28 @@ var EvaluatorException = function(messageOrException) {
     var fileName = null;
     var lineNumber = -1;
 
-    this.__defineGetter__("message", function() {
-        return message;
+    Object.defineProperty(this, "message", {
+        get: function() {
+            return message;
+        }
     });
 
-    this.__defineGetter__("stackTrace", function() {
-        return stackTrace;
+    Object.defineProperty(this, "stackTrace", {
+        get: function() {
+            return stackTrace;
+        }
     });
 
-    this.__defineGetter__("fileName", function() {
-        return fileName;
+    Object.defineProperty(this, "fileName", {
+        get: function() {
+            return fileName;
+        }
     });
 
-    this.__defineGetter__("lineNumber", function() {
-        return lineNumber;
+    Object.defineProperty(this, "lineNumber", {
+        get: function() {
+            return lineNumber;
+        }
     });
 
     /**
@@ -863,9 +868,9 @@ this.assertThrows = function assertThrows(func, exception) {
  */
 if (require.main == module.id) {
     if (system.args.length == 1) {
-        shell.writeln("Usage: bin/helma helma/unittest test/file1 test/file2");
+        term.writeln("Usage: bin/helma helma/unittest test/file1 test/file2");
     } else {
-        var writer = new ShellWriter();
+        var writer = new TermWriter();
         for (var i=1; i<system.args.length; i+=1) {
             this.run(system.args[i], writer);
         }
