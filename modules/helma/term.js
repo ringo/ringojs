@@ -6,11 +6,11 @@
  * @example
  *
  *     helma> include('helma/term')                                              
- *     helma> print(YELLOW, "foo", MAGENTA, "bar");
+ *     helma> writeln(YELLOW, "foo", MAGENTA, "bar");
  *     foo bar
- *     helma> print(YELLOW, ONBLUE, "IKEA");        
+ *     helma> writeln(YELLOW, ONBLUE, "IKEA");
  *     IKEA
- *     helma> print(RED, BOLD, INVERSE, "Red Alert!");
+ *     helma> writeln(RED, BOLD, INVERSE, "Red Alert!");
  *     Red Alert!
  * 
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
@@ -44,7 +44,7 @@ exports.ONMAGENTA = "\u001B[45m";
 exports.ONCYAN =    "\u001B[46m";
 exports.ONWHITE =   "\u001B[47m";
 
-exports.print = function() {
+exports.write = function() {
     for (var i = 0; i < arguments.length; i++) {
         var arg = String(arguments[i]);
         if (arg.charCodeAt(0) == 27) {
@@ -56,6 +56,13 @@ exports.print = function() {
             }
         }
     }
+};
+
+exports.writeln = function() {
+    exports.write.apply(this, arguments);
     writeln(enabled ? exports.RESET : "");
 };
 
+// re-export helma/shell's read() and readln()
+exports.read = read;
+exports.readln = readln;
