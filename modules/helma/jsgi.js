@@ -23,7 +23,7 @@ function handleRequest(module, func, env) {
         module = require(module);
         app = module[func];
         var middleware = module.middleware || [];
-        app = middleware.reduceRight(middlewareWrapper, app);
+        app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     if (!(typeof(app) == 'function')) {
         throw new Error('No valid JSGI app: ' + app);
@@ -106,17 +106,24 @@ function commitResponse(env, result) {
 }
 
 /**
+ * Convenience function that resolves a module id or object to a
+ * JSGI middleware or application function. This assumes the function is
+ * exported as "middleware" or "handleRequest".
+ * @param module a function, module object, or moudule id
+ */
+function resolve(module) {
+    if (typeof module == 'string') {
+        module = require(module);
+        return module.middleware || module.handleRequest;
+    }
+    return module;
+}
+
+/**
  * Helper function for wrapping middleware stacks
  * @param inner an app or middleware module or function wrapped by outer
  * @param outer a middleware module or function wrapping inner
  */
 function middlewareWrapper(inner, outer) {
-    var resolve = function(module) {
-        if (typeof module == 'string') {
-            module = require(module);
-            return module.middleware || module.handleRequest;
-        }
-        return module;
-    };
-    return resolve(outer)(resolve(inner));
+    return resolve(outer)(inner);
 }
