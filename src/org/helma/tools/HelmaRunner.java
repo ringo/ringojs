@@ -216,12 +216,12 @@ public class HelmaRunner {
     }
 
     private static void unknownOptionError(String option) {
-        exitWithError(option + " option requires a value.", -1);
+        exitWithError("Unknown option: " + option, -1);
     }
 
     private static void exitWithError(String message, int code) {
         err.println(message);
-        err.println("Run with -h flag for more information on supported options.");
+        err.println("Use -h or --help for a list of supported options.");
         System.exit(code);
     }
 
