@@ -417,7 +417,7 @@ class NotFound extends AbstractResource {
     }
 
     public InputStream getInputStream() throws IOException {
-        return null;
+        throw new FileNotFoundException("\"" + path + "\" not found");
     }
 
     public long lastModified() {
@@ -429,7 +429,7 @@ class NotFound extends AbstractResource {
     }
 
     public URL getUrl() throws UnsupportedOperationException, MalformedURLException {
-        throw new UnsupportedOperationException("NotFound does not implement getUrl()");
+        throw new MalformedURLException("Unable to resolve \"" + path + "\"");
     }
 
     public String toString() {
