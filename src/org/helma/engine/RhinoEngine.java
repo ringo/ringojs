@@ -139,17 +139,25 @@ public class RhinoEngine {
 
     /**
      * Invoke a script from the command line.
-     * @param resource the script resource
+     * @param scriptResource the script resource of path
      * @param scriptArgs an array of command line arguments
      * @return the return value
      * @throws IOException an I/O related error occurred
      * @throws JavaScriptException the script threw an error during
      *         compilation or execution
      */
-    public Object runScript(Resource resource, String... scriptArgs)
+    public Object runScript(Object scriptResource, String... scriptArgs)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
+        Resource resource;
+        if (scriptResource instanceof Resource) {
+            resource = (Resource) scriptResource;
+        } else if (scriptResource instanceof String) {
+            resource = findResource((String) scriptResource, null);
+        } else {
+            throw new IOException("Unsupported script resource: " + scriptResource);
+        }
         try {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
