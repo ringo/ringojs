@@ -21,6 +21,7 @@ import org.helma.engine.ModuleScope;
 import org.helma.engine.SyntaxError;
 import org.helma.repository.FileRepository;
 import org.helma.repository.Repository;
+import org.helma.util.StringUtils;
 import org.mozilla.javascript.RhinoSecurityManager;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
@@ -30,6 +31,7 @@ import static java.lang.System.out;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
+import java.io.File;
 
 public class HelmaRunner {
 
@@ -117,7 +119,9 @@ public class HelmaRunner {
         }
 
         try {
-            config = new HelmaConfiguration(home, modulePath, "modules");
+            String[] paths = modulePath == null ?
+                    new String[0] : StringUtils.split(modulePath, File.pathSeparator);
+            config = new HelmaConfiguration(home, paths, "modules");
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);

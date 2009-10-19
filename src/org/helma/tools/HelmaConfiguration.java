@@ -60,7 +60,7 @@ public class HelmaConfiguration {
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public HelmaConfiguration(Repository helmaHome, String modulePath, String systemModules)
+    public HelmaConfiguration(Repository helmaHome, String[] modulePath, String systemModules)
             throws IOException {
         repositories = new ArrayList<Repository>();
         home = helmaHome;
@@ -79,9 +79,8 @@ public class HelmaConfiguration {
         }
 
         if (modulePath != null) {
-            String[] paths = StringUtils.split(modulePath, File.pathSeparator);
-            for (int i = 0; i < paths.length; i++) {
-                String path = paths[i].trim();
+            for (int i = 0; i < modulePath.length; i++) {
+                String path = modulePath[i].trim();
                 Repository repository = resolveRootRepository(path);
                 if (repository != null && repository.exists()) {
                     repositories.add(repository);

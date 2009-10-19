@@ -22,6 +22,7 @@ import org.helma.repository.Repository;
 import org.helma.repository.FileRepository;
 import org.helma.repository.WebappRepository;
 import org.helma.engine.RhinoEngine;
+import org.helma.util.StringUtils;
 import org.mozilla.javascript.Callable;
 
 import javax.servlet.http.HttpServlet;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.File;
 
 public class JsgiServlet extends HttpServlet {
 
@@ -65,14 +67,15 @@ public class JsgiServlet extends HttpServlet {
 
         if (engine == null) {
             String helmaHome = getInitParam(config, "helmaHome", "WEB-INF");
-            String modulePath = getInitParam(config, "modulePath", "modules");
+            String modulePath = getInitParam(config, "modulePath", "app");
 
             Repository home = new WebappRepository(config.getServletContext(), helmaHome);
             try {
                 if (!home.exists()) {
                     home = new FileRepository(helmaHome);
                 }
-                HelmaConfiguration helmaConfig = new HelmaConfiguration(home, modulePath, "modules");
+                String[] paths = StringUtils.split(modulePath, File.pathSeparator);
+                HelmaConfiguration helmaConfig = new HelmaConfiguration(home, paths, "modules");
                 helmaConfig.setHostClasses(new Class[] { JsgiEnv.class });
                 engine = new RhinoEngine(helmaConfig, null);
             } catch (IOException x) {

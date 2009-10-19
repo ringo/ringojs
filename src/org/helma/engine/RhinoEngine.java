@@ -476,10 +476,11 @@ public class RhinoEngine {
      * @return a sandboxed RhinoEngine instance
      * @throws FileNotFoundException if any part of the module paths does not exist
      */
-    public RhinoEngine createSandbox(String modulePath, Map<String,Object> globals,
-                                     ClassShutter shutter, boolean sealed)
+    public RhinoEngine createSandbox(String[] modulePath, Map<String,Object> globals,
+                                     boolean includeSystemModules, ClassShutter shutter, boolean sealed)
             throws IOException {
-        HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, null);
+        String systemModules = includeSystemModules ? "modules" : null;
+        HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, systemModules);
         sandbox.setClassShutter(shutter);
         sandbox.setSealed(sealed);
         return new RhinoEngine(sandbox, globals);

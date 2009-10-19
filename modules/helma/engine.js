@@ -35,13 +35,17 @@ function addHostObject(javaClass) {
  * Create a sandboxed scripting engine with the same install directory as this and the
  * given module paths, global properties, class shutter and sealing
  * @param modulePath the comma separated module search path
- * @param globals a map of predefined global properties, may be null
- * @param shutter a Rhino class shutter, may be null
- * @param sealed if the global object should be sealed, defaults to false
+ * @param globals a map of predefined global properties (may be undefined)
+ * @param options an options object (may be undefined). The following options are supported:
+ *  - includeSystemModules whether to include the system modules in the module search path
+ *  - classShutter a Rhino class shutter, may be null
+ *  - sealed if the global object should be sealed, defaults to false
  * @return a sandboxed RhinoEngine instance
  * @throws FileNotFoundException if any part of the module paths does not exist
  */
-function createSandbox(modulePath, globals, shutter, sealed) {
+function createSandbox(modulePath, globals, options) {
+    options = options || {};
+    var shutter = options.classShutter;
     if (shutter) {
         if (!(shutter instanceof rhino.ClassShutter)) {
             shutter = new rhino.ClassShutter(shutter);
@@ -49,8 +53,9 @@ function createSandbox(modulePath, globals, shutter, sealed) {
     } else {
         shutter = null;
     }
-    sealed = Boolean(sealed);
-    return getRhinoEngine().createSandbox(modulePath, globals, shutter, sealed);
+    var systemModules = Boolean(options.includeSystemModules);
+    var sealed = Boolean(options.sealed);
+    return getRhinoEngine().createSandbox(modulePath, globals, systemModules, shutter, sealed);
 }
 
 /**
