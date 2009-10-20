@@ -37,11 +37,16 @@ public class ScriptableList extends NativeJavaObject {
     // a native wrapper, for which no standard constructor class exists
     public static void init(Scriptable scope) throws NoSuchMethodException {
         BaseFunction ctor = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+            @Override
             public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
                 if (args.length != 1) {
                     throw new EvaluatorException("ScriptableList() requires a java.util.List argument");
                 }
                 return new ScriptableList(scope, args[0]);
+            }
+            @Override
+            public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                return construct(cx, scope, args);
             }
         };
         ScriptableObject.defineProperty(scope, CLASSNAME, ctor,
