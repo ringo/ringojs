@@ -98,6 +98,13 @@ exports.getTypeName = function(node) {
     return org.mozilla.javascript.Token.typeToName(node.getType());
 }
 
+/**
+ * Export org.mozilla.javascript.Token to allow for easy type checking on AST nodes:
+ *
+ *     node.type == Token.NAME
+ */
+exports.Token = org.mozilla.javascript.Token
+
 function getParser() {
     var ce = new CompilerEnvirons();
     ce.setRecordingComments(true);
