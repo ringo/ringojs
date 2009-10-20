@@ -17,7 +17,8 @@ exports.index = function index(req, module) {
             if (node.type == Token.SCRIPT) {
                 for each (var comment in node.comments.toArray()) {
                     if (comment.commentType == Token.CommentType.JSDOC) {
-                        log.info("found jsdoc comment: " + comment.value);
+                        // check for top level module doc
+                        // log.info("found jsdoc comment: " + comment.value);
                     }
                 }
             }
@@ -26,6 +27,10 @@ exports.index = function index(req, module) {
                 for each (var arg in ScriptableList(node.arguments)) {
                     if (arg.type == Token.STRING) exported.push(arg.value);
                 }
+            }
+            // exported function
+            if (node.type == Token.FUNCTION && exported.contains(node.name)) {
+                log.info("found exported function " + node.name + ": " + node.jsDoc);
             }
             // var foo = exports.foo = bar
             if (node.type == Token.VAR || node.type == Token.LET) {
@@ -36,7 +41,7 @@ exports.index = function index(req, module) {
             }
             // exports.foo = bar
             if (node.type == Token.ASSIGN) {
-                checkExports(node, node.jsDoc);
+                checkAssignment(node, node.jsDoc, exported);
             }
             if (node.jsDoc) {
                 currentDoc = extractTags(node.jsDoc)
@@ -67,13 +72,28 @@ exports.index = function index(req, module) {
     }
 }
 
-function checkExports(node, jsdoc) {
+function checkAssignment(node, jsdoc, exported) {
     if (node.type == Token.ASSIGN) {
-        if (node.left.type == Token.GETPROP
-                && node.left.target.type == Token.NAME
-                && node.left.target.string == "exports") {
-            // exports.foo = bar
-            log.info(node.left.property.string + ": " + jsdoc);
+        if (node.left.type == Token.GETPROP) {
+            var target = node.left.target;
+            var name = node.left.property.string;
+            var chain = [name];
+            while (target.type == Token.GETPROP) {
+                chain.unshift(target.property.string);
+                target = target.target;
+            }
+            if (target.type == Token.NAME) {
+                chain.unshift(target.string);
+                if (target.string == "exports") {
+                    // exports.foo = bar
+                    log.info(chain.join(".") + ": " + jsdoc);
+                    exported.push(name);
+                    return;
+                }
+                log.info(chain.join(".") + " --> " + exported.contains(target.string) + " // " + jsdoc);
+            } else if (target.type == Token.THIS) {
+                log.info("this." + name + " --> " + jsdoc);
+            }
         } else if (node.left.type == Token.GETELEM
                 && node.left.target.type == Token.NAME
                 && node.left.target.string == "exports"
