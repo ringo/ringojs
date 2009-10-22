@@ -8,7 +8,7 @@ public abstract class AbstractResource implements Resource {
     protected String path;
     protected String name;
     protected String baseName;
-    private boolean stripShebang = false;
+    private boolean stripShebang = true;
 
     protected void setBaseNameFromName(String name) {
         // base name is short name with extension cut off
