@@ -78,7 +78,7 @@ public class JsgiServlet extends HttpServlet {
                 HelmaConfiguration helmaConfig = new HelmaConfiguration(home, paths, "modules");
                 helmaConfig.setHostClasses(new Class[] { JsgiEnv.class });
                 engine = new RhinoEngine(helmaConfig, null);
-            } catch (IOException x) {
+            } catch (Exception x) {
                 throw new ServletException(x);
             }
         }
@@ -93,7 +93,7 @@ public class JsgiServlet extends HttpServlet {
         } catch (NoSuchMethodException x) {
             throw new ServletException(x);
         } catch (Exception x) {
-            HelmaRunner.reportError(x, false);
+            HelmaRunner.reportError(x, System.err, false);
             throw(new ServletException(x));
         }
     }
