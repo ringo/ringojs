@@ -30,6 +30,7 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Formatter;
 import java.io.IOException;
 import java.io.File;
 import java.io.PrintStream;
@@ -40,10 +41,23 @@ public class HelmaRunner {
     RhinoEngine engine;
     Context cx;
     ModuleScope module;
+    int optlevel;
     String scriptName = null;
     String[] scriptArgs = new String[0];
+    String expr = null;
     boolean runShell = false;
     boolean debug = false;
+    List<String> bootScripts = new ArrayList<String>();
+
+    static final String[][] options = {
+        {"b", "bootstrap", "Run additional bootstrap script", "SCRIPT"},
+        {"d", "debug", "Print stack traces for shell errors", ""},
+        {"e", "expression", "Run the given expression as script", "EXPR"},
+        {"h", "help", "Display this help message", ""},
+        {"i", "interactive", "Start shell after script file has run", ""},
+        {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
+        {"p", "policy", "Set java policy file and enable security manager", "URL"}
+    };
 
     public HelmaRunner() {
     }
@@ -54,10 +68,6 @@ public class HelmaRunner {
     }
 
     public void parseArgs(String[] args) throws IOException {
-
-        int optlevel = 0;
-        List<String> bootstrapScripts = new ArrayList<String>();
-
         String helmaHome = System.getProperty("helma.home");
         if (helmaHome == null) {
             helmaHome = System.getenv("HELMA_HOME");
@@ -72,46 +82,7 @@ public class HelmaRunner {
         }
 
         if (args != null && args.length > 0) {
-            int i;
-            for (i = 0; i < args.length; i++) {
-                String option = args[i];
-                if (!option.startsWith("-")) {
-                    break;
-                }
-                if ("--help".equals(option) || "-h".equals(option)) {
-                    printUsage();
-                    return;
-                } else if ("--interactive".equals(option) || "-i".equals(option)) {
-                    runShell = true;
-                } else if ("--debug".equals(option) || "-d".equals(option)) {
-                    debug = true;
-                } else if ("--optlevel".equals(option) || "-o".equals(option)) {
-                    if (++i == args.length) {
-                        missingValueError(option);
-                    }
-                    try {
-                        optlevel = Integer.parseInt(args[i]);
-                    } catch (NumberFormatException x) {
-                        rangeError(option);
-                    }
-                    if (optlevel < -1 || optlevel > 9) {
-                        rangeError(option);
-                    }
-                } else if ("--policy".equals(option) || "-p".equals(option)) {
-                    if (++i == args.length) {
-                        missingValueError(option);
-                    }
-                    System.setProperty("java.security.policy", args[i]);
-                    System.setSecurityManager(new RhinoSecurityManager());
-                } else if ("--bootstrap".equals(option) || "-b".equals(option)) {
-                    if (++i == args.length) {
-                        missingValueError(option);
-                    }
-                    bootstrapScripts.add(args[i]);
-                } else {
-                    unknownOptionError(option);
-                }
-            }
+            int i = parseOptions(args);
             if (i < args.length) {
                 scriptName = args[i];
                 scriptArgs = new String[args.length - i];
@@ -127,7 +98,7 @@ public class HelmaRunner {
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);
             config.setOptLevel(optlevel);
-            config.setBootstrapScripts(bootstrapScripts);
+            config.setBootstrapScripts(bootScripts);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, System.err, debug);
@@ -140,10 +111,13 @@ public class HelmaRunner {
             if (engine == null) {
                 return;
             }
+            if (expr != null) {
+                engine.evaluateExpression(expr);
+            }
             if (scriptName != null) {
                 engine.runScript(config.getMainResource(), scriptArgs);
             }
-            if (scriptName == null || runShell) {
+            if ((scriptName == null && expr == null)  || runShell) {
                 // find out if stdin or stdout is redirected.
                 // If so, bypass jline and do not display prompt.
                 boolean silent = false;
@@ -220,6 +194,127 @@ public class HelmaRunner {
         }
     }
 
+    private int parseOptions(String[] args) {
+        int i;
+        for (i = 0; i < args.length; i++) {
+            String option = args[i];
+            if (!option.startsWith("-")) {
+                break;
+            }
+            String nextArg = i < args.length - 1 ? args[i + 1] : null;
+            int result;
+            if (option.startsWith("--")) {
+                result = parseLongOption(option.substring(2), nextArg);
+            } else {
+                result = parseShortOption(option.substring(1), nextArg);
+            }
+            if (result < 0) {
+                break;
+            } else {
+                i += result;
+            }
+        }
+        return i;
+    }
+
+    private int parseShortOption(String opt, String nextArg) {
+        int length = opt.length();
+        for (int i = 0; i < length; i++) {
+            String[] def = null;
+            char c = opt.charAt(i);
+            for (String[] d : options) {
+                if (d[0].charAt(0) == c) {
+                    def = d;
+                    break;
+                }
+            }
+            if (def == null) {
+                unknownOptionError("-" + Character.toString(c));
+            }
+            String optarg = null;
+            int consumedNext = 0;
+            if (!def[3].equals("")) {
+                if (i == length - 1) {
+                    if (nextArg == null) {
+                        missingValueError("-" + def[0]);
+                    }
+                    optarg = nextArg;
+                    consumedNext = 1;
+                } else {
+                    optarg = opt.substring(i + 1);
+                    if (optarg.length() == 0) {
+                        missingValueError("-" + def[0]);
+                    }
+                }
+                i = length;
+            }
+            processOption(def[1], optarg);
+            if (i >= length) {
+                return consumedNext;
+            }
+        }
+        return 0;
+    }
+
+    private int parseLongOption(String opt, String nextArg) {
+        String[] def = null;
+        for (String[] d : options) {
+            if (opt.startsWith(d[1])) {
+                def = d;
+                break;
+            }
+        }
+        if (def == null) {
+            unknownOptionError("--" + opt);
+        }
+        String optarg = null;
+        int consumedNext = 0;
+        if (!def[3].equals("")) {
+            if (opt.equals(def[1])) {
+                if (nextArg == null) {
+                    missingValueError("--" + def[1]);
+                }
+                optarg = nextArg;
+                consumedNext = 1;
+            } else {
+                int length = def[1].length();
+                if (opt.charAt(length) != '=') {
+                    missingValueError("--" + def[1]);
+                }
+                optarg = opt.substring(length + 1);
+            }
+        }
+        processOption(def[1], optarg);
+        return consumedNext;
+    }
+
+    private void processOption(String option, String arg) {
+        if ("help".equals(option)) {
+            printUsage();
+            System.exit(0);
+        } else if ("interactive".equals(option)) {
+            runShell = true;
+        } else if ("debug".equals(option)) {
+            debug = true;
+        } else if ("optlevel".equals(option)) {
+            try {
+                optlevel = Integer.parseInt(arg);
+            } catch (NumberFormatException x) {
+                rangeError(option);
+            }
+            if (optlevel < -1 || optlevel > 9) {
+                rangeError(option);
+            }
+        } else if ("policy".equals(option)) {
+            System.setProperty("java.security.policy", arg);
+            System.setSecurityManager(new RhinoSecurityManager());
+        } else if ("bootstrap".equals(option)) {
+            bootScripts.add(arg);
+        } else if ("expression".equals(option)) {
+            expr = arg;
+        }
+    }
+
     private static void missingValueError(String option) {
         exitWithError(option + " option requires a value.", -1);
     }
@@ -260,13 +355,12 @@ public class HelmaRunner {
 
     public static void printUsage() {
         out.println("Usage:");
-        out.println("  helma [option] ... [file] [arg] ...");
+        out.println("  helma [option] ... [script] [arg] ...");
         out.println("Options:");
-        out.println("  -b, -bootstrap script : Run additional bootstrap script");
-        out.println("  -d, --debug           : Print stack traces for shell errors");
-        out.println("  -h, --help            : Display this help message");
-        out.println("  -i, --interactive     : Start shell after script file has run");
-        out.println("  -o, --optlevel n      : Set Rhino optimization level (-1 to 9)");
-        out.println("  -p, --policy url      : Set java policy file and enable security manager");
+        Formatter formatter = new Formatter(out);
+        for (String[] opt : options) {
+            String def = new Formatter().format("-%1$s --%2$s %4$s", (Object[]) opt).toString();
+            formatter.format("  %1$-22s %2$s%n", def, opt[2]);
+        }
     }
 }

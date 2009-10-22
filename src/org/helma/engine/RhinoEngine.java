@@ -99,12 +99,12 @@ public class RhinoEngine {
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            evaluate(cx, getScript("helmaglobal"), topLevelScope);
+            evaluateScript(cx, getScript("helmaglobal"), topLevelScope);
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
                     Resource resource = new FileResource(new File(script));
-                    evaluate(cx, new ReloadableScript(resource, this), topLevelScope);
+                    evaluateScript(cx, new ReloadableScript(resource, this), topLevelScope);
                 }
             }
             if (config.isSealed()) {
@@ -165,14 +165,39 @@ public class RhinoEngine {
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, topLevelScope, cx);
-            retval = evaluate(cx, script, mainScope);
+            retval = evaluateScript(cx, script, mainScope);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
             resetThreadLocals(cx, threadLocals);
         }   	
     }
-    
+
+    /**
+     * Evaluate an expression from the command line.
+     * @param expr the JavaScript expression to evaluate
+     * @return the return value
+     * @throws IOException an I/O related error occurred
+     * @throws JavaScriptException the script threw an error during
+     *         compilation or execution
+     */
+    public Object evaluateExpression(String expr)
+            throws IOException, JavaScriptException {
+        Context cx = contextFactory.enterContext();
+        Object[] threadLocals = checkThreadLocals(cx);
+        try {
+            Object retval;
+            Repository repository = repositories.get(0);
+            Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
+            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
+            retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
+            return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
+        } finally {
+            Context.exit();
+            resetThreadLocals(cx, threadLocals);
+        }
+    }
+
     /**
      * Invoke a javascript function. This enters a JavaScript context, creates
      * a new per-thread scope, calls the function, exits the context and returns
@@ -277,7 +302,7 @@ public class RhinoEngine {
             Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
             ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
             try {
-                evaluate(cx, getScript("helma/shell"), scope);
+                evaluateScript(cx, getScript("helma/shell"), scope);
             } catch (Exception x) {
                 log.error("Warning: couldn't load module 'helma/shell'", x);
             }
@@ -393,7 +418,7 @@ public class RhinoEngine {
         return script;
     }
 
-    protected Object evaluate(Context cx, ReloadableScript script, Scriptable scope)
+    protected Object evaluateScript(Context cx, ReloadableScript script, Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = getCurrentScript(cx);
