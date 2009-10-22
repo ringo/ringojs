@@ -66,7 +66,8 @@ public class RhinoEngine {
      * @param config the configuration used to initialize the engine.
      * @param globals an optional map of predefined global properties
      */
-    public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals) {
+    public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals)
+            throws Exception {
         this.config = config;
         this.compiledScripts = new HashMap<Trackable, ReloadableScript>();
         this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
@@ -109,8 +110,6 @@ public class RhinoEngine {
             if (config.isSealed()) {
                 topLevelScope.sealObject();
             }
-        } catch (Exception x) {
-            throw new IllegalArgumentException("Error initializing engine", x);
         } finally {
             Context.exit();
             resetThreadLocals(cx, threadLocals);
@@ -477,8 +476,9 @@ public class RhinoEngine {
      * @throws FileNotFoundException if any part of the module paths does not exist
      */
     public RhinoEngine createSandbox(String[] modulePath, Map<String,Object> globals,
-                                     boolean includeSystemModules, ClassShutter shutter, boolean sealed)
-            throws IOException {
+                                     boolean includeSystemModules, ClassShutter shutter,
+                                     boolean sealed)
+            throws Exception {
         String systemModules = includeSystemModules ? "modules" : null;
         HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, systemModules);
         sandbox.setClassShutter(shutter);
@@ -885,6 +885,8 @@ public class RhinoEngine {
                     }
                 }
                 clazz = clazz.getSuperclass();
+                // if (org.mozilla.javascript.Node.class.isAssignableFrom(clazz))
+                //     System.err.println("LOOKING FOR " + clazz.getName() + ": " + javaWrappers.get(clazz.getName()));
                 extClass = javaWrappers.get(clazz.getName());
                 if (extClass != null) {
                     // cache the class name for the object so we run faster next time
