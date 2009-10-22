@@ -185,6 +185,7 @@ public class RhinoEngine {
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
+        cx.setOptimizationLevel(-1);
         try {
             Object retval;
             Repository repository = repositories.get(0);
