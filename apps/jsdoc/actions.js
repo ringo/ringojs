@@ -2,8 +2,12 @@ include('helma/webapp/response');
 include('helma/engine');
 include('helma/jsdoc');
 require('core/array');
+require('core/string');
 
 var log = require('helma/logging').getLogger(module.id);
+
+var exportedFunction;
+var exportedName;
 
 exports.index = function index(req, module) {
     var repo = new ScriptRepository(getRepositories()[1]);
@@ -14,7 +18,7 @@ exports.index = function index(req, module) {
         var exported = [];
         parseScriptResource(res, function(node) {
             // loop through all comments looking for dangling jsdocs
-            if (node.type == Token.SCRIPT) {
+            if (node.type == Token.SCRIPT && node.comments) {
                 for each (var comment in node.comments.toArray()) {
                     if (comment.commentType == Token.CommentType.JSDOC) {
                         // check for top level module doc
@@ -28,20 +32,32 @@ exports.index = function index(req, module) {
                     if (arg.type == Token.STRING) exported.push(arg.value);
                 }
             }
+            // check for Object.defineProperty(foo, bar, {})
+            if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
+                var getprop = node.target;
+                if (getprop.target.type == Token.NAME && getprop.target.string == "Object"
+                        && getprop.property.string == "defineProperty") {
+                    var args = ScriptableList(node.arguments);
+                    var propname = nodeToString(args[0]) + "." + nodeToString(args[1]);
+                    log.info("Object.defineProperty: " + propname);
+                }
+            }
             // exported function
             if (node.type == Token.FUNCTION && exported.contains(node.name)) {
                 log.info("found exported function " + node.name + ": " + node.jsDoc);
+                exportedFunction = node;
+                exportedName = node.name;
             }
             // var foo = exports.foo = bar
             if (node.type == Token.VAR || node.type == Token.LET) {
                 for each (var n in ScriptableList(node.variables)) {
                     if (n.initializer && n.initializer.type == Token.ASSIGN)
-                        checkExports(n.initializer, node.jsDoc);
+                        checkAssignment(n.initializer, node, exported);
                 }
             }
             // exports.foo = bar
             if (node.type == Token.ASSIGN) {
-                checkAssignment(node, node.jsDoc, exported);
+                checkAssignment(node, node, exported);
             }
             if (node.jsDoc) {
                 currentDoc = extractTags(node.jsDoc)
@@ -72,35 +88,50 @@ exports.index = function index(req, module) {
     }
 }
 
-function checkAssignment(node, jsdoc, exported) {
+function checkAssignment(node, root, exported) {
     if (node.type == Token.ASSIGN) {
         if (node.left.type == Token.GETPROP) {
             var target = node.left.target;
             var name = node.left.property.string;
-            var chain = [name];
-            while (target.type == Token.GETPROP) {
-                chain.unshift(target.property.string);
-                target = target.target;
-            }
-            if (target.type == Token.NAME) {
-                chain.unshift(target.string);
-                if (target.string == "exports") {
-                    // exports.foo = bar
-                    log.info(chain.join(".") + ": " + jsdoc);
-                    exported.push(name);
-                    return;
+            var propname = nodeToString(node.left);
+            if (propname.startsWith('exports.') && !exported.contains(name)) {
+                log.info(propname + ": " + root.jsDoc);
+                exported.push(name);
+                if (node.right.type == Token.FUNCTION) {
+                    exportedFunction = node.right;
+                    exportedName = name;
                 }
-                log.info(chain.join(".") + " --> " + exported.contains(target.string) + " // " + jsdoc);
+                return;
             } else if (target.type == Token.THIS) {
-                log.info("this." + name + " --> " + jsdoc);
+                if (root.parent && root.parent.parent && root.parent.parent.parent
+                        &&  root.parent.parent.parent == exportedFunction) {
+                    log.info("this/proto: " + exportedName + ".prototype." + name);
+                    /* if (node.right.type == Token.FUNCTION) {
+                        exportedFunction = node.right;
+                        exportedName = exportedName + ".prototype." + name;
+                    } */
+                } else if (exported.contains(name)) {
+                    log.info("found expo this " + name + " --> " + root.jsDoc);
+                }
             }
         } else if (node.left.type == Token.GETELEM
                 && node.left.target.type == Token.NAME
                 && node.left.target.string == "exports"
                 && node.left.element.type == Token.STRING) {
             // exports["foo"] = bar
-            log.info(node.left.element.value + ": " + jsdoc);
+            log.info(node.left.element.value + ": " + root.jsDoc);
         }
     }
+}
 
+function nodeToString(node) {
+    if (node.type == Token.GETPROP) {
+        return [nodeToString(node.target), node.property.string].join('.');
+    } else if (node.type == Token.NAME) {
+        return node.string;
+    } else if (node.type == Token.STRING) {
+        return node.value;
+    } else {
+        return getTypeName(node);
+    }
 }

@@ -95,7 +95,7 @@ exports.getName = function(node) {
 }
 
 exports.getTypeName = function(node) {
-    return org.mozilla.javascript.Token.typeToName(node.getType());
+    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
 }
 
 /**
