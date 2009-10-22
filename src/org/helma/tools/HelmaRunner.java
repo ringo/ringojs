@@ -47,6 +47,7 @@ public class HelmaRunner {
     String expr = null;
     boolean runShell = false;
     boolean debug = false;
+    boolean silent = false;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -56,7 +57,8 @@ public class HelmaRunner {
         {"h", "help", "Display this help message", ""},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
-        {"p", "policy", "Set java policy file and enable security manager", "URL"}
+        {"p", "policy", "Set java policy file and enable security manager", "URL"},
+        {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""}
     };
 
     public HelmaRunner() {
@@ -118,13 +120,14 @@ public class HelmaRunner {
                 engine.runScript(config.getMainResource(), scriptArgs);
             }
             if ((scriptName == null && expr == null)  || runShell) {
-                // find out if stdin or stdout is redirected.
-                // If so, bypass jline and do not display prompt.
-                boolean silent = false;
-                try {
-                    silent = System.console() == null;
-                } catch (NoSuchMethodError nsm) {
-                    // System.console() isn't available before Java 6
+                // autodetect --silent option if stdin or stdout is redirected
+                // only works on Java 6 or later
+                if (!silent) {
+                    try {
+                        silent = System.console() == null;
+                    } catch (NoSuchMethodError nsm) {
+                        // System.console() isn't available before Java 6
+                    }
                 }
                 new HelmaShell(config, engine, debug, silent).run();
             }
@@ -312,6 +315,8 @@ public class HelmaRunner {
             bootScripts.add(arg);
         } else if ("expression".equals(option)) {
             expr = arg;
+        } else if ("silent".equals(option)) {
+            silent = runShell = true;
         }
     }
 
