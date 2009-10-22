@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
 import java.io.File;
+import java.io.PrintStream;
 
 public class HelmaRunner {
 
@@ -129,7 +130,7 @@ public class HelmaRunner {
             config.setBootstrapScripts(bootstrapScripts);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            reportError(x, debug);
+            reportError(x, System.err, debug);
         }
     }
 
@@ -143,10 +144,18 @@ public class HelmaRunner {
                 engine.runScript(config.getMainResource(), scriptArgs);
             }
             if (scriptName == null || runShell) {
-                new HelmaShell(config, engine, debug).run();
+                // find out if stdin or stdout is redirected.
+                // If so, bypass jline and do not display prompt.
+                boolean silent = false;
+                try {
+                    silent = System.console() == null;
+                } catch (NoSuchMethodError nsm) {
+                    // System.console() isn't available before Java 6
+                }
+                new HelmaShell(config, engine, debug, silent).run();
             }
         } catch (Exception x) {
-            reportError(x, debug);
+            reportError(x, System.err, debug);
             System.exit(-1);
         }
     }
@@ -166,7 +175,7 @@ public class HelmaRunner {
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, debug);
+            reportError(x, System.err, debug);
             System.exit(-1);
         }
     }
@@ -178,7 +187,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, debug);
+                reportError(x, System.err, debug);
                 System.exit(-1);
             }
         }
@@ -192,7 +201,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, debug);
+                reportError(x, System.err, debug);
                 System.exit(-1);
             }
         }
@@ -205,7 +214,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, debug);
+                reportError(x, System.err, debug);
                 System.exit(-1);
             }
         }
@@ -229,11 +238,11 @@ public class HelmaRunner {
         System.exit(code);
     }
 
-    public static void reportError(Exception x, boolean debug) {
+    public static void reportError(Exception x, PrintStream out, boolean debug) {
         if (x instanceof RhinoException) {
-            System.err.println(x.getMessage());
+            out.println(x.getMessage());
         } else {
-            System.err.println(x.toString());
+            out.println(x.toString());
         }
         List<SyntaxError> errors = RhinoEngine.errors.get();
         if (errors != null && !errors.isEmpty()) {

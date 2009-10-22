@@ -25,9 +25,7 @@ import org.helma.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.File;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -45,14 +43,17 @@ public class HelmaShell {
     RhinoEngine engine;
     Scriptable scope;
     boolean debug;
+    boolean silent;
     CodeSource codeSource = null;
 
-    public HelmaShell(HelmaConfiguration config, RhinoEngine engine, boolean debug)
+    public HelmaShell(HelmaConfiguration config, RhinoEngine engine,
+                      boolean debug, boolean silent)
             throws IOException {
         this.config = config;
         this.engine = engine;
     	this.scope = engine.getShellScope();
         this.debug = debug;
+        this.silent = silent;
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
             Repository modules = config.getHelmaHome().getChildRepository("modules");
@@ -61,8 +62,16 @@ public class HelmaShell {
     }
     
     public void run() throws IOException {
+        if (silent) {
+            // bypass console if running with redirected stdin or stout
+            runSilently();
+            return;
+        }
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
+        if (debug) {
+            reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
+        }
         reader.addCompletor(new JSCompletor());
         File historyFile = new File(config.getHelmaHome().getPath(), ".history");
         reader.setHistory(new History(historyFile));
@@ -89,7 +98,7 @@ public class HelmaShell {
                 prompt = "     > ";
             }
             try {
-                Object result = cx.evaluateString(scope, source, "<shell>", lineno, codeSource);
+                Object result = cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 // Avoid printing out undefined or function definitions.
                 if (result != Context.getUndefinedValue()) {
                     out.println(Context.toString(result));
@@ -97,7 +106,38 @@ public class HelmaShell {
                 out.flush();
                 lineno++;
             } catch (Exception ex) {
-                HelmaRunner.reportError(ex, debug);
+                HelmaRunner.reportError(ex, System.out, debug);
+            } finally {
+                Context.exit();
+            }
+        }
+        System.exit(0);
+    }
+
+    private void runSilently() throws IOException {
+        int lineno = 0;
+        outer: while (true) {
+            Context cx = engine.getContextFactory().enterContext();
+            cx.setErrorReporter(new ToolErrorReporter(false, System.err));
+            cx.setOptimizationLevel(-1);
+            String source = "";
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            while (true) {
+                String line = reader.readLine();
+                if (line == null) {
+                    // reached EOF
+                    break outer;
+                }
+                source = source + line + "\n";
+                lineno++;
+                if (cx.stringIsCompilableUnit(source))
+                    break;
+            }
+            try {
+                cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
+                lineno++;
+            } catch (Exception ex) {
+                HelmaRunner.reportError(ex, System.err, debug);
             } finally {
                 Context.exit();
             }
