@@ -103,7 +103,7 @@ public class HelmaRunner {
             config.setBootstrapScripts(bootScripts);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            reportError(x, System.err, debug);
+            reportError(x, err, debug);
         }
     }
 
@@ -132,7 +132,7 @@ public class HelmaRunner {
                 new HelmaShell(config, engine, debug, silent).run();
             }
         } catch (Exception x) {
-            reportError(x, System.err, debug);
+            reportError(x, err, debug);
             System.exit(-1);
         }
     }
@@ -152,7 +152,7 @@ public class HelmaRunner {
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, System.err, debug);
+            reportError(x, err, debug);
             System.exit(-1);
         }
     }
@@ -164,7 +164,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, System.err, debug);
+                reportError(x, err, debug);
                 System.exit(-1);
             }
         }
@@ -178,7 +178,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, System.err, debug);
+                reportError(x, err, debug);
                 System.exit(-1);
             }
         }
@@ -191,7 +191,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, System.err, debug);
+                reportError(x, err, debug);
                 System.exit(-1);
             }
         }
@@ -338,23 +338,23 @@ public class HelmaRunner {
         System.exit(code);
     }
 
-    public static void reportError(Exception x, PrintStream out, boolean debug) {
+    public static void reportError(Exception x, PrintStream output, boolean debug) {
         if (x instanceof RhinoException) {
-            out.println(x.getMessage());
+            output.println(x.getMessage());
         } else {
-            out.println(x.toString());
+            output.println(x.toString());
         }
         List<SyntaxError> errors = RhinoEngine.errors.get();
         if (errors != null && !errors.isEmpty()) {
             for (SyntaxError error : errors) {
-                System.err.println(error);
+                output.println(error);
             }
         }
         if (x instanceof RhinoException) {
-            System.err.println(((RhinoException) x).getScriptStackTrace());
+            output.println(((RhinoException) x).getScriptStackTrace());
         }
         if (debug) {
-            x.printStackTrace();
+            x.printStackTrace(output);
         }
     }
 
