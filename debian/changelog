@@ -1,3 +1,10 @@
+helma-ng (0.3-2) unstable; urgency=low
+
+  * Move daemon script into second optional helma-ng-daemon package
+  * Various improvements and fixes in build scripts
+
+ -- Hannes Wallnoefer <hannes@helma.at>  Fri, 23 Oct 2009 12:06:43 +0200
+
 helma-ng (0.3-1) unstable; urgency=low
 
   * Initial release
