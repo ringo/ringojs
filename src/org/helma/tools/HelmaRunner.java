@@ -52,11 +52,11 @@ public class HelmaRunner {
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
-        {"b", "bootstrap", "Run additional bootstrap script", "SCRIPT"},
+        {"b", "bootscript", "Run additional bootstrap script", "SCRIPT"},
         {"d", "debug", "Print stack traces for shell errors", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
-        {"H", "history", "Use custom history file (default: ~/.helma-history)", "PATH"},
+        {"H", "history", "Use custom history file (default: ~/.helma-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
@@ -316,7 +316,7 @@ public class HelmaRunner {
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RhinoSecurityManager());
-        } else if ("bootstrap".equals(option)) {
+        } else if ("bootscript".equals(option)) {
             bootScripts.add(arg);
         } else if ("expression".equals(option)) {
             expr = arg;
