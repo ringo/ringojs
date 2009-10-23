@@ -15,7 +15,9 @@ exports.index = function index(req, module) {
             jsdoc: jsdoc
         });
     } else {
-        var modules = repo.getScriptResources(true).sort(function(a, b) {
+        var modules = repo.getScriptResources(true).filter(function(r) {
+            return r.relativePath.indexOf('test') != 0;
+        }).sort(function(a, b) {
             return a.relativePath > b.relativePath ? 1 : -1;
         });
         return new SkinnedResponse(getResource('./skins/index.html'), {
