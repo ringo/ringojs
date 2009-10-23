@@ -12,8 +12,27 @@ Architecture: all
 Depends: default-jre-headless | system-java (>= 1.5) |
   java5-runtime-headless | java6-runtime-headless,
   jsvc, adduser, lsb-base (>= 3)
-Description: A Javascript runtime and web application framework written in Java.
+Description: JavaScript runtime and shell written in Java.
  .
- Helma NG is an open-source JavaScript framework written in Java.
- Helma NG uses the Mozilla Rhino JavaScript implementation to provide
- a comprehensive framework for server-side application development.
+ Helma NG is a cross-platform, general purpose JavaScript platform. It is
+ written in Java and based on the Mozilla Rhino JavaScript engine.
+ .
+ Helma NG comes with a standard library that is compatible with the CommonJS
+ standard. It also includes a JSGI based web framework that can be used with
+ the bundled Jetty web server or any server implementing the Java Servlet API.
+ .
+ Helma NG is licensed under the Apache 2 license.
+
+Package: helma-ng-daemon
+Architecture: all
+Depends: helma-ng (>= ${source:Version})
+Description: Daemon script for Helma NG JavaScript runtime.
+ .
+ Helma NG is a cross-platform, general purpose JavaScript platform. It is
+ written in Java and based on the Mozilla Rhino JavaScript engine.
+ .
+ Helma NG comes with a standard library that is compatible with the CommonJS
+ standard. It also includes a JSGI based web framework that can be used with
+ the bundled Jetty web server or any server implementing the Java Servlet API.
+ .
+ Helma NG is licensed under the Apache 2 license.

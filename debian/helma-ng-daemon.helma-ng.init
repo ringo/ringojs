@@ -16,8 +16,8 @@
 # Should-Stop:       $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      1
-# Short-Description: Start Helma NG.
-# Description:       Start Helma NG.
+# Short-Description: Start Helma NG
+# Description:       Start Helma NG
 ### END INIT INFO
 
 set -e
@@ -28,12 +28,14 @@ DESC="Helma JavaScript runtime"
 DAEMON=/usr/bin/jsvc
 HELMA_HOME=/usr/share/$NAME
 DEFAULT=/etc/default/$NAME
+# fix for Rhino on bootclasspath in OpenJDK
+RHINO_CLASSPATH=-Xbootclasspath/p:/usr/share/helma-ng/lib/js.jar
 
 if [ `id -u` -ne 0 ]; then
 	echo "You need root privileges to run this script"
 	exit 1
 fi
- 
+
 # Make sure helma-ng is started with system locale
 if [ -r /etc/default/locale ]; then
 	. /etc/default/locale
@@ -58,7 +60,7 @@ export HELMA_MODULE_PATH
 
 # The first existing directory is used for JAVA_HOME (if JAVA_HOME is not
 # defined in $DEFAULT)
-JDK_DIRS="/usr/lib/jvm/java-6-openjdk /usr/lib/jvm/java-6-sun /usr/lib/jvm/java-1.5.0-sun /usr/lib/j2sdk1.5-sun /usr/lib/j2sdk1.5-ibm"
+JDK_DIRS="/usr/lib/jvm/java-6-sun /usr/lib/jvm/java-6-openjdk /usr/lib/jvm/java-1.5.0-sun /usr/lib/j2sdk1.5-sun /usr/lib/j2sdk1.5-ibm"
 
 # Look for the right JVM to use
 for jdir in $JDK_DIRS; do
@@ -128,13 +130,13 @@ case "$1" in
 
 		cd "$HELMA_BASE"
 
-		$DAEMON -user "$HELMA_USER" -cp "$JSVC_CLASSPATH" \
-		    -outfile SYSLOG -errfile SYSLOG \
+		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
+		    -user "$HELMA_USER" -outfile SYSLOG -errfile SYSLOG \
 		    -pidfile "$HELMA_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
 		    "$HELMA_BASE/$HELMA_APPLICATION"
 
 		sleep 1
-        	if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
+            if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
 			--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
 			>/dev/null; then
 			log_end_msg 1
@@ -153,8 +155,8 @@ case "$1" in
 		>/dev/null; then
 		log_progress_msg "(not running)"
 	else
-		$DAEMON -cp "$JSVC_CLASSPATH" -pidfile "$HELMA_PID" \
-		     -stop "$BOOTSTRAP_CLASS"
+		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
+		     -pidfile "$HELMA_PID" -stop "$BOOTSTRAP_CLASS"
 	fi
 	log_end_msg 0
 	;;

@@ -1,5 +1,3 @@
-var/log/helma-ng
 var/lib/helma-ng/apps
 var/lib/helma-ng/db
-etc/helma-ng
-
+usr/bin

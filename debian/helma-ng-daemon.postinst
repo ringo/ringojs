@@ -22,8 +22,7 @@ case "$1" in
     configure)
         if ! id helma-ng > /dev/null 2>&1 ; then
             adduser --system --home /usr/share/helma-ng --no-create-home \
-    	    --group --disabled-password --shell /bin/false \
-    	    helma-ng
+            --group --disabled-password --shell /bin/false helma-ng
         fi
 	chown -R helma-ng:adm /var/lib/helma-ng
 	chown -R helma-ng:adm /var/log/helma-ng

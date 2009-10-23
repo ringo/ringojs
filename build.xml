@@ -33,10 +33,6 @@
 
         <property name="helma.jar" value="${lib}/helma.jar"/>
 
-        <property name="dpkg.src" value="${home}/deb"/>
-        <property name="dpkg.tmp" value="${build}/deb"/>
-        <property name="dpkg.dst" value="${project}_${version}.deb"/>
-
         <property name="debug" value="on"/>
         <property name="optimize" value="on"/>
         <property name="deprecation" value="on"/>
@@ -150,37 +146,11 @@
     <!-- =================================================================== -->
     <!-- Create a debian package                                             -->
     <!-- =================================================================== -->
-    <target name="dpkg" depends="jar,test">
-        <tstamp/>
-        <mkdir dir="${dpkg.tmp}"/>
-        <copy todir="${dpkg.tmp}">
-            <filterset>
-                <filter token="VERSION" value="${version}"/>
-                <filter token="DATE" value="${DSTAMP}"/>
-            </filterset>
-            <fileset dir="${dpkg.src}"/>
-        </copy>
-        <copy todir="${dpkg.tmp}/usr/share/helma/apps/skeleton">
-            <fileset dir="${home}/apps/skeleton"/>
-        </copy>
-        <copy todir="${dpkg.tmp}/usr/share/helma/modules">
-            <fileset dir="${home}/modules"/>
-        </copy>
-        <copy todir="${dpkg.tmp}/usr/share/helma/lib">
-            <fileset dir="${lib}"/>
-        </copy>
-        <copy todir="${dpkg.tmp}/usr/share/helma">
-            <fileset file="run.jar"/>
-        </copy>
-        <chmod file="${dpkg.tmp}/usr/bin/helma" perm="ugo+x"/>
-        <exec executable="dpkg-deb">
-            <arg value="--build"/>
-            <arg value="${dpkg.tmp}"/>
-            <arg value="${dpkg.dst}"/>
+    <target name="dpkg">
+        <exec executable="dpkg-buildpackage">
+            <arg value="-rfakeroot"/>
+            <arg value="-b"/>
         </exec>
-        <!--
-        <delete dir="${dpkg.tmp}"/>
-        -->
     </target>
 
     <!-- =================================================================== -->
@@ -189,7 +159,6 @@
     <target name="clean" depends="init">
         <delete dir="${build}"/>
         <delete file="${helma.jar}"/>
-        <delete file="${dpkg.dst}"/>
         <delete file="run.jar"/>
     </target>
 
