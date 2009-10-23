@@ -52,7 +52,7 @@ public class HelmaRunner {
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
-        {"b", "bootscript", "Run additional bootstrap script", "SCRIPT"},
+        {"b", "bootscript", "Run additional bootstrap script", "FILE"},
         {"d", "debug", "Print stack traces for shell errors", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
