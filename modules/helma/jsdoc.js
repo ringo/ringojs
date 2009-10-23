@@ -1,11 +1,14 @@
 require('core/string');
+require('core/array');
 include('helma/file');
+include('helma/parser');
 importPackage(org.mozilla.javascript);
-importClass(org.helma.repository.FileRepository);
-importClass(org.helma.repository.FileResource);
+importPackage(org.helma.repository);
+
+var log = require('helma/logging').getLogger(module.id);
 
 /**
- * Get a script repository from the given path
+ * Create a script repository for the given path
  * @param path {String} the base path
  * @return an script repository
  */
@@ -14,32 +17,144 @@ exports.ScriptRepository = function(path) {
 }
 
 function ScriptRepository(path) {
-    var repo = path instanceof org.helma.repository.Repository ?
+    var repo = path instanceof Repository ?
                path : new FileRepository(new java.io.File(path));
 
-    this.getScriptResources = function(recurse) {
-        var list = repo.getResources(Boolean(recurse));
+    /**
+     * Get a list of script resources (files with a .js extension) in this
+     * repository.
+     * @param nested {Boolean} whether to return scripts in nested directories
+     * @return {Array} list of script files as Helma Resource objects
+     */
+    this.getScriptResources = function(nested) {
+        var list = repo.getResources(Boolean(nested));
         return list.filter(function(r) {return r.name.endsWith('.js');});
     }
 
+    /**
+     * Get a script resource contained in this repository.
+     * @param path {String} the script path
+     * @return {Resource} the script resource
+     */
     this.getScriptResource = function(path) {
         return repo.getResource(path);
     }
 
 }
 
-/**
- * Parse a script resource and apply the visitorFunction to the script's nodes.
- * The function takes one argument which is a org.mozilla.javascript.ast.AstNode.
- * The function must return true to visit child nodes of the current node.
- * @param resource {Resource} an instance of org.helma.repository.Resource
- * @param visitorFunction {Function} the visitor function
- */
-exports.parseScriptResource = function(resource, visitorFunction) {
-    var ast = getParser().parse(resource.content, resource.name, 0);
-    ast.visit(new org.mozilla.javascript.ast.NodeVisitor({
-        visit: visitorFunction
-    }));
+exports.parseResource = function(resource) {
+    var exportedFunction;
+    var exportedName;
+    var currentDoc;
+    var exported = [];
+    var jsdoc = [];
+    
+    var checkAssignment = function(node, root, exported) {
+        if (node.type == Token.ASSIGN) {
+            if (node.left.type == Token.GETPROP) {
+                var target = node.left.target;
+                var name = node.left.property.string;
+                var propname = nodeToString(node.left);
+                if (propname.startsWith('exports.') && !exported.contains(name)) {
+                    log.info(propname + ": " + root.jsDoc);
+                    exported.push(name);
+                    if (node.right.type == Token.FUNCTION) {
+                        exportedFunction = node.right;
+                        exportedName = name;
+                    }
+                    return;
+                } else if (target.type == Token.THIS) {
+                    if (root.parent && root.parent.parent && root.parent.parent.parent
+                            &&  root.parent.parent.parent == exportedFunction) {
+                        log.info(exportedName + ".instance." + name + ": " + root.jsDoc);
+                        /* if (node.right.type == Token.FUNCTION) {
+                         exportedFunction = node.right;
+                         exportedName = exportedName + ".prototype." + name;
+                         } */
+                    } else if (exported.contains(name)) {
+                        log.info("found expo this " + name + " --> " + root.jsDoc);
+                    }
+                }
+            } else if (node.left.type == Token.GETELEM
+                    && node.left.target.type == Token.NAME
+                    && node.left.target.string == "exports"
+                    && node.left.element.type == Token.STRING) {
+                // exports["foo"] = bar
+                log.info(node.left.element.value + ": " + root.jsDoc);
+            }
+        }
+    };
+
+    var nodeToString = function(node) {
+        if (node.type == Token.GETPROP) {
+            return [nodeToString(node.target), node.property.string].join('.');
+        } else if (node.type == Token.NAME) {
+            return node.string;
+        } else if (node.type == Token.STRING) {
+            return node.value;
+        } else {
+            return getTypeName(node);
+        }
+    };
+
+    parseScriptResource(resource, function(node) {
+        // loop through all comments looking for dangling jsdocs
+        if (node.type == Token.SCRIPT && node.comments) {
+            for each (var comment in node.comments.toArray()) {
+                if (comment.commentType == Token.CommentType.JSDOC) {
+                    // check for top level module doc
+                    // log.info("found jsdoc comment: " + comment.value);
+                }
+            }
+        }
+        // export("foo")
+        if (node.type == Token.CALL && node.target.type == Token.NAME && node.target.string == "export") {
+            for each (var arg in ScriptableList(node.arguments)) {
+                if (arg.type == Token.STRING) exported.push(arg.value);
+            }
+        }
+        // check for Object.defineProperty(foo, bar, {})
+        if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
+            var getprop = node.target;
+            if (getprop.target.type == Token.NAME && getprop.target.string == "Object"
+                    && getprop.property.string == "defineProperty") {
+                var args = ScriptableList(node.arguments);
+                var propname = nodeToString(args[0]) + "." + nodeToString(args[1]);
+                log.info("Object.defineProperty: " + propname + ": " + ScriptableList(args[2].elements)[0].left.jsDoc);
+            }
+        }
+        // exported function
+        if (node.type == Token.FUNCTION && exported.contains(node.name)) {
+            log.info("found exported function " + node.name + ": " + node.jsDoc);
+            exportedFunction = node;
+            exportedName = node.name;
+        }
+        // var foo = exports.foo = bar
+        if (node.type == Token.VAR || node.type == Token.LET) {
+            for each (var n in ScriptableList(node.variables)) {
+                if (n.initializer && n.initializer.type == Token.ASSIGN)
+                    checkAssignment(n.initializer, node, exported);
+            }
+        }
+        // exports.foo = bar
+        if (node.type == Token.ASSIGN) {
+            checkAssignment(node, node, exported);
+        }
+        if (node.jsDoc) {
+            currentDoc = extractTags(node.jsDoc)
+            // log.info(getTypeName(node) + " // " + getName(node));
+            // log.info(currentDoc[0][1]);
+            jsdoc.push(currentDoc);
+        } else {
+            // log.info(getTypeName(node) + " // " + getName(node));
+            if (isName(node) && getName(node) != "exports" && currentDoc && !currentDoc.name) {
+                Object.defineProperty(currentDoc, 'name', {value: getName(node)});
+            }
+        }
+        return true;
+    });
+
+    return jsdoc;
 }
 
 /**
@@ -56,7 +171,7 @@ exports.unwrapComment = function(/**String*/comment) {
  * @param {String} comment the raw JSDoc comment
  * @return {Array} an array of tags.
  */
-exports.extractTags = function(/**String*/comment) {
+var extractTags = exports.extractTags = function(/**String*/comment) {
     if (comment.startsWith("/**")) {
         comment = exports.unwrapComment(comment);
     }
@@ -80,7 +195,7 @@ exports.extractTags = function(/**String*/comment) {
  * @param node {Object} an AST node
  * @return {Boolean} true if node is a name node
  */
-exports.isName = function(node) {
+var isName = exports.isName = function(node) {
     return node instanceof org.mozilla.javascript.ast.Name;
 }
 
@@ -90,11 +205,11 @@ exports.isName = function(node) {
  * @param node an AST node
  * @return {String} the name value of the node
  */
-exports.getName = function(node) {
+var getName = exports.getName = function(node) {
     return exports.isName(node) ? node.getString() : "";
 }
 
-exports.getTypeName = function(node) {
+var getTypeName = exports.getTypeName = function(node) {
     return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
 }
 
@@ -105,10 +220,3 @@ exports.getTypeName = function(node) {
  */
 exports.Token = org.mozilla.javascript.Token
 
-function getParser() {
-    var ce = new CompilerEnvirons();
-    ce.setRecordingComments(true);
-    ce.setRecordingLocalJsDocComments(true)
-    ce.initFromContext(Context.getCurrentContext());
-    return new Parser(ce, null);
-}
