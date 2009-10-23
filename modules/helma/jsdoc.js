@@ -8,7 +8,7 @@ importPackage(org.helma.repository);
 var log = require('helma/logging').getLogger(module.id);
 
 var standardObjects = [
-    'Object', 'String', 'Date', 'Number', 'RegExp', 'Boolean'
+    'Array', 'Object', 'String', 'Date', 'Number', 'RegExp', 'Boolean'
 ]
 
 /**
