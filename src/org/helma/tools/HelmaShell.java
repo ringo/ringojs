@@ -73,7 +73,7 @@ public class HelmaShell {
             reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
         }
         reader.addCompletor(new JSCompletor());
-        File historyFile = new File(config.getHelmaHome().getPath(), ".history");
+        File historyFile = new File(System.getProperty("user.home"), ".helma-history");
         reader.setHistory(new History(historyFile));
         PrintWriter out = new PrintWriter(System.out);
         int lineno = 0;
