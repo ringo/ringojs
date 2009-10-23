@@ -5,7 +5,7 @@
 
 <% subskin jsdoc %>
 <h3><% item.name %></h3>
-<% for doctag in <%item%> render doctag %>
+<% for doctag in <% item.jsdoc %> render doctag %>
 
 <% subskin doctag %>
 <div> <span style="color: green;"><% doctag.0 %></span>: <%doctag.1%></div>

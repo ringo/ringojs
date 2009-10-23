@@ -7,6 +7,10 @@ importPackage(org.helma.repository);
 
 var log = require('helma/logging').getLogger(module.id);
 
+var standardObjects = [
+    'Object', 'String', 'Date', 'Number', 'RegExp', 'Boolean'
+]
+
 /**
  * Create a script repository for the given path
  * @param path {String} the base path
@@ -45,9 +49,9 @@ function ScriptRepository(path) {
 exports.parseResource = function(resource) {
     var exportedFunction;
     var exportedName;
-    var currentDoc;
     var exported = [];
-    var jsdoc = [];
+    var jsdocs = [];
+    var seen = {};
     
     var checkAssignment = function(node, root, exported) {
         if (node.type == Token.ASSIGN) {
@@ -56,7 +60,7 @@ exports.parseResource = function(resource) {
                 var name = node.left.property.string;
                 var propname = nodeToString(node.left);
                 if (propname.startsWith('exports.') && !exported.contains(name)) {
-                    log.info(propname + ": " + root.jsDoc);
+                    addDocItem(name, root.jsDoc);
                     exported.push(name);
                     if (node.right.type == Token.FUNCTION) {
                         exportedFunction = node.right;
@@ -66,13 +70,13 @@ exports.parseResource = function(resource) {
                 } else if (target.type == Token.THIS) {
                     if (root.parent && root.parent.parent && root.parent.parent.parent
                             &&  root.parent.parent.parent == exportedFunction) {
-                        log.info(exportedName + ".instance." + name + ": " + root.jsDoc);
+                        addDocItem(exportedName + ".instance." + name, root.jsDoc);
                         /* if (node.right.type == Token.FUNCTION) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
                          } */
                     } else if (exported.contains(name)) {
-                        log.info("found expo this " + name + " --> " + root.jsDoc);
+                        addDocItem(name, root.jsDoc);
                     }
                 }
             } else if (node.left.type == Token.GETELEM
@@ -80,20 +84,15 @@ exports.parseResource = function(resource) {
                     && node.left.target.string == "exports"
                     && node.left.element.type == Token.STRING) {
                 // exports["foo"] = bar
-                log.info(node.left.element.value + ": " + root.jsDoc);
+                addDocItem(node.left.element.value, root.jsDoc);
             }
         }
     };
 
-    var nodeToString = function(node) {
-        if (node.type == Token.GETPROP) {
-            return [nodeToString(node.target), node.property.string].join('.');
-        } else if (node.type == Token.NAME) {
-            return node.string;
-        } else if (node.type == Token.STRING) {
-            return node.value;
-        } else {
-            return getTypeName(node);
+    var addDocItem = function(name, jsdoc) {
+        if (!seen[name]) {
+            jsdocs.push({name: name, jsdoc: jsdoc ? extractTags(jsdoc) : {}});
+            seen[name] = true;
         }
     };
 
@@ -119,42 +118,44 @@ exports.parseResource = function(resource) {
             if (getprop.target.type == Token.NAME && getprop.target.string == "Object"
                     && getprop.property.string == "defineProperty") {
                 var args = ScriptableList(node.arguments);
-                var propname = nodeToString(args[0]) + "." + nodeToString(args[1]);
-                log.info("Object.defineProperty: " + propname + ": " + ScriptableList(args[2].elements)[0].left.jsDoc);
+                var target = nodeToString(args[0]).split('.');
+                // rhino puts jsdoc on the first name of the third argument object literal (property descriptor)
+                var jsdoc = args[2].elements.get(0).left.jsDoc;
+                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                    target.push(nodeToString(args[1]));
+                    addDocItem(target.join('.'), jsdoc);
+                } else if (target[0] == 'this' && exportedFunction != null) {
+                    target[0] = exportedName;
+                    target.push('instance', nodeToString(args[1]));
+                    addDocItem(target.join('.'), jsdoc);
+                }
             }
         }
         // exported function
         if (node.type == Token.FUNCTION && exported.contains(node.name)) {
-            log.info("found exported function " + node.name + ": " + node.jsDoc);
+            addDocItem(node.name, node.jsDoc);
             exportedFunction = node;
             exportedName = node.name;
         }
         // var foo = exports.foo = bar
         if (node.type == Token.VAR || node.type == Token.LET) {
             for each (var n in ScriptableList(node.variables)) {
-                if (n.initializer && n.initializer.type == Token.ASSIGN)
+                if (n.target.type == Token.NAME && exported.contains(n.target.string)) {
+                    addDocItem(n.target.string,  node.jsDoc);
+                } else if (n.initializer && n.initializer.type == Token.ASSIGN) {
                     checkAssignment(n.initializer, node, exported);
+                }
             }
         }
         // exports.foo = bar
         if (node.type == Token.ASSIGN) {
             checkAssignment(node, node, exported);
         }
-        if (node.jsDoc) {
-            currentDoc = extractTags(node.jsDoc)
-            // log.info(getTypeName(node) + " // " + getName(node));
-            // log.info(currentDoc[0][1]);
-            jsdoc.push(currentDoc);
-        } else {
-            // log.info(getTypeName(node) + " // " + getName(node));
-            if (isName(node) && getName(node) != "exports" && currentDoc && !currentDoc.name) {
-                Object.defineProperty(currentDoc, 'name', {value: getName(node)});
-            }
-        }
+
         return true;
     });
 
-    return jsdoc;
+    return jsdocs;
 }
 
 /**
@@ -212,6 +213,20 @@ var getName = exports.getName = function(node) {
 var getTypeName = exports.getTypeName = function(node) {
     return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
 }
+
+var nodeToString = function(node) {
+    if (node.type == Token.GETPROP) {
+        return [nodeToString(node.target), node.property.string].join('.');
+    } else if (node.type == Token.NAME) {
+        return node.string;
+    } else if (node.type == Token.STRING) {
+        return node.value;
+    } else if (node.type == Token.THIS) {
+        return "this";
+    } else {
+        return getTypeName(node);
+    }
+};
 
 /**
  * Export org.mozilla.javascript.Token to allow for easy type checking on AST nodes:
