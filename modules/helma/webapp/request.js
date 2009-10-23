@@ -6,7 +6,7 @@ include('./fileupload');
 importClass(org.mozilla.javascript.Context);
 importClass(org.mozilla.javascript.Scriptable);
 
-export('Request');
+export('Request', 'Session');
 
 // var log = require('helma/logging').getLogger(module.id);
 module.shared = true;
@@ -14,26 +14,25 @@ module.shared = true;
 function Request(env) {
 
     var params, cookies, session, headers;
-    var define = bindArguments(Object.defineProperty, this);
     var servletRequest = env["jsgi.servlet_request"];
 
-    define("env", {value: env});
-    define("contentType", {value: env.CONTENT_TYPE});
-    define("contentLength", {value: env.CONTENT_LENGTH});
-    define("servletRequest", {get: function() servletRequest});
-    define("charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
-    define("port", readOnlyPropertyDesc(servletRequest, "port"));
-    define("path", readOnlyPropertyDesc(servletRequest, "requestURI"));
-    define("pathInfo", {value: env.PATH_INFO});
-    define("scriptName", {value: env.SCRIPT_NAME});
-    define("queryString", {value: env.QUERY_STRING});
-    define("method", {value: env.REQUEST_METHOD});
+    Object.defineProperty(this, "env", {value: env});
+    Object.defineProperty(this, "contentType", {value: env.CONTENT_TYPE});
+    Object.defineProperty(this, "contentLength", {value: env.CONTENT_LENGTH});
+    Object.defineProperty(this, "servletRequest", {get: function() servletRequest});
+    Object.defineProperty(this, "charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
+    Object.defineProperty(this, "port", readOnlyPropertyDesc(servletRequest, "port"));
+    Object.defineProperty(this, "path", readOnlyPropertyDesc(servletRequest, "requestURI"));
+    Object.defineProperty(this, "pathInfo", {value: env.PATH_INFO});
+    Object.defineProperty(this, "scriptName", {value: env.SCRIPT_NAME});
+    Object.defineProperty(this, "queryString", {value: env.QUERY_STRING});
+    Object.defineProperty(this, "method", {value: env.REQUEST_METHOD});
 
-    define("pathDecoded", {
+    Object.defineProperty(this, "pathDecoded", {
         get: function() { return decodeURI(this.path) }
     });
 
-    define("params", {
+    Object.defineProperty(this, "params", {
         get: function() {
             if (!params) {
                 params = {};
@@ -51,7 +50,7 @@ function Request(env) {
         }
     });
 
-    define("cookies", {
+    Object.defineProperty(this, "cookies", {
         get: function() {
             if (!cookies) {
                 cookies = new ScriptableMap();
@@ -65,7 +64,7 @@ function Request(env) {
         }
     });
 
-    define("session", {
+    Object.defineProperty(this, "session", {
         get: function() {
             if (!session)
                 session = new Session(servletRequest);
@@ -73,7 +72,7 @@ function Request(env) {
         }
     });
 
-    define("headers", {
+    Object.defineProperty(this, "headers", {
         get: function() {
             if (!headers) {
                 headers = new ScriptableMap();
@@ -87,13 +86,13 @@ function Request(env) {
         }
     });
 
-    define("getHeader", {
+    Object.defineProperty(this, "getHeader", {
         value: function getHeader(name) {
             return servletRequest.getHeader(name);
         }
     });
 
-    define("getHeaders", {
+    Object.defineProperty(this, "getHeaders", {
         value: function getHeaders(name) {
             var headers = [];
             var servletHeaders = servletRequest.getHeaders(name);
@@ -103,7 +102,7 @@ function Request(env) {
         }
     });
 
-    define("checkTrailingSlash", {
+    Object.defineProperty(this, "checkTrailingSlash", {
         value: function checkTrailingSlash() {
             // only redirect for GET requests
             if (!this.path.endsWith("/") && this.isGet) {
@@ -124,7 +123,7 @@ function Session(servletRequest) {
         return servletRequest.getSession();
     }
 
-    define("data", {
+    Object.defineProperty(this, "data", {
         get: function() {
             if (!data) {
                 // session.data is a JavaAdapter that directly proxies property access
@@ -142,7 +141,7 @@ function Session(servletRequest) {
         }
     });
 
-    define("isNew", {
+    Object.defineProperty(this, "isNew", {
         get: function() {
             getSession().isNew();
         }
@@ -159,7 +158,7 @@ function Cookie(servletCookie) {
         return servletCookie;
     }
 
-    define("name", {
+    Object.defineProperty(this, "name", {
         get: function() {
             if (!name)
                 name = getCookie().getName();
@@ -175,7 +174,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("value", {
+    Object.defineProperty(this, "value", {
         get: function() {
             if (!value)
                 value = getCookie().getValue();
@@ -191,7 +190,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("domain", {
+    Object.defineProperty(this, "domain", {
         get: function() {
             if (!domain)
                 domain = getCookie().getDomain();
@@ -207,7 +206,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("path", {
+    Object.defineProperty(this, "path", {
         get: function() {
             if (!path)
                 path = getCookie().getPath();
@@ -223,7 +222,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("maxAge", {
+    Object.defineProperty(this, "maxAge", {
         get: function() {
             if (!maxAge)
                 maxAge = getCookie().getMaxAge();
@@ -239,7 +238,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("comment", {
+    Object.defineProperty(this, "comment", {
         get: function() {
             if (!comment)
                 comment = getCookie().getComment();
@@ -255,7 +254,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("isSecure", {
+    Object.defineProperty(this, "isSecure", {
         get: function() {
             if (!isSecure)
                 isSecure = getCookie().getSecure();
@@ -271,7 +270,7 @@ function Cookie(servletCookie) {
         }
     });
 
-    define("version", {
+    Object.defineProperty(this, "version", {
         get: function() {
             if (!version)
                 version = getCookie().getVersion();
@@ -288,24 +287,22 @@ function Cookie(servletCookie) {
     });
 }
 
-var defineRequestProperty = bindArguments(Object.defineProperty, Request.prototype);
-
-defineRequestProperty("isGet", {
+Object.defineProperty(Request.prototype, "isGet", {
     get: function() { return this.method == "GET"; }
 })
 
-defineRequestProperty("isPost", {
+Object.defineProperty(Request.prototype, "isPost", {
     get: function() { return this.method == "POST"; }
 })
 
-defineRequestProperty("isPut", {
+Object.defineProperty(Request.prototype, "isPut", {
     get: function() { return this.method == "PUT"; }
 })
 
-defineRequestProperty("isDelete", {
+Object.defineProperty(Request.prototype, "isDelete", {
     get: function() { return this.method == "DELETE"; }
 })
 
-defineRequestProperty("isHead", {
+Object.defineProperty(Request.prototype, "isHead", {
     get: function() { return this.method == "HEAD"; }
 })
