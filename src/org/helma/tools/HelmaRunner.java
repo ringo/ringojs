@@ -45,6 +45,7 @@ public class HelmaRunner {
     String scriptName = null;
     String[] scriptArgs = new String[0];
     String expr = null;
+    File history = null;
     boolean runShell = false;
     boolean debug = false;
     boolean silent = false;
@@ -55,10 +56,11 @@ public class HelmaRunner {
         {"d", "debug", "Print stack traces for shell errors", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
+        {"H", "history", "Use custom history file (default: ~/.helma-history)", "PATH"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
-        {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""}
+        {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
     };
 
     public HelmaRunner() {
@@ -129,7 +131,7 @@ public class HelmaRunner {
                         // System.console() isn't available before Java 6
                     }
                 }
-                new HelmaShell(config, engine, debug, silent).run();
+                new HelmaShell(config, engine, history, debug, silent).run();
             }
         } catch (Exception x) {
             reportError(x, err, debug);
@@ -262,7 +264,8 @@ public class HelmaRunner {
     private int parseLongOption(String opt, String nextArg) {
         String[] def = null;
         for (String[] d : options) {
-            if (opt.startsWith(d[1])) {
+            if (opt.equals(d[1]) || (opt.startsWith(d[1])
+                                 && opt.charAt(d[1].length()) == '=')) {
                 def = d;
                 break;
             }
@@ -308,6 +311,8 @@ public class HelmaRunner {
             if (optlevel < -1 || optlevel > 9) {
                 rangeError(option);
             }
+        } else if ("history".equals(option)) {
+            history = new File(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RhinoSecurityManager());

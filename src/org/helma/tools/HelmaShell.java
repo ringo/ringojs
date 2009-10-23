@@ -44,13 +44,15 @@ public class HelmaShell {
     Scriptable scope;
     boolean debug;
     boolean silent;
+    File history;
     CodeSource codeSource = null;
 
     public HelmaShell(HelmaConfiguration config, RhinoEngine engine,
-                      boolean debug, boolean silent)
+                      File history, boolean debug, boolean silent)
             throws IOException {
         this.config = config;
         this.engine = engine;
+        this.history = history;
     	this.scope = engine.getShellScope();
         this.debug = debug;
         this.silent = silent;
@@ -73,8 +75,10 @@ public class HelmaShell {
             reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
         }
         reader.addCompletor(new JSCompletor());
-        File historyFile = new File(System.getProperty("user.home"), ".helma-history");
-        reader.setHistory(new History(historyFile));
+        if (history == null) {
+            history = new File(System.getProperty("user.home"), ".helma-history");
+        }
+        reader.setHistory(new History(history));
         PrintWriter out = new PrintWriter(System.out);
         int lineno = 0;
         repl: while (true) {
