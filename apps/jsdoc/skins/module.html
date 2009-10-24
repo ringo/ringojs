@@ -1,6 +1,7 @@
 <% extends skins/base.html %>
 
 <% subskin content %>
+<% for doctag in <% jsdoc.fileoverview %> render doctag %>
 <% for item in <% jsdoc %> render jsdoc %>
 
 <% subskin jsdoc %>

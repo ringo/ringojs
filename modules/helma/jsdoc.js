@@ -101,6 +101,12 @@ exports.parseResource = function(resource) {
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
                 if (comment.commentType == Token.CommentType.JSDOC) {
+                    if (/@fileoverview\s/.test(comment.value)) {
+                        Object.defineProperty(jsdocs, "fileoverview", {
+                            value: extractTags(comment.value)
+                        });
+                        break;
+                    }
                     // check for top level module doc
                     // log.info("found jsdoc comment: " + comment.value);
                 }
