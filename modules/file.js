@@ -83,6 +83,7 @@ function write(path, content, options) {
     var stream = open(path, mode, options);
     try {
         stream.write(content);
+        stream.flush();
     } finally {
         stream.close();
     }
