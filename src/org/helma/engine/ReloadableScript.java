@@ -205,7 +205,7 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected synchronized ModuleScope load(Scriptable prototype, Context cx)
+    protected ModuleScope load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
         Map<Trackable,ModuleScope> modules =
@@ -213,39 +213,41 @@ public class ReloadableScript {
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
-        Script script = getScript(cx);
-        ModuleScope module = moduleScope;
-        if (module != null) {
-            // Reuse cached scope for shared modules.
-            if (module.getChecksum() == getChecksum()) {
-                modules.put(source, module);
-                return module;
+        synchronized (this) {
+            Script script = getScript(cx);
+            ModuleScope module = moduleScope;
+            if (module != null) {
+                // Reuse cached scope for shared modules.
+                if (module.getChecksum() == getChecksum()) {
+                    modules.put(source, module);
+                    return module;
+                }
+                module.reset();
+            } else {
+                module = new ModuleScope(moduleName, source, prototype, cx);
             }
-            module.reset();
-        } else {
-            module = new ModuleScope(moduleName, source, prototype, cx);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Loading module: " + moduleName);
-        }
-        modules.put(source, module);
-        // warnings are disabled in shell - enable warnings for module loading
-        ToolErrorReporter reporter =
-                cx.getErrorReporter() instanceof ToolErrorReporter ?
-                (ToolErrorReporter) cx.getErrorReporter() : null;
-        if (reporter != null && !reporter.isReportingWarnings()) {
-            try {
-                reporter.setIsReportingWarnings(true);
+            if (log.isDebugEnabled()) {
+                log.debug("Loading module: " + moduleName);
+            }
+            modules.put(source, module);
+            // warnings are disabled in shell - enable warnings for module loading
+            ToolErrorReporter reporter =
+                    cx.getErrorReporter() instanceof ToolErrorReporter ?
+                            (ToolErrorReporter) cx.getErrorReporter() : null;
+            if (reporter != null && !reporter.isReportingWarnings()) {
+                try {
+                    reporter.setIsReportingWarnings(true);
+                    script.exec(cx, module);
+                } finally {
+                    reporter.setIsReportingWarnings(false);
+                }
+            } else {
                 script.exec(cx, module);
-            } finally {
-                reporter.setIsReportingWarnings(false);
             }
-        } else {
-            script.exec(cx, module);
+            checkShared(module);
+            module.setChecksum(getChecksum());
+            return module;
         }
-        checkShared(module);
-        module.setChecksum(getChecksum());
-        return module;
     }
 
     /**
