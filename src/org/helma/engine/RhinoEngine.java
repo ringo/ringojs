@@ -19,10 +19,12 @@ package org.helma.engine;
 import org.apache.log4j.Logger;
 import org.helma.repository.*;
 import org.helma.tools.HelmaConfiguration;
+import org.helma.tools.HelmaDebugger;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.helma.util.*;
 import org.helma.wrappers.*;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.tools.debugger.ScopeProvider;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
 import org.mozilla.javascript.serialize.ScriptableInputStream;
 
@@ -38,7 +40,7 @@ import java.util.*;
  *
  * @author Hannes Wallnoefer <hannes@helma.at>
  */
-public class RhinoEngine {
+public class RhinoEngine implements ScopeProvider {
 
     private HelmaConfiguration config;
     private List<Repository> repositories;
@@ -65,6 +67,7 @@ public class RhinoEngine {
      * and defines the given classes as native host objects.
      * @param config the configuration used to initialize the engine.
      * @param globals an optional map of predefined global properties
+     * @throws Exception if the engine can't be created
      */
     public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals)
             throws Exception {
@@ -76,6 +79,12 @@ public class RhinoEngine {
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
+        }
+        if (config.getDebug()) {
+            HelmaDebugger debugger = new HelmaDebugger(config);
+            debugger.setScopeProvider(this);
+            debugger.attachTo(contextFactory);
+            debugger.setBreak();
         }
         // create a new global scope level
         Context cx = contextFactory.enterContext();
@@ -315,6 +324,14 @@ public class RhinoEngine {
     }
 
     /**
+     * Provide the scope for the debugger
+     * @return our top level scope
+     */
+    public Scriptable getScope() {
+        return topLevelScope;
+    }
+
+    /**
      * Initialize and normalize the global variables and arguments on a thread scope.
      * @param args the arguments
      */
@@ -419,6 +436,14 @@ public class RhinoEngine {
         return script;
     }
 
+    /**
+     * Evaluate a script within a given scope.
+     * @param cx the current context
+     * @param script the script
+     * @param scope the scope
+     * @return the value returned by the script
+     * @throws IOException an I/O related error occurred
+     */
     protected Object evaluateScript(Context cx, ReloadableScript script, Scriptable scope)
             throws IOException {
         Object result;

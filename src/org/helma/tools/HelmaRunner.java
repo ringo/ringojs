@@ -48,12 +48,13 @@ public class HelmaRunner {
     File history = null;
     boolean runShell = false;
     boolean debug = false;
+    boolean verbose = false;
     boolean silent = false;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
-        {"d", "debug", "Print stack traces for shell errors", ""},
+        {"d", "debug", "Run with debugger GUI", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
         {"H", "history", "Use custom history file (default: ~/.helma-history)", "FILE"},
@@ -61,6 +62,8 @@ public class HelmaRunner {
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
+        {"v", "verbose", "Verbose mode: print Java stack traces", ""},
+        {"V", "version", "Print version number and exit", ""},
     };
 
     public HelmaRunner() {
@@ -103,9 +106,10 @@ public class HelmaRunner {
             config.setArguments(scriptArgs);
             config.setOptLevel(optlevel);
             config.setBootstrapScripts(bootScripts);
+            config.setDebug(debug);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            reportError(x, err, debug);
+            reportError(x, err, verbose);
         }
     }
 
@@ -131,10 +135,10 @@ public class HelmaRunner {
                         // System.console() isn't available before Java 6
                     }
                 }
-                new HelmaShell(config, engine, history, debug, silent).run();
+                new HelmaShell(config, engine, history, verbose, silent).run();
             }
         } catch (Exception x) {
-            reportError(x, err, debug);
+            reportError(x, err, verbose);
             System.exit(-1);
         }
     }
@@ -154,7 +158,7 @@ public class HelmaRunner {
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, err, debug);
+            reportError(x, err, verbose);
             System.exit(-1);
         }
     }
@@ -166,7 +170,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, debug);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
@@ -180,7 +184,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, debug);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
@@ -193,7 +197,7 @@ public class HelmaRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, debug);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
@@ -322,6 +326,11 @@ public class HelmaRunner {
             expr = arg;
         } else if ("silent".equals(option)) {
             silent = runShell = true;
+        } else if ("verbose".equals(option)) {
+            verbose = true;
+        } else if ("version".equals(option)) {
+            printVersion();
+            System.exit(0);
         }
     }
 
@@ -343,7 +352,7 @@ public class HelmaRunner {
         System.exit(code);
     }
 
-    public static void reportError(Exception x, PrintStream output, boolean debug) {
+    public static void reportError(Throwable x, PrintStream output, boolean debug) {
         if (x instanceof RhinoException) {
             output.println(x.getMessage());
         } else {
@@ -373,4 +382,10 @@ public class HelmaRunner {
             formatter.format("  %1$-22s %2$s%n", def, opt[2]);
         }
     }
+
+    public static void printVersion() {
+        out.print("Helma NG version ");
+        out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1));
+    }
+
 }

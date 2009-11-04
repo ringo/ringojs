@@ -43,6 +43,7 @@ public class HelmaConfiguration {
     private Resource mainResource;
     private String[] arguments;
     private int optimizationLevel = 0;
+    private boolean debug = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
@@ -285,6 +286,17 @@ public class HelmaConfiguration {
      */
     public void setOptLevel(int optlevel) {
         this.optimizationLevel = optlevel;
+    }
+
+    public boolean getDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+        if (debug) {
+            setOptLevel(-1);
+        }
     }
 
     /**

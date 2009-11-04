@@ -23,6 +23,7 @@ import org.helma.engine.ModuleScope;
 import org.helma.engine.RhinoEngine;
 import org.helma.repository.Repository;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.debug.Debugger;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.io.*;
@@ -42,19 +43,19 @@ public class HelmaShell {
     HelmaConfiguration config;
     RhinoEngine engine;
     Scriptable scope;
-    boolean debug;
+    boolean verbose;
     boolean silent;
     File history;
     CodeSource codeSource = null;
 
     public HelmaShell(HelmaConfiguration config, RhinoEngine engine,
-                      File history, boolean debug, boolean silent)
+                      File history, boolean verbose, boolean silent)
             throws IOException {
         this.config = config;
         this.engine = engine;
         this.history = history;
     	this.scope = engine.getShellScope();
-        this.debug = debug;
+        this.verbose = verbose;
         this.silent = silent;
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
@@ -71,9 +72,7 @@ public class HelmaShell {
         }
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
-        if (debug) {
-            reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
-        }
+        // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
         reader.addCompletor(new JSCompletor());
         if (history == null) {
             history = new File(System.getProperty("user.home"), ".helma-history");
@@ -97,8 +96,9 @@ public class HelmaShell {
                 }
                 source = source + newline + "\n";
                 lineno++;
-                if (cx.stringIsCompilableUnit(source))
+                if (cx.stringIsCompilableUnit(source)) {
                     break;
+                }
                 prompt = "     > ";
             }
             try {
@@ -110,7 +110,7 @@ public class HelmaShell {
                 out.flush();
                 lineno++;
             } catch (Exception ex) {
-                HelmaRunner.reportError(ex, System.out, debug);
+                HelmaRunner.reportError(ex, System.out, verbose);
             } finally {
                 Context.exit();
             }
@@ -141,7 +141,7 @@ public class HelmaShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                HelmaRunner.reportError(ex, System.err, debug);
+                HelmaRunner.reportError(ex, System.err, verbose);
             } finally {
                 Context.exit();
             }
