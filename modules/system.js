@@ -1,13 +1,34 @@
-include('io');
+var io = require('io');
 
-export('print', 'stdin', 'stdout', 'stderr', 'args', 'env');
+/**
+ * An io.TextStream to read from stdin.
+ */
+exports.stdin = new io.TextStream(new io.Stream(java.lang.System['in']));
 
-var print = global.print;
 
-var stdin = new TextStream(new Stream(java.lang.System['in']));
-var stdout = new TextStream(new Stream(java.lang.System.out));
-var stderr = new TextStream(new Stream(java.lang.System.err));
+/**
+ * An io.TextStream to write to stdout.
+ */
+exports.stdout = new io.TextStream(new io.Stream(java.lang.System.out));
 
-var args = global.arguments || [];
+/**
+ * An io.TextStream to write to stderr.
+ */
+exports.stderr = new io.TextStream(new io.Stream(java.lang.System.err));
 
-var env = new ScriptableMap(java.lang.System.getenv());
+/**
+ * A utility function to write to stdout.
+ */
+exports.print = function() {
+    exports.stdout.print.apply(exports.stdout, arguments);
+}
+
+/**
+ * An array of strings representing the command line arguments passed to the running script.
+ */
+exports.args = global.arguments || [];
+
+/**
+ * An object containing our environment variables.
+ */
+exports.env = new ScriptableMap(java.lang.System.getenv());

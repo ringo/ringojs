@@ -6,41 +6,6 @@ Object.defineProperty(this, "global", { value: this });
 
 (function() {
 
-    var out = java.lang.System.out;
-    const engine = org.mozilla.javascript.Context.getCurrentContext().getThreadLocal("engine");
-
-    /**
-     * Load a module and return its module scope.
-     * @param {String} moduleName the module name
-     * @return {Object} the module scope
-     */
-    Object.defineProperty(this, "require", {
-        value: function(moduleName) {
-            var module = engine.loadModule(moduleName, this);
-            var exports = module.exports;
-            if (!exports || typeof exports != "object") {
-                // should never happen with helma modules
-                exports = {};
-                Object.defineProperty(module, "exports", { value: exports });
-            }
-            return exports; 
-        }
-    });
-
-    defineClass(org.helma.wrappers.ModulePath);
-    Object.defineProperty(this.require, "paths", {
-        value: new ModulePath(engine.getRepositories())
-    });
-
-
-    Object.defineProperty(this.require, "main", {
-        value: engine.getMainModule()
-    })
-
-    Object.defineProperty(this, "arguments", {
-        value: Array.apply(null, engine.getArguments())
-    });
-
     /**
      * Import a module and set the module scope in the calling scope, using the
      * module's name as property name or path.
@@ -102,53 +67,15 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
-    /**
-     * Get a resource from the app's module search path.
-     * @param resourceName
-     */
-    Object.defineProperty(this, "getResource", {
-        value: function(resourceName) {
-            return engine.findResource(resourceName, engine.getParentRepository(this));
-        }
-    });
-
-    /**
-     * Add a java resource to our classpath if it isn't already contained.
-     * @param resourcePath the resource path
-     */
-    Object.defineProperty(this, "addToClasspath", {
-        value: function(resourcePath) {
-            var resource = this.getResource(resourcePath);
-            engine.addToClasspath(resource);
-        }
-    });
-
-    /**
-     * Get all resources with the given path prefix in the app's module search path
-     * @param resourcePath
-     * @param nested
-     */
-    Object.defineProperty(this, "getResources", {
-        value: function(resourcePath, nested) {
-            return new ScriptableList(engine.findResources(resourcePath, Boolean(nested)));
-        }
+    Object.defineProperty(this, "system", {
+        value: require('system')
     });
 
     /**
      * Basic print function compatible with other JavaScript implementations.
      */
     Object.defineProperty(this, "print", {
-        value: function() {
-            for (var i = 0; i < arguments.length; i++) {
-                out.print(String(arguments[i]));
-                if (i < arguments.length) {
-                    out.print(' ');
-                }
-            }
-            out.println();
-        }
+        value: system.print
     });
 
 })(global);
-
-global.system = require('system');

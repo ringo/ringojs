@@ -1,16 +1,20 @@
-include('binary');
+require('binary');
 
 defineClass(org.helma.wrappers.Stream);
-export('Stream', 'TextStream');
+exports.Stream = Stream;
 
-importClass(java.io.InputStreamReader, 
-            java.io.BufferedReader,
-            java.io.OutputStreamWriter,
-            java.io.BufferedWriter);
+var InputStreamReader = java.io.InputStreamReader,
+    BufferedReader = java.io.BufferedReader,
+    OutputStreamWriter = java.io.OutputStreamWriter,
+    BufferedWriter = java.io.BufferedWriter;
 
 module.shared = true;
 
-function TextStream(io, charset, buflen) {
+exports.TextStream = function TextStream(io, charset, buflen) {
+    if (this.constructor !== exports.TextStream) {
+        return new exports.TextStream(io, charset, buflen);
+    }
+
     var reader, writer;
 
     if (io.readable()) {
@@ -112,7 +116,13 @@ function TextStream(io, charset, buflen) {
     };
 
     this.print = function () {
-        this.write(Array.prototype.join.call(arguments, " ") + "\n");
+        for (var i = 0; i < arguments.length; i++) {
+            this.write(String(arguments[i]));
+            if (i < arguments.length - 1) {
+                this.write(' ');
+            }
+        }
+        this.write('\n');
         this.flush();
         // todo recordSeparator, fieldSeparator
         return this;

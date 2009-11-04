@@ -16,23 +16,30 @@
 
 package org.helma.engine;
 
+import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
+import org.helma.wrappers.ModulePath;
+import org.helma.repository.Resource;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.io.IOException;
 
 public class HelmaGlobal extends Global {
-    public HelmaGlobal(Context cx) {
-        init(cx);
+
+    protected HelmaGlobal() {}
+
+    public HelmaGlobal(Context cx, RhinoEngine engine, boolean sealed) {
+        init(cx, engine, sealed);
     }
 
-    public void init(Context cx) {
+    public void init(Context cx, RhinoEngine engine, boolean sealed) {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
-        initStandardObjects(cx, false);
+        initStandardObjects(cx, sealed);
         String[] names = {
-            "defineClass",
             "doctest",
             "gc",
             "load",
@@ -51,11 +58,85 @@ public class HelmaGlobal extends Global {
         defineFunctionProperties(names, Global.class,
                                  ScriptableObject.DONTENUM);
         names = new String[] {
+            "defineClass",
+            "require",
+            "getResource",
+            "addToClasspath",
             "privileged",
             "trycatch"
         };
         defineFunctionProperties(names, HelmaGlobal.class,
                                  ScriptableObject.DONTENUM);
+
+        ScriptableObject require = (ScriptableObject) get("require", this);
+        require.defineProperty("main", engine.getMainModule(),
+                DONTENUM | PERMANENT | READONLY);
+        require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
+                DONTENUM | PERMANENT | READONLY);
+        defineProperty("arguments", cx.newArray(this, engine.getArguments()), DONTENUM);
+    }
+
+    public static void defineClass(final Context cx, Scriptable thisObj,
+                                     Object[] args, Function funObj)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        ScriptUtils.checkArguments(args, 1, 1);
+        Object arg = args[0] instanceof Wrapper ? ((Wrapper) args[0]).unwrap() : args[0];
+        if (!(arg instanceof Class)) {
+            throw Context.reportRuntimeError("defineClass() requires a class argument");
+        }
+        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        engine.defineHostClass((Class) arg);
+    }
+
+    public static Object require(final Context cx, Scriptable thisObj,
+                                 Object[] args, Function funObj) {
+        if (args.length != 1 || !(args[0] instanceof String)) {
+            throw Context.reportRuntimeError("require() requires a string argument");
+        }
+        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
+                (ModuleScope) thisObj : null;
+        try {
+            ModuleScope module = engine.loadModule(cx, (String) args[0], moduleScope);
+            return module.getExports();
+        } catch (IOException iox) {
+            throw new WrappedException(iox);
+        }
+    }
+
+    public static Object getResource(final Context cx, Scriptable thisObj, Object[] args,
+                                     Function funObj) {
+        if (args.length != 1 || !(args[0] instanceof String)) {
+            throw Context.reportRuntimeError("getResource() requires a string argument");
+        }
+        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
+                (ModuleScope) thisObj : null;
+        try {
+            Resource res = engine.findResource((String) args[0],
+                    engine.getParentRepository(moduleScope));
+            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getTopLevelScope(), res, null);
+        } catch (IOException iox) {
+            throw new WrappedException(iox);
+        }
+    }
+
+    public static Object addToClasspath(final Context cx, Scriptable thisObj, Object[] args,
+                                        Function funObj) {
+        if (args.length != 1 || !(args[0] instanceof String)) {
+            throw Context.reportRuntimeError("addToClasspath() requires a string argument");
+        }
+        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
+                (ModuleScope) thisObj : null;
+        try {
+            Resource res = engine.findResource((String) args[0],
+                    engine.getParentRepository(moduleScope));
+            engine.addToClasspath(res);
+            return res.exists() ? Boolean.TRUE : Boolean.FALSE;
+        } catch (IOException iox) {
+            throw new WrappedException(iox);
+        }
     }
 
     public static Object privileged(final Context cx, Scriptable thisObj, Object[] args,

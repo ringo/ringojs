@@ -1,5 +1,5 @@
 /**
- * <p>This module provides implementations of the Binary/ByteArray/ByteString
+ * @fileoverview <p>This module provides implementations of the Binary/ByteArray/ByteString
  * classes defined in the <a href="http://wiki.commonjs.org/wiki/Binary/B">Binary/B proposal</a>.
  *
  * <p>The JavaScript Binary class serves as common base class for ByteArray and ByteString
@@ -13,7 +13,9 @@
  */
 
 defineClass(org.helma.wrappers.Binary);
-export('Binary', 'ByteArray', 'ByteString');
+exports.Binary = Binary;
+exports.ByteArray = ByteArray;
+exports.ByteString = ByteString;
 
 module.shared = true;
 

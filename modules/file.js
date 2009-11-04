@@ -2,13 +2,9 @@ include('io');
 include('binary');
 require('core/array');
 
-try {
-    importClass(java.io.File,
-                java.io.FileInputStream,
-                java.io.FileOutputStream);
-} catch (error) {
-    print("file support not available: " + error);
-}
+var File = java.io.File,
+    FileInputStream = java.io.FileInputStream,
+    FileOutputStream = java.io.FileOutputStream;
 
 export('absolute',
        'basename',

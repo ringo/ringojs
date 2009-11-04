@@ -90,7 +90,8 @@ public class RhinoEngine implements ScopeProvider {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals(cx);
         try {
-            topLevelScope = new HelmaGlobal(cx);
+            boolean sealed = config.isSealed();
+            topLevelScope = new HelmaGlobal(cx, this, sealed);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
                 for (Class clazz: classes) {
@@ -100,8 +101,6 @@ public class RhinoEngine implements ScopeProvider {
             ScriptableList.init(topLevelScope);
             ScriptableMap.init(topLevelScope);
             ScriptableObject.defineClass(topLevelScope, ScriptableWrapper.class);
-            ScriptableObject.defineProperty(topLevelScope, "__name__", "global",
-                    ScriptableObject.DONTENUM);
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
                     ScriptableObject.defineProperty(topLevelScope, entry.getKey(),
@@ -116,7 +115,7 @@ public class RhinoEngine implements ScopeProvider {
                     evaluateScript(cx, new ReloadableScript(resource, this), topLevelScope);
                 }
             }
-            if (config.isSealed()) {
+            if (sealed) {
                 topLevelScope.sealObject();
             }
         } finally {
@@ -501,20 +500,28 @@ public class RhinoEngine implements ScopeProvider {
         return module;
     }
 
+    /**
+     * Get the name of the main script as module name, if any
+     * @return the main module name, or null
+     */
     public String getMainModule() {
         return config.getMainModule(null);
     }
 
-    public Scriptable getArguments() {
+    /**
+     * Get the script arguments as object array suitable for use with Context.newArray().
+     * @return the script arguments
+     */
+    public Object[] getArguments() {
         String[] args = config.getArguments();
         if (args == null) {
-            return Context.getCurrentContext().newArray(topLevelScope, 0);
+            return EMPTY_ARGS;
         } else {
             Object[] array = new Object[args.length];
             System.arraycopy(args, 0, array, 0, args.length);
-            return Context.getCurrentContext().newArray(topLevelScope, array);
+            return array;
         }
-    };
+    }
 
     /**
      * Create a sandboxed scripting engine with the same install directory as this and the
