@@ -42,7 +42,7 @@ public class ReloadableScript {
     // the script was last compiled
     long checksum = -1;
     // true if module scope is shared
-    boolean shared;
+    Shared shared;
     // the compiled script
     Script script;
     // any exception that may have been thrown during compilation.
@@ -54,6 +54,10 @@ public class ReloadableScript {
     ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
+
+    private enum Shared {
+        UNKNOWN, FALSE, TRUE
+    }
 
     private static Logger log = Logger.getLogger(ReloadableScript.class);
 
@@ -80,6 +84,7 @@ public class ReloadableScript {
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
         if (!isUpToDate()) {
+            shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
             }
@@ -213,41 +218,60 @@ public class ReloadableScript {
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
-        synchronized (this) {
-            Script script = getScript(cx);
-            ModuleScope module = moduleScope;
-            if (module != null) {
-                // Reuse cached scope for shared modules.
-                if (module.getChecksum() == getChecksum()) {
-                    modules.put(source, module);
-                    return module;
-                }
-                module.reset();
-            } else {
-                module = new ModuleScope(moduleName, source, prototype, cx);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Loading module: " + moduleName);
-            }
+        Script script = getScript(cx);
+        ModuleScope module = moduleScope;
+        if (shared == Shared.TRUE
+                && module != null
+                && module.getChecksum() == getChecksum()) {
+            // Reuse cached scope for shared modules.
             modules.put(source, module);
-            // warnings are disabled in shell - enable warnings for module loading
-            ToolErrorReporter reporter =
-                    cx.getErrorReporter() instanceof ToolErrorReporter ?
-                            (ToolErrorReporter) cx.getErrorReporter() : null;
-            if (reporter != null && !reporter.isReportingWarnings()) {
-                try {
-                    reporter.setIsReportingWarnings(true);
-                    script.exec(cx, module);
-                } finally {
-                    reporter.setIsReportingWarnings(false);
-                }
-            } else {
-                script.exec(cx, module);
-            }
-            checkShared(module);
-            module.setChecksum(getChecksum());
             return module;
         }
+
+        if (shared == Shared.UNKNOWN) {
+            module = syncedExecScript(cx, script, module, prototype, modules);
+        } else {
+            module = execScript(cx, script, module, prototype, modules);
+        }
+        return module;
+    }
+
+    private synchronized ModuleScope syncedExecScript(Context cx, Script script,
+                                                      ModuleScope module, Scriptable prototype,
+                                                      Map<Trackable,ModuleScope> modules)
+            throws IOException {
+        return execScript(cx, script, module, prototype, modules);
+    }
+
+    private ModuleScope execScript(Context cx, Script script, ModuleScope module,
+                                   Scriptable prototype, Map<Trackable,ModuleScope> modules)
+            throws IOException {
+        if (module == null) {
+            module = new ModuleScope(moduleName, source, prototype, cx);
+        } else {
+            module.reset();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Loading module: " + moduleName);
+        }
+        modules.put(source, module);
+        // warnings are disabled in shell - enable warnings for module loading
+        ToolErrorReporter reporter =
+                cx.getErrorReporter() instanceof ToolErrorReporter ?
+                        (ToolErrorReporter) cx.getErrorReporter() : null;
+        if (reporter != null && !reporter.isReportingWarnings()) {
+            try {
+                reporter.setIsReportingWarnings(true);
+                script.exec(cx, module);
+            } finally {
+                reporter.setIsReportingWarnings(false);
+            }
+        } else {
+            script.exec(cx, module);
+        }
+        checkShared(module);
+        module.setChecksum(getChecksum());
+        return module;
     }
 
     /**
@@ -255,7 +279,7 @@ public class ReloadableScript {
      * @return true of this script represents a shared module
      */
     public boolean isShared() {
-        return shared;
+        return shared == Shared.TRUE;
     }
 
     /**
@@ -265,9 +289,10 @@ public class ReloadableScript {
      */
     protected void checkShared(ModuleScope module) {
         Scriptable meta = module.getMetaObject();
-        shared = meta.get("shared", meta) == Boolean.TRUE
+        boolean isShared = meta.get("shared", meta) == Boolean.TRUE
                 || module.get("__shared__", module) == Boolean.TRUE;
-        if (shared) {
+        shared = isShared ? Shared.TRUE : Shared.FALSE;
+        if (isShared) {
             engine.registerSharedScript(source, this);
             moduleScope = module;
         } else {
@@ -295,7 +320,7 @@ public class ReloadableScript {
      */
     protected long getChecksum() throws IOException {
         long cs = checksum;
-        if (shared) {
+        if (shared == Shared.TRUE) {
             Set<ReloadableScript> set = new HashSet<ReloadableScript>();
             for (ReloadableScript script: dependencies) {
                 cs += script.getNestedChecksum(set);
