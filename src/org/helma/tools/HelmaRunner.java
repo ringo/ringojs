@@ -28,6 +28,7 @@ import org.mozilla.javascript.RhinoException;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Formatter;
@@ -127,12 +128,13 @@ public class HelmaRunner {
             }
             if ((scriptName == null && expr == null)  || runShell) {
                 // autodetect --silent option if stdin or stdout is redirected
-                // only works on Java 6 or later
                 if (!silent) {
+                    // System.console() is only available on Java 6 or later
                     try {
-                        silent = System.console() == null;
-                    } catch (NoSuchMethodError nsm) {
-                        // System.console() isn't available before Java 6
+                        Method systemConsole = System.class.getMethod("console");
+                        silent = systemConsole.invoke(null) == null;
+                    } catch (NoSuchMethodException nsm) {
+                        // System.console() not available
                     }
                 }
                 new HelmaShell(config, engine, history, verbose, silent).run();
