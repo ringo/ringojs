@@ -85,6 +85,7 @@ public class RhinoEngine implements ScopeProvider {
             debugger.setScopeProvider(this);
             debugger.attachTo(contextFactory);
             debugger.setBreak();
+            debugger.setBreakOnExceptions(true);
         }
         // create a new global scope level
         Context cx = contextFactory.enterContext();
