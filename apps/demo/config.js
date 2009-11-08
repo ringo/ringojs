@@ -13,6 +13,8 @@ exports.middleware = [
     'helma/middleware/gzip',
     'helma/middleware/etag',
     'helma/middleware/responselog',
+    'helma/middleware/error',
+    'helma/middleware/notfound'
     // 'helma/middleware/profiler'
 ];
 

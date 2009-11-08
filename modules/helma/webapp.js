@@ -7,13 +7,12 @@ require('core/string');
 
 include('helma/webapp/request');
 include('helma/webapp/response');
-include('helma/buffer');
 
 import('helma/engine', 'engine');
 import('helma/httpserver', 'server');
 import('helma/logging', 'logging');
 
-export('start', 'stop', 'getConfig', 'handleRequest', 'error', 'notfound');
+export('start', 'stop', 'getConfig', 'handleRequest');
 
 var log = logging.getLogger(module.id);
 
@@ -48,13 +47,11 @@ function handleRequest(env) {
     
     try {
         res = resolveInConfig(req, config, actionPath, decodeURI(path), "");
-    } catch (e) {
+    } catch (e if (e.retry || e.redirect)) {
         if (e.retry) {
             throw e;
         } else if (e.redirect) {
             return new RedirectResponse(e.redirect);
-        } else {
-            res = error(req, e);
         }
     }
     return res;
@@ -105,7 +102,7 @@ function resolveInConfig(req, config, actionPath, path, prefix) {
                     actionPath.push(match[0]);
                     return resolveInConfig(req, module, actionPath, path, match[0] + "/");
                 } else {
-                    return notfound(req);
+                    throw {notfound: true};
                 }
             }
         }
@@ -142,70 +139,6 @@ function getAction(module, name) {
         return action;
     }
     return null;
-}
-
-/**
- * Standard error page
- * @param e the error that happened
- */
-function error(req, e) {
-    var res = new Response();
-    res.status = 500;
-    res.contentType = 'text/html';
-    var msg = String(e).escapeHtml();
-    res.writeln('<html><title>', msg, '</title>');
-    res.writeln('<body><h1>', msg, '</h1>');
-    var errors = engine.getErrors();
-    for each (var error in errors) {
-        res.writeln(renderSyntaxError(error));
-    }
-    if (e.fileName && e.lineNumber) {
-        res.writeln('<p>In file<b>', e.fileName, '</b>at line<b>', e.lineNumber, '</b></p>');
-    }
-    if (e.rhinoException) {
-        res.writeln('<h3>Script Stack</h3>');
-        res.writeln('<pre>', e.rhinoException.scriptStackTrace, '</pre>');
-        res.writeln('<h3>Java Stack</h3>');
-        var writer = new java.io.StringWriter();
-        var printer = new java.io.PrintWriter(writer);
-        e.rhinoException.printStackTrace(printer);
-        res.writeln('<pre>', writer.toString().escapeHtml(), '</pre>');
-        log.error(msg, e.rhinoException);
-    } else {
-        log.error(msg);
-    }
-    res.writeln('</body></html>');
-    return res.close();
-}
-
-function renderSyntaxError(error) {
-    var buffer = new Buffer();
-    buffer.write("<div class='stack'>in ").write(error.sourceName);
-    buffer.write(", line ").write(error.line);
-    buffer.write(": <b>").write(error.message).write("</b></div>");
-    if (error.lineSource) {
-        buffer.write("<pre>").write(error.lineSource).write("\n");
-        for (var i = 0; i < error.offset - 1; i++) {
-            buffer.write(' ');
-        }
-        buffer.write("<b>^</b></pre>");
-    }
-    return buffer;
-}
-
-/**
- * Standard notfound page
- */
-function notfound(req) {
-    var res = new Response();
-    var msg = 'Not Found';
-    res.status = 404;
-    res.contentType = 'text/html';
-    res.writeln('<html><title>', msg, '</title>');
-    res.writeln('<body><h2>', msg, '</h2>');
-    res.writeln('<p>The requested URL', req.pathDecoded, 'was not found on the server.</p>');
-    res.writeln('</body></html>');
-    return res.close();
 }
 
 /**
