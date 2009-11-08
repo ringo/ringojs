@@ -1,4 +1,5 @@
 var io = require('io');
+module.shared = true;
 
 /**
  * An io.TextStream to read from stdin.
