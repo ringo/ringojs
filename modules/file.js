@@ -16,6 +16,7 @@ export('absolute',
        'dirname',
        'exists',
        'extension',
+       'isRelative',
        'isAbsolute',
        'isDirectory',
        'isFile',
@@ -141,6 +142,8 @@ function chmod(path, mode) {
 }
 
 function symlink(source, target) {
+    if (isRelative(source))
+        source = relative(target, source);
     try {
         var POSIX = org.jruby.ext.posix.POSIXFactory.getPOSIX(
                 new JavaAdapter(org.jruby.ext.posix.POSIXHandler, {}), true);
@@ -224,6 +227,10 @@ function isDirectory(path) {
 
 function isAbsolute(path) {
     return new File(path).isAbsolute();
+}
+
+function isRelative(path) {
+    return !isAbsolute(path);
 }
 
 function absolute(path) {
