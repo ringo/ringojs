@@ -11,6 +11,7 @@ export('absolute',
        'canonical',
        'chdir',
        'copy',
+       'chmod',
        'cwd',
        'dirname',
        'exists',
@@ -29,6 +30,7 @@ export('absolute',
        'normal',
        'open',
        'read',
+       'relative',
        'remove',
         // 'rename',
        'resolve',
@@ -37,8 +39,8 @@ export('absolute',
        'size',
        'split',
         // 'stat',
-        // 'symlink',
-        // 'touch',
+       'symlink',
+       'touch',
        'write',
        'Path');
 
@@ -126,6 +128,26 @@ function cwd() {
 function chdir(path) {
     path = new File(path).getCanonicalPath();
     java.lang.System.setProperty('user.dir', path);
+}
+
+function chmod(path, mode) {
+    try {
+        var POSIX = org.jruby.ext.posix.POSIXFactory.getPOSIX(
+                new JavaAdapter(org.jruby.ext.posix.POSIXHandler, {}), true);
+        return POSIX.chmod(path, mode);
+    } catch (error) {
+        return -1;
+    }
+}
+
+function symlink(source, target) {
+    try {
+        var POSIX = org.jruby.ext.posix.POSIXFactory.getPOSIX(
+                new JavaAdapter(org.jruby.ext.posix.POSIXHandler, {}), true);
+        return POSIX.symlink(source, target);
+    } catch (error) {
+        return -1;
+    }
 }
 
 function rmdir(path) {
@@ -248,6 +270,12 @@ function split(path) {
     return String(path).split(SEPARATOR_RE);
 }
 
+function touch(path, mtime) {
+    mtime = mtime || Date.now();
+    return resolveFile(path).setLastModified(mtime);
+
+}
+
 // adapted from narwhal
 function resolve() {
     var root = '';
@@ -290,6 +318,31 @@ function resolve() {
     return root + path + leaf;
 }
 
+// adapted from narwhal
+function relative(source, target) {
+    if (!target) {
+        target = source;
+        source = cwd() + '/';
+    }
+    source = absolute(source);
+    target = absolute(target);
+    source = source.split(SEPARATOR_RE);
+    target = target.split(SEPARATOR_RE);
+    source.pop();
+    while (
+        source.length &&
+        target.length &&
+        target[0] == source[0]) {
+        source.shift();
+        target.shift();
+    }
+    while (source.length) {
+        source.shift();
+        target.unshift("..");
+    }
+    return target.join(SEPARATOR);
+}
+
 function normal(path) {
     return resolve(path);
 }
@@ -311,6 +364,14 @@ Path.prototype.join = function() {
     return Path(join.apply(null, 
             [this.toString()].concat(Array.slice(arguments))));
 }
+
+Path.prototype.resolve = function () {
+    return Path(resolve.apply(
+            null,
+            [this.toString()].concat(Array.slice(arguments))
+        )
+    );
+};
 
  var pathed = [
     'absolute',
@@ -335,7 +396,7 @@ for (var i = 0; i < pathed.length; i++) {
 
 var trivia = [
     'basename',
-    // 'chmod',
+    'chmod',
     // 'chown',
     'copy',
     'exists',
@@ -362,8 +423,8 @@ var trivia = [
     'size',
     'split',
     // 'stat',
-    // 'symlink',
-    // 'touch',
+    'symlink',
+    'touch',
     'write'
 ];
 
