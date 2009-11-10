@@ -86,6 +86,7 @@ public class ModuleScope extends NativeObject {
     }
 
     public Scriptable getExports() {
+        exportsObject = (Scriptable) get("exports", this);
         return exportsObject;
     }
 
