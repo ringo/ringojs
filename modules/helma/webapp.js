@@ -57,53 +57,53 @@ function handleRequest(env) {
     return res;
 }
 
-function resolveInConfig(req, config, actionPath, path, prefix) {
+function resolveInConfig(req, config, actionPath, path) {
     if (log.isDebugEnabled) log.debug('resolving path ' + path);
     // set config property in webapp env module
     var webenv = require('helma/webapp/env');
     webenv.addConfig(config);
 
-    if (Array.isArray(config.urls)) {
-        for each (var url in config.urls) {
-            if (log.isDebugEnabled) log.debug("checking url line: " + url);
-            var match = getPattern(url).exec(path);
-            if (log.isDebugEnabled) log.debug("got match: " + match);
-            if (match != null) {
-                var module = getModule(url, prefix);
-                if (log.isDebugEnabled) log.debug("module: " + module);
-                // cut matching prefix from path
-                path = path.substring(match[0].length);
-                //remove leading and trailing slashes and split
-                var pathArray = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
-                var action = getAction(module, pathArray[0]);
-                // log.debug("got action: " + action);
-                if (typeof action == "function" && pathArray.length <= action.length) {
-                    // default action - make sure request path has trailing slash
-                    if (!pathArray[0]) {
-                        req.checkTrailingSlash()
-                    }
-                    // set req.actionPath to the part of the path that resolves to the action
-                    actionPath.push(match[0], pathArray[0] || "index");
-                    req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
-                    // add remaining path elements as additional action arguments
-                    var actionArgs = pathArray.slice(1);
-                    var matchedArgs = match.slice(1);
-                    var args = [req].concat(matchedArgs).concat(actionArgs);
-                    var res = action.apply(module, args);
-                    if (res && !Array.isArray(res) && typeof res.close === 'function') {
-                        return res.close();
-                    }
-                    return res;
-                } else if (Array.isArray(module.urls)) {
-                    // nested app - make sure request path has trailing slash
-                    if (!path) {
-                        req.checkTrailingSlash();
-                    }
-                    actionPath.push(match[0]);
-                    return resolveInConfig(req, module, actionPath, path, match[0] + "/");
-                } else {
-                    throw {notfound: true};
+    if (!Array.isArray(config.urls)) {
+        throw {notfound: true};
+    }
+    
+    for each (var urlEntry in config.urls) {
+        if (log.isDebugEnabled) log.debug("checking url line: " + urlEntry);
+        var match = getPattern(urlEntry).exec(path);
+        if (log.isDebugEnabled) log.debug("got match: " + match);
+
+        if (match) {
+            var module = getModule(urlEntry);
+            if (log.isDebugEnabled) log.debug("module: " + module);
+            // cut matching prefix from path and remove leading and trailing slashes
+            path = path.substring(match[0].length).replace(/^\/+|\/+$/g, "");
+            // add matching pattern to actionPath
+            actionPath.push(match[0]);
+            // prepare action arguments, adding regexp capture groups if any
+            var args = [req].concat(match.slice(1));
+            // lookup action in module
+            var action = getAction(module, splitPath(path), actionPath, args);
+            // log.debug("got action: " + action);
+
+            if (typeof action == "function") {
+                // make sure request path has trailing slash
+                if (!path && match.slice(1).join('').length == 0) {
+                    req.checkTrailingSlash();
                 }
+                req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
+                var res = action.apply(module, args);
+                if (res && typeof res.close === 'function') {
+                    return res.close();
+                }
+                return res;
+            } else if (Array.isArray(module.urls)) {
+                // make sure request path has trailing slash
+                if (!path && match.slice(1).join('').length == 0) {
+                    req.checkTrailingSlash();
+                }
+                return resolveInConfig(req, module, actionPath, path);
+            } else {
+                throw {notfound: true};
             }
         }
     }
@@ -122,23 +122,44 @@ function getPattern(spec) {
     return pattern;
 }
 
-function getModule(spec, prefix) {
+function getModule(spec) {
     var module = spec[1];
     if (typeof module == "string") {
-        module = require(prefix + module);
+        module = require(module);
     } else if (!(module instanceof Object)) {
         throw Error("Module must be a string or object");
     }
     return module;
 }
 
-function getAction(module, name) {
-    name = name || "index";
-    var action = module[name.replace(/\./g, "_")];
+function getAction(module, path, actionPath, args) {
+    var action, name = path[0];
+    if (name) {
+        action = module[name.replace(/\./g, "_")];
+        if (typeof action == "function") {
+            // If the request path contains additional elements check whether the
+            // candidate function has formal arguments to take them
+            if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
+                actionPath.push(name);
+                Array.prototype.push.apply(args, path.slice(1));
+                return action;
+            }
+        }
+    }
+    action = module["index"];
     if (typeof action == "function") {
-        return action;
+        if (path.length == 0 || args.length + path.length <= action.length) {
+            Array.prototype.push.apply(args, path);
+            return action;
+        }
     }
     return null;
+}
+
+function splitPath(path) {
+    //remove leading and trailing slashes and split
+    var array = path.split(/\/+/);
+    return array.length == 1 && array[0] == "" ? [] : array;
 }
 
 /**
@@ -147,13 +168,7 @@ function getAction(module, name) {
  */
 function getConfig(configModuleName) {
     configModuleName = configModuleName || 'config';
-    var config;
-    try {
-        config = require(configModuleName);
-    } catch (noConfig) {
-        log.info('Couldn\'t load config module: ' + noConfig);
-    }
-    return config || {};
+    return require(configModuleName);
 }
 
 /**
