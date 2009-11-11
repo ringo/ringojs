@@ -26,7 +26,9 @@ module.shared = true;
 function handleRequest(env) {
     // get config and apply it to req, res
     var config = getConfig();
-    if (log.debugEnabled) log.debug('got config: ' + config.toSource());
+    if (log.debugEnabled){
+        log.debug('got config: ' + config.toSource());
+    }
 
     var webenv = require('helma/webapp/env');
     webenv.env = env;
@@ -35,26 +37,24 @@ function handleRequest(env) {
 
     req.charset = config.charset || 'utf8';
 
-    // resolve path and invoke action
-    var path = req.path;
-    if (path.startsWith('/')) {
-        // strip leading slash
-        path = path.slice(1);
-    }
-    // used to compose req.actionPath, which is the part of the path
-    // that resolves to the action (req.path minus argument elements)
-    var actionPath = ["/"];
-    
+    // URI-decode path-info
+    req.pathInfo = decodeURI(req.pathInfo);
+    // remember current scriptname as application root as scriptName will be
+    // set to actual script by resolveInConfig().
+    req.rootPath = req.scriptName;
+
     try {
-        res = resolveInConfig(req, config, actionPath, decodeURI(path), "");
+        res = resolveInConfig(req, config);
     } catch (e if e.redirect) {
         return new RedirectResponse(e.redirect);
     }
     return res;
 }
 
-function resolveInConfig(req, config, actionPath, path) {
-    if (log.isDebugEnabled) log.debug('resolving path ' + path);
+function resolveInConfig(req, config) {
+    if (log.debugEnabled) {
+        log.debug('resolving path ' + req.pathInfo);
+    }
     // set config property in webapp env module
     var webenv = require('helma/webapp/env');
     webenv.addConfig(config);
@@ -62,31 +62,31 @@ function resolveInConfig(req, config, actionPath, path) {
     if (!Array.isArray(config.urls)) {
         throw {notfound: true};
     }
+
+    var path = req.pathInfo.replace(/^\/+|\/+$/g, "");
     
     for each (var urlEntry in config.urls) {
-        if (log.isDebugEnabled) log.debug("checking url line: " + urlEntry);
+        if (log.debugEnabled) {
+            log.debug("checking url line: " + urlEntry);
+        }
         var match = getPattern(urlEntry).exec(path);
-        if (log.isDebugEnabled) log.debug("got match: " + match);
+        if (log.debugEnabled) {
+            log.debug("got match: " + match);
+        }
 
         if (match) {
             var module = getModule(urlEntry);
-            if (log.isDebugEnabled) log.debug("module: " + module);
-            // cut matching prefix from path and remove leading and trailing slashes
-            path = path.substring(match[0].length).replace(/^\/+|\/+$/g, "");
-            // add matching pattern to actionPath
-            actionPath.push(match[0]);
+            if (log.debugEnabled) {
+                log.debug("module: " + module);
+            }
+            // move matching path fragment from PATH_INFO to SCRIPT_NAME
+            req.appendToScriptName(match[0]);
             // prepare action arguments, adding regexp capture groups if any
             var args = [req].concat(match.slice(1));
             // lookup action in module
-            var action = getAction(module, splitPath(path), actionPath, args);
+            var action = getAction(req, module, args);
             // log.debug("got action: " + action);
-
             if (typeof action == "function") {
-                // make sure request path has trailing slash
-                if (!path && match.slice(1).join('').length == 0) {
-                    req.checkTrailingSlash();
-                }
-                req.actionPath =  actionPath.join("/").replace(/\/+/g, "/");
                 var res = action.apply(module, args);
                 if (res && typeof res.close === 'function') {
                     return res.close();
@@ -94,10 +94,10 @@ function resolveInConfig(req, config, actionPath, path) {
                 return res;
             } else if (Array.isArray(module.urls)) {
                 // make sure request path has trailing slash
-                if (!path && match.slice(1).join('').length == 0) {
+                if (!req.pathInfo && match.slice(1).join('').length == 0) {
                     req.checkTrailingSlash();
                 }
-                return resolveInConfig(req, module, actionPath, path);
+                return resolveInConfig(req, module);
             } else {
                 throw {notfound: true};
             }
@@ -128,7 +128,8 @@ function getModule(spec) {
     return module;
 }
 
-function getAction(module, path, actionPath, args) {
+function getAction(req, module, args) {
+    var path = splitPath(req.pathInfo);
     var action, name = path[0];
     if (name) {
         action = module[name.replace(/\./g, "_")];
@@ -136,7 +137,7 @@ function getAction(module, path, actionPath, args) {
             // If the request path contains additional elements check whether the
             // candidate function has formal arguments to take them
             if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
-                actionPath.push(name);
+                req.appendToScriptName(name);
                 Array.prototype.push.apply(args, path.slice(1));
                 return action;
             }
@@ -145,6 +146,9 @@ function getAction(module, path, actionPath, args) {
     action = module["index"];
     if (typeof action == "function") {
         if (path.length == 0 || args.length + path.length <= action.length) {
+            if (args.slice(1).join('').length == 0) {
+                req.checkTrailingSlash();
+            }            
             Array.prototype.push.apply(args, path);
             return action;
         }
@@ -154,7 +158,7 @@ function getAction(module, path, actionPath, args) {
 
 function splitPath(path) {
     //remove leading and trailing slashes and split
-    var array = path.split(/\/+/);
+    var array = path.replace(/^\/+|\/+$/g, "").split(/\/+/);
     return array.length == 1 && array[0] == "" ? [] : array;
 }
 
