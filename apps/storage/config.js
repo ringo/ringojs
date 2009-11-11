@@ -1,8 +1,11 @@
 // shared in order not to recreate Store for each request 
 module.shared = true;
 
+var Store = require('helma/storage/filestore').Store;
+exports.store = new Store('db');
+
 exports.urls = [
-    [ '/', 'main' ]
+    [ '/', require('./main') ]
 ];
 
 exports.middleware = [
@@ -14,15 +17,12 @@ exports.middleware = [
 ];
 
 // the JSGI app
-exports.app = require('helma/webapp').handleRequest;
+exports.app = 'helma/webapp';
 
 exports.macros = [
     'helma/skin/macros',
     'helma/skin/filters'
 ];
-
-var Store = require('helma/storage/filestore').Store;
-exports.store = new Store('db');
 
 exports.charset = 'UTF-8';
 exports.contentType = 'text/html';
