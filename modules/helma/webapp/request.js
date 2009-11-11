@@ -19,10 +19,10 @@ function Request(env) {
     Object.defineProperty(this, "env", {value: env});
     Object.defineProperty(this, "contentType", {value: env.CONTENT_TYPE});
     Object.defineProperty(this, "contentLength", {value: env.CONTENT_LENGTH});
-    Object.defineProperty(this, "servletRequest", {get: function() servletRequest});
-    Object.defineProperty(this, "charset", readWritePropertyDesc(servletRequest, "characterEncoding"));
-    Object.defineProperty(this, "port", readOnlyPropertyDesc(servletRequest, "port"));
-    Object.defineProperty(this, "path", readOnlyPropertyDesc(servletRequest, "requestURI"));
+    // Object.defineProperty(this, "servletRequest", {get: function() servletRequest});
+    Object.defineProperty(this, "charset", readWritePropertyDesc(env, "X_CHARACTER_ENCODING"));
+    Object.defineProperty(this, "port", {value: env.SERVER_PORT});
+    Object.defineProperty(this, "path", readOnlyPropertyDesc(env, "X_REQUEST_URI"));
     Object.defineProperty(this, "pathInfo", {value: env.PATH_INFO});
     Object.defineProperty(this, "scriptName", {value: env.SCRIPT_NAME});
     Object.defineProperty(this, "queryString", {value: env.QUERY_STRING});

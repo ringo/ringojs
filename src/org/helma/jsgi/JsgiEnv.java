@@ -20,6 +20,7 @@ import org.mozilla.javascript.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.lang.reflect.Method;
 
@@ -94,6 +95,18 @@ public class JsgiEnv extends ScriptableObject {
         return Context.javaToJS(response, this);
     }
 
+    public String getRequestURI() {
+        return checkString(request.getRequestURI());
+    }
+
+    public String getCharacterEncoding() {
+        return checkString(request.getCharacterEncoding());
+    }
+
+    public void setCharacterEncoding(String charset) throws UnsupportedEncodingException {
+        request.setCharacterEncoding(charset);
+    }
+
     public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
             throws NoSuchMethodException {
         int flags = PERMANENT;
@@ -107,6 +120,9 @@ public class JsgiEnv extends ScriptableObject {
         proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
         proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
+        proto.defineProperty("X_REQUEST_URI", null, getMethod("getRequestURI"), null, flags);
+        proto.defineProperty("X_CHARACTER_ENCODING", null, getMethod("getCharacterEncoding"),
+                getStringMethod("setCharacterEncoding"), flags);
         Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
         ScriptableObject.defineProperty(proto, "jsgi.version", version, flags);
         ScriptableObject.defineProperty(proto, "jsgi.multithread", Boolean.TRUE, flags);
@@ -119,6 +135,10 @@ public class JsgiEnv extends ScriptableObject {
 
     private static Method getMethod(String name) throws NoSuchMethodException {
         return JsgiEnv.class.getDeclaredMethod(name);
+    }
+
+    private static Method getStringMethod(String name) throws NoSuchMethodException {
+        return JsgiEnv.class.getDeclaredMethod(name, String.class);
     }
 
     private static String checkString(String str) {
