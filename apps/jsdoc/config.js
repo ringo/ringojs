@@ -3,7 +3,7 @@ exports.httpConfig = {
 };
 
 exports.urls = [
-    [ '/(.*)', 'actions' ]
+    [ '/(.*)', require('./actions') ]
 ];
 
 // the middleware stack
