@@ -16,15 +16,15 @@ function Request(env) {
     var params, cookies, session, headers;
     var servletRequest = env["jsgi.servlet_request"];
 
+    this.charset = servletRequest.getCharacterEncoding();
     Object.defineProperty(this, "env", {value: env});
     Object.defineProperty(this, "contentType", {value: env.CONTENT_TYPE});
     Object.defineProperty(this, "contentLength", {value: env.CONTENT_LENGTH});
     // Object.defineProperty(this, "servletRequest", {get: function() servletRequest});
-    Object.defineProperty(this, "charset", readWritePropertyDesc(env, "X_CHARACTER_ENCODING"));
     Object.defineProperty(this, "port", {value: env.SERVER_PORT});
-    Object.defineProperty(this, "path", readOnlyPropertyDesc(env, "X_REQUEST_URI"));
-    Object.defineProperty(this, "pathInfo", {value: env.PATH_INFO});
-    Object.defineProperty(this, "scriptName", {value: env.SCRIPT_NAME});
+    Object.defineProperty(this, "path", {value: env.SCRIPT_NAME + env.PATH_INFO});
+    Object.defineProperty(this, "pathInfo", readWritePropertyDesc(env, "PATH_INFO"));
+    Object.defineProperty(this, "scriptName", readWritePropertyDesc(env, "SCRIPT_NAME"));
     Object.defineProperty(this, "queryString", {value: env.QUERY_STRING});
     Object.defineProperty(this, "method", {value: env.REQUEST_METHOD});
 
@@ -99,6 +99,20 @@ function Request(env) {
             while (servletHeaders.hasMoreElements())
                 headers.push(servletHeaders.nextElement());
             return headers;
+        }
+    });
+
+    Object.defineProperty(this, "appendToScriptName", {
+        value: function appendToScriptName(fragment) {
+            var path = this.pathInfo;
+            var pos = path.indexOf(fragment);
+            if (pos > -1) {
+                pos +=  fragment.length;
+                // add matching pattern to script-name
+                this.scriptName += path.substring(0, pos);
+                // ... and remove it from path-info
+                this.pathInfo = path.substring(pos);
+            }
         }
     });
 

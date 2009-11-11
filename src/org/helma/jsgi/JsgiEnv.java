@@ -48,15 +48,8 @@ public class JsgiEnv extends ScriptableObject {
             }
             put(name, this, value);
         }
-    }
-
-
-    public String getScriptName() {
-        return checkString(request.getServletPath());
-    }
-
-    public String getPathInfo() {
-        return checkString(request.getPathInfo());
+        put("SCRIPT_NAME", this, request.getContextPath() + request.getServletPath());
+        put("PATH_INFO", this, request.getPathInfo());
     }
 
     public String getRequestMethod() {
@@ -95,34 +88,17 @@ public class JsgiEnv extends ScriptableObject {
         return Context.javaToJS(response, this);
     }
 
-    public String getRequestURI() {
-        return checkString(request.getRequestURI());
-    }
-
-    public String getCharacterEncoding() {
-        return checkString(request.getCharacterEncoding());
-    }
-
-    public void setCharacterEncoding(String charset) throws UnsupportedEncodingException {
-        request.setCharacterEncoding(charset);
-    }
-
     public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
             throws NoSuchMethodException {
         int flags = PERMANENT;
         Context cx = Context.getCurrentContext();
         ScriptableObject proto = (ScriptableObject) prototype;
-        proto.defineProperty("SCRIPT_NAME", null, getMethod("getScriptName"), null, flags);
-        proto.defineProperty("PATH_INFO", null, getMethod("getPathInfo"), null, flags);
         proto.defineProperty("REQUEST_METHOD", null, getMethod("getRequestMethod"), null, flags);
         proto.defineProperty("SERVER_NAME", null, getMethod("getServerName"), null, flags);
         proto.defineProperty("SERVER_PORT", null, getMethod("getServerPort"), null, flags);
         proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
         proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
         proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
-        proto.defineProperty("X_REQUEST_URI", null, getMethod("getRequestURI"), null, flags);
-        proto.defineProperty("X_CHARACTER_ENCODING", null, getMethod("getCharacterEncoding"),
-                getStringMethod("setCharacterEncoding"), flags);
         Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
         ScriptableObject.defineProperty(proto, "jsgi.version", version, flags);
         ScriptableObject.defineProperty(proto, "jsgi.multithread", Boolean.TRUE, flags);
@@ -135,10 +111,6 @@ public class JsgiEnv extends ScriptableObject {
 
     private static Method getMethod(String name) throws NoSuchMethodException {
         return JsgiEnv.class.getDeclaredMethod(name);
-    }
-
-    private static Method getStringMethod(String name) throws NoSuchMethodException {
-        return JsgiEnv.class.getDeclaredMethod(name, String.class);
     }
 
     private static String checkString(String str) {
