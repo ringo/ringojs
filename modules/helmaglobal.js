@@ -67,9 +67,7 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
-    Object.defineProperty(this, "system", {
-        value: require('system')
-    });
+    var system = this.system = require('system');
 
     /**
      * Basic print function compatible with other JavaScript implementations.
