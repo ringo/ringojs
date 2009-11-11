@@ -1,10 +1,10 @@
 /**
- * A module for printing ANSI terminal escape sequences.
+ * @fileoverview A module for printing ANSI terminal escape sequences.
  * This module provides a number of useful color and style constants,
  * and a replacement for the print function optimized for styled output.
  * 
  * @example
- *
+ * <pre>
  *     helma> include('helma/term')                                              
  *     helma> writeln(YELLOW, "foo", MAGENTA, "bar");
  *     foo bar
@@ -12,13 +12,13 @@
  *     IKEA
  *     helma> writeln(RED, BOLD, INVERSE, "Red Alert!");
  *     Red Alert!
- * 
+ * </pre>
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
 
 include('helma/shell');
 
-var env = system.env;
+var env = require('system').env;
 var enabled = env && "TERM" in env;
 
 exports.RESET =     "\u001B[0m";

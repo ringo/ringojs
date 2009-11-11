@@ -83,6 +83,9 @@ function jsonDateReviver(key, value) {
 
 var jsonDateRegexp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
 
+/**
+ * General purpuse timer.
+ */
 function timer(fn) {
     var start = java.lang.System.nanoTime();
     fn();
