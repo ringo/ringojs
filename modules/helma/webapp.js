@@ -93,10 +93,6 @@ function resolveInConfig(req, config) {
                 }
                 return res;
             } else if (Array.isArray(module.urls)) {
-                // make sure request path has trailing slash
-                if (!req.pathInfo && match.slice(1).join('').length == 0) {
-                    req.checkTrailingSlash();
-                }
                 return resolveInConfig(req, module);
             } else {
                 throw {notfound: true};
