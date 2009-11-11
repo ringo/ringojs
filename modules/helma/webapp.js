@@ -47,12 +47,8 @@ function handleRequest(env) {
     
     try {
         res = resolveInConfig(req, config, actionPath, decodeURI(path), "");
-    } catch (e if (e.retry || e.redirect)) {
-        if (e.retry) {
-            throw e;
-        } else if (e.redirect) {
-            return new RedirectResponse(e.redirect);
-        }
+    } catch (e if e.redirect) {
+        return new RedirectResponse(e.redirect);
     }
     return res;
 }
