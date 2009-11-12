@@ -48,8 +48,8 @@ public class JsgiEnv extends ScriptableObject {
             }
             put(name, this, value);
         }
-        put("SCRIPT_NAME", this, request.getContextPath() + request.getServletPath());
-        put("PATH_INFO", this, request.getPathInfo());
+        put("SCRIPT_NAME", this, checkString(request.getContextPath() + request.getServletPath()));
+        put("PATH_INFO", this, checkString(request.getPathInfo()));
     }
 
     public String getRequestMethod() {
