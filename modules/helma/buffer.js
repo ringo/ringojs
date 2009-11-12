@@ -10,11 +10,17 @@ export('Buffer');
 function Buffer() {
     var content = [];
 
+    /**
+     * Reset the buffer discarding all its content.
+     */
     this.reset = function() {
         content = [];
         return this;
-    }
+    };
 
+    /**
+     * Append all arguments to this buffer.
+     */
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
             content[content.length] = String(arguments[i]);
@@ -22,20 +28,34 @@ function Buffer() {
         return this;
     };
 
+    /**
+     * Append all arguments to this buffer terminated by a carriage return/newline sequence.
+     */
     this.writeln = function() {
         this.write.apply(this, arguments);
         content[content.length] = "\r\n";
         return this;
     };
 
+    /**
+     * Return the content of this buffer as string.
+     */
     this.toString = function() {
         return content.join('');
     };
 
+    /**
+     * Call function <code>fn</code> with each content part in this buffer.
+     * @param fn a function to apply to each buffer part
+     */
     this.forEach = function(fn) {
         content.forEach(fn);
-    }
+    };
 
+    /**
+     * Get a message digest on the content of this buffer.
+     * @param algorithm the algorithm to use, defaults to MD5
+     */
     this.digest = function(algorithm) {
         var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
         content.forEach(function(part) {
@@ -51,7 +71,7 @@ function Buffer() {
             buf.append(java.lang.Integer.toHexString(j));
         }
         return buf.toString();
-    }
+    };
 
     if (arguments.length > 0) {
         this.write.apply(this, arguments);
