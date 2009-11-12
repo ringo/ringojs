@@ -63,8 +63,8 @@ public class HelmaRunner {
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
-        {"v", "verbose", "Verbose mode: print Java stack traces", ""},
-        {"V", "version", "Print version number and exit", ""},
+        {"V", "verbose", "Verbose mode: print Java stack traces", ""},
+        {"v", "version", "Print version number and exit", ""},
     };
 
     public HelmaRunner() {
