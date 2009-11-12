@@ -60,12 +60,17 @@ function resolveInConfig(req, config) {
     webenv.addConfig(config);
 
     if (!Array.isArray(config.urls)) {
+        log.info("No URL mapping defined (urls is " + config.urls + "), throwing 404.");
         throw {notfound: true};
     }
 
     var path = req.pathInfo.replace(/^\/+|\/+$/g, "");
     
     for each (var urlEntry in config.urls) {
+        if (!Array.isArray(urlEntry) || urlEntry.length < 2) {
+            log.info("Ignoring unsupported URL mapping: " + urlEntry);
+            continue;
+        }
         if (log.debugEnabled) {
             log.debug("checking url line: " + urlEntry);
         }
@@ -84,7 +89,7 @@ function resolveInConfig(req, config) {
             // prepare action arguments, adding regexp capture groups if any
             var args = [req].concat(match.slice(1));
             // lookup action in module
-            var action = getAction(req, module, args);
+            var action = getAction(req, module, urlEntry, args);
             // log.debug("got action: " + action);
             if (typeof action == "function") {
                 var res = action.apply(module, args);
@@ -124,23 +129,36 @@ function getModule(spec) {
     return module;
 }
 
-function getAction(req, module, args) {
+function getAction(req, module, urlconf, args) {
     var path = splitPath(req.pathInfo);
-    var action, name = path[0];
-    if (name) {
-        action = module[name.replace(/\./g, "_")];
-        if (typeof action == "function") {
-            // If the request path contains additional elements check whether the
-            // candidate function has formal arguments to take them
-            if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
-                req.appendToScriptName(name);
-                Array.prototype.push.apply(args, path.slice(1));
-                return action;
+    var action;
+    // if url-conf has a hard-coded action name use it
+    var name = urlconf[2];
+    if (!name) {
+        // action name is not defined in url mapping, try to get it from the request path
+        name = path[0];
+        if (name) {
+            action = module[name.replace(/\./g, "_")];
+            if (typeof action == "function") {
+                // If the request path contains additional elements check whether the
+                // candidate function has formal arguments to take them
+                if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
+                    req.appendToScriptName(name);
+                    Array.prototype.push.apply(args, path.slice(1));
+                    return action;
+                }
             }
         }
+        // no matching action, fall back to "index"
+        name = "index";
     }
-    action = module["index"];
+    action = module[name];
     if (typeof action == "function") {
+        // insert predefined arguments if defined in url-conf
+        if (urlconf.length > 3) {
+            var spliceArgs = [1, 0].concat(urlconf.slice(3));
+            Array.prototype.splice.apply(args, spliceArgs);
+        }
         if (path.length == 0 || args.length + path.length <= action.length) {
             if (args.slice(1).join('').length == 0) {
                 req.checkTrailingSlash();
