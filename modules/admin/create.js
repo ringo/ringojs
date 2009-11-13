@@ -2,6 +2,7 @@ require('core/string');
 include('helma/engine');
 include('helma/file');
 include('helma/shell');
+include('helma/args');
 
 export('createApplication');
 
@@ -36,36 +37,36 @@ function createApplication(path) {
  * @param args
  */
 function main(args) {
-    if (args[1] && args[1].startsWith("-")) {
-        switch (args[1]) {
-            case "-h":
-            case "--help":
-                print("Creates a new Helma NG application");
-                print("Usage:");
-                print("  helma admin/create [path]");
-                break;
-            default:
-                print("Unknown option", args[1]);
-                break;
-        }
-        quit();
+    var script = args.shift();
+    var parser = new Parser();
+    // parser.addOption("a", "appengine", "PATH",
+    //         "Create a Google App Engine app using the given SDK path");
+    parser.addOption("h", "help", null, "Print help message and exit");
+    var opts = parser.parse(args);
+    if (opts.help) {
+        print("Creates a new Helma NG application");
+        print("Usage:");
+        print("  helma " + script + " [path]");
+        print("Options:");
+        print(parser.help());
+        return;
     }
 
-    var path = args[1]
-            || readln("Please enter the directory path for your application: ");
+    var path = args[0]
+            || readln("Please enter the path for your application: ");
 
     if (!path) {
         print("No path, exiting.");
     } else {
-        createApplication(path);
+        createApplication(path, opts);
     }
 }
 
 if (require.main == module.id) {
     try {
         main(system.args);
-    } catch (err) {
-        print("Error: " + err);
-        print("Exiting.");
+    } catch (error) {
+        print(error);
+        print("Use -h or --help to get a list of available options.");
     }
 }
