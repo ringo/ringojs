@@ -1,127 +1,144 @@
-var options = [
-    ["b", "bootscript", "Run additional bootstrap script", "FILE"],
-    ["d", "debug", "Run with debugger GUI", ""],
-    ["e", "expression", "Run the given expression as script", "EXPR"],
-    ["h", "help", "Display this help message", ""],
-    ["H", "history", "Use custom history file (default: ~/.helma-history)", "FILE"],
-    ["i", "interactive", "Start shell after script file has run", ""],
-    ["o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"],
-    ["p", "policy", "Set java policy file and enable security manager", "URL"],
-    ["s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""],
-    ["V", "verbose", "Verbose mode: print Java stack traces", ""],
-    ["v", "version", "Print version number and exit", ""]
-];
+/**
+ * @fileoverview A parser for command line options.
+ */
 
 require("core/string");
 
-export("parseOptions");
+/**
+ * Create a new command line option parser.
+ */
+exports.Parser = function() {
+    var options = [];
 
-function parseOptions(args) {
-    var i;
-    for (i = 0; i < args.length; i++) {
-        var option = args[i];
-        if (!option.startsWith("-")) {
-            break;
+    /**
+     * Add an option to the parser.
+     * @param shortName the short option name
+     * @param longName the long option name
+     * @param argument the name of the argument if the option requires one, or null
+     * @param helpText the help text to display for the option
+     */
+    this.addOption = function(shortName, longName, argument, helpText) {
+        if (shortName && shortName.length != 1) {
+            throw new Error("Short option must be a string of length 1");
         }
-        var nextArg = i < args.length - 1 ? args[i + 1] : null;
-        var result;
-        if (option.startsWith("--")) {
-            result = parseLongOption(option.substring(2), nextArg);
-        } else {
-            result = parseShortOption(option.substring(1), nextArg);
+        argument = argument || "";
+        options.push([shortName, longName, argument, helpText]);
+    };
+
+    /**
+     * Get help text for the parser's options suitable for display in command line scripts.
+     */
+    this.help = function() {
+        var help = [];
+        for each (var opt in options) {
+            var line = " -" + opt[0] +  " --" + opt[1];
+            if (opt[2]) {
+                line += " " + opt[2];
+            }
+            help.push([line, opt[3]]);
         }
-        if (result < 0) {
-            break;
-        } else {
-            i += result;
+        var maxlength = help.map(function(s) { return s[0].length; }).max();
+        return help.map(function(s) {
+            return s[0] + " ".repeat(2 + maxlength - s[0].length) + s[1];
+        }).join('\n');
+    };
+
+    /**
+     * Parse an arguments array into an option object.
+     * @param args the argument array. Matching options are removed.
+     * @param result optional result object. If undefined, a new Object is created
+     * @return the result object
+     */
+    this.parse = function(args, result) {
+        result = result || {};
+        while (args.length > 0) {
+            var option = args[0];
+            if (!option.startsWith("-")) {
+                break;
+            }
+            if (option.startsWith("--")) {
+                parseLongOption(option.substring(2), args, result);
+            } else {
+                parseShortOption(option.substring(1), args, result);
+            }
         }
+        return result;
+    };
+
+    function parseShortOption(opt, args, result) {
+        var length = opt.length;
+        var consumedNext = false;
+        for (var i = 0; i < length; i++) {
+            var def = null;
+            var c = opt.charAt(i);
+            for each (var d in options) {
+                if (d[0] == c) {
+                    def = d;
+                    break;
+                }
+            }
+            if (def == null) {
+                unknownOptionError("-" + c);
+            }
+            var optarg = null;
+            if (def[2]) {
+                if (i == length - 1) {
+                    if (args.length <= 1) {
+                        missingValueError("-" + def[0]);
+                    }
+                    optarg = args[1];
+                    consumedNext = true;
+                } else {
+                    optarg = opt.substring(i + 1);
+                    if (optarg.length == 0) {
+                        missingValueError("-" + def[0]);
+                    }
+                }
+                i = length;
+            }
+            result[def[1]] = optarg || true;
+        }
+        args.splice(0, consumedNext ? 2 : 1);
     }
-    return i;
-}
 
-function parseShortOption(opt, nextArg) {
-    var length = opt.length;
-    for (var i = 0; i < length; i++) {
+    function parseLongOption(opt, args, result) {
         var def = null;
-        var c = opt.charAt(i);
         for each (var d in options) {
-            if (d[0] == c) {
+            if (opt == d[1] || (opt.startsWith(d[1])
+                    && opt.charAt(d[1].length) == '=')) {
                 def = d;
                 break;
             }
         }
         if (def == null) {
-            unknownOptionError("-" + c);
+            unknownOptionError("--" + opt);
         }
         var optarg = null;
-        var consumedNext = 0;
-        if (def[3]) {
-            if (i == length - 1) {
-                if (nextArg == null) {
-                    missingValueError("-" + def[0]);
+        var consumedNext = false;
+        if (def[2]) {
+            if (opt == def[1]) {
+                if (args.length <= 1) {
+                    missingValueError("--" + def[1]);
                 }
-                optarg = nextArg;
-                consumedNext = 1;
+                optarg = args[1];
+                consumedNext = true;
             } else {
-                optarg = opt.substring(i + 1);
-                if (optarg.length == 0) {
-                    missingValueError("-" + def[0]);
+                var length = def[1].length;
+                if (opt.charAt(length) != '=') {
+                    missingValueError("--" + def[1]);
                 }
+                optarg = opt.substring(length + 1);
             }
-            i = length;
         }
-        processOption(def[1], optarg);
-        if (i >= length) {
-            return consumedNext;
-        }
+        result[def[1]] = optarg || true;
+        args.splice(0, consumedNext ? 2 : 1);
     }
-    return 0;
-}
-
-function parseLongOption(opt, nextArg) {
-    var def = null;
-    for each (var d in options) {
-        if (opt.equals(d[1]) || (opt.startsWith(d[1])
-                             && opt.charAt(d[1].length) == '=')) {
-            def = d;
-            break;
-        }
-    }
-    if (def == null) {
-        unknownOptionError("--" + opt);
-    }
-    var optarg = null;
-    var consumedNext = 0;
-    if (def[3]) {
-        if (opt.equals(def[1])) {
-            if (nextArg == null) {
-                missingValueError("--" + def[1]);
-            }
-            optarg = nextArg;
-            consumedNext = 1;
-        } else {
-            var length = def[1].length;
-            if (opt.charAt(length) != '=') {
-                missingValueError("--" + def[1]);
-            }
-            optarg = opt.substring(length + 1);
-        }
-    }
-    processOption(def[1], optarg);
-    return consumedNext;
-}
-
-function processOption(opt, arg) {
-    print("Option " + opt + " with arg " + arg);
-}
+};
 
 function missingValueError(option) {
     throw new Error(option + " option requires a value.", -1);
-    }
+}
 
-function rangeError(option) {
-    throw new Error(option + " value must be a number between -1 and 9.", -1);
-    }
 
 function unknownOptionError(option) {
     throw new Error("Unknown option: " + option, -1);
