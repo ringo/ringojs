@@ -12,8 +12,8 @@ exports.Parser = function() {
 
     /**
      * Add an option to the parser.
-     * @param shortName the short option name
-     * @param longName the long option name
+     * @param shortName the short option name (without leading hyphen)
+     * @param longName the long option name (without leading hyphens)
      * @param argument the name of the argument if the option requires one, or null
      * @param helpText the help text to display for the option
      */
