@@ -39,7 +39,8 @@ exports.Parser = function() {
         }
         var maxlength = help.map(function(s) { return s[0].length; }).max();
         return help.map(function(s) {
-            return s[0] + " ".repeat(2 + maxlength - s[0].length) + s[1];
+            var padding = " ".repeat(2 + maxlength - s[0].length);
+            return s[0] + padding + s[1];
         }).join('\n');
     };
 
