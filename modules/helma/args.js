@@ -2,6 +2,7 @@
  * @fileoverview A parser for command line options.
  */
 
+require("core/array");
 require("core/string");
 
 /**
