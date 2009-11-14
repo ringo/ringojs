@@ -22,6 +22,7 @@ exports.Parser = function() {
         if (shortName && shortName.length != 1) {
             throw new Error("Short option must be a string of length 1");
         }
+        longName = longName || "";
         argument = argument || "";
         options.push({
             shortName: shortName,
@@ -37,16 +38,19 @@ exports.Parser = function() {
     this.help = function() {
         var lines = [];
         for each (var opt in options) {
-            var flags = " -" + opt.shortName +  " --" + opt.longName;
+            var flags = " -" + opt.shortName;
+            if (opt.longName) {
+                flags += " --" + opt.longName;
+            }
             if (opt.argument) {
                 flags += " " + opt.argument;
             }
-            lines.push({flags: flags, help: opt.helpText});
+            lines.push({flags: flags, helpText: opt.helpText});
         }
         var maxlength = lines.map(function(s) { return s.flags.length; }).max();
         return lines.map(function(s) {
             var padding = " ".repeat(2 + maxlength - s.flags.length);
-            return s.flags + padding + s.help;
+            return s.flags + padding + s.helpText;
         }).join('\n');
     };
 
