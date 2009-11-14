@@ -47,11 +47,10 @@ exports.Parser = function() {
             }
             lines.push({flags: flags, helpText: opt.helpText});
         }
-        var maxlength = lines.map(function(s) { return s.flags.length; }).max();
-        return lines.map(function(s) {
-            var padding = " ".repeat(2 + maxlength - s.flags.length);
-            return s.flags + padding + s.helpText;
-        }).join('\n');
+        var maxlength = lines.map(function(s) s.flags.length).max();
+        return lines.map(
+            function(s) s.flags.pad(" ", 2 + maxlength) + s.helpText
+        ).join("\n");
     };
 
     /**
