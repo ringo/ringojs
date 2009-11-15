@@ -130,7 +130,7 @@ exports.Parser = function() {
                 if (args.length <= 1) {
                     missingValueError("--" + def.longName);
                 }
-                optarg = args.longName;
+                optarg = args[1];
                 consumedNext = true;
             } else {
                 var length = def.longName.length;
