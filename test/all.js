@@ -1,4 +1,5 @@
 exports.unittest = require("./helma/unittest_test");
+exports.args = require("./helma/args_test");
 exports.array = require("./core/array_test");
 exports.object = require("./core/object_test");
 exports.file = require("./helma/file_test");
