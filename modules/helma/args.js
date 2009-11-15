@@ -22,27 +22,35 @@ exports.Parser = function() {
         if (shortName && shortName.length != 1) {
             throw new Error("Short option must be a string of length 1");
         }
+        longName = longName || "";
         argument = argument || "";
-        options.push([shortName, longName, argument, helpText]);
+        options.push({
+            shortName: shortName,
+            longName: longName,
+            argument: argument,
+            helpText: helpText
+        });
     };
 
     /**
      * Get help text for the parser's options suitable for display in command line scripts.
      */
     this.help = function() {
-        var help = [];
+        var lines = [];
         for each (var opt in options) {
-            var line = " -" + opt[0] +  " --" + opt[1];
-            if (opt[2]) {
-                line += " " + opt[2];
+            var flags = " -" + opt.shortName;
+            if (opt.longName) {
+                flags += " --" + opt.longName;
             }
-            help.push([line, opt[3]]);
+            if (opt.argument) {
+                flags += " " + opt.argument;
+            }
+            lines.push({flags: flags, helpText: opt.helpText});
         }
-        var maxlength = help.map(function(s) { return s[0].length; }).max();
-        return help.map(function(s) {
-            var padding = " ".repeat(2 + maxlength - s[0].length);
-            return s[0] + padding + s[1];
-        }).join('\n');
+        var maxlength = lines.map(function(s) s.flags.length).max();
+        return lines.map(
+            function(s) s.flags.pad(" ", 2 + maxlength) + s.helpText
+        ).join("\n");
     };
 
     /**
@@ -74,7 +82,7 @@ exports.Parser = function() {
             var def = null;
             var c = opt.charAt(i);
             for each (var d in options) {
-                if (d[0] == c) {
+                if (d.shortName == c) {
                     def = d;
                     break;
                 }
@@ -83,22 +91,22 @@ exports.Parser = function() {
                 unknownOptionError("-" + c);
             }
             var optarg = null;
-            if (def[2]) {
+            if (def.argument) {
                 if (i == length - 1) {
                     if (args.length <= 1) {
-                        missingValueError("-" + def[0]);
+                        missingValueError("-" + def.shortName);
                     }
                     optarg = args[1];
                     consumedNext = true;
                 } else {
                     optarg = opt.substring(i + 1);
                     if (optarg.length == 0) {
-                        missingValueError("-" + def[0]);
+                        missingValueError("-" + def.shortName);
                     }
                 }
                 i = length;
             }
-            result[def[1]] = optarg || true;
+            result[def.longName || def.shortName] = optarg || true;
         }
         args.splice(0, consumedNext ? 2 : 1);
     }
@@ -106,8 +114,8 @@ exports.Parser = function() {
     function parseLongOption(opt, args, result) {
         var def = null;
         for each (var d in options) {
-            if (opt == d[1] || (opt.startsWith(d[1])
-                    && opt.charAt(d[1].length) == '=')) {
+            if (opt == d.longName || (opt.startsWith(d.longName)
+                    && opt.charAt(d.longName.length) == '=')) {
                 def = d;
                 break;
             }
@@ -117,22 +125,22 @@ exports.Parser = function() {
         }
         var optarg = null;
         var consumedNext = false;
-        if (def[2]) {
-            if (opt == def[1]) {
+        if (def.argument) {
+            if (opt == def.longName) {
                 if (args.length <= 1) {
-                    missingValueError("--" + def[1]);
+                    missingValueError("--" + def.longName);
                 }
-                optarg = args[1];
+                optarg = args.longName;
                 consumedNext = true;
             } else {
-                var length = def[1].length;
+                var length = def.longName.length;
                 if (opt.charAt(length) != '=') {
-                    missingValueError("--" + def[1]);
+                    missingValueError("--" + def.longName);
                 }
                 optarg = opt.substring(length + 1);
             }
         }
-        result[def[1]] = optarg || true;
+        result[def.longName] = optarg || true;
         args.splice(0, consumedNext ? 2 : 1);
     }
 };
