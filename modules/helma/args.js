@@ -62,7 +62,7 @@ exports.Parser = function() {
     this.parse = function(args, result) {
         result = result || {};
         while (args.length > 0) {
-            var option = args.shortName;
+            var option = args[0];
             if (!option.startsWith("-")) {
                 break;
             }
