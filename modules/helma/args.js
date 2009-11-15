@@ -106,7 +106,7 @@ exports.Parser = function() {
                 }
                 i = length;
             }
-            result[def.longName] = optarg || true;
+            result[def.longName || def.shortName] = optarg || true;
         }
         args.splice(0, consumedNext ? 2 : 1);
     }
