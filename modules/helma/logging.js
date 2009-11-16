@@ -1,7 +1,8 @@
 require('core/string');
 
-importPackage(org.apache.log4j);
-importClass(org.apache.log4j.xml.DOMConfigurator);
+var Logger = org.apache.log4j.Logger,
+    PropertyConfigurator = org.apache.log4j.PropertyConfigurator,
+    DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
 
 module.shared = true;
 var configured = false;
