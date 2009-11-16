@@ -14,14 +14,14 @@ exports.parseScriptResource = function(resource, visitorFunction) {
     ast.visit(new org.mozilla.javascript.ast.NodeVisitor({
         visit: visitorFunction
     }));
-}
+};
 
 function getParser() {
-    var ce = new CompilerEnvirons();
+    var ce = new org.mozilla.javascript.CompilerEnvirons();
     ce.setRecordingComments(true);
     ce.setRecordingLocalJsDocComments(true)
     ce.initFromContext(Context.getCurrentContext());
-    return new Parser(ce, null);
+    return new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
 }
 
 
