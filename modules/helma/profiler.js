@@ -92,6 +92,9 @@ function Profiler() {
             timer = [];
             timer.name = name;
             timer.start = now;
+            if (stack.length > 0) {
+                timer.invoker = stack[stack.length - 1].name;
+            }
             stack.push(this);
         };
 
@@ -99,7 +102,7 @@ function Profiler() {
         };
 
         this.onExit = function(cx, byThrow, resultOrException) {
-            timer.end = System.nanoTime();;
+            timer.end = System.nanoTime();
             stack.pop();
             if (stack.length > 0) {
                 stack[stack.length - 1].addInvocationChild(timer);
