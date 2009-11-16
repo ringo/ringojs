@@ -2,6 +2,7 @@ include('helma/engine');
 include('helma/buffer');
 include('helma/webapp/util');
 
+var Logger = org.apache.log4j.Logger;
 var responseLogEnabled = true;
 
 /**

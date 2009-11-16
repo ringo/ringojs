@@ -15,7 +15,7 @@ exports.middleware = function(app) {
             res.contentType = 'text/html';
             res.writeln('<html><title>', msg, '</title>');
             res.writeln('<body><h2>', msg, '</h2>');
-            res.writeln('<p>The requested URL', env.PATH_INFO, 'was not found on the server.</p>');
+            res.writeln('<p>The requested URL', env.SCRIPT_NAME + env.PATH_INFO, 'was not found on the server.</p>');
             res.writeln('</body></html>');
             return res.close();
         }
