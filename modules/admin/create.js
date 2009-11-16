@@ -94,10 +94,10 @@ function main(args) {
 }
 
 if (require.main == module.id) {
-    // try {
+    try {
         main(system.args);
-    /* } catch (error) {
+    } catch (error) {
         print(error);
         print("Use -h or --help to get a list of available options.");
-    } */
+    }
 }
