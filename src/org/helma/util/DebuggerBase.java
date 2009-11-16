@@ -3,6 +3,7 @@ package org.helma.util;
 import org.apache.log4j.Logger;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.debug.DebugFrame;
 import org.mozilla.javascript.debug.DebuggableScript;
 import org.mozilla.javascript.debug.Debugger;
@@ -18,8 +19,57 @@ public abstract class DebuggerBase implements Debugger {
     int debuggerScriptDepth = 0;
     Logger log = Logger.getLogger("org.helma.util.DebuggerBase");
 
+    public abstract DebuggerBase createDebugger();
+
+    public abstract Object createContextData();
+
+    public abstract void handleCompilationDone(Context cx, DebuggableScript fnOrScript, String source);
+
+    public abstract DebugFrame getScriptFrame(Context cx, DebuggableScript fnOrScript);
+
+    public void attach() {
+        attach(createContextData());
+    }
+
     public void setDebuggerScript(String path) {
         debuggerScript = path;
+    }
+
+    public void install() {
+        ContextFactory factory = Context.getCurrentContext().getFactory();
+        factory.addListener(new ContextFactory.Listener() {
+            public void contextCreated(Context cx) {
+                DebuggerBase debugger = createDebugger();
+                if (debugger != null) {
+                    debugger.attach(createContextData());
+                }
+            }
+            public void contextReleased(Context cx) {
+            }
+        });
+    }
+
+    public void attach(Object contextData) {
+        Context cx = Context.getCurrentContext();
+        cx.setDebugger(this, contextData);
+        cx.setOptimizationLevel(-1);
+        cx.setGeneratingDebug(true);
+    }
+
+    public Object getContextData() {
+        return Context.getCurrentContext().getDebuggerContextData();
+    }
+
+    public synchronized void suspend() {
+        try {
+            wait();
+        } catch (InterruptedException ir) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public synchronized void resume() {
+        notify();
     }
 
     public DebugFrame getFrame(Context cx, DebuggableScript fnOrScript) {
@@ -48,10 +98,6 @@ public abstract class DebuggerBase implements Debugger {
         }
     }
 
-    public abstract void handleCompilationDone(Context cx, DebuggableScript fnOrScript, String source);
-    
-    public abstract DebugFrame getScriptFrame(Context cx, DebuggableScript fnOrScript);
-
     class DebuggerScriptFrame implements DebugFrame {
 
         public void onEnter(Context cx, Scriptable activation, Scriptable thisObj, Object[] args) {
@@ -70,5 +116,5 @@ public abstract class DebuggerBase implements Debugger {
 
         public void onDebuggerStatement(Context cx) {}
     }
-   
+
 }

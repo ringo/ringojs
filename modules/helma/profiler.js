@@ -1,5 +1,6 @@
 
 var log = require('helma/logging').getLogger(module.id);
+var Buffer = require('helma/buffer').Buffer;
 
 export('Profiler');
 
@@ -44,7 +45,7 @@ function Profiler() {
         }
         // sort list according to total runtime
         list = list.sort(function(a, b) {
-                return b.getRuntime() - a.getRuntime();
+            return b.getRuntime() - a.getRuntime();
         });
         // cut list to maxFrames elements
         list.length = maxFrames;
@@ -52,17 +53,29 @@ function Profiler() {
         var buffer = [];
         var maxLength = 0;
         // find common prefix in path names
-        var commonPrefix = list.map(function(item) {
-            return item.name;
-        }).reduce(function(previous, current) {
-            return previous.getCommonPrefix(current);
-        });
+        var commonPrefix = list.reduce(function(previous, current) {
+            return previous.getCommonPrefix(current.name);
+        }, "");
         for each (var item in list) {
             var str = item.renderLine(commonPrefix.length);
             maxLength = Math.max(maxLength, str.length);
             buffer.push(str);
         }
         return { data: buffer.join(''), maxLength: maxLength };
+    };
+
+    this.getFormattedResult = function(maxFrames) {
+        var result = this.getResult(maxFrames);
+        var buffer = new Buffer();
+        buffer.writeln();
+        buffer.writeln("     total  average  calls    path");
+        for (var i = 1; i < result.maxLength; i++) {
+            // b.write("—");
+            buffer.write("-");
+        }
+        buffer.writeln();
+        buffer.writeln(result.data);
+        return buffer.toString()    
     };
 
     function Frame(name) {
@@ -102,7 +115,7 @@ function Profiler() {
     }
 
     var profiler = new org.helma.util.DebuggerBase(this);
-    profiler.debuggerScript = __path__;
+    profiler.debuggerScript = module.id + ".js";
     return profiler;
 }
 

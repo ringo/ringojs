@@ -12,28 +12,14 @@ var maxFrames = 30;
  */
 exports.middleware = function(app) {
     return function(env) {
-        if (engine.getOptimizationLevel() > -1) {
-            engine.setOptimizationLevel(-1);
-            throw {retry: true};
-        }
         var profiler = new Profiler();
-        engine.getRhinoContext().setDebugger(profiler, null);
+        profiler.attach();
 
         // get the response passing the request on to the middleware chain
-        var res = app(env);
-
-        var result = profiler.getResult(maxFrames);
-        var buffer = new Buffer();
-        buffer.writeln();
-        buffer.writeln("     total  average  calls    path");
-        for (var i = 1; i < result.maxLength; i++) {
-            // b.write("—");
-            buffer.write("-");
+        try {
+            return res = app(env);
+        } finally {
+            log.info(profiler.getFormattedResult(maxFrames));
         }
-        buffer.writeln();
-        buffer.writeln(result.data);
-        log.info(buffer.toString());
-
-        return res;
     }
 }
