@@ -1,8 +1,8 @@
 require('core/string');
-include('helma/engine');
-include('helma/file');
-include('helma/shell');
-include('helma/args');
+var file = require('file');
+var engine = require('helma/engine');
+var shell = require('helma/shell');
+var Parser = require('helma/args').Parser;
 
 export('createApplication');
 
@@ -10,11 +10,12 @@ export('createApplication');
  * Create a new Helma NG web application at the given path.
  * @param path the path where to create the application
  */
-function createApplication(path) {
+function createApplication(path, options) {
     if (!path) {
         throw "No destination path given.";
     }
-    var dest = new File(path);
+
+    var dest = new file.Path(path);
 
     if (dest.exists() && !dest.isDirectory()) {
         throw dest + " exists but is not a directory.";
@@ -22,14 +23,37 @@ function createApplication(path) {
         throw "Directory " + dest + " exists but is not empty.";
     }
 
-    var skeleton = new File(properties["helma.home"], "apps/skeleton");
-    if (!skeleton.exists() || !skeleton.isDirectory()) {
-        throw "Can't find skeleton app in " + skeleton + ".";
+    var home = engine.properties["helma.home"];
+
+    if (options.appengine) {
+        copyTree(home, "apps/appengine", dest);
+        copyTree(home, "modules", file.join(dest, "WEB-INF", "modules"));
+        copyTree(home, "apps/skeleton", file.join(dest, "WEB-INF", "app"));
+        file.move(file.join(dest, "WEB-INF", "app", "static"), file.join(dest, "static"));
+        copyJars(home, dest);
+    } else {
+        copyTree(home, "apps/skeleton", dest);
+    }
+}
+
+function copyTree(home, from, to) {
+    var source = new file.Path(file.join(home, from));
+    if (!source.exists() || !source.isDirectory()) {
+        throw "Can't find directory " + source + ".";
     }
 
-    write("Copying application skeleton to", dest, "... ");
-    skeleton.hardCopy(dest);
+    shell.write("Copying files from " + from + " to "  + to + "... ");
+    source.copyTree(to);
     print("done");
+}
+
+function copyJars(home, dest) {
+    var jars = ["helma.jar", "js.jar", "log4j-1.2.15.jar"];
+    var libsrc = file.join(home, "lib");
+    var libdest = file.join(dest, "WEB-INF", "lib");
+    for each (var jar in jars) {
+        file.copy(file.join(libsrc, jar), file.join(libdest, jar));
+    }
 }
 
 /**
@@ -39,8 +63,7 @@ function createApplication(path) {
 function main(args) {
     var script = args.shift();
     var parser = new Parser();
-    // parser.addOption("a", "appengine", "PATH",
-    //         "Create a Google App Engine app using the given SDK path");
+    parser.addOption("a", "appengine", null, "Create a new Google App Engine application");
     parser.addOption("h", "help", null, "Print help message and exit");
     var opts = parser.parse(args);
     if (opts.help) {
@@ -53,7 +76,7 @@ function main(args) {
     }
 
     var path = args[0]
-            || readln("Please enter the path for your application: ");
+            || shell.readln("Please enter the path for your application: ");
 
     if (!path) {
         print("No path, exiting.");
@@ -63,10 +86,10 @@ function main(args) {
 }
 
 if (require.main == module.id) {
-    try {
+    // try {
         main(system.args);
-    } catch (error) {
+    /* } catch (error) {
         print(error);
         print("Use -h or --help to get a list of available options.");
-    }
+    } */
 }
