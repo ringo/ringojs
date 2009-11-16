@@ -19,7 +19,7 @@ exports.parseScriptResource = function(resource, visitorFunction) {
 function getParser() {
     var ce = new org.mozilla.javascript.CompilerEnvirons();
     ce.setRecordingComments(true);
-    ce.setRecordingLocalJsDocComments(true)
+    ce.setRecordingLocalJsDocComments(true);
     ce.initFromContext(Context.getCurrentContext());
     return new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
 }
