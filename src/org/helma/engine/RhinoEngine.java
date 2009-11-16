@@ -237,7 +237,7 @@ public class RhinoEngine implements ScopeProvider {
                     Scriptable scriptable = module instanceof Scriptable ?
                             (Scriptable) module : loadModule(cx, (String) module, null);
                     Object function = ScriptableObject.getProperty(scriptable, method);
-                    if ((function == ScriptableObject.NOT_FOUND) || !(function instanceof Function)) {
+                    if (!(function instanceof Function)) {
                         throw new NoSuchMethodException("Function " + method + " not defined");
                     }
                     retval = ((Function) function).call(cx, topLevelScope, scriptable, args);
@@ -252,7 +252,7 @@ public class RhinoEngine implements ScopeProvider {
                     }
                 } catch (RetryException retry) {
                     // request to try again
-                    ((Map) cx.getThreadLocal("modules")).clear();                    
+                    ((Map) cx.getThreadLocal("modules")).clear();
                 }
             }
             if (retval instanceof Wrapper) {
