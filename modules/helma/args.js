@@ -47,7 +47,7 @@ exports.Parser = function() {
             }
             lines.push({flags: flags, helpText: opt.helpText});
         }
-        var maxlength = lines.map(function(s) s.flags.length).max();
+        var maxlength = lines.reduce(function(prev, val) Math.max(val.flags.length, prev), 0);
         return lines.map(
             function(s) s.flags.pad(" ", 2 + maxlength) + s.helpText
         ).join("\n");
