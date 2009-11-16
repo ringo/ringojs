@@ -12,6 +12,10 @@ var maxFrames = 30;
  */
 exports.middleware = function(app) {
     return function(env) {
+        if (engine.getOptimizationLevel() > -1) {
+            engine.setOptimizationLevel(-1);
+            throw {retry: true};
+        }
         var profiler = new Profiler();
         profiler.attach();
 
