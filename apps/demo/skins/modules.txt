@@ -15,7 +15,7 @@ modules to the URI namespace of their web app and all exported functions in the 
 will be callable through the web.
 
 For example, the following code in a web app's config.js
-mapps the module named "webmodule" to <a href="<% href %>"><% href %></a>:
+mapps the module named "webmodule" to <a href="<% path %>"><% path %></a>:
 
     exports.urls = [
         [ '/mount/point', 'webmodule' ]

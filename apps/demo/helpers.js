@@ -25,6 +25,11 @@ exports.markdown_filter = function(content) {
     return markdown.process(content);
 };
 
+exports.href_macro = function(tag) {
+    var req = require('helma/webapp/env').req;
+    return req.rootPath + tag.parameters[0];
+}
+
 exports.matchPath_macro = function(tag) {
     var req = require('helma/webapp/env').req;
     if (req && req.path && req.path.match(tag.parameters[0])) {

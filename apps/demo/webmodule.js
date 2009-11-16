@@ -3,10 +3,10 @@ include('helma/webapp/response');
 
 export('index');
 
-function index(req, res) {
+function index(req) {
     var context = {
         title: 'Modules',
-        href: req.pathDecoded
+        path: req.scriptName + req.pathInfo
     };
     return new SkinnedResponse('skins/modules.txt', context);
 }

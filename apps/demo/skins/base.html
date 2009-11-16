@@ -22,14 +22,14 @@
     </div>
     <div id="menu">
         <ul>
-            <li><a href="/" class="<% matchPath ^/$ %>">Home</a></li>
-            <li><a href="/mount/point/" class="<% matchPath ^/mount/point %>">Modules</a></li>
-            <li><a href="/skins" class="<% matchPath ^/skin %>">Skins</a></li>
-            <li><a href="/upload" class="<% matchPath ^/upload %>">File Upload</a></li>
-            <li><a href="/storage/" class="<% matchPath ^/storage %>">Storage</a></li>
-            <li><a href="/jsdoc" class="<% matchPath ^/jsdoc %>">API Documentation</a></li>
-            <li><a href="/testing" class="<% matchPath ^/testing %>">Unit Testing</a></li>
-            <li><a href="/logging" class="<% matchPath ^/logging %>">Logging &amp; Profiling</a></li>
+            <li><a href="<% href / %>" class="<% matchPath ^/$ %>">Home</a></li>
+            <li><a href="<% href /mount/point/ %>" class="<% matchPath ^/mount/point %>">Modules</a></li>
+            <li><a href="<% href /skins %>" class="<% matchPath ^/skin %>">Skins</a></li>
+            <li><a href="<% href /upload %>" class="<% matchPath ^/upload %>">File Upload</a></li>
+            <li><a href="<% href /storage/ %>" class="<% matchPath ^/storage %>">Storage</a></li>
+            <li><a href="<% href /jsdoc %>" class="<% matchPath ^/jsdoc %>">API Documentation</a></li>
+            <li><a href="<% href /testing %>" class="<% matchPath ^/testing %>">Unit Testing</a></li>
+            <li><a href="<% href /logging %>" class="<% matchPath ^/logging %>">Logging &amp; Profiling</a></li>
         </ul>
     </div>
     <div id="footer"><% footer %></div>
