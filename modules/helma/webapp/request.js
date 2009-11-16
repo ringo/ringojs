@@ -17,14 +17,14 @@ function Request(env) {
     var servletRequest = env["jsgi.servlet_request"];
 
     this.charset = servletRequest.getCharacterEncoding();
+    this.pathInfo = env.PATH_INFO;
+    this.scriptName = env.SCRIPT_NAME;
     Object.defineProperty(this, "env", {value: env});
     Object.defineProperty(this, "contentType", {value: env.CONTENT_TYPE});
     Object.defineProperty(this, "contentLength", {value: env.CONTENT_LENGTH});
     // Object.defineProperty(this, "servletRequest", {get: function() servletRequest});
     Object.defineProperty(this, "port", {value: env.SERVER_PORT});
     Object.defineProperty(this, "path", {value: env.SCRIPT_NAME + env.PATH_INFO});
-    Object.defineProperty(this, "pathInfo", readWritePropertyDesc(env, "PATH_INFO"));
-    Object.defineProperty(this, "scriptName", readWritePropertyDesc(env, "SCRIPT_NAME"));
     Object.defineProperty(this, "queryString", {value: env.QUERY_STRING});
     Object.defineProperty(this, "method", {value: env.REQUEST_METHOD});
 
