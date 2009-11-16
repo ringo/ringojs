@@ -380,8 +380,6 @@ function Path(path) {
     this.toString = function() path;
 }
 
-Path.prototype = new String();
-
 Path.prototype.join = function() {
     return Path(join.apply(null, 
             [this.toString()].concat(Array.slice(arguments))));
