@@ -10,8 +10,9 @@ export('absolute',
        'basename',
        'canonical',
        'chdir',
-       'copy',
        'chmod',
+       'copy',
+       'copyTree',
        'cwd',
        'dirname',
        'exists',
@@ -99,6 +100,20 @@ function copy(from, to) {
     } finally {
         input.close();
         output.close();
+    }
+}
+
+function copyTree(from, to) {
+    var source = resolveFile(from);
+    var target = resolveFile(to);
+    if (isDirectory(from)) {
+        mkdirs(target);
+        var files = list(source);
+        for each (var file in files) {
+            copyTree(join(source, file), join(target, file));
+        }
+    } else {
+        copy(source, target);
     }
 }
 
@@ -406,6 +421,7 @@ var trivia = [
     'chmod',
     // 'chown',
     'copy',
+    'copyTree',
     'exists',
     'extension',
     'isDirectory',
