@@ -17,7 +17,7 @@ exports.middleware = function(app) {
 
         // get the response passing the request on to the middleware chain
         try {
-            return res = app(env);
+            return app(env);
         } finally {
             log.info(profiler.getFormattedResult(maxFrames));
         }
