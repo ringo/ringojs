@@ -29,7 +29,7 @@ function createApplication(path, options) {
         copyTree(home, "apps/appengine", dest);
         copyTree(home, "modules", file.join(dest, "WEB-INF", "modules"));
         copyTree(home, "apps/skeleton", file.join(dest, "WEB-INF", "app"));
-        file.move(file.join(dest, "WEB-INF", "app", "static"), file.join(dest, "static"));
+        fixAppEngineDirs(dest);
         copyJars(home, dest);
     } else {
         copyTree(home, "apps/skeleton", dest);
@@ -45,6 +45,14 @@ function copyTree(home, from, to) {
     shell.write("Copying files from " + from + " to "  + to + "... ");
     source.copyTree(to);
     print("done");
+}
+
+function fixAppEngineDirs(dest) {
+    file.mkdir(file.join(dest, "static"));
+    var webinf = file.join(dest, "WEB-INF");
+    file.mkdir(file.join(webinf, "lib"));
+    file.mkdir(file.join(webinf, "classes"));
+    file.move(file.join(webinf, "app", "static"), file.join(dest, "static"));    
 }
 
 function copyJars(home, dest) {
