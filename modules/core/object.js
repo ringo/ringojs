@@ -51,7 +51,7 @@ Object.defineProperty(Object.prototype, "clone", {
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
  */
-Object.defineProperty(Object.prototype, "merge", {
+Object.defineProperty(Object, "merge", {
     value: function() {
         var result = {};
         for (var i = arguments.length; i > 0; --i) {
