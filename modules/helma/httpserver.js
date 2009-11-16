@@ -24,11 +24,11 @@ var log = require('helma/logging').getLogger(module.id);
      * <ul>
      * <li>configFile ('jetty.xml')</li>
      * <li>port (8080)</li>
-     * <li> mountpoint ('/')</li>
+     * <li>mountpoint ('/')</li>
      * <li>staticDir ('static')</li>
      * <li>staticMountpoint ('/static')</li>
-     * <li>servletParams ({ module: 'helma/webapp',
-     *                      function: 'handleServletRequest' })</li>
+     * <li>moduleName ('config')</li>
+     * <li>functionName ('app')</li>
      * </ul>
      */
     this.start = function(config, func) {
