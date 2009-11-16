@@ -8,8 +8,9 @@ export('Profiler');
  * A class for measuring the frequency and runtime of function invocations.
  */
 function Profiler() {
+    var stack = [];
     var frames = {};
-    var currentFrame = null;
+    var System = java.lang.System;
 
     this.getScriptFrame = function(cx, script) {
         if (!script.isFunction()) {
@@ -21,8 +22,6 @@ function Profiler() {
             frame = new Frame(name);
             frames[name] = frame;
         }
-        // frame.addCall(currentFrame);
-        currentFrame = name;
         return frame;
     };
 
@@ -80,34 +79,67 @@ function Profiler() {
 
     function Frame(name) {
 
-        var starttime = [];
-        var runtime = 0, invocations = 0;
+        var timer; // current invocation timer
+        var timerstack = []; // invocation timer stack
+        var invocations = []; // list of finished invocations
         this.name = name;
 
         this.onEnter = function(cx, activation, thisObj, args) {
-            starttime.push(java.lang.System.nanoTime());
+            if (timer) {
+                timerstack.push(timer);
+            }
+            var now = System.nanoTime();
+            timer = [];
+            timer.name = name;
+            timer.start = now;
+            stack.push(this);
         };
 
         this.onExceptionThrown = function(cx, ex) {
-            // TODO is this called in addition to or instead of onExit?
-            // invocations += 1;
-            // runtime += (java.lang.System.nanoTime() - starttime.pop());
         };
 
         this.onExit = function(cx, byThrow, resultOrException) {
-            invocations += 1;
-            runtime += (java.lang.System.nanoTime() - starttime.pop());
+            timer.end = System.nanoTime();;
+            stack.pop();
+            if (stack.length > 0) {
+                stack[stack.length - 1].addInvocationChild(timer);
+            }
+            invocations.push(timer);
+            timer = timerstack.pop();
         };
 
+        this.addInvocationChild = function(child) {
+            timer.push(child);
+        };
+
+        this.getSelftime = function() {
+            return invocations.reduce(
+                function(prev, e) {
+                    return prev + e.end - e.start - e.reduce(function(prev, e) {
+                        return prev + e.end - e.start;
+                    }, 0);
+                }, 0
+            );
+        };
+        
         this.getRuntime = function() {
-            return runtime;
+            return invocations.reduce(
+                function(prev, e) {
+                    return prev + (e.end - e.start);
+                }, 0
+            );
+        };
+
+        this.getInvocations = function() {
+            return invocations.length;
         };
 
         this.renderLine = function(prefixLength) {
-            var millis = Math.round(this.runtime / 1000000);
+            var runtime = this.getRuntime() / 1000000;
+            var count = this.getInvocations();
             var formatter = new java.util.Formatter();
-            formatter.format("%1$7.0f ms %2$5.0f ms %3$6.0f    %4$s%n", millis,
-                    Math.round(millis / invocations), invocations, name.slice(prefixLength));
+            formatter.format("%1$7.0f ms %2$5.0f ms %3$6.0f    %4$s%n",
+                    runtime, Math.round(runtime / count), count, name.slice(prefixLength));
             return formatter.toString();
         };
 
