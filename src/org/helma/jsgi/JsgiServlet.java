@@ -61,8 +61,8 @@ public class JsgiServlet extends HttpServlet {
 
         // don't overwrite function if it was set in constructor
         if (function == null) {
-            module = getInitParam(config, "moduleName", "helma/webapp");
-            function = getInitParam(config, "functionName", "handleRequest");
+            module = getInitParam(config, "moduleName", "config");
+            function = getInitParam(config, "functionName", "app");
         }
 
         if (engine == null) {
