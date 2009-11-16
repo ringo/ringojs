@@ -45,11 +45,10 @@ function Response() {
      * Render a skin to the response's buffer
      * @param skin path to skin resource
      * @param context context object
-     * @param scope optional scope for relative resource paths
      */
-    this.render = function render(skin, context, scope) {
+    this.render = function render(skin, context) {
         var render = require('helma/skin').render;
-        buffer.write(render(skin, context, scope));
+        buffer.write(render(skin, context));
     }
 
     /**

@@ -1,13 +1,12 @@
 
 require('core/string');
 require('core/object');
-import('helma/logging', 'logging');
-import('helma/engine', 'engine');
+var engine = require('helma/engine');
 
 export('render', 'createSkin', 'Skin');
 
 module.shared = true;
-var log = logging.getLogger(module.id);
+var log = require('helma/logging').getLogger(module.id);
 var skincache = false; // {}
 
 engine.addHostObject(org.helma.template.MacroTag);
@@ -16,22 +15,20 @@ engine.addHostObject(org.helma.template.MacroTag);
  * Parse a skin from a resource and render it using the given context.
  * @param skinOrResource a skin object, helma resource, or file name
  * @param context the skin render context
- * @param scope optional scope object for relative resource lookup
  */
-function render(skinOrResource, context, scope) {
-    scope = scope || this;
+function render(skinOrResource, context) {
     var skin;
     if (typeof(skinOrResource.render) == "function") {
         skin = skinOrResource;
     } else if (skinOrResource instanceof org.helma.repository.Resource) {
-        skin = createSkin(skinOrResource, scope);
+        skin = createSkin(skinOrResource);
     } else if (typeof(skinOrResource) == "string") {
         var subskin;
         if (skinOrResource.indexOf('#') > -1) {
             [skinOrResource, subskin] = skinOrResource.split('#');
         }
-        var resource = scope.getResource(skinOrResource);
-        skin = createSkin(resource, scope);
+        var resource = getResource(skinOrResource);
+        skin = createSkin(resource);
         if (subskin) {
             skin = skin.getSubskin(subskin);
         }
@@ -43,9 +40,9 @@ function render(skinOrResource, context, scope) {
 
 /**
  * Parse a skin from a resource.
- * @param resource
+ * @param resourceOrString the skin resource or string
  */
-function createSkin(resourceOrString, scope) {
+function createSkin(resourceOrString) {
     if (this.skincache && resourceOrString in skincache) {
         return skincache[resourceOrString];
     }
@@ -69,7 +66,7 @@ function createSkin(resourceOrString, scope) {
                     skinResource = resourceOrString.parentRepository.getResource(skinPath);
                 }
                 if (!skinResource || !skinResource.exists()) {
-                    skinResource = scope.getResource(skinPath);
+                    skinResource = getResource(skinPath);
                 }
                 parentSkin = createSkin(skinResource);
             } else if (macro.name === 'subskin')  {
@@ -115,7 +112,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
                     context = Object.merge(context, require(module));
                 }
             }
-        }        
+        }
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
         } else {
