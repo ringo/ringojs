@@ -82,7 +82,6 @@ exports.parseResource = function(resource) {
                     var chain = propname.split(".");
                     if (exported.contains(chain[0])) {
                         // Foo.bar or Foo.prototype.bar assignment where Foo is exported
-                        log.info(propname + " -> " + root.jsDoc);
                         addDocItem(propname, root.jsDoc);
                     }
                 }
