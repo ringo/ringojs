@@ -31,13 +31,14 @@ function upload(req) {
 }
 
 function testing(req) {
-    var tests = require("test/all");
-    var HtmlTestFormatter = require("helpers").HtmlTestFormatter;
-    var result = new HtmlTestFormatter();
-    require("helma/unittest").run(tests, result);
+    if (req.params.runtests) {
+        var tests = require("test/all");
+        var formatter = new (require("helpers").HtmlTestFormatter)();
+        require("helma/unittest").run(tests, formatter);
+        return new Response(formatter);
+    }
     return new SkinnedResponse('skins/testing.txt', {
-        title: "Unit Testing",
-        result: result
+        title: "Unit Testing"
     });
 }
 
