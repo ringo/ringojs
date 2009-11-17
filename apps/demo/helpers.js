@@ -58,16 +58,16 @@ exports.HtmlTestFormatter = function() {
     };
 
     this.writeTestStart = function(name) {
-        buffer.write("<div>Running ", name, "...");
+        buffer.write("<div style='clear: both;'>Running ", name, "...");
     };
 
     this.writeTestPassed = function(time) {
-        buffer.writeln(" <span style='background: #2b2; color: white; padding: 2px;'>PASSED</span>",
+        buffer.writeln(" <div style='float: right; background: #2b2; color: white; padding: 2px;'>PASSED</div>",
                 " (" + time + " ms)</div>");
     };
 
     this.writeTestFailed = function(exception) {
-        buffer.write(" <span style='background: red; color: white; padding: 2px;'>FAILED</span> ");
+        buffer.write(" <div style='float: right; background: red; color: white; padding: 2px;'>FAILED</div> ");
         buffer.write("<pre style='font-weight: bold;'>");
         exception.message.split(/\n/).forEach(function(line) {
             buffer.writeln(" ".repeat(2), line);
@@ -82,7 +82,7 @@ exports.HtmlTestFormatter = function() {
 
     this.writeSummary = function(summary) {
         if (summary.testsRun > 0) {
-            result = new Buffer("<hr/>");
+            result = new Buffer();
             result.writeln("<h2>Executed ", summary.testsRun, " tests in ", summary.time, " ms</h2>");
             result.writeln("<h3>Passed ", summary.passed + "; ", "Failed ", summary.failures + "; ", "Errors ", summary.errors + ";</h3>");
         } else {
