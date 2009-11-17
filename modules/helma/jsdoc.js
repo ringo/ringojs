@@ -78,6 +78,13 @@ exports.parseResource = function(resource) {
                     } else if (exported.contains(name)) {
                         addDocItem(name, root.jsDoc);
                     }
+                } else {
+                    var chain = propname.split(".");
+                    if (exported.contains(chain[0])) {
+                        // Foo.bar or Foo.prototype.bar assignment where Foo is exported
+                        log.info(propname + " -> " + root.jsDoc);
+                        addDocItem(propname, root.jsDoc);
+                    }
                 }
             } else if (node.left.type == Token.GETELEM
                     && node.left.target.type == Token.NAME
