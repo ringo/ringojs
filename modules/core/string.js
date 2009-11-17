@@ -152,18 +152,18 @@ Object.defineProperty(String.prototype, "isHexColor", {
 Object.defineProperty(String.prototype, "toHexColor", {
     value: function() {
         if (this.startsWith("rgb")) {
-            res.push();
+            var buffer = [];
             var col = this.replace(/[^0-9,]/g, '');
             var parts = col.split(",");
             for (var i in parts) {
                 var num = parseInt(parts[i], 10);
                 var hex = num.toString(16);
-                res.write(hex.pad("0", 2, String.LEFT));
+                buffer.push(hex.pad("0", 2, String.LEFT));
             }
-            return res.pop();
+            return buffer.join("");
         }
-        var col = this.replace(new RegExp(String.HEXPATTERN.source), '');
-        return col.toLowerCase().pad("0", 6, String.LEFT);
+        var color = this.replace(new RegExp(String.HEXPATTERN.source), '');
+        return color.toLowerCase().pad("0", 6, String.LEFT);
     }
 });
 
@@ -246,13 +246,11 @@ Object.defineProperty(String.prototype, "capitalize", {
 Object.defineProperty(String.prototype, "titleize", {
     value: function() {
         var parts = this.split(" ");
-        res.push();
+        var buffer = [];
         for (var i in parts) {
-            res.write(parts[i].capitalize());
-            if (i < parts.length-1)
-                res.write(" ");
+            buffer.push(parts[i].capitalize());
         }
-        return res.pop();
+        return buffer.join(" ");
     }
 });
 
@@ -263,13 +261,11 @@ Object.defineProperty(String.prototype, "titleize", {
  */
 Object.defineProperty(String.prototype, "entitize", {
     value: function() {
-        res.push();
+        var buffer = [];
         for (var i=0; i<this.length; i++) {
-            res.write("&#");
-            res.write(this.charCodeAt(i).toString());
-            res.write(";");
+            buffer.push("&#", this.charCodeAt(i).toString(), ";");
         }
-        return res.pop();
+        return buffer.join("");
     }
 });
 
@@ -355,16 +351,16 @@ Object.defineProperty(String.prototype, "group", {
             interval = 20;
         if (!str || this.length < interval)
             return this;
-        res.push();
+        var buffer = [];
         for (var i=0; i<this.length; i=i+interval) {
             var strPart = this.substring(i, i+interval);
-            res.write(strPart);
+            buffer.push(strPart);
             if (ignoreWhiteSpace == true ||
                 (strPart.length == interval && !/\s/g.test(strPart))) {
-                res.write(str);
+                buffer.push(str);
             }
         }
-        return res.pop();
+        return buffer.join("");
     }
 });
 
