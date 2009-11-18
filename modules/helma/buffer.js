@@ -6,8 +6,9 @@ export('Buffer');
 /**
  * A utility class for composing strings. This is implemented
  * as a simple wrapper around a JavaScript array.
+ * @param parts... initial parts to write to the buffer
  */
-function Buffer() {
+function Buffer(parts) {
     var content = [];
 
     /**
@@ -20,8 +21,9 @@ function Buffer() {
 
     /**
      * Append all arguments to this buffer.
+     * @param parts... the parts to write to the buffer
      */
-    this.write = function() {
+    this.write = function(parts) {
         for (var i = 0; i < arguments.length; i++) {
             content[content.length] = String(arguments[i]);
         }
@@ -30,8 +32,9 @@ function Buffer() {
 
     /**
      * Append all arguments to this buffer terminated by a carriage return/newline sequence.
+     * @param parts... the parts to write to the buffer
      */
-    this.writeln = function() {
+    this.writeln = function(parts) {
         this.write.apply(this, arguments);
         content[content.length] = "\r\n";
         return this;

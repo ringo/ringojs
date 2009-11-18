@@ -14,6 +14,10 @@ export('ResponseFilter', 'Headers', 'getMimeParameter');
  * @param filter a filter function
  */
 function ResponseFilter(body, filter) {
+    /**
+     * forEach function called by the JSGI connector.
+     * @param fn the response handler callback function
+     */
     this.forEach = function(fn) {
         body.forEach(function(block) {
             var filtered = filter(block);
@@ -45,6 +49,12 @@ function Headers(headers) {
         keys[String(key).toLowerCase()] = key;
     }
 
+    /**
+     * Get the value of the header with the given name
+     * @param name the header name
+     * @return the header value
+     * @name Headers.instance.get
+     */
     Object.defineProperty(headers, "get", {
         value: function(key) {
             var value = this[key];
@@ -55,6 +65,12 @@ function Headers(headers) {
         }
     });
 
+    /**
+     * Set the header with the given name to the given value.
+     * @param name the header name
+     * @param value the header value
+     * @name Headers.instance.set
+     */
     Object.defineProperty(headers, "set", {
         value: function(key, value) {
             var oldkey = keys[key.toLowerCase()];

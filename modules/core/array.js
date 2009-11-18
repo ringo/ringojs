@@ -109,12 +109,18 @@ Object.defineProperty(Array, "intersection", {
     }
 });
 
+/**
+ * @return the maximal element in this array obtained by calling Math.max().
+ */
 Object.defineProperty(Array.prototype, "max", {
     value: function() {
         return Math.max.apply( Math, this );
     }
 });
 
+/**
+ * @return the minimal element in this array obtained by calling Math.min().
+ */
 Object.defineProperty(Array.prototype, "min", {
     value: function() {
         return Math.min.apply( Math, this );

@@ -24,9 +24,9 @@ module.shared = true;
 /**
  * copy the properties of an object into
  * a new object
- * @param Object the source object
- * @param Object the (optional) target object
- * @return Object the resulting object
+ * @param {Object} clone the clone object
+ * @param {boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
+ * @return {Object} the clone object
  */
 Object.defineProperty(Object.prototype, "clone", {
     value: function(clone, recursive) {
@@ -50,6 +50,7 @@ Object.defineProperty(Object.prototype, "clone", {
  * Creates a new object as the as the keywise union of the provided objects.
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
+ * @param {Object} obj... The objects to merge
  */
 Object.defineProperty(Object, "merge", {
     value: function() {

@@ -1,6 +1,9 @@
 require('binary');
 
 defineClass(org.helma.wrappers.Stream);
+/**
+ * @constructor
+ */
 exports.Stream = Stream;
 
 var InputStreamReader = java.io.InputStreamReader,
@@ -138,5 +141,9 @@ exports.TextStream = function TextStream(io, charset, buflen) {
     };
 
     return this;
-}
+};
+
+/**
+ * @name Stream.prototype.write
+ */
 

@@ -6,6 +6,9 @@ module.shared = true;
 
 /**
  * Format a number using java.text.DecimalFormat.
+ * @param fmt the format to apply
+ * @param locale optional locale
+ * @return the number formatted as string
  */
 Object.defineProperty(Number.prototype, 'format', {
     value: function(fmt, locale) {
@@ -22,6 +25,7 @@ Object.defineProperty(Number.prototype, 'format', {
 
 /**
  * Invoke a function this times, passing 0 .. this - 1 as argument.
+ * @param {Function} fun the function to call
  */
 Object.defineProperty(Number.prototype, 'times', {
     value: function(fun) {
