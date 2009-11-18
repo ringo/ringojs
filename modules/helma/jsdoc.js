@@ -60,29 +60,29 @@ exports.parseResource = function(resource) {
                 var name = node.left.property.string;
                 var propname = nodeToString(node.left);
                 if (propname.startsWith('exports.') && !exported.contains(name)) {
-                    addDocItem(name, root.jsDoc);
+
+                    addDocItem(name, root.jsDoc, node.right);
                     exported.push(name);
                     if (node.right.type == Token.FUNCTION) {
                         exportedFunction = node.right;
                         exportedName = name;
                     }
-                    return;
                 } else if (target.type == Token.THIS) {
                     if (root.parent && root.parent.parent && root.parent.parent.parent
                             &&  root.parent.parent.parent == exportedFunction) {
-                        addDocItem(exportedName + ".instance." + name, root.jsDoc);
+                        addDocItem(exportedName + ".instance." + name, root.jsDoc, node.right);
                         /* if (node.right.type == Token.FUNCTION) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
                          } */
                     } else if (exported.contains(name)) {
-                        addDocItem(name, root.jsDoc);
+                        addDocItem(name, root.jsDoc, node.right);
                     }
                 } else {
                     var chain = propname.split(".");
                     if (exported.contains(chain[0])) {
                         // Foo.bar or Foo.prototype.bar assignment where Foo is exported
-                        addDocItem(propname, root.jsDoc);
+                        addDocItem(propname, root.jsDoc, node.right);
                     }
                 }
             } else if (node.left.type == Token.GETELEM
@@ -90,22 +90,28 @@ exports.parseResource = function(resource) {
                     && node.left.target.string == "exports"
                     && node.left.element.type == Token.STRING) {
                 // exports["foo"] = bar
-                addDocItem(node.left.element.value, root.jsDoc);
+                addDocItem(node.left.element.value, root.jsDoc, node.right);
             }
         }
     };
 
-    var addDocItem = function(name, jsdoc) {
-        jsdoc = jsdoc ? extractTags(jsdoc) : {};
+    var addDocItem = function(name, jsdoc, value) {
+        jsdoc = jsdoc ? extractTags(jsdoc) : [];
         if (!name) {
-            name = jsdoc.getTag("name");
-            var memberOf = jsdoc.getTag("memberOf");
+            name = docProto.getTag.call({jsdoc: jsdoc}, "name");
+            var memberOf = docProto.getTag.call({jsdoc: jsdoc}, "memberOf");
             if (memberOf) {
                 name = memberOf + "." + name;
             }
         }
         if (!seen[name]) {
-            jsdocs.push({name: name, jsdoc: jsdoc});
+            if (value && value.type == Token.FUNCTION) {
+                jsdoc.push(["function", ""]);
+            }
+            jsdocs.push(Object.create(docProto, {
+                name: {value: name},
+                jsdoc: {value: jsdoc}
+            }));
             seen[name] = true;
         }
     };
@@ -155,7 +161,7 @@ exports.parseResource = function(resource) {
         }
         // exported function
         if (node.type == Token.FUNCTION && exported.contains(node.name)) {
-            addDocItem(node.name, node.jsDoc);
+            addDocItem(node.name, node.jsDoc, node);
             exportedFunction = node;
             exportedName = node.name;
         }
@@ -180,7 +186,7 @@ exports.parseResource = function(resource) {
     return jsdocs.sort(function(a, b) {
         return a.name < b.name ? -1 : 1;
     });
-}
+};
 
 /**
  * Remove slash-star comment wrapper from a raw comment string.
@@ -188,7 +194,7 @@ exports.parseResource = function(resource) {
  */
 exports.unwrapComment = function(/**String*/comment) {
     return comment ? comment.replace(/(^\/\*\*|\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
-}
+};
 
 /**
  * Parse a JSDoc comment into an array of tags, with tags being represented
@@ -212,16 +218,8 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
                    [tag, ''];
         }
     });
-    Object.defineProperty(tags, "getTag", {
-        value: function(name) {
-            for (var i = 0; i < this.length; i++) {
-                if (this[i][0] == name) return this[i][1];
-            }
-            return null;
-        }
-    });
     return tags;
-}
+};
 
 /**
  * Utility function to test whether a node is a Name node
@@ -231,7 +229,7 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
  */
 var isName = exports.isName = function(node) {
     return node instanceof org.mozilla.javascript.ast.Name;
-}
+};
 
 /**
  * Utility function to get the name value of a node, or the empty
@@ -241,11 +239,11 @@ var isName = exports.isName = function(node) {
  */
 var getName = exports.getName = function(node) {
     return exports.isName(node) ? node.getString() : "";
-}
+};
 
 var getTypeName = exports.getTypeName = function(node) {
     return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
-}
+};
 
 var nodeToString = function(node) {
     if (node.type == Token.GETPROP) {
@@ -266,5 +264,21 @@ var nodeToString = function(node) {
  *
  *     node.type == Token.NAME
  */
-exports.Token = org.mozilla.javascript.Token
+exports.Token = org.mozilla.javascript.Token;
 
+// the prototype used for document items
+var docProto = {
+    getTag: function(name) {
+        for (var i = 0; i < this.jsdoc.length; i++) {
+            if (this.jsdoc[i][0] == name) return this.jsdoc[i][1];
+        }
+        return null;
+    },
+    getTags: function(name) {
+        var result = [];
+        for (var i = 0; i < this.jsdoc.length; i++) {
+            if (this.jsdoc[i][0] == name) result.push(this.jsdoc[i][1]);
+        }
+        return result;
+    }
+};

@@ -1,11 +1,19 @@
 <% extends skins/base.html %>
 
+<% subskin head %>
+<style type="text/css">
+    .dimmed {
+        color: #333;
+        font-weight: 500;
+    }
+</style>
+
 <% subskin content %>
 <% for doctag in <% jsdoc.fileoverview %> render doctag %>
 <% for item in <% jsdoc %> render jsdoc %>
 
 <% subskin jsdoc %>
-<h3><% item.name %></h3>
+<h3><% item | renderName %></h3>
 <% for doctag in <% item.jsdoc %> render doctag %>
 
 <% subskin doctag %>

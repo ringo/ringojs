@@ -17,6 +17,7 @@ exports.middleware = [
 exports.app = require('helma/webapp').handleRequest;
 
 exports.macros = [
+    require('./helpers'),
     'helma/skin/macros',
     'helma/skin/filters'
 ];
