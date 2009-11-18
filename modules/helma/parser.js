@@ -3,13 +3,21 @@
  */
 
 /**
- * Parse a script resource and apply the visitorFunction to the script's nodes.
+ * Parse a script resource and return its AST tree.
+ * @param resource {Resource} an instance of org.helma.repository.Resource
+ */
+exports.parseScriptResource = function(resource) {
+    return getParser().parse(resource.content, resource.name, 0);
+};
+
+/**
+ * Parse a script resource and apply the visitor function to its AST tree.
  * The function takes one argument which is a org.mozilla.javascript.ast.AstNode.
  * The function must return true to visit child nodes of the current node.
  * @param resource {Resource} an instance of org.helma.repository.Resource
  * @param visitorFunction {Function} the visitor function
  */
-exports.parseScriptResource = function(resource, visitorFunction) {
+exports.visitScriptResource = function(resource, visitorFunction) {
     var ast = getParser().parse(resource.content, resource.name, 0);
     ast.visit(new org.mozilla.javascript.ast.NodeVisitor({
         visit: visitorFunction

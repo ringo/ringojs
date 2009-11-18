@@ -110,7 +110,7 @@ exports.parseResource = function(resource) {
         }
     };
 
-    parseScriptResource(resource, function(node) {
+    visitScriptResource(resource, function(node) {
         // loop through all comments looking for dangling jsdocs
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
