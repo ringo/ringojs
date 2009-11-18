@@ -16,7 +16,7 @@ Object.defineProperty(Number.prototype, 'format', {
             symbols = new java.text.DecimalFormatSymbols();
         }
         var df = new java.text.DecimalFormat(fmt || "###,##0.##", symbols);
-        return df.format(0 + this); // addition with 0 prevents exception
+        return df.format(+this);
     }
 });
 
