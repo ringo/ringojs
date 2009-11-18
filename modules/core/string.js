@@ -18,20 +18,14 @@ var asJavaString = require('helma/engine').asJavaString;
 
 module.shared = true;
 
-Object.defineProperty(String, 'ANUMPATTERN', { value: /[^a-zA-Z0-9]/ });
-Object.defineProperty(String, 'APATTERN', { value: /[^a-zA-Z]/ });
-Object.defineProperty(String, 'NUMPATTERN', { value: /[^0-9]/ });
-Object.defineProperty(String, 'FILEPATTERN', { value: /[^a-zA-Z0-9-_\. ]/ });
-Object.defineProperty(String, 'HEXPATTERN', { value: /[^a-fA-F0-9]/ });
-Object.defineProperty(String, 'EMAILPATTERN', { value: /^.+@.+\.[a-zA-Z]+$/ });
-Object.defineProperty(String, 'URLPATTERN',
-    { value: /^([^:]*):\/\/+(?:([^\/]*):)?(?:([^\/]*)@)?([\w\-_.]*[^.])(\/[^?]*)?(?:\?(.*))?$/ });
-Object.defineProperty(String, 'LEFT', { value: -1 })
-Object.defineProperty(String, 'BALANCE', { value: 0 })
-Object.defineProperty(String, 'RIGHT', { value: 1 })
-Object.defineProperty(String, 'ISOFORMAT', { value: "yyyy-MM-dd'T'HH:mm:ssZ" });
-Object.defineProperty(String, 'SPACE', { value: " " });
-Object.defineProperty(String, 'EMPTY', { value: "" });
+var ANUMPATTERN = /[^a-zA-Z0-9]/;
+var APATTERN = /[^a-zA-Z]/;
+var NUMPATTERN = /[^0-9]/;
+var FILEPATTERN = /[^a-zA-Z0-9-_\. ]/;
+var HEXPATTERN = /[^a-fA-F0-9]/;
+var EMAILPATTERN = /^.+@.+\.[a-zA-Z]+$/;
+var URLPATTERN = /^([^:]*):\/\/+(?:([^\/]*):)?(?:([^\/]*)@)?([\w\-_.]*[^.])(\/[^?]*)?(?:\?(.*))?$/;
+var ISOFORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 /**
  * @fileoverview Adds useful methods to the JavaScript String type.
@@ -85,14 +79,14 @@ Object.defineProperty(String.prototype, "toDate", {
  * are forbidden in URLs and tries to create a java.net.URL from it
  * FIXME: probably deprecated -> helma.Url
  * @return Boolean
- * @see helma.Url.PATTERN
  */
 Object.defineProperty(String.prototype, "isUrl", {
     value: function() {
-        if (String.URLPATTERN.test(this))
+        if (URLPATTERN.test(this)) {
             return true;
+        }
         try {
-            return new java.net.URL(this);
+            new java.net.URL(this);
         } catch (err) {
             return false;
         }
@@ -108,7 +102,7 @@ Object.defineProperty(String.prototype, "isUrl", {
  */
 Object.defineProperty(String.prototype, "isFileName", {
     value: function() {
-        return !String.FILEPATTERN.test(this);
+        return !FILEPATTERN.test(this);
     }
 });
 
@@ -120,7 +114,7 @@ Object.defineProperty(String.prototype, "isFileName", {
  */
 Object.defineProperty(String.prototype, "toFileName", {
     value: function() {
-        return this.replace(new RegExp(String.FILEPATTERN.source, "g"), '');
+        return this.replace(new RegExp(FILEPATTERN.source, "g"), '');
     }
 });
 
@@ -138,7 +132,7 @@ Object.defineProperty(String.prototype, "isHexColor", {
             str = this.substring(1);
         if (str.length != 6)
             return false;
-        return !String.HEXPATTERN.test(str);
+        return !HEXPATTERN.test(str);
     }
 });
 
@@ -158,12 +152,12 @@ Object.defineProperty(String.prototype, "toHexColor", {
             for (var i in parts) {
                 var num = parseInt(parts[i], 10);
                 var hex = num.toString(16);
-                buffer.push(hex.pad("0", 2, String.LEFT));
+                buffer.push(hex.pad("0", 2, -1));
             }
             return buffer.join("");
         }
-        var color = this.replace(new RegExp(String.HEXPATTERN.source), '');
-        return color.toLowerCase().pad("0", 6, String.LEFT);
+        var color = this.replace(new RegExp(HEXPATTERN.source), '');
+        return color.toLowerCase().pad("0", 6, -1);
     }
 });
 
@@ -177,7 +171,7 @@ Object.defineProperty(String.prototype, "isAlphanumeric", {
     value: function() {
         if (!this.length)
             return false;
-        return !String.ANUMPATTERN.test(this);
+        return !ANUMPATTERN.test(this);
     }
 });
 
@@ -189,7 +183,7 @@ Object.defineProperty(String.prototype, "isAlphanumeric", {
  */
 Object.defineProperty(String.prototype, "toAlphanumeric", {
     value: function() {
-        return this.replace(new RegExp(String.ANUMPATTERN.source, "g"), '');
+        return this.replace(new RegExp(ANUMPATTERN.source, "g"), '');
     }
 });
 
@@ -203,7 +197,7 @@ Object.defineProperty(String.prototype, "isAlpha", {
     value: function() {
         if (!this.length)
             return false;
-        return !String.APATTERN.test(this);
+        return !APATTERN.test(this);
     }
 });
 
@@ -217,7 +211,7 @@ Object.defineProperty(String.prototype, "isNumeric", {
     value: function() {
         if (!this.length)
             return false;
-        return !String.NUMPATTERN.test(this);
+        return !NUMPATTERN.test(this);
     }
 });
 
@@ -462,33 +456,35 @@ Object.defineProperty(String.prototype, "endsWith", {
  * @param String the filling string
  * @param Number the desired length of the resulting string
  * @param Number the direction which the string will be padded in:
- *                    -1: left    0: both (balance)  1: right
- *                    (you can use the constants String.LEFT,
- *                     String.BALANCE and String.RIGHT here as well.)
+ * a negative number means left, 0 means both, a positive number means right
  * @return String the resulting string
  */
 Object.defineProperty(String.prototype, "pad", {
     value: function(str, len, mode) {
-        if (str == null || len == null)
+        if (str == null || len == null) {
             return this;
+        }
         var diff = len - this.length;
-        if (diff == 0)
+        if (diff == 0) {
             return this;
+        }
         var left, right = 0;
-        if (mode == null || mode == String.RIGHT)
+        if (mode == null || mode > 0) {
             right = diff;
-        else if (mode == String.LEFT)
+        } else if (mode < 0) {
             left = diff;
-        else if (mode == String.BALANCE) {
-                right = Math.round(diff / 2);
-                left = diff - right;
-            }
+        } else if (mode == 0) {
+            right = Math.round(diff / 2);
+            left = diff - right;
+        }
         var list = [];
-        for (var i=0; i<left; i++)
+        for (var i = 0; i < left; i++) {
             list[i] = str;
+        }
         list.push(this);
-        for (var i=0; i<right; i++)
+        for (i = 0; i < right; i++) {
             list.push(str);
+        }
         return list.join('');
     }
 });
@@ -565,7 +561,7 @@ Object.defineProperty(String.prototype, "diff", {
 
         var max = Math.max(orig.length, mod.length);
         var result = new Array();
-        for (var i=0;i<max;i++) {
+        for (var i = 0; i < max; i++) {
             var line = result[i];
             if (!line) {
                 line = new Object();
@@ -575,13 +571,13 @@ Object.defineProperty(String.prototype, "diff", {
             if (d && i == d.line1) {
                 if (d.deleted) {
                     var del = new Array();
-                    for (var j=d.line0; j<d.line0+d.deleted; j++)
+                    for (var j = d.line0; j < d.line0 + d.deleted; j++)
                         del[del.length] = orig[j];
                     line.deleted = del;
                 }
                 if (d.inserted) {
                     var ins = new Array();
-                    for (var j=d.line1; j<d.line1+d.inserted; j++)
+                    for (var j = d.line1; j < d.line1 + d.inserted; j++)
                         ins[ins.length] = mod[j];
                     line.inserted = ins;
                 }
@@ -601,7 +597,7 @@ Object.defineProperty(String.prototype, "diff", {
  */
 Object.defineProperty(String.prototype, "isEmail", {
     value: function() {
-        return String.EMAILPATTERN.test(this);
+        return EMAILPATTERN.test(this);
     }
 });
 
@@ -679,7 +675,7 @@ Object.defineProperty(String, "Sorter", {
             var str1 = String(a[field] || '').toLowerCase();
             var str2 = String(b[field] || '').toLowerCase();
             if (str1 > str2)
-                return order * 1;
+                return order;
             if (str1 < str2)
                 return order * -1;
             return 0;
