@@ -109,7 +109,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
         for each (var config in configs) {
             if (config && config.macros instanceof Array) {
                 for each (var module in config.macros) {
-                    context = Object.merge(context, require(module));
+                    module = typeof module == "string" ? require(module) : module;
+                    context = Object.merge(context, module);
                 }
             }
         }
