@@ -13,8 +13,20 @@
  */
 
 defineClass(org.helma.wrappers.Binary);
+
+/**
+ * Abstract base class for ByteArray and ByteString
+ */
 exports.Binary = Binary;
+
+/**
+ * A writable byte array.
+ */
 exports.ByteArray = ByteArray;
+
+/**
+ * An immutable byte string.
+ */
 exports.ByteString = ByteString;
 
 module.shared = true;
@@ -106,3 +118,52 @@ Object.defineProperty(ByteArray.prototype, 'push', {
         return this.length;
     }
 });
+
+/**
+ * Copy a range of bytes from this object to another byte array.
+ * @name ByteArray.prototype.copy
+ */
+
+/**
+ * @name ByteArray.prototype.length
+ */
+
+/**
+ * @name ByteArray.prototype.slice
+ */
+
+/**
+ * @name ByteArray.prototype.concat
+ */
+
+/**
+ * @name ByteArray.prototype.toByteArray
+ */
+
+/**
+ * @name ByteArray.prototype.toByteString
+ */
+
+/**
+ * @name ByteArray.prototype.toArray
+ */
+
+/**
+ * @name ByteArray.prototype.toString
+ */
+
+/**
+ * @name ByteArray.prototype.decodeToString
+ */
+
+/**
+ * @name ByteArray.prototype.indexOf
+ */
+
+/**
+ * @name ByteArray.prototype.lastIndexOf
+ */
+
+/**
+ * @name ByteArray.prototype.split
+ */
