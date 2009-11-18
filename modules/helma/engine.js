@@ -27,6 +27,20 @@ var rhino = org.mozilla.javascript;
 // mark this module as shared between all requests
 module.shared = true;
 
+/**
+ * An object reflecting the Java system properties.
+ */
+var properties = new ScriptableMap(java.lang.System.getProperties());
+
+/**
+ * The Helma NG version as [major, minor] array.
+ */
+var version =new ScriptableList(org.helma.engine.RhinoEngine.VERSION);
+
+/**
+ * Define a class as Rhino host object.
+ * @param javaClass the class to define as host object
+ */
 function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
 }
@@ -199,10 +213,3 @@ function addRepository(repo) {
     }
 }
 
-Object.defineProperty(this, "properties", {
-    value: new ScriptableMap(java.lang.System.getProperties())
-});
-
-Object.defineProperty(this, "version", {
-    value: new ScriptableList(org.helma.engine.RhinoEngine.VERSION)
-})
