@@ -9,7 +9,7 @@ var log = require('helma/logging').getLogger(module.id);
 
 var standardObjects = [
     'Array', 'Object', 'String', 'Date', 'Number', 'RegExp', 'Boolean'
-]
+];
 
 /**
  * Create a script repository for the given path
@@ -18,7 +18,7 @@ var standardObjects = [
  */
 exports.ScriptRepository = function(path) {
     return new ScriptRepository(path);
-}
+};
 
 function ScriptRepository(path) {
     var repo = path instanceof Repository ?
@@ -33,7 +33,7 @@ function ScriptRepository(path) {
     this.getScriptResources = function(nested) {
         var list = repo.getResources(Boolean(nested));
         return list.filter(function(r) {return r.name.endsWith('.js');});
-    }
+    };
 
     /**
      * Get a script resource contained in this repository.
@@ -42,7 +42,7 @@ function ScriptRepository(path) {
      */
     this.getScriptResource = function(path) {
         return repo.getResource(path);
-    }
+    };
 
 }
 
@@ -96,8 +96,16 @@ exports.parseResource = function(resource) {
     };
 
     var addDocItem = function(name, jsdoc) {
+        jsdoc = jsdoc ? extractTags(jsdoc) : {};
+        if (!name) {
+            name = jsdoc.getTag("name");
+            var memberOf = jsdoc.getTag("memberOf");
+            if (memberOf) {
+                name = memberOf + "." + name;
+            }
+        }
         if (!seen[name]) {
-            jsdocs.push({name: name, jsdoc: jsdoc ? extractTags(jsdoc) : {}});
+            jsdocs.push({name: name, jsdoc: jsdoc});
             seen[name] = true;
         }
     };
@@ -111,10 +119,12 @@ exports.parseResource = function(resource) {
                         Object.defineProperty(jsdocs, "fileoverview", {
                             value: extractTags(comment.value)
                         });
-                        break;
+                    } else if (/@name\s/.test(comment.value)) {
+                        // JSDoc comments that have an explicit @name tag are used as is
+                        // without further AST introspection. This can be used to document
+                        // APIS that have no corresponding code, e.g. native host methods
+                        addDocItem(null, comment.value);
                     }
-                    // check for top level module doc
-                    // log.info("found jsdoc comment: " + comment.value);
                 }
             }
         }
@@ -167,7 +177,9 @@ exports.parseResource = function(resource) {
         return true;
     });
 
-    return jsdocs;
+    return jsdocs.sort(function(a, b) {
+        return a.name < b.name ? -1 : 1;
+    });
 }
 
 /**
@@ -190,7 +202,7 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
             .filter(function($){return $.match(/\S/)});
-    return tags.map(function(tag, idx) {
+    tags = tags.map(function(tag, idx) {
         if (idx == 0 && !comment.startsWith('@')) {
             return ['desc', tag.trim()];
         } else {
@@ -199,7 +211,16 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
                    [tag.substring(0, space), tag.substring(space + 1).trim()] :
                    [tag, ''];
         }
-    })
+    });
+    Object.defineProperty(tags, "getTag", {
+        value: function(name) {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i][0] == name) return this[i][1];
+            }
+            return null;
+        }
+    });
+    return tags;
 }
 
 /**
