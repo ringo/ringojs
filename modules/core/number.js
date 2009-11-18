@@ -21,7 +21,7 @@ Object.defineProperty(Number.prototype, 'format', {
 });
 
 /**
- * Invoke a function n times with n the value of this number.
+ * Invoke a function this times, passing 0 .. this - 1 as argument.
  */
 Object.defineProperty(Number.prototype, 'times', {
     value: function(fun) {
