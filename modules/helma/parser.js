@@ -28,7 +28,7 @@ function getParser() {
     var ce = new org.mozilla.javascript.CompilerEnvirons();
     ce.setRecordingComments(true);
     ce.setRecordingLocalJsDocComments(true);
-    ce.initFromContext(Context.getCurrentContext());
+    ce.initFromContext(org.mozilla.javascript.Context.getCurrentContext());
     return new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
 }
 
