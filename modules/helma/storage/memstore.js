@@ -1,6 +1,5 @@
 require('core/object');
 require('core/array');
-include('core/json');
 include('helma/engine');
 include('helma/functional');
 include('./storeutils');

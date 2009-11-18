@@ -149,7 +149,6 @@ function SkinnedResponse(skin, context, scope) {
 }
 
 function JSONResponse(object) {
-    var JSON = require('core/json').JSON;
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
