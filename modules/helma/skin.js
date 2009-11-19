@@ -160,9 +160,6 @@ function Skin(mainSkin, subSkins, parentSkin) {
     function evaluateMacro(macro, context) {
         // evaluate the macro itself
         var value = evaluateExpression(macro, context, '_macro');
-        if (value instanceof Array) {
-            value = value.join('');
-        }
         return evaluateFilter(value, macro.filter, context);
     }
 
@@ -176,6 +173,9 @@ function Skin(mainSkin, subSkins, parentSkin) {
             }
             value = evaluateExpression(filter, context, '_filter', value);
             filter = filter.filter;
+        }
+        if (value instanceof Array) {
+            value = value.join('');
         }
         return value;
     }
