@@ -13,7 +13,7 @@ var standardObjects = [
 
 /**
  * Create a script repository for the given path
- * @param path {String} the base path
+ * @param {String} path the base path
  * @return an script repository
  */
 exports.ScriptRepository = function(path) {
@@ -27,7 +27,7 @@ function ScriptRepository(path) {
     /**
      * Get a list of script resources (files with a .js extension) in this
      * repository.
-     * @param nested {Boolean} whether to return scripts in nested directories
+     * @param {Boolean} nested whether to return scripts in nested directories
      * @return {Array} list of script files as Helma Resource objects
      */
     this.getScriptResources = function(nested) {
@@ -37,7 +37,7 @@ function ScriptRepository(path) {
 
     /**
      * Get a script resource contained in this repository.
-     * @param path {String} the script path
+     * @param {String} path the script path
      * @return {Resource} the script resource
      */
     this.getScriptResource = function(path) {
@@ -246,7 +246,7 @@ var docProto = {
 /**
  * Utility function to test whether a node is a Name node
  * (a node of type org.mozilla.javascript.ast.Name)
- * @param node {Object} an AST node
+ * @param {Object} node an AST node
  * @return {Boolean} true if node is a name node
  */
 var isName = exports.isName = function(node) {
@@ -256,7 +256,7 @@ var isName = exports.isName = function(node) {
 /**
  * Utility function to get the name value of a node, or the empty
  * string if it is not a name node.
- * @param node an AST node
+ * @param {AstNode} node an AST node
  * @return {String} the name value of the node
  */
 var getName = exports.getName = function(node) {
