@@ -1,20 +1,61 @@
 <% extends skins/base.html %>
 
 <% subskin head %>
+<script type="text/javascript" src="/static/jquery-1.3.2.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        if (window.location.hash) {
+            setHighlight(window.location.hash);
+        }
+    });
+    function setHighlight(id) {
+        $(".docitem").removeClass("highlighted");
+        $(id).addClass("highlighted");
+        $('html, body').animate({scrollTop: $(id).offset().top - 20});
+        window.location.hash = id;
+        return false;
+    }
+</script>
+
 <style type="text/css">
+    .section {
+        color: #c00;
+        font-weight: 500;
+        border-bottom: 1px solid #aaa;
+    }
+    .docitem {
+        position: relative;
+        left: -16px;
+        padding-left: 10px;
+        border-left: 6px solid white;
+    }
+    .highlighted {
+        border-left: 6px solid green;
+    }
     .dimmed {
         color: #333;
         font-weight: 500;
     }
+    ul.apilist {
+        list-style: none;
+        padding-left: 10px;
+    }
+    hr {
+        border: 0;
+        color: #aaa;
+        background-color: #aaa;
+        height: 1px;
+    }
 </style>
 
 <% subskin content %>
-<% for doctag in <% jsdoc.fileoverview %> render doctag %>
+<% jsdoc | fileoverview %>
 <% for item in <% jsdoc %> render jsdoc %>
 
 <% subskin jsdoc %>
+<div class="docitem" id="<% item.name | replace '\\.' '_' %>">
 <h3><% item | renderName %></h3>
-<% for doctag in <% item.jsdoc %> render doctag %>
-
-<% subskin doctag %>
-<div> <span style="color: green;"><% doctag.0 %></span>: <%doctag.1%></div>
+<p><% item | renderDoc %></p>
+</div>
+<hr/>
+        

@@ -96,22 +96,20 @@ exports.parseResource = function(resource) {
     };
 
     var addDocItem = function(name, jsdoc, value) {
-        jsdoc = jsdoc ? extractTags(jsdoc) : [];
+        jsdoc = extractTags(jsdoc);
         if (!name) {
-            name = docProto.getTag.call({jsdoc: jsdoc}, "name");
-            var memberOf = docProto.getTag.call({jsdoc: jsdoc}, "memberOf");
+            name = jsdoc.getTag("name");
+            var memberOf = jsdoc.getTag("memberOf");
             if (memberOf) {
                 name = memberOf + "." + name;
             }
         }
         if (!seen[name]) {
+            jsdoc.name = name;
             if (value && value.type == Token.FUNCTION) {
-                jsdoc.push(["function", ""]);
+                jsdoc.addTag("function", "");
             }
-            jsdocs.push(Object.create(docProto, {
-                name: {value: name},
-                jsdoc: {value: jsdoc}
-            }));
+            jsdocs.push(jsdoc);
             seen[name] = true;
         }
     };
@@ -197,13 +195,15 @@ exports.unwrapComment = function(/**String*/comment) {
 };
 
 /**
- * Parse a JSDoc comment into an array of tags, with tags being represented
- * as [tagname, tagtext].
+ * Parse a JSDoc comment into an object wrapping an array of tags as [tagname, tagtext]
+ * and getTag() and getTags() methods to lookup specific tags.
  * @param {String} comment the raw JSDoc comment
- * @return {Array} an array of tags.
+ * @return {Object} an array of tags.
  */
 var extractTags = exports.extractTags = function(/**String*/comment) {
-    if (comment.startsWith("/**")) {
+    if (!comment) {
+        comment = "";
+    } else if (comment.startsWith("/**")) {
         comment = exports.unwrapComment(comment);
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
@@ -218,7 +218,29 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
                    [tag, ''];
         }
     });
-    return tags;
+    return Object.create(docProto, {
+        tags: {value: tags}
+    });
+};
+
+// the prototype used for document items
+var docProto = {
+    getTag: function(name) {
+        for (var i = 0; i < this.tags.length; i++) {
+            if (this.tags[i][0] == name) return this.tags[i][1];
+        }
+        return null;
+    },
+    getTags: function(name) {
+        var result = [];
+        for (var i = 0; i < this.tags.length; i++) {
+            if (this.tags[i][0] == name) result.push(this.tags[i][1]);
+        }
+        return result;
+    },
+    addTag: function(name, value) {
+        this.tags.push([name, value]);
+    }
 };
 
 /**
@@ -265,20 +287,3 @@ var nodeToString = function(node) {
  *     node.type == Token.NAME
  */
 exports.Token = org.mozilla.javascript.Token;
-
-// the prototype used for document items
-var docProto = {
-    getTag: function(name) {
-        for (var i = 0; i < this.jsdoc.length; i++) {
-            if (this.jsdoc[i][0] == name) return this.jsdoc[i][1];
-        }
-        return null;
-    },
-    getTags: function(name) {
-        var result = [];
-        for (var i = 0; i < this.jsdoc.length; i++) {
-            if (this.jsdoc[i][0] == name) result.push(this.jsdoc[i][1]);
-        }
-        return result;
-    }
-};
