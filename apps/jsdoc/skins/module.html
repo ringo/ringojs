@@ -9,10 +9,13 @@
         }
     });
     function goto(id) {
-        $(".docitem").removeClass("highlighted");
-        $(id).addClass("highlighted");
-        $('html, body').animate({scrollTop: $(id).offset().top - 20});
-        window.location.hash = id;
+        var target = $(id);
+        if (target.length) {
+            $(".docitem").removeClass("highlighted");
+            $(id).addClass("highlighted");
+            $('html, body').animate({scrollTop: $(id).offset().top - 20});
+            window.location.hash = id;            
+        }
         return false;
     }
 </script>
@@ -21,7 +24,7 @@
     .section {
         color: #c00;
         font-weight: 500;
-        border-bottom: 1px solid #666;
+        border-bottom: 1px solid #999;
     }
     .subheader {
         color: green;
@@ -53,8 +56,8 @@
     }
     hr {
         border: 0;
-        color: #666;
-        background-color: #666;
+        color: #999;
+        background-color: #999;
         height: 1px;
     }
 </style>

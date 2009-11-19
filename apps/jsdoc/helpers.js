@@ -94,7 +94,9 @@ exports.renderDoc_filter = function(doc) {
                 if (link.isUrl()) {
                     link = '<a href="' + link + '">' + link + '</a>';
                 } else {
-                    var id = link.replace(/\./g, '_');
+                    // apply some sanity checks to local targets like removing hashes and parantheses
+                    link = link.replace(/^#/, '');
+                    var id = link.replace(/\./g, '_').replace(/[\(\)]/g, '');
                     link = '<a onclick="return goto(\'#' + id + '\')" href="#' + id + '">' + link + '</a>';
                 }
                 buffer.writeln('<div class="subsection">', link, '</div>');
