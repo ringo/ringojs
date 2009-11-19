@@ -73,36 +73,31 @@ exports.renderDoc_filter = function(doc) {
         }
         buffer.writeln('</table>');
     }
-    for (var i = 0; i < doc.tags.length; i++) {
-        var tag = doc.tags[i];
-        switch (tag[0]) {
-            case 'return':
-                buffer.writeln('<div class="subheader">Returns</div>');
-                var desc = tag[1];
-                var type = desc.match(/^{(\S+)}/) || "";
-                if (type) {
-                    desc = desc.substring(type[0].length)
-                    type = type[1]
-                }
-                buffer.writeln('<table class="subsection">');
-                buffer.writeln('<tr><td>', type, '</td><td>', desc, '</td></tr>');
-                buffer.writeln('</table>');
-                break;
-            case 'see':
-                buffer.writeln('<div class="subheader">See</div>');
-                var link = tag[1];
-                if (link.isUrl()) {
-                    link = '<a href="' + link + '">' + link + '</a>';
-                } else {
-                    // apply some sanity checks to local targets like removing hashes and parantheses
-                    link = link.replace(/^#/, '');
-                    var id = link.replace(/\./g, '_').replace(/[\(\)]/g, '');
-                    link = '<a onclick="return goto(\'#' + id + '\')" href="#' + id + '">' + link + '</a>';
-                }
-                buffer.writeln('<div class="subsection">', link, '</div>');
-                break;
-            default:
-                break;
+    var returns = doc.getTag("return");
+    if (returns) {
+        buffer.writeln('<div class="subheader">Returns</div>');
+        var type = returns.match(/^{(\S+)}/) || "";
+        if (type) {
+            returns = desc.substring(type[0].length)
+            type = type[1]
+        }
+        buffer.writeln('<table class="subsection">');
+        buffer.writeln('<tr><td>', type, '</td><td>', returns, '</td></tr>');
+        buffer.writeln('</table>');
+    }
+    var see = doc.getTags("see");
+    if (see.length) {
+        buffer.writeln('<div class="subheader">See</div>');
+        for each (var link in see) {
+            if (link.isUrl()) {
+                link = '<a href="' + link + '">' + link + '</a>';
+            } else {
+                // apply some sanity checks to local targets like removing hashes and parantheses
+                link = link.replace(/^#/, '');
+                var id = link.replace(/\./g, '_').replace(/[\(\)]/g, '');
+                link = '<a onclick="return goto(\'#' + id + '\')" href="#' + id + '">' + link + '</a>';
+            }
+            buffer.writeln('<div class="subsection">', link, '</div>');
         }
     }
     return buffer;
