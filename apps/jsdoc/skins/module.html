@@ -5,10 +5,10 @@
 <script type="text/javascript">
     $(document).ready(function() {
         if (window.location.hash) {
-            setHighlight(window.location.hash);
+            goto(window.location.hash);
         }
     });
-    function setHighlight(id) {
+    function goto(id) {
         $(".docitem").removeClass("highlighted");
         $(id).addClass("highlighted");
         $('html, body').animate({scrollTop: $(id).offset().top - 20});
@@ -21,7 +21,18 @@
     .section {
         color: #c00;
         font-weight: 500;
-        border-bottom: 1px solid #aaa;
+        border-bottom: 1px solid #666;
+    }
+    .subheader {
+        color: green;
+        font-weight: bold;
+    }
+    table.subsection td {
+        vertical-align: top;
+        padding: 0 6px;
+    }
+    div.subsection {
+        padding-left: 12px;
     }
     .docitem {
         position: relative;
@@ -42,8 +53,8 @@
     }
     hr {
         border: 0;
-        color: #aaa;
-        background-color: #aaa;
+        color: #666;
+        background-color: #666;
         height: 1px;
     }
 </style>

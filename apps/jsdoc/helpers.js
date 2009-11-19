@@ -1,4 +1,5 @@
 
+require('core/string');
 var Buffer = require('helma/buffer').Buffer;
 
 exports.fileoverview_filter = function(doc) {
@@ -12,7 +13,7 @@ exports.fileoverview_filter = function(doc) {
     for (var i = 0; i < doc.length; i++) {
         var name = doc[i].name;
         var id = name.replace(/\./g, "_");
-        buffer.write('<li><a onclick="return setHighlight(\'#');
+        buffer.write('<li><a onclick="return goto(\'#');
         buffer.writeln(id, '\')" href="#', id, '">', name, '</a></li>');
     }
     buffer.writeln('</ul>').writeln('<h2 class="section">Detail</h2>');
@@ -50,17 +51,57 @@ exports.renderName_filter = function(doc) {
             var pname = type ? words[1] : words[0];
             buffer.write(pname);
             // add to processed parameter list
-            var text = words.slice(type ? 2 : 1).join(" ");
-            processedParams.push({type: type, name: pname, text: text});
+            var desc = words.slice(type ? 2 : 1).join(" ");
+            processedParams.push({type: type, name: pname, desc: desc});
         }
         buffer.write('</span>)');
+        // cache processed parameters
+        doc.processedParams = processedParams;
     }
-    // cache processed parameters
-    doc.processedParams = processedParams;
     return buffer;
 };
 
 exports.renderDoc_filter = function(doc) {
     var buffer = new Buffer(doc.getTag("desc") || "No description available.");
+    if (doc.processedParams && doc.processedParams.length) {
+        buffer.writeln('<div class="subheader">Parameters</div>');
+        buffer.writeln('<table class="subsection">');
+        for each (var param in doc.processedParams) {
+            buffer.write('<tr><td>');
+            buffer.write([param.type, '<b>'+param.name+'</b>', param.desc].join('</td><td>'));
+            buffer.writeln('</td></tr>');
+        }
+        buffer.writeln('</table>');
+    }
+    for (var i = 0; i < doc.tags.length; i++) {
+        var tag = doc.tags[i];
+        switch (tag[0]) {
+            case 'return':
+                buffer.writeln('<div class="subheader">Returns</div>');
+                var desc = tag[1];
+                var type = desc.match(/^{(\S+)}/) || "";
+                if (type) {
+                    desc = desc.substring(type[0].length)
+                    type = type[1]
+                }
+                buffer.writeln('<table class="subsection">');
+                buffer.writeln('<tr><td>', type, '</td><td>', desc, '</td></tr>');
+                buffer.writeln('</table>');
+                break;
+            case 'see':
+                buffer.writeln('<div class="subheader">See</div>');
+                var link = tag[1];
+                if (link.isUrl()) {
+                    link = '<a href="' + link + '">' + link + '</a>';
+                } else {
+                    var id = link.replace(/\./g, '_');
+                    link = '<a onclick="return goto(\'#' + id + '\')" href="#' + id + '">' + link + '</a>';
+                }
+                buffer.writeln('<div class="subsection">', link, '</div>');
+                break;
+            default:
+                break;
+        }
+    }
     return buffer;
 };
