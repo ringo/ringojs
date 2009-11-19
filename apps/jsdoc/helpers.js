@@ -78,7 +78,7 @@ exports.renderDoc_filter = function(doc) {
         buffer.writeln('<div class="subheader">Returns</div>');
         var type = returns.match(/^{(\S+)}/) || "";
         if (type) {
-            returns = desc.substring(type[0].length)
+            returns = returns.substring(type[0].length)
             type = type[1]
         }
         buffer.writeln('<table class="subsection">');
