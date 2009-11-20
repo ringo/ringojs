@@ -43,7 +43,7 @@ Object.defineProperty(String.prototype, "isDateFormat", {
         } catch (err) {
             return false;
         }
-    }
+    }, writable: true
 });
 
 
@@ -69,7 +69,7 @@ Object.defineProperty(String.prototype, "toDate", {
         } catch (err) {
             return null;
         }
-    }
+    }, writable: true
 });
 
 
@@ -91,7 +91,7 @@ Object.defineProperty(String.prototype, "isUrl", {
             return false;
         }
         return true;
-    }
+    }, writable: true
 });
 
 
@@ -103,7 +103,7 @@ Object.defineProperty(String.prototype, "isUrl", {
 Object.defineProperty(String.prototype, "isFileName", {
     value: function() {
         return !FILEPATTERN.test(this);
-    }
+    }, writable: true
 });
 
 
@@ -115,7 +115,7 @@ Object.defineProperty(String.prototype, "isFileName", {
 Object.defineProperty(String.prototype, "toFileName", {
     value: function() {
         return this.replace(new RegExp(FILEPATTERN.source, "g"), '');
-    }
+    }, writable: true
 });
 
 
@@ -133,7 +133,7 @@ Object.defineProperty(String.prototype, "isHexColor", {
         if (str.length != 6)
             return false;
         return !HEXPATTERN.test(str);
-    }
+    }, writable: true
 });
 
 
@@ -158,7 +158,7 @@ Object.defineProperty(String.prototype, "toHexColor", {
         }
         var color = this.replace(new RegExp(HEXPATTERN.source), '');
         return color.toLowerCase().pad("0", 6, -1);
-    }
+    }, writable: true
 });
 
 
@@ -172,7 +172,7 @@ Object.defineProperty(String.prototype, "isAlphanumeric", {
         if (!this.length)
             return false;
         return !ANUMPATTERN.test(this);
-    }
+    }, writable: true
 });
 
 
@@ -184,7 +184,7 @@ Object.defineProperty(String.prototype, "isAlphanumeric", {
 Object.defineProperty(String.prototype, "toAlphanumeric", {
     value: function() {
         return this.replace(new RegExp(ANUMPATTERN.source, "g"), '');
-    }
+    }, writable: true
 });
 
 
@@ -198,7 +198,7 @@ Object.defineProperty(String.prototype, "isAlpha", {
         if (!this.length)
             return false;
         return !APATTERN.test(this);
-    }
+    }, writable: true
 });
 
 
@@ -212,7 +212,7 @@ Object.defineProperty(String.prototype, "isNumeric", {
         if (!this.length)
             return false;
         return !NUMPATTERN.test(this);
-    }
+    }, writable: true
 });
 
 
@@ -228,7 +228,7 @@ Object.defineProperty(String.prototype, "capitalize", {
         var head = this.substring(0, limit);
         var tail = this.substring(limit, this.length);
         return head.toUpperCase() + tail.toLowerCase();
-    }
+    }, writable: true
 });
 
 
@@ -245,7 +245,7 @@ Object.defineProperty(String.prototype, "titleize", {
             buffer.push(parts[i].capitalize());
         }
         return buffer.join(" ");
-    }
+    }, writable: true
 });
 
 
@@ -260,7 +260,7 @@ Object.defineProperty(String.prototype, "entitize", {
             buffer.push("&#", this.charCodeAt(i).toString(), ";");
         }
         return buffer.join("");
-    }
+    }, writable: true
 });
 
 
@@ -296,7 +296,7 @@ Object.defineProperty(String.prototype, "embody", {
             }
         }
         return result;
-    }
+    }, writable: true
 });
 
 
@@ -307,7 +307,7 @@ Object.defineProperty(String.prototype, "embody", {
 Object.defineProperty(String.prototype, "head", {
     value: function(limit, clipping, delimiter) {
         return this.embody(limit, clipping, delimiter).head;
-    }
+    }, writable: true
 });
 
 
@@ -318,17 +318,7 @@ Object.defineProperty(String.prototype, "head", {
 Object.defineProperty(String.prototype, "tail", {
     value: function(limit, clipping, delimiter) {
         return this.embody(limit, clipping, delimiter).tail;
-    }
-});
-
-
-/*
- * set clip method out of compatibility/convenience reason
- * FIXME: we eventually have to get rid of this one...
- * @see String.prototype.head()
- */
-Object.defineProperty(String.prototype, "clip", {
-    value: String.prototype.head
+    }, writable: true
 });
 
 
@@ -355,7 +345,7 @@ Object.defineProperty(String.prototype, "group", {
             }
         }
         return buffer.join("");
-    }
+    }, writable: true
 });
 
 
@@ -373,7 +363,7 @@ Object.defineProperty(String.prototype, "unwrap", {
         if (removeTags)
             str = str.replace(/<[w]?br *\/?>/g, replacement);
         return str;
-    }
+    }, writable: true
 });
 
 
@@ -402,7 +392,7 @@ Object.defineProperty(String.prototype, "digest", {
         }
 
         return buf.toString();
-    }
+    }, writable: true
 });
 
 
@@ -417,7 +407,7 @@ Object.defineProperty(String.prototype, "repeat", {
         for (var i=0; i<multiplier; i++)
             list[i] = this;
         return list.join('');
-    }
+    }, writable: true
 });
 
 
@@ -432,7 +422,7 @@ Object.defineProperty(String.prototype, "startsWith", {
     value: function(str, offset) {
         offset = offset || 0;
         return this.indexOf(str) == offset;
-    }
+    }, writable: true
 });
 
 
@@ -447,7 +437,7 @@ Object.defineProperty(String.prototype, "endsWith", {
     value: function(str) {
         var diff = this.length - str.length;
         return diff > -1 && this.lastIndexOf(str) == diff;
-    }
+    }, writable: true
 });
 
 
@@ -486,7 +476,7 @@ Object.defineProperty(String.prototype, "pad", {
             list.push(str);
         }
         return list.join('');
-    }
+    }, writable: true
 });
 
 
@@ -500,7 +490,7 @@ Object.defineProperty(String.prototype, "pad", {
 Object.defineProperty(String.prototype, "contains", {
     value: function(str, fromIndex) {
         return this.indexOf(str, fromIndex ? fromIndex : 0) > -1;
-    }
+    }, writable: true
 });
 
 
@@ -526,7 +516,7 @@ Object.defineProperty(String.prototype, "getCommonPrefix", {
             }
         }
         return this.slice(0, length);
-    }
+    }, writable: true
 });
 
 
@@ -588,7 +578,7 @@ Object.defineProperty(String.prototype, "diff", {
             }
         }
         return result;
-    }
+    }, writable: true
 });
 
 
@@ -598,7 +588,7 @@ Object.defineProperty(String.prototype, "diff", {
 Object.defineProperty(String.prototype, "isEmail", {
     value: function() {
         return EMAILPATTERN.test(this);
-    }
+    }, writable: true
 });
 
 
@@ -614,7 +604,7 @@ Object.defineProperty(String.prototype, "count", {
             offset += 1;
         }
         return count;
-    }
+    }, writable: true
 });
 
 
@@ -625,7 +615,7 @@ Object.defineProperty(String.prototype, "enbase64", {
     value: function() {
         var bytes = asJavaString(this).getBytes();
         return new Packages.sun.misc.BASE64Encoder().encode(bytes);
-    }
+    }, writable: true
 });
 
 
@@ -636,7 +626,7 @@ Object.defineProperty(String.prototype, "debase64", {
     value: function() {
         var bytes = new Packages.sun.misc.BASE64Decoder().decodeBuffer(this);
         return String(new java.lang.String(bytes));
-    }
+    }, writable: true
 });
 
 
@@ -646,7 +636,7 @@ Object.defineProperty(String.prototype, "debase64", {
 Object.defineProperty(String.prototype, "stripTags", {
     value: function() {
         return this.replace(/<\/?[^>]+>/gi, '');
-    }
+    }, writable: true
 });
 
 /**
@@ -658,7 +648,7 @@ Object.defineProperty(String.prototype, "escapeHtml", {
                    .replace(/"/g, '&quot;')
                    .replace(/>/g, '&gt;')
                    .replace(/</g, '&lt;');
-    }
+    }, writable: true
 });
 
 /**
@@ -680,7 +670,7 @@ Object.defineProperty(String, "Sorter", {
                 return order * -1;
             return 0;
         };
-    }
+    }, writable: true
 });
 
 String.Sorter.ASC = 1;
@@ -695,7 +685,7 @@ String.Sorter.DESC = -1;
 Object.defineProperty(String, "compose", {
     value: function() {
         return Array.join(arguments, '');
-    }
+    }, writable: true
 });
 
 
@@ -730,7 +720,7 @@ Object.defineProperty(String, "random", {
             }
         }
         return keystr;
-    }
+    }, writable: true
 });
 
 
@@ -751,5 +741,5 @@ Object.defineProperty(String, "join", {
         else if (str2)
             return str2;
         return str1;
-    }
+    }, writable: true
 });

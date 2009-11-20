@@ -14,12 +14,11 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-module.shared = true;
-
 /**
  * @fileoverview Adds useful methods to the JavaScript Object type.
  */
 
+module.shared = true;
 
 /**
  * copy the properties of an object into
@@ -42,7 +41,7 @@ Object.defineProperty(Object.prototype, "clone", {
             }
         }
         return clone;
-    }
+    }, writable: true
 });
 
 
@@ -62,7 +61,7 @@ Object.defineProperty(Object, "merge", {
             }
         }
         return result;
-    }
+    }, writable: true
 });
 
 
