@@ -143,17 +143,33 @@ function Response() {
 
 }
 
+/**
+ *
+ * @param skin
+ * @param context
+ * @param scope
+ * @constructor
+ */
 function SkinnedResponse(skin, context, scope) {
     var render = require('helma/skin').render;
     return new Response(render(skin, context, scope));
 }
 
+/**
+ *
+ * @param object
+ * @constructor
+ */
 function JSONResponse(object) {
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
 }
 
+/**
+ * @param resource
+ * @constructor
+ */
 function StaticResponse(resource) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
@@ -188,6 +204,11 @@ function StaticResponse(resource) {
     };
 }
 
+/**
+ *
+ * @param location
+ * @constructor
+ */
 function RedirectResponse(location) {
     return {
         status: 303,
@@ -196,6 +217,11 @@ function RedirectResponse(location) {
     };
 }
 
+/**
+ *
+ * @param location
+ * @constructor
+ */
 function NotFoundResponse(location) {
     var msg = 'Not Found';
     return {
