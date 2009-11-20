@@ -64,5 +64,11 @@ exports.writeln = function() {
 };
 
 // re-export helma/shell's read() and readln()
+/**
+ * @function
+ */
 exports.read = read;
+/**
+ * @function
+ */
 exports.readln = readln;

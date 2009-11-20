@@ -122,6 +122,7 @@ Object.defineProperty(ByteArray.prototype, 'push', {
 /**
  * Copy a range of bytes from this object to another byte array.
  * @name ByteArray.prototype.copy
+ * @function
  */
 
 /**
@@ -130,30 +131,37 @@ Object.defineProperty(ByteArray.prototype, 'push', {
 
 /**
  * @name ByteArray.prototype.slice
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.concat
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.toByteArray
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.toByteString
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.toArray
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.toString
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.decodeToString
+ * @function
  */
 
 /**
@@ -161,12 +169,15 @@ Object.defineProperty(ByteArray.prototype, 'push', {
  * @param {number} [startAt] optional index position 
  * @return {number} the index of the first occurrence of sequence, or -1
  * @name ByteArray.prototype.indexOf
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.lastIndexOf
+ * @function
  */
 
 /**
  * @name ByteArray.prototype.split
+ * @function
  */

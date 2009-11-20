@@ -145,5 +145,36 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 
 /**
  * @name Stream.prototype.write
+ * @function
  */
 
+/**
+ * @name Stream.prototype.read
+ * @function
+ */
+
+/**
+ * @name Stream.prototype.flush
+ * @function
+ */
+
+/**
+ * @name Stream.prototype.readable
+ * @function
+ */
+
+/**
+ * @name Stream.prototype.seekable
+ * @function
+ */
+
+/**
+ * @name Stream.prototype.writable
+ * @function
+ */
+
+/**
+ * Get the Java input or output stream instance wrapped by this Stream. 
+ * @name Stream.prototype.unwrap
+ * @function
+ */
