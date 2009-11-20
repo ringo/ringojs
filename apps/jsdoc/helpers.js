@@ -56,7 +56,7 @@ exports.fileoverview_filter = function(docs) {
             } else {
                 node.isClass ?
                     buffer.write("Class ", name) :
-                    buffer.write(name);
+                    buffer.write("<i>", name, "</i>");
             }
             buffer.writeln('</li>');
         }
