@@ -2,21 +2,69 @@
 require('core/string');
 var Buffer = require('helma/buffer').Buffer;
 
-exports.fileoverview_filter = function(doc) {
+exports.fileoverview_filter = function(docs) {
     var buffer = new Buffer('<div class="fileoverview">');
-    if (doc.fileoverview) {
-        buffer.write(doc.fileoverview.getTag("fileoverview"));
+    if (docs.fileoverview) {
+        buffer.write(docs.fileoverview.getTag("fileoverview"));
+    }
+    var topItems = {children: {}};
+    for (var i = 0; i < docs.length; i++) {
+        var doc = docs[i];
+        var name = doc.name;
+        // pragmatical class detection
+        doc.isClass = doc.isClass || docs[i + 1] && docs[i + 1].name.startsWith(name + ".");
+        var path = name.split(".");
+        var id = doc.id = path.join("_");
+        var parent = topItems;
+        for (var p = 0, l = path.length - 1; p < l; p++) {
+            var elem = path[p];
+            if (elem == "prototype" || elem == "instance") {
+                elem = doc.isFunction ? "Instance Methods" : "Instance Properties";
+            }
+            parent = getGroup(parent, elem, parent == topItems);
+        }
+        // try to detect static members
+        if (parent.isClass) {
+            var staticName = doc.isFunction ? "Static Methods" : "Static Properties";
+            parent = getGroup(parent, staticName, false);
+        } else if (parent == topItems && !doc.isClass) {
+            var groupName = doc.isFunction ? "Functions" : "Properties";
+            parent = getGroup(parent, groupName, false);
+        }
+        parent.children[path[p]] = doc.node = {
+            item: doc,
+            children: {},
+            isClass: doc.isClass
+        };
     }
     buffer.writeln('</div>')
-            .writeln('<h2 class="section">Overview</h2>')
-            .writeln('<ul class="apilist">');
-    for (var i = 0; i < doc.length; i++) {
-        var name = doc[i].name;
-        var id = name.replace(/\./g, "_");
-        buffer.write('<li><a onclick="return goto(\'#');
-        buffer.writeln(id, '\')" href="#', id, '">', name, '</a></li>');
+            .writeln('<h2 class="section">Overview</h2>');
+    function render(node, name, prefix) {
+        if (name) {
+            buffer.write('<li>');
+            if (node.item) {
+                var item = node.item;
+                if (item.isFunction && !item.isClass) name += "()";
+                if (node.isClass) name = "Class " + name;
+                buffer.write('<a onclick="return goto(\'#')
+                        .write(item.id, '\')" href="#')
+                        .write(item.id, '">', name, '</a>');
+                // if (node.isClass) buffer.write('</b>');
+            } else {
+                node.isClass ?
+                    buffer.write("Class ", name) :
+                    buffer.write(name);
+            }
+            buffer.writeln('</li>');
+        }
+        buffer.writeln('<ul class="apilist">')
+        for (var child in node.children) {
+            render(node.children[child], child);
+        }
+        buffer.writeln('</ul>');
     }
-    buffer.writeln('</ul>').writeln('<h2 class="section">Detail</h2>');
+    render(topItems, null, "");
+    buffer.writeln('<h2 class="section">Detail</h2>');
     return buffer;
 };
 
@@ -24,24 +72,22 @@ exports.renderName_filter = function(doc) {
     var name = doc.name;
     var id = name.replace(/\./g, "_");
     var buffer = new Buffer('<a name=\"', id, '\"></a>');
-    var dot = name.lastIndexOf('.') + 1;
-    if (dot > 0) {
+    var dot1 = name.indexOf('.');
+    var dot2 = name.lastIndexOf('.');
+    if (dot1 != dot2) {
         buffer.write(
+            name.substring(0, dot1),
             '<span class="dimmed">',
-            name.substring(0, dot),
+            name.substring(dot1, dot2 + 1),
             '</span>',
-            name.substring(dot)
+            name.substring(dot2 + 1)
         );
     } else {
         buffer.write(name);
     }
-    var params = doc.getTags("param");
-    var returns = doc.getTag("return");
-    var isFunction = params.length || returns
-            || doc.getTag("function") != null
-            || doc.getTag("constructor") != null;
     var processedParams = [];
-    if (isFunction) {
+    if (doc.isFunction) {
+        var params = doc.getTags("param");
         buffer.write('(<span class="dimmed">');
         for (var i = 0; i < params.length; i++) {
             var words = params[i].split(" ");
@@ -68,7 +114,8 @@ exports.renderDoc_filter = function(doc) {
         buffer.writeln('<table class="subsection">');
         for each (var param in doc.processedParams) {
             buffer.write('<tr><td>');
-            buffer.write([param.type, '<b>'+param.name+'</b>', param.desc].join('</td><td>'));
+            var name = '<b>'+param.name+'</b>'; 
+            buffer.write([param.type, name, param.desc].join('</td><td>'));
             buffer.writeln('</td></tr>');
         }
         buffer.writeln('</table>');
@@ -95,10 +142,22 @@ exports.renderDoc_filter = function(doc) {
                 // apply some sanity checks to local targets like removing hashes and parantheses
                 link = link.replace(/^#/, '');
                 var id = link.replace(/\./g, '_').replace(/[\(\)]/g, '');
-                link = '<a onclick="return goto(\'#' + id + '\')" href="#' + id + '">' + link + '</a>';
+                link = '<a onclick="return goto(\'#' + id
+                        + '\')" href="#' + id + '">' + link + '</a>';
             }
             buffer.writeln('<div class="subsection">', link, '</div>');
         }
     }
     return buffer;
 };
+
+function getGroup(parent, groupName, isClass) {
+    var group = parent.children[groupName];
+    if (!group) {
+        group = parent.children[groupName] = {
+            children: {},
+            isClass: isClass
+        };
+    }
+    return group;
+}

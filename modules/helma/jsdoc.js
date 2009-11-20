@@ -106,8 +106,16 @@ exports.parseResource = function(resource) {
         }
         if (!seen[name]) {
             jsdoc.name = name;
-            if (value && value.type == Token.FUNCTION) {
-                jsdoc.addTag("function", "");
+            if ((value && value.type == Token.FUNCTION)
+                    || jsdoc.getTag("function") != null
+                    || jsdoc.getTag("param") != null
+                    || jsdoc.getTag("return") != null
+                    || jsdoc.getTag("constructor") != null) {
+                jsdoc.isFunction = true;
+            }
+            if (jsdoc.getTag("constructor") != null
+                    || jsdoc.getTag("class") != null) {
+                jsdoc.isClass = true;
             }
             jsdocs.push(jsdoc);
             seen[name] = true;
