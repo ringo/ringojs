@@ -43,6 +43,14 @@
         padding-left: 10px;
         border-left: 4px solid white;
     }
+    .docheader a:link, .docheader a:visited {
+        text-decoration: none;
+        color: #999;
+        visibility: hidden;
+    }
+    .docheader:hover a {
+        visibility: visible;
+    }
     .highlighted {
         border-left: 4px solid green;
     }
@@ -68,7 +76,7 @@
 
 <% subskin jsdoc %>
 <div class="docitem" id="<% item.name | replace '\\.' '_' %>">
-<h3><% item | renderName %></h3>
+<h3 class="docheader"><% item | renderName %></h3>
 <p><% item | renderDoc %></p>
 </div>
 <hr/>

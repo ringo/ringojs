@@ -107,6 +107,9 @@ exports.renderName_filter = function(doc) {
         // cache processed parameters
         doc.processedParams = processedParams;
     }
+    // doc header anchor link
+    buffer.write('<a onclick="return goto(\'#', doc.id, '\')" href="#', doc.id, '">');
+    buffer.write(' &#182; </a>');
     return buffer;
 };
 
