@@ -16,16 +16,19 @@ defineClass(org.helma.wrappers.Binary);
 
 /**
  * Abstract base class for ByteArray and ByteString
+ * @constructor
  */
 exports.Binary = Binary;
 
 /**
  * A writable byte array.
+ * @constructor
  */
 exports.ByteArray = ByteArray;
 
 /**
  * An immutable byte string.
+ * @constructor
  */
 exports.ByteString = ByteString;
 
