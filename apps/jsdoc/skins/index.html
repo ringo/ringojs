@@ -1,12 +1,17 @@
 <% extends skins/base.html %>
 
+<% subskin head %>
+<style type="text/css">
+    ul.apilist {
+        list-style: none;
+        padding-left: 2em;
+    }
+</style>
+
+
 <% subskin content | markdown %>
 
 Helma NG provides access to JSDoc-formatted comments through the Rhino parser's AST API.
 You can browse through the modules below, but note that *this is work in progress*.
 
-<% for module in <%modules%> render module %>
-
-<% subskin module %>
-<div><a href="<% module.relativePath %>"><% module.moduleName %></a></div>
-
+<% renderList %>

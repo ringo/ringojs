@@ -1,5 +1,6 @@
 
 require('core/string');
+require('core/array');
 var Buffer = require('helma/buffer').Buffer;
 
 exports.fileoverview_filter = function(docs) {
@@ -14,6 +15,8 @@ exports.fileoverview_filter = function(docs) {
         // pragmatical class detection
         doc.isClass = doc.isClass || docs[i + 1] && docs[i + 1].name.startsWith(name + ".");
         var path = name.split(".");
+        // FIXME: __iterator__ property breaks TOC enumeration
+        if (path.peek() == "__iterator__") continue;
         var id = doc.id = path.join("_");
         var parent = topItems;
         for (var p = 0, l = path.length - 1; p < l; p++) {
