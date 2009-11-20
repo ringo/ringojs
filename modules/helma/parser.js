@@ -1,10 +1,11 @@
 /**
- * @fileoverview A JS interface to the Rhino parser.
+ * @fileoverview This module provides an interface to the Rhino parser.
  */
 
 /**
  * Parse a script resource and return its AST tree.
- * @param resource {Resource} an instance of org.helma.repository.Resource
+ * @param {Resource} resource an instance of org.helma.repository.Resource
+ * @return {AstNode} the root node of the AST tree, an instance of org.mozilla.javascript.ast.AstRoot
  */
 exports.parseScriptResource = function(resource) {
     return getParser().parse(resource.content, resource.name, 0);
@@ -14,8 +15,8 @@ exports.parseScriptResource = function(resource) {
  * Parse a script resource and apply the visitor function to its AST tree.
  * The function takes one argument which is a org.mozilla.javascript.ast.AstNode.
  * The function must return true to visit child nodes of the current node.
- * @param resource {Resource} an instance of org.helma.repository.Resource
- * @param visitorFunction {Function} the visitor function
+ * @param {Resource} resource an instance of org.helma.repository.Resource
+ * @param {Function} visitorFunction the visitor function
  */
 exports.visitScriptResource = function(resource, visitorFunction) {
     var ast = getParser().parse(resource.content, resource.name, 0);
