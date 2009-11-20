@@ -8,7 +8,7 @@ export('middleware');
  * JSGI middleware for conditional HTTP GET request based on
  * response body message digests.
  * @param app the JSGI application
- * @return the wrapped JSGI app
+ * @returns the wrapped JSGI app
  */
 function middleware(app) {
     return function(env) {

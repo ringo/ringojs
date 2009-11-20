@@ -126,13 +126,16 @@ exports.renderDoc_filter = function(doc) {
         }
         buffer.writeln('</table>');
     }
-    var returns = doc.getTag("return");
-    if (returns) {
+    var returns = doc.getTag("returns");
+    var type = doc.getTag("type");
+    if (returns || type) {
         buffer.writeln('<div class="subheader">Returns</div>');
-        var type = returns.match(/^{(\S+)}/) || "";
-        if (type) {
-            returns = returns.substring(type[0].length)
-            type = type[1]
+        if (!type) {
+            type = returns.match(/^{(\S+)}/) || "";
+            if (type) {
+                returns = returns.substring(type[0].length);
+                type = type[1];
+            }
         }
         buffer.writeln('<table class="subsection">');
         buffer.writeln('<tr><td>', type, '</td><td>', returns, '</td></tr>');

@@ -109,7 +109,7 @@ exports.parseResource = function(resource) {
             if ((value && value.type == Token.FUNCTION)
                     || jsdoc.getTag("function") != null
                     || jsdoc.getTag("param") != null
-                    || jsdoc.getTag("return") != null
+                    || jsdoc.getTag("returns") != null
                     || jsdoc.getTag("constructor") != null) {
                 jsdoc.isFunction = true;
             }

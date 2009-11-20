@@ -23,7 +23,7 @@ var CHAR_f = "f".charCodeAt(0);
 /**
  * Find out whether the content type denotes a format this module can parse.
  * @param contentType a HTTP request Content-Type header
- * @return true if the content type can be parsed as form data by this module
+ * @returns true if the content type can be parsed as form data by this module
  */
 function isUrlEncoded(contentType) {
     return contentType && String(contentType)

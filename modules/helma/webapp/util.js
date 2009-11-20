@@ -52,7 +52,7 @@ function Headers(headers) {
     /**
      * Get the value of the header with the given name
      * @param name the header name
-     * @return the header value
+     * @returns the header value
      * @name Headers.instance.get
      */
     Object.defineProperty(headers, "get", {

@@ -54,7 +54,7 @@ function addHostObject(javaClass) {
  *  - includeSystemModules whether to include the system modules in the module search path
  *  - classShutter a Rhino class shutter, may be null
  *  - sealed if the global object should be sealed, defaults to false
- * @return a sandboxed RhinoEngine instance
+ * @returns a sandboxed RhinoEngine instance
  * @throws FileNotFoundException if any part of the module paths does not exist
  */
 function createSandbox(modulePath, globals, options) {
@@ -84,7 +84,7 @@ function extendJavaClass(javaClass) {
 /**
  * Get a wrapper for an object that exposes it as Java object to JavaScript.
  * @param object an object
- * @return the object wrapped as native java object
+ * @returns the object wrapped as native java object
  */
 function asJavaObject(object) {
     return getRhinoEngine().asJavaObject(object);
@@ -95,7 +95,7 @@ function asJavaObject(object) {
  * This is useful for accessing strings as java.lang.String without the cost of
  * creating a new instance.
  * @param object an object
- * @return the object converted to a string and wrapped as native java object
+ * @returns the object converted to a string and wrapped as native java object
  */
 function asJavaString(object) {
     return getRhinoEngine().asJavaString(object);
@@ -106,7 +106,7 @@ function asJavaString(object) {
  * The optimization level is an integer between -1 (interpreter mode)
  * and 9 (compiled mode, all optimizations enabled). The default level
  * is 0.
- * @return level an integer between -1 and 9
+ * @returns level an integer between -1 and 9
  */
 function getOptimizationLevel() {
     return getRhinoEngine().getOptimizationLevel();    

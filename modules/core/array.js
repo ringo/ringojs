@@ -26,7 +26,7 @@ module.shared = true;
  * check if an array passed as argument contains
  * a specific value (start from end of array)
  * @param {Object} val the value to check
- * @return {boolean} true if the value is contained
+ * @returns {boolean} true if the value is contained
  */
 Object.defineProperty(Array.prototype, "contains", {
     value: function(val) {
@@ -37,7 +37,7 @@ Object.defineProperty(Array.prototype, "contains", {
 /**
  * Return the last element of this array. This is like pop(), but
  * without modifying the array.
- * @return {Object} the last element of the array, or undefined if the array is empty.
+ * @returns {Object} the last element of the array, or undefined if the array is empty.
  */
 Object.defineProperty(Array.prototype, "peek", {
     value: function() {
@@ -50,7 +50,7 @@ Object.defineProperty(Array.prototype, "peek", {
  * mutates and returns the array on which it is called and does not create a
  * new array instance.
  * @param {Object} val the value to remove
- * @return {Array} this array
+ * @returns {Array} this array
  */
 Object.defineProperty(Array.prototype, "remove", {
     value: function(val) {
@@ -65,7 +65,7 @@ Object.defineProperty(Array.prototype, "remove", {
 /**
  * Retrieve the union set of a bunch of arrays
  * @param {Array} array1,... the arrays to unify
- * @return {Array} the union set
+ * @returns {Array} the union set
  */
 Object.defineProperty(Array, "union", {
     value: function() {
@@ -87,7 +87,7 @@ Object.defineProperty(Array, "union", {
 /**
  * Retrieve the intersection set of a bunch of arrays
  * @param {Array} array1,... the arrays to intersect
- * @return {Array} the intersection set
+ * @returns {Array} the intersection set
  */
 Object.defineProperty(Array, "intersection", {
     value: function() {
@@ -110,7 +110,7 @@ Object.defineProperty(Array, "intersection", {
 });
 
 /**
- * @return the maximal element in this array obtained by calling Math.max().
+ * @returns the maximal element in this array obtained by calling Math.max().
  */
 Object.defineProperty(Array.prototype, "max", {
     value: function() {
@@ -119,7 +119,7 @@ Object.defineProperty(Array.prototype, "max", {
 });
 
 /**
- * @return the minimal element in this array obtained by calling Math.min().
+ * @returns the minimal element in this array obtained by calling Math.min().
  */
 Object.defineProperty(Array.prototype, "min", {
     value: function() {

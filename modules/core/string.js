@@ -33,7 +33,7 @@ var ISOFORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 /**
  * checks if a date format pattern is correct
- * @return Boolean true if the pattern is correct
+ * @returns Boolean true if the pattern is correct
  */
 Object.defineProperty(String.prototype, "isDateFormat", {
     value: function() {
@@ -52,7 +52,7 @@ Object.defineProperty(String.prototype, "isDateFormat", {
  * want to set createtime explicitly when creating/editing stories.
  * @param String date format to be applied
  * @param Object Java TimeZone Object (optional)
- * @return Object contains the resulting date
+ * @returns Object contains the resulting date
  */
 Object.defineProperty(String.prototype, "toDate", {
     value: function(format, timezone) {
@@ -78,7 +78,7 @@ Object.defineProperty(String.prototype, "toDate", {
  * function checks if the string passed contains any characters that
  * are forbidden in URLs and tries to create a java.net.URL from it
  * FIXME: probably deprecated -> helma.Url
- * @return Boolean
+ * @returns Boolean
  */
 Object.defineProperty(String.prototype, "isUrl", {
     value: function() {
@@ -98,7 +98,7 @@ Object.defineProperty(String.prototype, "isUrl", {
 /**
  * function checks if the string passed contains any characters
  * that are forbidden in image- or filenames
- * @return Boolean
+ * @returns Boolean
  */
 Object.defineProperty(String.prototype, "isFileName", {
     value: function() {
@@ -110,7 +110,7 @@ Object.defineProperty(String.prototype, "isFileName", {
 /**
  * function cleans the string passed as argument from any characters
  * that are forbidden or shouldn't be used in filenames
- * @return Boolean
+ * @returns Boolean
  */
 Object.defineProperty(String.prototype, "toFileName", {
     value: function() {
@@ -141,7 +141,7 @@ Object.defineProperty(String.prototype, "isHexColor", {
  * converts a string into a hexadecimal color
  * representation (e.g. "ffcc33"). also knows how to
  * convert a color string like "rgb (255, 204, 51)".
- * @return String the resulting hex color (w/o "#")
+ * @returns String the resulting hex color (w/o "#")
  */
 Object.defineProperty(String.prototype, "toHexColor", {
     value: function() {
@@ -165,7 +165,7 @@ Object.defineProperty(String.prototype, "toHexColor", {
 /**
  * function returns true if the string contains
  * only a-z and 0-9 (case insensitive!)
- * @return Boolean true in case string is alpha, false otherwise
+ * @returns Boolean true in case string is alpha, false otherwise
  */
 Object.defineProperty(String.prototype, "isAlphanumeric", {
     value: function() {
@@ -179,7 +179,7 @@ Object.defineProperty(String.prototype, "isAlphanumeric", {
 /**
  * function cleans a string by throwing away all
  * non-alphanumeric characters
- * @return cleaned string
+ * @returns cleaned string
  */
 Object.defineProperty(String.prototype, "toAlphanumeric", {
     value: function() {
@@ -191,7 +191,7 @@ Object.defineProperty(String.prototype, "toAlphanumeric", {
 /**
  * function returns true if the string contains
  * only characters a-z
- * @return Boolean true in case string is alpha, false otherwise
+ * @returns Boolean true in case string is alpha, false otherwise
  */
 Object.defineProperty(String.prototype, "isAlpha", {
     value: function() {
@@ -205,7 +205,7 @@ Object.defineProperty(String.prototype, "isAlpha", {
 /**
  * function returns true if the string contains
  * only 0-9
- * @return Boolean true in case string is numeric, false otherwise
+ * @returns Boolean true in case string is numeric, false otherwise
  */
 Object.defineProperty(String.prototype, "isNumeric", {
     value: function() {
@@ -219,7 +219,7 @@ Object.defineProperty(String.prototype, "isNumeric", {
 /**
  * transforms the first n characters of a string to uppercase
  * @param Number amount of characters to transform
- * @return String the resulting string
+ * @returns String the resulting string
  */
 Object.defineProperty(String.prototype, "capitalize", {
     value: function(limit) {
@@ -235,7 +235,7 @@ Object.defineProperty(String.prototype, "capitalize", {
 /**
  * transforms the first n characters of each
  * word in a string to uppercase
- * @return String the resulting string
+ * @returns String the resulting string
  */
 Object.defineProperty(String.prototype, "titleize", {
     value: function() {
@@ -251,7 +251,7 @@ Object.defineProperty(String.prototype, "titleize", {
 
 /**
  * translates all characters of a string into HTML entities
- * @return String translated result
+ * @returns String translated result
  */
 Object.defineProperty(String.prototype, "entitize", {
     value: function() {
@@ -271,7 +271,7 @@ Object.defineProperty(String.prototype, "entitize", {
  * @param Number number of charactrers or of segments separated by the delimiter
  * @param String pre-/suffix to be pre-/appended to shortened string
  * @param String delimiter
- * @return Object containing head and tail properties
+ * @returns Object containing head and tail properties
  */
 Object.defineProperty(String.prototype, "embody", {
     value: function(limit, clipping, delimiter) {
@@ -327,7 +327,7 @@ Object.defineProperty(String.prototype, "tail", {
  * @param Int number of characters after which insertion should take place
  * @param String string to be inserted
  * @param Boolean definitely insert at each interval position
- * @return String resulting string
+ * @returns String resulting string
  */
 Object.defineProperty(String.prototype, "group", {
     value: function(interval, str, ignoreWhiteSpace) {
@@ -353,7 +353,7 @@ Object.defineProperty(String.prototype, "group", {
  * replace all linebreaks and optionally all w/br tags
  * @param Boolean flag indicating if html tags should be replaced
  * @param String replacement for the linebreaks / html tags
- * @return String the unwrapped string
+ * @returns String the unwrapped string
  */
 Object.defineProperty(String.prototype, "unwrap", {
     value: function(removeTags, replacement) {
@@ -371,7 +371,7 @@ Object.defineProperty(String.prototype, "unwrap", {
  * function calculates a message digest of a string. If no
  * argument is passed, the MD5 algorithm is used.
  * @param algorithm the name of the algorithm to use
- * @return String message digest of the string
+ * @returns String message digest of the string
  */
 Object.defineProperty(String.prototype, "digest", {
     value: function(algorithm) {
@@ -399,7 +399,7 @@ Object.defineProperty(String.prototype, "digest", {
 /**
  * function repeats a string passed as argument
  * @param Int amount of repetitions
- * @return String resulting string
+ * @returns String resulting string
  */
 Object.defineProperty(String.prototype, "repeat", {
     value: function(multiplier) {
@@ -415,7 +415,7 @@ Object.defineProperty(String.prototype, "repeat", {
  * function returns true if the string starts with
  * the string passed as argument
  * @param String string pattern to search for
- * @return Boolean true in case it matches the beginning
+ * @returns Boolean true in case it matches the beginning
  *            of the string, false otherwise
  */
 Object.defineProperty(String.prototype, "startsWith", {
@@ -430,7 +430,7 @@ Object.defineProperty(String.prototype, "startsWith", {
  * function returns true if the string ends with
  * the string passed as argument
  * @param String string pattern to search for
- * @return Boolean true in case it matches the end of
+ * @returns Boolean true in case it matches the end of
  *            the string, false otherwise
  */
 Object.defineProperty(String.prototype, "endsWith", {
@@ -447,7 +447,7 @@ Object.defineProperty(String.prototype, "endsWith", {
  * @param Number the desired length of the resulting string
  * @param Number the direction which the string will be padded in:
  * a negative number means left, 0 means both, a positive number means right
- * @return String the resulting string
+ * @returns String the resulting string
  */
 Object.defineProperty(String.prototype, "pad", {
     value: function(str, len, mode) {
@@ -498,7 +498,7 @@ Object.defineProperty(String.prototype, "contains", {
  * Get the longest common segment that this and the other string
  * have in common, starting at the beginning of the string
  * @param str a string
- * @return the longest common segment
+ * @returns the longest common segment
  */
 Object.defineProperty(String.prototype, "getCommonPrefix", {
     value: function(str) {
@@ -526,7 +526,7 @@ Object.defineProperty(String.prototype, "getCommonPrefix", {
  * @param String String to compare against String object value
  * @param String Optional regular expression string to use for
  *                 splitting. If not defined, newlines will be used.
- * @return Object Array containing one JS object for each line
+ * @returns Object Array containing one JS object for each line
  *                     with the following properties:
  *                     .num Line number
  *                     .value String line if unchanged
@@ -655,7 +655,7 @@ Object.defineProperty(String.prototype, "escapeHtml", {
  * factory to create functions for sorting objects in an array
  * @param String name of the field each object is compared with
  * @param Number order (ascending or descending)
- * @return Function ready for use in Array.prototype.sort
+ * @returns Function ready for use in Array.prototype.sort
  */
 Object.defineProperty(String, "Sorter", {
     value: function(field, order) {
@@ -680,7 +680,7 @@ String.Sorter.DESC = -1;
 /**
  * create a string from a bunch of substrings
  * @param String one or more strings as arguments
- * @return String the resulting string
+ * @returns String the resulting string
  */
 Object.defineProperty(String, "compose", {
     value: function() {
@@ -730,7 +730,7 @@ Object.defineProperty(String, "random", {
  * @param String the first string
  * @param String the string to be appended onto the first one
  * @param String the "glue" to be inserted between both strings
- * @return String the resulting string
+ * @returns String the resulting string
  */
 Object.defineProperty(String, "join", {
     value: function(str1, str2, glue) {

@@ -4,7 +4,7 @@ export('handleRequest');
 /**
  * Middleware for automatic transaction support
  * @param app the JSGI app
- * @return the wrapped JSGI app
+ * @returns the wrapped JSGI app
  */
 function handleRequest(app) {
     return function(env) {

@@ -8,7 +8,7 @@ export('middleware');
 /**
  * JSGI middleware for GZIP compression.
  * @param app the JSGI application
- * @return the wrapped JSGI app
+ * @returns the wrapped JSGI app
  */
 function middleware(app) {
     return function(env) {

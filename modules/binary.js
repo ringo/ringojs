@@ -170,7 +170,7 @@ Object.defineProperty(ByteArray.prototype, 'push', {
 /**
  * @param {number|Binary} sequence the number or binary to look for
  * @param {number} [startAt] optional index position 
- * @return {number} the index of the first occurrence of sequence, or -1
+ * @returns {number} the index of the first occurrence of sequence, or -1
  * @name ByteArray.prototype.indexOf
  * @function
  */

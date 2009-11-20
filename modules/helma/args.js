@@ -57,7 +57,7 @@ exports.Parser = function() {
      * Parse an arguments array into an option object.
      * @param args the argument array. Matching options are removed.
      * @param result optional result object. If undefined, a new Object is created
-     * @return the result object
+     * @returns the result object
      */
     this.parse = function(args, result) {
         result = result || {};

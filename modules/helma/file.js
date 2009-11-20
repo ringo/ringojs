@@ -542,7 +542,7 @@ function File(path) {
     * This methods reads all the lines contained in the 
     * file and returns them.
     * 
-    * @return String of all the lines in the file
+    * @returns String of all the lines in the file
     * @type String
     */
    this.readAll = function() {
@@ -668,7 +668,7 @@ function File(path) {
     * containing this file.
     * @param {String} prefix the prefix of the temporary file; must be at least three characters long
     * @param {String} suffix the suffix of the temporary file; may be null
-    * @return {File} the temporary file 
+    * @returns {File} the temporary file
     */
    this.createTempFile = function(prefix, suffix) {
       var dir = this.isDirectory() ? file : file.getParentFile();
@@ -759,7 +759,7 @@ File.separator = java.io.File.separator;
  * Create a new empty temporary file in the default temporary-file directory.
  * @param {String} prefix the prefix of the temporary file; must be at least three characters long
  * @param {String} suffix the suffix of the temporary file; may be null
- * @return {File} the temporary file
+ * @returns {File} the temporary file
  */
 File.createTempFile = function(prefix, suffix) {
    return new File(java.io.File.createTempFile(prefix, suffix));

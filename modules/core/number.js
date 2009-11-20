@@ -8,7 +8,7 @@ module.shared = true;
  * Format a number using java.text.DecimalFormat.
  * @param fmt the format to apply
  * @param locale optional locale
- * @return the number formatted as string
+ * @returns the number formatted as string
  */
 Object.defineProperty(Number.prototype, 'format', {
     value: function(fmt, locale) {

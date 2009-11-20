@@ -39,7 +39,7 @@ Date.ISOFORMAT    = "yyyy-MM-dd'T'HH:mm:ss'Z'";
  * @param String Format pattern
  * @param Object Java Locale Object (optional)
  * @param Object Java TimeZone Object (optional)
- * @return String formatted Date
+ * @returns String formatted Date
  * @see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  */
 Object.defineProperty(Date.prototype, "format", {
@@ -95,7 +95,7 @@ Object.defineProperty(Date.prototype, "diff", {
  *        .hour|hours = String to use for single|multiple hour(s)
  *        .minute|minutes = String to use for single|multiple minute(s)
  *        .date = Date object to use for calculating the timespan
- * @return Object containing properties:
+ * @returns Object containing properties:
  *         .isFuture = (Boolean)
  *         .span = (String) timespan
  * @see Date.prototype.getAge
@@ -173,7 +173,7 @@ Object.defineProperty(Date.prototype, "getExpiry", {
  * checks if a date object equals another date object
  * @param Object Date object to compare
  * @param Int indicating how far the comparison should go
- * @return Boolean
+ * @returns Boolean
  */
 Object.defineProperty(Date.prototype, "equals", {
     value: function(date, extend) {

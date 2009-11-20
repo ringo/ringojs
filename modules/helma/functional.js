@@ -12,7 +12,7 @@ export('bindArguments', 'bindThisObject');
  *
  * @param fn {function} a function
  * @param args
- * @return {function} a function with bound arguments
+ * @returns {function} a function with bound arguments
  */
 function bindArguments(fn /*, arg, ... */) {
     if (typeof(fn) != "function")
@@ -32,7 +32,7 @@ function bindArguments(fn /*, arg, ... */) {
  *
  * @param fn {function} a function
  * @param obj {Object} the object to bind to the "this" object
- * @return a function with bound this object
+ * @returns a function with bound this object
  */
 function bindThisObject(fn, obj) {
     if (typeof(fn) != "function")

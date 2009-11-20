@@ -25,7 +25,7 @@ module.shared = true;
  * a new object
  * @param {Object} clone the clone object
  * @param {boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
- * @return {Object} the clone object
+ * @returns {Object} the clone object
  */
 Object.defineProperty(Object.prototype, "clone", {
     value: function(clone, recursive) {
