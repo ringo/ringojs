@@ -145,15 +145,22 @@ exports.parseResource = function(resource) {
                     && getprop.property.string == "defineProperty") {
                 var args = ScriptableList(node.arguments);
                 var target = nodeToString(args[0]).split('.');
+                var jsdoc, value;
                 // rhino puts jsdoc on the first name of the third argument object literal (property descriptor)
-                var jsdoc = args[2] && args[2].elements && args[2].elements.get(0).left.jsDoc;
+                if (args[2] && args[2].elements) {
+                    var left = args[2].elements.get(0).left;
+                    jsdoc = left.jsDoc;
+                    if (nodeToString(left) == "value") {
+                        value = args[2].elements.get(0).right;
+                    }
+                }
                 if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
                     target.push(nodeToString(args[1]));
-                    addDocItem(target.join('.'), jsdoc);
+                    addDocItem(target.join('.'), jsdoc, value);
                 } else if (target[0] == 'this' && exportedFunction != null) {
                     target[0] = exportedName;
                     target.push('instance', nodeToString(args[1]));
-                    addDocItem(target.join('.'), jsdoc);
+                    addDocItem(target.join('.'), jsdoc, value);
                 }
             }
         }
