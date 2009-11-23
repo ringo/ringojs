@@ -55,6 +55,8 @@ function resolveInConfig(req, config) {
     if (log.debugEnabled) {
         log.debug('resolving path ' + req.pathInfo);
     }
+    // set the root context path on which this app is mounted in the config module
+    config.rootPath = req.scriptName + "/";
     // set config property in webapp env module
     var webenv = require('helma/webapp/env');
     webenv.addConfig(config);
@@ -65,7 +67,7 @@ function resolveInConfig(req, config) {
     }
 
     var path = req.pathInfo.replace(/^\/+|\/+$/g, "");
-    
+
     for each (var urlEntry in config.urls) {
         if (!Array.isArray(urlEntry) || urlEntry.length < 2) {
             log.info("Ignoring unsupported URL mapping: " + urlEntry);
@@ -162,7 +164,7 @@ function getAction(req, module, urlconf, args) {
         if (path.length == 0 || args.length + path.length <= action.length) {
             if (args.slice(1).join('').length == 0) {
                 req.checkTrailingSlash();
-            }            
+            }
             Array.prototype.push.apply(args, path);
             return action;
         }
