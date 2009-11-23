@@ -60,7 +60,7 @@
     }
     ul.apilist {
         list-style: none;
-        padding-left: 2em;
+        padding-left: 1em;
     }
     hr {
         border: 0;
@@ -70,9 +70,12 @@
     }
 </style>
 
+<% subskin menu %>
+<% moduleList %>
+
 <% subskin content %>
-<% jsdoc | fileoverview %>
-<% for item in <% jsdoc %> render jsdoc %>
+<% moduleDoc | fileoverview %>
+<% for item in <% moduleDoc %> render jsdoc %>
 
 <% subskin jsdoc %>
 <div class="docitem" id="<% item.name | replace '\\.' '_' %>">
@@ -80,4 +83,3 @@
 <p><% item | renderDoc %></p>
 </div>
 <hr/>
-        
