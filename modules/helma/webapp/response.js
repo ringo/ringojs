@@ -231,7 +231,7 @@ function NotFoundResponse(location) {
         },
         body: [ '<html><title>', msg, '</title>',
                 '<body><h2>', msg, '</h2>',
-                '<p>The requested URL ', location, ' was not found on the server.</p>',
+                '<p>The requested URL ', String(location), ' was not found on the server.</p>',
                 '</body></html>']
     };
 }
