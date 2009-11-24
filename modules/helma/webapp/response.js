@@ -30,7 +30,7 @@ function Response() {
                 buffer.write(' ');
         }
         return this;
-    }
+    };
 
     this.write.apply(this, arguments);
 
@@ -38,7 +38,7 @@ function Response() {
         this.write.apply(this, arguments);
         buffer.write('\r\n');
         return this;
-    }
+    };
 
 
     /**
@@ -49,7 +49,7 @@ function Response() {
     this.render = function render(skin, context) {
         var render = require('helma/skin').render;
         buffer.write(render(skin, context));
-    }
+    };
 
     /**
      * Print a debug message to the rendered page.
@@ -68,7 +68,7 @@ function Response() {
         buffer.writeln("</div>");
         this.debugBuffer = buffer;
         return null;
-    }
+    };
 
     /**
      * Write the debug buffer to the response's main buffer.
@@ -84,7 +84,7 @@ function Response() {
     this.redirect = function(location) {
         status = 303;
         headers.set('Location', String(location));
-    }
+    };
 
     Object.defineProperty(this, 'charset', {
         get: function() {
@@ -115,7 +115,7 @@ function Response() {
 
     this.getHeader = function(key) {
         headers.get(String(key));
-    }
+    };
 
     this.setHeader = function(key, value) {
         key = String(key);
@@ -124,7 +124,7 @@ function Response() {
             charset = getMimeParameter(contentType, "charset") || charset;
         }
         headers.set(String(key), String(value));
-    }
+    };
 
     this.close = function() {
         this.flushDebug();
@@ -139,7 +139,7 @@ function Response() {
             headers: headers,
             body: buffer
         };
-    }
+    };
 
 }
 
@@ -190,8 +190,10 @@ function StaticResponse(resource) {
             'Content-Type': contentType
         },
         body: {
-            digest: function() resource.lastModified().toString(36)
-                             + resource.length.toString(36),
+            digest: function() {
+                return resource.lastModified().toString(36) 
+                    + resource.length.toString(36);
+            },
             forEach: function(block) {
                 var read;
                 while ((read = input.readInto(buffer)) > -1) {
