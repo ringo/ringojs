@@ -259,64 +259,6 @@ Object.defineProperty(String.prototype, "entitize", {
 
 
 /**
- * breaks up a string into two parts called
- * head and tail at the given position
- * don't apply this to HTML, i.e. use stripTags() in advance
- * @param Number number of charactrers or of segments separated by the delimiter
- * @param String pre-/suffix to be pre-/appended to shortened string
- * @param String delimiter
- * @returns Object containing head and tail properties
- */
-Object.defineProperty(String.prototype, "embody", {
-    value: function(limit, clipping, delimiter) {
-        if (typeof limit == "string")
-            limit = parseInt(limit, 10);
-        var result = {head: this, tail: ''};
-        if (!limit || limit < 1)
-            return result;
-        if (!delimiter || delimiter == '')
-            result.head= this.substring(0, limit);
-        else {
-            var re = new RegExp ("(" + delimiter + "+)");
-            result.head = this.split(re, 2*limit - 1).join('');
-        }
-        if (result.head != this) {
-            result.tail = this.substring(result.head.length).trim();
-            if (result.tail) {
-                if (clipping == null)
-                    clipping = "...";
-                result.head = result.head.trim() + clipping;
-                result.tail = clipping + result.tail;
-            }
-        }
-        return result;
-    }, writable: true
-});
-
-
-/**
- * get the head of a string
- * @see String.prototype.embody()
- */
-Object.defineProperty(String.prototype, "head", {
-    value: function(limit, clipping, delimiter) {
-        return this.embody(limit, clipping, delimiter).head;
-    }, writable: true
-});
-
-
-/**
- * get the tail of a string
- * @see String.prototype.embody()
- */
-Object.defineProperty(String.prototype, "tail", {
-    value: function(limit, clipping, delimiter) {
-        return this.embody(limit, clipping, delimiter).tail;
-    }, writable: true
-});
-
-
-/**
  * function inserts a string every number of characters
  * @param Int number of characters after which insertion should take place
  * @param String string to be inserted
@@ -369,23 +311,19 @@ Object.defineProperty(String.prototype, "unwrap", {
  */
 Object.defineProperty(String.prototype, "digest", {
     value: function(algorithm) {
-        var str = asJavaString(this);
+        var ByteString = require('binary').ByteString;
         var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
-        var b = md.digest(str.getBytes())
-        var buf = new java.lang.StringBuffer(b.length * 2);
-        var j;
+        var b = new ByteString(md.digest(this.toByteString()));
+        var buf = [];
 
-        for (var i in b) {
-            j = (b[i] < 0) ? (256 + b[i]) : b[i];
-
+        for (var i = 0; i < b.length; i++) {
+            var j = b[i];
             if (j < 16) {
-                buf.append('0');
+                buf[buf.length] = '0';
             }
-
-            buf.append(java.lang.Integer.toHexString(j));
+            buf[buf.length] = j.toString(16);
         }
-
-        return buf.toString();
+        return buf.join('');
     }, writable: true
 });
 
@@ -511,68 +449,6 @@ Object.defineProperty(String.prototype, "getCommonPrefix", {
             }
         }
         return this.slice(0, length);
-    }, writable: true
-});
-
-
-/**
- * function compares a string with the one passed as argument
- * using diff
- * @param {String} mod string to compare against String object value
- * @param {String} separator optional regular expression string to use for
- *                 splitting. If not defined, newlines will be used.
- * @returns {Object} Array containing one JS object for each line
- *                     with the following properties:
- *                     .num Line number
- *                     .value String line if unchanged
- *                     .deleted Obj Array containing deleted lines
- *                     .inserted Obj Array containing added lines
- */
-Object.defineProperty(String.prototype, "diff", {
-    value: function(mod, separator) {
-        // if no separator use line separator
-        var regexp = (typeof(separator) == "undefined") ?
-                     new RegExp("\r\n|\r|\n") :
-                     new RegExp(separator);
-        // split both strings into arrays
-        var orig = this.split(regexp);
-        var mod = mod.split(regexp);
-        // create the Diff object
-        var diff = new Packages.helma.util.Diff(orig, mod);
-        // get the diff.
-        var d = diff.diff();
-        if (!d)
-            return null;
-
-        var max = Math.max(orig.length, mod.length);
-        var result = new Array();
-        for (var i = 0; i < max; i++) {
-            var line = result[i];
-            if (!line) {
-                line = new Object();
-                line.num = (i+1);
-                result[i] = line;
-            }
-            if (d && i == d.line1) {
-                if (d.deleted) {
-                    var del = new Array();
-                    for (var j = d.line0; j < d.line0 + d.deleted; j++)
-                        del[del.length] = orig[j];
-                    line.deleted = del;
-                }
-                if (d.inserted) {
-                    var ins = new Array();
-                    for (var j = d.line1; j < d.line1 + d.inserted; j++)
-                        ins[ins.length] = mod[j];
-                    line.inserted = ins;
-                }
-                i = d.line1 + d.inserted -1;
-                d = d.link;
-            } else {
-                line.value = mod[i];
-            }
-        }
-        return result;
     }, writable: true
 });
 
