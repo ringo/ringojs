@@ -14,7 +14,7 @@ var standardObjects = [
 /**
  * Create a script repository for the given path
  * @param {String} path the base path
- * @return an script repository
+ * @returns an script repository
  */
 exports.ScriptRepository = function(path) {
     return new ScriptRepository(path);
@@ -28,7 +28,7 @@ function ScriptRepository(path) {
      * Get a list of script resources (files with a .js extension) in this
      * repository.
      * @param {Boolean} nested whether to return scripts in nested directories
-     * @return {Array} list of script files as Helma Resource objects
+     * @returns {Array} list of script files as Helma Resource objects
      */
     this.getScriptResources = function(nested) {
         var list = repo.getResources(Boolean(nested));
@@ -38,7 +38,7 @@ function ScriptRepository(path) {
     /**
      * Get a script resource contained in this repository.
      * @param {String} path the script path
-     * @return {Resource} the script resource
+     * @returns {Resource} the script resource
      */
     this.getScriptResource = function(path) {
         return repo.getResource(path);
@@ -50,7 +50,7 @@ function ScriptRepository(path) {
  * Parse a script resource and return an array containing the JSDoc items
  * for the properties it exports.
  * @param resource {Resource} a script resource
- * @return {Array} an array of objects representing the the API documentation of
+ * @returns {Array} an array of objects representing the the API documentation of
  *     of the resource
  */
 exports.parseResource = function(resource) {
@@ -220,7 +220,7 @@ function unwrapComment(/**String*/comment) {
  * Parse a JSDoc comment into an object wrapping an array of tags as [tagname, tagtext]
  * and getTag() and getTags() methods to lookup specific tags.
  * @param {String} comment the raw JSDoc comment
- * @return {Object} an array of tags.
+ * @returns {Object} an array of tags.
  */
 function extractTags(/**String*/comment) {
     if (!comment) {
@@ -269,7 +269,7 @@ var docProto = {
  * Utility function to test whether a node is a Name node
  * (a node of type org.mozilla.javascript.ast.Name)
  * @param {Object} node an AST node
- * @return {Boolean} true if node is a name node
+ * @returns {Boolean} true if node is a name node
  */
 function isName(node) {
     return node instanceof org.mozilla.javascript.ast.Name;
@@ -279,7 +279,7 @@ function isName(node) {
  * Utility function to get the name value of a node, or the empty
  * string if it is not a name node.
  * @param {AstNode} node an AST node
- * @return {String} the name value of the node
+ * @returns {String} the name value of the node
  */
 function getName(node) {
     return exports.isName(node) ? node.getString() : "";
