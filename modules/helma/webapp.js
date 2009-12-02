@@ -101,13 +101,11 @@ function resolveInConfig(req, config) {
                 return res;
             } else if (Array.isArray(module.urls)) {
                 return resolveInConfig(req, module);
-            } else {
-                throw {notfound: true};
             }
         }
     }
+    throw { notfound: true };
 }
-
 
 function getPattern(spec) {
     var pattern = spec[0];
@@ -136,25 +134,29 @@ function getAction(req, module, urlconf, args) {
     var action;
     // if url-conf has a hard-coded action name use it
     var name = urlconf[2];
-    if (!name) {
-        // action name is not defined in url mapping, try to get it from the request path
-        name = path[0];
-        if (name) {
-            action = module[name.replace(/\./g, "_")];
-            if (typeof action == "function") {
-                // If the request path contains additional elements check whether the
-                // candidate function has formal arguments to take them
-                if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
-                    req.appendToScriptName(name);
-                    Array.prototype.push.apply(args, path.slice(1));
-                    return action;
+    if (typeof module === "function") {
+        action = module;
+    } else {
+        if (!name) {
+            // action name is not defined in url mapping, try to get it from the request path
+            name = path[0];
+            if (name) {
+                action = module[name.replace(/\./g, "_")];
+                if (typeof action == "function") {
+                    // If the request path contains additional elements check whether the
+                    // candidate function has formal arguments to take them
+                    if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
+                        req.appendToScriptName(name);
+                        Array.prototype.push.apply(args, path.slice(1));
+                        return action;
+                    }
                 }
             }
+            // no matching action, fall back to "index"
+            name = "index";
         }
-        // no matching action, fall back to "index"
-        name = "index";
+        action = module[name];
     }
-    action = module[name];
     if (typeof action == "function") {
         // insert predefined arguments if defined in url-conf
         if (urlconf.length > 3) {
