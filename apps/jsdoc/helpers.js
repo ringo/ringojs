@@ -52,19 +52,26 @@ exports.fileoverview_filter = function(docs) {
                 buffer.write('<a onclick="return goto(\'#')
                         .write(item.id, '\')" href="#')
                         .write(item.id, '">', name, '</a>');
-                // if (node.isClass) buffer.write('</b>');
             } else {
                 node.isClass ?
                     buffer.write("Class ", name) :
                     buffer.write("<i>", name, "</i>");
             }
-            buffer.writeln('</li>');
         }
-        buffer.writeln('<ul class="apilist">')
+        var hasList = false;
         for (var child in node.children) {
+            if (!hasList) {
+                buffer.writeln('<ul class="apilist">');
+                hasList = true;
+            }
             render(node.children[child], child);
         }
-        buffer.writeln('</ul>');
+        if (hasList) {
+            buffer.writeln('</ul>');
+        }
+        if (name) {
+            buffer.writeln('</li>');            
+        }
     }
     render(topItems, null, "");
     buffer.writeln('<h2 class="section">Detail</h2>');
@@ -114,7 +121,7 @@ exports.renderName_filter = function(doc) {
 };
 
 exports.renderDoc_filter = function(doc) {
-    var buffer = new Buffer(doc.getTag("desc") || "No description available.");
+    var buffer = new Buffer("<p>", doc.getTag("desc") || "No description available.", "</p>");
     if (doc.processedParams && doc.processedParams.length) {
         buffer.writeln('<div class="subheader">Parameters</div>');
         buffer.writeln('<table class="subsection">');
