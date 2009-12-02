@@ -39,7 +39,7 @@ var version =new ScriptableList(org.helma.engine.RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
- * @param javaClass the class to define as host object
+ * @param {JavaClass} javaClass the class to define as host object
  */
 function addHostObject(javaClass) {
     getRhinoEngine().defineHostClass(javaClass);
@@ -48,14 +48,14 @@ function addHostObject(javaClass) {
 /**
  * Create a sandboxed scripting engine with the same install directory as this and the
  * given module paths, global properties, class shutter and sealing
- * @param modulePath the comma separated module search path
- * @param globals a map of predefined global properties (may be undefined)
- * @param options an options object (may be undefined). The following options are supported:
+ * @param {Array} modulePath the comma separated module search path
+ * @param {Object} globals a map of predefined global properties (may be undefined)
+ * @param {Object} options an options object (may be undefined). The following options are supported:
  *  - includeSystemModules whether to include the system modules in the module search path
  *  - classShutter a Rhino class shutter, may be null
  *  - sealed if the global object should be sealed, defaults to false
- * @returns a sandboxed RhinoEngine instance
- * @throws FileNotFoundException if any part of the module paths does not exist
+ * @returns {RhinoEngine} a sandboxed RhinoEngine instance
+ * @throws {FileNotFoundException} if any part of the module paths does not exist
  */
 function createSandbox(modulePath, globals, options) {
     options = options || {};
@@ -75,7 +75,7 @@ function createSandbox(modulePath, globals, options) {
 /**
  * Get a wrapper around a java class that can be extended in javascript using
  * the ClassName.prototype property
- * @param javaClass a fully qualified java class name
+ * @param {JavaClass} javaClass a fully qualified java class name
  */
 function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
@@ -83,8 +83,8 @@ function extendJavaClass(javaClass) {
 
 /**
  * Get a wrapper for an object that exposes it as Java object to JavaScript.
- * @param object an object
- * @returns the object wrapped as native java object
+ * @param {Object} object an object
+ * @returns {Object} the object wrapped as native java object
  */
 function asJavaObject(object) {
     return getRhinoEngine().asJavaObject(object);
@@ -94,8 +94,8 @@ function asJavaObject(object) {
  * Get a wrapper for a string that exposes the java.lang.String methods to JavaScript
  * This is useful for accessing strings as java.lang.String without the cost of
  * creating a new instance.
- * @param object an object
- * @returns the object converted to a string and wrapped as native java object
+ * @param {Object} object an object
+ * @returns {Object} the object converted to a string and wrapped as native java object
  */
 function asJavaString(object) {
     return getRhinoEngine().asJavaString(object);
@@ -106,10 +106,10 @@ function asJavaString(object) {
  * The optimization level is an integer between -1 (interpreter mode)
  * and 9 (compiled mode, all optimizations enabled). The default level
  * is 0.
- * @returns level an integer between -1 and 9
+ * @returns {Number} level an integer between -1 and 9
  */
 function getOptimizationLevel() {
-    return getRhinoEngine().getOptimizationLevel();    
+    return getRhinoEngine().getOptimizationLevel();
 }
 
 /**
@@ -117,7 +117,7 @@ function getOptimizationLevel() {
  * The optimization level is an integer between -1 (interpreter mode)
  * and 9 (compiled mode, all optimizations enabled). The default level
  * is 0.
- * @param level an integer between -1 and 9
+ * @param {Number} level an integer between -1 and 9
  */
 function setOptimizationLevel(level) {
     getRhinoEngine().setOptimizationLevel(level);
@@ -127,8 +127,8 @@ function setOptimizationLevel(level) {
  * Serialize a JavaScript object graph to a java.io.OutputStream. If the
  * function is called without second argument the serialized object is
  * returned as byte array.
- * @param object the object to serialize
- * @param output a java.io.OutputStream
+ * @param {Object} object the object to serialize
+ * @param {java.io.OutputStream} output a java.io.OutputStream
  */
 function serialize(object, output) {
     if (!(output instanceof java.io.OutputStream)) {
@@ -136,13 +136,13 @@ function serialize(object, output) {
         getRhinoEngine().serialize(object, output);
         return output.toByteArray();
     }
-    getRhinoEngine().serialize(object, output);    
+    getRhinoEngine().serialize(object, output);
 }
 
 /**
  * Deserialize a previously serialized object graph from a java.io.Inputstream
  * or a byte array.
- * @param input a InputStream or byte array containing a serialized object
+ * @param {java.io.InputStream} input a InputStream or byte array containing a serialized object
  */
 function deserialize(input) {
     if (!(input instanceof java.io.InputStream)) {
@@ -155,8 +155,8 @@ function deserialize(input) {
  * Evaluate a module script on an existing scope instead of creating a
  * new module scope. This can be used to mimic traditional JavaScript
  * environments such as those found in web browsers.
- * @param moduleName the name of the module to evaluate
- * @param scope the JavaScript object to evaluate the script on
+ * @param {String} moduleName the name of the module to evaluate
+ * @param {Object} scope the JavaScript object to evaluate the script on
  */
 function evaluate(moduleName, scope) {
     if (!scope) {
@@ -180,6 +180,7 @@ function getRhinoContext() {
 
 /**
  * Get the org.helma.engine.RhinoEngine associated with this application.
+ * @returns {org.helma.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
@@ -187,6 +188,7 @@ function getRhinoEngine() {
 
 /**
  * Get a list containing the syntax errors encountered in the current context.
+ * @returns {ScriptableList} a list containing the errors encountered in the current context
  */
 function getErrors() {
     return new ScriptableList(org.helma.engine.RhinoEngine.errors.get());
@@ -194,6 +196,7 @@ function getErrors() {
 
 /**
  * Get the app's module search path as list of repositories.
+ * @returns {ScriptableList} a list containing the module search path repositories
  */
 function getRepositories() {
     return new ScriptableList(getRhinoEngine().getRepositories());
@@ -201,7 +204,7 @@ function getRepositories() {
 
 /**
  * Add a repository to the module search path
- * @param repo a repository
+ * @param {Repository} repo a repository
  */
 function addRepository(repo) {
     if (typeof repo == "string") {
