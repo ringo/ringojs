@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
 
 <!-- =============================================================== -->
@@ -15,23 +16,13 @@
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">
-      <!-- Default bounded blocking threadpool 
-      -->
-      <New class="org.mortbay.thread.BoundedThreadPool">
-        <Set name="minThreads">10</Set>
-        <Set name="maxThreads">50</Set>
-        <Set name="lowThreads">25</Set>
-      </New>
 
-      <!-- New queued blocking threadpool : better scalability
       <New class="org.mortbay.thread.QueuedThreadPool">
         <Set name="minThreads">10</Set>
-        <Set name="maxThreads">25</Set>
-        <Set name="lowThreads">5</Set>
+        <Set name="maxThreads">200</Set>
+        <Set name="lowThreads">20</Set>
         <Set name="SpawnOrShrinkAt">2</Set>
       </New>
-      -->
-
 
       <!-- Optional Java 5 bounded threadpool with job queue 
       <New class="org.mortbay.thread.concurrent.ThreadPool">
@@ -52,7 +43,6 @@
     <!-- Use this connector for many frequently idle connections
          and for threadless continuations.
     -->
-    <!--
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
@@ -67,10 +57,8 @@
           </New>
       </Arg>
     </Call>
-    -->
 
-    <!-- Use this connector if NIO is not available.
-    -->
+    <!-- Use this connector if NIO is not available. 
     <Call name="addConnector">
       <Arg>
           <New class="org.mortbay.jetty.bio.SocketConnector">
@@ -81,6 +69,7 @@
           </New>
       </Arg>
     </Call>
+    -->
 
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
     <!-- To add a HTTPS SSL listener                                     -->
