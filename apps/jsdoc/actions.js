@@ -1,6 +1,7 @@
 include('helma/webapp/response');
 include('helma/jsdoc');
 require('core/array');
+require('core/string');
 var Buffer = require('helma/buffer').Buffer;
 
 var log = require('helma/logging').getLogger(module.id);
@@ -8,20 +9,20 @@ var log = require('helma/logging').getLogger(module.id);
 exports.jsdoc = function index(req, module) {
     var repo = new ScriptRepository(require.paths.peek());
     if (module && module != "/") {
-        var res = repo.getScriptResource(module);
+        var res = repo.getScriptResource(module + '.js');
         if (!res.exists()) {
             return new NotFoundResponse(req.scriptName + req.pathInfo);
         }
         var moduleDoc = parseResource(res);
         // log.info("export()ed symbols: " + exported);
-        return new SkinnedResponse(getResource('./skins/module.html'), {
-            title: res.moduleName,
-            moduleName: res.moduleName,
+        return new SkinnedResponse(getResource('./skins/jsdoc-module.html'), {
+            title: "Module " + res.moduleName,
+            moduleName: module,
             moduleDoc: moduleDoc,
             moduleList: renderModuleList
         });
     } else {
-        return new SkinnedResponse(getResource('./skins/index.html'), {
+        return new SkinnedResponse(getResource('./skins/jsdoc-overview.html'), {
             title: "API Documentation",
             moduleList: renderModuleList
         });
@@ -32,35 +33,50 @@ function renderModuleList() {
     var rootPath = require('./config').rootPath;
     var repo = new ScriptRepository(require.paths.peek());
     var modules = repo.getScriptResources(true).filter(function(r) {
-        return r.relativePath.indexOf('test') != 0;
+        return r.moduleName != 'helmaglobal' &&  r.moduleName.indexOf('test') != 0;
     }).sort(function(a, b) {
-        return a.relativePath > b.relativePath ? 1 : -1;
+        return a.moduleName > b.moduleName ? 1 : -1;
     });
     var previous = [];
-    var buffer = new Buffer('<ul class="apilist">');
+    var indent = 0;
+    var buffer = new Buffer(); // '<ul class="apilist">');
     for each (var module in modules) {
         var path = module.moduleName.split('/');
-        var k = 0;
-        for (var i = 0; i < previous.length - 1; i++) {
-            if (previous[i] == path[i]) {
-                k = i + 1;
-            } else if (i < previous.length - 1) {
-                buffer.writeln('</ul></li>');
+        var i;
+        var hasList = false;
+        for (i = previous.length; i > 0; i--) {
+            if (previous[i - 1] != path[i - 1]) {
+                if (i < previous.length) {
+                    indent -= 2;
+                    buffer.writeln(' '.repeat(indent), '</ul>');
+                    indent -= 2;
+                }
+                if (i < previous.length) {
+                    buffer.write(' '.repeat(indent));
+                }
+                buffer.writeln('</li>');
+                hasList = true;
+            } else {
+                break;
             }
         }
-        while(k < path.length - 1) {
-            if (path[k] != previous[k]) {
-                buffer.writeln('<li>', path[k], '</li>');
+        for(var j = i; j < path.length; j++) {
+            if (!hasList) {
+                indent += 2;
+                buffer.writeln().writeln(' '.repeat(indent), '<ul class="apilist">');
+                indent += 2;
             }
-            k += 1;
-            buffer.writeln('<li><ul class="apilist">');
+            var label = j < path.length - 1 ?
+                        path[j] : '<a href="' + rootPath + module.moduleName + '">' + path[j] + '</a>';
+            buffer.write(' '.repeat(indent), '<li>', label);
+            hasList = false;
         }
-        var label = '<a href="' + rootPath + module.relativePath + '">' + path.peek() + '</a>';
-        buffer.writeln('<li>', label, '</li>');
         previous = path;
     }
     for (var z = 0; z < previous.length; z++) {
-        buffer.writeln('</ul></li>');
+        buffer.writeln('</li>');
+        indent -= 2;
+        buffer.writeln(' '.repeat(indent), '</ul>');
     }
     return buffer;
 }

@@ -61,7 +61,7 @@ a:active {
 #menu {
     float: right;
     width: 200px;
-    padding-top: 4em;
+    padding-top: 8em;
 }
 
 #footer {
@@ -80,3 +80,26 @@ pre.code {
     padding: 0.8em;
     line-height: 145%;    
 }
+
+.section {
+    color: #000;
+    font-weight: 500;
+    border-bottom: 1px solid #999;
+}
+
+.subheader {
+    color: green;
+    font-weight: bold;
+}
+
+table.subsection td {
+    vertical-align: top;
+    padding: 0 6px;
+}
+
+div.subsection {
+    padding-left: 12px;
+}
+
+/* move definitions inlined in skins/base.html */
+

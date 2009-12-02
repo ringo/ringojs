@@ -1,9 +1,16 @@
 <% extends skins/base.html %>
 
 <% subskin head %>
+<link rel="stylesheet" href="/static/jquery.treeview.css" />
 <script type="text/javascript" src="/static/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="/static/jquery.cookie.js"></script>
+<script type="text/javascript" src="/static/jquery.treeview.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
+        $("div#menu > ul.apilist").treeview({
+            collapsed: true,
+            persist: "cookie"
+        });
         if (window.location.hash) {
             goto(window.location.hash);
         }
@@ -14,54 +21,51 @@
             $(".docitem").removeClass("highlighted");
             $(id).addClass("highlighted");
             $('html, body').animate({scrollTop: $(id).offset().top - 20});
-            window.location.hash = id;            
+            window.location.hash = id;
         }
         return false;
     }
 </script>
-
 <style type="text/css">
-    .section {
-        color: #000;
-        font-weight: 500;
-        border-bottom: 1px solid #999;
-    }
-    .subheader {
-        color: green;
-        font-weight: bold;
-    }
-    table.subsection td {
-        vertical-align: top;
-        padding: 0 6px;
-    }
-    div.subsection {
-        padding-left: 12px;
-    }
     .docitem {
         position: relative;
         left: -14px;
         padding-left: 10px;
         border-left: 4px solid white;
     }
+
     .docheader a:link, .docheader a:visited {
         text-decoration: none;
         color: #999;
         visibility: hidden;
     }
+
     .docheader:hover a {
         visibility: visible;
     }
+
     .highlighted {
         border-left: 4px solid green;
     }
+
     .dimmed {
         color: #333;
         font-weight: 500;
     }
+
     ul.apilist {
         list-style: none;
-        padding-left: 1em;
     }
+
+    div#main ul.apilist {
+        padding-left: 1.5em;
+    }
+
+    div#menu ul.apilist {
+        line-height: normal;
+        padding-left: 0.3em;
+    }
+
     hr {
         border: 0;
         color: #999;
@@ -70,7 +74,9 @@
     }
 </style>
 
+
 <% subskin menu %>
+<div><a href="/">Overview</a></div>
 <% moduleList %>
 
 <% subskin content %>
