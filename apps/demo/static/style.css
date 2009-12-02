@@ -59,15 +59,9 @@ a:active {
     width: 200px;
 }
 
-#menu ul {
-    background-color: #abc;
-    margin: 10px;
-    padding: 0;
-}
 
-div#menu li {
+#menu ul li {
     list-style: none;
-    border-bottom: 1px solid white;
 }
 
 #menu a {
@@ -77,12 +71,13 @@ div#menu li {
     display: block;
 }
 
-#menu a.highlight {
+#menu a:hover {
     background-color: #cde;
 }
 
-#menu a:hover, #menu a.highlight#hover {
-    background-color: #89a;
+#menu a.highlight, a.highlight#hover {
+    background-color: black;
+    color: white;
 }
 
 #footer {
@@ -94,7 +89,7 @@ div#menu li {
 }
 
 pre.code {
-    background-color: #abc;
+    background-color: #cde;
     border-width: 1px;
     border-color: #9ab;
     border-style: solid;
