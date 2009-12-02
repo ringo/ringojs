@@ -205,9 +205,9 @@ exports.parseResource = function(resource) {
  * Remove slash-star comment wrapper from a raw comment string.
  * @type String
  */
-exports.unwrapComment = function(/**String*/comment) {
+function unwrapComment(/**String*/comment) {
     return comment ? comment.replace(/(^\/\*\*|\*\/$)/g, "").replace(/^\s*\* ?/gm, "") : "";
-};
+}
 
 /**
  * Parse a JSDoc comment into an object wrapping an array of tags as [tagname, tagtext]
@@ -215,11 +215,11 @@ exports.unwrapComment = function(/**String*/comment) {
  * @param {String} comment the raw JSDoc comment
  * @return {Object} an array of tags.
  */
-var extractTags = exports.extractTags = function(/**String*/comment) {
+function extractTags(/**String*/comment) {
     if (!comment) {
         comment = "";
     } else if (comment.startsWith("/**")) {
-        comment = exports.unwrapComment(comment);
+        comment = unwrapComment(comment);
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
             .filter(function($){return $.match(/\S/)});
@@ -236,7 +236,7 @@ var extractTags = exports.extractTags = function(/**String*/comment) {
     return Object.create(docProto, {
         tags: {value: tags}
     });
-};
+}
 
 // the prototype used for document items
 var docProto = {
@@ -264,9 +264,9 @@ var docProto = {
  * @param {Object} node an AST node
  * @return {Boolean} true if node is a name node
  */
-var isName = exports.isName = function(node) {
+function isName(node) {
     return node instanceof org.mozilla.javascript.ast.Name;
-};
+}
 
 /**
  * Utility function to get the name value of a node, or the empty
@@ -274,13 +274,13 @@ var isName = exports.isName = function(node) {
  * @param {AstNode} node an AST node
  * @return {String} the name value of the node
  */
-var getName = exports.getName = function(node) {
+function getName(node) {
     return exports.isName(node) ? node.getString() : "";
-};
+}
 
-var getTypeName = exports.getTypeName = function(node) {
+function getTypeName(node) {
     return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
-};
+}
 
 var nodeToString = function(node) {
     if (node.type == Token.GETPROP) {
@@ -301,4 +301,4 @@ var nodeToString = function(node) {
  *
  *     node.type == Token.NAME
  */
-exports.Token = org.mozilla.javascript.Token;
+var Token = org.mozilla.javascript.Token;
