@@ -1,8 +1,13 @@
+/**
+ * @fileoverview This module provides generic logging support. It is optimized for
+ * use with <a href="http://logging.apache.org/log4j/">Apache log4j</a> but can be
+ * used with any Logging framework supported by
+ * <a href="http://www.slf4j.org/">Simple Logging Facade for Java (SLF4J)</a>.
+ */
+
 require('core/string');
 
-var Logger = org.apache.log4j.Logger,
-    PropertyConfigurator = org.apache.log4j.PropertyConfigurator,
-    DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
+var LoggerFactory = org.slf4j.LoggerFactory;
 
 module.shared = true;
 var configured = false;
@@ -14,6 +19,8 @@ var configured = false;
  */
 var setConfig = exports.setConfig = function(resource) {
     var {path, url} = resource;
+    var PropertyConfigurator = org.apache.log4j.PropertyConfigurator,
+        DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
     var configurator = path.endsWith('.properties') || path.endsWith('.props') ?
                        PropertyConfigurator : DOMConfigurator;
     configurator.configure(url);
@@ -23,16 +30,16 @@ var setConfig = exports.setConfig = function(resource) {
         print("Error watching log configuration file:", e);
     }
     configured = true;
-}
+};
 
 /**
- * Get a logger for the given name.
+ * Get a logger for the given name. Hang on there, we'll add documentation for the logger interface soon.
  */
 var getLogger = exports.getLogger = function(name) {
     if (!configured) {
         // getResource('foo').name gets us the absolute path to a local resource
         this.setConfig(getResource('config/log4j.properties'));
     }
-    return Logger.getLogger(name.replace(/\//g, '.'));
-}
+    return LoggerFactory.getLogger(name.replace(/\//g, '.'));
+};
 
