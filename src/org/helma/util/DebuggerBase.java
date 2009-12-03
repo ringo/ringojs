@@ -1,6 +1,7 @@
 package org.helma.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ContextFactory;
@@ -17,7 +18,7 @@ public abstract class DebuggerBase implements Debugger {
 
     String debuggerScript;
     int debuggerScriptDepth = 0;
-    Logger log = Logger.getLogger("org.helma.util.DebuggerBase");
+    Logger log = LoggerFactory.getLogger("org.helma.util.DebuggerBase");
 
     public abstract DebuggerBase createDebugger();
 

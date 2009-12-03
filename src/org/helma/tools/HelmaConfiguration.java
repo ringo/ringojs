@@ -16,9 +16,9 @@
 
 package org.helma.tools;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.helma.repository.*;
-import org.helma.util.StringUtils;
 import org.helma.tools.launcher.HelmaClassLoader;
 import org.mozilla.javascript.ClassShutter;
 
@@ -409,7 +409,7 @@ public class HelmaConfiguration {
     }
 
     private Logger getLogger() {
-        return Logger.getLogger("org.helma.tools");
+        return LoggerFactory.getLogger("org.helma.tools");
     }
 
 }

@@ -21,7 +21,8 @@ import org.helma.repository.Resource;
 import org.helma.repository.Trackable;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -59,7 +60,7 @@ public class ReloadableScript {
         UNKNOWN, FALSE, TRUE
     }
 
-    private static Logger log = Logger.getLogger(ReloadableScript.class);
+    private static Logger log = LoggerFactory.getLogger(ReloadableScript.class);
 
     /**
      * Construct a Script from the given script resource.

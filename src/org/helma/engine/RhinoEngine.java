@@ -16,7 +16,8 @@
 
 package org.helma.engine;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.helma.repository.*;
 import org.helma.tools.HelmaConfiguration;
 import org.helma.tools.HelmaDebugger;
@@ -60,7 +61,7 @@ public class RhinoEngine implements ScopeProvider {
 
     public static ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
 
-    private Logger log = Logger.getLogger("org.helma.javascript.RhinoEngine");
+    private Logger log = LoggerFactory.getLogger("org.helma.javascript.RhinoEngine");
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
