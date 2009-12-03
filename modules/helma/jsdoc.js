@@ -50,7 +50,7 @@ function ScriptRepository(path) {
  * Parse a script resource and return an array containing the JSDoc items
  * for the properties it exports.
  * @param {Resource} resource a script resource
- * @returns {Array} an array of objects representing the the API documentation of
+ * @returns {Array} an array of objects representing the API documentation for
  *     of the resource
  */
 exports.parseResource = function(resource) {
