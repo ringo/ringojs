@@ -4,15 +4,14 @@
  * and a replacement for the print function optimized for styled output.
  * 
  * @example
- * <pre>
- *     helma> include('helma/term')                                              
- *     helma> writeln(YELLOW, "foo", MAGENTA, "bar");
- *     foo bar
- *     helma> writeln(YELLOW, ONBLUE, "IKEA");
- *     IKEA
- *     helma> writeln(RED, BOLD, INVERSE, "Red Alert!");
- *     Red Alert!
- * </pre>
+ * <code>include('helma/term')
+ * writeln(YELLOW, "foo", MAGENTA, "bar");
+ * // foo bar
+ * writeln(YELLOW, ONBLUE, "IKEA");
+ * // IKEA
+ * writeln(RED, BOLD, INVERSE, "Red Alert!");
+ * // Red Alert!</code>
+ *
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
 
