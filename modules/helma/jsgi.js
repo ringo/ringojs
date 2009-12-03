@@ -13,6 +13,7 @@ module.shared = true;
  * @param func the function, either as function object or function name to be
  *             imported from module.
  * @param env the JSGI env object
+ * @returns the JSGI response object
  */
 function handleRequest(module, func, env) {
     initRequest(env);
