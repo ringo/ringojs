@@ -183,7 +183,7 @@ exports.parseResource = function(resource) {
             }
         }
         // exported function
-        if (node.type == Token.FUNCTION && exported.contains(node.name)) {
+        if (node.type == Token.FUNCTION && (exported.contains(node.name) || /@name\s/.test(node.jsDoc))) {
             addDocItem(node.name, node.jsDoc, node);
             exportedFunction = node;
             exportedName = node.name;
