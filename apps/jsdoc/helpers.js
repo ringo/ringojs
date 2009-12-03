@@ -188,6 +188,13 @@ function renderStandardTags(doc, buffer) {
         buffer.writeln('<div class="subheader">Since</div>');
         buffer.writeln('<div class="subsection">', since, '</div>');        
     }
+    var deprecated = doc.getTag("deprecated");
+    if (deprecated != null) {
+        buffer.writeln('<div class="subheader">Deprecated</div>');
+        if (deprecated) {
+            buffer.writeln('<div class="subsection">', deprecated, '</div>');
+        }
+    }
 }
 
 function getGroup(parent, groupName, isClass) {
