@@ -104,6 +104,9 @@ exports.parseResource = function(resource) {
 
     var addDocItem = function(name, jsdoc, value) {
         jsdoc = extractTags(jsdoc);
+        if (jsdoc.getTag("ignore") != null) {
+            return;
+        }
         if (!name) {
             name = jsdoc.getTag("name");
             var memberOf = jsdoc.getTag("memberOf");
@@ -226,10 +229,10 @@ function extractTags(/**String*/comment) {
     if (!comment) {
         comment = "";
     } else if (comment.startsWith("/**")) {
-        comment = unwrapComment(comment);
+        comment = unwrapComment(comment).trim();
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
-            .filter(function($){return $.match(/\S/)});
+            .filter(function($){ return $.match(/\S/); });
     tags = tags.map(function(tag, idx) {
         if (idx == 0 && !comment.startsWith('@')) {
             return ['desc', tag.trim()];
