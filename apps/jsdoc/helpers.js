@@ -4,9 +4,12 @@ require('core/array');
 var Buffer = require('helma/buffer').Buffer;
 
 exports.fileoverview_filter = function(docs) {
-    var buffer = new Buffer('<div class="fileoverview">');
+    var buffer = new Buffer();
     if (docs.fileoverview) {
+        buffer.write('<div class="fileoverview">');
         buffer.write(docs.fileoverview.getTag("fileoverview"));
+        buffer.writeln('</div>');
+        renderStandardTags(docs.fileoverview, buffer);
     }
     var topItems = {children: {}};
     for (var i = 0; i < docs.length; i++) {
@@ -40,8 +43,7 @@ exports.fileoverview_filter = function(docs) {
             isClass: doc.isClass
         };
     }
-    buffer.writeln('</div>')
-            .writeln('<h2 class="section">Overview</h2>');
+    buffer.writeln('<h3 class="section">Overview</h3>');
     function render(node, name, prefix) {
         if (name) {
             buffer.write('<li>');
@@ -74,7 +76,7 @@ exports.fileoverview_filter = function(docs) {
         }
     }
     render(topItems, null, "");
-    buffer.writeln('<h2 class="section">Detail</h2>');
+    buffer.writeln('<h3 class="section">Detail</h3>');
     return buffer;
 };
 
@@ -122,6 +124,7 @@ exports.renderName_filter = function(doc) {
 
 exports.renderDoc_filter = function(doc) {
     var buffer = new Buffer("<p>", doc.getTag("desc") || "No description available.", "</p>");
+    renderStandardTags(doc, buffer);
     if (doc.processedParams && doc.processedParams.length) {
         buffer.writeln('<div class="subheader">Parameters</div>');
         buffer.writeln('<table class="subsection">');
@@ -133,7 +136,7 @@ exports.renderDoc_filter = function(doc) {
         }
         buffer.writeln('</table>');
     }
-    var returns = doc.getTag("returns");
+    var returns = doc.getTag("returns") || doc.getTag("return");
     var type = doc.getTag("type");
     if (returns || type) {
         buffer.writeln('<div class="subheader">Returns</div>');
@@ -147,6 +150,13 @@ exports.renderDoc_filter = function(doc) {
         buffer.writeln('<table class="subsection">');
         buffer.writeln('<tr><td>', type, '</td><td>', returns, '</td></tr>');
         buffer.writeln('</table>');
+    }
+    var throws = doc.getTags("throws");
+    if (throws.length) {
+        buffer.writeln('<div class="subheader">Throws</div>');
+        for each (var error in throws) {
+            buffer.writeln('<div class="subsection">', error, '</div>');
+        }
     }
     var see = doc.getTags("see");
     if (see.length) {
@@ -166,6 +176,19 @@ exports.renderDoc_filter = function(doc) {
     }
     return buffer;
 };
+
+function renderStandardTags(doc, buffer) {
+    var example = doc.getTag("example");
+    if (example) {
+        buffer.writeln('<div class="subheader">Example</div>');
+        buffer.writeln('<pre class="sh_javascript">', example, '</pre>');
+    }
+    var since = doc.getTag("since") ||  doc.getTag("version");
+    if (since) {
+        buffer.writeln('<div class="subheader">Since</div>');
+        buffer.writeln('<div class="subsection">', since, '</div>');        
+    }
+}
 
 function getGroup(parent, groupName, isClass) {
     var group = parent.children[groupName];
