@@ -25,6 +25,7 @@ export('absolute',
        'isWritable',
        'join',
        'list',
+       'listPaths',
        'mkdir',
        'mkdirs',
        'move',
@@ -44,6 +45,7 @@ export('absolute',
        'symlink',
        'touch',
        'write',
+       'path',
        'Path');
 
 var SEPARATOR = File.separator;
@@ -200,6 +202,12 @@ function list(path) {
     return result;
 }
 
+function listPaths(path) {
+    return list(path).map(function(p) {
+        return new Path(join(path, p));
+    });
+}
+
 function size(path) {
     var file = resolveFile(path);
     return file.length();
@@ -212,14 +220,14 @@ function mtime(path) {
 
 function mkdir(path) {
     var file = resolveFile(path);
-    if (!file.mkdir()) {
+    if (!file.isDirectory() && !file.mkdir()) {
         throw new Error("failed to make directory " + path);
     }
 }
 
 function mkdirs(path) {
     var file = resolveFile(path);
-    if (!file.mkdirs()) {
+    if (!file.isDirectory() && !file.mkdirs()) {
         throw new Error("failed to make directories " + path);
     }
 }
@@ -369,8 +377,8 @@ function normal(path) {
     return resolve(path);
 }
 
-exports.path = function() {
-    return Path(join.apply(null, arguments));
+function path() {
+    return new Path(join.apply(null, arguments));
 }
 
 function Path(path) {
@@ -378,22 +386,23 @@ function Path(path) {
         return new Path(path);
     }
     this.toString = function() path;
+    return this;
 }
 
 Path.prototype.join = function() {
-    return Path(join.apply(null, 
+    return new Path(join.apply(null,
             [this.toString()].concat(Array.slice(arguments))));
-}
+};
 
 Path.prototype.resolve = function () {
-    return Path(resolve.apply(
+    return new Path(resolve.apply(
             null,
             [this.toString()].concat(Array.slice(arguments))
         )
     );
 };
 
- var pathed = [
+var pathed = [
     'absolute',
     'basename',
     'canonical',
@@ -406,7 +415,7 @@ for (var i = 0; i < pathed.length; i++) {
     var name = pathed[i];
     Path.prototype[name] = (function (name) {
         return function () {
-            return exports.Path(exports[name].apply(
+            return new Path(exports[name].apply(
                 this,
                 [this.toString()].concat(Array.prototype.slice.call(arguments))
             ));
@@ -430,6 +439,7 @@ var trivia = [
     // 'link',
     // 'linkExists',
     'list',
+    'listPaths',
     // 'listTree',
     'mkdir',
     'mkdirs',
@@ -449,7 +459,7 @@ var trivia = [
     'write'
 ];
 
-for (var i = 0; i < trivia.length; i++) {
+for (i = 0; i < trivia.length; i++) {
     var name = trivia[i];
     Path.prototype[name] = (function (name) {
         return function () {
@@ -474,7 +484,7 @@ var optionsMask = {
     exclusive: 1,
     canonical: 1,
     charset: 1
-}
+};
 
 function checkOptions(mode, options) {
     if (!options) {
