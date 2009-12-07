@@ -69,18 +69,45 @@ function initRequest(env) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
-    var response = env['jsgi.servlet_response'];
-    if (response.isCommitted()) {
-        return;
-    }
-    if (!result) {
+    if (!result || (!result.body && !result.then)) {
         throw new Error('No valid JSGI response: ' + result);
+    }
+    var response = env['jsgi.servlet_response'];
+    var {status, headers, body} = result;
+    var charset;
+    if (status) {
+        response.status = status;
+    }
+    if (headers) {
+        for (var name in headers) {
+            response.setHeader(name, headers[name]);
+        }
+        charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
+    }
+    if (body) {
+        if (typeof body.forEach === "function") {
+            charset = charset || "UTF-8";
+            var output = response.getOutputStream();
+            var writer = function(part) {
+                if (!(part instanceof Binary)) {
+                    part = part.toByteString(charset);
+                }
+                output.write(part);
+            };
+            body.forEach(writer);
+            if (typeof body.close == "function") {
+                body.close(writer);
+            }
+        } else {
+            throw new Error("Response body doesn't implement forEach: " + body);
+        }
     }
     if (typeof result.then === "function") {
         // experimental support for asynchronous JSGI based on Jetty continuations
         var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
         var request = env['jsgi.servlet_request'];
         var continuation = ContinuationSupport.getContinuation(request, {});
+        continuation.reset();
         var handled = false;
         result.then(function(res) {
             if (continuation.isPending()) {
@@ -94,39 +121,7 @@ function commitResponse(env, result) {
         if (!handled) {
             continuation.suspend(30000);
         }
-        return;
     }
-    if (!result.status || !result.headers || !result.body) {
-        throw new Error('No valid JSGI response: ' + result);
-    }
-    if (!result) {
-        throw new Error("JSGI app did not return a response object");
-    }
-    if (typeof result.close == "function") {
-        result = result.close();
-    }
-    var {status, headers, body} = result;
-    response.status = status;
-    for (var name in headers) {
-        response.setHeader(name, headers[name]);
-    }
-    var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset") || "UTF-8";
-    var output = response.getOutputStream();
-    if (body && typeof body.forEach == "function") {
-        var writer = function(part) {
-            if (!(part instanceof Binary)) {
-                part = part.toByteString(charset);
-            }
-            output.write(part);
-        };
-        body.forEach(writer);
-        if (typeof body.close == "function") {
-            body.close(writer);
-        }
-    } else {
-        throw new Error("Response body doesn't implement forEach: " + body);
-    }
-    output.close();
 }
 
 /**
