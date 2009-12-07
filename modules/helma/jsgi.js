@@ -92,7 +92,7 @@ function commitResponse(env, result) {
             }
         });
         if (!handled) {
-            continuation.suspend(30000);            
+            continuation.suspend(30000);
         }
         return;
     }
