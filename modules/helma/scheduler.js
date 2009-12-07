@@ -21,6 +21,7 @@ exports.setTimeout = function(callback, delay) {
             callback.apply(global, args);
         }
     });
+    delay = parseInt(delay, 10) || 0;    
     return executor.schedule(runnable, delay, MILLIS);
 };
 
@@ -51,6 +52,7 @@ exports.setInterval = function(callback, delay) {
             callback.apply(global, args);
         }
     });
+    delay = parseInt(delay, 10) || 0;
     return executor.scheduleAtFixedRate(runnable, 0, delay, MILLIS);
 };
 
