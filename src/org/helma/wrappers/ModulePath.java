@@ -99,8 +99,8 @@ public class ModulePath extends ScriptableObject {
         }
         if (value instanceof Repository) {
             return (Repository) value;
-        } if (value instanceof String) {
-            String str = (String) value;
+        } if (value != null && value != Undefined.instance) {
+            String str = ScriptRuntime.toString(value);
             if (str.toLowerCase().endsWith(".zip")) {
                 return new ZipRepository(str);
             } else {
