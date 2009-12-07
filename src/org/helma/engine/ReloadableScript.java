@@ -184,7 +184,7 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected Object evaluate(Scriptable scope, Context cx)
+    public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
         Map<Trackable,Scriptable> modules =
