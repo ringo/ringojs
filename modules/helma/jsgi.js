@@ -3,7 +3,7 @@ include('helma/webapp/util');
 include('io');
 include("binary");
 
-export('handleRequest');
+export('handleRequest', 'commitResponse');
 
 module.shared = true;
 
@@ -69,12 +69,35 @@ function initRequest(env) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
-    if (!result || !result.status || !result.headers || !result.body) {
-        throw new Error('No valid JSGI response: ' + result);
-    }
     var response = env['jsgi.servlet_response'];
     if (response.isCommitted()) {
         return;
+    }
+    if (!result) {
+        throw new Error('No valid JSGI response: ' + result);
+    }
+    if (typeof result.then === "function") {
+        // experimental support for asynchronous JSGI based on Jetty continuations
+        var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+        var request = env['jsgi.servlet_request'];
+        var continuation = ContinuationSupport.getContinuation(request, {});
+        var handled = false;
+        result.then(function(res) {
+            if (continuation.isPending()) {
+                request.setAttribute('_helma_response', res);
+                continuation.resume();
+            } else {
+                commitResponse(env, res);
+                handled = true;
+            }
+        });
+        if (!handled) {
+            continuation.suspend(30000);            
+        }
+        return;
+    }
+    if (!result.status || !result.headers || !result.body) {
+        throw new Error('No valid JSGI response: ' + result);
     }
     if (!result) {
         throw new Error("JSGI app did not return a response object");

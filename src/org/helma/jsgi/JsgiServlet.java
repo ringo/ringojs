@@ -24,6 +24,7 @@ import org.helma.repository.WebappRepository;
 import org.helma.engine.RhinoEngine;
 import org.helma.util.StringUtils;
 import org.mozilla.javascript.Callable;
+import org.mozilla.javascript.WrappedException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -89,9 +90,23 @@ public class JsgiServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             JsgiEnv env = new JsgiEnv(request, response);
-            engine.invoke("helma/jsgi", "handleRequest", module, function, env);
+            // Check for async JSGI response
+            Object asyncResponse = request.getAttribute("_helma_response");
+            if (asyncResponse != null) {
+                engine.invoke("helma/jsgi", "commitResponse", env, asyncResponse);
+            } else {
+                engine.invoke("helma/jsgi", "handleRequest", module, function, env);
+            }
         } catch (NoSuchMethodException x) {
             throw new ServletException(x);
+        } catch (WrappedException x) {
+            Throwable t = x.getWrappedException();
+            // Rethrow jetty retry-request exceptions in order to support jetty continuations
+            if ("org.mortbay.jetty.RetryRequest".equals(t.getClass().getName())) {
+                throw (RuntimeException) t;
+            }
+            HelmaRunner.reportError(t, System.err, false);
+            throw(new ServletException(t));
         } catch (Exception x) {
             HelmaRunner.reportError(x, System.err, false);
             throw(new ServletException(x));
