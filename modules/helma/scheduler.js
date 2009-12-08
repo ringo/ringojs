@@ -4,7 +4,7 @@
 
 module.shared = true;
 
-var executor = executor || java.util.concurrent.Executors.newScheduledThreadPool(1);
+var executor = executor || java.util.concurrent.Executors.newScheduledThreadPool(4);
 var MILLIS = java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
@@ -21,7 +21,7 @@ exports.setTimeout = function(callback, delay) {
             callback.apply(global, args);
         }
     });
-    delay = parseInt(delay, 10) || 0;    
+    delay = parseInt(delay, 10) || 0;
     return executor.schedule(runnable, delay, MILLIS);
 };
 
@@ -49,7 +49,11 @@ exports.setInterval = function(callback, delay) {
     var args = Array.slice(arguments, 2);
     var runnable = new java.lang.Runnable({
         run: function() {
-            callback.apply(global, args);
+            try {
+                callback.apply(global, args);
+            } catch (e) {
+                // ignore
+            }
         }
     });
     delay = parseInt(delay, 10) || 0;
