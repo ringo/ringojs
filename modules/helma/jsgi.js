@@ -3,7 +3,7 @@ include('helma/webapp/util');
 include('io');
 include("binary");
 
-export('handleRequest', 'commitResponse');
+export('handleRequest');
 
 module.shared = true;
 
@@ -30,6 +30,9 @@ function handleRequest(module, func, env) {
         throw new Error('No valid JSGI app: ' + app);
     }
     var result = app(env);
+    if (!result) {
+        throw new Error('No valid JSGI response: ' + result);
+    }
     commitResponse(env, result);
 }
 
@@ -69,58 +72,122 @@ function initRequest(env) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
-    if (!result || (!result.body && !result.then)) {
+    if (typeof result.then === "function") {
+        handleAsyncResponse(env, result);
+        return;
+    }
+    var request = env['jsgi.servlet_request'];    
+    var response = env['jsgi.servlet_response'];
+    var charset;
+    if (!result.status || !result.headers || !result.body) {
         throw new Error('No valid JSGI response: ' + result);
     }
-    var response = env['jsgi.servlet_response'];
     var {status, headers, body} = result;
-    var charset;
-    if (status) {
-        response.status = status;
+    response.status = status;
+    for (var name in headers) {
+        response.setHeader(name, headers[name]);
     }
-    if (headers) {
+    var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
+    writeBody(response, body, charset);
+}
+
+function writeBody(response, body, charset) {
+    if (body && typeof body.forEach == "function") {
+        var output = response.getOutputStream();
+        var writer = function(part) {
+            if (!(part instanceof Binary)) {
+                part = part.toByteString(charset);
+            }
+            output.write(part);
+        };
+        body.forEach(writer);
+        if (typeof body.close == "function") {
+            body.close(writer);
+        }
+    } else {
+        throw new Error("Response body doesn't implement forEach: " + body);
+    }
+}
+
+function writeAsync(request, response, result, suspend) {
+    var charset;
+    var part = result.part;
+    if (result.first) {
+        if (!part.status || !part.headers) {
+            throw new Error('No valid JSGI response: ' + result);
+        }
+        var {status, headers} = part;
+        response.status = status;
         for (var name in headers) {
             response.setHeader(name, headers[name]);
         }
         charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
     }
-    if (body) {
-        if (typeof body.forEach === "function") {
-            charset = charset || "UTF-8";
-            var output = response.getOutputStream();
-            var writer = function(part) {
-                if (!(part instanceof Binary)) {
-                    part = part.toByteString(charset);
-                }
-                output.write(part);
-            };
-            body.forEach(writer);
-            if (typeof body.close == "function") {
-                body.close(writer);
-            }
-        } else {
-            throw new Error("Response body doesn't implement forEach: " + body);
-        }
+    if (part.body) {
+        writeBody(response, part.body, charset);
     }
-    if (typeof result.then === "function") {
-        // experimental support for asynchronous JSGI based on Jetty continuations
-        var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
-        var request = env['jsgi.servlet_request'];
-        var continuation = ContinuationSupport.getContinuation(request, {});
-        continuation.reset();
-        var handled = false;
-        result.then(function(res) {
-            if (continuation.isPending()) {
-                request.setAttribute('_helma_response', res);
-                continuation.resume();
-            } else {
-                commitResponse(env, res);
-                handled = true;
-            }
-        });
-        if (!handled) {
-            continuation.suspend(30000);
+    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+    var continuation = ContinuationSupport.getContinuation(request, {});
+    continuation.reset();
+    if (!result.last && suspend) {
+        continuation.suspend(30000);
+    }
+}
+
+function handleAsyncResponse(env, result) {
+    // experimental support for asynchronous JSGI based on Jetty continuations
+    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+    var request = env['jsgi.servlet_request'];
+    var response = env['jsgi.servlet_response'];
+    var queue = new java.util.concurrent.ConcurrentLinkedQueue();
+    request.setAttribute('_helma_response', queue);
+    var continuation = ContinuationSupport.getContinuation(request, {});
+    var first = true, handled = false;
+    var onFinish = function(part) {
+        if (handled) return;
+        var res = {
+            first: first,
+            last: true,
+            part: part
+        };
+        if (continuation.isPending()) {
+            queue.offer(res);
+            continuation.resume();
+        } else {
+            writePartial(request, response, res);
         }
+        handled = true;
+    };
+    var onError = function(error) {
+        if (handled) return;
+        print("Error callback: " + error);
+        if (first) {
+            commitResponse(env, {
+                status: 500,
+                headers: {"Content-Type": "text/html"},
+                body: ["<!DOCTYPE html><html><body><h1>Error</h1>", error.toString(), "</body></html>"]
+            })
+        }
+        handled = true;
+    };
+    var onProgress = function(part) {
+        if (handled) return;
+        var res = {
+            first: first,
+            part: part
+        };
+        if (continuation.isPending()) {
+            queue.offer(res);
+            continuation.resume();
+        } else {
+            writePartial(request, response, res);
+        }
+        first = false;
+    };
+    // TODO sync callbacks on queue once rhino supports this (bug 513682)
+    result.then(onFinish, onError, onProgress);
+    if (!handled) {
+        continuation.suspend(30000);
     }
 }
 

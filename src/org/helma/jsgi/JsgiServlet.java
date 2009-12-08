@@ -33,6 +33,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.File;
+import java.util.Queue;
 
 public class JsgiServlet extends HttpServlet {
 
@@ -91,9 +92,9 @@ public class JsgiServlet extends HttpServlet {
         try {
             JsgiEnv env = new JsgiEnv(request, response);
             // Check for async JSGI response
-            Object asyncResponse = request.getAttribute("_helma_response");
+            Queue asyncResponse = (Queue) request.getAttribute("_helma_response");
             if (asyncResponse != null) {
-                engine.invoke("helma/jsgi", "commitResponse", env, asyncResponse);
+                writeAsyncResponse(request, response, asyncResponse);
             } else {
                 engine.invoke("helma/jsgi", "handleRequest", module, function, env);
             }
@@ -110,6 +111,19 @@ public class JsgiServlet extends HttpServlet {
         } catch (Exception x) {
             HelmaRunner.reportError(x, System.err, false);
             throw(new ServletException(x));
+        }
+    }
+
+    private void writeAsyncResponse(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    Queue queue)
+            throws IOException, NoSuchMethodException {
+        synchronized (queue) {
+            Object part;
+            while((part = queue.poll()) != null) {
+                engine.invoke("helma/jsgi", "writeAsync", request, response, part,
+                        Boolean.valueOf(queue.isEmpty()));
+            }
         }
     }
 
