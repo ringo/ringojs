@@ -640,10 +640,27 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
+     * Try to resolve path to a resource or repository relative to a local path,
+     * or the engine's repository path.
+     * @param path the resource name
+     * @param localRoot a repository to look first
+     * @return the resource or repository
+     * @throws IOException if an I/O error occurred
+     */
+    public Trackable findPath(String path, Repository localRoot) throws IOException {
+        Trackable t = findResource(path, localRoot);
+        if (t == null || !t.exists()) {
+            t = findRepository(path, localRoot);
+        }
+        return t;
+    }
+
+    /**
      * Search for a resource in a local path, or the main repository path.
      * @param path the resource name
      * @param localRoot a repository to look first
      * @return the resource
+     * @throws IOException if an I/O error occurred
      */
     public Resource findResource(String path, Repository localRoot) throws IOException {
         // Note: as an extension to the securable modules API
@@ -663,6 +680,7 @@ public class RhinoEngine implements ScopeProvider {
      * @param path the repository name
      * @param localPath a repository to look first
      * @return the repository
+     * @throws IOException if an I/O error occurred
      */
     public Repository findRepository(String path, Repository localPath) throws IOException {
         // To be consistent, always return absolute repository if path is absolute
@@ -681,8 +699,8 @@ public class RhinoEngine implements ScopeProvider {
         return config.getRepository(path);
     }
 
-    public void addToClasspath(Resource resource) throws MalformedURLException {
-        loader.addURL(resource.getUrl());
+    public void addToClasspath(Trackable path) throws MalformedURLException {
+        loader.addURL(path.getUrl());
     }
 
     /**
@@ -692,7 +710,7 @@ public class RhinoEngine implements ScopeProvider {
      *
      * @param obj the object to serialize
      * @param out the stream to write to
-     * @throws java.io.IOException
+     * @throws IOException if an I/O error occurred
      */
     public void serialize(Object obj, OutputStream out) throws IOException {
         final Context cx = contextFactory.enterContext();
@@ -723,7 +741,8 @@ public class RhinoEngine implements ScopeProvider {
      *
      * @param in the stream to read from
      * @return the deserialized object
-     * @throws java.io.IOException
+     * @throws IOException if an I/O error occurred
+     * @throws ClassNotFoundException if a class referred in the stream couldn't be resolved
      */
     public Object deserialize(InputStream in) throws IOException, ClassNotFoundException {
         final Context cx = contextFactory.enterContext();

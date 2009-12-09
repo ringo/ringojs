@@ -16,6 +16,7 @@
 
 package org.helma.engine;
 
+import org.helma.repository.Trackable;
 import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
@@ -130,10 +131,10 @@ public class HelmaGlobal extends Global {
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            Resource res = engine.findResource((String) args[0],
+            Trackable path = engine.findPath((String) args[0],
                     engine.getParentRepository(moduleScope));
-            engine.addToClasspath(res);
-            return res.exists() ? Boolean.TRUE : Boolean.FALSE;
+            engine.addToClasspath(path);
+            return path.exists() ? Boolean.TRUE : Boolean.FALSE;
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }

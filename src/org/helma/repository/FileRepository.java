@@ -183,7 +183,8 @@ public class FileRepository extends AbstractRepository {
     }
 
     public URL getUrl() throws MalformedURLException {
-        return new URL("file:" + directory.getAbsolutePath());
+        // Trailing slash on directories is required for ClassLoaders
+        return new URL("file:" + directory.getAbsolutePath() + "/");
     }
 
     @Override
