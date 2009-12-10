@@ -59,8 +59,10 @@ var log = require('helma/logging').getLogger(module.id);
                 // print("idmap: " + idMap);
                 var staticCtx = idMap.get('staticContext');
                 if (staticCtx && typeof config.staticDir == "string") {
-                    staticCtx.setResourceBase(getResource(config.staticDir));
+                    var repo = getRepository(config.staticDir);
+                    staticCtx.setResourceBase(repo.exists() ? repo.getPath() : config.staticDir);
                     var staticHolder = new jetty.servlet.ServletHolder(jetty.servlet.DefaultServlet);
+                    // staticHolder.setInitParameter("aliases", "true");
                     staticCtx.addServlet(staticHolder, "/*");
                 }
                 // set up helma servlet context

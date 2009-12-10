@@ -16,6 +16,7 @@
 
 package org.helma.engine;
 
+import org.helma.repository.Repository;
 import org.helma.repository.Trackable;
 import org.helma.util.ScriptUtils;
 import org.mozilla.javascript.*;
@@ -62,6 +63,7 @@ public class HelmaGlobal extends Global {
             "defineClass",
             "require",
             "getResource",
+            "getRepository",
             "addToClasspath",
             "privileged",
             "trycatch"
@@ -117,6 +119,23 @@ public class HelmaGlobal extends Global {
             Resource res = engine.findResource((String) args[0],
                     engine.getParentRepository(moduleScope));
             return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getTopLevelScope(), res, null);
+        } catch (IOException iox) {
+            throw new WrappedException(iox);
+        }
+    }
+
+    public static Object getRepository(final Context cx, Scriptable thisObj, Object[] args,
+                                     Function funObj) {
+        if (args.length != 1 || !(args[0] instanceof String)) {
+            throw Context.reportRuntimeError("getResource() requires a string argument");
+        }
+        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
+                (ModuleScope) thisObj : null;
+        try {
+            Repository repo = engine.findRepository((String) args[0],
+                    engine.getParentRepository(moduleScope));
+            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getTopLevelScope(), repo, null);
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }
