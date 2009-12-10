@@ -11,7 +11,7 @@ exports.middleware = function(app) {
     return function(env) {
         try {
             return app(env);
-        } catch (error if !error.retry) {
+        } catch (error if !error.retry && !error.notfound) {
             return handleError(env, error);
         }
     }
