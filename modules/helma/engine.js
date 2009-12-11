@@ -13,6 +13,7 @@ export( 'properties',
         'evaluate',
         'extendJavaClass',
         'getErrors',
+        'getHelmaHome',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
@@ -79,6 +80,14 @@ function createSandbox(modulePath, globals, options) {
  */
 function extendJavaClass(javaClass) {
     return getRhinoEngine().getExtendedClass(javaClass);
+}
+
+/**
+ * Get the Helma NG installation directory.
+ * @returns {Repository} a Repository representing the Helma installation directory
+ */
+function getHelmaHome() {
+    return getRhinoEngine().getHelmaHome();
 }
 
 /**

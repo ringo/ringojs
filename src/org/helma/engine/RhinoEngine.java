@@ -540,7 +540,7 @@ public class RhinoEngine implements ScopeProvider {
                                      boolean sealed)
             throws Exception {
         String systemModules = includeSystemModules ? "modules" : null;
-        HelmaConfiguration sandbox = new HelmaConfiguration(config.getHelmaHome(), modulePath, systemModules);
+        HelmaConfiguration sandbox = new HelmaConfiguration(getHelmaHome(), modulePath, systemModules);
         sandbox.setClassShutter(shutter);
         sandbox.setSealed(sealed);
         return new RhinoEngine(sandbox, globals);
@@ -597,10 +597,18 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
+    /**
+     * Get the engine's top level JavaScript scope
+     * @return the top level (global) scope
+     */
     public ScriptableObject getTopLevelScope() {
         return topLevelScope;
     }
 
+    /**
+     * Get the list of command line arguments
+     * @return the command line arguments passed to this engine
+     */
     public List<String> getCommandLineArguments() {
         if (commandLineArgs == null) {
             commandLineArgs = Collections.emptyList();
@@ -608,8 +616,20 @@ public class RhinoEngine implements ScopeProvider {
         return Collections.unmodifiableList(commandLineArgs);
     }
 
+    /**
+     * Get the engine's module search path as a list of repositories
+     * @return the module repositories
+     */
     public List<Repository> getRepositories() {
         return repositories;
+    }
+
+    /**
+     * Get the our installation directory.
+     * @return the Helma NG installation directory
+     */
+    public Repository getHelmaHome() {
+        return config.getHelmaHome();
     }
 
     /**
