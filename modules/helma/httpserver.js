@@ -14,7 +14,7 @@ var log = require('helma/logging').getLogger(module.id);
  * either pass properties to be used with the default jetty.xml, or define
  * a custom configuration file.
  *
- * @param config Object a javascript object with any of the following properties,
+ * @param {Object} config A javascript object with any of the following properties,
  * with the default value in parentheses:
  * <ul>
  * <li>configFile ('config/jetty.xml')</li>
