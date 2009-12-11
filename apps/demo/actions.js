@@ -1,10 +1,15 @@
-import('helma/logging');
 include('helma/webapp/response');
 include('helma/webapp/continuation');
 
-var log = helma.logging.getLogger(module.id);
+var log = require('helma/logging').getLogger(module.id);
 
 export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continuation');
+
+// add test repository to module search path
+var testdir = getRepository('test').getPath();
+if (require.paths.indexOf(testdir) < 0) {
+    require.paths.push(testdir);
+}
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
