@@ -64,7 +64,7 @@ function Server(config) {
      *   the application.
      *   <div><code>{ moduleName: 'config', functionName: 'app' }</code></div>
      */
-    this.mapJSGIApp = function(path, vhosts, app) {
+    this.addApplication = function(path, vhosts, app) {
         log.info("Adding JSGI handler: " + path + " -> " + app.toSource());
         var context = createContext(path, vhosts, true, true);
         var engine = require('helma/engine').getRhinoEngine();
@@ -91,7 +91,7 @@ function Server(config) {
      *   A virtual host may start with a "*." wildcard.
      * @param {string} dir the directory from which to serve static resources
      */
-    this.mapStaticResources = function(path, vhosts, dir) {
+    this.addStaticResources = function(path, vhosts, dir) {
         log.info("Adding static handler: " + path + " -> " + dir);
         var context = createContext(path, vhosts, false, true);
         var repo = getRepository(dir);
@@ -109,7 +109,6 @@ function Server(config) {
      * Start the HTTP server.
      */
     this.start = function() {
-        // start server
         jetty.start();
     };
 
@@ -117,8 +116,6 @@ function Server(config) {
      * Stop the HTTP server.
      */
     this.stop = function() {
-        // Hack: keep jetty from creating a new shutdown hook with every new server
-        java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
         jetty.stop();
     };
 
@@ -131,6 +128,8 @@ function Server(config) {
     };
 
     // init code
+    // Hack: keep jetty from creating a new shutdown hook with every new server
+    java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
     config = config || {};
     print(config.toSource());
     var configFile = config.configFile || 'config/jetty.xml';
@@ -156,10 +155,10 @@ function Server(config) {
     }
     // Allow definition of app/static mappings in server config for convenience
     if (config.staticDir) {
-        this.mapStaticResources(config.staticMountpoint || '/static', config.virtualHost, config.staticDir);
+        this.addStaticResources(config.staticMountpoint || '/static', config.virtualHost, config.staticDir);
     }
     if (config.functionName && config.moduleName) {
-        this.mapJSGIApp(config.mountpoint || '/', config.virtualHost, config);
+        this.addApplication(config.mountpoint || '/', config.virtualHost, config);
     }
 
 }
