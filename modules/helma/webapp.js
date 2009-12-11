@@ -3,18 +3,19 @@
  */
 
 // import modules
+require('core/object');
 require('core/string');
 
 include('helma/webapp/request');
 include('helma/webapp/response');
 
-import('helma/engine', 'engine');
-import('helma/httpserver', 'server');
-import('helma/logging', 'logging');
+var engine = require('helma/engine');
+var Server = require('helma/httpserver').Server;
 
 export('start', 'stop', 'getConfig', 'handleRequest');
 
-var log = logging.getLogger(module.id);
+var server;
+var log = require('helma/logging').getLogger(module.id);
 
 module.shared = true;
 
@@ -190,13 +191,18 @@ function getConfig(configModuleName) {
 }
 
 /**
- * Start the jetty server.
+ * Start the jetty server using the given config module, or the
+ * default "config" module if called without argument.
  */
 function start(config) {
     // start jetty http server
     config = config || getConfig();
-    var httpConfig = config.httpConfig;
-    server.start(httpConfig);
+    var httpConfig = Object.merge(config.httpConfig || {}, {
+        moduleName: "config",
+        functionName: "app"
+    });
+
+    server = new Server(httpConfig).start();
 }
 
 

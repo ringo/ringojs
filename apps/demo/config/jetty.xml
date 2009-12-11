@@ -7,15 +7,15 @@
 <!-- http://docs.codehaus.org/display/JETTY/jetty.xml                -->
 <!--                                                                 -->
 <!-- =============================================================== -->
-        
+
 
 <Configure id="server" class="org.mortbay.jetty.Server">
-    
+
     <!-- =========================================================== -->
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">
-      <!-- Default bounded blocking threadpool 
+      <!-- Default bounded blocking threadpool
       -->
       <New class="org.mortbay.thread.BoundedThreadPool">
         <Set name="minThreads">10</Set>
@@ -33,7 +33,7 @@
       -->
 
 
-      <!-- Optional Java 5 bounded threadpool with job queue 
+      <!-- Optional Java 5 bounded threadpool with job queue
       <New class="org.mortbay.thread.concurrent.ThreadPool">
         <Set name="corePoolSize">50</Set>
         <Set name="maximumPoolSize">50</Set>
@@ -163,26 +163,6 @@
       </Array>
     </Set>
     -->
-
-    <!-- ======================================================= -->
-    <!-- Configure static servlet context                        -->
-    <!-- ======================================================= -->
-    <New class="org.mortbay.jetty.servlet.Context" id="staticContext">
-      <Arg><Ref id="contexts"/></Arg>
-      <Arg><Property name="staticMountpoint" default="/static"/></Arg>
-      <Arg type="Boolean">false</Arg> <!-- session support -->
-      <Arg type="Boolean">false</Arg> <!-- security support -->
-    </New>
-
-    <!-- ======================================================= -->
-    <!-- Configure Helma servlet context                         -->
-    <!-- ======================================================= -->
-    <New class="org.mortbay.jetty.servlet.Context" id="helmaContext">
-      <Arg><Ref id="contexts"/></Arg>
-      <Arg><Property name="mountpoint" default="/"/></Arg>
-      <Arg type="Boolean">true</Arg> <!-- session support -->
-      <Arg type="Boolean">false</Arg> <!-- security support -->
-    </New>
 
     <!-- =========================================================== -->
     <!-- Configure Request Log to log directory                      -->

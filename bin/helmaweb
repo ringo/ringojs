@@ -25,11 +25,12 @@ if (options.help) {
 var path = system.args[0] || ".";
 require.paths[0] = path;
 
-options.moduleName = options.config;
-options.functionName = options.app;
+options.moduleName = options.config || "config";
+options.functionName = options.app || "app";
 var config = require(options.config || "config");
 require("core/object");
 options = Object.merge(options, config.httpConfig || {});
 
-require('helma/httpserver').start(options);
+var Server = require('helma/httpserver').Server;
+new Server(options).start();
 

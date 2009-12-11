@@ -164,26 +164,6 @@
     </Set>
     -->
 
-    <!-- ======================================================= -->
-    <!-- Configure static servlet context                        -->
-    <!-- ======================================================= -->
-    <New class="org.mortbay.jetty.servlet.Context" id="staticContext">
-      <Arg><Ref id="contexts"/></Arg>
-      <Arg><Property name="staticMountpoint" default="/static"/></Arg>
-      <Arg type="Boolean">false</Arg> <!-- session support -->
-      <Arg type="Boolean">false</Arg> <!-- security support -->
-    </New>
-
-    <!-- ======================================================= -->
-    <!-- Configure Helma servlet context                         -->
-    <!-- ======================================================= -->
-    <New class="org.mortbay.jetty.servlet.Context" id="helmaContext">
-      <Arg><Ref id="contexts"/></Arg>
-      <Arg><Property name="mountpoint" default="/"/></Arg>
-      <Arg type="Boolean">true</Arg> <!-- session support -->
-      <Arg type="Boolean">false</Arg> <!-- security support -->
-    </New>
-
     <!-- =========================================================== -->
     <!-- Configure Request Log to log directory                      -->
     <!-- =========================================================== -->
