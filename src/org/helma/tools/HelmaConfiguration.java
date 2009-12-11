@@ -335,7 +335,7 @@ public class HelmaConfiguration {
                 return res;
             }
         }
-        return new NotFound(path);
+        return new FileResource(new File(path));
     }
 
     /**
@@ -350,7 +350,7 @@ public class HelmaConfiguration {
                 return repository;
             }
         }
-        return null;
+        return new FileRepository(path);
     }
 
     /**
@@ -414,36 +414,3 @@ public class HelmaConfiguration {
 
 }
 
-class NotFound extends AbstractResource {
-
-    NotFound(String path) {
-        this.path = path;
-        int slash = path.lastIndexOf('/');
-        this.name = slash < 0 ? path : path.substring(slash + 1);
-        setBaseNameFromName(name);
-    }
-
-    public long getLength() {
-        return 0;
-    }
-
-    public InputStream getInputStream() throws IOException {
-        throw new FileNotFoundException("\"" + path + "\" not found");
-    }
-
-    public long lastModified() {
-        return 0;
-    }
-
-    public boolean exists() {
-        return false;
-    }
-
-    public URL getUrl() throws UnsupportedOperationException, MalformedURLException {
-        throw new MalformedURLException("Unable to resolve \"" + path + "\"");
-    }
-
-    public String toString() {
-        return "Resource \"" + path + "\"";
-    }
-}
