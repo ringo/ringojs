@@ -120,6 +120,13 @@ function Server(config) {
     };
 
     /**
+     * Destroy the HTTP server, freeing its resources.
+     */
+    this.destroy = function() {
+        jetty.destroy();
+    };
+
+    /**
      * Checks whether this server is currently running.
      * @returns true if the server is running, false otherwise.
      */
@@ -159,6 +166,13 @@ function Server(config) {
     }
     if (config.functionName && config.moduleName) {
         this.addApplication(config.mountpoint || '/', config.virtualHost, config);
+    }
+    // Start listeners. This allows us to run on priviledged port 80 under jsvc
+    // even as non-root user if the constructor is called with root privileges
+    // while start() is called with the user we will actually run as
+    var connectors = jetty.getConnectors();
+    for each (var connector in connectors) {
+        connector.open();
     }
 
 }

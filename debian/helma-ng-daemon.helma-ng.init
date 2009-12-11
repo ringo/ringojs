@@ -52,7 +52,7 @@ fi
 HELMA_USER=helma-ng
 
 # Run this application
-HELMA_APPLICATION=modules/helma/webapp.js
+HELMA_APPLICATION=modules/helma/webapp/daemon.js
 
 # Set the Helma module search path
 HELMA_MODULE_PATH=apps/demo
@@ -99,11 +99,11 @@ if [ ! -f "$DAEMON" ]; then
 	exit 1
 fi
 
-JAVA_OPTS="$JAVA_OPTS "-Dhelma.home="$HELMA_BASE"
+JAVA_OPTS="$JAVA_OPTS "-Dhelma.home="$HELMA_HOME"
 
 # Set logging.properties if provided
-if [ -r "$HELMA_BASE"/logging.properties ]; then
-  JAVA_OPTS="$JAVA_OPTS "-Djava.util.logging.config.file="$HELMA_BASE/logging.properties"
+if [ -r "$HELMA_BASE"/config/log4j.properties ]; then
+  JAVA_OPTS="$JAVA_OPTS "-Dlog4j.configuration="$HELMA_BASE/config/log4j.properties"
 fi
 
 # Define other required variables
@@ -133,7 +133,7 @@ case "$1" in
 		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
 		    -user "$HELMA_USER" -outfile SYSLOG -errfile SYSLOG \
 		    -pidfile "$HELMA_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
-		    "$HELMA_BASE/$HELMA_APPLICATION"
+		    "$HELMA_APPLICATION"
 
 		sleep 1
             if start-stop-daemon --test --start --pidfile "$HELMA_PID" \

@@ -4,7 +4,7 @@
 
 # Set the main script to execute. This should implement functions called
 # init(), start(), stop(), and destroy() to support the daemon life cycle.
-#HELMA_APPLICATION=modules/helma/webapp.js
+#HELMA_APPLICATION=modules/helma/webapp/daemon.js
 
 # Set the module path environment variable. This is a list of directories
 # where Helma NG will look for modules.
@@ -15,9 +15,8 @@
 # OpenJDK, the Sun JDK, and various J2SE 1.5 versions are tried.
 #JAVA_HOME=/usr/lib/jvm/java-6-openjdk
 
-# Directory for per-instance configuration files and webapps. It contains the
-# directories conf, logs, webapps, work and temp. See RUNNING.txt for details.
-# Default: /var/lib/helma-ng
+# Working directory, usually containing the per-instance application and
+# configuration files.
 #HELMA_BASE=/usr/share/helma-ng
 
 # Arguments to pass to the Java virtual machine (JVM).
