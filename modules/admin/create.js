@@ -56,11 +56,17 @@ function fixAppEngineDirs(dest) {
 }
 
 function copyJars(home, dest) {
-    var jars = ["helma.jar", "js.jar", "log4j-1.2.15.jar"];
+    var jars = [
+        "helma.jar",
+        "js.jar",
+        "log4j-1.2.15.jar",
+        "slf4j/slf4j-api-1.5.10.jar",
+        "slf4j/slf4j-log4j12-1.5.10.jar"
+    ];
     var libsrc = file.join(home, "lib");
     var libdest = file.join(dest, "WEB-INF", "lib");
     for each (var jar in jars) {
-        file.copy(file.join(libsrc, jar), file.join(libdest, jar));
+        file.copy(file.join(libsrc, jar), file.join(libdest, file.basename(jar)));
     }
 }
 
