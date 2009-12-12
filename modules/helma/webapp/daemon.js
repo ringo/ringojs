@@ -17,10 +17,12 @@ parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (d
 parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
 parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
 parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)");
+parser.addOption("s", "staticDir", "DIR", "A directory with static resources to serve");
+parser.addOption("S", "staticMountpoint", "PATH", "The URI path where ot mount the static resources");
 
-function init(args) {
+function init() {
     log.info("init");
-    var options = parser.parse(args, {
+    var options = parser.parse(Array.slice(arguments, 1), {
         moduleName: "config",
         functionName: "app",
         port: 80

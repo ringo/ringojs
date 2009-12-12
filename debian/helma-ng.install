@@ -2,4 +2,5 @@ run.jar /usr/share/helma-ng/
 lib/ /usr/share/helma-ng/
 modules/ /usr/share/helma-ng/
 apps/ /usr/share/helma-ng/
+test/ /usr/share/helma-ng/
 debian/usr/bin/helma /usr/bin/

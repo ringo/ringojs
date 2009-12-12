@@ -22,4 +22,9 @@
 # Arguments to pass to the Java virtual machine (JVM).
 #JAVA_OPTS="-Djava.awt.headless=true -Xmx128M"
 
+# Arguments to pass to Helma NG runtime
+#HELMA_OPTS=""
+
+# Arguments to pass to the application script
+#APPLICATION_OPTS=""
 

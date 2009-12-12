@@ -54,6 +54,12 @@ HELMA_USER=helma-ng
 # Run this application
 HELMA_APPLICATION=modules/helma/webapp/daemon.js
 
+# Arguments to pass to Helma NG runtime
+HELMA_OPTS=""
+
+# Arguments to pass to the application script
+APPLICATION_OPTS=""
+
 # Set the Helma module search path
 HELMA_MODULE_PATH=apps/demo
 export HELMA_MODULE_PATH
@@ -133,7 +139,7 @@ case "$1" in
 		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
 		    -user "$HELMA_USER" -outfile SYSLOG -errfile SYSLOG \
 		    -pidfile "$HELMA_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
-		    "$HELMA_APPLICATION"
+		    $HELMA_OPTS "$HELMA_APPLICATION" $APPLICATION_OPTS
 
 		sleep 1
             if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
