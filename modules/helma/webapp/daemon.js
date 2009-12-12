@@ -16,14 +16,15 @@ parser.addOption("a", "app", "APP", "The exported property name of the JSGI app 
 parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
 parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
 parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
-parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 8080)");
+parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)");
 
 function init(args) {
     log.info("init");
-    var options = parser.parse(args);
-    options.moduleName = options.config || "config";
-    options.functionName = options.app || "app";
-    options.port = options.port || 80;
+    var options = parser.parse(args, {
+        moduleName: "config",
+        functionName: "app",
+        port: 80
+    });
     server = new Server(options);
 }
 
