@@ -7,7 +7,7 @@ var Server = require('helma/httpserver').Server;
 var server;
 var log = require('helma/logging').getLogger(module.id);
 
-export('init', 'start', 'stop', 'destroy');
+export('init', 'start', 'stop', 'destroy', 'getServer');
 
 
 // parse command line options
@@ -43,4 +43,8 @@ function stop() {
 function destroy() {
     log.info("destroy");
     server.destroy();
+}
+
+function getServer() {
+    return server;
 }
