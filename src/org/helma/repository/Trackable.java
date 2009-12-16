@@ -32,7 +32,9 @@ public interface Trackable extends Serializable {
     public boolean exists() throws IOException;
 
     /**
-     * Returns the path of the resource.
+     * Returns the path of the resource. The returned string must be in a form so
+     * that appending a child name produces a valid resource or repository name.
+     * Usually this means that it should end with a file separator character.
      * @return path of the resource
      */
     public String getPath();
@@ -45,7 +47,7 @@ public interface Trackable extends Serializable {
 
     /**
      * Returns an url to the resource if the repository of this resource is
-     * able to provide urls
+     * able to provide urls.
      * @return url to the resource
      */
     public URL getUrl() throws UnsupportedOperationException, MalformedURLException;
@@ -70,6 +72,9 @@ public interface Trackable extends Serializable {
 
     /**
      * Get the path of this resource relative to its root repository.
+     * The returned string must be in a form so that appending a child
+     * name produces a valid resource or repository name. Usually this means
+     * that it should end with a file separator character.
      * @return the relative resource path
      */
     public String getRelativePath();

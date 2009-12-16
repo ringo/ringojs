@@ -82,7 +82,7 @@ public final class ZipRepository extends AbstractRepository {
         this.file = file.isAbsolute() ? file : file.getAbsoluteFile();
         this.parent = parent;
         name = file.getName();
-        path = file.getAbsolutePath();
+        path = file.getAbsolutePath() + '/';
         depth = 0;
         entryPath = "";
     }
@@ -103,7 +103,7 @@ public final class ZipRepository extends AbstractRepository {
         depth = pathArray.length;
         name = pathArray[depth - 1];
         entryPath = entryName;
-        path = parent.getPath() + '/' + name;
+        path = parent.getPath() + name  + '/';
     }
 
     /**

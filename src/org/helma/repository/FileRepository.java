@@ -32,7 +32,7 @@ import java.util.Collections;
 public class FileRepository extends AbstractRepository {
 
     // Directory serving sub-repositories and file resources
-    protected File directory;
+    protected final File directory;
 
     protected long lastModified = -1;
     protected long lastChecksum = 0;
@@ -77,6 +77,9 @@ public class FileRepository extends AbstractRepository {
             this.parent = parent;
             name = directory.getName();
             path = directory.getAbsolutePath();
+        }
+        if (!path.endsWith(File.separator)) {
+            path += File.separator;
         }
     }
 
@@ -184,7 +187,7 @@ public class FileRepository extends AbstractRepository {
 
     public URL getUrl() throws MalformedURLException {
         // Trailing slash on directories is required for ClassLoaders
-        return new URL("file:" + directory.getAbsolutePath() + "/");
+        return new URL("file:" + path);
     }
 
     @Override

@@ -689,7 +689,11 @@ public class RhinoEngine implements ScopeProvider {
         if (file.isAbsolute()) {
             return new FileResource(file);
         } else if (localRoot != null && path.startsWith(".")) {
-            return findResource(localRoot.getRelativePath() + path, null);
+            Resource res = findResource(localRoot.getRelativePath() + path, null);
+            if (!res.exists()) {
+                res = findResource(localRoot.getPath() + path, null);
+            }
+            return res;
         } else {
             return config.getResource(path);
         }

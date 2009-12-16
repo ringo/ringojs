@@ -38,7 +38,7 @@ public final class ZipResource extends AbstractResource {
 
         int slash = entryName.lastIndexOf('/');
         this.name = slash < 0 ? entryName : entryName.substring(slash + 1);
-        this.path = repository.getPath() + '/' + name;
+        this.path = repository.getPath() + name;
         setBaseNameFromName(name);
     }
 
