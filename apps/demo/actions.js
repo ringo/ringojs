@@ -5,11 +5,6 @@ var log = require('helma/logging').getLogger(module.id);
 
 export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continuation');
 
-// add test repository to module search path
-var testdir = getRepository('test').getPath();
-if (require.paths.indexOf(testdir) < 0) {
-    require.paths.push(testdir);
-}
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
@@ -37,7 +32,8 @@ function upload(req) {
 
 function testing(req) {
     if (req.params.runtests) {
-        var tests = require("test/all");
+        var test = require("helma/engine").getHelmaHome().getResource("test/all")
+        var tests = require(test.path);
         var formatter = new (require("helpers").HtmlTestFormatter)();
         require("helma/unittest").run(tests, formatter);
         return new Response(formatter);
