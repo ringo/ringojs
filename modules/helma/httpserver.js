@@ -138,7 +138,6 @@ function Server(config) {
     // Hack: keep jetty from creating a new shutdown hook with every new server
     java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
     config = config || {};
-    print(config.toSource());
     var configFile = config.configFile || 'config/jetty.xml';
     var jettyconfig = getResource(configFile);
     if (!jettyconfig.exists()) {
