@@ -46,7 +46,7 @@ public class ModuleScope extends NativeObject {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
-        metaObject = cx.newObject(this);
+        metaObject = new MetaObject();
         int attr = READONLY | PERMANENT;
         ScriptableObject.defineProperty(metaObject, "id", moduleName, attr);
         ScriptableObject.defineProperty(metaObject, "path", source.getPath(), attr);
@@ -115,6 +115,21 @@ public class ModuleScope extends NativeObject {
 
         public String getModuleName() {
             return name;
+        }
+    }
+
+    class MetaObject extends NativeObject {
+        MetaObject() {
+            setParentScope(ModuleScope.this);
+            setPrototype(getObjectPrototype(ModuleScope.this));
+        }
+
+        @Override
+        protected Object equivalentValues(Object value) {
+            if (value instanceof String) {
+                return name.equals(value) ? Boolean.TRUE : Boolean.FALSE;
+            }
+            return NOT_FOUND;
         }
     }
 }
