@@ -353,9 +353,14 @@ public class RhinoEngine implements ScopeProvider {
     public static Object wrapArgument(Object value, Scriptable scope) {
         if (value instanceof ScriptableObject) {
             ScriptableObject scriptable = ((ScriptableObject) value);
-            scriptable.setPrototype(ScriptableObject.getClassPrototype(
-                    scope, scriptable.getClassName()));
-            scriptable.setParentScope(scope);
+            // Avoid overwriting prototype and parent scope as this would break closures
+            if (scriptable.getPrototype() == null) {
+                scriptable.setPrototype(ScriptableObject.getClassPrototype(
+                        scope, scriptable.getClassName()));
+            }
+            if (scriptable.getParentScope() == null) {
+                scriptable.setParentScope(scope);
+            }
             return scriptable;
         } else {
             return Context.javaToJS(value, scope);
