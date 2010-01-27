@@ -63,11 +63,12 @@ function Server(config) {
      *   with properties <code>moduleName</code> and <code>functionName</code> defining
      *   the application.
      *   <div><code>{ moduleName: 'config', functionName: 'app' }</code></div>
+     * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
      */
-    this.addApplication = function(path, vhosts, app) {
+    this.addApplication = function(path, vhosts, app, engine) {
         log.info("Adding JSGI handler: " + path + " -> " + app.toSource());
         var context = createContext(path, vhosts, true, true);
-        var engine = require('helma/engine').getRhinoEngine();
+        engine = engine || require('helma/engine').getRhinoEngine();
         var isFunction = typeof app === "function";
         var servlet = isFunction ?
                       new JsgiServlet(engine, app) :
