@@ -27,7 +27,7 @@ module.shared = true;
 function handleRequest(env) {
     // get config and apply it to req, res
     var config = getConfig();
-    if (log.debugEnabled){
+    if (log.isDebugEnabled()){
         log.debug('got config: ' + config.toSource());
     }
 
@@ -53,7 +53,7 @@ function handleRequest(env) {
 }
 
 function resolveInConfig(req, config) {
-    if (log.debugEnabled) {
+    if (log.isDebugEnabled()) {
         log.debug('resolving path ' + req.pathInfo);
     }
     // set the root context path on which this app is mounted in the config module
@@ -74,17 +74,17 @@ function resolveInConfig(req, config) {
             log.info("Ignoring unsupported URL mapping: " + urlEntry);
             continue;
         }
-        if (log.debugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug("checking url line: " + urlEntry);
         }
         var match = getPattern(urlEntry).exec(path);
-        if (log.debugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug("got match: " + match);
         }
 
         if (match) {
             var module = getModule(urlEntry);
-            if (log.debugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug("module: " + module);
             }
             // move matching path fragment from PATH_INFO to SCRIPT_NAME
