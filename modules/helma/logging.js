@@ -28,23 +28,23 @@ function Logger(name) {
      * Log a debug message.
      */
     this.trace = function() {
-        log.trace.apply(log, arguments);
+        log.trace.apply(log, arguments.map(String));
     };
 
     this.debug = function() {
-        log.debug.apply(log, arguments);
+        log.debug.apply(log, arguments.map(String));
     };
 
     this.info = function() {
-        log.info.apply(log, arguments);
+        log.info.apply(log, arguments.map(String));
     };
 
     this.warn = function() {
-        log.warn.apply(log, arguments);
+        log.warn.apply(log, arguments.map(String));
     };
 
     this.error = function() {
-        log.error.apply(log, arguments);
+        log.error.apply(log, arguments.map(String));
     };
 
     this.isTraceEnabled = function() {
