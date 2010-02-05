@@ -118,7 +118,7 @@ public class MarkdownProcessor {
     * @return a String array with the url as first element and the link title as second.
     */
     protected String[] getLink(String linkId) {
-        String[] link =  links.get(linkId);
+        String[] link = links.get(linkId.toLowerCase());
         if (link == null) {
             link = lookupLink(linkId);
         }
@@ -719,7 +719,6 @@ public class MarkdownProcessor {
         String text = b.toString();
         b.setLength(0);
         String[] link;
-        String linkId;
         int k = j;
         j += 1;
         // this is weird, but we follow the official markup implementation here:
@@ -738,18 +737,9 @@ public class MarkdownProcessor {
                 b.append(chars[j]);
                 j += 1;
             }
-            linkId = b.toString().toLowerCase();
-            if (linkId.length() > 0) {
-                link = getLink(linkId);
-                if (link == null) {
-                    return false;
-                }
-            } else {
-                linkId = text.toLowerCase();
-                link = getLink(linkId);
-                if (link == null) {
-                    return false;
-                }
+            link = getLink(b.length() > 0 ? b.toString() : text);
+            if (link == null) {
+                return false;
             }
         } else if (c == '(' && !extraSpace) {
             link = new String[2];
@@ -788,8 +778,7 @@ public class MarkdownProcessor {
             }
         } else {
             j = k;
-            linkId = text.toLowerCase();
-            link = getLink(linkId);
+            link = getLink(text);
             if (link == null) {
                 return false;
             }
