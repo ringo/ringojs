@@ -72,7 +72,10 @@ public class HelmaGlobal extends Global {
                                  ScriptableObject.DONTENUM);
 
         ScriptableObject require = (ScriptableObject) get("require", this);
-        require.defineProperty("main", engine.getMainModule(),
+        // Set up require.main property as setter - note that accessing this will cause
+        // the main module to be loaded, which may result in problems if engine setup
+        // isn't finished yet. Alas, the Securable Modules spec requires us to do this.
+        require.defineProperty("main", HelmaGlobal.class,
                 DONTENUM | PERMANENT | READONLY);
         require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
                 DONTENUM | PERMANENT | READONLY);
@@ -189,6 +192,18 @@ public class HelmaGlobal extends Global {
             return ((Function)args[0]).call(cx, scope, thisObj, RhinoEngine.EMPTY_ARGS);
         } catch (RhinoException re) {
             return new NativeJavaObject(scope, re, null);
+        }
+    }
+
+
+    public static Object getMain(Scriptable thisObj) {
+        try {
+            Context cx = Context.getCurrentContext();
+            RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+            ModuleScope main = engine.loadModule(engine.getMainModule(), null);
+            return main != null ? main.getMetaObject() : Undefined.instance;
+        } catch (Exception x) {
+            return Undefined.instance;
         }
     }
 
