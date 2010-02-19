@@ -7,9 +7,9 @@
 The `ringo/skin` module provides web application developers with a flexible templating framework.
 At its simplest, creating and rendering a skin looks like this:
 
-    ringo> include('ringo/skin');
-    ringo> var skin = createSkin('Hello \<% name %>!');
-    ringo> skin.render({ name: 'World' });
+    >> include('ringo/skin');
+    >> var skin = createSkin('Hello \<% name %>!');
+    >> skin.render({ name: 'World' });
     Hello World!
 
 The part wrapped in `\<% %>` is called macro tag in RingoJS. Macros are replaced at render time
@@ -74,4 +74,4 @@ on the output of a macro.
 
 [Visit the RingoJS site][ng:helma.skin] to learn more about skin rendering.
 
-<% subskin 'hello' %>Hello <% name %>! 
+<% subskin 'hello' %>Hello <% name %>!
