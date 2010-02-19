@@ -16,8 +16,8 @@
 
 package org.ringo.jsgi;
 
-import org.ringo.tools.HelmaConfiguration;
-import org.ringo.tools.HelmaRunner;
+import org.ringo.tools.RingoConfiguration;
+import org.ringo.tools.RingoRunner;
 import org.ringo.repository.Repository;
 import org.ringo.repository.FileRepository;
 import org.ringo.repository.WebappRepository;
@@ -68,18 +68,18 @@ public class JsgiServlet extends HttpServlet {
         }
 
         if (engine == null) {
-            String helmaHome = getInitParam(config, "ringoHome", "WEB-INF");
+            String ringoHome = getInitParam(config, "ringoHome", "WEB-INF");
             String modulePath = getInitParam(config, "modulePath", "app");
 
-            Repository home = new WebappRepository(config.getServletContext(), helmaHome);
+            Repository home = new WebappRepository(config.getServletContext(), ringoHome);
             try {
                 if (!home.exists()) {
-                    home = new FileRepository(helmaHome);
+                    home = new FileRepository(ringoHome);
                 }
                 String[] paths = StringUtils.split(modulePath, File.pathSeparator);
-                HelmaConfiguration helmaConfig = new HelmaConfiguration(home, paths, "modules");
-                helmaConfig.setHostClasses(new Class[] { JsgiEnv.class });
-                engine = new RhinoEngine(helmaConfig, null);
+                RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
+                ringoConfig.setHostClasses(new Class[] { JsgiEnv.class });
+                engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
             }
@@ -106,10 +106,10 @@ public class JsgiServlet extends HttpServlet {
             if ("org.mortbay.jetty.RetryRequest".equals(t.getClass().getName())) {
                 throw (RuntimeException) t;
             }
-            HelmaRunner.reportError(t, System.err, false);
+            RingoRunner.reportError(t, System.err, false);
             throw(new ServletException(t));
         } catch (Exception x) {
-            HelmaRunner.reportError(x, System.err, false);
+            RingoRunner.reportError(x, System.err, false);
             throw(new ServletException(x));
         }
     }

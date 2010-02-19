@@ -13,12 +13,12 @@ package org.ringo.engine;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.ringo.repository.Trackable;
-import org.ringo.tools.HelmaConfiguration;
+import org.ringo.tools.RingoConfiguration;
 
 import java.util.HashMap;
 import java.util.ArrayList;
 
-public class HelmaContextFactory extends ContextFactory {
+public class RingoContextFactory extends ContextFactory {
 
     RhinoEngine engine;
 
@@ -32,7 +32,7 @@ public class HelmaContextFactory extends ContextFactory {
 
     static int instructionLimit = 0xfffffff;
 
-    public HelmaContextFactory(RhinoEngine engine, HelmaConfiguration config) {
+    public RingoContextFactory(RhinoEngine engine, RingoConfiguration config) {
         this.engine = engine;
         optimizationLevel = config.getOptLevel();
         languageVersion = config.getLanguageVersion();

@@ -36,9 +36,9 @@ import java.io.IOException;
 import java.io.File;
 import java.io.PrintStream;
 
-public class HelmaRunner {
+public class RingoRunner {
 
-    HelmaConfiguration config;
+    RingoConfiguration config;
     RhinoEngine engine;
     Context cx;
     ModuleScope module;
@@ -67,23 +67,23 @@ public class HelmaRunner {
         {"v", "version", "Print version number and exit", ""},
     };
 
-    public HelmaRunner() {
+    public RingoRunner() {
     }
 
     public static void main(String[] args) throws IOException {
-        HelmaRunner runner = new HelmaRunner();
+        RingoRunner runner = new RingoRunner();
         runner.run(args);
     }
 
     public void parseArgs(String[] args) throws IOException {
-        String helmaHome = System.getProperty("ringo.home");
-        if (helmaHome == null) {
-            helmaHome = System.getenv("RINGO_HOME");
+        String ringoHome = System.getProperty("ringo.home");
+        if (ringoHome == null) {
+            ringoHome = System.getenv("RINGO_HOME");
         }
-        if (helmaHome == null) {
-            helmaHome = ".";
+        if (ringoHome == null) {
+            ringoHome = ".";
         }
-        Repository home = new FileRepository(helmaHome);
+        Repository home = new FileRepository(ringoHome);
         String modulePath = System.getProperty("ringo.modulepath");
         if (modulePath == null) {
             modulePath = System.getenv("RINGO_MODULE_PATH");
@@ -101,7 +101,7 @@ public class HelmaRunner {
         try {
             String[] paths = modulePath == null ?
                     new String[0] : StringUtils.split(modulePath, File.pathSeparator);
-            config = new HelmaConfiguration(home, paths, "modules");
+            config = new RingoConfiguration(home, paths, "modules");
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);
@@ -137,7 +137,7 @@ public class HelmaRunner {
                         // System.console() not available
                     }
                 }
-                new HelmaShell(config, engine, history, verbose, silent).run();
+                new RingoShell(config, engine, history, verbose, silent).run();
             }
         } catch (Exception x) {
             reportError(x, err, verbose);

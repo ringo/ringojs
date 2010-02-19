@@ -34,12 +34,12 @@ import java.security.CodeSource;
 import java.security.CodeSigner;
 
 /**
- * HelmaShell is a simple interactive shell that provides the
+ * RingoShell is a simple interactive shell that provides the
  * additional global functions implemented by Helma.
  */
-public class HelmaShell {
+public class RingoShell {
 
-    HelmaConfiguration config;
+    RingoConfiguration config;
     RhinoEngine engine;
     Scriptable scope;
     boolean verbose;
@@ -47,7 +47,7 @@ public class HelmaShell {
     File history;
     CodeSource codeSource = null;
 
-    public HelmaShell(HelmaConfiguration config, RhinoEngine engine,
+    public RingoShell(RingoConfiguration config, RhinoEngine engine,
                       File history, boolean verbose, boolean silent)
             throws IOException {
         this.config = config;
@@ -58,11 +58,11 @@ public class HelmaShell {
         this.silent = silent;
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
-            Repository modules = config.getHelmaHome().getChildRepository("modules");
+            Repository modules = config.getRingoHome().getChildRepository("modules");
             codeSource = new CodeSource(modules.getUrl(), (CodeSigner[])null);
         }
     }
-    
+
     public void run() throws IOException {
         if (silent) {
             // bypass console if running with redirected stdin or stout
@@ -109,7 +109,7 @@ public class HelmaShell {
                 out.flush();
                 lineno++;
             } catch (Exception ex) {
-                HelmaRunner.reportError(ex, System.out, verbose);
+                RingoRunner.reportError(ex, System.out, verbose);
             } finally {
                 Context.exit();
             }
@@ -140,7 +140,7 @@ public class HelmaShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                HelmaRunner.reportError(ex, System.err, verbose);
+                RingoRunner.reportError(ex, System.err, verbose);
             } finally {
                 Context.exit();
             }

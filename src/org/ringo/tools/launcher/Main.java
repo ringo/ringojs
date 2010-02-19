@@ -25,8 +25,8 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 
 /**
- * Main launcher class. This figures out the Helma home directory,
- * sets up the classpath, and launches one of the Helma tools.
+ * Main launcher class. This figures out the Ringo home directory,
+ * sets up the classpath, and launches one of the Ringo tools.
  */
 public class Main {
 
@@ -34,7 +34,7 @@ public class Main {
     private Object runnerInstance;
 
     /**
-     * Helma main method. This retrieves the Helma home directory, creates the
+     * Ringo main method. This retrieves the Ringo home directory, creates the
      * classpath and invokes main() in one of the ringo tool classes.
      *
      * @param args command line arguments
@@ -47,10 +47,10 @@ public class Main {
 
     public Main() {
         try {
-            File home = getHelmaHome();
+            File home = getRingoHome();
             ClassLoader loader = createClassLoader(home);
 
-            runnerClass = loader.loadClass("org.ringo.tools.HelmaRunner");
+            runnerClass = loader.loadClass("org.ringo.tools.RingoRunner");
             runnerInstance = runnerClass.newInstance();
         } catch (Exception x) {
             System.err.println("Uncaught exception: ");
@@ -123,7 +123,7 @@ public class Main {
             throws MalformedURLException {
         String classpath = System.getProperty("ringo.classpath", "lib/**");
         String[] classes = classpath.split(",");
-        HelmaClassLoader loader = new HelmaClassLoader(home, classes);
+        RingoClassLoader loader = new RingoClassLoader(home, classes);
 
         // set the new class loader as context class loader
         Thread.currentThread().setContextClassLoader(loader);
@@ -138,15 +138,15 @@ public class Main {
      * @throws IOException an I/O related exception occurred
      * @throws MalformedURLException the jar URL couldn't be parsed
      */
-    public static File getHelmaHome()
+    public static File getRingoHome()
             throws IOException {
         // check if home directory is set via system property
-        String helmaHome = System.getProperty("ringo.home");
-        if (helmaHome == null) {
-            helmaHome = System.getenv("RINGO_HOME");
+        String ringoHome = System.getProperty("ringo.home");
+        if (ringoHome == null) {
+            ringoHome = System.getenv("RINGO_HOME");
         }
 
-        if (helmaHome == null) {
+        if (ringoHome == null) {
 
             URLClassLoader loader = (URLClassLoader)
                                        ClassLoader.getSystemClassLoader();
@@ -166,7 +166,7 @@ public class Main {
             }
 
             if (!jarUrl.startsWith("jar:") || jarUrl.indexOf("!") < 0) {
-                helmaHome = System.getProperty("user.dir");
+                ringoHome = System.getProperty("user.dir");
                 System.err.println("Warning: ringo.home system property is not set ");
                 System.err.println("         and not started from launcher.jar. Using ");
                 System.err.println("         current working directory as install dir.");
@@ -174,14 +174,14 @@ public class Main {
                 int excl = jarUrl.indexOf("!");
                 jarUrl = jarUrl.substring(4, excl);
                 launcherUrl = new URL(jarUrl);
-                helmaHome = new File(launcherUrl.getPath()).getParent();
-                if (helmaHome == null) {
-                    helmaHome = ".";
+                ringoHome = new File(launcherUrl.getPath()).getParent();
+                if (ringoHome == null) {
+                    ringoHome = ".";
                 }
             }
         }
 
-        File home = new File(helmaHome).getCanonicalFile();
+        File home = new File(ringoHome).getCanonicalFile();
         // set System property
         System.setProperty("ringo.home", home.getPath());
         return home;

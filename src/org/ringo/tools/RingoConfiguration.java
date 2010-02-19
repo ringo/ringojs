@@ -19,7 +19,7 @@ package org.ringo.tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ringo.repository.*;
-import org.ringo.tools.launcher.HelmaClassLoader;
+import org.ringo.tools.launcher.RingoClassLoader;
 import org.mozilla.javascript.ClassShutter;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import java.net.URL;
  * This class describes the configuration for a RingoJS application or shell session.
  * @author hannes
  */
-public class HelmaConfiguration {
+public class RingoConfiguration {
 
     private Repository home;
     private List<Repository> repositories;
@@ -47,24 +47,24 @@ public class HelmaConfiguration {
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
-    private HelmaClassLoader loader;
+    private RingoClassLoader loader;
     private ClassShutter classShutter = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
 
     /**
-     * Create a new Helma configuration and sets up its module search path.
+     * Create a new Ringo configuration and sets up its module search path.
      *
-     * @param helmaHome the ringo installation directory
+     * @param ringoHome the ringo installation directory
      * @param modulePath the module search path as comma separated string
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public HelmaConfiguration(Repository helmaHome, String[] modulePath, String systemModules)
+    public RingoConfiguration(Repository ringoHome, String[] modulePath, String systemModules)
             throws IOException {
         repositories = new ArrayList<Repository>();
-        home = helmaHome;
+        home = ringoHome;
 
         String optLevel = System.getProperty("rhino.optlevel");
         if (optLevel != null) {
@@ -232,12 +232,12 @@ public class HelmaConfiguration {
      * Return the ringo install directory
      * @return the ringo home directory
      */
-    public Repository getHelmaHome() {
+    public Repository getRingoHome() {
         return home;
     }
 
     /**
-     * Get a list of repositoris from the given helmaHome and helmaPath settings
+     * Get a list of repositoris from the given ringoHome and ringoPath settings
      * using the ringo.home and ringo.path system properties as fallback.
      * @return a list of repositories matching the arguments and/or system properties
      */

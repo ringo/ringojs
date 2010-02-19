@@ -29,11 +29,11 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.io.IOException;
 
-public class HelmaGlobal extends Global {
+public class RingoGlobal extends Global {
 
-    protected HelmaGlobal() {}
+    protected RingoGlobal() {}
 
-    public HelmaGlobal(Context cx, RhinoEngine engine, boolean sealed) {
+    public RingoGlobal(Context cx, RhinoEngine engine, boolean sealed) {
         init(cx, engine, sealed);
     }
 
@@ -68,14 +68,14 @@ public class HelmaGlobal extends Global {
             "privileged",
             "trycatch"
         };
-        defineFunctionProperties(names, HelmaGlobal.class,
+        defineFunctionProperties(names, RingoGlobal.class,
                                  ScriptableObject.DONTENUM);
 
         ScriptableObject require = (ScriptableObject) get("require", this);
         // Set up require.main property as setter - note that accessing this will cause
         // the main module to be loaded, which may result in problems if engine setup
         // isn't finished yet. Alas, the Securable Modules spec requires us to do this.
-        require.defineProperty("main", HelmaGlobal.class,
+        require.defineProperty("main", RingoGlobal.class,
                 DONTENUM | PERMANENT | READONLY);
         require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
                 DONTENUM | PERMANENT | READONLY);

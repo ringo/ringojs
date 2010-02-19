@@ -35,9 +35,9 @@ import java.awt.event.KeyEvent;
 */
 
 
-public class HelmaDebugger extends Dim implements TreeSelectionListener {
+public class RingoDebugger extends Dim implements TreeSelectionListener {
 
-    HelmaConfiguration config;
+    RingoConfiguration config;
     DebugGui gui;
     JTree tree;
     JList list;
@@ -47,7 +47,7 @@ public class HelmaDebugger extends Dim implements TreeSelectionListener {
     HashMap scriptNames = new HashMap();
 
 
-    public HelmaDebugger(HelmaConfiguration config) {
+    public RingoDebugger(RingoConfiguration config) {
         this.config = config;
         gui = new DebugGui(this, "RingoJS Debugger");
         gui.pack();
@@ -181,7 +181,7 @@ public class HelmaDebugger extends Dim implements TreeSelectionListener {
             treeModel = new DefaultTreeModel(treeRoot);
             tree.setModel(treeModel);
             tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            tree.addTreeSelectionListener(HelmaDebugger.this);
+            tree.addTreeSelectionListener(RingoDebugger.this);
             // tree.setRootVisible(false);
             // track double clicks
             tree.addMouseListener(new MouseAdapter() {

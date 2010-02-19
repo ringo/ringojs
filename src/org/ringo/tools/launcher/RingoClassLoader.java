@@ -30,17 +30,17 @@ import java.io.File;
  * already been looked up won't make the classes available. Maybe we should
  * go with disposable classloaders and create a new one for each added URL. 
  */
-public class HelmaClassLoader extends URLClassLoader {
+public class RingoClassLoader extends URLClassLoader {
 
-    public HelmaClassLoader() {
+    public RingoClassLoader() {
         this(new URL[0]);
     }
 
-    public HelmaClassLoader(URL[] urls) {
-        this(urls, HelmaClassLoader.class.getClassLoader());
+    public RingoClassLoader(URL[] urls) {
+        this(urls, RingoClassLoader.class.getClassLoader());
     }
 
-    public HelmaClassLoader(File home, String[] classpath)
+    public RingoClassLoader(File home, String[] classpath)
             throws MalformedURLException {
         this(new URL[0]);
         for (String item: classpath) {
@@ -57,7 +57,7 @@ public class HelmaClassLoader extends URLClassLoader {
         }
     }
 
-    public HelmaClassLoader(URL[] urls, ClassLoader parent) {
+    public RingoClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
     }
 

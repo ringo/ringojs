@@ -19,9 +19,9 @@ package org.ringo.engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ringo.repository.*;
-import org.ringo.tools.HelmaConfiguration;
-import org.ringo.tools.HelmaDebugger;
-import org.ringo.tools.launcher.HelmaClassLoader;
+import org.ringo.tools.RingoConfiguration;
+import org.ringo.tools.RingoDebugger;
+import org.ringo.tools.launcher.RingoClassLoader;
 import org.ringo.util.*;
 import org.ringo.wrappers.*;
 import org.mozilla.javascript.*;
@@ -43,7 +43,7 @@ import java.util.*;
  */
 public class RhinoEngine implements ScopeProvider {
 
-    private HelmaConfiguration config;
+    private RingoConfiguration config;
     private List<Repository> repositories;
     private ScriptableObject topLevelScope;
     private List<String> commandLineArgs;
@@ -52,10 +52,10 @@ public class RhinoEngine implements ScopeProvider {
             interpretedScripts = new WeakHashMap<Trackable, ReloadableScript>(),
             sharedScripts = new WeakHashMap<Trackable, ReloadableScript>();
     private AppClassLoader loader = new AppClassLoader();
-    private HelmaWrapFactory wrapFactory = new HelmaWrapFactory();
+    private RingoWrapFactory wrapFactory = new RingoWrapFactory();
     private Set<Class> hostClasses = new HashSet<Class>();
 
-    private HelmaContextFactory contextFactory = null;
+    private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
 
     public static final Object[] EMPTY_ARGS = new Object[0];
@@ -72,16 +72,16 @@ public class RhinoEngine implements ScopeProvider {
      * @param globals an optional map of predefined global properties
      * @throws Exception if the engine can't be created
      */
-    public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals)
+    public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        this.contextFactory = new HelmaContextFactory(this, config);
+        this.contextFactory = new RingoContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
         if (config.getDebug()) {
-            HelmaDebugger debugger = new HelmaDebugger(config);
+            RingoDebugger debugger = new RingoDebugger(config);
             debugger.setScopeProvider(this);
             debugger.attachTo(contextFactory);
             debugger.setBreak();
@@ -92,7 +92,7 @@ public class RhinoEngine implements ScopeProvider {
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             boolean sealed = config.isSealed();
-            topLevelScope = new HelmaGlobal(cx, this, sealed);
+            topLevelScope = new RingoGlobal(cx, this, sealed);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
                 for (Class clazz: classes) {
@@ -544,7 +544,7 @@ public class RhinoEngine implements ScopeProvider {
                                      boolean sealed)
             throws Exception {
         String systemModules = includeSystemModules ? "modules" : null;
-        HelmaConfiguration sandbox = new HelmaConfiguration(getHelmaHome(), modulePath, systemModules);
+        RingoConfiguration sandbox = new RingoConfiguration(getRingoHome(), modulePath, systemModules);
         sandbox.setClassShutter(shutter);
         sandbox.setSealed(sealed);
         return new RhinoEngine(sandbox, globals);
@@ -632,8 +632,8 @@ public class RhinoEngine implements ScopeProvider {
      * Get the our installation directory.
      * @return the RingoJS installation directory
      */
-    public Repository getHelmaHome() {
-        return config.getHelmaHome();
+    public Repository getRingoHome() {
+        return config.getRingoHome();
     }
 
     /**
@@ -810,15 +810,15 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
-    public HelmaContextFactory getContextFactory() {
+    public RingoContextFactory getContextFactory() {
         return contextFactory;
     }
 
-    public HelmaClassLoader getClassLoader() {
+    public RingoClassLoader getClassLoader() {
         return loader;
     }
 
-    public HelmaConfiguration getConfiguration() {
+    public RingoConfiguration getConfiguration() {
         return config;
     }
 
@@ -858,9 +858,9 @@ public class RhinoEngine implements ScopeProvider {
         return wrapFactory;
     }
 
-    class HelmaWrapFactory extends WrapFactory {
+    class RingoWrapFactory extends WrapFactory {
 
-        public HelmaWrapFactory() {
+        public RingoWrapFactory() {
             // disable java primitive wrapping, it's just annoying.
             setJavaPrimitiveWrap(false);
         }
@@ -895,7 +895,7 @@ public class RhinoEngine implements ScopeProvider {
     }
 }
 
-class AppClassLoader extends HelmaClassLoader {
+class AppClassLoader extends RingoClassLoader {
 
     HashSet<URL> urls = new HashSet<URL>();
 
