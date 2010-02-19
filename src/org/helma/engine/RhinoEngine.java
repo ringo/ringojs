@@ -47,7 +47,10 @@ public class RhinoEngine implements ScopeProvider {
     private List<Repository> repositories;
     private ScriptableObject topLevelScope;
     private List<String> commandLineArgs;
-    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
+    private static Map<Trackable, ReloadableScript>
+            compiledScripts = new WeakHashMap<Trackable, ReloadableScript>(),
+            interpretedScripts = new WeakHashMap<Trackable, ReloadableScript>(),
+            sharedScripts = new WeakHashMap<Trackable, ReloadableScript>();
     private AppClassLoader loader = new AppClassLoader();
     private HelmaWrapFactory wrapFactory = new HelmaWrapFactory();
     private Set<Class> hostClasses = new HashSet<Class>();
@@ -72,9 +75,6 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(HelmaConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        this.compiledScripts = new HashMap<Trackable, ReloadableScript>();
-        this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
-        this.sharedScripts = new HashMap<Trackable, ReloadableScript>();
         this.contextFactory = new HelmaContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
@@ -566,7 +566,7 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
-    private Map getScriptCache(Context cx) {
+    private Map<Trackable,ReloadableScript> getScriptCache(Context cx) {
         return cx.getOptimizationLevel() == -1 ?
                 interpretedScripts : compiledScripts;
     }
