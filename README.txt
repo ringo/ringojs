@@ -1,14 +1,16 @@
-Helma NG
-========
+ATTENTION: RingoJS was formerly known as Helma NG. We are currently in the
+process of renaming to RingoJS, so please bear with us while occasional "Helma"
+references keep popping up.
 
-Helma NG is a Javascript runtime and web application framework written in Java.
-"NG" stands for "next generation", meaning that it is more of a rewrite of
-Helma 1 than simply a new version.
 
-Helma NG consists of several components that can be used together or alone:
+RingoJS
+=======
+
+RingoJS is a JavaScript runtime and web application framework written in Java.
+RingoJS consists of several components that can be used together or alone:
 
   1) A compact JavaScript runtime environment based on Mozilla Rhino. It adds
-     to Rhino a reloading module system that is compatible to the ServerJS
+     to Rhino a reloading module system that is compatible to the CommonJS
      Securable Module proposal.
 
   2) An interactive shell with support for autocompletion and history.
@@ -17,21 +19,21 @@ Helma NG consists of several components that can be used together or alone:
      such as extensions to the built-in objects, file I/O, logging, persistence,
      client and server side HTTP support and more.
 
-For more information, check out the Helma NG homepage and wiki:
+For more information, check out the RingoJS homepage and wiki:
 
-    http://dev.helma.org/ng/
+    http://ringojs.org/
 
-Building Helma
-==============
+Building RingoJS
+================
 
-Helma requires Java 1.5 and uses Apache Ant as its build environment. If you have
-these installed, building Helma NG is straightforward:
+RingoJS requires Java 1.5 and uses Apache Ant as its build environment. If you
+have these installed, building RingoJS is straightforward:
 
-  Check out Helma NG from Git:
+  Check out RingoJS from Git:
 
-      git clone git://github.com/hns/helma-ng.git
+      git clone git://github.com/ringo/ringojs.git
 
-  Change to the helma-ng directory and run ant to compile:
+  Change to the ringojs directory and run ant to compile:
 
       ant jar
 
@@ -40,13 +42,13 @@ If this succeeds you should now have a file called run.jar and be ready to go.
 JavaScript Runtime and Shell
 ============================
 
-The Helma JavaScript runtime is based on Mozilla Rhino and supports
-JavaScript 1.7 with partial support for JavaScript 1.8 features.
+The Ringo JavaScript runtime is based on Mozilla Rhino and supports JavaScript
+1.7 with partial support for JavaScript 1.8 features.
 
-To run Helma NG, add the helma-ng/bin directory to your PATH environment
+To run RingoJS, add the ringojs/bin directory to your PATH environment
 variable:
 
-    export PATH=$PATH:/path/to/helma-ng/bin
+    export PATH=$PATH:/path/to/ringojs/bin
 
 To start a shell session, just run the helma command without any arguments:
 
@@ -56,9 +58,9 @@ To run a script simply pass it to helma on the command line:
 
     helma apps/demo/main.js
 
-If you run a script that is contained in Helma's module path you can also
+If you run a script that is contained in RingoJS' module path you can also
 use the simpler abstract module name instead of the file name. For example,
-to run the helma test suite:
+to run the RingoJS test suite:
 
     helma test/all
 
@@ -77,17 +79,17 @@ handy.
 Module Path Setup
 =================
 
-Helma NG loads JavaScript resources using a module loader that is compliant with
+RingoJS loads JavaScript resources using a module loader that is compliant with
 the ServerJS Securable Modules proposal:
 
     https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
 
-Helma NG actually goes one step further and makes sure every module has its own
+RingoJS actually goes one step further and makes sure every module has its own
 top level scope, so modules are fully isolated from each other, providing a
 programming environment that resembles that of Python environment more than
 the one of ordinary client-side JavaScript runtime.
 
-Helma uses the concept of a module path to look up and load modules that is
+RingoJS uses the concept of a module path to look up and load modules that is
 similar to the PATH environment variable used to find executables on most
 operating systems. By default, the module path consists of two entries:
 
@@ -95,9 +97,9 @@ operating systems. By default, the module path consists of two entries:
        script, or the current working directory if called without script
        argument.
     2. The system modules root, which corresponds to the modules directory in
-       the Helma NG home directory.
+       the RingoJS home directory.
 
-Helma NG provides several ways to access and set the module path. The simplest
+RingoJS provides several ways to access and set the module path. The simplest
 is to set the HELMA_MODULE_PATH environment variable, separating multiple entries
 with ':' or whatever character is used to separate PATH entries on your system:
 
@@ -110,7 +112,7 @@ addRepository() method in the helma/system module.
 Module and Resource Loading
 ===========================
 
-Helma NG provides three functions with different semantics to load modules:
+RingoJS provides three functions with different semantics to load modules:
 
 require(moduleName)
 
@@ -138,7 +140,7 @@ export(propertyName[, ...])
 addToClasspath(pathName)
 
     This function adds a jar file or directory to the classpath. By default,
-    all jar files in the Helma NG lib directory are included in the classpath.
+    all jar files in the RingoJS lib directory are included in the classpath.
 
 getResource(pathName)
 
@@ -149,10 +151,10 @@ getResource(pathName)
 Web Framework
 =============
 
-The Helma Web Framework is a web application framework written mostly in JavaScript
-built on top of the Helma Runtime.
+The RingoJS Web Framework is a web application framework written mostly in JavaScript
+built on top of the RingoJS Runtime.
 
-To run the demo application that is part of Helma NG run the following command:
+To run the demo application that is part of RingoJS run the following command:
 
     helma apps/demo/main.js
 
@@ -161,15 +163,14 @@ This starts and serves the demo web app on port 8080:
     http://localhost:8080/
 
 The demo app showcases a number of tools and libraries to build web apps.
-As Helma NG is still pretty young, many features found in Helma 1.6 are still
-missing, most notably a persistence layer. These features are currently being
-implemented.
+As RingoJS is still pretty young, many features are still missing, most notably
+a persistence layer. These features are currently being implemented.
 
 The exciting thing is that it will be possible to implement much of it in
-Javascript, meaning you can help doing so without hacking on helma core.
-The new modular concept will even allow to use Helma NG with several
+Javascript, meaning you can help doing so without hacking on RingoJS core.
+The new modular concept will even allow to use RingoJS with several
 frameworks, even on the same server instance.
 
-Visit http://dev.helma.org/ng/ and join the Helma NG mailing list to keep up
-with Helma NG core and module development!
 
+Visit http://ringojs.org/ and join the RingoJS mailing list to keep up
+with RingoJS core and module development!
