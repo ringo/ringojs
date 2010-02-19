@@ -50,7 +50,6 @@ public class RhinoEngine implements ScopeProvider {
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
     private HelmaWrapFactory wrapFactory = new HelmaWrapFactory();
-    private Map<String, ExtendedJavaClass> javaWrappers = new HashMap<String, ExtendedJavaClass>();
     private Set<Class> hostClasses = new HashSet<Class>();
 
     private HelmaContextFactory contextFactory = null;
@@ -859,27 +858,6 @@ public class RhinoEngine implements ScopeProvider {
         return wrapFactory;
     }
 
-    /**
-     * Get a class wrapper that can be extended by adding properties to its prototype property.
-     * @param type a Java class
-     * @return an extensible wrapper for the class
-     */
-    public ExtendedJavaClass getExtendedClass(Class type) {
-        ExtendedJavaClass wrapper = javaWrappers.get(type.getName());
-        if (wrapper == null || wrapper == ExtendedJavaClass.NONE) {
-            wrapper = new ExtendedJavaClass(topLevelScope, type);
-            javaWrappers.put(type.getName(), wrapper);
-            Iterator<Map.Entry<String,ExtendedJavaClass>> it =
-                    javaWrappers.entrySet().iterator();
-            while (it.hasNext()) {
-                if (it.next().getValue() == ExtendedJavaClass.NONE) {
-                    it.remove();
-                }
-            }
-        }
-        return wrapper;
-    }
-
     class HelmaWrapFactory extends WrapFactory {
 
         public HelmaWrapFactory() {
@@ -888,17 +866,7 @@ public class RhinoEngine implements ScopeProvider {
         }
 
         /**
-         * Wrap the object.
-         * <p/>
-         * The value returned must be one of
-         * <UL>
-         * <LI>java.lang.Boolean</LI>
-         * <LI>java.lang.String</LI>
-         * <LI>java.lang.Number</LI>
-         * <LI>org.mozilla.javascript.Scriptable objects</LI>
-         * <LI>The value returned by Context.getUndefinedValue()</LI>
-         * <LI>null</LI>
-         * </UL>
+         * Override to wrap maps as scriptables.
          *
          * @param cx         the current Context for this thread
          * @param scope      the scope of the executing script
@@ -913,98 +881,6 @@ public class RhinoEngine implements ScopeProvider {
                 return new ScriptableMap(scope, (CaseInsensitiveMap) obj);
             }
             return super.wrap(cx, scope, obj, staticType);
-        }
-
-        /**
-         * Wrap an object newly created by a constructor call.
-         *
-         * @param cx    the current Context for this thread
-         * @param scope the scope of the executing script
-         * @param obj   the object to be wrapped
-         * @return the wrapped value.
-         */
-        @Override
-        public Scriptable wrapNewObject(Context cx, Scriptable scope, Object obj) {
-            return super.wrapNewObject(cx, scope, obj);
-        }
-
-        /**
-         * Wrap Java object as Scriptable instance to allow full access to its
-         * methods and fields from JavaScript.
-         * <p/>
-         * {@link #wrap(org.mozilla.javascript.Context,org.mozilla.javascript.Scriptable,Object,Class)} and
-         * {@link #wrapNewObject(org.mozilla.javascript.Context,org.mozilla.javascript.Scriptable,Object)} call this method
-         * when they can not convert <tt>javaObject</tt> to JavaScript primitive
-         * value or JavaScript array.
-         * <p/>
-         * Subclasses can override the method to provide custom wrappers
-         * for Java objects.
-         *
-         * @param cx         the current Context for this thread
-         * @param scope      the scope of the executing script
-         * @param javaObject the object to be wrapped
-         * @param staticType type hint. If security restrictions prevent to wrap
-         *                   object based on its class, staticType will be used instead.
-         * @return the wrapped value which shall not be null
-         */
-        @Override
-        public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType) {
-            // TODO: for now we always use the actual class as staticType may be an interface
-            // and getExtendedClass() can't deal with that
-            ExtendedJavaClass extClass = getExtendedClass(javaObject.getClass());
-            if (extClass != null) {
-                return new ExtendedJavaObject(scope, javaObject, staticType, extClass);
-            }
-            return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
-        }
-
-        protected ExtendedJavaClass getExtendedClass(Class clazz) {
-            if (clazz.isInterface()) {
-                // can't deal with interfaces - panic
-                throw new IllegalArgumentException("Can't extend interface " + clazz.getName());
-            }
-            // How class name to prototype name lookup works:
-            // If an object is not found by its direct class name, a cache entry is added
-            // for the class name. For negative result, the string "(unmapped)" is used
-            // as cache value.
-            //
-            // Caching is done directly in classProperties, as ResourceProperties have
-            // the nice effect of being purged when the underlying resource is updated,
-            // so cache invalidation happens implicitely.
-            String className = clazz.getName();
-            ExtendedJavaClass extClass = javaWrappers.get(className);
-            // fast path: direct hit, either positive or negative
-            if (extClass != null) {
-                return extClass == ExtendedJavaClass.NONE ? null : extClass;
-            }
-
-            // walk down superclass path. We already checked the actual class,
-            // and we know that java.lang.Object does not implement any interfaces,
-            // and the code is streamlined a bit to take advantage of this.
-            while (clazz != Object.class) {
-                // check interfaces
-                Class[] classes = clazz.getInterfaces();
-                for (Class interfaceClass : classes) {
-                    extClass = javaWrappers.get(interfaceClass.getName());
-                    if (extClass != null) {
-                        // cache the class name for the object so we run faster next time
-                        javaWrappers.put(className, extClass);
-                        return extClass;
-                    }
-                }
-                clazz = clazz.getSuperclass();
-                // if (org.mozilla.javascript.Node.class.isAssignableFrom(clazz))
-                //     System.err.println("LOOKING FOR " + clazz.getName() + ": " + javaWrappers.get(clazz.getName()));
-                extClass = javaWrappers.get(clazz.getName());
-                if (extClass != null) {
-                    // cache the class name for the object so we run faster next time
-                    javaWrappers.put(className, extClass);
-                    return extClass == ExtendedJavaClass.NONE ? null : extClass;
-                }
-            }
-            // not mapped - cache negative result
-            javaWrappers.put(className, ExtendedJavaClass.NONE);
-            return null;
         }
 
     }

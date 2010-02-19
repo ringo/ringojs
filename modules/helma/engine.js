@@ -11,7 +11,6 @@ export( 'properties',
         'asJavaObject',
         'createSandbox',
         'evaluate',
-        'extendJavaClass',
         'getErrors',
         'getHelmaHome',
         'getRepositories',
@@ -71,15 +70,6 @@ function createSandbox(modulePath, globals, options) {
     var systemModules = Boolean(options.includeSystemModules);
     var sealed = Boolean(options.sealed);
     return getRhinoEngine().createSandbox(modulePath, globals, systemModules, shutter, sealed);
-}
-
-/**
- * Get a wrapper around a java class that can be extended in javascript using
- * the ClassName.prototype property
- * @param {JavaClass} javaClass a fully qualified java class name
- */
-function extendJavaClass(javaClass) {
-    return getRhinoEngine().getExtendedClass(javaClass);
 }
 
 /**
