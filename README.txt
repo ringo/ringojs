@@ -79,9 +79,9 @@ Module Path Setup
 =================
 
 RingoJS loads JavaScript resources using a module loader that is compliant with
-the ServerJS Securable Modules proposal:
+the CommonJS Modules 1.0 Specification:
 
-    https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
+    http://commonjs.org/specs/modules/1.0.html
 
 RingoJS actually goes one step further and makes sure every module has its own
 top level scope, so modules are fully isolated from each other, providing a
@@ -117,9 +117,9 @@ RingoJS provides three functions with different semantics to load modules:
 
 require(moduleName)
 
-    The require function provides the functionality defined in the ServerJS
-    Securable Modules proposal. It tries to locate a module in the module path,
-    loads it and returns its exports object.
+    The require function provides the functionality defined in the CommonJS
+    Modules proposal. It tries to locate a module in the module path, loads it
+    and returns its exports object.
 
 import(moduleName)
 
