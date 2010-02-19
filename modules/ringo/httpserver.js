@@ -153,13 +153,6 @@ function Server(config) {
     props.put('port', (config.port || 8080).toString());
     if (config.host) props.put('host', config.host);
     xmlconfig.configure(jetty);
-    // Check for old/obsolete jetty config file
-    var idMap = xmlconfig.getIdMap();
-    if (idMap.get("helmaContext") || idMap.get("staticContext")) {
-        throw new Error('Obsolete config/jetty.xml file detected.\nPlease remove the '
-                       + 'definitions of "helmaContext" and "staticContext" '
-                       + 'in file ' + jettyconfig + ' as these are now created dynamically.');
-    }
     // Allow definition of app/static mappings in server config for convenience
     if (config.staticDir) {
         this.addStaticResources(config.staticMountpoint || '/static', config.virtualHost, config.staticDir);
