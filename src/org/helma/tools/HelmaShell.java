@@ -85,7 +85,7 @@ public class HelmaShell {
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             cx.setOptimizationLevel(-1);
             String source = "";
-            String prompt = "helma> ";
+            String prompt = ">> ";
             while (true) {
                 String newline = reader.readLine(prompt);
                 if (newline == null) {
@@ -99,7 +99,7 @@ public class HelmaShell {
                 if (cx.stringIsCompilableUnit(source)) {
                     break;
                 }
-                prompt = "     > ";
+                prompt = ".. ";
             }
             try {
                 Object result = cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
