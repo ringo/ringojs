@@ -1,7 +1,7 @@
-This is the ever growing Helma NG JavaScript test suite. 
+This is the ever growing RingoJS JavaScript test suite.
 
-  helma modules/test/all.js
+  ringo modules/test/all.js
 
 Or, using the module name to the same effect:
 
-  helma test/all
+  ringo test/all

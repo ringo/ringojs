@@ -1,7 +1,7 @@
 
 require('core/string');
 require('core/array');
-var Buffer = require('helma/buffer').Buffer;
+var Buffer = require('ringo/buffer').Buffer;
 
 exports.fileoverview_filter = function(docs) {
     var buffer = new Buffer();

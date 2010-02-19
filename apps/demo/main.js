@@ -1,6 +1,6 @@
-import('helma/webapp');
+import('ringo/webapp');
 
 // main script to start application
 if (require.main == module.id) {
-    helma.webapp.start();
+    ringo.webapp.start();
 }

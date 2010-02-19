@@ -1,14 +1,14 @@
-include('helma/webapp/response');
-include('helma/webapp/continuation');
+include('ringo/webapp/response');
+include('ringo/webapp/continuation');
 
-var log = require('helma/logging').getLogger(module.id);
+var log = require('ringo/logging').getLogger(module.id);
 
 export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continuation');
 
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return new SkinnedResponse('skins/welcome.txt', {title: 'Welcome to Helma NG'});
+    return new SkinnedResponse('skins/welcome.txt', {title: 'Welcome to RingoJS'});
 }
 
 // additional path elements are passed to the action as arguments,
@@ -32,10 +32,10 @@ function upload(req) {
 
 function testing(req) {
     if (req.params.runtests) {
-        var test = require("helma/engine").getHelmaHome().getResource("test/all")
+        var test = require("ringo/engine").getRingoHome().getResource("test/all")
         var tests = require(test.path);
         var formatter = new (require("helpers").HtmlTestFormatter)();
-        require("helma/unittest").run(tests, formatter);
+        require("ringo/unittest").run(tests, formatter);
         return new Response(formatter);
     }
     return new SkinnedResponse('skins/testing.txt', {
@@ -71,7 +71,7 @@ function logging(req) {
         }
     } else if (req.params.profile) {
         // build and run a small profiler middleware stack
-        var profiler = require('helma/middleware/profiler');
+        var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
             return new SkinnedResponse('skins/logging.txt', {
                 title: "Logging &amp; Profiling"

@@ -14,7 +14,7 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-var asJavaString = require('helma/engine').asJavaString;
+var asJavaString = require('ringo/engine').asJavaString;
 
 module.shared = true;
 
@@ -79,7 +79,7 @@ Object.defineProperty(String.prototype, "toDate", {
 /**
  * function checks if the string passed contains any characters that
  * are forbidden in URLs and tries to create a java.net.URL from it
- * FIXME: probably deprecated -> helma.Url
+ * FIXME: probably deprecated -> ringo.Url
  * @returns Boolean
  */
 Object.defineProperty(String.prototype, "isUrl", {

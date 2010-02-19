@@ -1,4 +1,4 @@
-include('helma/unittest');
+include('ringo/unittest');
 include('io');
 
 exports.testReadFixed = function() {
@@ -10,7 +10,7 @@ exports.testReadFixed = function() {
 };
 
 exports.testReadIndefinite = function() {
-    var resource = getResource('./helma/unittest_test.js');
+    var resource = getResource('./ringo/unittest_test.js');
     var io = new Stream(resource.inputStream);
     var bytes = io.read();
     assertEqual(bytes.length, resource.length);

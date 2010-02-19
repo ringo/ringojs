@@ -4,17 +4,17 @@
 
 ### Note: skin/templating features are undergoing redesign for the 0.5 release.
 
-The `helma/skin` module provides web application developers with a flexible templating framework.
+The `ringo/skin` module provides web application developers with a flexible templating framework.
 At its simplest, creating and rendering a skin looks like this:
 
-    helma> include('helma/skin');
-    helma> var skin = createSkin('Hello \<% name %>!');
-    helma> skin.render({ name: 'World' });
+    ringo> include('ringo/skin');
+    ringo> var skin = createSkin('Hello \<% name %>!');
+    ringo> skin.render({ name: 'World' });
     Hello World!
 
-The part wrapped in `\<% %>` is called macro tag in Helma NG. Macros are replaced at render time
+The part wrapped in `\<% %>` is called macro tag in RingoJS. Macros are replaced at render time
 by looking for corresponding properties or functions in the context argument passed to `Skin.render()`. 
-Helma also provides a number of built-in macros which are described below.
+RingoJS also provides a number of built-in macros which are described below.
 
 ### Subskins
 
@@ -72,6 +72,6 @@ on the output of a macro.
     <% render 'hello' | uppercase %>
 </p>
 
-[Visit the Helma NG site][ng:helma.skin] to learn more about skin rendering.
+[Visit the RingoJS site][ng:helma.skin] to learn more about skin rendering.
 
 <% subskin 'hello' %>Hello <% name %>! 

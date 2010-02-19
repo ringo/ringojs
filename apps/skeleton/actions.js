@@ -1,4 +1,4 @@
-include('helma/webapp/response');
+include('ringo/webapp/response');
 
 
 exports.index = function index(req) {

@@ -7,16 +7,16 @@ exports.urls = [
 ];
 
 exports.middleware = [
-    'helma/middleware/etag',
-    'helma/middleware/responselog',
-    // 'helma/middleware/profiler'
+    'ringo/middleware/etag',
+    'ringo/middleware/responselog',
+    // 'ringo/middleware/profiler'
 ];
 
-exports.app = require('helma/webapp').handleRequest;
+exports.app = require('ringo/webapp').handleRequest;
 
 exports.macros = [
-    'helma/skin/macros',
-    'helma/skin/filters'
+    'ringo/skin/macros',
+    'ringo/skin/filters'
 ];
 
 exports.charset = 'UTF-8';

@@ -95,7 +95,7 @@
         <jar jarfile="run.jar"
             basedir="${classes}"
             includes="**/tools/launcher/**"
-            manifest="${src}/org/helma/tools/launcher/manifest.txt"/>
+            manifest="${src}/org/ringo/tools/launcher/manifest.txt"/>
     </target>
 
     <!-- =================================================================== -->
@@ -103,7 +103,7 @@
     <!-- =================================================================== -->
     <target name="apidocs" depends="init">
         <mkdir dir="${javadocs}"/>
-        <javadoc packagenames="org.helma.*"
+        <javadoc packagenames="org.ringo.*"
             destdir="${javadocs}"
             windowtitle="RingoJS API"
             doctitle="RingoJS API">
@@ -116,9 +116,9 @@
     <!-- Creates the Rhino/Javascript API documentation as JSON file         -->
     <!-- =================================================================== -->
     <target name="rhinodocs" depends="jar">
-        <javadoc packagenames="org.helma.web,org.helma.template"
+        <javadoc packagenames="org.ringo.web,org.ringo.template"
                  sourcepath="${src}"
-                 doclet="org.helma.tools.RhinoDoclet"
+                 doclet="org.ringo.tools.RhinoDoclet"
                  docletpath="${lib}/ringo.jar">
                  <classpath refid="classpath"/>
         </javadoc>

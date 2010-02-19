@@ -1,6 +1,6 @@
 require('binary');
 
-defineClass(org.helma.wrappers.Stream);
+defineClass(org.ringo.wrappers.Stream);
 /**
  * @constructor
  */

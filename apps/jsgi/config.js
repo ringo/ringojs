@@ -1,8 +1,8 @@
 // use some middleware if you like.
-// this is automatically wrapped around your app by helma/jsgi.
+// this is automatically wrapped around your app by ringo/jsgi.
 /* exports.middleware = [
-    'helma/middleware/gzip',
-    'helma/middleware/etag'
+    'ringo/middleware/gzip',
+    'ringo/middleware/etag'
 ]; */
 
 // your actual JSGI app

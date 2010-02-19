@@ -1,7 +1,7 @@
-#!/usr/bin/env helma
+#!/usr/bin/env ringo
 
 // main script to start application
 
 if (require.main == module.id) {
-    require("helma/webapp").start();
+    require("ringo/webapp").start();
 }

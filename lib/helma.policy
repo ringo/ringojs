@@ -1,31 +1,31 @@
-// Example policy file for Helma NG
-// Run Helma with the -p or --policy option to activate this:
-//    helma -p file:/.../helma.policy
+// Example policy file for RingoJS
+// Run RingoJS with the -p or --policy option to activate this:
+//    ringo -p file:/.../ringo.policy
 // replacing "..." with the absolute path of the policy file.
 // 
 // The following URLs provide more information:
 //     http://java.sun.com/j2se/1.4.2/docs/guide/security/PolicyFiles.html
 //     http://java.sun.com/j2se/1.4.2/docs/guide/security/permissions.html
 
-grant codeBase "file:${helma.home}/run.jar" {
+grant codeBase "file:${ringo.home}/run.jar" {
         permission java.security.AllPermission;
 };
 
-grant codeBase "file:${helma.home}/lib/-" {
+grant codeBase "file:${ringo.home}/lib/-" {
         permission java.security.AllPermission;
 };
 
-grant codeBase "file:${helma.home}/modules/-" {
+grant codeBase "file:${ringo.home}/modules/-" {
         permission java.security.AllPermission;
 };
 
-grant codeBase "file:${helma.home}/apps/-" {
+grant codeBase "file:${ringo.home}/apps/-" {
         permission java.security.AllPermission;
 };
 
 // example sandbox setup
-grant codeBase "file:${helma.sandbox}/-" {
-        permission java.io.FilePermission "${helma.sandbox}/-", "read";
+grant codeBase "file:${ringo.sandbox}/-" {
+        permission java.io.FilePermission "${ringo.sandbox}/-", "read";
         permission java.util.PropertyPermission "*", "read";
         permission java.lang.RuntimePermission "getenv.*";
         permission java.lang.RuntimePermission "accessDeclaredMembers";

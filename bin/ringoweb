@@ -1,7 +1,7 @@
 #! /usr/bin/env ringo
 
 // parse command line options
-var parser = new (require('helma/args').Parser);
+var parser = new (require('ringo/args').Parser);
 parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
 parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
 parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
@@ -17,7 +17,7 @@ if (options.help) {
     print("", cmd, "[OPTIONS]", "[PATH]");
     print("Options:");
     print(parser.help());
-    require("helma/shell").quit();
+    require("ringo/shell").quit();
 }
 
 // first entry in module search path is our own directory - 
@@ -31,6 +31,6 @@ var config = require(options.config || "config");
 require("core/object");
 options = Object.merge(options, config.httpConfig || {});
 
-var Server = require('helma/httpserver').Server;
+var Server = require('ringo/httpserver').Server;
 new Server(options).start();
 

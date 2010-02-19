@@ -1,6 +1,6 @@
 require('core/string');
-include('helma/markdown');
-include('helma/buffer');
+include('ringo/markdown');
+include('ringo/buffer');
 
 exports.markdown_filter = function(content) {
     var markdown = new Markdown({
@@ -8,7 +8,7 @@ exports.markdown_filter = function(content) {
         lookupLink: function(id) {
             if (id.startsWith("ng:")) {
                 var path = id.substring(3);
-                var title = path ? "Helma NG Wiki: " + path : "Helma NG Wiki";
+                var title = path ? "RingoJS Wiki: " + path : "RingoJS Wiki";
                 return ["http://dev.helma.org/ng/" + path.replace(/ /g, '+'), title];
             }
             return null;
@@ -26,19 +26,19 @@ exports.markdown_filter = function(content) {
 };
 
 exports.href_macro = function(tag) {
-    var req = require('helma/webapp/env').req;
+    var req = require('ringo/webapp/env').req;
     return req.rootPath + tag.parameters[0];
 }
 
 exports.matchPath_macro = function(tag) {
-    var req = require('helma/webapp/env').req;
+    var req = require('ringo/webapp/env').req;
     if (req && req.path && req.path.match(tag.parameters[0])) {
         return "highlight";
     }
 }
 
 /**
- * A test output formatter for displaying helma/unittest results in a web page
+ * A test output formatter for displaying ringo/unittest results in a web page
  */
 exports.HtmlTestFormatter = function() {
     var buffer = new Buffer();

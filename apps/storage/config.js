@@ -1,7 +1,7 @@
 // shared in order not to recreate Store for each request 
 module.shared = true;
 
-var Store = require('helma/storage/filestore').Store;
+var Store = require('ringo/storage/filestore').Store;
 exports.store = new Store('db');
 
 exports.urls = [
@@ -9,19 +9,19 @@ exports.urls = [
 ];
 
 exports.middleware = [
-    'helma/middleware/transaction',
-    // 'helma/middleware/gzip',
-    'helma/middleware/etag',
-    'helma/middleware/responselog',
-    // 'helma/middleware/profiler'
+    'ringo/middleware/transaction',
+    // 'ringo/middleware/gzip',
+    'ringo/middleware/etag',
+    'ringo/middleware/responselog',
+    // 'ringo/middleware/profiler'
 ];
 
 // the JSGI app
-exports.app = 'helma/webapp';
+exports.app = 'ringo/webapp';
 
 exports.macros = [
-    'helma/skin/macros',
-    'helma/skin/filters'
+    'ringo/skin/macros',
+    'ringo/skin/filters'
 ];
 
 exports.charset = 'UTF-8';

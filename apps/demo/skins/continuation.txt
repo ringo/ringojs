@@ -5,7 +5,7 @@
 
 <% subskin 'welcome' | markdown %>
 
-  This is a little game to show off continuations support in Helma NG.
+  This is a little game to show off continuations support in RingoJS.
   All you'll have to do is answer a few easy questions.
 
   > [Click here to start](<% session.first %>)

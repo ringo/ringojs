@@ -1,5 +1,5 @@
 
-include('helma/unittest');
+include('ringo/unittest');
 var fs = require('file');
 
 var tests = [

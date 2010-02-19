@@ -1,4 +1,4 @@
-ATTENTION: RingoJS was formerly known as Helma NG. We are currently in the
+ATTENTION: RingoJS was formerly known as RingoJS. We are currently in the
 process of renaming to RingoJS, so please bear with us while occasional "Helma"
 references keep popping up.
 
@@ -108,7 +108,7 @@ system:
 
 Alternatively, you can define the module path using the ringo.modulepath Java
 system property, and you can add entries to the module path using the
-addRepository() method in the helma/system module.
+addRepository() method in the ringo/system module.
 
 Module and Resource Loading
 ===========================
