@@ -1,7 +1,7 @@
 <% extends 'base.html' %>
 
 <% subskin 'content' | markdown %>
-**Welcome to the [RingoJS][ng:] demo application.**
+**Welcome to the [RingoJS](http://ringojs.org) demo application.**
 RingoJS is a Javascript runtime and web application framework running on
 the Java virtual machine. RingoJS consists of several components that can
 be used together or alone:
@@ -17,5 +17,5 @@ be used together or alone:
      client and server side HTTP support and more.
 
 This app shows some of the features in RingoJS. As the version number suggests,
-RingoJS is far from finished. Check [the Helma NG site][ng:]
+RingoJS is far from finished. Check [the RingoJS site](http://ringojs.org)
 regularly to keep up with development.
