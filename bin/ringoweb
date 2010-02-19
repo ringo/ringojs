@@ -1,4 +1,4 @@
-#! /usr/bin/env helma
+#! /usr/bin/env ringo
 
 // parse command line options
 var parser = new (require('helma/args').Parser);

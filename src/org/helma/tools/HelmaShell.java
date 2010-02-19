@@ -75,7 +75,7 @@ public class HelmaShell {
         // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
         reader.addCompletor(new JSCompletor());
         if (history == null) {
-            history = new File(System.getProperty("user.home"), ".helma-history");
+            history = new File(System.getProperty("user.home"), ".ringo-history");
         }
         reader.setHistory(new History(history));
         PrintWriter out = new PrintWriter(System.out);

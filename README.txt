@@ -50,30 +50,30 @@ variable:
 
     export PATH=$PATH:/path/to/ringojs/bin
 
-To start a shell session, just run the helma command without any arguments:
+To start a shell session, just run the ringo command without any arguments:
 
-    helma
+    ringo
 
-To run a script simply pass it to helma on the command line:
+To run a script simply pass it to ringo on the command line:
 
-    helma apps/demo/main.js
+    ringo apps/demo/main.js
 
 If you run a script that is contained in RingoJS' module path you can also use
 the simpler abstract module name instead of the file name. For example, to run
 the RingoJS test suite:
 
-    helma test/all
+    ringo test/all
 
 To create a new web application, use the admin/create script. This will copy an
 simple skeleton app to the location you define. You can pass the application
 directory as command line argument, or the script will prompt you for it.
 
-    helma admin/create [appdir]
+    ringo admin/create [appdir]
 
-Run helma with the -h or --help switch to get more information about available
-command line options. For example, the -i or --interactive option allows you to
-run an application and use the shell at the same time, which can be really
-handy.
+Run ringo with the -h or --help switch to get more information about
+available command line options. For example, the -i or --interactive option
+allows you to run an application and use the shell at the same time, which can
+be really handy.
 
 Module Path Setup
 =================
@@ -100,13 +100,13 @@ operating systems. By default, the module path consists of two entries:
        the RingoJS home directory.
 
 RingoJS provides several ways to access and set the module path. The simplest
-is to set the HELMA_MODULE_PATH environment variable, separating multiple
+is to set the RINGO_MODULE_PATH environment variable, separating multiple
 entries with ':' or whatever character is used to separate PATH entries on your
 system:
 
-     export HELMA_MODULE_PATH=../foo/lib:../my/lib
+     export RINGO_MODULE_PATH=../foo/lib:../my/lib
 
-Alternatively, you can define the module path using the helma.modulepath Java
+Alternatively, you can define the module path using the ringo.modulepath Java
 system property, and you can add entries to the module path using the
 addRepository() method in the helma/system module.
 
@@ -157,7 +157,7 @@ JavaScript built on top of the RingoJS Runtime.
 
 To run the demo application that is part of RingoJS run the following command:
 
-    helma apps/demo/main.js
+    ringo apps/demo/main.js
 
 This starts and serves the demo web app on port 8080:
 

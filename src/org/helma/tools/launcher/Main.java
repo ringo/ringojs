@@ -121,7 +121,7 @@ public class Main {
      */
     public static ClassLoader createClassLoader(File home)
             throws MalformedURLException {
-        String classpath = System.getProperty("helma.classpath", "lib/**");
+        String classpath = System.getProperty("ringo.classpath", "lib/**");
         String[] classes = classpath.split(",");
         HelmaClassLoader loader = new HelmaClassLoader(home, classes);
 
@@ -141,9 +141,9 @@ public class Main {
     public static File getHelmaHome()
             throws IOException {
         // check if home directory is set via system property
-        String helmaHome = System.getProperty("helma.home");
+        String helmaHome = System.getProperty("ringo.home");
         if (helmaHome == null) {
-            helmaHome = System.getenv("HELMA_HOME");
+            helmaHome = System.getenv("RINGO_HOME");
         }
 
         if (helmaHome == null) {
@@ -167,7 +167,7 @@ public class Main {
 
             if (!jarUrl.startsWith("jar:") || jarUrl.indexOf("!") < 0) {
                 helmaHome = System.getProperty("user.dir");
-                System.err.println("Warning: helma.home system property is not set ");
+                System.err.println("Warning: ringo.home system property is not set ");
                 System.err.println("         and not started from launcher.jar. Using ");
                 System.err.println("         current working directory as install dir.");
             } else {
@@ -183,7 +183,7 @@ public class Main {
 
         File home = new File(helmaHome).getCanonicalFile();
         // set System property
-        System.setProperty("helma.home", home.getPath());
+        System.setProperty("ringo.home", home.getPath());
         return home;
     }
 

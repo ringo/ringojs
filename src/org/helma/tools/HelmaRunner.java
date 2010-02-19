@@ -58,7 +58,7 @@ public class HelmaRunner {
         {"d", "debug", "Run with debugger GUI", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
-        {"H", "history", "Use custom history file (default: ~/.helma-history)", "FILE"},
+        {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
@@ -76,17 +76,17 @@ public class HelmaRunner {
     }
 
     public void parseArgs(String[] args) throws IOException {
-        String helmaHome = System.getProperty("helma.home");
+        String helmaHome = System.getProperty("ringo.home");
         if (helmaHome == null) {
-            helmaHome = System.getenv("HELMA_HOME");
+            helmaHome = System.getenv("RINGO_HOME");
         }
         if (helmaHome == null) {
             helmaHome = ".";
         }
         Repository home = new FileRepository(helmaHome);
-        String modulePath = System.getProperty("helma.modulepath");
+        String modulePath = System.getProperty("ringo.modulepath");
         if (modulePath == null) {
-            modulePath = System.getenv("HELMA_MODULE_PATH");
+            modulePath = System.getenv("RINGO_MODULE_PATH");
         }
 
         if (args != null && args.length > 0) {
@@ -376,7 +376,7 @@ public class HelmaRunner {
 
     public static void printUsage() {
         out.println("Usage:");
-        out.println("  helma [option] ... [script] [arg] ...");
+        out.println("  ringo [option] ... [script] [arg] ...");
         out.println("Options:");
         Formatter formatter = new Formatter(out);
         for (String[] opt : options) {
@@ -386,7 +386,7 @@ public class HelmaRunner {
     }
 
     public static void printVersion() {
-        out.print("Helma NG version ");
+        out.print("RingoJS version ");
         out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1));
     }
 
