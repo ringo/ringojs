@@ -49,3 +49,10 @@ exports.testSubskinWhitespace = function() {
     skin = createSkin('a\n<% render sub %>\n<% subskin sub %>\nb\n');
     assertEqual('a\n\nb\n', render(skin));
 };
+
+exports.testTruncateFilter = function() {
+    var string = 'foobarbaz';
+    var skin = createSkin('<% value | truncate limit="10" %>');
+    var context = {value: string};
+    assertEqual(string, render(skin, context));
+}
