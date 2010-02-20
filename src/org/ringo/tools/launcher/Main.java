@@ -132,7 +132,7 @@ public class Main {
 
 
     /**
-     * Get the Helma install directory.
+     * Get the Ringo install directory.
      *
      * @return the base install directory we're running in
      * @throws IOException an I/O related exception occurred

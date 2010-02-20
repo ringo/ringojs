@@ -110,7 +110,7 @@ function trim_filter(input) {
 
 /**
  * Removes all tags from a String.
- * Currently simply wraps Helma's stripTags-method.
+ * Currently simply wraps Ringo's stripTags-method.
  *
  * @see String.prototype.stripTags
  */

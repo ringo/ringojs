@@ -35,7 +35,7 @@ import java.security.CodeSigner;
 
 /**
  * RingoShell is a simple interactive shell that provides the
- * additional global functions implemented by Helma.
+ * additional global functions implemented by Ringo.
  */
 public class RingoShell {
 

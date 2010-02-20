@@ -74,7 +74,7 @@ function createSandbox(modulePath, globals, options) {
 
 /**
  * Get the RingoJS installation directory.
- * @returns {Repository} a Repository representing the Helma installation directory
+ * @returns {Repository} a Repository representing the Ringo installation directory
  */
 function getRingoHome() {
     return getRhinoEngine().getRingoHome();

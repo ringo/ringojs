@@ -22,7 +22,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Scanner for Helma templates/skins.
+ * Scanner for Ringo templates/skins.
  */
 public abstract class SkinParser {
 
