@@ -55,4 +55,4 @@ exports.testTruncateFilter = function() {
     var skin = createSkin('<% value | truncate limit="10" %>');
     var context = {value: string};
     assertEqual(string, render(skin, context));
-}
+};
