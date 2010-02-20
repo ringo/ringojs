@@ -54,5 +54,6 @@ exports.testTruncateFilter = function() {
     var string = 'foobarbaz';
     var skin = createSkin('<% value | truncate limit="10" %>');
     var context = {value: string};
+    // This filter shall leave short enough strings alone.
     assertEqual(string, render(skin, context));
 };
