@@ -83,18 +83,18 @@ function titleize_filter(input) {
 
 
 /**
- * Cuts a String at a certain position, and 
+ * Cuts a String at a certain position, and
  * optionally appends a suffix, if truncation
  * has occurred.
  *
- * @see String.prototype.head
- * @param limit Maximum length
- * @param clipping Appended String, default is the empty String
+ * @param limit maximum length
+ * @param suffix appended String, default is "..."
  */
 function truncate_filter(input, tag) {
    var limit = tag.getParameter("limit") || tag.parameters[0];
-   var clipping = tag.getParameter("clipping") || tag.parameters[1];
-   return (input || "").toString().head(limit, clipping);
+   var suffix = tag.getParameter("suffix") || tag.parameters[1] || "...";
+   var result = (input || "").substring(0, limit);
+   return input.length <= limit ? result : result + suffix;
 }
 
 
