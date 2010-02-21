@@ -8,21 +8,21 @@ exports.urls = [
 
 // the middleware stack
 exports.middleware = [
-    'helma/middleware/gzip',
-    'helma/middleware/etag',
-    'helma/middleware/responselog',
-    'helma/middleware/error',
-    'helma/middleware/notfound',
-    // 'helma/middleware/profiler'
+    'ringo/middleware/gzip',
+    'ringo/middleware/etag',
+    'ringo/middleware/responselog',
+    'ringo/middleware/error',
+    'ringo/middleware/notfound',
+    // 'ringo/middleware/profiler'
 ];
 
 // the JSGI app
-exports.app = require('helma/webapp').handleRequest;
+exports.app = require('ringo/webapp').handleRequest;
 
 exports.macros = [
     require('./helpers'),
-    'helma/skin/macros',
-    'helma/skin/filters'
+    'ringo/skin/macros',
+    'ringo/skin/filters'
 ];
 
 exports.charset = 'UTF-8';

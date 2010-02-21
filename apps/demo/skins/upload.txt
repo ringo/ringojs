@@ -2,7 +2,7 @@
 
 <% subskin 'content' | markdown %>
 
-Helma NG implements form and multipart/file upload parsing based on
+RingoJS implements form and multipart/file upload parsing based on
 [CommonJS proposals](http://wiki.commonjs.org/wiki/CommonJS) for I/O and
 binary data support. Use the form below to upload a file and view it in
 the browser (the file is not stored on the server).

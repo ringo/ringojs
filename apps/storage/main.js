@@ -1,4 +1,4 @@
-include('helma/webapp/response');
+include('ringo/webapp/response');
 include('./model');
 
 export('index', 'edit', 'remove');
@@ -63,5 +63,5 @@ function removeBook(req, book) {
 }
 
 if (require.main == module.id) {
-    require('helma/webapp').start();
+    require('ringo/webapp').start();
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-# debian/rules for helma-ng (uses CDBS)
+# debian/rules for ringojs (uses CDBS)
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -26,7 +26,7 @@ install: build
 binary-indep: build install
 	dh_testdir
 	dh_testroot
-	dh_installinit --name=helma-ng
+	dh_installinit --name=ringojs
 	dh_install
 	dh_installdebconf
 	dh_link

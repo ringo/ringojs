@@ -1,5 +1,5 @@
 // a simple web app/module
-include('helma/webapp/response');
+include('ringo/webapp/response');
 
 export('index');
 

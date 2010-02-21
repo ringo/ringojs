@@ -1,10 +1,10 @@
-include('helma/webapp/response');
-include('helma/jsdoc');
+include('ringo/webapp/response');
+include('ringo/jsdoc');
 require('core/array');
 require('core/string');
-var Buffer = require('helma/buffer').Buffer;
+var Buffer = require('ringo/buffer').Buffer;
 
-var log = require('helma/logging').getLogger(module.id);
+var log = require('ringo/logging').getLogger(module.id);
 
 exports.jsdoc = function index(req, module) {
     var repo = new ScriptRepository(require.paths.peek());
@@ -33,7 +33,7 @@ function renderModuleList() {
     var rootPath = require('./config').rootPath;
     var repo = new ScriptRepository(require.paths.peek());
     var modules = repo.getScriptResources(true).filter(function(r) {
-        return r.moduleName != 'helmaglobal' &&  r.moduleName.indexOf('test') != 0;
+        return r.moduleName != 'ringoglobal' &&  r.moduleName.indexOf('test') != 0;
     }).sort(function(a, b) {
         return a.moduleName > b.moduleName ? 1 : -1;
     });

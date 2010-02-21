@@ -1,7 +1,7 @@
-This is a minimal Helma NG application. To run it launch helma 
+This is a minimal RingoJS application. To run it launch ringo
 with the main script:
 
-  helma main.js
+  ringo main.js
 
 Then point your browser to this URL:
 

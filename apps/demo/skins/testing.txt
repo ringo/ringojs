@@ -10,7 +10,7 @@
 
 <% subskin 'content' | markdown %>
 
-Helma NG includes a unit testing framework and tests for many of its core modules.
+RingoJS includes a unit testing framework and tests for many of its core modules.
 The results of these tests are displayed below.
 
 <div id="results">

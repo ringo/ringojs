@@ -12,7 +12,7 @@
  * wrapped Java byte array.</p>
  */
 
-defineClass(org.helma.wrappers.Binary);
+defineClass(org.ringo.wrappers.Binary);
 
 /**
  * Abstract base class for ByteArray and ByteString

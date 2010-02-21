@@ -4,12 +4,12 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
    version="2.5"> 
-  <display-name>Helma NG App</display-name>
+  <display-name>RingoJS App</display-name>
 	<servlet>
-		<servlet-name>helma</servlet-name>
-		<servlet-class>org.helma.jsgi.JsgiServlet</servlet-class>
+		<servlet-name>ringo</servlet-name>
+		<servlet-class>org.ringo.jsgi.JsgiServlet</servlet-class>
 		<init-param>
-			<param-name>helmaHome</param-name>
+			<param-name>ringoHome</param-name>
 			<param-value>WEB-INF</param-value>
 		</init-param>
 		<init-param>
@@ -27,7 +27,7 @@
 	</servlet>
 
 	<servlet-mapping>
-		<servlet-name>helma</servlet-name>
+		<servlet-name>ringo</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 

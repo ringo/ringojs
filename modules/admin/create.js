@@ -1,13 +1,13 @@
 require('core/string');
 var file = require('file');
-var engine = require('helma/engine');
-var shell = require('helma/shell');
-var Parser = require('helma/args').Parser;
+var engine = require('ringo/engine');
+var shell = require('ringo/shell');
+var Parser = require('ringo/args').Parser;
 
 export('createApplication');
 
 /**
- * Create a new Helma NG web application at the given path.
+ * Create a new RingoJS web application at the given path.
  * @param path the path where to create the application
  */
 function createApplication(path, options) {
@@ -23,7 +23,7 @@ function createApplication(path, options) {
         throw "Directory " + dest + " exists but is not empty.";
     }
 
-    var home = engine.properties["helma.home"];
+    var home = engine.properties["ringo.home"];
 
     if (options.appengine) {
         copyTree(home, "apps/appengine", dest);
@@ -57,7 +57,7 @@ function fixAppEngineDirs(dest) {
 
 function copyJars(home, dest) {
     var jars = [
-        "helma.jar",
+        "ringo.jar",
         "js.jar",
         "log4j-1.2.15.jar",
         "slf4j/slf4j-api-1.5.10.jar",
@@ -71,7 +71,7 @@ function copyJars(home, dest) {
 }
 
 /**
- * Create a new Helma NG web application from the command line.
+ * Create a new RingoJS web application from the command line.
  * @param args
  */
 function main(args) {
@@ -81,9 +81,9 @@ function main(args) {
     parser.addOption("h", "help", null, "Print help message and exit");
     var opts = parser.parse(args);
     if (opts.help) {
-        print("Creates a new Helma NG application");
+        print("Creates a new RingoJS application");
         print("Usage:");
-        print("  helma " + script + " [path]");
+        print("  ringo " + script + " [path]");
         print("Options:");
         print(parser.help());
         return;

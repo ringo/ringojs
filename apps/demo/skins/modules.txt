@@ -2,9 +2,9 @@
 
 <% subskin 'content' | markdown %>
 
-Helma NG implements the [Securable Modules proposal][1] defined by the
+RingoJS implements the [Securable Modules proposal][1] defined by the
 [ServerJS working group][2] that describes an interoperable JavaScript module system.
-Helma NG even goes beyond that by providing each module its own top-level scope,
+RingoJS even goes beyond that by providing each module its own top-level scope,
 allowing for [full namespace isolation][ng:modules and scopes] similar to the way Python does.
 
   [1]: https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
@@ -21,4 +21,4 @@ mapps the module named "webmodule" to <a href="<% path %>"><% path %></a>:
         [ '/mount/point', 'webmodule' ]
     ]
 
-You can learn more about modules on the [Helma NG wiki][ng:modules and scopes]. 
+You can learn more about modules on the [RingoJS wiki][ng:modules and scopes].

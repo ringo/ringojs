@@ -5,7 +5,7 @@
 
 <% subskin 'welcome' | markdown %>
 
-  This is a little game to show off continuations support in Helma NG.
+  This is a little game to show off continuations support in RingoJS.
   All you'll have to do is answer a few easy questions.
 
   > [Click here to start](<% session.first %>)
@@ -15,7 +15,7 @@
   Local variables are stored in the HTTP user session, so no extra effort is required to
   manage state between pages.
 
-  [1]: http://github.com/hns/helma-ng/blob/master/apps/demo/actions.js#L51
+  [1]: http://github.com/ringo/ringojs/blob/master/apps/demo/actions.js#L85
 
 <% subskin 'ask_name' | markdown %>
 

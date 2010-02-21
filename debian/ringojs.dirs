@@ -1,0 +1,3 @@
+var/lib/ringo/apps
+var/lib/ringo/db
+usr/bin

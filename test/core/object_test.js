@@ -1,4 +1,4 @@
-include('helma/unittest');
+include('ringo/unittest');
 require('core/object');
 
 exports.testMerge = function() {

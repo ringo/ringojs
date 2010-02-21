@@ -1,5 +1,0 @@
-#!/bin/bash
-# Launches Helma NG
-
-# prepend rhino to bootclasspath to work around openjdk bug
-/usr/bin/java -Xbootclasspath/p:/usr/share/helma-ng/lib/js.jar -jar /usr/share/helma-ng/run.jar "$@"

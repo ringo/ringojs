@@ -1,4 +1,4 @@
-include("helma/unittest");
+include("ringo/unittest");
 require("core/array");
 
 // test data

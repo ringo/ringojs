@@ -1,0 +1,5 @@
+#!/bin/bash
+# Launches RingoJS
+
+# prepend rhino to bootclasspath to work around openjdk bug
+/usr/bin/java -Xbootclasspath/p:/usr/share/ringo/lib/js.jar -jar /usr/share/ringo/run.jar "$@"

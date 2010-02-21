@@ -1,5 +1,5 @@
 
-include('helma/unittest');
+include('ringo/unittest');
 var fs = require("file");
 
 /* a decorator that passes a path object corresponding

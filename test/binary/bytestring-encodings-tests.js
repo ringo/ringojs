@@ -1,5 +1,5 @@
 
-include('helma/unittest');
+include('ringo/unittest');
 include("binary");
 
 exports.testByteStringConstructorEncodings = function() {

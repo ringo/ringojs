@@ -1,0 +1,6 @@
+run.jar /usr/share/ringo/
+lib/ /usr/share/ringo/
+modules/ /usr/share/ringo/
+apps/ /usr/share/ringo/
+test/ /usr/share/ringo/
+debian/usr/bin/ringo /usr/bin/

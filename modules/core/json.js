@@ -1,5 +1,5 @@
 /**
- * @fileoverview Helma provides native JSON support, so applications don't
+ * @fileoverview RingoJS provides native JSON support, so applications don't
  * need to require this package in order to make use of JSON. It is here for
  * backwards compatibility only.
  */
