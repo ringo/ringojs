@@ -1,2 +1,10 @@
 *.jar
 build/*
+
+# debian packaging tmpfiles
+debian/*.debhelper*
+debian/*.substvars
+debian/files
+debian/stamp-ant-build
+debian/ringojs/
+debian/ringojs-daemon/
