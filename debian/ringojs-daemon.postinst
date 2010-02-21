@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for helma-ng
+# postinst script for ringojs
 #
 # see: dh_installdeb(1)
 
@@ -20,13 +20,13 @@ set -e
 
 case "$1" in
     configure)
-        if ! id helma-ng > /dev/null 2>&1 ; then
-            adduser --system --home /usr/share/helma-ng --no-create-home \
-            --group --disabled-password --shell /bin/false helma-ng
+        if ! id ringo > /dev/null 2>&1 ; then
+            adduser --system --home /usr/share/ringo --no-create-home \
+            --group --disabled-password --shell /bin/false ringo
         fi
-	chown -R helma-ng:adm /var/lib/helma-ng
-	chown -R helma-ng:adm /var/log/helma-ng
-	chmod 750 /var/log/helma-ng
+	chown -R ringo:adm /var/lib/ringo
+	chown -R ringo:adm /var/log/ringo
+	chmod 750 /var/log/ringo
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

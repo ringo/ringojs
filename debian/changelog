@@ -1,3 +1,9 @@
+ringojs (0.3-3) unstable; urgency=low
+
+  * Initial release as RingoJS
+
+ -- Andreas Bolka <a@bolka.at>  Sat, 20 Feb 2010 21:10:04 +0200
+
 helma-ng (0.3-2) unstable; urgency=low
 
   * Move daemon script into second optional helma-ng-daemon package

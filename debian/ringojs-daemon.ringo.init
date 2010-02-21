@@ -1,42 +1,42 @@
 #!/bin/sh
 #
-# /etc/init.d/helma-ng -- startup script for the Helma NG JavaScript runtime
+# /etc/init.d/ringo -- startup script for the Ringo JavaScript runtime
 #
 # Written by Miquel van Smoorenburg <miquels@cistron.nl>.
 # Modified for Debian GNU/Linux	by Ian Murdock <imurdock@gnu.ai.mit.edu>.
 # Modified for Tomcat by Stefan Gybas <sgybas@debian.org>.
 # Modified for Tomcat6 by Thierry Carrez <thierry.carrez@ubuntu.com>.
-# Modified for Helma by Hannes Wallnoefer <hannes@helma.at>.
+# Modified for RingoJS by Hannes Wallnoefer <hannes@helma.at>.
 #
 ### BEGIN INIT INFO
-# Provides:          helma-ng
+# Provides:          ringo
 # Required-Start:    $local_fs $remote_fs $network
 # Required-Stop:     $local_fs $remote_fs $network
 # Should-Start:      $named
 # Should-Stop:       $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      1
-# Short-Description: Start Helma NG
-# Description:       Start Helma NG
+# Short-Description: Start RingoJS
+# Description:       Start RingoJS
 ### END INIT INFO
 
 set -e
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-NAME=helma-ng
-DESC="Helma JavaScript runtime"
+NAME=ringo
+DESC="Ringo JavaScript runtime"
 DAEMON=/usr/bin/jsvc
-HELMA_HOME=/usr/share/$NAME
+RINGO_HOME=/usr/share/$NAME
 DEFAULT=/etc/default/$NAME
 # fix for Rhino on bootclasspath in OpenJDK
-RHINO_CLASSPATH=-Xbootclasspath/p:/usr/share/helma-ng/lib/js.jar
+RHINO_CLASSPATH=-Xbootclasspath/p:/usr/share/ringo/lib/js.jar
 
 if [ `id -u` -ne 0 ]; then
 	echo "You need root privileges to run this script"
 	exit 1
 fi
 
-# Make sure helma-ng is started with system locale
+# Make sure ringo is started with system locale
 if [ -r /etc/default/locale ]; then
 	. /etc/default/locale
 	export LANG
@@ -48,21 +48,21 @@ fi
 
 # The following variables can be overwritten in $DEFAULT
 
-# Run Helma as this user ID
-HELMA_USER=helma-ng
+# Run Ringo as this user ID
+RINGO_USER=ringo
 
 # Run this application
-HELMA_APPLICATION=modules/helma/webapp/daemon.js
+RINGO_APPLICATION=modules/ringo/webapp/daemon.js
 
-# Arguments to pass to Helma NG runtime
-HELMA_OPTS=""
+# Arguments to pass to RingoJS runtime
+RINGO_OPTS=""
 
 # Arguments to pass to the application script
 APPLICATION_OPTS=""
 
-# Set the Helma module search path
-HELMA_MODULE_PATH=apps/demo
-export HELMA_MODULE_PATH
+# Set the RingoJS module search path
+RINGO_MODULE_PATH=apps/demo
+export RINGO_MODULE_PATH
 
 # The first existing directory is used for JAVA_HOME (if JAVA_HOME is not
 # defined in $DEFAULT)
@@ -77,7 +77,7 @@ done
 export JAVA_HOME
 
 # Directory for per-instance configuration files and webapps
-HELMA_BASE=/usr/share/$NAME
+RINGO_BASE=/usr/share/$NAME
 
 # Default Java options
 # Set java.awt.headless=true if JAVA_OPTS is not set so the
@@ -95,7 +95,7 @@ if [ -f "$DEFAULT" ]; then
 	. "$DEFAULT"
 fi
 
-if [ ! -f "$HELMA_HOME/run.jar" ]; then
+if [ ! -f "$RINGO_HOME/run.jar" ]; then
 	log_failure_msg "$NAME is not installed"
 	exit 1
 fi
@@ -105,17 +105,17 @@ if [ ! -f "$DAEMON" ]; then
 	exit 1
 fi
 
-JAVA_OPTS="$JAVA_OPTS "-Dhelma.home="$HELMA_HOME"
+JAVA_OPTS="$JAVA_OPTS "-Dringo.home="$RINGO_HOME"
 
 # Set logging.properties if provided
-if [ -r "$HELMA_BASE"/config/log4j.properties ]; then
-  JAVA_OPTS="$JAVA_OPTS "-Dlog4j.configuration="$HELMA_BASE/config/log4j.properties"
+if [ -r "$RINGO_BASE"/config/log4j.properties ]; then
+  JAVA_OPTS="$JAVA_OPTS "-Dlog4j.configuration="$RINGO_BASE/config/log4j.properties"
 fi
 
 # Define other required variables
-HELMA_PID="/var/run/$NAME.pid"
-BOOTSTRAP_CLASS=org.helma.tools.launcher.Main
-JSVC_CLASSPATH="/usr/share/java/commons-daemon.jar:$HELMA_HOME/run.jar"
+RINGO_PID="/var/run/$NAME.pid"
+BOOTSTRAP_CLASS=org.ringo.tools.launcher.Main
+JSVC_CLASSPATH="/usr/share/java/commons-daemon.jar:$RINGO_HOME/run.jar"
 
 case "$1" in
   start)
@@ -124,26 +124,26 @@ case "$1" in
 		exit 1
 	fi
 
-	if [ ! -d "$HELMA_BASE" ]; then
-		log_failure_msg "invalid HELMA_BASE: $HELMA_BASE"
+	if [ ! -d "$RINGO_BASE" ]; then
+		log_failure_msg "invalid RINGO_BASE: $RINGO_BASE"
 		exit 1
 	fi
 
 	log_daemon_msg "Starting $DESC" "$NAME"
-	if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
-		--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
+	if start-stop-daemon --test --start --pidfile "$RINGO_PID" \
+		--user $RINGO_USER --startas "$JAVA_HOME/bin/java" \
 		>/dev/null; then
 
-		cd "$HELMA_BASE"
+		cd "$RINGO_BASE"
 
 		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
-		    -user "$HELMA_USER" -outfile SYSLOG -errfile SYSLOG \
-		    -pidfile "$HELMA_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
-		    $HELMA_OPTS "$HELMA_APPLICATION" $APPLICATION_OPTS
+		    -user "$RINGO_USER" -outfile SYSLOG -errfile SYSLOG \
+		    -pidfile "$RINGO_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
+		    $RINGO_OPTS "$RINGO_APPLICATION" $APPLICATION_OPTS
 
 		sleep 1
-            if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
-			--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
+            if start-stop-daemon --test --start --pidfile "$RINGO_PID" \
+			--user $RINGO_USER --startas "$JAVA_HOME/bin/java" \
 			>/dev/null; then
 			log_end_msg 1
 		else
@@ -156,22 +156,22 @@ case "$1" in
 	;;
   stop)
 	log_daemon_msg "Stopping $DESC" "$NAME"
-        if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
-		--user "$HELMA_USER" --startas "$JAVA_HOME/bin/java" \
+        if start-stop-daemon --test --start --pidfile "$RINGO_PID" \
+		--user "$RINGO_USER" --startas "$JAVA_HOME/bin/java" \
 		>/dev/null; then
 		log_progress_msg "(not running)"
 	else
 		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
-		     -pidfile "$HELMA_PID" -stop "$BOOTSTRAP_CLASS"
+		     -pidfile "$RINGO_PID" -stop "$BOOTSTRAP_CLASS"
 	fi
 	log_end_msg 0
 	;;
    status)
-        if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
-		--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
+        if start-stop-daemon --test --start --pidfile "$RINGO_PID" \
+		--user $RINGO_USER --startas "$JAVA_HOME/bin/java" \
 		>/dev/null; then
 
-		if [ -f "$HELMA_PID" ]; then
+		if [ -f "$RINGO_PID" ]; then
 		    log_success_msg "$DESC is not running, but pid file exists."
 			exit 1
 		else
@@ -179,12 +179,12 @@ case "$1" in
 			exit 3
 		fi
 	else
-		log_success_msg "$DESC is running with pid `cat $HELMA_PID`"
+		log_success_msg "$DESC is running with pid `cat $RINGO_PID`"
 	fi
         ;;
   restart|force-reload)
-        if start-stop-daemon --test --stop --pidfile "$HELMA_PID" \
-		--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
+        if start-stop-daemon --test --stop --pidfile "$RINGO_PID" \
+		--user $RINGO_USER --startas "$JAVA_HOME/bin/java" \
 		>/dev/null; then
 		$0 stop
 		sleep 1
@@ -192,8 +192,8 @@ case "$1" in
 	$0 start
 	;;
   try-restart)
-        if start-stop-daemon --test --start --pidfile "$HELMA_PID" \
-		--user $HELMA_USER --startas "$JAVA_HOME/bin/java" \
+        if start-stop-daemon --test --start --pidfile "$RINGO_PID" \
+		--user $RINGO_USER --startas "$JAVA_HOME/bin/java" \
 		>/dev/null; then
 		$0 start
 	fi
