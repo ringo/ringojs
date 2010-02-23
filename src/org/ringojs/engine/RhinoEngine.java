@@ -47,10 +47,7 @@ public class RhinoEngine implements ScopeProvider {
     private List<Repository> repositories;
     private ScriptableObject topLevelScope;
     private List<String> commandLineArgs;
-    private static Map<Trackable, ReloadableScript>
-            compiledScripts = new WeakHashMap<Trackable, ReloadableScript>(),
-            interpretedScripts = new WeakHashMap<Trackable, ReloadableScript>(),
-            sharedScripts = new WeakHashMap<Trackable, ReloadableScript>();
+    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
     private RingoWrapFactory wrapFactory = new RingoWrapFactory();
     private Set<Class> hostClasses = new HashSet<Class>();
@@ -75,6 +72,9 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
+        this.compiledScripts = new HashMap<Trackable, ReloadableScript>();
+        this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
+        this.sharedScripts = new HashMap<Trackable, ReloadableScript>();
         this.contextFactory = new RingoContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
