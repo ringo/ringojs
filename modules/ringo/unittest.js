@@ -170,10 +170,6 @@ var executeTestScope = function(scope, summary, writer, path) {
                 start = new Date();
                 value();
                 time = (new Date()).getTime() - start.getTime();
-                // execute tearDown, if defined
-                if (typeof(scope.tearDown) === "function") {
-                    scope.tearDown();
-                }
                 writer.writeTestPassed(time);
                 summary.passed += 1;
             } catch (e) {
@@ -187,6 +183,10 @@ var executeTestScope = function(scope, summary, writer, path) {
                     summary.errors += 1;
                 }
             } finally {
+                // execute tearDown, if defined
+                if (typeof(scope.tearDown) === "function") {
+                    scope.tearDown();
+                }
                 summary.testsRun += 1;
                 summary.time += time;
             }
