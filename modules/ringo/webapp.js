@@ -9,6 +9,7 @@ require('core/string');
 include('ringo/webapp/request');
 include('ringo/webapp/response');
 
+var fileutil = require('ringo/fileutil');
 var engine = require('ringo/engine');
 var Server = require('ringo/httpserver').Server;
 
@@ -26,15 +27,17 @@ module.shared = true;
  */
 function handleRequest(env) {
     // get config and apply it to req, res
-    var config = getConfig();
+    var configId = env['ringo.config'] || 'config';
+    var config = getConfig(configId);
     if (log.isDebugEnabled()){
         log.debug('got config: ' + config.toSource());
     }
 
+    // set req in webapp env module
     var webenv = require('ringo/webapp/env');
-    webenv.env = env;
-    var req = webenv.req = new Request(env);
+    var req = new Request(env);
     var res = null;
+    webenv.setRequest(req);
 
     req.charset = config.charset || 'utf8';
 
@@ -45,14 +48,13 @@ function handleRequest(env) {
     req.rootPath = req.scriptName;
 
     try {
-        res = resolveInConfig(req, config);
+        return resolveInConfig(req, config, configId);
     } catch (e if e.redirect) {
         return new RedirectResponse(e.redirect);
     }
-    return res;
 }
 
-function resolveInConfig(req, config) {
+function resolveInConfig(req, config, configId) {
     if (log.isDebugEnabled()) {
         log.debug('resolving path ' + req.pathInfo);
     }
@@ -60,7 +62,7 @@ function resolveInConfig(req, config) {
     config.rootPath = req.scriptName + "/";
     // set config property in webapp env module
     var webenv = require('ringo/webapp/env');
-    webenv.addConfig(config);
+    webenv.pushConfig(config, configId);
 
     if (!Array.isArray(config.urls)) {
         log.info("No URL mapping defined (urls is " + config.urls + "), throwing 404.");
@@ -83,7 +85,8 @@ function resolveInConfig(req, config) {
         }
 
         if (match) {
-            var module = getModule(urlEntry);
+            var moduleId = resolveId(configId, urlEntry);
+            var module = getModule(moduleId);
             if (log.isDebugEnabled()) {
                 log.debug("module: " + module);
             }
@@ -101,7 +104,7 @@ function resolveInConfig(req, config) {
                 }
                 return res;
             } else if (Array.isArray(module.urls)) {
-                return resolveInConfig(req, module);
+                return resolveInConfig(req, module, moduleId);
             } else {
                 log.error("Unable to resolve action for : " + action);
             }
@@ -122,17 +125,22 @@ function getPattern(spec) {
     return pattern;
 }
 
-function getModule(spec) {
-    var module = spec[1];
-    if (typeof module == "string") {
-        if (log.isDebugEnabled()) {
-            log.debug("requiring module", module);
-        }
-        module = require(module);
-    } else if (!(module instanceof Object)) {
+function resolveId(parent, spec) {
+    var moduleId = spec[1];
+    if (typeof moduleId == "string") {
+        return fileutil.resolveRelative(parent, moduleId);
+    } else {
+        return moduleId;
+    }
+}
+
+function getModule(moduleId) {
+    if (typeof moduleId == "string") {
+        return require(moduleId);
+    } else if (!(moduleId instanceof Object)) {
         throw Error("Module must be a string or object");
     }
-    return module;
+    return moduleId;
 }
 
 function getAction(req, module, urlconf, args) {

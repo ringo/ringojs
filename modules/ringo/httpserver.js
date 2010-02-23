@@ -76,8 +76,8 @@ function Server(config) {
         var jpkg = org.mortbay.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(servlet);
         if (!isFunction) {
-            servletHolder.setInitParameter('moduleName', config.moduleName || 'config');
-            servletHolder.setInitParameter('functionName', config.functionName || 'app');
+            servletHolder.setInitParameter('moduleName', app.moduleName || 'config');
+            servletHolder.setInitParameter('functionName', app.functionName || 'app');
         }
         context.addServlet(servletHolder, "/*");
         if (jetty.isRunning()) {

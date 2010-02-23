@@ -26,12 +26,12 @@ exports.markdown_filter = function(content) {
 };
 
 exports.href_macro = function(tag) {
-    var req = require('ringo/webapp/env').req;
+    var req = require('ringo/webapp/env').getRequest();
     return req.rootPath + tag.parameters[0];
 }
 
 exports.matchPath_macro = function(tag) {
-    var req = require('ringo/webapp/env').req;
+    var req = require('ringo/webapp/env').getRequest();
     if (req && req.path && req.path.match(tag.parameters[0])) {
         return "highlight";
     }
