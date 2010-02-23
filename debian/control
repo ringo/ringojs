@@ -12,6 +12,9 @@ Architecture: all
 Depends: default-jre-headless | system-java (>= 1.5) |
   java5-runtime-headless | java6-runtime-headless,
   jsvc, adduser, lsb-base (>= 3)
+Provides: helma-ng
+Replaces: helma-ng (<< 0.3-3)
+Conflicts: helma-ng (<< 0.3-3)
 Description: JavaScript runtime and shell written in Java.
  .
  RingoJS is a cross-platform, general purpose JavaScript platform. It is
@@ -26,6 +29,9 @@ Description: JavaScript runtime and shell written in Java.
 Package: ringojs-daemon
 Architecture: all
 Depends: ringojs (>= ${source:Version})
+Provides: helma-ng-daemon
+Replaces: helma-ng-daemon (<< 0.3-3)
+Conflicts: helma-ng-daemon (<< 0.3-3)
 Description: Daemon script for RingoJS JavaScript runtime.
  .
  RingoJS is a cross-platform, general purpose JavaScript platform. It is
