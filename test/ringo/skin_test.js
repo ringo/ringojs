@@ -37,8 +37,8 @@ exports.testSubskin = function() {
     assertEqual('ab', render(skin));
 
     skin = createSkin('a<% s %><% subskin sub %>b');
-    context = {s_macro: function(macro, context, skin) skin
-        .renderSubskin('sub')};
+    context = {s_macro: function(macro, context, skin)
+            skin.renderSubskin('sub')};
     assertEqual('ab', render(skin, context));
 };
 
@@ -98,8 +98,8 @@ exports.testEscapeUrlFilter = function() {
     var string = 'http://ringojs.org/Web Framework/';
     var skin = createSkin('<% value | escapeUrl %>');
     var context = {value: string, escapeUrl_filter: filters.escapeUrl_filter};
-    assertEqual(java.net.URLEncoder.encode(string, 'utf8'), render(skin,
-        context));
+    assertEqual(java.net.URLEncoder.encode(string, 'utf8'),
+            render(skin, context));
 };
 
 exports.testEscapeHtmlFilter = function() {
