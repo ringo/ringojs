@@ -66,7 +66,7 @@ jsDump.indent = function(lvl) {
     return " ".repeat(4 * lvl);
 };
 jsDump.quote = function(str) {
-    return '"' + str.toString().replace(/"/g, '\\"') + '"';
+    return '"' + str.toString().replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
 };
 
 /**
