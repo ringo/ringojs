@@ -3,7 +3,7 @@ require('core/array');
 include('ringo/file');
 include('ringo/parser');
 importPackage(org.mozilla.javascript);
-importPackage(org.ringo.repository);
+importPackage(org.ringojs.repository);
 
 var log = require('ringo/logging').getLogger(module.id);
 

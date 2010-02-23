@@ -7,7 +7,7 @@
   <display-name>RingoJS App</display-name>
 	<servlet>
 		<servlet-name>ringo</servlet-name>
-		<servlet-class>org.ringo.jsgi.JsgiServlet</servlet-class>
+		<servlet-class>org.ringojs.jsgi.JsgiServlet</servlet-class>
 		<init-param>
 			<param-name>ringoHome</param-name>
 			<param-value>WEB-INF</param-value>

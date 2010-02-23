@@ -6,7 +6,7 @@ include('ringo/functional');
 export('defineClass', 'beginTransaction', 'getTransaction', 'commitTransaction', 'abortTransaction');
 
 importPackage(com.google.appengine.api.datastore);
-addHostObject(org.ringo.wrappers.Storable);
+addHostObject(org.ringojs.wrappers.Storable);
 
 var __shared__ = true;
 var datastore = DatastoreServiceFactory.getDatastoreService();

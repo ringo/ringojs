@@ -10,7 +10,7 @@ export("Store", "Transaction");
 
 module.shared = true;
 var log = require('ringo/logging').getLogger(module.id);
-addHostObject(org.ringo.wrappers.Storable);
+addHostObject(org.ringojs.wrappers.Storable);
 
 /**
  * File Store class

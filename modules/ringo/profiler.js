@@ -149,7 +149,7 @@ function Profiler() {
         return new org.mozilla.javascript.debug.DebugFrame(this);
     }
 
-    var profiler = new org.ringo.util.DebuggerBase(this);
+    var profiler = new org.ringojs.util.DebuggerBase(this);
     profiler.debuggerScript = module.id + ".js";
     return profiler;
 }

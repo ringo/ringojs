@@ -145,7 +145,7 @@ function Server(config) {
         throw Error('Resource "' + configFile + '" not found');
     }
     var XmlConfiguration = org.mortbay.xml.XmlConfiguration;
-    var JsgiServlet = org.ringo.jsgi.JsgiServlet;
+    var JsgiServlet = org.ringojs.jsgi.JsgiServlet;
     jetty = new org.mortbay.jetty.Server();
     xmlconfig = new XmlConfiguration(jettyconfig.inputStream);
     // port config is done via properties

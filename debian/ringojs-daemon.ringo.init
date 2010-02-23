@@ -114,7 +114,7 @@ fi
 
 # Define other required variables
 RINGO_PID="/var/run/$NAME.pid"
-BOOTSTRAP_CLASS=org.ringo.tools.launcher.Main
+BOOTSTRAP_CLASS=org.ringojs.tools.launcher.Main
 JSVC_CLASSPATH="/usr/share/java/commons-daemon.jar:$RINGO_HOME/run.jar"
 
 case "$1" in

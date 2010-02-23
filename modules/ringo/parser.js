@@ -4,7 +4,7 @@
 
 /**
  * Parse a script resource and return its AST tree.
- * @param {Resource} resource an instance of org.ringo.repository.Resource
+ * @param {Resource} resource an instance of org.ringojs.repository.Resource
  * @return {AstNode} the root node of the AST tree, an instance of org.mozilla.javascript.ast.AstRoot
  */
 exports.parseScriptResource = function(resource) {
@@ -15,7 +15,7 @@ exports.parseScriptResource = function(resource) {
  * Parse a script resource and apply the visitor function to its AST tree.
  * The function takes one argument which is a org.mozilla.javascript.ast.AstNode.
  * The function must return true to visit child nodes of the current node.
- * @param {Resource} resource an instance of org.ringo.repository.Resource
+ * @param {Resource} resource an instance of org.ringojs.repository.Resource
  * @param {Function} visitorFunction the visitor function
  */
 exports.visitScriptResource = function(resource, visitorFunction) {
