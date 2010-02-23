@@ -62,6 +62,6 @@ function removeBook(req, book) {
     return new RedirectResponse("../");
 }
 
-if (require.main == module.id) {
+if (require.main == module) {
     require('ringo/webapp').start();
 }
