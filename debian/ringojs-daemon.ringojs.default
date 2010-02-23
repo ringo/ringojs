@@ -1,6 +1,6 @@
 # Run Ringo as this user ID. Not setting this or leaving it blank will use the
 # default of ringo.
-#RINGO_USER=ringo
+#RINGO_USER=ringojs
 
 # Set the main script to execute. This should implement functions called
 # init(), start(), stop(), and destroy() to support the daemon life cycle.
@@ -17,7 +17,7 @@
 
 # Working directory, usually containing the per-instance application and
 # configuration files.
-#RINGO_BASE=/usr/share/ringo
+#RINGO_BASE=/usr/share/ringojs
 
 # Arguments to pass to the Java virtual machine (JVM).
 #JAVA_OPTS="-Djava.awt.headless=true -Xmx128M"

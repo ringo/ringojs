@@ -1,2 +1,2 @@
-var/log/ringo
-etc/ringo
+var/log/ringojs
+etc/ringojs
