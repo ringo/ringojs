@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.*;
 import java.security.CodeSource;
 import java.security.CodeSigner;
@@ -45,7 +46,7 @@ public class ReloadableScript {
     // true if module scope is shared
     Shared shared;
     // the compiled script
-    Script script;
+    SoftReference<Script> scriptref;
     // any exception that may have been thrown during compilation.
     // we keep this around in order to be able to rethrow without trying
     // to recompile if the underlying resource or repository hasn't changed
@@ -84,7 +85,8 @@ public class ReloadableScript {
      */
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
-        if (!isUpToDate()) {
+        Script script = scriptref == null ? null : scriptref.get();
+        if (script == null || !isUpToDate()) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
@@ -96,6 +98,7 @@ public class ReloadableScript {
             } else {
                 script = getSimpleScript(cx);
             }
+            scriptref = new SoftReference<Script>(script);
         }
         if (!errors.isEmpty()) {
             RhinoEngine.errors.get().addAll(errors);
@@ -119,6 +122,7 @@ public class ReloadableScript {
         Resource resource = (Resource) source;
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
+        Script script = null;
         try {
             CodeSource source = engine.isPolicyEnabled() ?
                     new CodeSource(resource.getUrl(), (CodeSigner[]) null) : null;
@@ -163,7 +167,7 @@ public class ReloadableScript {
             cx.setErrorReporter(errorReporter);
             checksum = repository.getChecksum();
         }
-        script =  new Script() {
+        return new Script() {
             public Object exec(Context cx, Scriptable scope) {
                 for (Script script: scripts) {
                     script.exec(cx, scope);
@@ -171,7 +175,6 @@ public class ReloadableScript {
                 return null;
             }
         };
-        return script;
     }
 
 
