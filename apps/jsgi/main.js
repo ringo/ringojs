@@ -1,4 +1,4 @@
-// start the web server. (we'll soon write a dedicated script to do this.)
+// start the web application
 if (module == require.main) {
     require('ringo/webapp').start();
 }
