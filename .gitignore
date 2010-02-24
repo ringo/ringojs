@@ -1,5 +1,6 @@
-*.jar
 build/*
+lib/ringo.jar
+run.jar
 
 # debian packaging tmpfiles
 debian/*.debhelper*
