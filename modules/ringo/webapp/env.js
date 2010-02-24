@@ -7,15 +7,54 @@
  * loaded module will depend on whether the loading module is shared or not.
  */
 
+var fileutil = require('ringo/fileutil');
+
+var request;
+var configs = [];
+var configIds = [];
+
+exports.setRequest = function(req) {
+    request = req;
+};
+
+exports.getRequest = function() {
+    return request;
+};
+
 /**
  * Adds a config module to the config module array and sets it as the
  * current module.
  */
-exports.addConfig = function(config) {
-    if (!exports.configs) {
-        exports.configs = [config];
-    } else {
-        exports.configs.push(config);
-    }
+exports.pushConfig = function(config, configId) {
+    configs.push(config);
+    configIds.push(configId);
     exports.config = config;
+};
+
+exports.getConfigs = function() {
+    return configs;
+};
+
+exports.getConfig = function() {
+    return config;
+};
+
+exports.loadMacros = function(context) {
+    for (var i = 0; i < configs.length; i++) {
+        var config = configs[i];
+        if (config && Array.isArray(config.macros)) {
+            for each (var moduleId in config.macros) {
+                context = Object.merge(context, loadModule(moduleId, configIds[i]));
+            }
+        }
+    }
+    return context;
+};
+
+function loadModule(moduleId, parent) {
+    if (typeof moduleId == "string") {
+        return require(fileutil.resolveRelative(parent, moduleId));
+    } else {
+        return moduleId;
+    }
 }

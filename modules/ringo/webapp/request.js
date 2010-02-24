@@ -1,6 +1,6 @@
 require('core/string');
 include('ringo/functional');
-include('ringo/util');
+include('ringo/utils');
 include('./parameters');
 include('./fileupload');
 importClass(org.mozilla.javascript.Context);

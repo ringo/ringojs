@@ -9,21 +9,22 @@ module.shared = true;
 
 /**
  * Handle a JSGI request.
- * @param module the module. Ignored if func is already a function.
- * @param func the function, either as function object or function name to be
- *             imported from module.
+ * @param moduleId the module id. Ignored if functionObj is already a function.
+ * @param functionObj the function, either as function object or function name to be
+ *             imported from the module moduleId.
  * @param env the JSGI env object
  * @returns the JSGI response object
  */
-function handleRequest(module, func, env) {
+function handleRequest(moduleId, functionObj, env) {
     initRequest(env);
     var app;
-    if (typeof(func) == 'function') {
-        app = func;
+    if (typeof(functionObj) == 'function') {
+        app = functionObj;
     } else {
-        module = require(module);
-        app = module[func];
+        var module = require(moduleId);
+        app = module[functionObj];
         var middleware = module.middleware || [];
+        env["ringo.config"] = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     if (!(typeof(app) == 'function')) {

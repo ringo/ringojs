@@ -105,15 +105,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
     this.render = function render(context) {
         // extend context by globally provided macros and filters.
         // user-provided context overrides globally defined stuff
-        var configs = require('ringo/webapp/env').configs;
-        for each (var config in configs) {
-            if (config && config.macros instanceof Array) {
-                for each (var module in config.macros) {
-                    module = typeof module == "string" ? require(module) : module;
-                    context = Object.merge(context, module);
-                }
-            }
-        }
+        var webenv = require('ringo/webapp/env');
+        context = webenv.loadMacros(context);
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
         } else {
