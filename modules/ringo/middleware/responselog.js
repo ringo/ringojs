@@ -64,7 +64,7 @@ function appendMessage(buffer, item) {
             && (message.trim().indexOf('\n') > 0 || message.indexOf('\r')> 0);
     var bgcolor = colors[level.toString()] || '#fff';
     buffer.write("<div class='ringo-debug-line' style='background:", bgcolor,
-                 "; color: black; border-top: 1px solid black;'>");
+                 "; color: black; border-top: 1px solid black; clear: both;'>");
     if (multiline) {
         buffer.write("<pre>", message, "</pre>");
     } else {

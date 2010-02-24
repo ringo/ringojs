@@ -1,6 +1,6 @@
 require('binary');
 
-defineClass(org.ringo.wrappers.Stream);
+defineClass(org.ringojs.wrappers.Stream);
 /**
  * @constructor
  */

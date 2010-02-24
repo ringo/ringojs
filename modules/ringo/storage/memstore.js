@@ -9,7 +9,7 @@ export("Store");
 
 module.shared = true;
 var log = require('ringo/logging').getLogger(__name__);
-addHostObject(org.ringo.wrappers.Storable);
+addHostObject(org.ringojs.wrappers.Storable);
 
 /**
  * Memory Store class

@@ -1,6 +1,4 @@
-import('ringo/webapp');
-
 // main script to start application
-if (require.main == module.id) {
-    ringo.webapp.start();
+if (require.main == module) {
+    require('ringo/webapp').start();
 }

@@ -64,7 +64,7 @@ function initRequest(env) {
 
 /**
  * Apply the return value of a JSGI application to a servlet response.
- * This is used internally by the org.ringo.jsgi.JsgiServlet class, so
+ * This is used internally by the org.ringojs.jsgi.JsgiServlet class, so
  * you won't need this unless you're implementing your own servlet
  * based JSGI connector.
  *

@@ -1,3 +1,3 @@
-var/lib/ringo/apps
-var/lib/ringo/db
+var/lib/ringojs/apps
+var/lib/ringojs/db
 usr/bin

@@ -174,7 +174,7 @@ function StaticResponse(resource) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
     }
-    if (!(resource instanceof org.ringo.repository.Resource)) {
+    if (!(resource instanceof org.ringojs.repository.Resource)) {
         throw Error("Wrong argument for StaticResponse: " + typeof(resource));
     }
     if (!resource.exists()) {

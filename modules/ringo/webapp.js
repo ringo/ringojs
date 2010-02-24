@@ -102,6 +102,8 @@ function resolveInConfig(req, config) {
                 return res;
             } else if (Array.isArray(module.urls)) {
                 return resolveInConfig(req, module);
+            } else {
+                log.error("Unable to resolve action for : " + action);
             }
         }
     }
@@ -123,6 +125,9 @@ function getPattern(spec) {
 function getModule(spec) {
     var module = spec[1];
     if (typeof module == "string") {
+        if (log.isDebugEnabled()) {
+            log.debug("requiring module", module);
+        }
         module = require(module);
     } else if (!(module instanceof Object)) {
         throw Error("Module must be a string or object");

@@ -9,18 +9,18 @@ module.shared = true;
 var log = require('ringo/logging').getLogger(module.id);
 var skincache = false; // {}
 
-engine.addHostObject(org.ringo.template.MacroTag);
+engine.addHostObject(org.ringojs.template.MacroTag);
 
 /**
  * Parse a skin from a resource and render it using the given context.
- * @param skinOrResource a skin object, ringo resource, or file name
+ * @param skinOrResource a skin object, ringojs resource, or file name
  * @param context the skin render context
  */
 function render(skinOrResource, context) {
     var skin;
     if (typeof(skinOrResource.render) == "function") {
         skin = skinOrResource;
-    } else if (skinOrResource instanceof org.ringo.repository.Resource) {
+    } else if (skinOrResource instanceof org.ringojs.repository.Resource) {
         skin = createSkin(skinOrResource);
     } else if (typeof(skinOrResource) == "string") {
         var subskin;
@@ -53,7 +53,7 @@ function createSkin(resourceOrString) {
     var currentSkin = mainSkin;
     var parentSkin = null;
     var eng = engine.getRhinoEngine();
-    var parser = new org.ringo.template.SkinParser({
+    var parser = new org.ringojs.template.SkinParser({
         renderText: function(text) {
             currentSkin[currentSkin.length] = text;
         },

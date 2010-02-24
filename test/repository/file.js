@@ -2,7 +2,7 @@
 include("ringo/unittest");
 include("file");
 
-importPackage(org.ringo.repository);
+importPackage(org.ringojs.repository);
 var path = join(dirname(module.path), "data");
 var repo  = new FileRepository(path);
 

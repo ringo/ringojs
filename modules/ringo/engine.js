@@ -35,7 +35,7 @@ var properties = new ScriptableMap(java.lang.System.getProperties());
 /**
  * The RingoJS version as [major, minor] array.
  */
-var version =new ScriptableList(org.ringo.engine.RhinoEngine.VERSION);
+var version =new ScriptableList(org.ringojs.engine.RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
@@ -178,8 +178,8 @@ function getRhinoContext() {
 }
 
 /**
- * Get the org.ringo.engine.RhinoEngine associated with this application.
- * @returns {org.ringo.engine.RhinoEngine} the current RhinoEngine instance
+ * Get the org.ringojs.engine.RhinoEngine associated with this application.
+ * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
     return getRhinoContext().getThreadLocal("engine");
@@ -190,7 +190,7 @@ function getRhinoEngine() {
  * @returns {ScriptableList} a list containing the errors encountered in the current context
  */
 function getErrors() {
-    return new ScriptableList(org.ringo.engine.RhinoEngine.errors.get());
+    return new ScriptableList(org.ringojs.engine.RhinoEngine.errors.get());
 }
 
 /**
@@ -207,7 +207,7 @@ function getRepositories() {
  */
 function addRepository(repo) {
     if (typeof repo == "string") {
-        repo = new org.ringo.repository.FileRepository(repo);
+        repo = new org.ringojs.repository.FileRepository(repo);
     }
     var path = getRepositories();
     if (repo.exists() && !path.contains(repo)) {

@@ -20,13 +20,13 @@ set -e
 
 case "$1" in
     configure)
-        if ! id ringo > /dev/null 2>&1 ; then
-            adduser --system --home /usr/share/ringo --no-create-home \
-            --group --disabled-password --shell /bin/false ringo
+        if ! id ringojs > /dev/null 2>&1 ; then
+            adduser --system --home /usr/share/ringojs --no-create-home \
+            --group --disabled-password --shell /bin/false ringojs
         fi
-	chown -R ringo:adm /var/lib/ringo
-	chown -R ringo:adm /var/log/ringo
-	chmod 750 /var/log/ringo
+	chown -R ringojs:adm /var/lib/ringojs
+	chown -R ringojs:adm /var/log/ringojs
+	chmod 750 /var/log/ringojs
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
