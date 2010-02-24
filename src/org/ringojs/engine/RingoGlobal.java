@@ -200,7 +200,7 @@ public class RingoGlobal extends Global {
         try {
             Context cx = Context.getCurrentContext();
             RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
-            ModuleScope main = engine.loadModule(engine.getMainModule(), null);
+            ModuleScope main = engine.getMainModuleScope();
             return main != null ? main.getMetaObject() : Undefined.instance;
         } catch (Exception x) {
             return Undefined.instance;

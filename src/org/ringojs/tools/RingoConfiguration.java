@@ -246,14 +246,11 @@ public class RingoConfiguration {
     }
 
     /**
-     * Get the main resource of the configuration. This is the JavaScript file
-     * we call the main function on to run the application.
-     * @param defaultValue the default value to return in case the
-     * main module name is not defined
-     * @return the main module
+     * Get the module name of the main resource of the configuration.
+     * @return the name of the main module
      */
-    public String getMainModule(String defaultValue) {
-        return (mainResource == null)? defaultValue : mainResource.getModuleName();
+    public String getMainModule() {
+        return (mainResource == null)? null : mainResource.getModuleName();
     }
 
     /**

@@ -510,7 +510,15 @@ public class RhinoEngine implements ScopeProvider {
      * @return the main module name, or null
      */
     public String getMainModule() {
-        return config.getMainModule(null);
+        return config.getMainModule();
+    }
+
+    /**
+     * Get the main scrip's module scope, if any
+     * @return the main module scope, or null
+     */
+    public ModuleScope getMainModuleScope() {
+        return mainScope;
     }
 
     /**
