@@ -59,7 +59,8 @@ function resolveInConfig(req, config, configId) {
         log.debug('resolving path ' + req.pathInfo);
     }
     // set the root context path on which this app is mounted in the config module
-    config.rootPath = req.scriptName + "/";
+    req.rootPath = req.scriptName;
+    config.rootPath = req.rootPath + "/";
     // set config property in webapp env module
     var webenv = require('ringo/webapp/env');
     webenv.pushConfig(config, configId);
