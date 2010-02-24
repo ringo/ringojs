@@ -25,18 +25,6 @@ exports.markdown_filter = function(content) {
     return markdown.process(content);
 };
 
-exports.href_macro = function(tag) {
-    var req = require('ringo/webapp/env').getRequest();
-    return req.rootPath + tag.parameters[0];
-}
-
-exports.matchPath_macro = function(tag) {
-    var req = require('ringo/webapp/env').getRequest();
-    if (req && req.path && req.path.match(tag.parameters[0])) {
-        return "highlight";
-    }
-}
-
 /**
  * A test output formatter for displaying ringo/unittest results in a web page
  */

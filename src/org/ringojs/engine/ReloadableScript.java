@@ -224,6 +224,7 @@ public class ReloadableScript {
         }
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
+                && isUpToDate()
                 && module != null
                 && module.getChecksum() == getChecksum()) {
             // Reuse cached scope for shared modules.
