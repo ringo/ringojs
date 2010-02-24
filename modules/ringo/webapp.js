@@ -179,7 +179,7 @@ function getAction(req, module, urlconf, args) {
             Array.prototype.splice.apply(args, spliceArgs);
         }
         if (path.length == 0 || args.length + path.length <= action.length) {
-            if (args.slice(1).join('').length == 0) {
+            if (path.length == 0 && args.slice(1).join('').length == 0) {
                 req.checkTrailingSlash();
             }
             Array.prototype.push.apply(args, path);
