@@ -135,9 +135,10 @@ function Server(config) {
         return jetty != null && jetty.isRunning();
     };
 
-    // init code
     // Hack: keep jetty from creating a new shutdown hook with every new server
     java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
+
+    // init code
     config = config || {};
     var configFile = config.configFile || 'config/jetty.xml';
     var jettyconfig = getResource(configFile);
@@ -154,8 +155,10 @@ function Server(config) {
     if (config.host) props.put('host', config.host);
     xmlconfig.configure(jetty);
     // Allow definition of app/static mappings in server config for convenience
+    var fileutils = require('ringo/fileutils');
     if (config.staticDir) {
-        this.addStaticResources(config.staticMountpoint || '/static', config.virtualHost, config.staticDir);
+        this.addStaticResources(config.staticMountpoint || '/static',
+                config.virtualHost, fileutils.resolveRelative(config.moduleName, config.staticDir));
     }
     if (config.functionName && config.moduleName) {
         this.addApplication(config.mountpoint || '/', config.virtualHost, config);
