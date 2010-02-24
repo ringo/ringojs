@@ -7,7 +7,8 @@
  * loaded module will depend on whether the loading module is shared or not.
  */
 
-var fileutil = require('ringo/fileutil');
+require('core/string');
+var fileutils = require('ringo/fileutils');
 
 var request;
 var configs = [];
@@ -44,7 +45,8 @@ exports.loadMacros = function(context) {
         var config = configs[i];
         if (config && Array.isArray(config.macros)) {
             for each (var moduleId in config.macros) {
-                context = Object.merge(context, loadModule(moduleId, configIds[i]));
+                context = Object.merge(context,
+                        loadModule(moduleId, configIds[i]));
             }
         }
     }
@@ -53,7 +55,7 @@ exports.loadMacros = function(context) {
 
 function loadModule(moduleId, parent) {
     if (typeof moduleId == "string") {
-        return require(fileutil.resolveRelative(parent, moduleId));
+        return require(fileutils.resolveRelative(parent, moduleId));
     } else {
         return moduleId;
     }
