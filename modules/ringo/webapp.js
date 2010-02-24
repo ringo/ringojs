@@ -9,7 +9,7 @@ require('core/string');
 include('ringo/webapp/request');
 include('ringo/webapp/response');
 
-var fileutil = require('ringo/fileutil');
+var fileutils = require('ringo/fileutils');
 var engine = require('ringo/engine');
 var Server = require('ringo/httpserver').Server;
 
@@ -128,7 +128,7 @@ function getPattern(spec) {
 function resolveId(parent, spec) {
     var moduleId = spec[1];
     if (typeof moduleId == "string") {
-        return fileutil.resolveRelative(parent, moduleId);
+        return fileutils.resolveRelative(parent, moduleId);
     } else {
         return moduleId;
     }
