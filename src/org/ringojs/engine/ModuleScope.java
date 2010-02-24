@@ -28,11 +28,11 @@ import java.net.URL;
  */
 public class ModuleScope extends NativeObject {
 
-    Trackable source;
-    Repository repository;
-    String name;
-    long checksum;
-    Scriptable exportsObject, metaObject;
+    private Trackable source;
+    private Repository repository;
+    private String name;
+    private long checksum;
+    private Scriptable exportsObject, metaObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
     public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {

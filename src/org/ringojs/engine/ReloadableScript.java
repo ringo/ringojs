@@ -222,7 +222,6 @@ public class ReloadableScript {
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
-        Script script = getScript(cx);
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
                 && module != null
@@ -233,22 +232,22 @@ public class ReloadableScript {
         }
 
         if (shared == Shared.UNKNOWN) {
-            module = syncedExecScript(cx, script, module, prototype, modules);
+            module = execSync(cx, getScript(cx), module, prototype, modules);
         } else {
-            module = execScript(cx, script, module, prototype, modules);
+            module = exec(cx, getScript(cx), module, prototype, modules);
         }
         return module;
     }
 
-    private synchronized ModuleScope syncedExecScript(Context cx, Script script,
-                                                      ModuleScope module, Scriptable prototype,
-                                                      Map<Trackable,ModuleScope> modules)
+    private synchronized ModuleScope execSync(Context cx, Script script,
+                                              ModuleScope module, Scriptable prototype,
+                                              Map<Trackable, ModuleScope> modules)
             throws IOException {
-        return execScript(cx, script, module, prototype, modules);
+        return exec(cx, script, module, prototype, modules);
     }
 
-    private ModuleScope execScript(Context cx, Script script, ModuleScope module,
-                                   Scriptable prototype, Map<Trackable,ModuleScope> modules)
+    private ModuleScope exec(Context cx, Script script, ModuleScope module,
+                             Scriptable prototype, Map<Trackable, ModuleScope> modules)
             throws IOException {
         if (module == null) {
             module = new ModuleScope(moduleName, source, prototype, cx);
@@ -295,6 +294,7 @@ public class ReloadableScript {
         Scriptable meta = module.getMetaObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
+        // TODO drop support for __shared__
         boolean isShared = meta.get("shared", meta) == Boolean.TRUE
                 || module.get("__shared__", module) == Boolean.TRUE
                 || moduleName.equals(engine.getMainModule());

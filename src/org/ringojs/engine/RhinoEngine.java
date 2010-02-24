@@ -45,7 +45,7 @@ public class RhinoEngine implements ScopeProvider {
 
     private RingoConfiguration config;
     private List<Repository> repositories;
-    private ScriptableObject topLevelScope;
+    private ScriptableObject globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
@@ -92,32 +92,32 @@ public class RhinoEngine implements ScopeProvider {
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             boolean sealed = config.isSealed();
-            topLevelScope = new RingoGlobal(cx, this, sealed);
+            globalScope = new RingoGlobal(cx, this, sealed);
             Class[] classes = config.getHostClasses();
             if (classes != null) {
                 for (Class clazz: classes) {
                     defineHostClass(clazz);
                 }
             }
-            ScriptableList.init(topLevelScope);
-            ScriptableMap.init(topLevelScope);
-            ScriptableObject.defineClass(topLevelScope, ScriptableWrapper.class);
+            ScriptableList.init(globalScope);
+            ScriptableMap.init(globalScope);
+            ScriptableObject.defineClass(globalScope, ScriptableWrapper.class);
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
-                    ScriptableObject.defineProperty(topLevelScope, entry.getKey(),
+                    ScriptableObject.defineProperty(globalScope, entry.getKey(),
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            evaluateScript(cx, getScript("ringoglobal"), topLevelScope);
+            evaluateScript(cx, getScript("ringoglobal"), globalScope);
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
                     Resource resource = new FileResource(new File(script));
-                    evaluateScript(cx, new ReloadableScript(resource, this), topLevelScope);
+                    evaluateScript(cx, new ReloadableScript(resource, this), globalScope);
                 }
             }
             if (sealed) {
-                topLevelScope.sealObject();
+                globalScope.sealObject();
             }
         } finally {
             Context.exit();
@@ -140,7 +140,7 @@ public class RhinoEngine implements ScopeProvider {
         synchronized (clazz) {
             if (!hostClasses.contains(clazz)) {
                hostClasses.add(clazz);
-               ScriptableObject.defineClass(topLevelScope, clazz);
+               ScriptableObject.defineClass(globalScope, clazz);
             }
         }
     }
@@ -173,7 +173,7 @@ public class RhinoEngine implements ScopeProvider {
             resource.setStripShebang(true);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope(resource.getModuleName(), resource, topLevelScope, cx);
+            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
             retval = evaluateScript(cx, script, mainScope);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
@@ -198,7 +198,7 @@ public class RhinoEngine implements ScopeProvider {
         try {
             Object retval;
             Repository repository = repositories.get(0);
-            Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
+            Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
@@ -226,9 +226,7 @@ public class RhinoEngine implements ScopeProvider {
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             initArguments(args);
-            if (module == null) {
-                module = config.getMainModule("main");
-            } else if (!(module instanceof String) && !(module instanceof Scriptable)) {
+            if (!(module instanceof String) && !(module instanceof Scriptable)) {
                 throw new IllegalArgumentException("module argument must be a Scriptable or String object");
             }
             Object retval;
@@ -240,7 +238,7 @@ public class RhinoEngine implements ScopeProvider {
                     if (!(function instanceof Function)) {
                         throw new NoSuchMethodException("Function " + method + " not defined");
                     }
-                    retval = ((Function) function).call(cx, topLevelScope, scriptable, args);
+                    retval = ((Function) function).call(cx, globalScope, scriptable, args);
                     break;
                 } catch (JavaScriptException jsx) {
                     Scriptable thrown = jsx.getValue() instanceof Scriptable ?
@@ -265,6 +263,7 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
+    // TODO is this still used or needed?
     public Object invoke(Callable callable, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
@@ -274,7 +273,7 @@ public class RhinoEngine implements ScopeProvider {
             Object retval;
             while (true) {
                 try {
-                    retval = callable.call(cx, topLevelScope, null, args);
+                    retval = callable.call(cx, globalScope, null, args);
                     break;
                 } catch (JavaScriptException jsx) {
                     Scriptable thrown = jsx.getValue() instanceof Scriptable ?
@@ -309,7 +308,7 @@ public class RhinoEngine implements ScopeProvider {
         Object[] threadLocals = checkThreadLocals(cx);
         try {
             Repository repository = repositories.get(0);
-            Scriptable parentScope = mainScope != null ? mainScope : topLevelScope;
+            Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
             try {
                 evaluateScript(cx, getScript("ringo/shell"), scope);
@@ -324,11 +323,11 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Provide the scope for the debugger
-     * @return our top level scope
+     * Get the engine's global shared scope
+     * @return the global scope
      */
     public Scriptable getScope() {
-        return topLevelScope;
+        return globalScope;
     }
 
     /**
@@ -338,7 +337,7 @@ public class RhinoEngine implements ScopeProvider {
     protected void initArguments(Object[] args) {
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
-                args[i] = wrapArgument(args[i], topLevelScope);
+                args[i] = wrapArgument(args[i], globalScope);
             }
         }
     }
@@ -496,7 +495,7 @@ public class RhinoEngine implements ScopeProvider {
         ReloadableScript parent = getCurrentScript(cx);
         try {
             setCurrentScript(cx, script);
-            module = script.load(topLevelScope, cx);
+            module = script.load(globalScope, cx);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
@@ -538,6 +537,7 @@ public class RhinoEngine implements ScopeProvider {
      * @param sealed if the global object should be sealed, defaults to false
      * @return a sandboxed RhinoEngine instance
      * @throws FileNotFoundException if any part of the module paths does not exist
+     * TODO clean up signature (esp. includeSystemModules)
      */
     public RhinoEngine createSandbox(String[] modulePath, Map<String,Object> globals,
                                      boolean includeSystemModules, ClassShutter shutter,
@@ -599,14 +599,6 @@ public class RhinoEngine implements ScopeProvider {
             cx.putThreadLocal("engine", objs[0]);
             cx.putThreadLocal("modules", objs[1]);
         }
-    }
-
-    /**
-     * Get the engine's top level JavaScript scope
-     * @return the top level (global) scope
-     */
-    public ScriptableObject getTopLevelScope() {
-        return topLevelScope;
     }
 
     /**
@@ -744,9 +736,9 @@ public class RhinoEngine implements ScopeProvider {
         final Context cx = contextFactory.enterContext();
         try {
             // use a special ScriptableOutputStream that unwraps Wrappers
-            ScriptableOutputStream sout = new ScriptableOutputStream(out, topLevelScope) {
+            ScriptableOutputStream sout = new ScriptableOutputStream(out, globalScope) {
                 protected Object replaceObject(Object obj) throws IOException {
-                    if (obj == topLevelScope) {
+                    if (obj == globalScope) {
                         return new SerializedScopeProxy(null);
                     } else if (obj instanceof ModuleScope || obj instanceof ModuleScope.ExportsObject) {
                         return new SerializedScopeProxy(obj);
@@ -775,7 +767,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object deserialize(InputStream in) throws IOException, ClassNotFoundException {
         final Context cx = contextFactory.enterContext();
         try {
-            ObjectInputStream sin = new ScriptableInputStream(in, topLevelScope) {
+            ObjectInputStream sin = new ScriptableInputStream(in, globalScope) {
                 protected Object resolveObject(Object obj) throws IOException {
                     if (obj instanceof SerializedScopeProxy) {
                         return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
@@ -806,7 +798,7 @@ public class RhinoEngine implements ScopeProvider {
             if (isExports) {
                 return engine.loadModule(cx, moduleName, null).getExports();
             }
-            return moduleName == null ? engine.topLevelScope : engine.loadModule(cx, moduleName, null);
+            return moduleName == null ? engine.globalScope : engine.loadModule(cx, moduleName, null);
         }
     }
 
@@ -834,7 +826,7 @@ public class RhinoEngine implements ScopeProvider {
             object = object.toString();
         }
         Context cx = Context.getCurrentContext();
-        return wrapFactory.wrapAsJavaObject(cx, topLevelScope, object, null);
+        return wrapFactory.wrapAsJavaObject(cx, globalScope, object, null);
     }
 
     /**
@@ -847,7 +839,7 @@ public class RhinoEngine implements ScopeProvider {
             object = ((Wrapper) object).unwrap();
         }
         Context cx = Context.getCurrentContext();
-        return wrapFactory.wrapAsJavaObject(cx, topLevelScope, object, null);
+        return wrapFactory.wrapAsJavaObject(cx, globalScope, object, null);
     }
 
     /**

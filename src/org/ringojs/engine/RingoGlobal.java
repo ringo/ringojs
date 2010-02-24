@@ -121,7 +121,7 @@ public class RingoGlobal extends Global {
         try {
             Resource res = engine.findResource((String) args[0],
                     engine.getParentRepository(moduleScope));
-            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getTopLevelScope(), res, null);
+            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), res, null);
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }
@@ -138,7 +138,7 @@ public class RingoGlobal extends Global {
         try {
             Repository repo = engine.findRepository((String) args[0],
                     engine.getParentRepository(moduleScope));
-            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getTopLevelScope(), repo, null);
+            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), repo, null);
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }
