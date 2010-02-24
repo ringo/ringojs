@@ -27,5 +27,7 @@ function resolveRelative(parent, child) {
  * @returns {File} the temporary file
  */
 function createTempFile(prefix, suffix) {
-   return java.io.File.createTempFile(prefix, suffix).getPath();
+   return java.io.File
+       .createTempFile(prefix, suffix || null)
+       .getPath();
 }
