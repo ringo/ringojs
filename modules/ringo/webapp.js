@@ -13,7 +13,7 @@ var fileutils = require('ringo/fileutils');
 var engine = require('ringo/engine');
 var Server = require('ringo/httpserver').Server;
 
-export('start', 'stop', 'getConfig', 'handleRequest');
+export('start', 'stop', 'getConfig', 'getServer', 'handleRequest');
 
 var server;
 var log = require('ringo/logging').getLogger(module.id);
@@ -204,30 +204,38 @@ function getConfig(configModuleName) {
 }
 
 /**
- * Start the jetty server using the given config module, or the
+ * Start the web server using the given config module, or the
  * default "config" module if called without argument.
  */
-function start(config) {
+function start(moduleId) {
     // start jetty http server
-    config = config || getConfig();
+    moduleId = moduleId || 'config';
+    var config = getConfig(moduleId);
     var httpConfig = Object.merge(config.httpConfig || {}, {
-        moduleName: "config",
+        moduleName: moduleId,
         functionName: "app"
     });
 
-    server = new Server(httpConfig).start();
+    server = new Server(httpConfig);
+    server.start();
 }
 
-
 /**
- * Stop the jetty server.
+ * Stop the web server.
  */
 function stop() {
     // stop jetty HTTP server
     server.stop();
 }
 
-if (require.main == module.id) {
+/**
+ * Get the server instance.
+ */
+function getServer() {
+    return server;
+}
+
+if (require.main == module) {
     for (var i = 1; i < system.args.length; i++) {
         var arg = system.args[i];
         if (arg.indexOf('-') == 0) {
@@ -235,6 +243,6 @@ if (require.main == module.id) {
         }
         engine.addRepository(arg);
     }
-    log.info('Setup module search: ' + engine.getRepositories());
+    log.info('Set up module path: ' + engine.getRepositories());
     start();
 }
