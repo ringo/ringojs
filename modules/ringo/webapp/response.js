@@ -181,7 +181,7 @@ function StaticResponse(resource) {
         return new NotFoundResponse(String(resource));
     }
     var contentType = mimeType(resource.name);
-    var input = new IOStream(resource.getInputStream());
+    var input = new Stream(resource.getInputStream());
     var bufsize = 8192;
     var buffer = new ByteArray(bufsize);
     return {
