@@ -126,7 +126,7 @@ function writeAsync(request, response, result, suspend) {
     if (part.body) {
         writeBody(response, part.body, charset);
     }
-    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+    var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
     var continuation = ContinuationSupport.getContinuation(request, {});
     continuation.reset();
     if (!result.last && suspend) {
@@ -136,7 +136,7 @@ function writeAsync(request, response, result, suspend) {
 
 function handleAsyncResponse(env, result) {
     // experimental support for asynchronous JSGI based on Jetty continuations
-    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+    var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
     var request = env['jsgi.servlet_request'];
     var response = env['jsgi.servlet_response'];
     var queue = new java.util.concurrent.ConcurrentLinkedQueue();

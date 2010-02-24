@@ -103,7 +103,7 @@ public class JsgiServlet extends HttpServlet {
         } catch (WrappedException x) {
             Throwable t = x.getWrappedException();
             // Rethrow jetty retry-request exceptions in order to support jetty continuations
-            if ("org.mortbay.jetty.RetryRequest".equals(t.getClass().getName())) {
+            if ("org.eclipse.jetty.server.RetryRequest".equals(t.getClass().getName())) {
                 throw (RuntimeException) t;
             }
             RingoRunner.reportError(t, System.err, false);
