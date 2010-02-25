@@ -8,7 +8,7 @@ export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continua
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return new SkinnedResponse('skins/welcome.txt', {title: 'Welcome to RingoJS'});
+    return new SkinnedResponse(getResource('./skins/welcome.txt'), {title: 'Welcome to RingoJS'});
 }
 
 // additional path elements are passed to the action as arguments,
@@ -25,7 +25,7 @@ function upload(req) {
             body: [req.params.file.value]
         };
     }
-    return new SkinnedResponse('skins/upload.txt', {
+    return new SkinnedResponse(getResource('./skins/upload.txt'), {
         title: "File Upload"
     });
 }
@@ -34,11 +34,11 @@ function testing(req) {
     if (req.params.runtests) {
         var test = require("ringo/engine").getRingoHome().getResource("test/all")
         var tests = require(test.path);
-        var formatter = new (require("helpers").HtmlTestFormatter)();
+        var formatter = new (require("./helpers").HtmlTestFormatter)();
         require("ringo/unittest").run(tests, formatter);
         return new Response(formatter);
     }
-    return new SkinnedResponse('skins/testing.txt', {
+    return new SkinnedResponse(getResource('./skins/testing.txt'), {
         title: "Unit Testing"
     });
 }
@@ -52,7 +52,7 @@ exports.params = function(req) {
 
 // demo for skins, macros, filters
 function skins(req) {
-    return new SkinnedResponse('skins/skins.txt', {
+    return new SkinnedResponse(getResource('./skins/skins.txt'), {
         title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
@@ -73,12 +73,12 @@ function logging(req) {
         // build and run a small profiler middleware stack
         var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
-            return new SkinnedResponse('skins/logging.txt', {
+            return new SkinnedResponse(getResource('./skins/logging.txt'), {
                 title: "Logging &amp; Profiling"
             });
         })(req.env);
     }
-    return new SkinnedResponse('skins/logging.txt', { title: "Logging &amp; Profiling" });
+    return new SkinnedResponse(getResource('./skins/logging.txt'), { title: "Logging &amp; Profiling" });
 }
 
 // demo for continuation support

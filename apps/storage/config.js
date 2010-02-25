@@ -5,7 +5,7 @@ var Store = require('ringo/storage/filestore').Store;
 exports.store = new Store('db');
 
 exports.urls = [
-    [ '/', require('./main') ]
+    [ '/', './main' ]
 ];
 
 exports.middleware = [

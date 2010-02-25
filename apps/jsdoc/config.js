@@ -1,9 +1,9 @@
 exports.httpConfig = {
-  staticDir: 'static'
+  staticDir: './static'
 };
 
 exports.urls = [
-    [ '/(.*)', require('./actions'), 'jsdoc' ]
+    [ '/(.*)', './actions', 'jsdoc' ]
 ];
 
 // the middleware stack

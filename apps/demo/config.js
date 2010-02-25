@@ -1,12 +1,12 @@
 exports.httpConfig = {
-  staticDir: 'static'
+    staticDir: './static'
 };
 
 exports.urls = [
-    [ '/mount/point', 'webmodule' ],
-    [ '/storage', 'storage/config' ],
-    [ '/jsdoc', 'jsdoc/config' ],
-    [ '/', 'actions' ],
+    [ '/mount/point', './webmodule' ],
+    [ '/storage', './storage/config' ],
+    [ '/jsdoc', './jsdoc/config' ],
+    [ '/', './actions' ]
 ];
 
 exports.middleware = [
@@ -22,7 +22,7 @@ exports.middleware = [
 exports.app = require('ringo/webapp').handleRequest;
 
 exports.macros = [
-    'helpers',
+    './helpers',
     'ringo/skin/macros',
     'ringo/skin/filters'
 ];
