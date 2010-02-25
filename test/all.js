@@ -6,6 +6,7 @@ exports.object = require('./core/object_test');
 exports.file = require('./ringo/file_test');
 exports.fileutils = require('./ringo/fileutils_test');
 exports.skin = require('./ringo/skin_test');
+exports.string = require('./core/string_test');
 exports.file = require('./file/all');
 exports.binary = require('./binary/all');
 exports.repository = require('./repository/all');
