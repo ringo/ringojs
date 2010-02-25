@@ -4,7 +4,7 @@ include('io');
 include("binary");
 
 export('handleRequest');
-
+var log = require('ringo/logging').getLogger(module.id);
 module.shared = true;
 
 /**
@@ -127,10 +127,9 @@ function writeAsync(request, response, result, suspend) {
         writeBody(response, part.body, charset);
     }
     var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
-    var continuation = ContinuationSupport.getContinuation(request, {});
-    continuation.reset();
+    var continuation = ContinuationSupport.getContinuation(request);
     if (!result.last && suspend) {
-        continuation.suspend(30000);
+        continuation.suspend();
     }
 }
 
@@ -141,7 +140,7 @@ function handleAsyncResponse(env, result) {
     var response = env['jsgi.servlet_response'];
     var queue = new java.util.concurrent.ConcurrentLinkedQueue();
     request.setAttribute('_ringo_response', queue);
-    var continuation = ContinuationSupport.getContinuation(request, {});
+    var continuation = ContinuationSupport.getContinuation(request);
     var first = true, handled = false;
     var onFinish = function(part) {
         if (handled) return;
@@ -150,13 +149,9 @@ function handleAsyncResponse(env, result) {
             last: true,
             part: part
         };
-        if (continuation.isPending()) {
-            queue.offer(res);
-            continuation.resume();
-        } else {
-            writePartial(request, response, res);
-        }
         handled = true;
+        queue.offer(res);
+        continuation.complete();
     };
     var onError = function(error) {
         if (handled) return;
@@ -176,18 +171,15 @@ function handleAsyncResponse(env, result) {
             first: first,
             part: part
         };
-        if (continuation.isPending()) {
-            queue.offer(res);
-            continuation.resume();
-        } else {
-            writePartial(request, response, res);
-        }
         first = false;
+        queue.offer(res);
+        continuation.resume();
     };
     // TODO sync callbacks on queue once rhino supports this (bug 513682)
     result.then(onFinish, onError, onProgress);
     if (!handled) {
-        continuation.suspend(30000);
+        continuation.setTimeout(12000);
+        continuation.suspend();
     }
 }
 
