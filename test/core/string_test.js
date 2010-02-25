@@ -15,10 +15,10 @@ exports.testIsDateFormat = function () {
     assertFalse(FOO.isDateFormat());
 };
 
-exports.testToDate = function () { // TODO: needs to be fixed in core.
-    // var date = DATE.toDate(DATE_FORMAT);
-    // assertTrue(date instanceof Date);
-    // assertEqual(new Date(DATE), date);
+exports.testToDate = function () {
+    var date = DATE.toDate(DATE_FORMAT);
+    assertTrue(date instanceof Date);
+    assertEqual(new Date(DATE), date);
 };
 
 exports.testIsUrl = function () {
