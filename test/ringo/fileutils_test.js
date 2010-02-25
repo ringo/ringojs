@@ -1,6 +1,6 @@
 include('ringo/unittest');
 var fileutils = require('ringo/fileutils');
-var file = require('file');
+import('file');
 
 const PARENT = '/home/ringo/';
 const INVALID_CHILD = 'Projects';
