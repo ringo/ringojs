@@ -5,15 +5,23 @@ include('./util');
 include('./mime');
 
 export('Response',
-       'SkinnedResponse',
-       'JSONResponse',
-       'RedirectResponse',
-       'StaticResponse',
-       'NotFoundResponse');
+       'skinResponse',
+       'jsonResponse',
+       'xmlResponse',
+       'staticResponse',
+       'redirectResponse',
+       'notFoundResponse');
 
 module.shared = true;
 
 function Response() {
+
+    // missing new security belt
+    if (!(this instanceof Response)) {
+        var response = new Response();
+        response.write.apply(arguments);
+        return response;
+    }
 
     var config = require('ringo/webapp/env').config;
     var status = 200;
@@ -144,35 +152,45 @@ function Response() {
 }
 
 /**
- *
- * @param skin
- * @param context
- * @param scope
- * @constructor
+ * A response object rendered from a skin.
+ * @param {Resource|String} skin the skin resource or path.
+ * @param {Object} context the skin context object
  */
-function SkinnedResponse(skin, context, scope) {
+function skinResponse(skin, context) {
+    if (!(skin instanceof org.ringojs.repository.Resource)) {
+        skin = this.getResource(skin);
+    }
     var render = require('ringo/skin').render;
-    return new Response(render(skin, context, scope));
+    return new Response(render(skin, context));
 }
 
 /**
- *
- * @param object
- * @constructor
+ * Create a response object containing the JSON representation of an object.
+ * @param {Object} object the object whose JSON representation to return
  */
-function JSONResponse(object) {
+function jsonResponse(object) {
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
 }
 
 /**
+ * Create a response containing the given XML document
+ * @param {XML|String} xml an XML document
+ */
+function xmlResponse(xml) {
+    var res = new Response(typeof xml === 'xml' ? xml.toXMLString() : xml);
+    res.contentType = 'application/xml';
+    return res;
+}
+
+/**
+ * A response representing a static resource.
  * @param {String|Resource} resource the resource to serve
  * @param {String} contentType optional MIME type. If not defined,
  *         the MIME type is detected from the file name extension.
- * @constructor
  */
-function StaticResponse(resource, contentType) {
+function staticResponse(resource, contentType) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
     }
@@ -180,7 +198,7 @@ function StaticResponse(resource, contentType) {
         throw Error("Wrong argument for StaticResponse: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return new NotFoundResponse(String(resource));
+        return notFoundResponse(String(resource));
     }
     var input;
     return {
@@ -213,11 +231,10 @@ function StaticResponse(resource, contentType) {
 }
 
 /**
- *
- * @param location
- * @constructor
+ * Create a response that redirects the client to a different URL.
+ * @param {String} location the new location
  */
-function RedirectResponse(location) {
+function redirectResponse(location) {
     return {
         status: 303,
         headers: {Location: location},
@@ -226,11 +243,10 @@ function RedirectResponse(location) {
 }
 
 /**
- *
- * @param location
- * @constructor
+ * Create a 404 not-found response.
+ * @param {String} location the location that couldn't be found
  */
-function NotFoundResponse(location) {
+function notFoundResponse(location) {
     var msg = 'Not Found';
     return {
         status: 404,

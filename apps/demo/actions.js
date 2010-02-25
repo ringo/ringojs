@@ -8,7 +8,7 @@ export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continua
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return new SkinnedResponse(getResource('./skins/welcome.txt'), {title: 'Welcome to RingoJS'});
+    return skinResponse('./skins/welcome.txt', {title: 'Welcome to RingoJS'});
 }
 
 // additional path elements are passed to the action as arguments,
@@ -25,7 +25,7 @@ function upload(req) {
             body: [req.params.file.value]
         };
     }
-    return new SkinnedResponse(getResource('./skins/upload.txt'), {
+    return skinResponse('./skins/upload.txt', {
         title: "File Upload"
     });
 }
@@ -38,7 +38,7 @@ function testing(req) {
         require("ringo/unittest").run(tests, formatter);
         return new Response(formatter);
     }
-    return new SkinnedResponse(getResource('./skins/testing.txt'), {
+    return skinResponse('./skins/testing.txt', {
         title: "Unit Testing"
     });
 }
@@ -47,12 +47,12 @@ exports.params = function(req) {
    // if (req.isPost) {
         return new Response(JSON.stringify(req.params));
    // }
-    return new SkinnedResponse('skins/form.html');
+    return skinResponse('skins/form.html');
 }
 
 // demo for skins, macros, filters
 function skins(req) {
-    return new SkinnedResponse(getResource('./skins/skins.txt'), {
+    return skinResponse('./skins/skins.txt', {
         title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
@@ -73,12 +73,12 @@ function logging(req) {
         // build and run a small profiler middleware stack
         var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
-            return new SkinnedResponse(getResource('./skins/logging.txt'), {
+            return skinResponse('./skins/logging.txt', {
                 title: "Logging &amp; Profiling"
             });
         })(req.env);
     }
-    return new SkinnedResponse(getResource('./skins/logging.txt'), { title: "Logging &amp; Profiling" });
+    return skinResponse('./skins/logging.txt', { title: "Logging &amp; Profiling" });
 }
 
 // demo for continuation support
@@ -88,7 +88,7 @@ function continuation(req, cont_id, cont_step) {
 
     if (!session.isActive()) {
         // render welcome page
-        return new SkinnedResponse('skins/continuation.txt', {
+        return skinResponse('skins/continuation.txt', {
             session: session,
             page: "welcome",
             title: "Continuations"
@@ -96,7 +96,7 @@ function continuation(req, cont_id, cont_step) {
     }
 
     session.addPage("ask_name", function(req) {
-        return new SkinnedResponse('skins/continuation.txt', {
+        return skinResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 1"
@@ -106,7 +106,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_food", function(req) {
         if (req.isPost)
             session.data.name = req.params.name;
-        return new SkinnedResponse('skins/continuation.txt', {
+        return skinResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 2"
@@ -116,7 +116,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_animal", function(req) {
         if (req.isPost)
             session.data.food = req.params.food;
-        return new SkinnedResponse('skins/continuation.txt', {
+        return skinResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 3"
@@ -126,7 +126,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("result", function(req) {
         if (req.isPost)
             session.data.animal = req.params.animal;
-        return new SkinnedResponse('skins/continuation.txt', {
+        return skinResponse('skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Thank you!"

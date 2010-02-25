@@ -50,7 +50,7 @@ function handleRequest(env) {
     try {
         return resolveInConfig(req, config, configId);
     } catch (e if e.redirect) {
-        return new RedirectResponse(e.redirect);
+        return redirectResponse(e.redirect);
     }
 }
 
