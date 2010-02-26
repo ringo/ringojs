@@ -10,7 +10,6 @@ include('ringo/webapp/request');
 include('ringo/webapp/response');
 
 var fileutils = require('ringo/fileutils');
-var engine = require('ringo/engine');
 var Server = require('ringo/httpserver').Server;
 
 export('start', 'stop', 'getConfig', 'getServer', 'handleRequest');
@@ -216,8 +215,16 @@ function start(moduleId) {
         functionName: "app"
     });
 
-    server = new Server(httpConfig);
-    server.start();
+    server = server || new Server(httpConfig);
+    if (Array.isArray(config.static)) {
+        config.static.forEach(function(spec) {
+            var dir = fileutils.resolveRelative(moduleId, spec[1]);
+            server.addStaticResources(spec[0], null, dir);
+        });
+    }
+    if (!server.isRunning()) {
+        server.start();
+    }
 }
 
 /**
@@ -225,7 +232,9 @@ function start(moduleId) {
  */
 function stop() {
     // stop jetty HTTP server
-    server.stop();
+    if (server && server.isRunning()) {
+        server.stop();
+    }
 }
 
 /**
@@ -241,8 +250,8 @@ if (require.main == module) {
         if (arg.indexOf('-') == 0) {
             break;
         }
-        engine.addRepository(arg);
+        require.paths.splice(require.paths.length - 2, 0, arg);
     }
-    log.info('Set up module path: ' + engine.getRepositories());
+    log.info('Set up module path: ' + require.paths);
     start();
 }
