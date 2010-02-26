@@ -77,7 +77,7 @@ function ContinuationSession(req, id, step) {
 
     function getContinuationUrl(step) {
         id = id || generateId();
-        return [req.actionPath, id, String(step)].join("/");
+        return [req.scriptName, id, String(step)].join("/");
     }
 
     function generateId() {
