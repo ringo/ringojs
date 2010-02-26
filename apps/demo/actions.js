@@ -88,7 +88,7 @@ function continuation(req, cont_id, cont_step) {
 
     if (!session.isActive()) {
         // render welcome page
-        return skinResponse('skins/continuation.txt', {
+        return skinResponse('./skins/continuation.txt', {
             session: session,
             page: "welcome",
             title: "Continuations"
@@ -96,7 +96,7 @@ function continuation(req, cont_id, cont_step) {
     }
 
     session.addPage("ask_name", function(req) {
-        return skinResponse('skins/continuation.txt', {
+        return skinResponse('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 1"
@@ -106,7 +106,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_food", function(req) {
         if (req.isPost)
             session.data.name = req.params.name;
-        return skinResponse('skins/continuation.txt', {
+        return skinResponse('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 2"
@@ -116,7 +116,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_animal", function(req) {
         if (req.isPost)
             session.data.food = req.params.food;
-        return skinResponse('skins/continuation.txt', {
+        return skinResponse('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 3"
@@ -126,7 +126,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("result", function(req) {
         if (req.isPost)
             session.data.animal = req.params.animal;
-        return skinResponse('skins/continuation.txt', {
+        return skinResponse('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Thank you!"
