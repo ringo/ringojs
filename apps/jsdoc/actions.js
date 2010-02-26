@@ -11,18 +11,18 @@ exports.jsdoc = function index(req, module) {
     if (module && module != "/") {
         var res = repo.getScriptResource(module + '.js');
         if (!res.exists()) {
-            return new NotFoundResponse(req.scriptName + req.pathInfo);
+            return notFoundResponse(req.scriptName + req.pathInfo);
         }
         var moduleDoc = parseResource(res);
         // log.info("export()ed symbols: " + exported);
-        return new SkinnedResponse(getResource('./skins/jsdoc-module.html'), {
+        return skinResponse('./skins/jsdoc-module.html', {
             title: "Module " + res.moduleName,
             moduleName: module,
             moduleDoc: moduleDoc,
             moduleList: renderModuleList
         });
     } else {
-        return new SkinnedResponse(getResource('./skins/jsdoc-overview.html'), {
+        return skinResponse('./skins/jsdoc-overview.html', {
             title: "API Documentation",
             moduleList: renderModuleList
         });

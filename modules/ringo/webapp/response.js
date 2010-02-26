@@ -5,15 +5,23 @@ include('./util');
 include('./mime');
 
 export('Response',
-       'SkinnedResponse',
-       'JSONResponse',
-       'RedirectResponse',
-       'StaticResponse',
-       'NotFoundResponse');
+       'skinResponse',
+       'jsonResponse',
+       'xmlResponse',
+       'staticResponse',
+       'redirectResponse',
+       'notFoundResponse');
 
 module.shared = true;
 
 function Response() {
+
+    // missing new security belt
+    if (!(this instanceof Response)) {
+        var response = new Response();
+        response.write.apply(response, arguments);
+        return response;
+    }
 
     var config = require('ringo/webapp/env').config;
     var status = 200;
@@ -144,62 +152,78 @@ function Response() {
 }
 
 /**
- *
- * @param skin
- * @param context
- * @param scope
- * @constructor
+ * A response object rendered from a skin.
+ * @param {Resource|String} skin the skin resource or path.
+ * @param {Object} context the skin context object
  */
-function SkinnedResponse(skin, context, scope) {
+function skinResponse(skin, context) {
+    if (!(skin instanceof org.ringojs.repository.Resource)) {
+        skin = this.getResource(skin);
+    }
     var render = require('ringo/skin').render;
-    return new Response(render(skin, context, scope));
+    return new Response(render(skin, context));
 }
 
 /**
- *
- * @param object
- * @constructor
+ * Create a response object containing the JSON representation of an object.
+ * @param {Object} object the object whose JSON representation to return
  */
-function JSONResponse(object) {
+function jsonResponse(object) {
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
 }
 
 /**
- * @param resource
- * @constructor
+ * Create a response containing the given XML document
+ * @param {XML|String} xml an XML document
  */
-function StaticResponse(resource) {
+function xmlResponse(xml) {
+    var res = new Response(typeof xml === 'xml' ? xml.toXMLString() : xml);
+    res.contentType = 'application/xml';
+    return res;
+}
+
+/**
+ * A response representing a static resource.
+ * @param {String|Resource} resource the resource to serve
+ * @param {String} contentType optional MIME type. If not defined,
+ *         the MIME type is detected from the file name extension.
+ */
+function staticResponse(resource, contentType) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
     }
     if (!(resource instanceof org.ringojs.repository.Resource)) {
-        throw Error("Wrong argument for StaticResponse: " + typeof(resource));
+        throw Error("Wrong argument for staticResponse: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return new NotFoundResponse(String(resource));
+        return notFoundResponse(String(resource));
     }
-    var contentType = mimeType(resource.name);
-    var input = new IOStream(resource.getInputStream());
-    var bufsize = 8192;
-    var buffer = new ByteArray(bufsize);
+    var input;
     return {
         status: 200,
         headers: {
-            'Content-Type': contentType
+            'Content-Type': contentType || mimeType(resource.name)
         },
         body: {
             digest: function() {
                 return resource.lastModified().toString(36) 
                     + resource.length.toString(36);
             },
-            forEach: function(block) {
-                var read;
+            forEach: function(fn) {
+                var read, bufsize = 8192;
+                var buffer = new ByteArray(bufsize);
+                input = new Stream(resource.getInputStream());
                 while ((read = input.readInto(buffer)) > -1) {
                     buffer.length = read;
-                    block(buffer);
+                    fn(buffer);
                     buffer.length = bufsize;
+                }
+            },
+            close: function() {
+                if (input) {
+                    input.close();
                 }
             }
         }
@@ -207,11 +231,10 @@ function StaticResponse(resource) {
 }
 
 /**
- *
- * @param location
- * @constructor
+ * Create a response that redirects the client to a different URL.
+ * @param {String} location the new location
  */
-function RedirectResponse(location) {
+function redirectResponse(location) {
     return {
         status: 303,
         headers: {Location: location},
@@ -220,11 +243,10 @@ function RedirectResponse(location) {
 }
 
 /**
- *
- * @param location
- * @constructor
+ * Create a 404 not-found response.
+ * @param {String} location the location that couldn't be found
  */
-function NotFoundResponse(location) {
+function notFoundResponse(location) {
     var msg = 'Not Found';
     return {
         status: 404,

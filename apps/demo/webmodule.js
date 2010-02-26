@@ -8,5 +8,5 @@ function index(req) {
         title: 'Modules',
         path: req.scriptName + req.pathInfo
     };
-    return new SkinnedResponse('skins/modules.txt', context);
+    return skinResponse('./skins/modules.txt', context);
 }

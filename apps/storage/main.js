@@ -9,7 +9,7 @@ function index(req) {
     if (req.params.save) {
         return createBook(req);
     }
-    return new SkinnedResponse(getResource('./skins/index.html'), {
+    return skinResponse('./skins/index.html', {
         title: 'Storage',
         books: Book.all(),
         action: req.path
@@ -24,9 +24,9 @@ function edit(req, id) {
         book.title = req.params.title;
         author.save();
         book.save();
-        return new RedirectResponse("../");
+        return redirectResponse("../");
     }
-    return new SkinnedResponse(getResource('./skins/edit.html'), {
+    return skinResponse('./skins/edit.html', {
         title: 'Storage',
         book: book,
         action: req.path
@@ -38,7 +38,7 @@ function remove(req, id) {
     if (req.params.remove && req.isPost) {
         return removeBook(req, book);
     }
-    return new SkinnedResponse(getResource('./skins/remove.html'), {
+    return skinResponse('./skins/remove.html', {
         title: 'Storage',
         book: book,
         action: req.path
@@ -52,14 +52,14 @@ function createBook(req) {
     // author is saved transitively
     // author.save();
     book.save();
-    return new RedirectResponse(req.path);
+    return redirectResponse(req.path);
 }
 
 function removeBook(req, book) {
     // no cascading delete
     book.author.remove();
     book.remove();
-    return new RedirectResponse("../");
+    return redirectResponse("../");
 }
 
 if (require.main == module) {

@@ -10,7 +10,6 @@ include('ringo/webapp/request');
 include('ringo/webapp/response');
 
 var fileutils = require('ringo/fileutils');
-var engine = require('ringo/engine');
 var Server = require('ringo/httpserver').Server;
 
 export('start', 'stop', 'getConfig', 'getServer', 'handleRequest');
@@ -50,7 +49,7 @@ function handleRequest(env) {
     try {
         return resolveInConfig(req, config, configId);
     } catch (e if e.redirect) {
-        return new RedirectResponse(e.redirect);
+        return redirectResponse(e.redirect);
     }
 }
 
@@ -59,7 +58,7 @@ function resolveInConfig(req, config, configId) {
         log.debug('resolving path ' + req.pathInfo);
     }
     // set the root context path on which this app is mounted in the config module
-    config.rootPath = req.scriptName + "/";
+    req.rootPath = config.rootPath = req.scriptName + '/';
     // set config property in webapp env module
     var webenv = require('ringo/webapp/env');
     webenv.pushConfig(config, configId);
@@ -178,7 +177,7 @@ function getAction(req, module, urlconf, args) {
             Array.prototype.splice.apply(args, spliceArgs);
         }
         if (path.length == 0 || args.length + path.length <= action.length) {
-            if (args.slice(1).join('').length == 0) {
+            if (path.length == 0 && args.slice(1).join('').length == 0) {
                 req.checkTrailingSlash();
             }
             Array.prototype.push.apply(args, path);
@@ -216,8 +215,16 @@ function start(moduleId) {
         functionName: "app"
     });
 
-    server = new Server(httpConfig);
-    server.start();
+    server = server || new Server(httpConfig);
+    if (Array.isArray(config.static)) {
+        config.static.forEach(function(spec) {
+            var dir = fileutils.resolveRelative(moduleId, spec[1]);
+            server.addStaticResources(spec[0], null, dir);
+        });
+    }
+    if (!server.isRunning()) {
+        server.start();
+    }
 }
 
 /**
@@ -225,7 +232,9 @@ function start(moduleId) {
  */
 function stop() {
     // stop jetty HTTP server
-    server.stop();
+    if (server && server.isRunning()) {
+        server.stop();
+    }
 }
 
 /**
@@ -241,8 +250,8 @@ if (require.main == module) {
         if (arg.indexOf('-') == 0) {
             break;
         }
-        engine.addRepository(arg);
+        require.paths.splice(require.paths.length - 2, 0, arg);
     }
-    log.info('Set up module path: ' + engine.getRepositories());
+    log.info('Set up module path: ' + require.paths);
     start();
 }

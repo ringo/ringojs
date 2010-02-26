@@ -1,6 +1,7 @@
 require('core/string');
 include('ringo/markdown');
 include('ringo/buffer');
+include('ringo/skin');
 
 exports.markdown_filter = function(content) {
     var markdown = new Markdown({
@@ -23,6 +24,29 @@ exports.markdown_filter = function(content) {
         }
     });
     return markdown.process(content);
+};
+
+exports.navigation_macro = function(tag, context) {
+    return render('./skins/navigation.txt', context);
+};
+
+// We override href and matchPath macros to operate relative to this demo app
+// by using the rootPath property from our config module rather than the one
+// from the request object.
+// The rootPath property on the request object used by default implementations
+// in ringo/skin/macros contains the root path of the  innermost app,
+// which in our case may be the storage or jsdoc app.
+
+exports.href_macro = function(tag) {
+    return require('./config').rootPath + (tag.parameters[0] || '');
+};
+
+exports.matchPath_macro = function(tag) {
+    var req = require('ringo/webapp/env').getRequest();
+    if (req && req.path &&
+        req.path.substring(require('./config').rootPath.length).match(tag.parameters[0])) {
+        return tag.parameters[1] || "match";
+    }
 };
 
 /**

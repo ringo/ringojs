@@ -1,4 +1,4 @@
-<% extends 'base.html' %>
+<% extends 'skins/base.html' %>
 
 <% subskin 'content' | markdown %>
 RingoJS uses [Apache log4j](http://logging.apache.org/log4j/1.2/index.html) as logging framework.

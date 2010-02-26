@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <title><% title %></title>
-<link rel="stylesheet" href="/static/style.css" />
+<link rel="stylesheet" href="<% href static/style.css %>" />
 <% render 'head' %>
 </head>
 <body>
@@ -17,40 +17,7 @@
         <% render 'content' %>
     </div>
     <div id="menu">
-        <ul>
-            <li>
-                <a href="<% href / %>"
-                   class="<% matchPath ^/$ highlight%>">Home</a>
-            </li>
-            <li>
-                <a href="<% href /mount/point/ %>"
-                   class="<% matchPath ^/mount/point highlight %>">Modules</a>
-            </li>
-            <li>
-                <a href="<% href /skins %>"
-                   class="<% matchPath ^/skin highlight %>">Skins</a>
-            </li>
-            <li>
-                <a href="<% href /upload %>"
-                   class="<% matchPath ^/upload highlight %>">File Upload</a>
-            </li>
-            <li>
-                <a href="<% href /storage/ %>"
-                   class="<% matchPath ^/storage highlight %>">Storage</a>
-            </li>
-            <li>
-                <a href="<% href /jsdoc %>"
-                   class="<% matchPath ^/jsdoc highlight %>">API Documentation</a>
-            </li>
-            <li>
-                <a href="<% href /testing %>"
-                   class="<% matchPath ^/testing highlight %>">Unit Testing</a>
-            </li>
-            <li>
-                <a href="<% href /logging %>"
-                   class="<% matchPath ^/logging highlight %>">Logging &amp; Profiling</a>
-            </li>
-        </ul>
+        <% render 'menu' %>
     </div>
     <div id="footer"><% footer %></div>
 </div>
@@ -59,3 +26,6 @@
 
 <% subskin 'content' %>
 Overwrite this subskin to add content.
+
+<% subskin 'menu' %>
+<% navigation %>

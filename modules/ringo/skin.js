@@ -27,7 +27,7 @@ function render(skinOrResource, context) {
         if (skinOrResource.indexOf('#') > -1) {
             [skinOrResource, subskin] = skinOrResource.split('#');
         }
-        var resource = getResource(skinOrResource);
+        var resource = this.getResource(skinOrResource);
         skin = createSkin(resource);
         if (subskin) {
             skin = skin.getSubskin(subskin);
@@ -62,8 +62,9 @@ function createSkin(resourceOrString) {
             if (macro.name === 'extends') {
                 var skinPath = macro.getParameter(0);
                 var skinResource;
-                if (resourceOrString.parentRepository) {
-                    skinResource = resourceOrString.parentRepository.getResource(skinPath);
+                var parentRepo = resourceOrString.parentRepository;
+                if (parentRepo && skinPath.startsWith(".")) {
+                    skinResource = parentRepo.getResource(skinPath);
                 }
                 if (!skinResource || !skinResource.exists()) {
                     skinResource = getResource(skinPath);
@@ -116,6 +117,7 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     this.renderSubskin = function renderSubskin(skinName, context) {
         if (!subSkins[skinName] && parentSkin) {
+            // TODO: should we support loading of external top level skins here?
             return renderInternal(parentSkin.getSkinParts(skinName), context);
         } else {
             return renderInternal(subSkins[skinName], context);
@@ -217,7 +219,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
     // builtin macro handlers
     var builtin = {
         "render": function(macro, context) {
-            var skin = getEvaluatedParameter(macro.getParameter(0), context, 'render:skin');
+            var skinName = macro.getParameter(0);
+            var skin = getEvaluatedParameter(skinName, context, 'render:skin');
             return skin == null ? "" : self.renderSubskin(skin, context);
         },
 
