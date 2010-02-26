@@ -4,8 +4,9 @@
  */
 
 var Server = require('ringo/httpserver').Server;
-var server;
+var server, options;
 var log = require('ringo/logging').getLogger(module.id);
+var fileutils = require('ringo/fileutils');
 
 export('init', 'start', 'stop', 'destroy', 'getServer');
 
@@ -22,16 +23,25 @@ parser.addOption("S", "staticMountpoint", "PATH", "The URI path where ot mount t
 
 function init() {
     log.info("init");
-    var options = parser.parse(Array.slice(arguments, 1), {
-        moduleName: "config",
-        functionName: "app",
+    options = parser.parse(Array.slice(arguments, 1), {
+        config: "config",
+        app: "app",
         port: 80
     });
+    options.moduleName = options.config;
+    options.functionName = options.app;
     server = new Server(options);
 }
 
 function start() {
     log.info("start");
+    var config = require(options.config);
+    if (Array.isArray(config.static)) {
+        config.static.forEach(function(spec) {
+            var dir = fileutils.resolveRelative(options.config, spec[1]);
+            server.addStaticResources(spec[0], null, dir);
+        });
+    }
     server.start();
 }
 
