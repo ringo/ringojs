@@ -1,8 +1,8 @@
 include('ringo/unittest');
 require('core/string');
 
-const DATE_FORMAT = 'MMM dd\',\' yyyy';
-const DATE = 'October 10, 2010';
+const DATE_FORMAT = 'MM\'/\'dd\'/\'yyyy';
+const DATE = '10/10/2010';
 const URL = 'http://ringojs.org/';
 const HEX_COLOR = 'd3d3d3';
 const FOO = 'foo';
@@ -19,6 +19,8 @@ exports.testToDate = function () {
     var date = DATE.toDate(DATE_FORMAT);
     assertTrue(date instanceof Date);
     assertEqual(new Date(DATE), date);
+    assertThrows(function () DATE.toDate(FOO), java.lang.
+            IllegalArgumentException); // Invalid date format.
 };
 
 exports.testIsUrl = function () {
