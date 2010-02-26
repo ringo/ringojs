@@ -1,15 +1,18 @@
 include('ringo/markdown');
 require('core/string');
+var file = require('file');
 
 exports.href_macro = function(tag) {
     var req = require('ringo/webapp/env').getRequest();
-    return req.rootPath + (tag.parameters[0] || '');
+    var link = tag.parameters[0] || '';
+    var appPath = req.path.substring(req.rootPath.length - 1);
+    return req.rootPath + file.resolve(req.appPath, link).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {
     var req = require('ringo/webapp/env').getRequest();
     if (req && req.path &&
-        req.path.substring(req.rootPath.length).match(tag.parameters[0])) {
+        req.path.substring(req.rootPath.length - 1).match(tag.parameters[0])) {
         return tag.parameters[1] || "match";
     }
 };
