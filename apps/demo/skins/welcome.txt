@@ -1,4 +1,4 @@
-<% extends 'base.html' %>
+<% extends 'skins/base.html' %>
 
 <% subskin 'content' | markdown %>
 **Welcome to the [RingoJS](http://ringojs.org) demo application.**
