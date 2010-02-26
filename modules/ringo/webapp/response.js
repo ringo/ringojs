@@ -19,7 +19,7 @@ function Response() {
     // missing new security belt
     if (!(this instanceof Response)) {
         var response = new Response();
-        response.write.apply(arguments);
+        response.write.apply(response, arguments);
         return response;
     }
 
@@ -195,7 +195,7 @@ function staticResponse(resource, contentType) {
         resource = getResource(resource);
     }
     if (!(resource instanceof org.ringojs.repository.Resource)) {
-        throw Error("Wrong argument for StaticResponse: " + typeof(resource));
+        throw Error("Wrong argument for staticResponse: " + typeof(resource));
     }
     if (!resource.exists()) {
         return notFoundResponse(String(resource));
