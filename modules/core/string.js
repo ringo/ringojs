@@ -58,19 +58,11 @@ Object.defineProperty(String.prototype, "isDateFormat", {
  */
 Object.defineProperty(String.prototype, "toDate", {
     value: function(format, timezone) {
-        var sdf = res.data._dateformat;
-        if (!sdf) {
-            sdf = new java.text.SimpleDateFormat(format);
-            res.data._dateformat = sdf;
-        } else if (format != sdf.toPattern())
-            sdf.applyPattern(format);
-        if (timezone && timezone != sdf.getTimeZone())
-            sdf.setTimeZone(timezone);
-        try {
-            return new Date(sdf.parse(this).getTime());
-        } catch (err) {
-            return null;
+        var simpleDateFormat = new java.text.SimpleDateFormat(format);
+        if (timezone && timezone != simpleDateFormat.getTimeZone()) {
+            simpleDateFormat.setTimeZone(timezone);
         }
+        return new Date(simpleDateFormat.parse(this).getTime());
     }, writable: true
 });
 
