@@ -9,6 +9,8 @@ exports.urls = [
 exports.middleware = [
     'ringo/middleware/etag',
     'ringo/middleware/responselog',
+    'ringo/middleware/error',
+    'ringo/middleware/notfound'
     // 'ringo/middleware/profiler'
 ];
 
