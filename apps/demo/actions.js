@@ -8,7 +8,7 @@ export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continua
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return skinResponse('./skins/welcome.txt', {title: 'Welcome to RingoJS'});
+    return skinResponse('./skins/welcome.txt', {title: 'RingoJS Demo'});
 }
 
 // additional path elements are passed to the action as arguments,
