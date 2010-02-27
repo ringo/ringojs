@@ -10,7 +10,8 @@ export('Response',
        'xmlResponse',
        'staticResponse',
        'redirectResponse',
-       'notFoundResponse');
+       'notFoundResponse',
+       'errorResponse');
 
 module.shared = true;
 
@@ -257,5 +258,18 @@ function notFoundResponse(location) {
                 '<body><h2>', msg, '</h2>',
                 '<p>The requested URL ', String(location), ' was not found on the server.</p>',
                 '</body></html>']
+    };
+}
+
+/**
+ * Create a 500 error response.
+ * @param {String} msg the message of response body
+ */
+function errorResponse(msg) {
+    return {
+        status: 500,
+        headers: {'Content-Type': 'text/plain'},
+        body: [typeof msg === 'undefined' ? 'Something went wrong.' :
+                String(msg)]
     };
 }
