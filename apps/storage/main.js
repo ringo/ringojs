@@ -49,7 +49,7 @@ function remove(req, id) {
 exports.books = function (req, resource) {
     if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource))
         return {status: 500, headers: {'Content-Type': 'text/plain'},
-            body: ['Invalid request; check URI.']}; // URI validation.
+                body: ['Invalid request; check URI.']}; // URI validation.
     var [id, type] = resource.split('.');
     var book = Book.get(id);
     if (!book) return notFoundResponse(req.path); // Respond w/ 404 page.
