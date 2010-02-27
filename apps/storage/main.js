@@ -45,6 +45,28 @@ function remove(req, id) {
     })
 }
 
+// Simple RESTFul API example.
+exports.books = function (req, resource) {
+    if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource)) { // Validate request.
+        return {status: 500, headers: {'Content-Type': 'text/plain'},
+                body: ['Invalid request.']};
+    }
+    var [id, type] = resource.split('.');
+    var book = Book.get(id);
+    if (!book) { // Respond w/ 404 page.
+        return notFoundResponse(req.path);
+    }
+    if (type == 'json') { // Respond w/ JSON rep.
+        return jsonResponse({author: book.author.name, title: book.title});
+    }
+    if (type == 'xml') { // Respond w/ XML rep.
+        return xmlResponse(<book>
+                               <author>{book.author.name}</author>
+                               <title>{book.title}</title>
+                           </book>);
+    }
+};
+
 function createBook(req) {
     var author = new Author({name: req.params.author});
     var book = new Book({author: author, title: req.params.title});
