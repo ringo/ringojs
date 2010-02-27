@@ -57,14 +57,14 @@ function parseFileUpload(env, params, encoding) {
             position = end = 0;
         }
         // read into buffer starting at index end
-        var read = input.readInto(buffer, end)
+        var read = input.readInto(buffer, end);
         if (read > -1) {
             end += read;
         } else {
             eof = true;
         }
         return read;
-    }
+    };
     refill();
     var boundaryPos = buffer.indexOf(boundary, position, end);
 
@@ -109,9 +109,9 @@ function parseFileUpload(env, params, encoding) {
         if (boundaryPos < 0) {
             // no terminating boundary found, slurp bytes and check for
             // partial boundary at buffer end which we know starts with "--".
-            var hyphen = buffer.indexOf(HYPHEN, end - boundary.length, end);
+            var hyphen = buffer.indexOf(HYPHEN, Math.max(position, end - boundary.length), end);
             var copyEnd =  (hyphen < 0) ? end : hyphen;
-            buffer.copy(data.value, position, copyEnd, data.value.length)
+            buffer.copy(data.value, position, copyEnd, data.value.length);
             position = copyEnd;
             if (!eof) {
                 refill();
