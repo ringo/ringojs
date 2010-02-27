@@ -47,7 +47,7 @@ function remove(req, id) {
 
 // Simple RESTFul API example.
 exports.books = function (req, resource) {
-    if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource)) { // Validate request.
+    if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource)) { // URI validation.
         return {status: 500, headers: {'Content-Type': 'text/plain'},
                 body: ['Invalid request.']};
     }
