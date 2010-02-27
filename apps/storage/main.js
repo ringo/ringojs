@@ -47,24 +47,18 @@ function remove(req, id) {
 
 // Simple RESTful API example.
 exports.books = function (req, resource) {
-    if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource)) { // URI validation.
+    if (!/^[1-9][0-9]*\.(json|xml)$/.test(resource))
         return {status: 500, headers: {'Content-Type': 'text/plain'},
-                body: ['Invalid request; check URI.']};
-    }
+            body: ['Invalid request; check URI.']}; // URI validation.
     var [id, type] = resource.split('.');
     var book = Book.get(id);
-    if (!book) { // Respond w/ 404 page.
-        return notFoundResponse(req.path);
-    }
-    if (type == 'json') { // Respond w/ JSON rep.
-        return jsonResponse({author: book.author.name, title: book.title});
-    }
-    if (type == 'xml') { // Respond w/ XML rep.
-        return xmlResponse(<book>
-                               <author>{book.author.name}</author>
-                               <title>{book.title}</title>
-                           </book>);
-    }
+    if (!book) return notFoundResponse(req.path); // Respond w/ 404 page.
+    if (type == 'json') return jsonResponse({author: book.author.name, title:
+            book.title}); // Respond w/ JSON rep.
+    return xmlResponse(<book>
+                           <author>{book.author.name}</author>
+                           <title>{book.title}</title>
+                       </book>); // Respond w/ XML rep.
 };
 
 function createBook(req) {
