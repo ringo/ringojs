@@ -135,4 +135,21 @@ public abstract class AbstractResource implements Resource {
     public void setStripShebang(boolean stripShebang) {
         this.stripShebang = stripShebang;
     }
+
+    /**
+     * Set this Resource to absolute mode. This will cause all its
+     * relative path operations to use absolute paths instead.
+     * @param absolute true to operate in absolute mode
+     */
+    public void setAbsolute(boolean absolute) {
+        repository.setAbsolute(absolute);
+    }
+
+    /**
+     * Return true if this Resource is in absolute mode.
+     * @return true if absolute mode is on
+     */
+    public boolean isAbsolute() {
+        return repository.isAbsolute();
+    }
 }

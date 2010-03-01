@@ -79,4 +79,17 @@ public interface Trackable extends Serializable {
      */
     public String getRelativePath();
 
+    /**
+     * Set this Trackable to absolute mode. This will cause all its 
+     * relative path operations to use absolute paths instead.
+     * @param absolute true to operate in absolute mode
+     */
+    public void setAbsolute(boolean absolute);
+
+    /**
+     * Return true if this Trackable is in absolute mode.
+     * @return true if absolute mode is on
+     */
+    public boolean isAbsolute();
+
 }

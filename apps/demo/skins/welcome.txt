@@ -1,21 +1,10 @@
 <% extends 'skins/base.html' %>
 
 <% subskin 'content' | markdown %>
-**Welcome to the [RingoJS](http://ringojs.org) demo application.**
-RingoJS is a Javascript runtime and web application framework running on
-the Java virtual machine. RingoJS consists of several components that can
-be used together or alone:
+This demo application showcases some of RingoJS' features.
+Click on the links on the right to start exploring. 
 
-  1. A compact JavaScript runtime environment based on Mozilla Rhino. It adds
-     to Rhino a reloading module system that is compatible to the ServerJS
-     Securable Module proposal.
+Note that some of the links in this demo still point to the
+old Helma NG site. We hope to fix this soon.
 
-  2. An interactive shell with support for autocompletion and history.
-
-  3. A module library implemented in JavaScript, covering basic functionality
-     such as extensions to the built-in objects, file I/O, logging, persistence,
-     client and server side HTTP support and more.
-
-This app shows some of the features in RingoJS. As the version number suggests,
-RingoJS is far from finished. Check [the RingoJS site](http://ringojs.org)
-regularly to keep up with development.
+Have fun!

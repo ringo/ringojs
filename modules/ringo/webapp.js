@@ -104,8 +104,6 @@ function resolveInConfig(req, config, configId) {
                 return res;
             } else if (Array.isArray(module.urls)) {
                 return resolveInConfig(req, module, moduleId);
-            } else {
-                log.error("Unable to resolve action for : " + action);
             }
         }
     }

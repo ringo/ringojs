@@ -42,16 +42,18 @@ public class FileRepository extends AbstractRepository {
 
     /**
      * Constructs a FileRepository using the given argument
-     * @param initArgs absolute path to the directory
+     * @param path absolute path to the directory
+     * @throws IOException if canonical path couldn't be resolved
      */
-    public FileRepository(String initArgs) throws IOException {
-        this(new File(initArgs), null);
+    public FileRepository(String path) throws IOException {
+        this(new File(path), null);
     }
 
     /**
      * Constructs a FileRepository using the given directory as top-level
      * repository
      * @param dir directory
+     * @throws IOException if canonical path couldn't be resolved
      */
     public FileRepository(File dir) throws IOException {
         this(dir, null);
@@ -62,6 +64,7 @@ public class FileRepository extends AbstractRepository {
      * repository
      * @param dir directory
      * @param parent top-level repository
+     * @throws IOException if canonical path couldn't be resolved
      */
     protected FileRepository(File dir, FileRepository parent) throws IOException {
         // make sure our directory has an absolute path,

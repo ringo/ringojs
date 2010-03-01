@@ -54,6 +54,11 @@ public abstract class AbstractRepository implements Repository {
     String name;
 
     /**
+     * Whether this repository uses an absolute path
+     */
+    private boolean isAbsolute = false;
+
+    /**
      * Called to create a child resource for this repository if it exists.
      * @param name the name of the child resource
      * @return the child resource, or null if no resource with the given name exists
@@ -94,12 +99,31 @@ public abstract class AbstractRepository implements Repository {
     }
 
     /**
+     * Set this Repository to absolute mode. This will cause all its
+     * relative path operations to use absolute paths instead.
+     * @param absolute true to operate in absolute mode
+     */
+    public void setAbsolute(boolean absolute) {
+        isAbsolute = absolute;
+    }
+
+    /**
+     * Return true if this Repository is in absolute mode.
+     * @return true if absolute mode is on
+     */
+    public boolean isAbsolute() {
+        return isAbsolute;
+    }
+
+    /**
      * Get the path of this repository relative to its root repository.
      *
      * @return the repository path
      */
     public String getRelativePath() {
-        if (parent == null) {
+        if (isAbsolute) {
+            return path;
+        } else if (parent == null) {
             return "";
         } else {
             StringBuffer b = new StringBuffer();
@@ -108,7 +132,7 @@ public abstract class AbstractRepository implements Repository {
         }
     }
 
-    protected void getRelativePath(StringBuffer buffer) {
+    private void getRelativePath(StringBuffer buffer) {
         if (parent != null) {
             parent.getRelativePath(buffer);
             buffer.append(name).append('/');
