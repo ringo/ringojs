@@ -114,11 +114,11 @@ function formatMessage(args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                "Script stack:",
-                utils.getScriptStack(arg).trim(),
-                "Java stack:",
+                "\nScript stack:\n",
+                utils.getScriptStack(arg),
+                "Java stack:\n",
                 utils.getJavaStack(arg)
-            ].join('\n');
+            ].join('');
         }
     }
     return message;
