@@ -8,7 +8,7 @@
  * containing any number of curly bracket pairs ({}), the logger will interpret
  * it as format string and use any following arguments to replace the curly
  * bracket pairs. If an argument is an Error or Java Exception object, the
- * logger will render a stack trace for it and append it to the log message.</p> 
+ * logger will render a stack trace for it and append it to the log message.</p>
  */
 
 require('core/string');
@@ -110,7 +110,6 @@ var getLogger = exports.getLogger = function(name) {
 
 function formatMessage(args) {
     var message = utils.format.apply(null, args);
-    x = Math.random();
     for each (var arg in args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
