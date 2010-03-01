@@ -67,7 +67,7 @@ function logging(req) {
         try {
             foo.bar.moo;
         } catch (e) {
-            log.error(e, e.rhinoException);
+            log.error(e);
         }
     } else if (req.params.profile) {
         // build and run a small profiler middleware stack
