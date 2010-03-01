@@ -99,6 +99,7 @@ function writeBody(response, body, charset) {
                 part = part.toByteString(charset);
             }
             output.write(part);
+            output.flush();
         };
         body.forEach(writer);
         if (typeof body.close == "function") {
@@ -109,7 +110,7 @@ function writeBody(response, body, charset) {
     }
 }
 
-function writeAsync(request, response, result, suspend) {
+function writeAsync(request, response, result) {
     var charset;
     var part = result.part;
     if (result.first) {
@@ -126,11 +127,6 @@ function writeAsync(request, response, result, suspend) {
     if (part.body) {
         writeBody(response, part.body, charset);
     }
-    var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
-    var continuation = ContinuationSupport.getContinuation(request);
-    if (!result.last && suspend) {
-        continuation.suspend();
-    }
 }
 
 function handleAsyncResponse(env, result) {
@@ -138,10 +134,11 @@ function handleAsyncResponse(env, result) {
     var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
     var request = env['jsgi.servlet_request'];
     var response = env['jsgi.servlet_response'];
-    var queue = new java.util.concurrent.ConcurrentLinkedQueue();
-    request.setAttribute('_ringo_response', queue);
+    //var queue = new java.util.concurrent.ConcurrentLinkedQueue();
+    //request.setAttribute('_ringo_response', queue);
     var continuation = ContinuationSupport.getContinuation(request);
     var first = true, handled = false;
+    
     var onFinish = function(part) {
         if (handled) return;
         var res = {
@@ -150,7 +147,7 @@ function handleAsyncResponse(env, result) {
             part: part
         };
         handled = true;
-        queue.offer(res);
+        //queue.offer(res);
         continuation.complete();
     };
     var onError = function(error) {
@@ -166,17 +163,20 @@ function handleAsyncResponse(env, result) {
         handled = true;
     };
     var onProgress = function(part) {
+        log.error('part is ' + part);
         if (handled) return;
         var res = {
             first: first,
             part: part
         };
         first = false;
-        queue.offer(res);
-        continuation.resume();
+        //queue.offer(res);
+        writeAsync(request, response, res, true);
+        //continuation.suspend();
     };
+    print ('handling async response, calling then');
     // TODO sync callbacks on queue once rhino supports this (bug 513682)
-    result.then(onFinish, onError, onProgress);
+    result.then(onFinish, onError, onProgress, doSuspend);
     if (!handled) {
         continuation.setTimeout(12000);
         continuation.suspend();

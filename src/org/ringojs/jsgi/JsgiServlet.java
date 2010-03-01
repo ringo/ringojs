@@ -91,31 +91,13 @@ public class JsgiServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             JsgiEnv env = new JsgiEnv(request, response);
-            // Check for async JSGI response
-            Queue asyncResponse = (Queue) request.getAttribute("_ringo_response");
-            if (asyncResponse != null) {
-                writeAsyncResponse(request, response, asyncResponse);
-            } else {
-                engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
-            }
+            engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
+            RingoRunner.reportError(x, System.err, false);
             throw new ServletException(x);
         } catch (Exception x) {
             RingoRunner.reportError(x, System.err, false);
-            throw(new ServletException(x));
-        }
-    }
-
-    private void writeAsyncResponse(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    Queue queue)
-            throws IOException, NoSuchMethodException {
-        synchronized (queue) {
-            Object part;
-            while((part = queue.poll()) != null) {
-                engine.invoke("ringo/jsgi", "writeAsync", request, response, part,
-                        Boolean.valueOf(queue.isEmpty()));
-            }
+            throw new ServletException(x);
         }
     }
 
