@@ -184,8 +184,8 @@ public class RingoConfiguration {
                 for (Repository repo : repositories) {
                     if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
                         // found a repository that contains main script - use it as base for module name
-                        script = repo.getResource(scriptPath.substring(repo.getPath().length()));
-                        mainResource = script;
+                        // reparent to make sure script resource is relative to parent                        
+                        mainResource = repo.getResource(scriptPath.substring(repo.getPath().length()));
                         return;
                     }
                 }
