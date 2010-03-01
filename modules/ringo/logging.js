@@ -1,11 +1,18 @@
 /**
- * @fileoverview This module provides generic logging support. It uses
+ * @fileoverview <p>This module provides generic logging support. It uses
  * <a href="http://logging.apache.org/log4j/">Apache log4j</a> by default,
  * but can be used with any Logging framework supported by
- * <a href="http://www.slf4j.org/">SLF4J</a>.
+ * <a href="http://www.slf4j.org/">SLF4J</a>.<p>
+ *
+ * <p>If the first argument passed to any of the logging methods is a string
+ * containing any number of curly bracket pairs ({}), the logger will interpret
+ * it as format string and use any following arguments to replace the curly
+ * bracket pairs. If an argument is an Error or Java Exception object, the
+ * logger will render a stack trace for it and append it to the log message.</p> 
  */
 
 require('core/string');
+var utils = require('ringo/utils');
 
 var LoggerFactory = org.slf4j.LoggerFactory;
 
@@ -28,23 +35,23 @@ function Logger(name) {
      * Log a debug message.
      */
     this.trace = function() {
-        log.trace.apply(log, arguments.map(String));
+        log.trace(formatMessage(arguments));
     };
 
     this.debug = function() {
-        log.debug.apply(log, arguments.map(String));
+        log.debug(formatMessage(arguments));
     };
 
     this.info = function() {
-        log.info.apply(log, arguments.map(String));
+        log.info(formatMessage(arguments));
     };
 
     this.warn = function() {
-        log.warn.apply(log, arguments.map(String));
+        log.warn(formatMessage(arguments));
     };
 
     this.error = function() {
-        log.error.apply(log, arguments.map(String));
+        log.error(formatMessage(arguments));
     };
 
     this.isTraceEnabled = function() {
@@ -100,4 +107,21 @@ var getLogger = exports.getLogger = function(name) {
     }
     return new Logger(name);
 };
+
+function formatMessage(args) {
+    var message = utils.format.apply(null, args);
+    x = Math.random();
+    for each (var arg in args) {
+        if (arg instanceof Error || arg instanceof java.lang.Throwable) {
+            message  = [
+                message,
+                "Script stack:",
+                utils.getScriptStack(arg).trim(),
+                "Java stack:",
+                utils.getJavaStack(arg)
+            ].join('\n');
+        }
+    }
+    return message;
+}
 
