@@ -691,13 +691,11 @@ public class RhinoEngine implements ScopeProvider {
         // we allow absolute module paths for resources
         File file = new File(path);
         if (file.isAbsolute()) {
-            return new FileResource(file);
-        } else if (localRoot != null && path.startsWith(".")) {
-            Resource res = findResource(localRoot.getRelativePath() + path, null);
-            if (!res.exists()) {
-                res = findResource(localRoot.getPath() + path, null);
-            }
+            Resource res = new FileResource(file);
+            res.setAbsolute(true);
             return res;
+        } else if (localRoot != null && path.startsWith(".")) {
+            return findResource(localRoot.getRelativePath() + path, null);
         } else {
             return config.getResource(path);
         }
