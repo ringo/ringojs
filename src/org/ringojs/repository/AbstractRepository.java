@@ -165,15 +165,20 @@ public abstract class AbstractRepository implements Repository {
      * for which {@link Resource exists()} returns <code>false<code>.
      */
     public synchronized Resource getResource(String path) throws IOException {
-        String[] ids = StringUtils.split(path, SEPARATOR);
-        if (ids.length == 1) {
+        int separator = findSeparator(path, 0);
+        if (separator < 0) {
             return lookupResource(path);
         }
         Repository repository = this;
-        for (int i = 0; i < ids.length - 1 && repository != null; i++) {
-            repository = repository.getChildRepository(ids[i]);
+        int last = 0;
+        while (separator > -1 && repository != null) {
+            String id = path.substring(last, separator);
+            repository = repository.getChildRepository(id);
+            last = separator + 1;
+            separator = findSeparator(path, last);
         }
-        return repository == null ? null : repository.getResource(ids[ids.length - 1]);
+        return repository == null ? null : repository.getResource(path.substring(last));
+    }
 
     /**
      * Get a child repository with the given name
@@ -244,6 +249,24 @@ public abstract class AbstractRepository implements Repository {
      */
     public String toString() {
         return getPath();
+    }
+
+    // Optimized separator lookup to avoid object creation overhead
+    // of StringTokenizer and friends on critical code
+    private int findSeparator(String path, int start) {
+        int max = path.length();
+        int numberOfSeparators = SEPARATOR.length();
+        int found = -1;
+        for (int i = 0; i < numberOfSeparators; i++) {
+            char c = SEPARATOR.charAt(i);
+            for (int j = start; j < max; j++) {
+                if (path.charAt(j) == c) {
+                    found = max = j;
+                    break;
+                }
+            }
+        }
+        return found;
     }
 
 }
