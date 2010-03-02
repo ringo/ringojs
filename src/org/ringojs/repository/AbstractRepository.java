@@ -19,7 +19,9 @@ package org.ringojs.repository;
 import org.ringojs.util.StringUtils;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides common methods and fields for the default implementations of the
@@ -36,12 +38,13 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Cache for direct child repositories
      */
-    Map<String, AbstractRepository> repositories = new WeakHashMap<String, AbstractRepository>();
+    Map<String, SoftReference<AbstractRepository>> repositories =
+            new ConcurrentHashMap<String, SoftReference<AbstractRepository>>();
 
     /**
      * Cache for direct resources
      */
-    Map<String, AbstractResource> resources = new WeakHashMap<String, AbstractResource>();
+    Map<String, AbstractResource> resources = new ConcurrentHashMap<String, AbstractResource>();
 
     /**
      * Cached name for faster access
@@ -65,6 +68,14 @@ public abstract class AbstractRepository implements Repository {
      * @throws IOException an I/O error occurred
      */
     protected abstract Resource lookupResource(String name) throws IOException;
+
+    /**
+     * Create a new child reposiotory with the given name.
+     * @param name the name
+     * @return the new child repository
+     * @throws IOException an I/O error occurred
+     */
+    protected abstract AbstractRepository createChildRepository(String name) throws IOException;
 
     /**
      * Add the repository's resources into the list, optionally descending into
@@ -163,6 +174,25 @@ public abstract class AbstractRepository implements Repository {
             repository = repository.getChildRepository(ids[i]);
         }
         return repository == null ? null : repository.getResource(ids[ids.length - 1]);
+
+    /**
+     * Get a child repository with the given name
+     * @param name the name of the repository
+     * @return the child repository
+     */
+    public AbstractRepository getChildRepository(String name) throws IOException {
+        if (".".equals(name)) {
+            return this;
+        } else if ("..".equals(name)) {
+            return getParentRepository();
+        }
+        SoftReference<AbstractRepository> ref = repositories.get(name);
+        AbstractRepository repo = ref == null ? null : ref.get();
+        if (repo == null) {
+            repo = createChildRepository(name);
+            repositories.put(name, new SoftReference<AbstractRepository>(repo));
+        }
+        return repo;
     }
 
     /**
