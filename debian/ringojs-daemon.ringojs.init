@@ -28,6 +28,9 @@ DESC="Ringo JavaScript runtime"
 DAEMON=/usr/bin/jsvc
 RINGO_HOME=/usr/share/$NAME
 DEFAULT=/etc/default/$NAME
+# direct both stdout and stderr to ringo-out.log
+RINGO_OUT=/var/log/ringojs/ringo-out.log
+RINGO_ERR="&1"
 # fix for Rhino on bootclasspath in OpenJDK
 RHINO_CLASSPATH=-Xbootclasspath/p:/usr/share/ringojs/lib/js.jar
 
@@ -137,7 +140,7 @@ case "$1" in
 		cd "$RINGO_BASE"
 
 		$DAEMON $RHINO_CLASSPATH -cp "$JSVC_CLASSPATH" \
-		    -user "$RINGO_USER" -outfile SYSLOG -errfile SYSLOG \
+		    -user "$RINGO_USER" -outfile "$RINGO_OUT" -errfile "$RINGO_ERR" \
 		    -pidfile "$RINGO_PID" $JAVA_OPTS "$BOOTSTRAP_CLASS" \
 		    $RINGO_OPTS "$RINGO_APPLICATION" $APPLICATION_OPTS
 
