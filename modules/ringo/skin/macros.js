@@ -6,7 +6,7 @@ exports.href_macro = function(tag) {
     var req = require('ringo/webapp/env').getRequest();
     var link = tag.parameters[0] || '';
     var appPath = req.path.substring(req.rootPath.length - 1);
-    return req.rootPath + file.resolve(req.appPath, link).slice(1);
+    return req.rootPath + file.resolve(appPath, link).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {
