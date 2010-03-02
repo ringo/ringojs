@@ -54,20 +54,6 @@ public class WebappRepository extends AbstractRepository {
         return exists == 1;
     }
 
-    public Repository getChildRepository(String name) {
-        if (".".equals(name)) {
-            return this;
-        } else if ("..".equals(name)) {
-            return getParentRepository();
-        }
-        AbstractRepository repo = repositories.get(name);
-        if (repo == null) {
-            repo = new WebappRepository(context, this, name);
-            repositories.put(name, repo);
-        }
-        return repo;
-    }
-
     public URL getUrl() throws MalformedURLException {
         return context.getResource(path);
     }
@@ -80,6 +66,10 @@ public class WebappRepository extends AbstractRepository {
             resources.put(name, res);
         }
         return res;
+    }
+
+    protected AbstractRepository createChildRepository(String name) {
+        return new WebappRepository(context, this, name);
     }
 
     protected void getResources(List<Resource> list, boolean recursive)
