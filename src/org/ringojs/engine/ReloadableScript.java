@@ -48,8 +48,7 @@ public class ReloadableScript {
     // true if module scope is shared
     Shared shared;
     // the compiled script
-    // SoftReference<Script> scriptref;
-    static ScriptCache cache = new ScriptCache();
+    ScriptReference scriptref;
     // any exception that may have been thrown during compilation.
     // we keep this around in order to be able to rethrow without trying
     // to recompile if the underlying resource or repository hasn't changed
@@ -59,6 +58,8 @@ public class ReloadableScript {
     ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
+    // the static script cache
+    static ScriptCache cache = new ScriptCache();
 
     private enum Shared {
         UNKNOWN, FALSE, TRUE
@@ -88,7 +89,9 @@ public class ReloadableScript {
      */
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
-        ScriptReference scriptref = cache.get(source); // scriptref == null ? null : scriptref.get();
+        if (scriptref == null) {
+            scriptref = cache.get(source);
+        }
         Script script = scriptref == null ? null : scriptref.get();
         if (script == null || scriptref.checksum != source.getChecksum()) {
             shared = Shared.UNKNOWN;
@@ -101,7 +104,7 @@ public class ReloadableScript {
             } else {
                 script = getSimpleScript(cx);
             }
-            cache.put(source, script, this); // scriptref = new SoftReference<Script>(script);
+            cache.put(source, script, this);
         } else {
             checksum = scriptref.checksum;
             errors = scriptref.errors;
