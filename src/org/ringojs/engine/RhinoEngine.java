@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -72,9 +73,9 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        this.compiledScripts = new HashMap<Trackable, ReloadableScript>();
-        this.interpretedScripts = new HashMap<Trackable, ReloadableScript>();
-        this.sharedScripts = new HashMap<Trackable, ReloadableScript>();
+        this.compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        this.interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        this.sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         this.contextFactory = new RingoContextFactory(this, config);
         this.repositories = config.getRepositories();
         if (repositories.isEmpty()) {
