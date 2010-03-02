@@ -19,6 +19,8 @@ var LoggerFactory = org.slf4j.LoggerFactory;
 module.shared = true;
 var configured = false;
 
+var interceptors = new java.lang.ThreadLocal();
+
 /**
  * Logger class. This constructor is not exported, use this module's
  * {@link getLogger} to get a logger instance. 
@@ -35,23 +37,43 @@ function Logger(name) {
      * Log a debug message.
      */
     this.trace = function() {
-        log.trace(formatMessage(arguments));
+        if (log.isTraceEnabled()) {
+            var msg = formatMessage(arguments);
+            log.trace(msg);
+            intercept("TRACE", log, msg);
+        }
     };
 
     this.debug = function() {
-        log.debug(formatMessage(arguments));
+        if (log.isDebugEnabled()) {
+            var msg = formatMessage(arguments);
+            log.debug(msg);
+            intercept("DEBUG", log, msg);
+        }
     };
 
     this.info = function() {
-        log.info(formatMessage(arguments));
+        if (log.isInfoEnabled()) {
+            var msg = formatMessage(arguments);
+            log.info(msg);
+            intercept("INFO", log, msg);
+        }
     };
 
     this.warn = function() {
-        log.warn(formatMessage(arguments));
+        if (log.isWarnEnabled()) {
+            var msg = formatMessage(arguments);
+            log.warn(msg);
+            intercept("WARN", log, msg);
+        }
     };
 
     this.error = function() {
-        log.error(formatMessage(arguments));
+        if (log.isErrorEnabled()) {
+            var msg = formatMessage(arguments);
+            log.error(msg);
+            intercept("ERROR", log, msg);
+        }
     };
 
     this.isTraceEnabled = function() {
@@ -96,7 +118,7 @@ var setConfig = exports.setConfig = function(resource) {
 };
 
 /**
- * Get a logger for the given name. 
+ * Get a logger for the given name.
  * @param {string} name the name of the logger
  * @returns {Logger} a logger instance for the given name
  */
@@ -107,6 +129,30 @@ var getLogger = exports.getLogger = function(name) {
     }
     return new Logger(name);
 };
+
+/**
+ * Use array as log message interceptor for the current thread.
+ * @param array an array
+ */
+exports.setInterceptor = function(array) {
+    interceptors.set(array);
+};
+
+/**
+ * Return the log message interceptor for the current thread,
+ * or null if none is set.
+ * @return the interceptor array
+ */
+exports.getInterceptor = function() {
+    return interceptors.get();
+}
+
+function intercept(level, log, message) {
+    var interceptor = interceptors.get();
+    if (interceptor) {
+        interceptor.push([Date.now(), level, log.getName(), message]);
+    }
+}
 
 function formatMessage(args) {
     var message = utils.format.apply(null, args);
