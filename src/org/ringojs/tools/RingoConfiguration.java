@@ -47,7 +47,6 @@ public class RingoConfiguration {
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
-    private RingoClassLoader loader;
     private ClassShutter classShutter = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
