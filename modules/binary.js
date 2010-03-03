@@ -115,10 +115,19 @@ Object.defineProperty(ByteArray.prototype, 'pop', {
 
 Object.defineProperty(ByteArray.prototype, 'push', {
     value: function() {
-        for (var i = 0; i < arguments.length; i++) {
-            this[this.length] = arguments[i];
-        }
-        return this.length;
+        return Array.prototype.push.apply(this, arguments);
+    }
+});
+
+Object.defineProperty(ByteArray.prototype, 'shift', {
+    value: function() {
+        return Array.shift(this);
+    }
+});
+
+Object.defineProperty(ByteArray.prototype, 'unshift', {
+    value: function() {
+        return Array.prototype.unshift.apply(this, arguments);
     }
 });
 
