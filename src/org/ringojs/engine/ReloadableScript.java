@@ -25,10 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.security.CodeSource;
 import java.security.CodeSigner;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class represents a JavaScript Resource.
@@ -46,7 +48,7 @@ public class ReloadableScript {
     // true if module scope is shared
     Shared shared;
     // the compiled script
-    SoftReference<Script> scriptref;
+    ScriptReference scriptref;
     // any exception that may have been thrown during compilation.
     // we keep this around in order to be able to rethrow without trying
     // to recompile if the underlying resource or repository hasn't changed
@@ -56,6 +58,8 @@ public class ReloadableScript {
     ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
+    // the static script cache
+    static ScriptCache cache = new ScriptCache();
 
     private enum Shared {
         UNKNOWN, FALSE, TRUE
@@ -85,22 +89,28 @@ public class ReloadableScript {
      */
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
+        if (scriptref == null) {
+            scriptref = cache.get(source);
+        }
         Script script = scriptref == null ? null : scriptref.get();
-        if (script == null || !isUpToDate()) {
+        if (script == null || scriptref.checksum != source.getChecksum()) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
             }
             exception = null;
-            errors = new ArrayList<SyntaxError>();
             if (source instanceof Repository) {
                 script = getComposedScript(cx);
             } else {
                 script = getSimpleScript(cx);
             }
-            scriptref = new SoftReference<Script>(script);
+            cache.put(source, script, this);
+        } else {
+            checksum = scriptref.checksum;
+            errors = scriptref.errors;
+            exception = scriptref.exception;
         }
-        if (!errors.isEmpty()) {
+        if (errors != null && !errors.isEmpty()) {
             RhinoEngine.errors.get().addAll(errors);
         }
         if (exception != null) {
@@ -190,8 +200,7 @@ public class ReloadableScript {
     public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Trackable,Scriptable> modules =
-                (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        Map<Trackable,ModuleScope> modules = RhinoEngine.modules.get();
         ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
@@ -217,8 +226,7 @@ public class ReloadableScript {
     protected ModuleScope load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<Trackable,ModuleScope> modules =
-                (Map<Trackable,ModuleScope>) cx.getThreadLocal("modules");
+        Map<Trackable, ModuleScope> modules = RhinoEngine.modules.get();
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
@@ -409,6 +417,9 @@ public class ReloadableScript {
 
         public void error(String message, String sourceName,
                           int line, String lineSource, int lineOffset) {
+            if (errors == null) {
+                errors = new ArrayList<SyntaxError>();
+            }
             errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
             String error = "SyntaxError";
             if (message.startsWith("TypeError: ")) {
@@ -424,6 +435,46 @@ public class ReloadableScript {
         public EvaluatorException runtimeError(String message, String sourceName,
                                                int line, String lineSource, int lineOffset) {
             return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
+        }
+    }
+
+    static class ScriptReference extends SoftReference<Script> {
+        Trackable source;
+        long checksum;
+        List<SyntaxError> errors;
+        Exception exception;
+
+
+        ScriptReference(Trackable source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
+                throws IOException {
+            super(script, queue);
+            this.source = source;
+            this.checksum = rescript.checksum;
+            this.errors = rescript.errors;
+            this.exception = rescript.exception;
+        }
+    }
+
+    static class ScriptCache {
+        ConcurrentHashMap<Trackable, ScriptReference> map;
+        ReferenceQueue<Script> queue;
+
+        ScriptCache() {
+            map = new ConcurrentHashMap<Trackable, ScriptReference>();
+            queue = new ReferenceQueue<Script>();
+        }
+
+        ScriptReference get(Trackable source) {
+            ScriptReference ref;
+            while((ref = (ScriptReference) queue.poll()) != null) {
+                map.remove(ref.source);
+            }
+            return map.get(source);
+        }
+
+        void put(Trackable source, Script script, ReloadableScript rescript)
+                throws IOException {
+            map.put(source, new ScriptReference(source, script, rescript, queue));
         }
     }
 

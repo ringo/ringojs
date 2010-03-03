@@ -172,23 +172,8 @@ public final class ZipRepository extends AbstractRepository {
         return exists;
     }
 
-    /**
-     * Get a child repository with the given name
-     * @param name the name of the repository
-     * @return the child repository
-     */
-    public AbstractRepository getChildRepository(String name) throws IOException {
-        if (".".equals(name)) {
-            return this;
-        } else if ("..".equals(name)) {
-            return getParentRepository();
-        }
-        AbstractRepository repo = repositories.get(name);
-        if (repo == null) {
-            repo = new ZipRepository(file, this, getChildName(name));
-            repositories.put(name, repo);
-        }
-        return repo;
+    protected AbstractRepository createChildRepository(String name) throws IOException {
+        return new ZipRepository(file, this, getChildName(name));
     }
 
     protected void getResources(List<Resource> list, boolean recursive)

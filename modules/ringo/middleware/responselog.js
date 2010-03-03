@@ -1,8 +1,9 @@
-include('ringo/engine');
-include('ringo/buffer');
-include('ringo/webapp/util');
+require('core/number');
+var Buffer = require('ringo/buffer').Buffer;
+var logging = require('ringo/logging');
+var utils = require('ringo/utils');
+var {Headers, ResponseFilter} = require('ringo/webapp/util');
 
-var Logger = org.apache.log4j.Logger;
 var responseLogEnabled = true;
 
 /**
@@ -10,22 +11,18 @@ var responseLogEnabled = true;
  */
 exports.middleware = function(app) {
     return function(env) {
-        var appender;
-
-        if (!responseLogEnabled || !(appender = Logger.getRootLogger().getAppender("rhino"))) {
+        if (!responseLogEnabled) {
             return app(env);
         }
 
         var messages = [];
-        appender.callback = function(level, message, scriptStack, javaStack) {
-            messages.push([level, message, scriptStack, javaStack]);
-        };
-
         var res;
+        var start = Date.now();
         try {
+            logging.setInterceptor(messages);
             res = app(env);
         } finally {
-            appender.callback = null;
+            logging.setInterceptor(null);
         }
 
         var {status, headers, body} = res;
@@ -37,57 +34,48 @@ exports.middleware = function(app) {
         }
 
         if (messages.length > 0) {
-            var ResponseFilter = require("ringo/webapp/util").ResponseFilter;
             res.body = new ResponseFilter(body, function(part) {
                 if (typeof part != "string" || part.lastIndexOf("</body>") == -1) {
                     return part;
                 }
-                return injectMessages(part, messages);
+                return injectMessages(part, messages, start);
             });
         }
         return res;
     }
 }
 
-function injectMessages(part, messages) {
+function injectMessages(part, messages, start) {
     var buffer = new Buffer();
     for (var i = 0; i < messages.length; i++) {
-        appendMessage(buffer, messages[i]);
+        appendMessage(buffer, messages[i], start);
     }
     var insert = part.lastIndexOf("</body>");
     return part.substring(0, insert) + buffer + part.substring(insert);
 }
 
-function appendMessage(buffer, item) {
-    var [level, message, jsstack, javastack] = item;
+function appendMessage(buffer, item, start) {
+    var [time, level, name, message] = item;
     var multiline = message
             && (message.trim().indexOf('\n') > 0 || message.indexOf('\r')> 0);
-    var bgcolor = colors[level.toString()] || '#fff';
+    var bgcolor = colors[level] || '#fff';
     buffer.write("<div class='ringo-debug-line' style='background:", bgcolor,
                  "; color: black; border-top: 1px solid black; clear: both;'>");
+    var timePassed = (time - start).format("00000");
+    var formatted = utils.format("{} [{}] {}: {}", timePassed, level, name, message);
     if (multiline) {
-        buffer.write("<pre>", message, "</pre>");
+        buffer.write("<pre>", formatted, "</pre>");
     } else {
-        buffer.write(message);
+        buffer.write(formatted);
     }
-    appendStackTrace(buffer, "Script Stack", jsstack);
-    appendStackTrace(buffer, "Java Stack", javastack);
     buffer.writeln("</div>");
 }
 
-function appendStackTrace(buffer, header, stack) {
-    if (stack) {
-        buffer.write("<h4 style='padding-left: 8px; margin: 4px;'>");
-        buffer.write(header);
-        buffer.write("</h4>");
-        buffer.write("<pre style='margin: 0;'>", stack, "</pre>");
-    }
-}
-
 var colors = {
+    TRACE: '#fff',
     DEBUG: '#fff',
     INFO: '#ff6',
     WARN: '#ff0',
     ERROR: '#f90',
     FATAL: '#f30'
-}
+};

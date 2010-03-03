@@ -108,6 +108,7 @@ public class RingoRunner {
             config.setOptLevel(optlevel);
             config.setBootstrapScripts(bootScripts);
             config.setDebug(debug);
+            config.setVerbose(verbose);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -137,7 +138,7 @@ public class RingoRunner {
                         // System.console() not available
                     }
                 }
-                new RingoShell(config, engine, history, verbose, silent).run();
+                new RingoShell(config, engine, history, silent).run();
             }
         } catch (Exception x) {
             reportError(x, err, verbose);

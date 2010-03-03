@@ -90,7 +90,7 @@ public class RingoGlobal extends Global {
         if (!(arg instanceof Class)) {
             throw Context.reportRuntimeError("defineClass() requires a class argument");
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        RhinoEngine engine = RhinoEngine.engines.get();
         engine.defineHostClass((Class) arg);
     }
 
@@ -99,7 +99,7 @@ public class RingoGlobal extends Global {
         if (args.length != 1 || !(args[0] instanceof String)) {
             throw Context.reportRuntimeError("require() requires a string argument");
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        RhinoEngine engine = RhinoEngine.engines.get();
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
@@ -115,7 +115,7 @@ public class RingoGlobal extends Global {
         if (args.length != 1 || !(args[0] instanceof String)) {
             throw Context.reportRuntimeError("getResource() requires a string argument");
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        RhinoEngine engine = RhinoEngine.engines.get();
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
@@ -132,7 +132,7 @@ public class RingoGlobal extends Global {
         if (args.length != 1 || !(args[0] instanceof String)) {
             throw Context.reportRuntimeError("getResource() requires a string argument");
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        RhinoEngine engine = RhinoEngine.engines.get();
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
@@ -149,7 +149,7 @@ public class RingoGlobal extends Global {
         if (args.length != 1 || !(args[0] instanceof String)) {
             throw Context.reportRuntimeError("addToClasspath() requires a string argument");
         }
-        RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+        RhinoEngine engine = RhinoEngine.engines.get();
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
@@ -199,7 +199,7 @@ public class RingoGlobal extends Global {
     public static Object getMain(Scriptable thisObj) {
         try {
             Context cx = Context.getCurrentContext();
-            RhinoEngine engine = (RhinoEngine) cx.getThreadLocal("engine");
+            RhinoEngine engine = RhinoEngine.engines.get();
             ModuleScope main = engine.getMainModuleScope();
             return main != null ? main.getMetaObject() : Undefined.instance;
         } catch (Exception x) {

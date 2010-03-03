@@ -67,8 +67,8 @@ public class RingoContextFactory extends ContextFactory {
     @Override
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
-        cx.putThreadLocal("engine", engine);
-        cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
+        RhinoEngine.engines.set(engine);
+        RhinoEngine.modules.set(new HashMap<Trackable, ModuleScope>());
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);
@@ -88,9 +88,9 @@ public class RingoContextFactory extends ContextFactory {
     @Override
     protected void onContextReleased(Context cx) {
         super.onContextReleased(cx);
-        cx.removeThreadLocal("engine");
-        cx.removeThreadLocal("modules");
-        cx.removeThreadLocal("errors");
+        RhinoEngine.engines.set(null);
+        RhinoEngine.modules.set(null);
+        RhinoEngine.errors.set(null);
     }
 
     /**

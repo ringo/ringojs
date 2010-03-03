@@ -92,24 +92,13 @@ public class FileRepository extends AbstractRepository {
     }
 
     /**
-     * Get a child repository with the given name
-     *
+     * Create a child repository with the given name
      * @param name the name of the repository
      * @return the child repository
      */
-    public Repository getChildRepository(String name) throws IOException {
-        if (".".equals(name)) {
-            return this;
-        } else if ("..".equals(name)) {
-            return getParentRepository();
-        }
-        AbstractRepository child = repositories.get(name);
-        if (child == null) {
-            File f = new File(directory, name);
-            child = new FileRepository(f, this);
-            repositories.put(name, child);
-        }
-        return child;
+    public AbstractRepository createChildRepository(String name) throws IOException {
+        File f = new File(directory, name);
+        return new FileRepository(f, this);
     }
 
     /**

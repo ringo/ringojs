@@ -182,7 +182,7 @@ function getRhinoContext() {
  * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
-    return getRhinoContext().getThreadLocal("engine");
+    return org.ringojs.engine.RhinoEngine.getEngine();
 }
 
 /**

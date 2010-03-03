@@ -44,10 +44,10 @@ public class RingoConfiguration {
     private String[] arguments;
     private int optimizationLevel = 0;
     private boolean debug = false;
+    private boolean verbose = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
-    private RingoClassLoader loader;
     private ClassShutter classShutter = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
@@ -294,6 +294,14 @@ public class RingoConfiguration {
         if (debug) {
             setOptLevel(-1);
         }
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     /**
