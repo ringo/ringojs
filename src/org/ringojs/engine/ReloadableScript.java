@@ -200,8 +200,7 @@ public class ReloadableScript {
     public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Trackable,Scriptable> modules =
-                (Map<Trackable,Scriptable>) cx.getThreadLocal("modules");
+        Map<Trackable,ModuleScope> modules = RhinoEngine.modules.get();
         ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
@@ -227,8 +226,7 @@ public class ReloadableScript {
     protected ModuleScope load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<Trackable,ModuleScope> modules =
-                (Map<Trackable,ModuleScope>) cx.getThreadLocal("modules");
+        Map<Trackable, ModuleScope> modules = RhinoEngine.modules.get();
         if (modules.containsKey(source)) {
             return modules.get(source);
         }

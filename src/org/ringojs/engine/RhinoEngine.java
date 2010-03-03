@@ -60,6 +60,9 @@ public class RhinoEngine implements ScopeProvider {
     public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 3));
 
     public static ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
+    static ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
+    static ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
+    static ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
 
     private Logger log = LoggerFactory.getLogger("org.ringojs.javascript.RhinoEngine");
 
@@ -90,7 +93,7 @@ public class RhinoEngine implements ScopeProvider {
         }
         // create a new global scope level
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
@@ -122,7 +125,7 @@ public class RhinoEngine implements ScopeProvider {
             }
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
+            resetThreadLocals(threadLocals);
         }
     }
 
@@ -158,7 +161,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object runScript(Object scriptResource, String... scriptArgs)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         Resource resource;
         if (scriptResource instanceof Resource) {
             resource = (Resource) scriptResource;
@@ -179,8 +182,8 @@ public class RhinoEngine implements ScopeProvider {
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
-        }   	
+            resetThreadLocals(threadLocals);
+        }
     }
 
     /**
@@ -194,7 +197,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object evaluateExpression(String expr)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         cx.setOptimizationLevel(-1);
         try {
             Object retval;
@@ -205,7 +208,7 @@ public class RhinoEngine implements ScopeProvider {
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
+            resetThreadLocals(threadLocals);
         }
     }
 
@@ -224,7 +227,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object invoke(Object module, String method, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         try {
             initArguments(args);
             if (!(module instanceof String) && !(module instanceof Scriptable)) {
@@ -245,13 +248,13 @@ public class RhinoEngine implements ScopeProvider {
                     Scriptable thrown = jsx.getValue() instanceof Scriptable ?
                             (Scriptable) jsx.getValue() : null;
                     if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
-                        ((Map) cx.getThreadLocal("modules")).clear();
+                        modules.get().clear();
                     } else {
                         throw jsx;
                     }
                 } catch (RetryException retry) {
                     // request to try again
-                    ((Map) cx.getThreadLocal("modules")).clear();
+                    modules.get().clear();
                 }
             }
             if (retval instanceof Wrapper) {
@@ -260,7 +263,7 @@ public class RhinoEngine implements ScopeProvider {
             return retval;
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
+            resetThreadLocals(threadLocals);
         }
     }
 
@@ -268,7 +271,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object invoke(Callable callable, Object... args)
             throws IOException, NoSuchMethodException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         try {
             initArguments(args);
             Object retval;
@@ -280,13 +283,13 @@ public class RhinoEngine implements ScopeProvider {
                     Scriptable thrown = jsx.getValue() instanceof Scriptable ?
                             (Scriptable) jsx.getValue() : null;
                     if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
-                        ((Map) cx.getThreadLocal("modules")).clear();
+                        modules.get().clear();
                     } else {
                         throw jsx;
                     }
                 } catch (RetryException retry) {
                     // request to try again
-                    ((Map) cx.getThreadLocal("modules")).clear();
+                    modules.get().clear();
                 }
             }
             if (retval instanceof Wrapper) {
@@ -295,7 +298,7 @@ public class RhinoEngine implements ScopeProvider {
             return retval;
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
+            resetThreadLocals(threadLocals);
         }
     }
 
@@ -306,7 +309,7 @@ public class RhinoEngine implements ScopeProvider {
      */
     public Scriptable getShellScope() throws IOException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals(cx);
+        Object[] threadLocals = checkThreadLocals();
         try {
             Repository repository = repositories.get(0);
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
@@ -319,7 +322,7 @@ public class RhinoEngine implements ScopeProvider {
             return scope;
         } finally {
             Context.exit();
-            resetThreadLocals(cx, threadLocals);
+            resetThreadLocals(threadLocals);
         }
     }
 
@@ -452,15 +455,15 @@ public class RhinoEngine implements ScopeProvider {
     protected Object evaluateScript(Context cx, ReloadableScript script, Scriptable scope)
             throws IOException {
         Object result;
-        ReloadableScript parent = getCurrentScript(cx);
+        ReloadableScript parent = currentScripts.get();
         try {
-            setCurrentScript(cx, script);
+            currentScripts.set(script);
             result = script.evaluate(scope, cx);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
             }
-            setCurrentScript(cx, parent);
+            currentScripts.set(parent);
         }
         return result;
 
@@ -493,15 +496,15 @@ public class RhinoEngine implements ScopeProvider {
         Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
         ModuleScope module;
-        ReloadableScript parent = getCurrentScript(cx);
+        ReloadableScript parent = currentScripts.get();
         try {
-            setCurrentScript(cx, script);
+            currentScripts.set(script);
             module = script.load(globalScope, cx);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
             }
-            setCurrentScript(cx, parent);
+            currentScripts.set(parent);
         }
         return module;
     }
@@ -535,6 +538,14 @@ public class RhinoEngine implements ScopeProvider {
             System.arraycopy(args, 0, array, 0, args.length);
             return array;
         }
+    }
+
+    /**
+     * Get the currently active RhinoEngine instance.
+     * @return the current RhinoEngine
+     */
+    public static RhinoEngine getEngine() {
+        return engines.get();
     }
 
     /**
@@ -580,33 +591,24 @@ public class RhinoEngine implements ScopeProvider {
                 interpretedScripts : compiledScripts;
     }
 
-    // helpers for script dependency tracking
-    private ReloadableScript getCurrentScript(Context cx) {
-        return (ReloadableScript) cx.getThreadLocal("current_script");
-    }
-
-    private void setCurrentScript(Context cx, ReloadableScript script) {
-        cx.putThreadLocal("current_script", script);
-    }
-
     // helpers for multi-engine isolation and sandboxing
-    private Object[] checkThreadLocals(Context cx) {
-        if (cx.getThreadLocal("engine") == this) {
+    private Object[] checkThreadLocals() {
+        if (engines.get() == this) {
             return null;
         }
         Object[] retval = new Object[] {
-            cx.getThreadLocal("engine"),
-            cx.getThreadLocal("modules")
+            engines.get(),
+            modules.get()
         };
-        cx.putThreadLocal("engine", this);
-        cx.putThreadLocal("modules", new HashMap<Trackable, Scriptable>());
+        engines.set(this);
+        modules.set(new HashMap<Trackable, ModuleScope>());
         return retval;
     }
 
-    private void resetThreadLocals(Context cx, Object[] objs) {
+    private void resetThreadLocals(Object[] objs) {
         if (objs != null) {
-            cx.putThreadLocal("engine", objs[0]);
-            cx.putThreadLocal("modules", objs[1]);
+            engines.set((RhinoEngine) objs[0]);
+            modules.set((Map<Trackable, ModuleScope>) objs[1]);
         }
     }
 
