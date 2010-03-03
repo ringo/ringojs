@@ -59,10 +59,10 @@ public class RhinoEngine implements ScopeProvider {
     public static final Object[] EMPTY_ARGS = new Object[0];
     public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 3));
 
-    public static ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
-    static ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
-    static ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
-    static ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
+    public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
+    static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
+    static final ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
+    static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
 
     private Logger log = LoggerFactory.getLogger("org.ringojs.javascript.RhinoEngine");
 
