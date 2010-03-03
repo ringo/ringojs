@@ -1,4 +1,3 @@
-require('binary');
 
 defineClass(org.ringojs.wrappers.Stream);
 /**
@@ -36,15 +35,15 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 
     this.readable = function() {
        return io.readable();
-    }
+    };
 
     this.writable = function() {
         return io.writable();
-    }
+    };
 
     this.seekable = function() {
         return false;
-    }
+    };
 
     this.readLine = function () {
         var line = reader.readLine();
