@@ -44,6 +44,7 @@ public class RingoConfiguration {
     private String[] arguments;
     private int optimizationLevel = 0;
     private boolean debug = false;
+    private boolean verbose = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
     private Class<?>[] hostClasses = null;
@@ -293,6 +294,14 @@ public class RingoConfiguration {
         if (debug) {
             setOptLevel(-1);
         }
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     /**

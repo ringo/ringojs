@@ -42,19 +42,17 @@ public class RingoShell {
     RingoConfiguration config;
     RhinoEngine engine;
     Scriptable scope;
-    boolean verbose;
     boolean silent;
     File history;
     CodeSource codeSource = null;
 
     public RingoShell(RingoConfiguration config, RhinoEngine engine,
-                      File history, boolean verbose, boolean silent)
+                      File history, boolean silent)
             throws IOException {
         this.config = config;
         this.engine = engine;
         this.history = history;
     	this.scope = engine.getShellScope();
-        this.verbose = verbose;
         this.silent = silent;
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
@@ -109,7 +107,7 @@ public class RingoShell {
                 out.flush();
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.out, verbose);
+                RingoRunner.reportError(ex, System.out, config.isVerbose());
             } finally {
                 Context.exit();
             }
@@ -140,7 +138,7 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.err, verbose);
+                RingoRunner.reportError(ex, System.err, config.isVerbose());
             } finally {
                 Context.exit();
             }
