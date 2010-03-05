@@ -36,14 +36,6 @@ export('canonical',
        'changeGroup',
        'permissions');
 
-// For dev.
-var adOptionalAttr = [ // These functions are marked as optional in spec.
-    'getAttribute',
-    'setAttribute',
-    'removeAttribute',
-    'listAttributeNames'
-];
-
 var File = java.io.File,
     FileInputStream = java.io.FileInputStream,
     FileOutputStream = java.io.FileOutputStream;
@@ -243,12 +235,16 @@ function changePermissions(path, permissions) {
     // TODO: impl.
 }
 
-function changeOwner(path, name) {
-    // TODO: impl.
+// Supports user name string as well as uid int input.
+function changeOwner(path, user) {
+    return POSIX.chown(path, typeof user === 'string' ?
+            POSIX.getpwnam(user).pw_uid : user, -1);
 }
 
-function changeGroup(path, name) {
-    // TODO: impl.
+// Supports group name string as well as gid int input.
+function changeGroup(path, group) {
+    return POSIX.chown(path, -1, typeof group === 'string' ?
+            POSIX.getgrnam(group).gr_gid : group);
 }
 
 // Adapted from Narwhal.
