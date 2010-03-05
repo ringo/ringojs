@@ -227,6 +227,17 @@ Permissions.prototype.update = function(permissions) {
     }
 };
 
+Permissions.prototype.toNumber = function() {
+    var result = 0;
+    for each (var user in ['owner', 'group', 'other']) {
+        for each (var perm in ['read', 'write', 'execute']) {
+            result <<= 1;
+            result |= +this[user][perm];
+        }
+    }
+    return result;
+};
+
 try {
     // FIXME: no way to get umask without setting it?
     var umask = POSIX.umask(0022);
@@ -264,7 +275,12 @@ function group(path) {
 }
 
 function changePermissions(path, permissions) {
-    // TODO: impl.
+    permissions = new Permissions(permissions);
+    var stat = POSIX.stat(path);
+    // do not overwrite set-UID bits etc
+    var preservedBits = stat.mode() & 07000;
+    var newBits = permissions.toNumber();
+    POSIX.chmod(path, preservedBits | newBits);
 }
 
 // Supports user name string as well as uid int input.
