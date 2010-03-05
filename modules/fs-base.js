@@ -154,15 +154,32 @@ function isDirectory(path) {
 }
 
 function isLink(target) {
-    // TODO: impl.
+    try {
+        var stat = POSIX.lstat(target);
+        return stat.isSymlink();
+    } catch (error) {
+        return false;
+    }
 }
 
 function same(pathA, pathB) {
-    // TODO: impl.
+    try {
+        var stat1 = POSIX.stat(pathA);
+        var stat2 = POSIX.stat(pathB);
+        return stat1.isIdentical(stat2);
+    } catch (error) {
+        return false;
+    }
 }
 
 function sameFilesystem(pathA, pathB) {
-    // TODO: impl.
+    try {
+        var stat1 = POSIX.stat(pathA);
+        var stat2 = POSIX.stat(pathB);
+        return stat1.dev() == stat2.dev();
+    } catch (error) {
+        return false;
+    }
 }
 
 function canonical(path) {
@@ -203,11 +220,23 @@ function permissions(path) {
 }
 
 function owner(path) {
-    // TODO: impl.
+    try {
+        var uid = POSIX.stat(path).uid();
+        var owner = POSIX.getpwuid(uid);
+        return owner ? owner.pw_name : uid;
+    } catch (error) {
+        return null;
+    }
 }
 
 function group(path) {
-    // TODO: impl.
+    try {
+        var gid = POSIX.stat(path).gid();
+        var group = POSIX.getgrgid(gid);
+        return group ? group.gr_name : gid;
+    } catch (error) {
+        return null;
+    }
 }
 
 function changePermissions(path, permissions) {
