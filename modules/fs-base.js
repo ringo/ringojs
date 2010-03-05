@@ -203,12 +203,44 @@ function iterate() {
     // TODO: impl.
 }
 
-function Permissions() {
-    // TODO: impl.
+function Permissions(permissions, constructor) {
+    if (!(this instanceof Permissions)) {
+        return new Permissions(permissions, constructor);
+    }
+    this.update(Permissions['default']);
+    this.update(permissions);
+    this.constructor = constructor;
+}
+
+Permissions.prototype.update = function(permissions) {
+    var fromNumber = typeof permissions == 'number';
+    if (!fromNumber && !(permissions instanceof Object)) {
+        return;
+    }
+    for each (var user in ['owner', 'group', 'other']) {
+        this[user] = this[user] || {};
+        for each (var perm in ['read', 'write', 'execute']) {
+            this[user][perm] = fromNumber ?
+                Boolean((permissions <<= 1) & 512) :
+                Boolean(permissions[user] && permissions[user][perm]);
+        }
+    }
+};
+
+try {
+    // FIXME: no way to get umask without setting it?
+    var umask = POSIX.umask(0022);
+    if (umask != 0022) {
+        POSIX.umask(umask);
+    }
+    Permissions['default'] = new Permissions(~umask & 0777);
+} catch (error) {
+    Permissions['default'] = new Permissions(0755);
 }
 
 function permissions(path) {
-    // TODO: impl.
+    var stat = POSIX.stat(path);
+    return new Permissions(stat.mode() & 0777);
 }
 
 function owner(path) {
