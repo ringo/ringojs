@@ -42,9 +42,6 @@ function handleRequest(env) {
 
     // URI-decode path-info
     req.pathInfo = decodeURI(req.pathInfo);
-    // remember current scriptname as application root as scriptName will be
-    // set to actual script by resolveInConfig().
-    req.rootPath = req.scriptName;
 
     try {
         return resolveInConfig(req, config, configId);
@@ -57,8 +54,10 @@ function resolveInConfig(req, config, configId) {
     if (log.isDebugEnabled()) {
         log.debug('resolving path ' + req.pathInfo);
     }
-    // set the root context path on which this app is mounted in the config module
+    // set rootPath to the root context path on which this app is mounted
+    // in the request object and config module, appPath to the path within the app.
     req.rootPath = config.rootPath = req.scriptName + '/';
+    req.appPath = config.appPath = req.path.substring(req.rootPath.length);
     // set config property in webapp env module
     var webenv = require('ringo/webapp/env');
     webenv.pushConfig(config, configId);
