@@ -5,7 +5,7 @@ var fileutils = require('../fileutils');
 exports.href_macro = function(tag) {
     var req = require('ringo/webapp/env').getRequest();
     var path = tag.parameters[0] || '';
-    return req.rootPath + fileutils.resolve('/', req.appPath, path).slice(1);
+    return req.rootPath + fileutils.resolveUri('/', req.appPath, path).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {

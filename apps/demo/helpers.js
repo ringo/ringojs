@@ -42,7 +42,7 @@ exports.href_macro = function(tag) {
     var config = require('./config');
     var path = tag.parameters[0] || '';
     return config.rootPath
-        + fileutils.resolve('/', config.appPath, path).slice(1);
+        + fileutils.resolveUri('/', config.appPath, path).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {

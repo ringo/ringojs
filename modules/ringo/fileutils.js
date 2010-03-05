@@ -2,16 +2,16 @@
  * @fileOverview A collection of file related utilities.
  */
 
-export ('resolve', 'resolveRelative', 'createTempFile');
+export ('resolveUri', 'resolveRelative', 'createTempFile');
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
  * This is an adapted version of the file module's resolve function that always
  * and strictly uses forward slashes as file separators. This makes it
- * usable for resolving module ids, resource paths, and URI paths.
+ * usable for resolving URI paths as well as module ids and resource paths.
  * Originally adapted for helma/file from narwhal's file module.
  */
-function resolve() {
+function resolveUri() {
     var root = '';
     var elements = [];
     var leaf = '';
@@ -65,7 +65,7 @@ function resolve() {
  */
 function resolveRelative(parent, child) {
     return child.startsWith(".") ?
-           resolve(parent, child) : child;
+           resolveUri(parent, child) : child;
 }
 
 /**
