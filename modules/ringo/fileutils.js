@@ -6,7 +6,7 @@ require('core/string');
 require('core/array');
 var fs = require('file');
 
-export ('resolveUri', 'resolveId', 'createTempFile');
+export ('resolveUri', 'resolveId', 'createTempFile', 'roots', 'separator');
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
@@ -92,3 +92,18 @@ function createTempFile(prefix, suffix) {
        .createTempFile(prefix, suffix || null)
        .getPath();
 }
+
+/**
+ * An Array containing the system's file system roots. On UNIX platforms
+ * this contains a single "/" directory, while on Windows platforms this
+ * contains an element for each mounted drive.
+ * @type Array
+ */
+var roots = java.io.File.listRoots().map(String);
+
+/**
+ * The system-dependent file system separator character.
+ * @type String
+ */
+var separator = java.io.File.separator;
+
