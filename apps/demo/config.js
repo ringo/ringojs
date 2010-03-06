@@ -1,11 +1,12 @@
+var resolve = require('file').resolve;
+
 exports.httpConfig = {
     staticDir: './static'
 };
 
 exports.urls = [
     [ '/mount/point', './webmodule' ],
-    [ '/storage', './storage/config' ],
-    [ '/jsdoc', './jsdoc/config' ],
+    [ '/storage', resolve(module.path, '../storage/config') ],
     [ '/', './actions' ]
 ];
 
