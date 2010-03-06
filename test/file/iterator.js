@@ -35,6 +35,7 @@ exports.testPrintReadLine = Test(function (path) {
     assertEqual('hello\n', stream.readLine());
     assertEqual('world\n', stream.readLine());
     assertEqual('', stream.readLine());
+    stream.close();
 });
 
 exports.testPrintReadLineChain = Test(function (path) {
@@ -45,6 +46,7 @@ exports.testPrintReadLineChain = Test(function (path) {
     assertEqual('hello\n', stream.readLine());
     assertEqual('world\n', stream.readLine());
     assertEqual('', stream.readLine());
+    stream.close();
 });
 
 exports.testReadLines = Test(function (path) {
@@ -53,6 +55,7 @@ exports.testReadLines = Test(function (path) {
     stream.close();
     stream = path.open('r');
     assertEqual(['hello\n', 'world\n'], stream.readLines());
+    stream.close();
 });
 
 exports.testForEach = Test(function (path) {
@@ -84,6 +87,7 @@ exports.testNext = Test(function (path) {
     assertThrows(function () {
         iterator.next();
     });
+    iterator.close();
 });
 
 exports.testIterator = Test(function (path) {
@@ -94,6 +98,7 @@ exports.testIterator = Test(function (path) {
     assertThrows(function () {
         iterator.next();
     });
+    iterator.close();    
 });
 
 if (require.main === module.id) {
