@@ -38,7 +38,7 @@ function start() {
     var config = require(options.config);
     if (Array.isArray(config.static)) {
         config.static.forEach(function(spec) {
-            var dir = fileutils.resolveRelative(options.config, spec[1]);
+            var dir = fileutils.resolveId(options.config, spec[1]);
             server.addStaticResources(spec[0], null, dir);
         });
     }

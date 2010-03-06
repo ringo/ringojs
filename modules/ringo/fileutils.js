@@ -2,7 +2,7 @@
  * @fileOverview A collection of file related utilities.
  */
 
-export ('resolveUri', 'resolveRelative', 'createTempFile');
+export ('resolveUri', 'resolveId', 'createTempFile');
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
@@ -63,7 +63,7 @@ function resolveUri() {
  * @param {String} parent the parent path
  * @param {String} child the child path
  */
-function resolveRelative(parent, child) {
+function resolveId(parent, child) {
     return child.startsWith(".") ?
            resolveUri(parent, child) : child;
 }

@@ -6,12 +6,12 @@ const PARENT = '/home/ringo/';
 const INVALID_CHILD = 'Projects';
 const VALID_CHILD = './' + INVALID_CHILD;
 
-exports.testResolveRelative = function () {
-    assertEqual(file.resolve(PARENT, VALID_CHILD), fileutils.resolveRelative(
+exports.testresolveId = function () {
+    assertEqual(file.resolve(PARENT, VALID_CHILD), fileutils.resolveId(
             PARENT, VALID_CHILD)); // Child must start w/ ".".
     assertNotEqual(file.resolve(PARENT, INVALID_CHILD), fileutils.
-            resolveRelative(PARENT, INVALID_CHILD));
-    assertEqual(INVALID_CHILD, fileutils.resolveRelative(PARENT,
+            resolveId(PARENT, INVALID_CHILD));
+    assertEqual(INVALID_CHILD, fileutils.resolveId(PARENT,
             INVALID_CHILD)); // Otherwise return child (unchanged).
 };
 

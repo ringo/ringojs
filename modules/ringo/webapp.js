@@ -124,7 +124,7 @@ function getPattern(spec) {
 function resolveId(parent, spec) {
     var moduleId = spec[1];
     if (typeof moduleId == "string") {
-        return fileutils.resolveRelative(parent, moduleId);
+        return fileutils.resolveId(parent, moduleId);
     } else {
         return moduleId;
     }
@@ -215,7 +215,7 @@ function start(moduleId) {
     server = server || new Server(httpConfig);
     if (Array.isArray(config.static)) {
         config.static.forEach(function(spec) {
-            var dir = fileutils.resolveRelative(moduleId, spec[1]);
+            var dir = fileutils.resolveId(moduleId, spec[1]);
             server.addStaticResources(spec[0], null, dir);
         });
     }

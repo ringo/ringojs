@@ -55,7 +55,7 @@ exports.loadMacros = function(context) {
 
 function loadModule(moduleId, parent) {
     if (typeof moduleId == "string") {
-        return require(fileutils.resolveRelative(parent, moduleId));
+        return require(fileutils.resolveId(parent, moduleId));
     } else {
         return moduleId;
     }

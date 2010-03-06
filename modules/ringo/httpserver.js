@@ -158,7 +158,7 @@ function Server(config) {
     var fileutils = require('ringo/fileutils');
     if (config.staticDir) {
         this.addStaticResources(config.staticMountpoint || '/static',
-                config.virtualHost, fileutils.resolveRelative(config.moduleName, config.staticDir));
+                config.virtualHost, fileutils.resolveId(config.moduleName, config.staticDir));
     }
     if (config.functionName && config.moduleName) {
         this.addApplication(config.mountpoint || '/', config.virtualHost, config);
