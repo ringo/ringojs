@@ -2,6 +2,10 @@
  * @fileOverview A collection of file related utilities.
  */
 
+require('core/string');
+require('core/array');
+var fs = require('file');
+
 export ('resolveUri', 'resolveId', 'createTempFile');
 
 /**
@@ -64,8 +68,17 @@ function resolveUri() {
  * @param {String} child the child path
  */
 function resolveId(parent, child) {
-    return child.startsWith(".") ?
-           resolveUri(parent, child) : child;
+    // only paths starting with "." or ".." are relative according to module spec
+    var path = child.split("/");
+    if (path[0] == "." || path[0] == "..") {
+        // we support absolute paths for module ids. Since absolute
+        // paths are platform dependent, use the file module's version
+        // of resolve() for these instead of resolveUri().
+        return fs.isAbsolute(parent) ?
+               fs.resolve(parent, child) : resolveUri(parent, child);
+    }
+    // child is not relative according to module spec, return it as-is
+    return child;
 }
 
 /**
