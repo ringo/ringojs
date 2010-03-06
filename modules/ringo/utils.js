@@ -99,7 +99,7 @@ function timer(fn) {
 /**
  * A simple string formatter. If the first argument is a format string
  * containing a number of curly bracket pairs {} as placeholders,
- * the same number of folliwing arguments will be used to replace the curly
+ * the same number of following arguments will be used to replace the curly
  * bracket pairs in the format string. If the first argument is not a string
  * or does not contain any curly brackets, the arguments are simply concatenated
  * to a string and returned.

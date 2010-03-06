@@ -5,8 +5,17 @@ import('file');
 const PARENT = '/home/ringo/';
 const INVALID_CHILD = 'Projects';
 const VALID_CHILD = './' + INVALID_CHILD;
+const FOO = 'foo';
 
-exports.testresolveId = function () {
+exports.testResolveUri = function () {
+    assertEqual(PARENT + INVALID_CHILD, fileutils.resolveUri(PARENT,
+            INVALID_CHILD)); // Should work for both child notations.
+    assertEqual(PARENT + INVALID_CHILD, fileutils.resolveUri(PARENT,
+            VALID_CHILD));
+    assertEqual(PARENT + FOO, fileutils.resolveUri(PARENT, VALID_CHILD, FOO));
+};
+
+exports.testResolveId = function () {
     assertEqual(file.resolve(PARENT, VALID_CHILD), fileutils.resolveId(
             PARENT, VALID_CHILD)); // Child must start w/ ".".
     assertNotEqual(file.resolve(PARENT, INVALID_CHILD), fileutils.
