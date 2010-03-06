@@ -14,4 +14,4 @@ exports.testFormat = function () {
             BAR)); // Should simply join strings if 1st arg's no template.
     assertEqual(SPACE + FOO + SPACE + BAR, utils.format(null, FOO, BAR));
     assertEqual(NUM + SPACE + FOO + SPACE + BAR, utils.format(NUM, FOO, BAR));
-}
+};

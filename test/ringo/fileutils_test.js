@@ -13,7 +13,7 @@ exports.testResolveUri = function () {
     assertEqual(PARENT + INVALID_CHILD, fileutils.resolveUri(PARENT,
             VALID_CHILD));
     assertEqual(PARENT + FOO, fileutils.resolveUri(PARENT, VALID_CHILD, FOO));
-}
+};
 
 exports.testResolveId = function () {
     assertEqual(file.resolve(PARENT, VALID_CHILD), fileutils.resolveId(
