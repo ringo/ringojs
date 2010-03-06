@@ -120,19 +120,16 @@ public class RingoConfiguration {
      * @throws FileNotFoundException if the path couldn't be resolved
      */
     public Repository resolveRootRepository(String path) throws IOException {
-        Repository repository = home.getChildRepository(path);
-        if (repository != null && repository.exists()) {
-            repository.setRoot();
-            return repository;
-        }
         File file = new File(path);
         if (!file.isAbsolute()) {
-            // if path is relative, try to resolve against current directory first,
-            // then relative to ringo installation directory.
-            file = file.getAbsoluteFile();
-            if (!file.exists()) {
-                file = new File(home.getPath(), path);
+            // Try to resolve as installation repository child first
+            Repository repository = home.getChildRepository(path);
+            if (repository != null && repository.exists()) {
+                repository.setRoot();
+                return repository;
             }
+            // then try to resolve against current directory
+            file = file.getAbsoluteFile();
         }
         if (!file.exists()) {
             throw new FileNotFoundException("File '" + file + "' does not exist.");
