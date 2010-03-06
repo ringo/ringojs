@@ -138,7 +138,7 @@ exports.renderDoc_filter = function(doc) {
     }
     var returns = doc.getTag("returns") || doc.getTag("return");
     var type = doc.getTag("type");
-    if (returns || type) {
+    if (returns) {
         buffer.writeln('<div class="subheader">Returns</div>');
         if (!type) {
             type = returns.match(/^{(\S+)}/) || "";
@@ -149,6 +149,11 @@ exports.renderDoc_filter = function(doc) {
         }
         buffer.writeln('<table class="subsection">');
         buffer.writeln('<tr><td>', type, '</td><td>', returns, '</td></tr>');
+        buffer.writeln('</table>');
+    } else if (type) {
+        buffer.writeln('<div class="subheader">Type</div>');
+        buffer.writeln('<table class="subsection">');
+        buffer.writeln('<tr><td>', type, '</td></tr>');
         buffer.writeln('</table>');
     }
     var throws = doc.getTags("throws");
