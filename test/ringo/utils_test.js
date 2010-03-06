@@ -2,9 +2,9 @@ include('ringo/unittest');
 var utils = require('ringo/utils');
 
 const TEMPLATE = 'Here\'s {} and {}.';
-const RESULT = 'Here\'s foo and bar.';
 const FOO = 'foo';
 const BAR = 'bar';
+const RESULT = 'Here\'s ' + FOO + ' and ' + BAR + '.';
 const SPACE = ' ';
 const NUM = 42;
 
