@@ -12,6 +12,17 @@ var InputStreamReader = java.io.InputStreamReader,
 
 module.shared = true;
 
+Stream.prototype.copy = function(output) {
+    while (true) {
+         var buffer = this.read();
+         if (!buffer.length)
+             break;
+         output.write(buffer);
+    }
+    output.flush();
+    return this;
+};
+
 exports.TextStream = function TextStream(io, charset, buflen) {
     if (this.constructor !== exports.TextStream) {
         return new exports.TextStream(io, charset, buflen);
@@ -93,12 +104,13 @@ exports.TextStream = function TextStream(io, charset, buflen) {
         throw "NYI";
     };
 
-    this.copy = function (output, mode, options) {
-        do {
+    this.copy = function (output) {
+        while (true) {
             var line = this.readLine();
-            output.write(this);
-        } while (line.length);
-        output.flush();
+            if (!line.length)
+                break;
+            output.write(line).flush();
+        }
         return this;
     };
 
