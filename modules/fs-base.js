@@ -15,7 +15,7 @@ export('canonical',
        'makeDirectory',
        'move',
        'lastModified',
-       'open', // TODO: refactor to openRaw as def. in spec.
+       'openRaw',
        'remove',
        'resolve',
        'removeDirectory',
@@ -27,7 +27,7 @@ export('canonical',
        'isLink',
        'same',
        'sameFilesystem',
-       'iterate', // FYI: returns Iterator w/ methods as def. in spec.
+       'iterate',
        'Permissions',
        'owner',
        'group',
@@ -45,21 +45,18 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 var POSIX = org.ringojs.util.POSIXSupport.getPOSIX();
 
-function open(path, mode, options) { // TODO: refactor to openRaw as in spec.
-    options = checkOptions(mode, options);
+function openRaw(path, mode, permissions) {
+    // TODO many things missing here
     var file = resolveFile(path);
-    var {read, write, append, update, binary, charset} = options;
-    if (!read && !write && !append && !update) {
+    mode = mode || {};
+    var {read, write, append, create, exclusive, truncate} = mode;
+    if (!read && !write && !append) {
         read = true;
     }
-    var stream = new Stream(read ?
-            new FileInputStream(file) : new FileOutputStream(file, Boolean(append)));
-    if (binary) {
-        return stream;
-    } else if (read || write || append) {
-        return new TextStream(stream, charset);
-    } else if (update) {
-        throw new Error("update not yet implemented");
+    if (read) {
+        return new Stream(new FileInputStream(file));
+    } else {
+        return new Stream(FileOutputStream(file, Boolean(append)));
     }
 }
 
@@ -199,8 +196,16 @@ function readLink(path) {
     return POSIX.readlink(path);
 }
 
-function iterate() {
-    // TODO: impl.
+function iterate(path) {
+    var iter = function() {
+        for each (var item in list(path)) {
+            yield item;
+        }
+        throw StopIteration;
+    }();
+    // spec requires iterator(), native iterators/generators only have __iterator__().
+    iter.iterator = iter.__iterator__;
+    return iter;
 }
 
 function Permissions(permissions, constructor) {
