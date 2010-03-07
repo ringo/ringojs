@@ -110,11 +110,7 @@ public class Stream extends ScriptableObject implements Wrapper {
                         new Binary(scope, Binary.Type.ByteString, buffer, 0, count) :
                         new Binary(scope, Binary.Type.ByteString, 0);
             } catch (IOException iox) {
-                throw ScriptRuntime.typeError("Error initalizing ByteArray from input stream: " + iox);
-            } finally {
-                try {
-                    input.close();
-                } catch (IOException ignore) {}
+                throw ScriptRuntime.typeError("Error reading from input stream: " + iox);
             }
         }
     }
