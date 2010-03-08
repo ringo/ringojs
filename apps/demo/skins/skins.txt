@@ -61,7 +61,7 @@ Or you can define the objects to loop through using object and array literals in
 
 ### Filters
 
-Finally, [filters][ng:helma.filters] let you do all kinds of post-processing
+Finally, filters let you do all kinds of post-processing
 on the output of a macro.
 
     \<% render hello | uppercase %>
@@ -70,6 +70,6 @@ on the output of a macro.
     <% render 'hello' | uppercase %>
 </p>
 
-[Visit the RingoJS site][ng:helma.skin] to learn more about skin rendering.
+[Visit the RingoJS site](http://ringojs.org/wiki/Skins) to learn more about skin rendering.
 
 <% subskin 'hello' %>Hello <% name %>!

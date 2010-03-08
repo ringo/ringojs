@@ -2,9 +2,4 @@
 
 <% subskin 'content' | markdown %>
 This demo application showcases some of RingoJS' features.
-Click on the links on the right to start exploring. 
-
-Note that some of the links in this demo still point to the
-old Helma NG site. We hope to fix this soon.
-
-Have fun!
+Click on the links on the right to start exploring. **Have fun!**
