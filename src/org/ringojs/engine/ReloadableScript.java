@@ -89,7 +89,9 @@ public class ReloadableScript {
      */
     public synchronized Script getScript(Context cx)
             throws JavaScriptException, IOException {
-        if (scriptref == null) {
+        // only use shared code cache if optlevel >= 0
+        int optlevel = cx.getOptimizationLevel();
+        if (scriptref == null && optlevel > -1) {
             scriptref = cache.get(source);
         }
         Script script = scriptref == null ? null : scriptref.get();
@@ -104,7 +106,9 @@ public class ReloadableScript {
             } else {
                 script = getSimpleScript(cx);
             }
-            cache.put(source, script, this);
+            if (optlevel > -1) {
+                cache.put(source, script, this);
+            }
         } else {
             checksum = scriptref.checksum;
             errors = scriptref.errors;
