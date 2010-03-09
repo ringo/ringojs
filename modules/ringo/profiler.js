@@ -10,7 +10,7 @@ export('Profiler');
 function Profiler() {
     var stack = [];
     var frames = {};
-    var System = java.lang.System;
+    var nanoTime = java.lang.System.nanoTime;
 
     this.getScriptFrame = function(cx, script) {
         if (!script.isFunction()) {
@@ -69,12 +69,11 @@ function Profiler() {
         buffer.writeln();
         buffer.writeln("     total  average  calls    path");
         for (var i = 1; i < result.maxLength; i++) {
-            // b.write("—");
             buffer.write("-");
         }
         buffer.writeln();
         buffer.writeln(result.data);
-        return buffer.toString()    
+        return buffer.toString();
     };
 
     function Frame(name) {
@@ -88,7 +87,7 @@ function Profiler() {
             if (timer) {
                 timerstack.push(timer);
             }
-            var now = System.nanoTime();
+            var now = nanoTime();
             timer = [];
             timer.name = name;
             timer.start = now;
@@ -102,7 +101,7 @@ function Profiler() {
         };
 
         this.onExit = function(cx, byThrow, resultOrException) {
-            timer.end = System.nanoTime();
+            timer.end = nanoTime();
             stack.pop();
             if (stack.length > 0) {
                 stack[stack.length - 1].addInvocationChild(timer);
