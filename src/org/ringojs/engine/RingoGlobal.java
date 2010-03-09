@@ -116,11 +116,9 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError("getResource() requires a string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
-        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
-                (ModuleScope) thisObj : null;
         try {
             Resource res = engine.findResource((String) args[0],
-                    engine.getParentRepository(moduleScope));
+                    engine.getParentRepository(thisObj));
             return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), res, null);
         } catch (IOException iox) {
             throw new WrappedException(iox);
@@ -133,11 +131,9 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError("getResource() requires a string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
-        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
-                (ModuleScope) thisObj : null;
         try {
             Repository repo = engine.findRepository((String) args[0],
-                    engine.getParentRepository(moduleScope));
+                    engine.getParentRepository(thisObj));
             return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), repo, null);
         } catch (IOException iox) {
             throw new WrappedException(iox);
@@ -150,11 +146,9 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError("addToClasspath() requires a string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
-        ModuleScope moduleScope = thisObj instanceof ModuleScope ?
-                (ModuleScope) thisObj : null;
         try {
             Trackable path = engine.findPath((String) args[0],
-                    engine.getParentRepository(moduleScope));
+                    engine.getParentRepository(thisObj));
             engine.addToClasspath(path);
             return path.exists() ? Boolean.TRUE : Boolean.FALSE;
         } catch (IOException iox) {
