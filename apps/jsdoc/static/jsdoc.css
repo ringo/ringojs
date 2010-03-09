@@ -1,84 +1,10 @@
-body, html {
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    min-width: 830px;
-    font-family: sans-serif;
-    font-size: 80%;
-    line-height: 170%;
-}
-
-h1 {
-    padding: 10px 0;
-}
-
-a {
-    color: blue;
-}
-
-a:hover {
-    color: dodgerblue;
-}
-
-a:active {
-    color: darkorange;
-}
-
-#wrap {
-    margin: 0 auto;
-    width: 800px;
-}
-
-#header {
-    height: 80px;
-}
-
-#header h1 {
-    float: left;
-    color: #c00;
-    margin: 20px 10px;
-    padding: 15px 5px;
-}
-
-#logo {
-    text-align:center;
-    float: right;
-    width: 130px;
-    margin: 10px;
-    padding: 5px;
-}
-
-#main {
-    clear: both;
-    float: left;
-    width: 530px;
-    margin: 0 10px;
-    padding: 5px;
-}
-
-#menu {
-    float: right;
-    width: 200px;
-    padding-top: 8em;
-}
-
-#footer {
-    margin-top: 3em;
-    text-align: center;
-    color: #666;
-    font-size: 80%;
-    clear:both;
-}
-
 pre.code {
     background-color: #abc;
     border-width: 1px;
     border-color: #9ab;
     border-style: solid;
     padding: 0.8em;
-    line-height: 145%;    
+    line-height: 145%;
 }
 
 .section {
@@ -101,5 +27,66 @@ div.subsection {
     padding-left: 12px;
 }
 
-/* move definitions inlined in skins/base.html */
+ul.apilist {
+    list-style: none;
+}
+
+div#main ul.apilist {
+    padding-left: 1.5em;
+}
+
+div#menu ul.apilist {
+    line-height: normal;
+    padding-left: 0.3em;
+}
+
+.fileoverview {
+    margin-bottom: 1em;
+}
+
+.docitem {
+    position: relative;
+    left: -14px;
+    padding-left: 10px;
+    border-left: 4px solid white;
+}
+
+.docheader a:link, .docheader a:visited {
+    text-decoration: none;
+    color: #999;
+    visibility: hidden;
+}
+
+.docheader:hover a {
+    visibility: visible;
+}
+
+.highlighted {
+    border-left: 4px solid green;
+}
+
+.dimmed {
+    color: #333;
+    font-weight: 500;
+}
+
+ul.apilist {
+    list-style: none;
+}
+
+div#main ul.apilist {
+    padding-left: 1.5em;
+}
+
+div#menu ul.apilist {
+    line-height: normal;
+    padding-left: 0.3em;
+}
+
+hr {
+    border: 0;
+    color: #999;
+    background-color: #999;
+    height: 1px;
+}
 
