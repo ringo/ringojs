@@ -51,9 +51,7 @@ function handleRequest(env) {
 }
 
 function resolveInConfig(req, config, configId) {
-    if (log.isDebugEnabled()) {
-        log.debug('resolving path ' + req.pathInfo);
-    }
+    log.debug('resolving path {}', req.pathInfo);
     // set rootPath to the root context path on which this app is mounted
     // in the request object and config module, appPath to the path within the app.
     req.rootPath = config.rootPath = req.scriptName + '/';
@@ -74,20 +72,14 @@ function resolveInConfig(req, config, configId) {
             log.info("Ignoring unsupported URL mapping: " + urlEntry);
             continue;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("checking url line: " + urlEntry);
-        }
+        log.debug("checking url line: {}", urlEntry);
         var match = getPattern(urlEntry).exec(path);
-        if (log.isDebugEnabled()) {
-            log.debug("got match: " + match);
-        }
+        log.debug("got match: {}", match);
 
         if (match) {
             var moduleId = resolveId(configId, urlEntry);
             var module = getModule(moduleId);
-            if (log.isDebugEnabled()) {
-                log.debug("module: " + module);
-            }
+            log.debug("Resolved module: {} -> {}", moduleId, module);
             // move matching path fragment from PATH_INFO to SCRIPT_NAME
             req.appendToScriptName(match[0]);
             // prepare action arguments, adding regexp capture groups if any
