@@ -1,7 +1,8 @@
+    <div class="navigation">
         <ul>
             <li>
                 <a href="<% href / %>"
-                   class="<% matchPath ^/$ highlight%>">Home</a>
+                   class="<% matchPath ^/$ highlight%>">Demo Main Page</a>
             </li>
             <li>
                 <a href="<% href /mount/point/ %>"
@@ -28,3 +29,4 @@
                    class="<% matchPath ^/logging highlight %>">Logging &amp; Profiling</a>
             </li>
         </ul>
+    </div>
