@@ -19,7 +19,7 @@
     <!-- Initializes some variables                                          -->
     <!-- =================================================================== -->
     <target name="init">
-        <property name="project" value="ringo"/>
+        <property name="project" value="ringojs"/>
         <property name="version" value="0.4"/>
 
         <property name="home" value="."/>
