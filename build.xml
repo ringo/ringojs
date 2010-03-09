@@ -20,7 +20,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="ringo"/>
-        <property name="version" value="0.3"/>
+        <property name="version" value="0.4"/>
 
         <property name="home" value="."/>
 
