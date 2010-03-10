@@ -1,3 +1,9 @@
+ringojs (0.4-2) unstable; urgency=low
+
+  * Replace previously uploaded faulty build
+
+ -- Hannes Wallnoefer <hannes@helma.at>  Wed, 10 Mar 2010 10:32:34 +0100
+
 ringojs (0.4-1) unstable; urgency=low
 
   * Update to RingoJS 0.4 release.
