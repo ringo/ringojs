@@ -55,11 +55,11 @@ function initRequest(env) {
         }
     });
     Object.defineProperty(env, "jsgi.errors", {
-        get: function() {
-            if (!errors)
-                errors = new Stream(java.lang.System.err);
-            return errors;
-        }
+        value: system.stderr
+    });
+    // JSGI spec and Jack's lint require env.constructor to be Object
+    Object.defineProperty(env, "constructor", {
+        value: Object
     });
 }
 
