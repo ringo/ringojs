@@ -56,6 +56,7 @@ public class MarkdownProcessor {
         blockTags.add("fieldset");
         blockTags.add("iframe");
         blockTags.add("math");
+        blockTags.add("object");
     }
 
     public MarkdownProcessor() {}
