@@ -431,8 +431,10 @@ public class RhinoEngine implements ScopeProvider {
                     .substring(0, moduleName.length() - 2);
             source = findRepository(repositoryName, localPath);
         } else {
-            String resourceName = moduleName + ".js";
-            source = findResource(resourceName, localPath);
+            source = findResource(moduleName + ".js", localPath);
+            if (!source.exists() && config.isNarwhalMode()) {
+                source = findResource(moduleName, localPath);
+            }
         }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);

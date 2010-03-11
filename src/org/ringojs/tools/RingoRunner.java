@@ -51,6 +51,7 @@ public class RingoRunner {
     boolean debug = false;
     boolean verbose = false;
     boolean silent = false;
+    boolean narwhalMode;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -60,6 +61,7 @@ public class RingoRunner {
         {"h", "help", "Display this help message", ""},
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
+        {"n", "narwhal", "Enable Narwhal compatibility mode", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -109,6 +111,7 @@ public class RingoRunner {
             config.setBootstrapScripts(bootScripts);
             config.setDebug(debug);
             config.setVerbose(verbose);
+            config.setNarwhalMode(narwhalMode);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -329,6 +332,8 @@ public class RingoRunner {
             expr = arg;
         } else if ("silent".equals(option)) {
             silent = runShell = true;
+        } else if ("narwhal".equals(option)) {
+            narwhalMode = true;
         } else if ("verbose".equals(option)) {
             verbose = true;
         } else if ("version".equals(option)) {

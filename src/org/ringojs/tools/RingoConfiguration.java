@@ -52,6 +52,7 @@ public class RingoConfiguration {
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
+    private boolean narwhalMode = false;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -80,8 +81,8 @@ public class RingoConfiguration {
         }
 
         if (modulePath != null) {
-            for (int i = 0; i < modulePath.length; i++) {
-                String path = modulePath[i].trim();
+            for (String aModulePath : modulePath) {
+                String path = aModulePath.trim();
                 Repository repository = resolveRootRepository(path);
                 if (repository != null && repository.exists()) {
                     repositories.add(repository);
@@ -314,7 +315,7 @@ public class RingoConfiguration {
      * @return true if __parent__ and __proto__ properties should be enabled
      */
     public boolean hasParentProtoProperties() {
-        return parentProtoProperties;
+        return parentProtoProperties || narwhalMode;
     }
 
     /**
@@ -414,6 +415,13 @@ public class RingoConfiguration {
         return LoggerFactory.getLogger("org.ringojs.tools");
     }
 
+    public boolean isNarwhalMode() {
+        return narwhalMode;
+    }
+
+    public void setNarwhalMode(boolean narwhalMode) {
+        this.narwhalMode = narwhalMode;
+    }
 }
 
 class NotFound extends AbstractResource {
