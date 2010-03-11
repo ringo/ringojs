@@ -44,20 +44,21 @@ function handleRequest(env) {
     req.pathInfo = decodeURI(req.pathInfo);
 
     try {
-        return resolveInConfig(req, config, configId);
+        return resolveInConfig(req, webenv, config, configId);
     } catch (e if e.redirect) {
         return redirectResponse(e.redirect);
+    } finally {
+        webenv.reset();
     }
 }
 
-function resolveInConfig(req, config, configId) {
+function resolveInConfig(req, webenv, config, configId) {
     log.debug('resolving path {}', req.pathInfo);
     // set rootPath to the root context path on which this app is mounted
     // in the request object and config module, appPath to the path within the app.
     req.rootPath = config.rootPath = req.scriptName + '/';
     req.appPath = config.appPath = req.path.substring(req.rootPath.length);
     // set config property in webapp env module
-    var webenv = require('ringo/webapp/env');
     webenv.pushConfig(config, configId);
 
     if (!Array.isArray(config.urls)) {
@@ -94,7 +95,7 @@ function resolveInConfig(req, config, configId) {
                 }
                 return res;
             } else if (Array.isArray(module.urls)) {
-                return resolveInConfig(req, module, moduleId);
+                return resolveInConfig(req, webenv, module, moduleId);
             }
         }
     }

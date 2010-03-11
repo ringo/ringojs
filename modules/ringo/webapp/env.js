@@ -40,6 +40,11 @@ exports.getConfig = function() {
     return config;
 };
 
+exports.reset = function() {
+    configs = [];
+    configIds = [];
+}
+
 exports.loadMacros = function(context) {
     for (var i = 0; i < configs.length; i++) {
         var config = configs[i];
