@@ -84,11 +84,11 @@ public class RhinoEngine implements ScopeProvider {
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
+        RingoDebugger debugger = null;
         if (config.getDebug()) {
-            RingoDebugger debugger = new RingoDebugger(config);
+            debugger = new RingoDebugger(config);
             debugger.setScopeProvider(this);
             debugger.attachTo(contextFactory);
-            debugger.setBreak();
             debugger.setBreakOnExceptions(true);
         }
         // create a new global scope level
@@ -122,6 +122,9 @@ public class RhinoEngine implements ScopeProvider {
             }
             if (sealed) {
                 globalScope.sealObject();
+            }
+            if (debugger != null) {
+                debugger.setBreak();
             }
         } finally {
             Context.exit();
