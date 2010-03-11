@@ -121,6 +121,6 @@ public class JsgiEnv extends ScriptableObject {
      */
     @Override
     public String getClassName() {
-        return "JackEnv";
+        return "JsgiEnv";
     }
 }
