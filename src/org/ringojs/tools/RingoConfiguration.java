@@ -19,7 +19,6 @@ package org.ringojs.tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ringojs.repository.*;
-import org.ringojs.tools.launcher.RingoClassLoader;
 import org.mozilla.javascript.ClassShutter;
 
 import java.io.File;
@@ -53,6 +52,7 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean narwhalMode = false;
+    private Repository narwhalHome;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -66,6 +66,7 @@ public class RingoConfiguration {
             throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
+        home.setAbsolute(true);
 
         String optLevel = System.getProperty("rhino.optlevel");
         if (optLevel != null) {
@@ -83,23 +84,13 @@ public class RingoConfiguration {
         if (modulePath != null) {
             for (String aModulePath : modulePath) {
                 String path = aModulePath.trim();
-                Repository repository = resolveRootRepository(path);
-                if (repository != null && repository.exists()) {
-                    repositories.add(repository);
-                } else {
-                    System.err.println("Cannot resolve module path entry: " + path);
-                }
+                addModuleRepository(resolveRootRepository(path));
             }
         }
 
         // append system modules path relative to ringo home
         if (systemModules != null) {
-            Repository repository = resolveRootRepository(systemModules);
-                if (repository != null && repository.exists()) {
-                    repositories.add(repository);
-                } else {
-                    System.err.println("Cannot resolve system module root: " + systemModules);
-                }
+            addModuleRepository(resolveRootRepository(systemModules));
         }
 
         // now that repositories are set up try to set default log4j configuration file
@@ -112,6 +103,15 @@ public class RingoConfiguration {
             }
         }
         getLogger().debug("Parsed repository list: " + repositories);
+    }
+
+    public void addModuleRepository(Repository repository) throws IOException {
+        if (repository != null && repository.exists()) {
+            repository.setRoot();
+            repositories.add(repository);
+        } else {
+            throw new FileNotFoundException(repository.getPath());
+        }
     }
 
     /**
@@ -188,7 +188,13 @@ public class RingoConfiguration {
                     }
                 }
                 // not found in the existing repositories - add parent as first element of module path
-                repositories.add(0, script.getParentRepository());
+                if (narwhalMode) {
+                    // do not add script's directory to module path in narwhal mode
+                    // we probably shouldn't do that in normal mode either
+                    script.setAbsolute(true);
+                } else {
+                    repositories.add(0, script.getParentRepository());
+                }
                 mainResource = script;
             } else {
                 // check if the script can be found in the module path
@@ -419,8 +425,16 @@ public class RingoConfiguration {
         return narwhalMode;
     }
 
-    public void setNarwhalMode(boolean narwhalMode) {
+    public void setNarwhalMode(boolean narwhalMode, String narwhalPath) throws IOException {
         this.narwhalMode = narwhalMode;
+        if (narwhalMode && narwhalPath != null && !narwhalPath.equals("")) {
+            this.narwhalHome = new FileRepository(narwhalPath);
+            addModuleRepository(narwhalHome.getChildRepository("engines/rhino/lib"));
+            addModuleRepository(narwhalHome.getChildRepository("engines/default/lib"));
+            addModuleRepository(narwhalHome.getChildRepository("lib"));
+        } else {
+            this.narwhalHome = null;
+        }
     }
 }
 

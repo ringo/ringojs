@@ -52,6 +52,7 @@ public class RingoRunner {
     boolean verbose = false;
     boolean silent = false;
     boolean narwhalMode;
+    String narwhalHome;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -62,6 +63,7 @@ public class RingoRunner {
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"n", "narwhal", "Enable Narwhal compatibility mode", ""},
+        {"N", "narwhal-path", "Enable Narwhal mode with external installation path", "PATH"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -104,6 +106,7 @@ public class RingoRunner {
             String[] paths = modulePath == null ?
                     new String[0] : StringUtils.split(modulePath, File.pathSeparator);
             config = new RingoConfiguration(home, paths, "modules");
+            config.setNarwhalMode(narwhalMode, narwhalHome); // set this first, affects setMainScript()
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);
@@ -111,7 +114,6 @@ public class RingoRunner {
             config.setBootstrapScripts(bootScripts);
             config.setDebug(debug);
             config.setVerbose(verbose);
-            config.setNarwhalMode(narwhalMode);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -334,6 +336,9 @@ public class RingoRunner {
             silent = runShell = true;
         } else if ("narwhal".equals(option)) {
             narwhalMode = true;
+        } else if ("narwhal-path".equals(option)) {
+            narwhalMode = true;
+            narwhalHome = arg;
         } else if ("verbose".equals(option)) {
             verbose = true;
         } else if ("version".equals(option)) {
