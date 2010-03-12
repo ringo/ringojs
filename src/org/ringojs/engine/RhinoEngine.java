@@ -113,6 +113,9 @@ public class RhinoEngine implements ScopeProvider {
                 }
             }
             evaluateScript(cx, getScript("ringoglobal"), globalScope);
+            if (config.isNarwhalMode()) {
+                evaluateScript(cx, getScript("narwhal-shim"), globalScope);
+            }
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
