@@ -14,6 +14,7 @@ export('absolute',
        'copy',
        'copyTree',
        'cwd',
+       'cwdPath',
        'dirname',
        'exists',
        'extension',
@@ -24,6 +25,7 @@ export('absolute',
        'isReadable',
        'isWritable',
        'join',
+       'linkExists',
        'list',
        'listPaths',
        'mkdir',
@@ -139,8 +141,16 @@ function exists(path) {
     return file.exists();
 }
 
+function linkExists(path) {
+    return exists(path);
+}
+
 function cwd() {
     return java.lang.System.getProperty('user.dir');
+}
+
+function cwdPath() {
+    return new Path(cwd());
 }
 
 function chdir(path) {
@@ -389,6 +399,12 @@ function Path(path) {
     return this;
 }
 
+Path.prototype = new String();
+
+Path.prototype.valueOf = function() {
+    return this.toString();
+}
+
 Path.prototype.join = function() {
     return new Path(join.apply(null,
             [this.toString()].concat(Array.slice(arguments))));
@@ -400,6 +416,14 @@ Path.prototype.resolve = function () {
             [this.toString()].concat(Array.slice(arguments))
         )
     );
+};
+
+ Path.prototype.to = function (target) {
+    return exports.Path(relative(this.toString(), target));
+};
+
+Path.prototype.from = function (target) {
+    return exports.Path(relative(target, this.toString()));
 };
 
 var pathed = [
@@ -437,7 +461,7 @@ var trivia = [
     'isReadable',
     'isWritable',
     // 'link',
-    // 'linkExists',
+    'linkExists',
     'list',
     'listPaths',
     // 'listTree',
