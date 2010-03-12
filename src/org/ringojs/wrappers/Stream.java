@@ -135,21 +135,35 @@ public class Stream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void write(Binary bytes, Object offset, Object length) {
+    public void write(Object arg, Object offset, Object length) {
+        if (arg instanceof Wrapper) {
+            arg = ((Wrapper) arg).unwrap();
+        }
+        byte[] bytes;
+        if (arg instanceof Binary) {
+            bytes = ((Binary) arg).getBytes();
+        } else if (arg instanceof byte[]) {
+            bytes = (byte[]) arg;
+        } else if (arg instanceof String) {
+            // TODO this is for narwhal compatibility only
+            System.err.println("Warning: binary write called with string argument. Using default encoding.");
+            bytes = ((String) arg).getBytes();
+        } else {
+            throw Context.reportRuntimeError("write called with illegal argument: " + arg);
+        }
         if (output == null) {
             throw ScriptRuntime.typeError("no output stream");
         }
         int off = offset == Undefined.instance ? -1 : ScriptRuntime.toInt32(offset);
         int len = length == Undefined.instance ? -1 : ScriptRuntime.toInt32(length);
         try {
-            byte[] b = bytes.getBytes();
             if (off > -1) {
                 if (len < 0) {
-                    len = b.length - off;
+                    len = bytes.length - off;
                 }
-                output.write(b, off, len);
+                output.write(bytes, off, len);
             } else {
-                output.write(bytes.getBytes());
+                output.write(bytes);
             }
         } catch (IOException iox) {
             throw Context.throwAsScriptRuntimeEx(iox);
