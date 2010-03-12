@@ -1,0 +1,4 @@
+#!/bin/bash
+# run ringo with -n switch for narwhal compatibility
+
+ringo -n "$@"
