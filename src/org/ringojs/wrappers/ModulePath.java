@@ -98,7 +98,10 @@ public class ModulePath extends ScriptableObject {
             value = ((Wrapper) value).unwrap();
         }
         if (value instanceof Repository) {
-            return (Repository) value;
+            Repository repo = (Repository) value;
+            // repositories in module search path must be configured as root repository
+            repo.setRoot();
+            return repo;
         } if (value != null && value != Undefined.instance) {
             String str = ScriptRuntime.toString(value);
             if (str.toLowerCase().endsWith(".zip")) {
