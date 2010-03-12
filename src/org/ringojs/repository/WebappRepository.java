@@ -86,7 +86,7 @@ public class WebappRepository extends AbstractRepository {
                 } else if (recursive) {
                     int n = path.lastIndexOf('/', path.length() - 2);
                     String name = path.substring(n + 1, path.length() - 1);
-                    AbstractRepository repo = (AbstractRepository) getChildRepository(name);
+                    AbstractRepository repo = lookupRepository(name);
                     repo.getResources(list, true);
                 }
             }
@@ -103,7 +103,7 @@ public class WebappRepository extends AbstractRepository {
                 if (path.endsWith("/")) {
                     int n = path.lastIndexOf('/', path.length() - 2);
                     String name = path.substring(n + 1, path.length() - 1);
-                    list.add(getChildRepository(name));
+                    list.add(lookupRepository(name));
                 }
             }
         }

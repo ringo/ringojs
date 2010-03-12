@@ -156,7 +156,7 @@ public class FileRepository extends AbstractRepository {
                 Resource resource = lookupResource(file.getName());
                 list.add(resource);
             } else if (recursive && file.isDirectory()) {
-                AbstractRepository repo = (AbstractRepository) getChildRepository(file.getName());
+                AbstractRepository repo = lookupRepository(file.getName());
                 repo.getResources(list, true);
             }
         }
@@ -168,7 +168,7 @@ public class FileRepository extends AbstractRepository {
 
         for (File file: dir) {
             if (file.isDirectory()) {
-                list.add(getChildRepository(file.getName()));
+                list.add(lookupRepository(file.getName()));
             }
         }
         return list.toArray(new Repository[list.size()]);

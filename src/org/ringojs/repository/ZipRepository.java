@@ -191,7 +191,7 @@ public final class ZipRepository extends AbstractRepository {
                 }
                 list.add(res);
             } else if (recursive) {
-                getChildRepository(entryName).getResources(list, true);
+                lookupRepository(entryName).getResources(list, true);
             }
         }
     }
@@ -202,7 +202,7 @@ public final class ZipRepository extends AbstractRepository {
 
         for (Map.Entry<String, ZipEntry> entry : entries.entrySet()) {
             if (entry.getValue().isDirectory()) {
-                list.add(getChildRepository(entry.getKey()));
+                list.add(lookupRepository(entry.getKey()));
             }
         }
         return list.toArray(new Repository[list.size()]);

@@ -164,29 +164,47 @@ public abstract class AbstractRepository implements Repository {
      * If the name can't be resolved to a resource, a resource object is returned
      * for which {@link Resource exists()} returns <code>false<code>.
      */
-    public synchronized Resource getResource(String path) throws IOException {
-        int separator = findSeparator(path, 0);
+    public synchronized Resource getResource(String subpath) throws IOException {
+        int separator = findSeparator(subpath, 0);
         if (separator < 0) {
-            return lookupResource(path);
+            return lookupResource(subpath);
         }
-        Repository repository = this;
+        // FIXME this part is virtually identical to the one in getChildResource()
+        AbstractRepository repo = this;
         int last = 0;
-        while (separator > -1 && repository != null) {
-            String id = path.substring(last, separator);
-            repository = repository.getChildRepository(id);
+        while (separator > -1 && repo != null) {
+            String id = subpath.substring(last, separator);
+            repo = repo.lookupRepository(id);
             last = separator + 1;
-            separator = findSeparator(path, last);
+            separator = findSeparator(subpath, last);
         }
-        return repository == null ? null : repository.getResource(path.substring(last));
+        return repo == null ? null : repo.lookupResource(subpath.substring(last));
     }
 
     /**
      * Get a child repository with the given name
-     * @param name the name of the repository
+     * @param subpath the name of the repository
      * @return the child repository
      */
-    public AbstractRepository getChildRepository(String name) throws IOException {
-        if (".".equals(name)) {
+    public AbstractRepository getChildRepository(String subpath) throws IOException {
+        int separator = findSeparator(subpath, 0);
+        if (separator < 0) {
+            return lookupRepository(subpath);
+        }
+        // FIXME this part is virtually identical to the one in getChildResource()
+        AbstractRepository repo = this;
+        int last = 0;
+        while (separator > -1 && repo != null) {
+            String id = subpath.substring(last, separator);
+            repo = repo.lookupRepository(id);
+            last = separator + 1;
+            separator = findSeparator(subpath, last);
+        }
+        return repo == null ? null : repo.lookupRepository(subpath.substring(last));
+    }
+
+    protected AbstractRepository lookupRepository(String name) throws IOException {
+        if (".".equals(name) || "".equals(name)) {
             return this;
         } else if ("..".equals(name)) {
             return getParentRepository();
@@ -232,13 +250,9 @@ public abstract class AbstractRepository implements Repository {
 
     public Resource[] getResources(String resourcePath, boolean recursive)
             throws IOException {
-        String[] subs = StringUtils.split(resourcePath, SEPARATOR);
-        Repository repository = this;
-        for (String sub : subs) {
-            repository = repository.getChildRepository(sub);
-            if (repository == null || !repository.exists()) {
-                return new Resource[0];
-            }
+        Repository repository = getChildRepository(resourcePath);
+        if (repository == null || !repository.exists()) {
+            return new Resource[0];
         }
         return repository.getResources(recursive);
     }

@@ -74,12 +74,12 @@ public interface Repository extends Trackable {
     public Repository[] getRepositories() throws IOException;
 
     /**
-     * Get a child repository with the given name
-     * @param name the name of the repository
+     * Get a child repository with the given path
+     * @param path the path of the repository
      * @return the child repository
      * @throws IOException an IOException occurred
      */
-    public Repository getChildRepository(String name) throws IOException;
+    public Repository getChildRepository(String path) throws IOException;
 
     /**
      * Mark this repository as root repository, disabling any parent access.
