@@ -42,8 +42,11 @@
     var fs = require("file");
     var packages = home.getChildRepository("packages").path;
     for each (var package in fs.list(packages)) {
+        var packagePath = fs.join(packages, package);
+        if (!fs.isDirectory(packagePath)) {
+            continue;
+        }
         try {
-            var packagePath = fs.join(packages, package);
             var jsonPath = fs.join(packagePath, "package.json");
             var pkg = JSON.parse(fs.read(jsonPath).trim());
             var lib = pkg.lib || ["lib"];
