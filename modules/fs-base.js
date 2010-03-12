@@ -423,3 +423,11 @@ function resolveFile(path) {
     var file = new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
 }
+
+function isAbsolute(path) {
+    return new File(path).isAbsolute();
+}
+
+function isRelative(path) {
+    return !isAbsolute(path);
+}
