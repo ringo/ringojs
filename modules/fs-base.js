@@ -6,6 +6,8 @@ export('canonical',
        'changeWorkingDirectory',
        'workingDirectory',
        'exists',
+       'isAbsolute', // non-standard/non-spec
+       'isRelative', // non-standard/non-spec
        'isDirectory',
        'isFile',
        'isReadable',
@@ -17,7 +19,7 @@ export('canonical',
        'lastModified',
        'openRaw',
        'remove',
-       'resolve',
+       'resolve', // non-standard/non-spec
        'removeDirectory',
        'size',
        'touch',
@@ -140,6 +142,16 @@ function isFile(path) {
 
 function isDirectory(path) {
     return resolveFile(path).isDirectory();
+}
+
+// non-standard/non-spec
+function isAbsolute(path) {
+    return new File(path).isAbsolute();
+}
+
+// non-standard/non-spec
+function isRelative(path) {
+    return !isAbsolute(path);
 }
 
 function isLink(target) {
@@ -422,12 +434,4 @@ function resolveFile(path) {
     }
     var file = new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
-}
-
-function isAbsolute(path) {
-    return new File(path).isAbsolute();
-}
-
-function isRelative(path) {
-    return !isAbsolute(path);
 }
