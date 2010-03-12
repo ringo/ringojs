@@ -142,13 +142,22 @@ public class RingoGlobal extends Global {
 
     public static Object addToClasspath(final Context cx, Scriptable thisObj, Object[] args,
                                         Function funObj) {
-        if (args.length != 1 || !(args[0] instanceof String)) {
-            throw Context.reportRuntimeError("addToClasspath() requires a string argument");
+        if (args.length != 1) {
+            throw Context.reportRuntimeError("addToClasspath() requires an argument");
         }
-        RhinoEngine engine = RhinoEngine.engines.get();
         try {
-            Trackable path = engine.findPath((String) args[0],
-                    engine.getParentRepository(thisObj));
+            Trackable path;
+            RhinoEngine engine = RhinoEngine.engines.get();
+            Object arg = args[0] instanceof Wrapper ?
+                    ((Wrapper) args[0]).unwrap() : args[0];
+            if (arg instanceof String) {
+                path = engine.findPath((String) arg,
+                        engine.getParentRepository(thisObj));
+            } else if (arg instanceof Trackable) {
+                path = (Trackable) arg;
+            } else {
+                throw Context.reportRuntimeError("addToClasspath() requires a path argument");
+            }
             engine.addToClasspath(path);
             return path.exists() ? Boolean.TRUE : Boolean.FALSE;
         } catch (IOException iox) {
