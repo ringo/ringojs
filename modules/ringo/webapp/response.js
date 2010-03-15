@@ -126,15 +126,90 @@ function Response() {
         headers.get(String(key));
     };
 
+    /**
+     * Set a header to be sent to the client. If a header with this name was previously
+     * set it will be replaced.
+     * @param {String} key the header name
+     * @param {String} value the header value
+     * @returns {Response} this response for chainability
+     */
     this.setHeader = function(key, value) {
         key = String(key);
         if (key.toLowerCase() == "content-type") {
             contentType = String(value);
             charset = getMimeParameter(contentType, "charset") || charset;
         }
-        headers.set(String(key), String(value));
+        headers.set(key, String(value));
+        return this;
     };
 
+    /**
+     * Add a header to be sent to the client. If a header with this name was previously
+     * set it will not be replaced.
+     * @param {String} key the header name
+     * @param {String} value the header value
+     * @returns {Response} this response for chainability
+     */
+    this.addHeader = function(key, value) {
+        headers.add(String(key), String(value));
+        return this;
+    };
+
+    /**
+     * Sets a cookie to be sent to the client.
+     * All arguments except for key and value are optional.
+     * days specifies the number of days until the cookie expires.
+     * To delete a cookie immediately, set the days argument to 0.
+     * If the argument is not specified or set to a negative value, the cookie
+     * will be discarded is at the end of the browser session.
+     * <br /><br />
+     * pathString specifies
+     * <br /><br />
+     * domainString specifies the domain on which to set the cookie (defaults to unset)
+     * <br /><br />
+     * Example:
+     * @example <pre>res.setCookie("username", "michi");
+     * res.setCookie("password", "strenggeheim", 10, "/mypath", ".mydomain.org");</pre>
+     *
+     * @param {String} key the cookie name
+     * @param {String} value the cookie value
+     * @param {Number} days the number of days to live
+     * @param {String} path the path on which to set the cookie (defaults to /)
+     * @param {String} domain the domain on which to set the cookie (defaults to current domain)
+     * @param {Boolean} httpOnly to make the cookie inaccessible to client side scripts
+     * @return {Response} this response object for chainability;
+     */
+    this.setCookie = function(key, value, days, path, domain, httpOnly) {
+        // remove newline chars to prevent response splitting attack as value may be user-provided
+        if (value) {
+            value = value.replace(/[\r\n]/g, "");
+        }
+        var buffer = new Buffer(key, "=", value);
+        if (typeof days == "number" && days > -1) {
+            var expires = days == 0 ?
+                new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
+            var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
+            buffer.write("; expires=");
+            buffer.write(expires.format(cookieDateFormat, "en", "GMT"));
+        }
+        if (path) {
+            buffer.write("; path=", path);
+        }
+        if (domain) {
+            buffer.write("; domain=", domain.toLowerCase());
+        }
+        if (httpOnly) {
+            buffer.write("; HttpOnly");
+        }
+        print(buffer);
+        this.addHeader("Set-Cookie", buffer.toString());
+        return this;
+    };
+
+    /**
+     * Close and convert this response into a JSGI response object.
+     * @returns a JSGI 0.2 response object
+     */
     this.close = function() {
         this.flushDebug();
         if (contentType && !headers.contains('content-type')) {
