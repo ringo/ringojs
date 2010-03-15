@@ -6,16 +6,6 @@ var fileutils = require('ringo/fileutils');
 
 exports.markdown_filter = function(content) {
     var markdown = new Markdown({
-
-        lookupLink: function(id) {
-            if (id.startsWith("ng:")) {
-                var path = id.substring(3);
-                var title = path ? "RingoJS Wiki: " + path : "RingoJS Wiki";
-                return ["http://dev.helma.org/ng/" + path.replace(/ /g, '+'), title];
-            }
-            return null;
-        },
-
         openTag: function(tag, buffer) {
             if (tag === "pre") {
                 buffer.append("<pre class='code'>");
