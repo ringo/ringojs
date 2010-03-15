@@ -36,16 +36,27 @@ Date.ISOFORMAT    = "yyyy-MM-dd'T'HH:mm:ss'Z'";
  * For details on the format pattern, see 
  * http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  * 
- * @param String Format pattern
- * @param Object Java Locale Object (optional)
- * @param Object Java TimeZone Object (optional)
- * @returns String formatted Date
+ * @param {String} format the format pattern
+ * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
+ *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @param {String|java.util.TimeZone} timezone (optional) the timezone as java TimeZone
+ *        object or  an abbreviation such as "PST", a full name such as "America/Los_Angeles",
+ *        or a custom ID such as "GMT-8:00". If the id is not provided, the default timezone
+ *        is used. If the timezone id is provided but cannot be understood, the "GMT" timezone
+ *        is used.
+ * @returns {String} the formatted Date
  * @see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  */
 Object.defineProperty(Date.prototype, "format", {
     value: function (format, locale, timezone) {
         if (!format)
             return this.toString();
+        if (typeof locale == "string") {
+            locale = new java.util.Locale(locale);
+        }
+        if (typeof timezone == "string") {
+            timezone = java.util.TimeZone.getTimeZone(timezone);
+        }
         var sdf = locale ? new java.text.SimpleDateFormat(format, locale)
                          : new java.text.SimpleDateFormat(format);
         if (timezone && timezone != sdf.getTimeZone())
