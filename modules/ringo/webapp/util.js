@@ -26,7 +26,7 @@ function ResponseFilter(body, filter) {
             }
         });
     };
-};
+}
 
 /**
  * Returns an object for use as a HTTP header collection. The returned object
@@ -73,6 +73,8 @@ function Headers(headers) {
      */
     Object.defineProperty(headers, "set", {
         value: function(key, value) {
+            // JSGI uses \n as separator for mulitple headers
+            value = value.replace(/\n/g, "");
             var oldkey = keys[key.toLowerCase()];
             if (oldkey) {
                 delete this[oldkey];
@@ -82,17 +84,25 @@ function Headers(headers) {
         }
     });
 
+    /**
+     * Add a header with the given name and value.
+     * @param name the header name
+     * @param value the header value
+     * @name Headers.instance.add
+     */
     Object.defineProperty(headers, "add", {
         value: function(key, value) {
+            // JSGI uses \n as separator for mulitple headers
+            value = value.replace(/\n/g, "");
             if (this[key]) {
                 // shortcut
-                this[key] = this.key + ", " + value;
+                this[key] = this[key] + "\n" + value;
                 return;
             }
             var lowerkey = key.toLowerCase();
             var oldkey = keys[lowerkey];
             if (oldkey) {
-                value = this[oldkey] + ", " + value;
+                value = this[oldkey] + "\n" + value;
                 if (key !== oldkey)
                     delete this[oldkey];
             }
@@ -102,6 +112,12 @@ function Headers(headers) {
 
     });
 
+    /**
+     * Queries whether a header with the given name is set
+     * @param name the header name
+     * @returns {Boolean} true if a header with this name is set
+     * @name Headers.instance.contains
+     */
     Object.defineProperty(headers, "contains", {
         value: function(key) {
             return Boolean(this[key] !== undefined
@@ -109,6 +125,11 @@ function Headers(headers) {
         }
     });
 
+    /**
+     * Unsets any cookies with the given name
+     * @param name the header name
+     * @name Headers.instance.unset
+     */
     Object.defineProperty(headers, "unset", {
         value: function(key) {
            key = key.toLowerCase();
@@ -119,11 +140,18 @@ function Headers(headers) {
         }
     });
 
+    /**
+     * Returns a string representation of the headers in MIME format.
+     * @returns {String} a string representation of the headers
+     * @name Headers.instance.toString
+     */
     Object.defineProperty(headers, "toString", {
          value: function() {
             var buffer = new Buffer();
-            for (var header in this) {
-                buffer.write(header).write(": ").writeln(this[header]);
+            for (var key in this) {
+                this[key].split("\n").forEach(function(value) {
+                    buffer.write(key).write(": ").writeln(value);
+                });
             }
             return buffer.toString();
         }
@@ -163,4 +191,4 @@ function getMimeParameter(headerValue, paramName) {
         }
     }
     return null;
-};
+}

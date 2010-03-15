@@ -85,8 +85,10 @@ function commitResponse(env, result) {
     }
     var {status, headers, body} = result;
     response.status = status;
-    for (var name in headers) {
-        response.setHeader(name, headers[name]);
+    for (var key in headers) {
+        headers[key].split("\n").forEach(function(value) {
+            response.addHeader(key, value);
+        });
     }
     var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
     writeBody(response, body, charset);
