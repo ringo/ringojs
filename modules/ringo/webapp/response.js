@@ -176,6 +176,7 @@ function Response() {
      *     <li>domain -  the domain on which to set the cookie (defaults to current domain)</li>
      *     <li>secure - to only use this cookie for secure connections</li>
      *     <li>httpOnly - to make the cookie inaccessible to client side scripts</li></ul>
+     * @since 0.5
      * @return {Response} this response object for chainability;
      */
     this.setCookie = function(key, value, days, options) {
