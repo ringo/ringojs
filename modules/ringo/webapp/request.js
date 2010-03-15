@@ -131,7 +131,6 @@ function Request(env) {
 function Session(servletRequest) {
 
     var data;
-    var define = bindArguments(Object.defineProperty, this);
 
     function getSession() {
         return servletRequest.getSession();
@@ -163,160 +162,80 @@ function Session(servletRequest) {
 
 }
 
+/**
+ * Read-only Cookie class used for the Request.cookies collection.
+ * This constructor is not exported, use Response.setCookie to
+ * set or modify cookies. 
+ * @constructor
+ * @name Cookie
+ */
 function Cookie(servletCookie) {
-
-    var name, path, maxAge, domain, comment, isSecure, value, version;
-    var define = bindArguments(Object.defineProperty, this);
-
-    function getCookie() {
-        return servletCookie;
-    }
 
     Object.defineProperty(this, "name", {
         get: function() {
-            if (!name)
-                name = getCookie().getName();
-            return name;
-        },
-
-        set: function(value) {
-            if (value) {
-                name = value;
-                getCookie().setName(name);
-            }
-            return name;
-        }
+            return servletCookie.getName();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "value", {
         get: function() {
-            if (!value)
-                value = getCookie().getValue();
-            return value;
-        },
-
-        set: function(val) {
-            if (val) {
-                value = val;
-                getCookie().setValue(value);
-            }
-            return value;
-        }
+            return servletCookie.getValue();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "domain", {
         get: function() {
-            if (!domain)
-                domain = getCookie().getDomain();
-            return domain;
-        },
-
-        set: function(value) {
-            if (value) {
-                domain = value;
-                getCookie().setDomain(domain);
-            }
-            return domain;
-        }
+            return servletCookie.getDomain();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "path", {
         get: function() {
-            if (!path)
-                path = getCookie().getPath();
-            return path;
-        },
-
-        set: function(value) {
-            if (value) {
-                path = value;
-                getCookie().setPath(path);
-            }
-            return path;
-        }
+            return servletCookie.getPath();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "maxAge", {
         get: function() {
-            if (!maxAge)
-                maxAge = getCookie().getMaxAge();
-            return maxAge;
-        },
-
-        set: function(value) {
-            if (value) {
-                maxAge = value;
-                getCookie().setMaxAge(maxAge);
-            }
-            return maxAge;
-        }
+            return servletCookie.getMaxAge();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "comment", {
         get: function() {
-            if (!comment)
-                comment = getCookie().getComment();
-            return comment;
-        },
-
-        set: function(value) {
-            if (value) {
-                comment = value;
-                getCookie().setComment(comment);
-            }
-            return comment;
-        }
+            return servletCookie.getComment();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "isSecure", {
         get: function() {
-            if (!isSecure)
-                isSecure = getCookie().getSecure();
-            return isSecure;
-        },
-
-        set: function(value) {
-            if (value) {
-                isSecure = value;
-                getCookie().setSecure(isSecure);
-            }
-            return isSecure;
-        }
+            return servletCookie.getSecure();
+        }, enumerable: true
     });
 
     Object.defineProperty(this, "version", {
         get: function() {
-            if (!version)
-                version = getCookie().getVersion();
-            return version;
-        },
-
-        set: function(value) {
-            if (value) {
-                version = value;
-                getCookie().setVersion(version);
-            }
-            return version;
-        }
+            return servletCookie.getVersion();
+        }, enumerable: true
     });
 }
 
 Object.defineProperty(Request.prototype, "isGet", {
     get: function() { return this.method == "GET"; }
-})
+});
 
 Object.defineProperty(Request.prototype, "isPost", {
     get: function() { return this.method == "POST"; }
-})
+});
 
 Object.defineProperty(Request.prototype, "isPut", {
     get: function() { return this.method == "PUT"; }
-})
+});
 
 Object.defineProperty(Request.prototype, "isDelete", {
     get: function() { return this.method == "DELETE"; }
-})
+});
 
 Object.defineProperty(Request.prototype, "isHead", {
     get: function() { return this.method == "HEAD"; }
-})
+});
