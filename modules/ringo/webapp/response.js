@@ -158,30 +158,28 @@ function Response() {
     /**
      * Sets a cookie to be sent to the client.
      * All arguments except for key and value are optional.
-     * days specifies the number of days until the cookie expires.
-     * To delete a cookie immediately, set the days argument to 0.
-     * If the argument is not specified or set to a negative value, the cookie
-     * will be discarded is at the end of the browser session.
-     * <br /><br />
-     * pathString specifies
-     * <br /><br />
-     * domainString specifies the domain on which to set the cookie (defaults to unset)
-     * <br /><br />
-     * Example:
+     * The days argument specifies the number of days until the cookie expires.
+     * To delete a cookie immediately, set the days argument to 0. If days is
+     * undefined or negative, the cookie is set for the current browser session.
+     *
      * @example <pre>res.setCookie("username", "michi");
-     * res.setCookie("password", "strenggeheim", 10, "/mypath", ".mydomain.org");</pre>
+     * res.setCookie("password", "strenggeheim", 10,
+     *               {path: "/mypath", domain: ".mydomain.org"});</pre>
      *
      * @param {String} key the cookie name
      * @param {String} value the cookie value
-     * @param {Number} days the number of days to live
-     * @param {String} path the path on which to set the cookie (defaults to /)
-     * @param {String} domain the domain on which to set the cookie (defaults to current domain)
-     * @param {Boolean} httpOnly to make the cookie inaccessible to client side scripts
+     * @param {Number} days optional number of days the number of days to live.
+     *     If undefined or -1, the cookie is set for the current session.
+     * @param {Object} options optional options argument which may contain the following properties:
+     *     <ul><li>path - the path on which to set the cookie (defaults to /)</li>
+     *     <li>domain -  the domain on which to set the cookie (defaults to current domain)</li>
+     *     <li>secure - to only use this cookie for secure connections</li>
+     *     <li>httpOnly - to make the cookie inaccessible to client side scripts</li></ul>
      * @return {Response} this response object for chainability;
      */
-    this.setCookie = function(key, value, days, path, domain, httpOnly) {
-        // remove newline chars to prevent response splitting attack as value may be user-provided
+    this.setCookie = function(key, value, days, options) {
         if (value) {
+            // remove newline chars to prevent response splitting attack as value may be user-provided
             value = value.replace(/[\r\n]/g, "");
         }
         var buffer = new Buffer(key, "=", value);
@@ -192,16 +190,18 @@ function Response() {
             buffer.write("; expires=");
             buffer.write(expires.format(cookieDateFormat, "en", "GMT"));
         }
-        if (path) {
-            buffer.write("; path=", path);
+        options = options || {};
+        var path = options.path || "/";
+        buffer.write("; path=", encodeURI(path));
+        if (options.domain) {
+            buffer.write("; domain=", options.domain.toLowerCase());
         }
-        if (domain) {
-            buffer.write("; domain=", domain.toLowerCase());
+        if (options.secure) {
+            buffer.write("; secure");
         }
-        if (httpOnly) {
+        if (options.httpOnly) {
             buffer.write("; HttpOnly");
         }
-        print(buffer);
         this.addHeader("Set-Cookie", buffer.toString());
         return this;
     };
