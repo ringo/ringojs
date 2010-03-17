@@ -2,24 +2,30 @@ include('io');
 include('binary');
 require('core/array');
 
-export('canonical',
+export('absolute', // Filesystem/A
+       'base', // Filesystem/A
+       'canonical',
        'changeWorkingDirectory',
+       'directory', // Filesystem/A
        'workingDirectory',
        'exists',
+       'extension', // Filesystem/A
        'isAbsolute', // non-standard/non-spec
        'isRelative', // non-standard/non-spec
        'isDirectory',
        'isFile',
        'isReadable',
        'isWritable',
-       'join',
+       'join', // Filesystem/A
        'list',
        'makeDirectory',
        'move',
+       'normal', // Filesystem/A
        'lastModified',
        'openRaw',
        'remove',
-       'resolve', // non-standard/non-spec
+       'relative', // Filesystem/A
+       'resolve', // Filesystem/A
        'removeDirectory',
        'size',
        'touch',
@@ -29,6 +35,7 @@ export('canonical',
        'isLink',
        'same',
        'sameFilesystem',
+       'split', // Filesystem/A
        'iterate',
        'Permissions',
        'owner',
@@ -187,11 +194,7 @@ function canonical(path) {
     return resolveFile(path).getCanonicalPath();
 }
 
-function join() {
-    return resolve(Array.join(arguments, SEPARATOR));
-}
-
-function touch(path, mtime) {
+    function touch(path, mtime) {
     mtime = mtime || Date.now();
     return resolveFile(path).setLastModified(mtime);
 }
@@ -312,48 +315,6 @@ function changeGroup(path, group) {
             POSIX.getgrnam(group).gr_gid : group);
 }
 
-// Adapted from Narwhal.
-function resolve() {
-    var root = '';
-    var elements = [];
-    var leaf = '';
-    var path;
-    for (var i = 0; i < arguments.length; i++) {
-        path = String(arguments[i]);
-        if (path.trim() == '') {
-            continue;
-        }
-        var parts = path.split(SEPARATOR_RE);
-        if (isAbsolute(path)) {
-            // path is absolute, throw away everyting we have so far
-            root = parts.shift() + SEPARATOR;
-            elements = [];
-        }
-        leaf = parts.pop();
-        if (leaf == '.' || leaf == '..') {
-            parts.push(leaf);
-            leaf = '';
-        }
-        for (var j = 0; j < parts.length; j++) {
-            var part = parts[j];
-            if (part == '..') {
-                if (elements.length > 0 && elements.peek() != '..') {
-                    elements.pop();
-                } else if (!root) {
-                    elements.push(part);
-                }
-            } else if (part != '' && part != '.') {
-                elements.push(part);
-            }
-        }
-    }
-    path = elements.join(SEPARATOR);
-    if (path.length > 0) {
-        leaf = SEPARATOR + leaf;
-    }
-    return root + path + leaf;
-}
-
 var optionsMask = {
     read: 1,
     write: 1,
@@ -423,6 +384,120 @@ function applyMode(mode, options) {
         }
     }
     return options;
+}
+
+// the following are from the "Paths" - "Paths as Text" section from Filesystem/A
+// http://wiki.commonjs.org/wiki/Filesystem/A
+
+function join() {
+    return normal(Array.join(arguments, SEPARATOR));
+}
+
+function split(path) {
+    if (!path) {
+        return [];
+    }
+    return String(path).split(SEPARATOR_RE);
+}
+
+function normal(path) {
+    return resolve(path);
+}
+
+function absolute(path) {
+    return resolve(join(cwd(), ''), path);
+}
+
+function directory(path) {
+    return new File(path).getParent() || '.';
+}
+
+function base(path, ext) {
+    var name = split(path).peek();
+    if (ext && name) {
+        var diff = name.length - ext.length;
+        if (diff > -1 && name.lastIndexOf(ext) == diff) {
+            return name.substring(0, diff);
+        }
+    }
+    return name;
+}
+
+function extension(path) {
+    var name = basename(path);
+    if (!name) {
+        return '';
+    }
+    name = name.replace(/^\.+/, '');
+    var index = name.lastIndexOf('.');
+    return index > 0 ? name.substring(index) : '';
+}
+
+// Adapted from Narwhal.
+function resolve() {
+    var root = '';
+    var elements = [];
+    var leaf = '';
+    var path;
+    for (var i = 0; i < arguments.length; i++) {
+        path = String(arguments[i]);
+        if (path.trim() == '') {
+            continue;
+        }
+        var parts = path.split(SEPARATOR_RE);
+        if (isAbsolute(path)) {
+            // path is absolute, throw away everyting we have so far
+            root = parts.shift() + SEPARATOR;
+            elements = [];
+        }
+        leaf = parts.pop();
+        if (leaf == '.' || leaf == '..') {
+            parts.push(leaf);
+            leaf = '';
+        }
+        for (var j = 0; j < parts.length; j++) {
+            var part = parts[j];
+            if (part == '..') {
+                if (elements.length > 0 && elements.peek() != '..') {
+                    elements.pop();
+                } else if (!root) {
+                    elements.push(part);
+                }
+            } else if (part != '' && part != '.') {
+                elements.push(part);
+            }
+        }
+    }
+    path = elements.join(SEPARATOR);
+    if (path.length > 0) {
+        leaf = SEPARATOR + leaf;
+    }
+    return root + path + leaf;
+}
+
+// adapted from narwhal
+function relative(source, target) {
+    if (!target) {
+        target = source;
+        source = cwd() + '/';
+    }
+    source = absolute(source);
+    target = absolute(target);
+    source = source.split(SEPARATOR_RE);
+    target = target.split(SEPARATOR_RE);
+    source.pop();
+    while (
+        source.length &&
+        target.length &&
+        target[0] == source[0]) {
+        source.shift();
+        target.shift();
+    }
+    while (source.length) {
+        source.shift();
+        target.unshift("..");
+    }
+    return target.join(SEPARATOR);
 }
 
 function resolveFile(path) {
