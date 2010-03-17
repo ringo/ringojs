@@ -109,14 +109,18 @@ function timer(fn) {
  */
 function format() {
     var format = arguments[0];
-    if (typeof format === 'string' && format.indexOf('{}') > -1) {
-        for (var i = 1; i < arguments.length; i++) {
-            format = format.replace("{}", String(arguments[i]));
+    var index = 1;
+    // Replace placehoder with argument as long as possible
+    if (typeof format === "string") {
+        while (format.indexOf("{}") > -1 && index < arguments.length) {
+            format = format.replace("{}", String(arguments[index++]));
         }
-    } else {
-        format = arguments.join(' ');
     }
-    return format || '';
+    // append remaining arguments separated by " "
+    if (index < arguments.length) {
+        format = format + " " + Array.slice(arguments, index).join(" ");
+    }
+    return format;
 }
 
 /**
