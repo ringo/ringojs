@@ -1,0 +1,3 @@
+#! /usr/bin/env ringo
+
+require("ringo/webapp").main();

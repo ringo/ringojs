@@ -12,7 +12,7 @@ include('ringo/webapp/response');
 var fileutils = require('ringo/fileutils');
 var Server = require('ringo/httpserver').Server;
 
-export('start', 'stop', 'getConfig', 'getServer', 'handleRequest');
+export('start', 'stop', 'getConfig', 'getServer', 'handleRequest', 'main');
 
 var server;
 var log = require('ringo/logging').getLogger(module.id);
@@ -234,14 +234,52 @@ function getServer() {
     return server;
 }
 
-if (require.main == module) {
-    for (var i = 1; i < system.args.length; i++) {
-        var arg = system.args[i];
-        if (arg.indexOf('-') == 0) {
-            break;
-        }
-        require.paths.splice(require.paths.length - 2, 0, arg);
+function main() {
+    // parse command line options
+    var parser = new (require('ringo/args').Parser);
+    parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
+    parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
+    parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
+    parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
+    parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 8080)");
+    parser.addOption("h", "help", null, "Print help message and exit");
+
+    var cmd = system.args.shift();
+    var options = parser.parse(system.args);
+
+    if (options.help) {
+        print("Usage:");
+        print("", cmd, "[OPTIONS]", "[PATH]");
+        print("Options:");
+        print(parser.help());
+        require("ringo/shell").quit();
     }
-    log.info('Set up module path: ' + require.paths);
-    start();
+
+    var config = "config";
+    var path = system.args[0];
+    var fs = require("fs-base");
+    if (path && fs.exists(path)) {
+        if (fs.isFile(path)) {
+            config = fs.base(path);
+            path = fs.directory(path);
+        }
+    } else {
+        path = ".";
+    }
+    // prepend the web app's directory to the module search path
+    require.paths.unshift(path);
+
+    options.moduleName = options.config || config;
+    options.functionName = options.app || "app";
+    config = require(options.config || config);
+    require("core/object");
+    options = Object.merge(options, config.httpConfig || {});
+
+    var Server = require('ringo/httpserver').Server;
+    new Server(options).start();
+
+}
+
+if (require.main == module) {
+    main();
 }
