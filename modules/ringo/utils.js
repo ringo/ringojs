@@ -1,4 +1,6 @@
 
+require('core/string');
+
 export('readOnlyPropertyDesc',
         'writeOnlyPropertyDesc',
         'readWritePropertyDesc',
@@ -108,19 +110,28 @@ function timer(fn) {
  * @return {String} the formatted string
  */
 function format() {
+    if (arguments.length == 0) {
+        return "";
+    }
     var format = arguments[0];
     var index = 1;
     // Replace placehoder with argument as long as possible
     if (typeof format === "string") {
-        while (format.indexOf("{}") > -1 && index < arguments.length) {
-            format = format.replace("{}", String(arguments[index++]));
+        if (format.contains("{}") && arguments.length > 1) {
+            var args = arguments;
+            format = format.replace(/{}/g, function(m) {
+                return index < args.length ? args[index++] : m;
+            });
         }
+    } else {
+        format = String(format);
     }
     // append remaining arguments separated by " "
     if (index < arguments.length) {
-        format = format + " " + Array.slice(arguments, index).join(" ");
+        return [format].concat(Array.slice(arguments, index).map(String)).join(" ");
+    } else {
+        return format;        
     }
-    return format;
 }
 
 /**
