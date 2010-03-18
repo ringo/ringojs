@@ -50,6 +50,7 @@ public class ModuleScope extends NativeObject {
         int attr = READONLY | PERMANENT;
         ScriptableObject.defineProperty(metaObject, "id", moduleName, attr);
         ScriptableObject.defineProperty(metaObject, "path", source.getPath(), attr);
+        ScriptableObject.defineProperty(metaObject, "directory", repository.getPath(), attr);
         try {
             URL url = source.getUrl();
             ScriptableObject.defineProperty(metaObject, "uri", url.toString(), attr);
@@ -57,9 +58,6 @@ public class ModuleScope extends NativeObject {
             // uri property not available
         }
         defineProperty("module", metaObject, DONTENUM);
-        // define old deprecated meta properties
-        defineProperty("__name__", moduleName, DONTENUM);
-        defineProperty("__path__", source.getRelativePath(), DONTENUM);
     }
 
     public Repository getRepository() {
@@ -69,7 +67,6 @@ public class ModuleScope extends NativeObject {
     public void reset() {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
-        delete("__shared__");
         metaObject.delete("shared");
     }
 
@@ -119,6 +116,7 @@ public class ModuleScope extends NativeObject {
     }
 
     class MetaObject extends NativeObject {
+
         MetaObject() {
             setParentScope(ModuleScope.this);
             setPrototype(getObjectPrototype(ModuleScope.this));

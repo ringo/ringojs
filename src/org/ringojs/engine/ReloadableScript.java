@@ -299,7 +299,7 @@ public class ReloadableScript {
     }
 
     /**
-     * Check if the module has the __shared__ flag set, and set the moduleScope
+     * Check if the module has the module.shared flag set, and set the moduleScope
      * field accordingly.
      * @param module the module scope
      */
@@ -307,9 +307,7 @@ public class ReloadableScript {
         Scriptable meta = module.getMetaObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
-        // TODO drop support for __shared__
         boolean isShared = meta.get("shared", meta) == Boolean.TRUE
-                || module.get("__shared__", module) == Boolean.TRUE
                 || moduleName.equals(engine.getMainModule());
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
