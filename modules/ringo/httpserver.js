@@ -4,20 +4,22 @@
 
 export('Server');
 
+require('core/object');
+
 // mark this module as shared between all requests
 module.shared = true;
 var log = require('ringo/logging').getLogger(module.id);
 
 
 /**
- * Create a Jetty HTTP server with the given configuration. The configuration may
- * either pass properties to be used with the default jetty.xml, or define
+ * Create a Jetty HTTP server with the given options. The options may
+ * either define properties to be used with the default jetty.xml, or define
  * a custom configuration file.
  *
- * @param {Object} config A javascript object with any of the following properties,
+ * @param {Object} options A javascript object with any of the following properties,
  * with the default value in parentheses:
  * <ul>
- * <li>configFile ('config/jetty.xml')</li>
+ * <li>jettyConfig ('config/jetty.xml')</li>
  * <li>port (8080)</li>
  * <li>host (undefined)</li>
  * </ul>
@@ -33,10 +35,10 @@ var log = require('ringo/logging').getLogger(module.id);
  * <li>functionName ('app')</li>
  * </ul>
  */
-function Server(config) {
+function Server(options) {
 
     if (!(this instanceof Server)) {
-        return new Server(config);
+        return new Server(options);
     }
 
     // the jetty server instance
@@ -76,8 +78,8 @@ function Server(config) {
         var jpkg = org.mortbay.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(servlet);
         if (!isFunction) {
-            servletHolder.setInitParameter('moduleName', app.moduleName || 'config');
-            servletHolder.setInitParameter('functionName', app.functionName || 'app');
+            servletHolder.setInitParameter('moduleName', app.config || 'config');
+            servletHolder.setInitParameter('functionName', app.app || 'app');
         }
         context.addServlet(servletHolder, "/*");
         if (jetty.isRunning()) {
@@ -139,30 +141,44 @@ function Server(config) {
     java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
 
     // init code
-    config = config || {};
-    var configFile = config.configFile || 'config/jetty.xml';
-    var jettyconfig = getResource(configFile);
-    if (!jettyconfig.exists()) {
-        throw Error('Resource "' + configFile + '" not found');
+    options = options || {};
+    var jettyFile = options.jettyConfig || 'config/jetty.xml';
+    var jettyConfig = getResource(jettyFile);
+    if (!jettyConfig.exists()) {
+        throw Error('Resource "' + jettyFile + '" not found');
     }
     var XmlConfiguration = org.mortbay.xml.XmlConfiguration;
     var JsgiServlet = org.ringojs.jsgi.JsgiServlet;
     jetty = new org.mortbay.jetty.Server();
-    xmlconfig = new XmlConfiguration(jettyconfig.inputStream);
+    xmlconfig = new XmlConfiguration(jettyConfig.inputStream);
     // port config is done via properties
     var props = xmlconfig.getProperties();
-    props.put('port', (config.port || 8080).toString());
-    if (config.host) props.put('host', config.host);
+    props.put('port', (options.port || 8080).toString());
+    if (options.host) props.put('host', options.host);
     xmlconfig.configure(jetty);
-    // Allow definition of app/static mappings in server config for convenience
+
     var fileutils = require('ringo/fileutils');
-    if (config.staticDir) {
-        this.addStaticResources(config.staticMountpoint || '/static',
-                config.virtualHost, fileutils.resolveId(config.moduleName, config.staticDir));
+
+    if (options.config) {
+        var config = require(options.config);
+        if (config.http) {
+            options = Object.merge(options, config.http);
+        }
+        if (Array.isArray(config.static)) {
+            config.static.forEach(function(spec) {
+                var dir = fileutils.resolveId(options.config, spec[1]);
+                this.addStaticResources(spec[0], null, dir);
+            }, this);
+        }
+        this.addApplication(options.mountpoint || '/', options.virtualHost, options);
     }
-    if (config.functionName && config.moduleName) {
-        this.addApplication(config.mountpoint || '/', config.virtualHost, config);
+
+    // Allow definition of app/static mappings in server config for convenience
+    if (options.staticDir) {
+        this.addStaticResources(options.staticMountpoint || '/static',
+                options.virtualHost, fileutils.resolveId(options.config, options.staticDir));
     }
+
     // Start listeners. This allows us to run on priviledged port 80 under jsvc
     // even as non-root user if the constructor is called with root privileges
     // while start() is called with the user we will actually run as

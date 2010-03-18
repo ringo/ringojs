@@ -3,6 +3,7 @@
  * the Apache Commons Daemon jsvc tool.
  */
 
+var system = require('system');
 var Server = require('ringo/httpserver').Server;
 var server, options;
 var log = require('ringo/logging').getLogger(module.id);
@@ -15,21 +16,31 @@ export('init', 'start', 'stop', 'destroy', 'getServer');
 var parser = new (require('ringo/args').Parser);
 parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
 parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
-parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
+parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
+parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
 parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
 parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)");
-parser.addOption("s", "staticDir", "DIR", "A directory with static resources to serve");
-parser.addOption("S", "staticMountpoint", "PATH", "The URI path where ot mount the static resources");
+parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
+parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
+// parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
+parser.addOption("h", "help", null, "Print help message and exit");
 
-function init() {
+function init(defaults) {
     log.info("init");
-    options = parser.parse(Array.slice(arguments, 1), {
+    var options = defaults || {
         config: "config",
         app: "app",
         port: 80
-    });
-    options.moduleName = options.config;
-    options.functionName = options.app;
+    };
+    var cmd = system.args.shift();
+    parser.parse(Array.slice(system.args, 1), options);
+    if (options.help) {
+        print("Usage:");
+        print("", cmd, "[OPTIONS]", "[PATH]");
+        print("Options:");
+        print(parser.help());
+        require("ringo/shell").quit();
+    }    
     server = new Server(options);
 }
 

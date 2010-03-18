@@ -12,7 +12,7 @@ include('ringo/webapp/response');
 var fileutils = require('ringo/fileutils');
 var Server = require('ringo/httpserver').Server;
 
-export('start', 'stop', 'getConfig', 'getServer', 'handleRequest', 'main');
+export('getConfig', 'getServer', 'handleRequest', 'main', 'start', 'stop');
 
 var server;
 var log = require('ringo/logging').getLogger(module.id);
@@ -196,22 +196,9 @@ function getConfig(configModuleName) {
  * Start the web server using the given config module, or the
  * default "config" module if called without argument.
  */
-function start(moduleId) {
+function start(options) {
     // start jetty http server
-    moduleId = moduleId || 'config';
-    var config = getConfig(moduleId);
-    var httpConfig = Object.merge(config.httpConfig || {}, {
-        moduleName: moduleId,
-        functionName: "app"
-    });
-
-    server = server || new Server(httpConfig);
-    if (Array.isArray(config.static)) {
-        config.static.forEach(function(spec) {
-            var dir = fileutils.resolveId(moduleId, spec[1]);
-            server.addStaticResources(spec[0], null, dir);
-        });
-    }
+    server = server || new Server(options);
     if (!server.isRunning()) {
         server.start();
     }
@@ -230,22 +217,34 @@ function stop() {
 /**
  * Get the server instance.
  */
-function getServer() {
+function getServer(path) {
     return server;
 }
 
-function main() {
+/**
+ * Main webapp startup function.
+ * @param {String} path optional path to the web application directory or config module.
+ */
+function main(path) {
     // parse command line options
     var parser = new (require('ringo/args').Parser);
     parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
     parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
-    parser.addOption("H", "host", "HOST", "The host name to bind to (default: 0.0.0.0)");
+    parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
+    parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
     parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
     parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 8080)");
+    parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
+    parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
+    // parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
     parser.addOption("h", "help", null, "Print help message and exit");
 
     var cmd = system.args.shift();
-    var options = parser.parse(system.args);
+    var options = parser.parse(system.args, {
+        app: "app",
+        config: "config",
+        port: 8080
+    });
 
     if (options.help) {
         print("Usage:");
@@ -255,12 +254,13 @@ function main() {
         require("ringo/shell").quit();
     }
 
-    var config = "config";
-    var path = system.args[0];
+    // if no explicit path is given use first command line argument
+    path = path || system.args[0];
     var fs = require("fs-base");
     if (path && fs.exists(path)) {
         if (fs.isFile(path)) {
-            config = fs.base(path);
+            // if argument is a file use it as config module
+            options.config = fs.base(path);
             path = fs.directory(path);
         }
     } else {
@@ -269,15 +269,7 @@ function main() {
     // prepend the web app's directory to the module search path
     require.paths.unshift(path);
 
-    options.moduleName = options.config || config;
-    options.functionName = options.app || "app";
-    config = require(options.config || config);
-    require("core/object");
-    options = Object.merge(options, config.httpConfig || {});
-
-    var Server = require('ringo/httpserver').Server;
-    new Server(options).start();
-
+    start(options);
 }
 
 if (require.main == module) {

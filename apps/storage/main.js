@@ -77,5 +77,5 @@ function removeBook(req, book) {
 }
 
 if (require.main == module) {
-    require('ringo/webapp').start();
+    require('ringo/webapp').main(module.directory);
 }
