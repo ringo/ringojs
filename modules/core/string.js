@@ -203,6 +203,24 @@ Object.defineProperty(String.prototype, "isNumeric", {
 
 
 /**
+ * Transforms this string to camel-case.
+ * @returns String the resulting string
+ * @since 0.5
+ */
+Object.defineProperty(String.prototype, "toCamelCase", {
+    value: function() {
+        return this.replace(/([A-Z]+)/g, function(m, l) {
+            // "ABC" -> "Abc"
+            return l[0].toUpperCase() + l.substring(1).toLowerCase();
+        }).replace(/[\-_\s](.)/g, function(m, l) {
+            // foo-bar -> fooBar
+            return l.toUpperCase();
+        });
+    }
+});
+
+
+/**
  * transforms the first n characters of a string to uppercase
  * @param Number amount of characters to transform
  * @returns String the resulting string

@@ -73,6 +73,15 @@ exports.testIsNumeric = function () {
     assertFalse((FOO + NUM).isNumeric());
 };
 
+exports.testToCamelCase = function() {
+    assertEqual('fooBarBaz', 'foo-BAR_baz'.toCamelCase());
+    assertEqual('fooBarBaz', 'foo BAR baz'.toCamelCase());
+    assertEqual('fooBarBaz', 'foo\nBAR\tbaz'.toCamelCase());
+    assertEqual('fooBar123baz', 'foo-bar-123baz'.toCamelCase());
+    assertEqual('fooBar123Baz', 'foo-bar-123BAZ'.toCamelCase());
+    assertEqual('fooBar123Baz', 'foo-bar-123-BAZ'.toCamelCase());
+};
+
 exports.testCapitalize = function () {
     assertEqual('Capitalize me.', 'capitalize me.'.capitalize());
 };
