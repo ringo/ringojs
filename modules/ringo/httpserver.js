@@ -161,9 +161,11 @@ function Server(options) {
 
     if (options.config) {
         var config = require(options.config);
-        if (config.http) {
-            options = Object.merge(options, config.http);
+        // pick up extra http-config from config module
+        if (config.httpConfig) {
+            options = Object.merge(options, config.httpConfig);
         }
+        // check for additional static mounts
         if (Array.isArray(config.static)) {
             config.static.forEach(function(spec) {
                 var dir = fileutils.resolveId(options.config, spec[1]);
