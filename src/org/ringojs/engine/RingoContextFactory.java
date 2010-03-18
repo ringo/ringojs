@@ -24,6 +24,7 @@ public class RingoContextFactory extends ContextFactory {
 
     int languageVersion = Context.VERSION_1_8;
     boolean strictMode = false;
+    boolean strictVars = true;
     boolean warningAsError = false;
     boolean parentProtoProperties = true;
     int optimizationLevel = 0;
@@ -38,14 +39,14 @@ public class RingoContextFactory extends ContextFactory {
         languageVersion = config.getLanguageVersion();
         parentProtoProperties = config.hasParentProtoProperties();
         classShutter = config.getClassShutter();
+        strictVars = config.getStrictVars();
     }
 
     @Override
     protected boolean hasFeature(Context cx, int featureIndex) {
         switch (featureIndex) {
             case Context.FEATURE_STRICT_VARS:
-                // missing vars suck - always print a warning message
-                return true;
+                return strictVars;
 
             case Context.FEATURE_STRICT_EVAL:
             case Context.FEATURE_STRICT_MODE:

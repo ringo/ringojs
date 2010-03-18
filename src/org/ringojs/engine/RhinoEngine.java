@@ -51,7 +51,6 @@ public class RhinoEngine implements ScopeProvider {
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
     private RingoWrapFactory wrapFactory = new RingoWrapFactory();
-    private Set<Class> hostClasses = new HashSet<Class>();
 
     private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
@@ -113,9 +112,6 @@ public class RhinoEngine implements ScopeProvider {
                 }
             }
             evaluateScript(cx, getScript("ringoglobal"), globalScope);
-            if (config.isNarwhalMode()) {
-                evaluateScript(cx, getScript("narwhal-shim"), globalScope);
-            }
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
@@ -148,6 +144,7 @@ public class RhinoEngine implements ScopeProvider {
     public void defineHostClass(Class clazz)
             throws InvocationTargetException, InstantiationException, IllegalAccessException {
         synchronized (clazz) {
+            Set<Class> hostClasses = new HashSet<Class>();
             if (!hostClasses.contains(clazz)) {
                hostClasses.add(clazz);
                ScriptableObject.defineClass(globalScope, clazz);
@@ -435,7 +432,7 @@ public class RhinoEngine implements ScopeProvider {
             source = findRepository(repositoryName, localPath);
         } else {
             source = findResource(moduleName + ".js", localPath);
-            if (!source.exists() && config.isNarwhalMode()) {
+            if (!source.exists()) {
                 source = findResource(moduleName, localPath);
             }
         }

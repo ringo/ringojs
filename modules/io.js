@@ -4,6 +4,8 @@ defineClass(org.ringojs.wrappers.Stream);
  * @constructor
  */
 exports.Stream = Stream;
+/** @ignore Narwhal compatibility */
+exports.IO = Stream;
 
 var InputStreamReader = java.io.InputStreamReader,
     BufferedReader = java.io.BufferedReader,

@@ -1,4 +1,4 @@
 #!/bin/bash
-# run ringo with -n switch for narwhal compatibility
+# run ringo with --legacy-mode for better narwhal compatibilty
 
-ringo -n "$@"
+ringo -l "$@"

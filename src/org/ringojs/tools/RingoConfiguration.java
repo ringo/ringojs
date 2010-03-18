@@ -42,6 +42,7 @@ public class RingoConfiguration {
     private Resource mainResource;
     private String[] arguments;
     private int optimizationLevel = 0;
+    private boolean strictVars = true;
     private boolean debug = false;
     private boolean verbose = false;
     private int languageVersion = 180;
@@ -51,8 +52,6 @@ public class RingoConfiguration {
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
-    private boolean narwhalMode = false;
-    private Repository narwhalHome;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -187,14 +186,10 @@ public class RingoConfiguration {
                         return;
                     }
                 }
-                // not found in the existing repositories - add parent as first element of module path
-                if (narwhalMode) {
-                    // do not add script's directory to module path in narwhal mode
-                    // we probably shouldn't do that in normal mode either
-                    script.setAbsolute(true);
-                } else {
-                    repositories.add(0, script.getParentRepository());
-                }
+                // not found in the existing repositories - note that we do not add
+                // parent directory as first element of module path anymore.
+                // Instead, the script is set to absolute mode so module id will return the absolute path
+                script.setAbsolute(true);
                 mainResource = script;
             } else {
                 // check if the script can be found in the module path
@@ -308,6 +303,14 @@ public class RingoConfiguration {
         this.verbose = verbose;
     }
 
+    public boolean getStrictVars() {
+        return strictVars;
+    }
+
+    public void setStrictVars(boolean strictVars) {
+        this.strictVars = strictVars;
+    }
+
     /**
      * Get the desired JavaScript langauge version
      * @return int value between 0 and 180
@@ -321,7 +324,7 @@ public class RingoConfiguration {
      * @return true if __parent__ and __proto__ properties should be enabled
      */
     public boolean hasParentProtoProperties() {
-        return parentProtoProperties || narwhalMode;
+        return parentProtoProperties;
     }
 
     /**
@@ -421,19 +424,13 @@ public class RingoConfiguration {
         return LoggerFactory.getLogger("org.ringojs.tools");
     }
 
-    public boolean isNarwhalMode() {
-        return narwhalMode;
-    }
-
-    public void setNarwhalMode(boolean narwhalMode, String narwhalPath) throws IOException {
-        this.narwhalMode = narwhalMode;
-        if (narwhalMode && narwhalPath != null && !narwhalPath.equals("")) {
-            this.narwhalHome = new FileRepository(narwhalPath);
+    public void setNarwhalPath(String narwhalPath) throws IOException {
+        Repository narwhalHome;
+        if (narwhalPath != null && !narwhalPath.equals("")) {
+            narwhalHome = new FileRepository(narwhalPath);
             addModuleRepository(narwhalHome.getChildRepository("engines/rhino/lib"));
             addModuleRepository(narwhalHome.getChildRepository("engines/default/lib"));
             addModuleRepository(narwhalHome.getChildRepository("lib"));
-        } else {
-            this.narwhalHome = null;
         }
     }
 }

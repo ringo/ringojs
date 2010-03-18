@@ -51,7 +51,7 @@ public class RingoRunner {
     boolean debug = false;
     boolean verbose = false;
     boolean silent = false;
-    boolean narwhalMode;
+    boolean legacyMode = false;
     String narwhalHome;
     List<String> bootScripts = new ArrayList<String>();
 
@@ -62,8 +62,8 @@ public class RingoRunner {
         {"h", "help", "Display this help message", ""},
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
-        {"n", "narwhal", "Enable Narwhal compatibility mode", ""},
-        {"N", "narwhal-path", "Enable Narwhal mode with external installation path", "PATH"},
+        {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
+        {"n", "narwhal", "Run with Narwhal libs from given installation path", "PATH"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -106,7 +106,7 @@ public class RingoRunner {
             String[] paths = modulePath == null ?
                     new String[0] : StringUtils.split(modulePath, File.pathSeparator);
             config = new RingoConfiguration(home, paths, "modules");
-            config.setNarwhalMode(narwhalMode, narwhalHome); // set this first, affects setMainScript()
+            config.setNarwhalPath(narwhalHome);
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);
@@ -114,6 +114,8 @@ public class RingoRunner {
             config.setBootstrapScripts(bootScripts);
             config.setDebug(debug);
             config.setVerbose(verbose);
+            config.setParentProtoProperties(legacyMode);
+            config.setStrictVars(!legacyMode);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -335,12 +337,11 @@ public class RingoRunner {
         } else if ("silent".equals(option)) {
             silent = runShell = true;
         } else if ("narwhal".equals(option)) {
-            narwhalMode = true;
-        } else if ("narwhal-path".equals(option)) {
-            narwhalMode = true;
             narwhalHome = arg;
         } else if ("verbose".equals(option)) {
             verbose = true;
+        } else if ("legacy-mode".equals(option)) {
+            legacyMode = true;
         } else if ("version".equals(option)) {
             printVersion();
             System.exit(0);

@@ -1,5 +1,6 @@
 
 var system = require('system');
+var fs = require('file');
 
 module.shared = true;
 
@@ -14,7 +15,6 @@ function load() {
 
     catalog = {};
     // loop through packages and configure resources
-    var fs = require("file");
     var packages = fs.join(system.prefix, 'packages');
 
     for each (var pkg in fs.list(packages)) {

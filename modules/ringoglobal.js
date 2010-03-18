@@ -76,4 +76,21 @@ Object.defineProperty(this, "global", { value: this });
         value: system.print
     });
 
+    // Load packages
+    var packages = require("packages");
+    packages.load();
+
+    // Narwhal compatibility
+    Object.defineProperty(require, "loader", {
+        value: {
+            usingCatalog: true,
+            isLoaded: function() {
+                return false;
+            },
+            resolve: function(id, baseId) {
+                return id;
+            }
+        }
+    });
+
 })(global);

@@ -22,7 +22,7 @@ exports.stderr = new io.TextStream(new io.Stream(java.lang.System.err));
  */
 exports.print = function() {
     exports.stdout.print.apply(exports.stdout, arguments);
-}
+};
 
 /**
  * An array of strings representing the command line arguments passed to the running script.
@@ -33,3 +33,15 @@ exports.args = global.arguments || [];
  * An object containing our environment variables.
  */
 exports.env = new ScriptableMap(java.lang.System.getenv());
+
+// Narwhal compatibility
+var engine = org.ringojs.engine.RhinoEngine.getEngine();
+var home = engine.getRingoHome();
+/** @ignore */
+exports.prefix = home.getPath();
+/** @ignore */
+exports.prefixes = [exports.prefix];
+/** @ignore */
+exports.engine = "rhino";
+/** @ignore */
+exports.engines = ["rhino", "default"];
