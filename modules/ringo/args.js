@@ -1,5 +1,13 @@
 /**
- * @fileoverview A parser for command line options.
+ * @fileoverview A parser for command line options. This parser supports
+ * various option formats:
+ *
+ * <pre>-a -b -c (multiple short options)
+ * -abc (multiple short options combined into one)
+ * -a value (short option with value)
+ * -avalue (alternative short option with value)
+ * --option value (long option with value)
+ * --option=value (alternative long option with value)</pre>
  */
 
 require("core/array");
@@ -13,10 +21,10 @@ exports.Parser = function() {
 
     /**
      * Add an option to the parser.
-     * @param shortName the short option name (without leading hyphen)
-     * @param longName the long option name (without leading hyphens)
-     * @param argument the name of the argument if the option requires one, or null
-     * @param helpText the help text to display for the option
+     * @param {String} shortName the short option name (without leading hyphen)
+     * @param {String} longName the long option name (without leading hyphens)
+     * @param {String} argument the name of the argument if the option requires one, or null
+     * @param {String} helpText the help text to display for the option
      */
     this.addOption = function(shortName, longName, argument, helpText) {
         if (shortName && shortName.length != 1) {
@@ -34,6 +42,7 @@ exports.Parser = function() {
 
     /**
      * Get help text for the parser's options suitable for display in command line scripts.
+     * @returns {String} a string explaining the parser's options
      */
     this.help = function() {
         var lines = [];
@@ -54,10 +63,17 @@ exports.Parser = function() {
     };
 
     /**
-     * Parse an arguments array into an option object.
-     * @param args the argument array. Matching options are removed.
-     * @param result optional result object. If undefined, a new Object is created
-     * @returns the result object
+     * Parse an arguments array into an option object. If a long option name is defined,
+     * it is converted to camelCase and used as property name. Otherwise, the short option
+     * name is used as property name.
+     *
+     * Passing an result object as second argument is a convenient way to define default
+     * options:
+     * @example
+     * <pre>parser.parse(system.args, {myOption: "defaultValue"});</pre>
+     * @param {Array} args the argument array. Matching options are removed.
+     * @param {Object} result optional result object. If undefined, a new Object is created.
+     * @returns {Object} the result object
      */
     this.parse = function(args, result) {
         result = result || {};
@@ -106,7 +122,8 @@ exports.Parser = function() {
                 }
                 i = length;
             }
-            result[def.longName || def.shortName] = optarg || true;
+            var propertyName = def.longName || def.shortName;
+            result[propertyName.toCamelCase()] = optarg || true;
         }
         args.splice(0, consumedNext ? 2 : 1);
     }
@@ -140,7 +157,7 @@ exports.Parser = function() {
                 optarg = opt.substring(length + 1);
             }
         }
-        result[def.longName] = optarg || true;
+        result[def.longName.toCamelCase()] = optarg || true;
         args.splice(0, consumedNext ? 2 : 1);
     }
 };
