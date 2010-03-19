@@ -131,6 +131,12 @@ Object.defineProperty(ByteArray.prototype, 'unshift', {
     }
 });
 
+Object.defineProperty(ByteArray.prototype, 'splice', {
+    value: function() {
+        return new ByteArray(Array.prototype.splice.apply(this, arguments));
+    }
+});
+
 /**
  * Copy a range of bytes from this object to another byte array.
  * @name ByteArray.prototype.copy
