@@ -67,14 +67,16 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
-    var system = this.system = require('system');
+    var system = this.system = this.system || require('system');
 
     /**
      * Basic print function compatible with other JavaScript implementations.
      */
-    Object.defineProperty(this, "print", {
-        value: system.print
-    });
+    if (!this.print) {
+        Object.defineProperty(this, "print", {
+            value: system.print
+        });
+    }
 
     // Load packages
     var packages = require("packages");
@@ -92,5 +94,7 @@ Object.defineProperty(this, "global", { value: this });
             }
         }
     });
+
+    require('core/regexp');
 
 })(global);
