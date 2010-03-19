@@ -28,12 +28,19 @@ function load() {
             var jsonPath = fs.join(directory, "package.json");
             var package = JSON.parse(fs.read(jsonPath).trim());
             package.directory = directory;
-            var lib = package.lib || ["lib"];
-            if (pkg == "narwhal") {
-                lib.unshift("engines/rhino/lib", "engines/default/lib");
-            }
-            handleResource(lib, function(res) {
-                require.paths.push(fs.join(directory, res));
+
+            handleResource(package.lib || "lib", function(lib) {
+                // for each lib name check engines directories
+                handleResource(package.engines || "engines", function(engines) {
+                    var dir = fs.join(directory, engines);
+                    for each (var engine in system.engines) {
+                        var path = fs.join(dir, engine, lib);
+                        if (fs.isDirectory(path)) {
+                            require.paths.push(path);
+                        }
+                    }
+                });
+                require.paths.push(fs.join(directory, lib));
             });
             handleResource(package.jars, function(res) {
                 addToClasspath(fs.join(directory, res))
