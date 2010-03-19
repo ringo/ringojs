@@ -57,7 +57,7 @@ public class RingoRunner {
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
-        {"D", "java-property", "Set a Java system property", "OPT"},
+        {"D", "java-property", "Set Java system property K to value V", "K=V"},
         {"d", "debug", "Run with debugger GUI", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
         {"h", "help", "Display this help message", ""},
@@ -399,7 +399,7 @@ public class RingoRunner {
         Formatter formatter = new Formatter(out);
         for (String[] opt : options) {
             String def = new Formatter().format("-%1$s --%2$s %4$s", (Object[]) opt).toString();
-            formatter.format("  %1$-22s %2$s%n", def, opt[2]);
+            formatter.format("  %1$-23s %2$s%n", def, opt[2]);
         }
     }
 
