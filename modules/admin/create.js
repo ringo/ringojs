@@ -52,6 +52,7 @@ function fixAppEngineDirs(dest) {
     var webinf = file.join(dest, "WEB-INF");
     file.mkdir(file.join(webinf, "lib"));
     file.mkdir(file.join(webinf, "classes"));
+    file.mkdir(file.join(webinf, "packages"));
     file.move(file.join(webinf, "app", "static"), file.join(dest, "static"));    
 }
 
