@@ -29,17 +29,17 @@ function load() {
             var package = JSON.parse(fs.read(jsonPath).trim());
             package.directory = directory;
 
-            handleResource(package.lib || "lib", function(lib) {
-                // for each lib name check engines directories
-                handleResource(package.engines || "engines", function(engines) {
-                    var dir = fs.join(directory, engines);
-                    for each (var engine in system.engines) {
-                        var path = fs.join(dir, engine, lib);
-                        if (fs.isDirectory(path)) {
-                            require.paths.push(path);
-                        }
+            // check engine specific libs
+            handleResource(package.engines || "engines", function(engines) {
+                var dir = fs.join(directory, engines);
+                for each (var engine in system.engines) {
+                    var path = fs.join(dir, engine, "lib");
+                    if (fs.isDirectory(path)) {
+                        require.paths.push(path);
                     }
-                });
+                }
+            });
+            handleResource(package.lib || "lib", function(lib) {
                 require.paths.push(fs.join(directory, lib));
             });
             handleResource(package.jars, function(res) {
