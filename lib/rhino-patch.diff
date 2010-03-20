@@ -4,7 +4,7 @@ RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaAdapter.java,
 retrieving revision 1.117
 diff -u -r1.117 JavaAdapter.java
 --- src/org/mozilla/javascript/JavaAdapter.java	14 Nov 2008 13:52:29 -0000	1.117
-+++ src/org/mozilla/javascript/JavaAdapter.java	25 Jun 2009 08:53:10 -0000
++++ src/org/mozilla/javascript/JavaAdapter.java	20 Mar 2010 07:45:49 -0000
 @@ -131,6 +131,10 @@
  
      public static Object convertResult(Object result, Class<?> c)
@@ -16,23 +16,22 @@ diff -u -r1.117 JavaAdapter.java
          if (result == Undefined.instance &&
              (c != ScriptRuntime.ObjectClass &&
               c != ScriptRuntime.StringClass))
-@@ -138,7 +142,14 @@
+@@ -138,6 +142,14 @@
              // Avoid an error for an undefined value; return null instead.
              return null;
          }
--        return Context.jsToJava(result, c);
 +        if (!unwrap) {
 +            // Scriptable.NOT_FOUND requires special handling
 +            if (result instanceof Wrapper &&
 +                    ((Wrapper)result).unwrap() == Scriptable.NOT_FOUND) {
-+               return Scriptable.NOT_FOUND;
++                return Scriptable.NOT_FOUND;
 +            }
++            return result;
 +        }
-+        return unwrap ? Context.jsToJava(result, c) : result;
+         return Context.jsToJava(result, c);
      }
  
-     public static Scriptable createAdapterWrapper(Scriptable obj,
-@@ -353,9 +364,13 @@
+@@ -353,9 +365,13 @@
                       (short) (ClassFileWriter.ACC_PUBLIC |
                                ClassFileWriter.ACC_FINAL));
          int interfacesCount = interfaces == null ? 0 : interfaces.length;
@@ -47,7 +46,7 @@ diff -u -r1.117 JavaAdapter.java
          }
  
          String superName = superClass.getName().replace('.', '/');
-@@ -395,7 +410,7 @@
+@@ -395,7 +411,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -56,7 +55,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                  }
-@@ -423,7 +438,7 @@
+@@ -423,7 +439,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -65,7 +64,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                      
-@@ -450,7 +465,7 @@
+@@ -450,7 +466,7 @@
              for (int k=0; k < length; k++)
                  parms[k] = ScriptRuntime.ObjectClass;
              generateMethod(cfw, adapterName, functionName, parms,
@@ -74,7 +73,20 @@ diff -u -r1.117 JavaAdapter.java
          }
          return cfw.toByteArray();
      }
-@@ -817,7 +832,7 @@
+@@ -499,7 +515,11 @@
+         Object staticDomain;
+         Class<?> domainClass = SecurityController.getStaticSecurityDomainClass();
+         if(domainClass == CodeSource.class || domainClass == ProtectionDomain.class) {
+-            ProtectionDomain protectionDomain = JavaAdapter.class.getProtectionDomain();
++            // use the calling script's security domain if available
++            ProtectionDomain protectionDomain = SecurityUtilities.getScriptProtectionDomain();
++            if (protectionDomain == null) {
++                protectionDomain = JavaAdapter.class.getProtectionDomain();
++            }
+             if(domainClass == CodeSource.class) {
+                 staticDomain = protectionDomain == null ? null : protectionDomain.getCodeSource();
+             }
+@@ -817,7 +837,7 @@
       * Generates the appropriate RETURN bytecode.
       */
      static void generateReturnResult(ClassFileWriter cfw, Class<?> retType,
@@ -83,7 +95,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          // wrap boolean values with java.lang.Boolean, convert all other
          // primitive values to java.lang.Double.
-@@ -874,20 +889,19 @@
+@@ -874,20 +894,19 @@
  
          } else {
              String retTypeStr = retType.getName();
@@ -117,7 +129,7 @@ diff -u -r1.117 JavaAdapter.java
              // Now cast to return type
              cfw.add(ByteCode.CHECKCAST, retTypeStr);
              cfw.add(ByteCode.ARETURN);
-@@ -896,7 +910,7 @@
+@@ -896,7 +915,7 @@
  
      private static void generateMethod(ClassFileWriter cfw, String genName,
                                         String methodName, Class<?>[] parms,
@@ -126,7 +138,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          StringBuffer sb = new StringBuffer();
          int paramsEnd = appendMethodSignature(parms, returnType, sb);
-@@ -959,7 +973,7 @@
+@@ -959,7 +978,7 @@
                        +"J"
                        +")Ljava/lang/Object;");
  
@@ -141,7 +153,7 @@ RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaMembers.java,
 retrieving revision 1.80
 diff -u -r1.80 JavaMembers.java
 --- src/org/mozilla/javascript/JavaMembers.java	6 Jun 2009 14:11:24 -0000	1.80
-+++ src/org/mozilla/javascript/JavaMembers.java	25 Jun 2009 08:53:10 -0000
++++ src/org/mozilla/javascript/JavaMembers.java	20 Mar 2010 07:45:51 -0000
 @@ -54,6 +54,8 @@
   */
  class JavaMembers
@@ -184,76 +196,13 @@ diff -u -r1.80 JavaMembers.java
          Map<String,Object> map = isStatic ? staticMembers : members;
          return map.keySet().toArray(new Object[map.size()]);
      }
-Index: src/org/mozilla/javascript/PolicySecurityController.java
-===================================================================
-RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/PolicySecurityController.java,v
-retrieving revision 1.10
-diff -u -r1.10 PolicySecurityController.java
---- src/org/mozilla/javascript/PolicySecurityController.java	25 Mar 2008 14:32:26 -0000	1.10
-+++ src/org/mozilla/javascript/PolicySecurityController.java	25 Jun 2009 08:53:10 -0000
-@@ -42,6 +42,7 @@
- import java.security.PrivilegedAction;
- import java.security.PrivilegedActionException;
- import java.security.PrivilegedExceptionAction;
-+import java.security.ProtectionDomain;
- import java.security.SecureClassLoader;
- import java.util.Map;
- import java.util.WeakHashMap;
-@@ -116,9 +117,10 @@
-     @Override
-     public Object getDynamicSecurityDomain(Object securityDomain)
-     {
--        // No separate notion of dynamic security domain - just return what was
--        // passed in.
--        return securityDomain;
-+        // if RhinoSecurityManager is installed, try to get the protection domain
-+        // of the topmost script in the current stack.
-+        ProtectionDomain dynamicDomain = SecurityUtilities.getDynamicScriptProtectionDomain();
-+        return dynamicDomain == null ? securityDomain : dynamicDomain.getCodeSource();
-     }
- 
-     @Override
-Index: src/org/mozilla/javascript/RhinoSecurityManager.java
-===================================================================
-RCS file: src/org/mozilla/javascript/RhinoSecurityManager.java
-diff -N src/org/mozilla/javascript/RhinoSecurityManager.java
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ src/org/mozilla/javascript/RhinoSecurityManager.java	25 Jun 2009 08:53:10 -0000
-@@ -0,0 +1,27 @@
-+package org.mozilla.javascript;
-+
-+import java.security.ProtectionDomain;
-+
-+/**
-+ * A java.lang.SecurityManager subclass that provides access to the security domain
-+ * of the top-most script in the currently executing stack. This is useful to
-+ * provide the same protection domain to scripts created by other scripts
-+ * (e.g. JavaAdapters).
-+ */
-+public class RhinoSecurityManager extends SecurityManager {
-+
-+    /**
-+     * Find the top-most stack element representing a script and return its protection domain.
-+     * @return The protection of the top-most script in the current stack
-+     */
-+    protected ProtectionDomain getScriptProtectionDomain() {
-+        Class[] context = getClassContext();
-+        for (Class c : context) {
-+            if (c != InterpretedFunction.class && NativeFunction.class.isAssignableFrom(c) ||
-+                    PolicySecurityController.SecureCaller.class.isAssignableFrom(c)) {
-+                return c.getProtectionDomain();
-+            }
-+        }
-+        return null;
-+    }
-+}
 Index: src/org/mozilla/javascript/SecurityUtilities.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/SecurityUtilities.java,v
 retrieving revision 1.6
 diff -u -r1.6 SecurityUtilities.java
 --- src/org/mozilla/javascript/SecurityUtilities.java	18 Mar 2008 15:10:18 -0000	1.6
-+++ src/org/mozilla/javascript/SecurityUtilities.java	25 Jun 2009 08:53:10 -0000
++++ src/org/mozilla/javascript/SecurityUtilities.java	20 Mar 2010 07:45:51 -0000
 @@ -65,7 +65,7 @@
                  }
              });
@@ -263,7 +212,7 @@ diff -u -r1.6 SecurityUtilities.java
      public static ProtectionDomain getProtectionDomain(final Class<?> clazz)
      {
          return (ProtectionDomain)AccessController.doPrivileged(
-@@ -77,4 +77,25 @@
+@@ -77,4 +77,26 @@
                      }
                  });
      }
@@ -275,17 +224,113 @@ diff -u -r1.6 SecurityUtilities.java
 +     * otherwise it returns <code>null</code>.
 +     * @return The protection of the top-most script in the current stack, or null
 +     */
-+    public static ProtectionDomain getDynamicScriptProtectionDomain() {
-+        return AccessController.doPrivileged(
++    public static ProtectionDomain getScriptProtectionDomain() {
++        final SecurityManager securityManager = System.getSecurityManager();
++        if (securityManager instanceof RhinoSecurityManager) {
++            return AccessController.doPrivileged(
 +                new PrivilegedAction<ProtectionDomain>() {
 +                    public ProtectionDomain run() {
-+                        SecurityManager securityManager = System.getSecurityManager();
-+                        if (securityManager instanceof RhinoSecurityManager) {
 +                            return ((RhinoSecurityManager) securityManager)
 +                                    .getScriptProtectionDomain();
-+                        }
-+                        return null;
 +                    }
-+                });
++                }
++            );
++        }
++        return null;
 +    }
  }
+Index: src/org/mozilla/javascript/Synchronizer.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Synchronizer.java,v
+retrieving revision 1.9
+diff -u -r1.9 Synchronizer.java
+--- src/org/mozilla/javascript/Synchronizer.java	25 Mar 2008 14:32:27 -0000	1.9
++++ src/org/mozilla/javascript/Synchronizer.java	20 Mar 2010 07:45:51 -0000
+@@ -59,6 +59,8 @@
+ 
+ public class Synchronizer extends Delegator {
+ 
++    private Object syncObject;
++
+     /**
+      * Create a new synchronized function from an existing one.
+      *
+@@ -69,13 +71,26 @@
+     }
+ 
+     /**
++     * Create a new synchronized function from an existing one using
++     * an explicit object as synchronization object.
++     *
++     * @param obj the existing function
++     * @param syncObject the object to synchronized on
++     */
++    public Synchronizer(Scriptable obj, Object syncObject) {
++        super(obj);
++        this.syncObject = syncObject;
++    }
++
++    /**
+      * @see org.mozilla.javascript.Function#call
+      */
+     @Override
+     public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+                        Object[] args)
+     {
+-        synchronized(thisObj instanceof Wrapper ? ((Wrapper)thisObj).unwrap() : thisObj) {
++        Object sync = syncObject != null ? syncObject : thisObj;
++        synchronized(sync instanceof Wrapper ? ((Wrapper)sync).unwrap() : sync) {
+             return ((Function)obj).call(cx,scope,thisObj,args);
+         }
+     }
+Index: toolsrc/org/mozilla/javascript/tools/resources/Messages.properties
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/toolsrc/org/mozilla/javascript/tools/resources/Messages.properties,v
+retrieving revision 1.37
+diff -u -r1.37 Messages.properties
+--- toolsrc/org/mozilla/javascript/tools/resources/Messages.properties	18 Oct 2008 18:57:27 -0000	1.37
++++ toolsrc/org/mozilla/javascript/tools/resources/Messages.properties	20 Mar 2010 07:45:52 -0000
+@@ -91,8 +91,9 @@
+     version([number])      Get or set the JavaScript version number. \n\
+     gc()                   Runs the garbage collector.\n\
+     spawn(arg)             Evaluate function or script name on a new thread \n\
+-    sync(function)         Creates a synchronized version of the function, \n\
+-    \                       where the synchronization object is "this" \n\
++    sync(function [,obj])  Creates a synchronized version of the function, \n\
++    \                       where the synchronization object is the second \n\
++    \                       argument or "this" \n\
+     readFile(fileName [, encoding])\n\
+     \                       Returns the content of the file as a string. \n\
+     \                       Encoding of the string can be optionally specified. \n\
+Index: toolsrc/org/mozilla/javascript/tools/shell/Global.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/toolsrc/org/mozilla/javascript/tools/shell/Global.java,v
+retrieving revision 1.58
+diff -u -r1.58 Global.java
+--- toolsrc/org/mozilla/javascript/tools/shell/Global.java	14 Sep 2009 22:20:34 -0000	1.58
++++ toolsrc/org/mozilla/javascript/tools/shell/Global.java	20 Mar 2010 07:45:52 -0000
+@@ -555,7 +555,8 @@
+     /**
+      * The sync function creates a synchronized function (in the sense
+      * of a Java synchronized method) from an existing function. The
+-     * new function synchronizes on the <code>this</code> object of
++     * new function synchronizes on the the second argument if it is
++     * defined, or otherwise the <code>this</code> object of
+      * its invocation.
+      * js> var o = { f : sync(function(x) {
+      *       print("entry");
+@@ -575,8 +576,12 @@
+     public static Object sync(Context cx, Scriptable thisObj, Object[] args,
+                               Function funObj)
+     {
+-        if (args.length == 1 && args[0] instanceof Function) {
+-            return new Synchronizer((Function)args[0]);
++        if (args.length >= 1 && args.length <= 2 && args[0] instanceof Function) {
++            Object syncObject = null;
++            if (args.length == 2 && args[1] != Undefined.instance) {
++                syncObject = args[1];
++            }
++            return new Synchronizer((Function)args[0], syncObject);
+         }
+         else {
+             throw reportRuntimeError("msg.sync.args");
