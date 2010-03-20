@@ -173,6 +173,9 @@ public class RhinoEngine implements ScopeProvider {
         } else {
             throw new IOException("Unsupported script resource: " + scriptResource);
         }
+        if (!resource.exists()) {
+            throw new FileNotFoundException(scriptResource.toString());
+        }
         try {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
@@ -572,6 +575,7 @@ public class RhinoEngine implements ScopeProvider {
         RingoConfiguration sandbox = new RingoConfiguration(getRingoHome(), modulePath, systemModules);
         sandbox.setClassShutter(shutter);
         sandbox.setSealed(sealed);
+        sandbox.setPolicyEnabled(config.isPolicyEnabled());
         return new RhinoEngine(sandbox, globals);
     }
 
