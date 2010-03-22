@@ -1,8 +1,3 @@
-ATTENTION: RingoJS was formerly known as Helma NG. We are currently in the
-process of renaming to RingoJS, so please bear with us while occasional "Helma"
-references keep popping up.
-
-
 RingoJS
 =======
 
