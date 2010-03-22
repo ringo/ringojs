@@ -3,7 +3,7 @@ include('io');
 include('ringo/buffer');
 include('./util');
 include('./mime');
-include('core/date');
+require('core/date');
 
 export('Response',
        'skinResponse',
