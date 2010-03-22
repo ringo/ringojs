@@ -70,6 +70,7 @@ public class RingoContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         RhinoEngine.engines.set(engine);
         RhinoEngine.modules.set(new HashMap<Trackable, ModuleScope>());
+        Thread.currentThread().setContextClassLoader(engine.getClassLoader());
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);
