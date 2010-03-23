@@ -16,6 +16,7 @@
 
 package org.ringojs.tools;
 
+import org.ringojs.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ringojs.repository.*;
@@ -134,7 +135,7 @@ public class RingoConfiguration {
         if (!file.exists()) {
             throw new FileNotFoundException("File '" + file + "' does not exist.");
         }
-        if (path.toLowerCase().endsWith(".zip")) {
+        if (file.isFile() && StringUtils.isZipOrJarFile(path)) {
             return new ZipRepository(file);
         } else {
             return new FileRepository(file);
@@ -152,8 +153,9 @@ public class RingoConfiguration {
      */
     public void setMainScript(String scriptName) throws IOException {
         if (scriptName != null) {
+            File file = new File(scriptName);
             // check if the script is a zip file
-            if (scriptName.toLowerCase().endsWith(".zip")) {
+            if (file.isFile() && StringUtils.isZipOrJarFile(scriptName)) {
                 ZipRepository zipRepo = new ZipRepository(new File(scriptName));
                 mainResource = zipRepo.getResource("main.js");
                 if (mainResource.exists()) {
@@ -174,7 +176,7 @@ public class RingoConfiguration {
                 }
             }
             // check if the script exists as a standalone file
-            Resource script = new FileResource(new File(scriptName));
+            Resource script = new FileResource(file);
             if (script.exists()) {
                 // check if we are contained in one of the existing repositories
                 String scriptPath = script.getPath();

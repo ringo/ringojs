@@ -5,7 +5,9 @@ import org.ringojs.repository.Repository;
 import org.ringojs.repository.ZipRepository;
 import org.ringojs.repository.FileRepository;
 import org.ringojs.util.ScriptUtils;
+import org.ringojs.util.StringUtils;
 
+import java.io.File;
 import java.util.List;
 import java.io.IOException;
 
@@ -104,7 +106,8 @@ public class ModulePath extends ScriptableObject {
             return repo;
         } if (value != null && value != Undefined.instance) {
             String str = ScriptRuntime.toString(value);
-            if (str.toLowerCase().endsWith(".zip")) {
+            File file = new File(str);
+            if (file.isFile() && StringUtils.isZipOrJarFile(str)) {
                 return new ZipRepository(str);
             } else {
                 return new FileRepository(str);
