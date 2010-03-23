@@ -39,11 +39,21 @@ function load() {
                     }
                 }
             });
-            handleResource(package.lib || "lib", function(lib) {
+
+            var lib = (package.directories && package.directories.lib) || package.lib || "lib";
+            handleResource(lib, function(lib) {
                 require.paths.push(fs.join(directory, lib));
             });
-            handleResource(package.jars, function(res) {
-                addToClasspath(fs.join(directory, res))
+
+            var jars = (package.directories && package.directories.jars) || package.jars;
+            handleResource(jars, function(res) {
+                var path = fs.join(directory, res);
+                var files = fs.isDirectory(path)
+                    ? [fs.join(path, x) for each (x in fs.list(path)) if (x.match(/\.jar$/))]
+                    : [path]
+                ;
+                for each (var file in files)
+                    addToClasspath(file);
             });
 
             catalog[pkg] = package;
