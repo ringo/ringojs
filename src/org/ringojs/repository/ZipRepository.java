@@ -53,7 +53,7 @@ public final class ZipRepository extends AbstractRepository {
      */
     public ZipRepository(String path)
             throws ZipException, IOException {
-        this(new File(path), new FileRepository(path));
+        this(new File(path));
     }
 
     /**
@@ -64,23 +64,10 @@ public final class ZipRepository extends AbstractRepository {
      */
     public ZipRepository(File file)
             throws ZipException, IOException {
-        this(file, new FileRepository(file));
-    }
-
-    /**
-     * Constructs a ZipRepository using the given zip file as top-level
-     * repository
-     * @param file a zip file
-     * @param parent the parent repository
-     * @throws ZipException a zip encoding related error occurred
-     * @throws IOException an I/O error occurred
-     */
-    public ZipRepository(File file, AbstractRepository parent)
-            throws ZipException, IOException {
         // make sure our file has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         this.file = file.isAbsolute() ? file : file.getAbsoluteFile();
-        this.parent = parent;
+        this.parent = null;
         name = file.getName();
         path = file.getAbsolutePath() + '/';
         depth = 0;
@@ -214,7 +201,7 @@ public final class ZipRepository extends AbstractRepository {
         if (parent instanceof ZipRepository) {
             return new URL(parent.getUrl() + name + "/");
         } else {
-            return new URL("jar:" + parent.getUrl() + "!/");
+            return new URL("jar:file:" + file + "!/");
         }
     }
 
