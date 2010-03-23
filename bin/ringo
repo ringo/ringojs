@@ -1,7 +1,10 @@
 #!/bin/bash
 # Launches RingoJS
-RINGO_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
-RINGO_HOME=$RINGO_BIN/..
+
+if [ -z "$RINGO_HOME" ]; then
+    RINGO_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
+    RINGO_HOME=$RINGO_BIN/..
+fi
 
 # prepend rhino to bootclasspath to work around openjdk bug
 java -Xbootclasspath/p:"$RINGO_HOME/lib/js.jar" -jar "$RINGO_HOME/run.jar" "$@"
