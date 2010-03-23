@@ -17,6 +17,11 @@ function load() {
     // loop through packages and configure resources
     var packages = fs.join(system.prefix, 'packages');
 
+    if (!fs.isDirectory(packages)) {
+        print("No packages directory, skipping package setup");
+        return;
+    }
+
     for each (var pkg in fs.list(packages)) {
 
         var directory = fs.join(packages, pkg);
@@ -26,7 +31,7 @@ function load() {
 
         try {
             var jsonPath = fs.join(directory, "package.json");
-            var package = JSON.parse(fs.read(jsonPath).trim());
+            var package = JSON.parse(fs.read(jsonPath));
             package.directory = directory;
 
             // check engine specific libs
