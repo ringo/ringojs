@@ -37,7 +37,7 @@ public final class ZipRepository extends AbstractRepository {
     private WeakReference<ZipFile> zipFile;
 
     // the relative path of this repository within the zip file
-    String entryPath;
+    private final String entryPath;
 
     // the nested directory depth of this repository within the zip file
     private int depth;
@@ -77,19 +77,23 @@ public final class ZipRepository extends AbstractRepository {
     /**
      * Constructs a ZipRepository using the zip entryName belonging to the given
      * zip file and top-level repository
+     * @param file the zip file
      * @param parent repository
-     * @param entryName the entry name
+     * @param entryPath the entry path name
      * @throws ZipException a zip encoding related error occurred
      * @throws IOException an I/O error occurred
      */
-    private ZipRepository(File file, AbstractRepository parent, String entryName)
+    private ZipRepository(File file, ZipRepository parent, String entryPath)
             throws ZipException, IOException {
+        if (entryPath == null) {
+            throw new NullPointerException("entryPath must not be null");
+        }
         this.file = file;
         this.parent = parent;
-        String[] pathArray = StringUtils.split(entryName, SEPARATOR);
+        this.entryPath = entryPath;
+        String[] pathArray = StringUtils.split(entryPath, SEPARATOR);
         depth = pathArray.length;
         name = pathArray[depth - 1];
-        entryPath = entryName;
         path = parent.getPath() + name  + '/';
     }
 
@@ -118,7 +122,7 @@ public final class ZipRepository extends AbstractRepository {
 
 
     private String getChildName(String name) {
-        if (entryPath == null || entryPath.length() == 0) {
+        if (entryPath.length() == 0) {
             return name;
         } else if (entryPath.endsWith("/")) {
             return entryPath + name;
@@ -150,7 +154,7 @@ public final class ZipRepository extends AbstractRepository {
         if (lastModified != file.lastModified()) {
             try {
                 ZipFile zip = getZipFile();
-                exists = "".equals(entryPath) ?
+                exists = entryPath.length() == 0 ?
                         zip != null : zip.getEntry(entryPath) != null;
             } catch (IOException ex) {
                 exists = false;
@@ -201,15 +205,9 @@ public final class ZipRepository extends AbstractRepository {
         if (parent instanceof ZipRepository) {
             return new URL(parent.getUrl() + name + "/");
         } else {
-            return new URL("jar:file:" + file + "!/");
-        }
-    }
-
-    public String getRelativePath() {
-        if ("".equals(entryPath)) {
-            return "";
-        } else {
-            return entryPath + "/";
+            String baseUrl = "jar:file:" + file + "!/";
+            return entryPath.length() == 0 ?
+                    new URL(baseUrl) : new URL(baseUrl + entryPath + "/");
         }
     }
 
