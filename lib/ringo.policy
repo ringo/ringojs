@@ -23,6 +23,29 @@ grant codeBase "file:${ringo.home}/apps/-" {
         permission java.security.AllPermission;
 };
 
+// example sandbox for packages - barely enough for tusk and jack to run
+grant codeBase "file:${ringo.home}/packages/-" {
+        // file access
+        permission java.io.FilePermission "${ringo.home}/packages/-", "read,write";
+        permission java.io.FilePermission "${ringo.home}/.tusk/-", "read,write";
+        permission java.io.FilePermission "${ringo.home}/zips/-", "read,write";
+        permission java.io.FilePermission "${ringo.home}/-", "read";
+        // net access - allow outgoing http and listening on high ports
+        permission java.net.SocketPermission "*:80", "connect";
+        permission java.net.SocketPermission "localhost:1024-", "accept,listen";
+        // read-only system property access
+        permission java.util.PropertyPermission "*", "read";
+        // various runtime permissions
+        permission java.lang.RuntimePermission "getenv.*";
+        permission java.lang.RuntimePermission "exitVM";
+        permission java.lang.RuntimePermission "modifyThread";
+        permission java.lang.RuntimePermission "modifyThreadGroup";
+        permission java.lang.RuntimePermission "getClassLoader";
+        permission java.lang.RuntimePermission "setContextClassLoader";
+        permission java.lang.RuntimePermission "accessDeclaredMembers";
+        permission java.lang.RuntimePermission "getProtectionDomain";
+};
+
 // example sandbox setup
 grant codeBase "file:${ringo.sandbox}/-" {
         permission java.io.FilePermission "${ringo.sandbox}/-", "read";
