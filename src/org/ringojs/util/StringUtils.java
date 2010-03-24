@@ -90,4 +90,17 @@ public class StringUtils {
         return classes;
     }
 
+    /**
+     * Check whether the argument has a .zip or .jar file extension
+     * @param str a file name
+     * @return true if str ends with .zip or .jar
+     */
+    public static boolean isZipOrJarFile(String str) {
+        if (str == null) {
+            throw new NullPointerException("str must not be null");
+        }
+        String lower = str.toLowerCase();
+        return lower.endsWith(".zip") || lower.endsWith(".jar");
+    }
+
 }

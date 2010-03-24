@@ -78,7 +78,7 @@ public class RingoClassLoader extends URLClassLoader {
                 addClasspathWildcard(file, true);
             } else {
                 String name = file.getName().toLowerCase();
-                if (name.endsWith(".jar") || (name.endsWith(".zip"))) {
+                if (file.isFile() && (name.endsWith(".jar") || (name.endsWith(".zip")))) {
                     addURL(new URL("file:" + file));
                 }
             }

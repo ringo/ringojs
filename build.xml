@@ -89,9 +89,10 @@
     <!-- Creates a jar file in the lib-directory                             -->
     <!-- =================================================================== -->
     <target name="jar" depends="compile">
-        <jar jarfile="${ringo.jar}"
-            basedir="${classes}"
-            excludes="**/package.html"/>
+        <jar jarfile="${ringo.jar}">
+            <fileset dir="${classes}" excludes="**/package.html"/>
+            <fileset dir="${home}" includes="modules/**"/>
+        </jar>
         <jar jarfile="run.jar"
             basedir="${classes}"
             includes="**/tools/launcher/**"

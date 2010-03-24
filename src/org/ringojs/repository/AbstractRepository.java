@@ -169,7 +169,7 @@ public abstract class AbstractRepository implements Repository {
         if (separator < 0) {
             return lookupResource(subpath);
         }
-        // FIXME this part is virtually identical to the one in getChildResource()
+        // FIXME this part is virtually identical to the one in getChildRepository()
         AbstractRepository repo = this;
         int last = 0;
         while (separator > -1 && repo != null) {
@@ -191,7 +191,7 @@ public abstract class AbstractRepository implements Repository {
         if (separator < 0) {
             return lookupRepository(subpath);
         }
-        // FIXME this part is virtually identical to the one in getChildResource()
+        // FIXME this part is virtually identical to the one in getResource()
         AbstractRepository repo = this;
         int last = 0;
         while (separator > -1 && repo != null) {

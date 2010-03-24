@@ -21,8 +21,8 @@ import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.SyntaxError;
 import org.ringojs.repository.FileRepository;
 import org.ringojs.repository.Repository;
+import org.ringojs.repository.ZipRepository;
 import org.ringojs.util.StringUtils;
-import org.mozilla.javascript.RhinoSecurityManager;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 
@@ -81,18 +81,6 @@ public class RingoRunner {
     }
 
     public void parseArgs(String[] args) throws IOException {
-        String ringoHome = System.getProperty("ringo.home");
-        if (ringoHome == null) {
-            ringoHome = System.getenv("RINGO_HOME");
-        }
-        if (ringoHome == null) {
-            ringoHome = ".";
-        }
-        Repository home = new FileRepository(ringoHome);
-        String modulePath = System.getProperty("ringo.modulepath");
-        if (modulePath == null) {
-            modulePath = System.getenv("RINGO_MODULE_PATH");
-        }
 
         if (args != null && args.length > 0) {
             int i = parseOptions(args);
@@ -101,6 +89,21 @@ public class RingoRunner {
                 scriptArgs = new String[args.length - i];
                 System.arraycopy(args, i, scriptArgs, 0, scriptArgs.length);
             }
+        }
+
+        String ringoHome = System.getProperty("ringo.home");
+        if (ringoHome == null) {
+            ringoHome = System.getenv("RINGO_HOME");
+        }
+        if (ringoHome == null) {
+            ringoHome = ".";
+        }
+        File file = new File(ringoHome);
+        Repository home = file.isFile() && StringUtils.isZipOrJarFile(ringoHome) ?
+                new ZipRepository(file) : new FileRepository(file);
+        String modulePath = System.getProperty("ringo.modulepath");
+        if (modulePath == null) {
+            modulePath = System.getenv("RINGO_MODULE_PATH");
         }
 
         try {
@@ -330,7 +333,7 @@ public class RingoRunner {
             history = new File(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
-            System.setSecurityManager(new RhinoSecurityManager());
+            System.setSecurityManager(new RingoSecurityManager());
         } else if ("java-property".equals(option)) {
             if (arg.indexOf("=") > -1) {
                 String property[] = arg.split("=", 2);

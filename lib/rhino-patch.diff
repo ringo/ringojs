@@ -1,11 +1,51 @@
+Index: src/org/mozilla/javascript/Context.java
+===================================================================
+RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Context.java,v
+retrieving revision 1.282
+diff -u -r1.282 Context.java
+--- src/org/mozilla/javascript/Context.java	23 Dec 2009 21:47:43 -0000	1.282
++++ src/org/mozilla/javascript/Context.java	24 Mar 2010 08:08:18 -0000
+@@ -50,6 +50,8 @@
+ import java.io.Writer;
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
++import java.security.AccessController;
++import java.security.PrivilegedAction;
+ import java.util.Map;
+ import java.util.HashMap;
+ import java.util.Set;
+@@ -2532,11 +2534,18 @@
+     RegExpProxy getRegExpProxy()
+     {
+         if (regExpProxy == null) {
+-            Class<?> cl = Kit.classOrNull(
+-                          "org.mozilla.javascript.regexp.RegExpImpl");
+-            if (cl != null) {
+-                regExpProxy = (RegExpProxy)Kit.newInstanceOrNull(cl);
+-            }
++            regExpProxy = AccessController.doPrivileged(
++                    new PrivilegedAction<RegExpProxy>() {
++                        public RegExpProxy run() {
++                            Class<?> cl = Kit.classOrNull(
++                                          "org.mozilla.javascript.regexp.RegExpImpl");
++                            if (cl != null) {
++                                return (RegExpProxy)Kit.newInstanceOrNull(cl);
++                            }
++                            return null;
++                        }
++                    }
++            );
+         }
+         return regExpProxy;
+     }
 Index: src/org/mozilla/javascript/JavaAdapter.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaAdapter.java,v
-retrieving revision 1.117
-diff -u -r1.117 JavaAdapter.java
---- src/org/mozilla/javascript/JavaAdapter.java	14 Nov 2008 13:52:29 -0000	1.117
-+++ src/org/mozilla/javascript/JavaAdapter.java	20 Mar 2010 07:45:49 -0000
-@@ -131,6 +131,10 @@
+retrieving revision 1.119
+diff -u -r1.119 JavaAdapter.java
+--- src/org/mozilla/javascript/JavaAdapter.java	22 Mar 2010 18:01:58 -0000	1.119
++++ src/org/mozilla/javascript/JavaAdapter.java	24 Mar 2010 08:08:22 -0000
+@@ -130,6 +130,10 @@
  
      public static Object convertResult(Object result, Class<?> c)
      {
@@ -16,7 +56,7 @@ diff -u -r1.117 JavaAdapter.java
          if (result == Undefined.instance &&
              (c != ScriptRuntime.ObjectClass &&
               c != ScriptRuntime.StringClass))
-@@ -138,6 +142,14 @@
+@@ -137,6 +141,14 @@
              // Avoid an error for an undefined value; return null instead.
              return null;
          }
@@ -31,7 +71,7 @@ diff -u -r1.117 JavaAdapter.java
          return Context.jsToJava(result, c);
      }
  
-@@ -353,9 +365,13 @@
+@@ -352,9 +364,13 @@
                       (short) (ClassFileWriter.ACC_PUBLIC |
                                ClassFileWriter.ACC_FINAL));
          int interfacesCount = interfaces == null ? 0 : interfaces.length;
@@ -46,7 +86,7 @@ diff -u -r1.117 JavaAdapter.java
          }
  
          String superName = superClass.getName().replace('.', '/');
-@@ -395,7 +411,7 @@
+@@ -394,7 +410,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -55,7 +95,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                  }
-@@ -423,7 +439,7 @@
+@@ -422,7 +438,7 @@
                  String methodKey = methodName + methodSignature;
                  if (! generatedOverrides.has(methodKey)) {
                      generateMethod(cfw, adapterName, methodName,
@@ -64,7 +104,7 @@ diff -u -r1.117 JavaAdapter.java
                      generatedOverrides.put(methodKey, 0);
                      generatedMethods.put(methodName, 0);
                      
-@@ -450,7 +466,7 @@
+@@ -449,7 +465,7 @@
              for (int k=0; k < length; k++)
                  parms[k] = ScriptRuntime.ObjectClass;
              generateMethod(cfw, adapterName, functionName, parms,
@@ -73,20 +113,7 @@ diff -u -r1.117 JavaAdapter.java
          }
          return cfw.toByteArray();
      }
-@@ -499,7 +515,11 @@
-         Object staticDomain;
-         Class<?> domainClass = SecurityController.getStaticSecurityDomainClass();
-         if(domainClass == CodeSource.class || domainClass == ProtectionDomain.class) {
--            ProtectionDomain protectionDomain = JavaAdapter.class.getProtectionDomain();
-+            // use the calling script's security domain if available
-+            ProtectionDomain protectionDomain = SecurityUtilities.getScriptProtectionDomain();
-+            if (protectionDomain == null) {
-+                protectionDomain = JavaAdapter.class.getProtectionDomain();
-+            }
-             if(domainClass == CodeSource.class) {
-                 staticDomain = protectionDomain == null ? null : protectionDomain.getCodeSource();
-             }
-@@ -817,7 +837,7 @@
+@@ -820,7 +836,7 @@
       * Generates the appropriate RETURN bytecode.
       */
      static void generateReturnResult(ClassFileWriter cfw, Class<?> retType,
@@ -95,7 +122,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          // wrap boolean values with java.lang.Boolean, convert all other
          // primitive values to java.lang.Double.
-@@ -874,20 +894,19 @@
+@@ -877,20 +893,19 @@
  
          } else {
              String retTypeStr = retType.getName();
@@ -129,7 +156,7 @@ diff -u -r1.117 JavaAdapter.java
              // Now cast to return type
              cfw.add(ByteCode.CHECKCAST, retTypeStr);
              cfw.add(ByteCode.ARETURN);
-@@ -896,7 +915,7 @@
+@@ -899,7 +914,7 @@
  
      private static void generateMethod(ClassFileWriter cfw, String genName,
                                         String methodName, Class<?>[] parms,
@@ -138,7 +165,7 @@ diff -u -r1.117 JavaAdapter.java
      {
          StringBuffer sb = new StringBuffer();
          int paramsEnd = appendMethodSignature(parms, returnType, sb);
-@@ -959,7 +978,7 @@
+@@ -962,7 +977,7 @@
                        +"J"
                        +")Ljava/lang/Object;");
  
@@ -147,105 +174,13 @@ diff -u -r1.117 JavaAdapter.java
  
          cfw.stopMethod((short)paramsEnd);
      }
-Index: src/org/mozilla/javascript/JavaMembers.java
-===================================================================
-RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/JavaMembers.java,v
-retrieving revision 1.80
-diff -u -r1.80 JavaMembers.java
---- src/org/mozilla/javascript/JavaMembers.java	6 Jun 2009 14:11:24 -0000	1.80
-+++ src/org/mozilla/javascript/JavaMembers.java	20 Mar 2010 07:45:51 -0000
-@@ -54,6 +54,8 @@
-  */
- class JavaMembers
- {
-+    static RuntimePermission permission = new RuntimePermission("accessDeclaredMembers");
-+
-     JavaMembers(Scriptable scope, Class<?> cl)
-     {
-         this(scope, cl, false);
-@@ -92,6 +94,10 @@
-     Object get(Scriptable scope, String name, Object javaObject,
-                boolean isStatic)
-     {
-+        SecurityManager sm = System.getSecurityManager();
-+        if (sm != null) {
-+            sm.checkPermission(permission);
-+        }
-         Map<String,Object> ht = isStatic ? staticMembers : members;
-         Object member = ht.get(name);
-         if (!isStatic && member == null) {
-@@ -133,6 +139,10 @@
-     void put(Scriptable scope, String name, Object javaObject,
-              Object value, boolean isStatic)
-     {
-+        SecurityManager sm = System.getSecurityManager();
-+        if (sm != null) {
-+            sm.checkPermission(permission);
-+        }
-         Map<String,Object> ht = isStatic ? staticMembers : members;
-         Object member = ht.get(name);
-         if (!isStatic && member == null) {
-@@ -197,6 +207,10 @@
- 
-     Object[] getIds(boolean isStatic)
-     {
-+        SecurityManager sm = System.getSecurityManager();
-+        if (sm != null) {
-+            sm.checkPermission(permission);
-+        }
-         Map<String,Object> map = isStatic ? staticMembers : members;
-         return map.keySet().toArray(new Object[map.size()]);
-     }
-Index: src/org/mozilla/javascript/SecurityUtilities.java
-===================================================================
-RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/SecurityUtilities.java,v
-retrieving revision 1.6
-diff -u -r1.6 SecurityUtilities.java
---- src/org/mozilla/javascript/SecurityUtilities.java	18 Mar 2008 15:10:18 -0000	1.6
-+++ src/org/mozilla/javascript/SecurityUtilities.java	20 Mar 2010 07:45:51 -0000
-@@ -65,7 +65,7 @@
-                 }
-             });
-     }
--    
-+
-     public static ProtectionDomain getProtectionDomain(final Class<?> clazz)
-     {
-         return (ProtectionDomain)AccessController.doPrivileged(
-@@ -77,4 +77,26 @@
-                     }
-                 });
-     }
-+
-+    /**
-+     * Look up the top-most element in the current stack representing a
-+     * script and return its protection domain. This relies on the system-wide
-+     * SecurityManager being an instance of {@link RhinoSecurityManager},
-+     * otherwise it returns <code>null</code>.
-+     * @return The protection of the top-most script in the current stack, or null
-+     */
-+    public static ProtectionDomain getScriptProtectionDomain() {
-+        final SecurityManager securityManager = System.getSecurityManager();
-+        if (securityManager instanceof RhinoSecurityManager) {
-+            return AccessController.doPrivileged(
-+                new PrivilegedAction<ProtectionDomain>() {
-+                    public ProtectionDomain run() {
-+                            return ((RhinoSecurityManager) securityManager)
-+                                    .getScriptProtectionDomain();
-+                    }
-+                }
-+            );
-+        }
-+        return null;
-+    }
- }
 Index: src/org/mozilla/javascript/Synchronizer.java
 ===================================================================
 RCS file: /cvsroot/mozilla/js/rhino/src/org/mozilla/javascript/Synchronizer.java,v
 retrieving revision 1.9
 diff -u -r1.9 Synchronizer.java
 --- src/org/mozilla/javascript/Synchronizer.java	25 Mar 2008 14:32:27 -0000	1.9
-+++ src/org/mozilla/javascript/Synchronizer.java	20 Mar 2010 07:45:51 -0000
++++ src/org/mozilla/javascript/Synchronizer.java	24 Mar 2010 08:08:25 -0000
 @@ -59,6 +59,8 @@
  
  public class Synchronizer extends Delegator {
@@ -289,7 +224,7 @@ RCS file: /cvsroot/mozilla/js/rhino/toolsrc/org/mozilla/javascript/tools/resourc
 retrieving revision 1.37
 diff -u -r1.37 Messages.properties
 --- toolsrc/org/mozilla/javascript/tools/resources/Messages.properties	18 Oct 2008 18:57:27 -0000	1.37
-+++ toolsrc/org/mozilla/javascript/tools/resources/Messages.properties	20 Mar 2010 07:45:52 -0000
++++ toolsrc/org/mozilla/javascript/tools/resources/Messages.properties	24 Mar 2010 08:08:26 -0000
 @@ -91,8 +91,9 @@
      version([number])      Get or set the JavaScript version number. \n\
      gc()                   Runs the garbage collector.\n\
@@ -308,7 +243,7 @@ RCS file: /cvsroot/mozilla/js/rhino/toolsrc/org/mozilla/javascript/tools/shell/G
 retrieving revision 1.58
 diff -u -r1.58 Global.java
 --- toolsrc/org/mozilla/javascript/tools/shell/Global.java	14 Sep 2009 22:20:34 -0000	1.58
-+++ toolsrc/org/mozilla/javascript/tools/shell/Global.java	20 Mar 2010 07:45:52 -0000
++++ toolsrc/org/mozilla/javascript/tools/shell/Global.java	24 Mar 2010 08:08:27 -0000
 @@ -555,7 +555,8 @@
      /**
       * The sync function creates a synchronized function (in the sense
