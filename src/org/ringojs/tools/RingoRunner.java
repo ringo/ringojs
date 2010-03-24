@@ -23,7 +23,6 @@ import org.ringojs.repository.FileRepository;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.ZipRepository;
 import org.ringojs.util.StringUtils;
-import org.mozilla.javascript.RhinoSecurityManager;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 
@@ -334,7 +333,7 @@ public class RingoRunner {
             history = new File(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
-            System.setSecurityManager(new RhinoSecurityManager());
+            System.setSecurityManager(new RingoSecurityManager());
         } else if ("java-property".equals(option)) {
             if (arg.indexOf("=") > -1) {
                 String property[] = arg.split("=", 2);
