@@ -24,6 +24,10 @@ public class FileResource extends AbstractResource {
 
     File file;
 
+    public FileResource(String path) throws IOException {
+        this(new File(path), null);
+    }
+
     public FileResource(File file) throws IOException {
         this(file, null);
     }

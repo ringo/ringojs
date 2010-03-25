@@ -115,7 +115,7 @@ public class RhinoEngine implements ScopeProvider {
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
-                    Resource resource = new FileResource(new File(script));
+                    Resource resource = new FileResource(script);
                     evaluateScript(cx, new ReloadableScript(resource, this), globalScope);
                 }
             }
