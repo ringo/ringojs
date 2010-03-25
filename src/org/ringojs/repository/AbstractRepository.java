@@ -222,9 +222,6 @@ public abstract class AbstractRepository implements Repository {
      * Get this repository's parent repository.
      */
     public AbstractRepository getParentRepository() {
-        if (parent == null) {
-            throw new RuntimeException("Tried to escape root repository");
-        }
         return parent;
     }
 

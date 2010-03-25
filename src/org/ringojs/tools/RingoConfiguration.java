@@ -341,6 +341,7 @@ public class RingoConfiguration {
      * Get a resource from our script repository
      * @param path the resource path
      * @return the resource
+     * @throws IOException an I/O error occurred
      */
     public Resource getResource(String path) throws IOException {
         for (Repository repo: repositories) {
@@ -356,11 +357,12 @@ public class RingoConfiguration {
      * Get a resource from our script repository
      * @param path the resource path
      * @return the resource
+     * @throws IOException an I/O error occurred
      */
     public Repository getRepository(String path) throws IOException {
         for (Repository repo: repositories) {
             Repository repository = repo.getChildRepository(path);
-            if (repository.exists()) {
+            if (repository != null && repository.exists()) {
                 return repository;
             }
         }
@@ -373,6 +375,7 @@ public class RingoConfiguration {
      * @param path the repository path
      * @param recursive whether to include nested resources
      * @return a list of all contained child resources
+     * @throws IOException an I/O error occurred
      */
     public List<Resource> getResources(String path, boolean recursive) throws IOException {
         List<Resource> list = new ArrayList<Resource>();

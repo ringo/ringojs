@@ -730,7 +730,7 @@ public class RhinoEngine implements ScopeProvider {
         }
         if (localPath != null) {
             Repository repository = localPath.getChildRepository(path);
-            if (repository.exists()) {
+            if (repository != null && repository.exists()) {
                 return repository;
             }
         }
