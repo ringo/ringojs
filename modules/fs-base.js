@@ -194,7 +194,7 @@ function canonical(path) {
     return resolveFile(path).getCanonicalPath();
 }
 
-    function touch(path, mtime) {
+function touch(path, mtime) {
     mtime = mtime || Date.now();
     return resolveFile(path).setLastModified(mtime);
 }
@@ -405,7 +405,7 @@ function normal(path) {
 }
 
 function absolute(path) {
-    return resolve(join(cwd(), ''), path);
+    return resolve(join(workingDirectory(), ''), path);
 }
 
 function directory(path) {
@@ -479,7 +479,7 @@ function resolve() {
 function relative(source, target) {
     if (!target) {
         target = source;
-        source = cwd() + '/';
+        source = workingDirectory() + '/';
     }
     source = absolute(source);
     target = absolute(target);
