@@ -52,7 +52,6 @@ public class RingoRunner {
     boolean verbose = false;
     boolean silent = false;
     boolean legacyMode = false;
-    String narwhalHome;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -64,7 +63,6 @@ public class RingoRunner {
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
-        {"n", "narwhal", "Run with Narwhal libs from given installation path", "PATH"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -110,7 +108,6 @@ public class RingoRunner {
             String[] paths = modulePath == null ?
                     new String[0] : StringUtils.split(modulePath, File.pathSeparator);
             config = new RingoConfiguration(home, paths, "modules");
-            config.setNarwhalPath(narwhalHome);
             config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
             config.setMainScript(scriptName);
             config.setArguments(scriptArgs);
@@ -345,8 +342,6 @@ public class RingoRunner {
             expr = arg;
         } else if ("silent".equals(option)) {
             silent = runShell = true;
-        } else if ("narwhal".equals(option)) {
-            narwhalHome = arg;
         } else if ("verbose".equals(option)) {
             verbose = true;
         } else if ("legacy-mode".equals(option)) {

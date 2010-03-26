@@ -428,16 +428,6 @@ public class RingoConfiguration {
     private Logger getLogger() {
         return LoggerFactory.getLogger("org.ringojs.tools");
     }
-
-    public void setNarwhalPath(String narwhalPath) throws IOException {
-        Repository narwhalHome;
-        if (narwhalPath != null && !narwhalPath.equals("")) {
-            narwhalHome = new FileRepository(narwhalPath);
-            addModuleRepository(narwhalHome.getChildRepository("engines/rhino/lib"));
-            addModuleRepository(narwhalHome.getChildRepository("engines/default/lib"));
-            addModuleRepository(narwhalHome.getChildRepository("lib"));
-        }
-    }
 }
 
 class NotFound extends AbstractResource {
