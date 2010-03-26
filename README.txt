@@ -59,11 +59,12 @@ the RingoJS test suite:
 
     ringo test/all
 
-To create a new web application, use the admin/create script. This will copy an
-simple skeleton app to the location you define. You can pass the application
-directory as command line argument, or the script will prompt you for it.
+To create a new web application, use the ringo-admin create script. This will
+copy a simple skeleton app to the location you define. You can pass the
+application directory as command line argument, or the script will prompt you
+for it.
 
-    ringo admin/create [appdir]
+    ringo-admin create [appdir]
 
 Run ringo with the -h or --help switch to get more information about
 available command line options. For example, the -i or --interactive option

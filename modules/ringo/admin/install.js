@@ -114,3 +114,7 @@ function main(args) {
         installPackage(url, opts);
     }
 }
+
+if (require.main == module) {
+    main(system.args);
+}
