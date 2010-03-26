@@ -27,7 +27,7 @@ parser.addOption("h", "help", null, "Print help message and exit");
 
 function init(defaults) {
     log.info("init");
-    var options = defaults || {
+    options = defaults || {
         config: "config",
         app: "app",
         port: 80
