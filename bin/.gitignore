@@ -2,5 +2,9 @@
 !.gitignore
 !ringo
 !ringo.cmd
-!ringoweb
+!ringo-web
+!ringo-web.cmd
+!ringo-admin
+!ringo-admin.cmd
 !narwhal
+!narwhal.cmd

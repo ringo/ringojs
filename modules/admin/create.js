@@ -1,10 +1,16 @@
+/**
+ * @fileoverview Script to create a new RingoJS web application.
+ */
+
 require('core/string');
 var file = require('file');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
 var Parser = require('ringo/args').Parser;
 
-export('createApplication');
+export('createApplication', 'main', 'description');
+
+var description = "Create a new RingoJS web application";
 
 /**
  * Create a new RingoJS web application at the given path.
