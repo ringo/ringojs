@@ -23,24 +23,20 @@ parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)")
 parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
 parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
 // parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
-parser.addOption("h", "help", null, "Print help message and exit");
+parser.addOption("h", "help", null, "Print help message to stdout");
 
-function init(defaults) {
+function init() {
     log.info("init");
-    options = defaults || {
+    options = {
         config: "config",
         app: "app",
         port: 80
     };
-    var cmd = system.args.shift();
     parser.parse(Array.slice(system.args, 1), options);
     if (options.help) {
-        print("Usage:");
-        print("", cmd, "[OPTIONS]", "[PATH]");
-        print("Options:");
+        print("Available options:");
         print(parser.help());
-        require("ringo/shell").quit();
-    }    
+    }
     server = new Server(options);
 }
 
