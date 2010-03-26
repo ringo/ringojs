@@ -22,6 +22,10 @@ var description = "Download and install a RingoJS package from a zip URL";
 function installPackage(url, options) {
     var packages = (options && options.packages)
             ||fs.join(system.prefix, "packages");
+    // expand foo/bar to a github zipball url for user foo, project bar
+    if (url.match(/^\w+\/[\w\-_\.]+$/)) {
+        url = "http://github.com/" + url + "/zipball/master";
+    }
     url = new java.net.URL(url);
     var temp = futils.createTempFile("ringo-install", ".zip");
     print("Downloading " + url);
