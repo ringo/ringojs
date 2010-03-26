@@ -50,7 +50,17 @@ function ZipFile(path) {
      * @param {String} name the entry name
      */
     this.isDirectory = function(name) {
-        return getEntry(name).isDirectory();
+        var entry = map[name];
+        return entry && entry.isDirectory();
+    };
+
+    /**
+     * Returns true if the entry with the given name represents a file.
+     * @param {String} name the entry name
+     */
+    this.isFile = function(name) {
+        var entry = map[name];
+        return entry && !entry.isDirectory();
     };
 
     /**
@@ -80,7 +90,7 @@ function ZipFile(path) {
 /**
  * A streaming iterator over a zip file or stream. Each item yielded
  * by this iterator is an input stream to read a single zip entry.
- * Each entry stream has additional name, isDirectory, size, and time
+ * Each entry stream has additional name, isDirectory, isFile, size, and time
  * properties with the same semantics of the corresponding methods in ZipFile.
  * @param {Stream|String} resource an input stream or file name
  * @see ZipFile
@@ -95,6 +105,7 @@ function ZipIterator(resource) {
         while (entry) {
             stream.name = entry.getName();
             stream.isDirectory = entry.isDirectory();
+            stream.isFile = !stream.isDirectory;            
             stream.size = entry.getSize();
             stream.time = entry.getTime();
             yield stream;
