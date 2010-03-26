@@ -1,5 +1,6 @@
 /**
  * @fileoverview This module provides classes to uncompress zip files and streams.
+ * @since 0.5
  */
 
 var fs = require('fs-base');
