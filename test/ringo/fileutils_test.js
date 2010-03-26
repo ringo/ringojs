@@ -1,6 +1,6 @@
 include('ringo/unittest');
 var fileutils = require('ringo/fileutils');
-import('file');
+var fs = require('fs-base');
 
 const PARENT = '/home/ringo/';
 const INVALID_CHILD = 'Projects';
@@ -16,9 +16,9 @@ exports.testResolveUri = function () {
 };
 
 exports.testResolveId = function () {
-    assertEqual(file.resolve(PARENT, VALID_CHILD), fileutils.resolveId(
+    assertEqual(fs.resolve(PARENT, VALID_CHILD), fileutils.resolveId(
             PARENT, VALID_CHILD)); // Child must start w/ ".".
-    assertNotEqual(file.resolve(PARENT, INVALID_CHILD), fileutils.
+    assertNotEqual(fs.resolve(PARENT, INVALID_CHILD), fileutils.
             resolveId(PARENT, INVALID_CHILD));
     assertEqual(INVALID_CHILD, fileutils.resolveId(PARENT,
             INVALID_CHILD)); // Otherwise return child (unchanged).
@@ -28,9 +28,11 @@ exports.testCreateTempFile = function () {
     var tempFile = fileutils.createTempFile('ringo');
     assertNotNull(tempFile); // Creation w/ prefix only.
     assertTrue(/^.*\/ringo.*$/.test(tempFile));
+    fs.remove(tempFile);
     tempFile = fileutils.createTempFile('ringo', '.js');
     assertNotNull(tempFile); // Creation incl. suffix.
     assertTrue(/^.*\/ringo.*\.js$/.test(tempFile));
+    fs.remove(tempFile);
     assertThrows(function () fileutils.createTempFile('ri'), java.lang.
             IllegalArgumentException); // Prefix must be at least 3 chars long.
 };
