@@ -1,3 +1,4 @@
-# ignore everyting except .gitignore
+# ignore everything except .gitignore, skeleton package
 /*
 !/.gitignore
+!/namespace-skeleton/
