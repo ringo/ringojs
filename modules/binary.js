@@ -1,15 +1,17 @@
 /**
- * @fileoverview <p>This module provides implementations of the Binary/ByteArray/ByteString
- * classes defined in the <a href="http://wiki.commonjs.org/wiki/Binary/B">Binary/B proposal</a>.
+ * @fileoverview <p>This module provides implementations of the
+ * Binary/ByteArray/ByteString classes defined in the <a
+ * href="http://wiki.commonjs.org/wiki/Binary/B">Binary/B proposal</a>.
  *
- * <p>The JavaScript Binary class serves as common base class for ByteArray and ByteString
- * and can't be instantiated. ByteArray implements a modifiable and resizable byte buffer,
- * while ByteString implements an immutable byte sequence. The ByteArray and ByteString
- * constructors can take several arguments. Have a look at the proposal for details.</p>
+ * <p>The JavaScript Binary class serves as common base class for ByteArray and
+ * ByteString and can't be instantiated. ByteArray implements a modifiable and
+ * resizable byte buffer, while ByteString implements an immutable byte
+ * sequence. The ByteArray and ByteString constructors can take several
+ * arguments. Have a look at the proposal for details.</p>
  *
- * <p>When passed to a Java method that expects a byte array, instances of thes class
- * are automatically unwrapped. Use the {@link #unwrap()} method to explicitly get the
- * wrapped Java byte array.</p>
+ * <p>When passed to a Java method that expects a byte array, instances of thes
+ * class are automatically unwrapped. Use the {@link #unwrap()} method to
+ * explicitly get the wrapped Java byte array.</p>
  */
 
 defineClass(org.ringojs.wrappers.Binary);
