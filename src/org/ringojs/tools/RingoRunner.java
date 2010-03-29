@@ -165,7 +165,7 @@ public class RingoRunner {
             }
             cx = engine.getContextFactory().enterContext();
             module = engine.loadModule(cx, config.getMainResource().getModuleName(), null);
-            engine.invoke(module, "init", (Object[]) scriptArgs);
+            engine.invoke(module, "init");
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {

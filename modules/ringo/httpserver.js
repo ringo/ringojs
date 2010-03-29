@@ -157,26 +157,14 @@ function Server(options) {
     if (options.host) props.put('host', options.host);
     xmlconfig.configure(jetty);
 
-    var fileutils = require('ringo/fileutils');
-
-    if (options.config) {
-        var config = require(options.config);
-        // pick up extra http-config from config module
-        if (config.httpConfig) {
-            options = Object.merge(options, config.httpConfig);
-        }
-        // check for additional static mounts
-        if (Array.isArray(config.static)) {
-            config.static.forEach(function(spec) {
-                var dir = fileutils.resolveId(options.config, spec[1]);
-                this.addStaticResources(spec[0], null, dir);
-            }, this);
-        }
+    // If options defines an application mount it
+    if (options.app && options.config) {
         this.addApplication(options.mountpoint || '/', options.virtualHost, options);
     }
 
     // Allow definition of app/static mappings in server config for convenience
     if (options.staticDir) {
+        var fileutils = require('ringo/fileutils');
         this.addStaticResources(options.staticMountpoint || '/static',
                 options.virtualHost, fileutils.resolveId(options.config, options.staticDir));
     }

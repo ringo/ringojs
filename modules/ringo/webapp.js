@@ -10,11 +10,13 @@ include('ringo/webapp/request');
 include('ringo/webapp/response');
 
 var fileutils = require('ringo/fileutils');
-var Server = require('ringo/httpserver').Server;
+var daemon = require('ringo/webapp/daemon');
 
-export('getConfig', 'getServer', 'handleRequest', 'main', 'start', 'stop');
+export('getConfig',
+       'getServer',
+       'handleRequest',
+       'main');
 
-var server;
 var log = require('ringo/logging').getLogger(module.id);
 
 module.shared = true;
@@ -193,54 +195,13 @@ function getConfig(configModuleName) {
 }
 
 /**
- * Start the web server using the given config module, or the
- * default "config" module if called without argument.
- */
-function start(options) {
-    // start jetty http server
-    server = server || new Server(options);
-    if (!server.isRunning()) {
-        server.start();
-    }
-}
-
-/**
- * Stop the web server.
- */
-function stop() {
-    // stop jetty HTTP server
-    if (server && server.isRunning()) {
-        server.stop();
-    }
-}
-
-/**
- * Get the server instance.
- */
-function getServer(path) {
-    return server;
-}
-
-/**
  * Main webapp startup function.
  * @param {String} path optional path to the web application directory or config module.
  */
 function main(path) {
     // parse command line options
-    var parser = new (require('ringo/args').Parser);
-    parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
-    parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
-    parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
-    parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
-    parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
-    parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 8080)");
-    parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
-    parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
-    // parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
-    parser.addOption("h", "help", null, "Print help message and exit");
-
     var cmd = system.args.shift();
-    var options = parser.parse(system.args, {
+    var options = daemon.parseOptions(system.args, {
         app: "app",
         config: "config",
         port: 8080
@@ -269,7 +230,8 @@ function main(path) {
     // prepend the web app's directory to the module search path
     require.paths.unshift(path);
 
-    start(options);
+    daemon.init();
+    daemon.start();
 }
 
 if (require.main == module) {
