@@ -4,7 +4,7 @@ include('io');
 include("binary");
 
 export('handleRequest');
-
+var log = require('ringo/logging').getLogger(module.id);
 module.shared = true;
 
 /**
@@ -102,6 +102,7 @@ function writeBody(response, body, charset) {
                 part = part.toByteString(charset);
             }
             output.write(part);
+            output.flush();
         };
         body.forEach(writer);
         if (typeof body.close == "function") {
@@ -112,7 +113,7 @@ function writeBody(response, body, charset) {
     }
 }
 
-function writeAsync(request, response, result, suspend) {
+function writeAsync(request, response, result) {
     var charset;
     var part = result.part;
     if (result.first) {
@@ -129,23 +130,18 @@ function writeAsync(request, response, result, suspend) {
     if (part.body) {
         writeBody(response, part.body, charset);
     }
-    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
-    var continuation = ContinuationSupport.getContinuation(request, {});
-    continuation.reset();
-    if (!result.last && suspend) {
-        continuation.suspend(30000);
-    }
 }
 
 function handleAsyncResponse(env, result) {
     // experimental support for asynchronous JSGI based on Jetty continuations
-    var ContinuationSupport = org.mortbay.util.ajax.ContinuationSupport;
+    var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
     var request = env['jsgi.servlet_request'];
     var response = env['jsgi.servlet_response'];
-    var queue = new java.util.concurrent.ConcurrentLinkedQueue();
-    request.setAttribute('_ringo_response', queue);
-    var continuation = ContinuationSupport.getContinuation(request, {});
+    //var queue = new java.util.concurrent.ConcurrentLinkedQueue();
+    //request.setAttribute('_ringo_response', queue);
+    var continuation = ContinuationSupport.getContinuation(request);
     var first = true, handled = false;
+    
     var onFinish = function(part) {
         if (handled) return;
         var res = {
@@ -153,13 +149,9 @@ function handleAsyncResponse(env, result) {
             last: true,
             part: part
         };
-        if (continuation.isPending()) {
-            queue.offer(res);
-            continuation.resume();
-        } else {
-            writePartial(request, response, res);
-        }
         handled = true;
+        //queue.offer(res);
+        continuation.complete();
     };
     var onError = function(error) {
         if (handled) return;
@@ -174,23 +166,23 @@ function handleAsyncResponse(env, result) {
         handled = true;
     };
     var onProgress = function(part) {
+        log.error('part is ' + part);
         if (handled) return;
         var res = {
             first: first,
             part: part
         };
-        if (continuation.isPending()) {
-            queue.offer(res);
-            continuation.resume();
-        } else {
-            writePartial(request, response, res);
-        }
         first = false;
+        //queue.offer(res);
+        writeAsync(request, response, res, true);
+        //continuation.suspend();
     };
+    print ('handling async response, calling then');
     // TODO sync callbacks on queue once rhino supports this (bug 513682)
-    result.then(onFinish, onError, onProgress);
+    result.then(onFinish, onError, onProgress, doSuspend);
     if (!handled) {
-        continuation.suspend(30000);
+        continuation.setTimeout(12000);
+        continuation.suspend();
     }
 }
 

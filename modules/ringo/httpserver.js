@@ -47,8 +47,8 @@ function Server(options) {
 
     function createContext(path, vhosts, enableSessions, enableSecurity) {
         var idMap = xmlconfig.getIdMap();
-        var contexts = idMap.get("contexts");
-        var context = new org.mortbay.jetty.servlet.Context(contexts, path, enableSessions, enableSecurity);
+        var contexts = idMap.get("Contexts");
+        var context = new org.eclipse.jetty.servlet.ServletContextHandler(contexts, path, enableSessions, enableSecurity);
         if (vhosts) {
             context.setVirtualHosts(Array.isArray(vhosts) ? vhosts : [String(vhosts)]);
         }
@@ -75,7 +75,7 @@ function Server(options) {
         var servlet = isFunction ?
                       new JsgiServlet(engine, app) :
                       new JsgiServlet(engine);
-        var jpkg = org.mortbay.jetty.servlet;
+        var jpkg = org.eclipse.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(servlet);
         if (!isFunction) {
             servletHolder.setInitParameter('moduleName', app.config || 'config');
@@ -99,7 +99,7 @@ function Server(options) {
         var context = createContext(path, vhosts, false, true);
         var repo = getRepository(dir);
         context.setResourceBase(repo.exists() ? repo.getPath() : dir);
-        var jpkg = org.mortbay.jetty.servlet;
+        var jpkg = org.eclipse.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(jpkg.DefaultServlet);
         // staticHolder.setInitParameter("aliases", "true");
         context.addServlet(servletHolder, "/*");
@@ -147,9 +147,9 @@ function Server(options) {
     if (!jettyConfig.exists()) {
         throw Error('Resource "' + jettyFile + '" not found');
     }
-    var XmlConfiguration = org.mortbay.xml.XmlConfiguration;
+    var XmlConfiguration = org.eclipse.jetty.xml.XmlConfiguration;
     var JsgiServlet = org.ringojs.jsgi.JsgiServlet;
-    jetty = new org.mortbay.jetty.Server();
+    jetty = new org.eclipse.jetty.server.Server();
     xmlconfig = new XmlConfiguration(jettyConfig.inputStream);
     // port config is done via properties
     var props = xmlconfig.getProperties();

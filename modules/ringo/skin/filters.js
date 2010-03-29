@@ -168,7 +168,7 @@ function escapeJavaScript_filter(input) {
  * Replaces linebreaks with HTML linebreaks.
  */
 function linebreakToHtml_filter(input) {
-   var replace = Packages.org.mortbay.util.StringUtil.replace;
+   var replace = Packages.org.eclipse.util.StringUtil.replace;
    var str = (input || "").toString();
    return replace(str, '\n', '<br />');
 }
