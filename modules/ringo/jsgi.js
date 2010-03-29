@@ -129,6 +129,8 @@ function writeAsync(request, response, result) {
     }
     if (part.body) {
         writeBody(response, part.body, charset);
+        // this should cause data to be written to the client, doesn't seem to work
+        response.flushBuffer();
     }
 }
 
@@ -144,6 +146,7 @@ function handleAsyncResponse(env, result) {
     
     var onFinish = function(part) {
         if (handled) return;
+        log.debug("JSGI async finish called with: " + part);
         var res = {
             first: first,
             last: true,
@@ -151,11 +154,12 @@ function handleAsyncResponse(env, result) {
         };
         handled = true;
         //queue.offer(res);
+        writeAsync(request, response, res);
         continuation.complete();
     };
     var onError = function(error) {
         if (handled) return;
-        print("Error callback: " + error);
+        log.error("JSGI async error: " + error);
         if (first) {
             commitResponse(env, {
                 status: 500,
@@ -166,7 +170,7 @@ function handleAsyncResponse(env, result) {
         handled = true;
     };
     var onProgress = function(part) {
-        log.error('part is ' + part);
+        log.debug('JSGI async progress called with: ' + part);
         if (handled) return;
         var res = {
             first: first,
@@ -174,12 +178,12 @@ function handleAsyncResponse(env, result) {
         };
         first = false;
         //queue.offer(res);
-        writeAsync(request, response, res, true);
-        //continuation.suspend();
+        writeAsync(request, response, res);
+        // continuation.suspend();
     };
-    print ('handling async response, calling then');
+    log.debug('handling JSGI async response, calling then');
     // TODO sync callbacks on queue once rhino supports this (bug 513682)
-    result.then(onFinish, onError, onProgress, doSuspend);
+    result.then(onFinish, onError, onProgress);
     if (!handled) {
         continuation.setTimeout(12000);
         continuation.suspend();
