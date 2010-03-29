@@ -1,3 +1,9 @@
+/**
+ * @fileoverview <p>This module provides an implementation of the "fs-base" as
+ * per the <a href="http://wiki.commonjs.org/wiki/Filesystem/A/0">CommonJS
+ * Filesystem/A/0</a> proposal.
+ */
+
 include('io');
 include('binary');
 require('core/array');

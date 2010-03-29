@@ -1,5 +1,7 @@
 /**
- * RingoJS global functions
+ * @fileoverview <p>This module provides the RingoJS-specific global functions
+ * import, include, and export, as well as require.loader for Narwhal
+ * compatibility.</p>
  */
 
 Object.defineProperty(this, "global", { value: this });

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview <p>Package loading utility module. In the top-level namespace
+ * for Tusk compatibility.</p>
+ */
 
 var system = require('system');
 var fs = require('file');
