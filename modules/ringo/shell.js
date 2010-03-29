@@ -1,7 +1,7 @@
 // This module is evaluated on shell scopes,
 // so to extend the ringo shell just add stuff here.
 
-export('write', 'writeln', 'read', 'readln', 'quit');
+export('write', 'writeln', 'read', 'readln', 'start', 'quit');
 
 var output = java.lang.System.out;
 var input;
@@ -53,6 +53,17 @@ function readln(prompt, echoChar) {
         return input.readLine(prompt, echo);
     }
     return input.readLine(prompt);
+}
+
+/**
+ * Start the shell programmatically. This uses the current thread and thus will not
+ * return. You should therefore call this function as the last statement in your script.
+ * Terminating the shell will exit the program.
+ * @since 0.5
+ */
+function start() {
+    var engine = require('ringo/engine').getRhinoEngine();
+    new org.ringojs.tools.RingoShell(engine).run();
 }
 
 /**

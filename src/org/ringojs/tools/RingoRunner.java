@@ -146,7 +146,7 @@ public class RingoRunner {
                         // System.console() not available
                     }
                 }
-                new RingoShell(config, engine, history, silent).run();
+                new RingoShell(engine, history, silent).run();
             }
         } catch (Exception x) {
             reportError(x, err, verbose);

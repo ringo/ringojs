@@ -46,10 +46,13 @@ public class RingoShell {
     File history;
     CodeSource codeSource = null;
 
-    public RingoShell(RingoConfiguration config, RhinoEngine engine,
-                      File history, boolean silent)
+    public RingoShell(RhinoEngine engine) throws IOException {
+        this(engine, null, false);
+    }
+
+    public RingoShell(RhinoEngine engine, File history, boolean silent)
             throws IOException {
-        this.config = config;
+        this.config = engine.getConfiguration();
         this.engine = engine;
         this.history = history;
     	this.scope = engine.getShellScope();
