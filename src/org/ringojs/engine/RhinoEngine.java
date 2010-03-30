@@ -111,7 +111,7 @@ public class RhinoEngine implements ScopeProvider {
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            evaluateScript(cx, getScript("ringoglobal"), globalScope);
+            evaluateScript(cx, getScript("ringo/global"), globalScope);
             List<String> bootstrapScripts = config.getBootstrapScripts();
             if (bootstrapScripts != null) {
                 for(String script : bootstrapScripts) {
