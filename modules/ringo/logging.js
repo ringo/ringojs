@@ -145,7 +145,7 @@ exports.setInterceptor = function(array) {
  */
 exports.getInterceptor = function() {
     return interceptors.get();
-}
+};
 
 function intercept(level, log, message) {
     var interceptor = interceptors.get();
@@ -160,10 +160,8 @@ function formatMessage(args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                "\nScript stack:\n",
-                utils.getScriptStack(arg),
-                "Java stack:\n",
-                utils.getJavaStack(arg)
+                utils.getScriptStack(arg, "\nScript stack:\n"),
+                utils.getJavaStack(arg, "Java stack:\n")
             ].join('');
         }
     }
