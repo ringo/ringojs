@@ -94,7 +94,7 @@ public class ReloadableScript {
         if (scriptref == null && optlevel > -1) {
             scriptref = cache.get(source);
         }
-        Script script = scriptref == null ? null : scriptref.get();
+        Script script;
         // Note we check for scriptref not script, because even if script is null
         // (e.g. because of syntax errors) we don't want to recompile unless it
         // was updated on disk.
@@ -104,6 +104,7 @@ public class ReloadableScript {
                 throw new IOException(source + " not found or not readable");
             }
             exception = null;
+            errors = null;
             if (source instanceof Repository) {
                 script = getComposedScript(cx);
             } else {
@@ -113,6 +114,7 @@ public class ReloadableScript {
                 cache.put(source, script, this);
             }
         } else {
+            script = scriptref.get();
             checksum = scriptref.checksum;
             errors = scriptref.errors;
             exception = scriptref.exception;
