@@ -95,7 +95,10 @@ public class ReloadableScript {
             scriptref = cache.get(source);
         }
         Script script = scriptref == null ? null : scriptref.get();
-        if (script == null || scriptref.checksum != source.getChecksum()) {
+        // Note we check for scriptref not script, because even if script is null
+        // (e.g. because of syntax errors) we don't want to recompile unless it
+        // was updated on disk.
+        if (scriptref == null || scriptref.checksum != source.getChecksum()) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
