@@ -8,7 +8,7 @@ include('./querysupport');
 export("Store");
 
 module.shared = true;
-var log = require('ringo/logging').getLogger(__name__);
+var log = require('ringo/logging').getLogger(module.id);
 addHostObject(org.ringojs.wrappers.Storable);
 
 /**
