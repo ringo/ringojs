@@ -1,3 +1,4 @@
+include('ringo/unittest');
 var changeMe = require('namespace/skeleton');
 
 exports.testSomething = function () {
