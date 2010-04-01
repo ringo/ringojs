@@ -5,7 +5,7 @@
 
 var Parser = require('ringo/args').Parser;
 var Server = require('ringo/httpserver').Server;
-var fileutils = require('ringo/fileutils');
+var {resolveId} = require('ringo/fileutils');
 var system = require('system');
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -71,16 +71,50 @@ function start() {
     // check for additional static mounts
     if (Array.isArray(config.static)) {
         config.static.forEach(function(spec) {
-            var dir = fileutils.resolveId(options.config, spec[1]);
+            var dir = resolveId(options.config, spec[1]);
             server.addStaticResources(spec[0], null, dir);
         });
     }
     server.start();
+    // check extensions
+    if (Array.isArray(config.extensions)) {
+        config.extensions.forEach(function startExtension(ext) {
+            try {
+                log.debug("Starting extension", ext);
+                var module = ext;
+                if (typeof ext == "string") {
+                    module = require(resolveId(options.config, ext));
+                }
+                if (typeof module.serverStarted == "function") {
+                    module.serverStarted(server);
+                }
+            } catch (e) {
+                log.error("Error starting extension {}:", ext, e);
+            }
+        });
+    }
 }
 
 function stop() {
     log.info("stop");
     server.stop();
+    // stop extensions
+    if (Array.isArray(config.extensions)) {
+        config.extensions.forEach(function stopExtension(ext) {
+            try {
+                log.debug("Stopping extension", ext);
+                var module = ext;
+                if (typeof ext == "string") {
+                    module = require(resolveId(options.config, ext));
+                }
+                if (typeof module.serverStopped == "function") {
+                    module.serverStopped(server);
+                }
+            } catch (e) {
+                log.error("Error stopping extension {}:", ext, e);
+            }
+        });
+    }
 }
 
 function destroy() {
