@@ -97,6 +97,19 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
+    // Include file and line number in error.toString() - better error messages ftw!
+    Error.prototype.toString = function() {
+        if (this.fileName && this.lineNumber != null) {
+            return [
+                this.name, ": ",
+                this.message, " (",
+                this.fileName, "#",
+                this.lineNumber, ")"].join("");
+        }
+        return this.name + ": " + this.message;
+    };
+
+    // whatever
     require('core/regexp');
 
 })(global);
