@@ -1,9 +1,9 @@
 include('ringo/unittest');
 include('./testconsts');
 var fs = require('fs-base');
-var {getRingoHome} = require('ringo/engine');
 var {Store} = require('ringo/storage/filestore');
-var store = new Store('db');
+var dbPath = fs.join(system.prefix, "test", "testdb");
+var store = new Store(dbPath);
 var person, Person = store.defineClass('Person');
 
 exports.testPersistCreation = function () {
@@ -45,6 +45,6 @@ exports.testPersistDeletion = function () {
     person = Person.get(1);
     assertNull(person);
     assertEqual(0, Person.all().length);
-    fs.removeDirectory(fs.join(getRingoHome().path, 'db', 'Person'));
-    fs.removeDirectory(fs.join(getRingoHome().path, 'db')); // Clean up.
+    fs.removeDirectory(fs.join(dbPath, 'Person'));
+    fs.removeDirectory(dbPath); // Clean up.
 };
