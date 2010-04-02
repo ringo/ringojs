@@ -25,6 +25,7 @@ export('absolute', // Filesystem/A
        'join', // Filesystem/A
        'list',
        'makeDirectory',
+       'makeTree', // Filesystem/A
        'move',
        'normal', // Filesystem/A
        'lastModified',
@@ -135,9 +136,17 @@ function lastModified(path) {
 }
 
 function makeDirectory(path) {
+    // TODO support permissions, use posix
     var file = resolveFile(path);
     if (!file.isDirectory() && !file.mkdir()) {
         throw new Error("failed to make directory " + path);
+    }
+}
+
+function makeTree(path) {
+    var file = resolveFile(path);
+    if (!file.isDirectory() && !file.mkdirs()) {
+        throw new Error("failed to make tree " + path);
     }
 }
 
