@@ -57,6 +57,10 @@ function installPackage(url, options) {
                 fs.makeDirectory(path);
             } else {
                 print(" + " + path);
+                var parent = fs.directory(path);
+                if (!fs.isDirectory(parent)) {
+                     fs.makeTree(parent);
+                }
                 var dest = fs.openRaw(path, {write: true});
                 zip.open(entry).copy(dest).close();
             }
