@@ -110,8 +110,9 @@ public class ReloadableScript {
             } else {
                 script = getSimpleScript(cx);
             }
+            scriptref = cache.createReference(source, script, this);
             if (optlevel > -1) {
-                cache.put(source, script, this);
+                cache.put(source, scriptref);
             }
         } else {
             script = scriptref.get();
@@ -471,6 +472,12 @@ public class ReloadableScript {
             queue = new ReferenceQueue<Script>();
         }
 
+        ScriptReference createReference(Trackable source, Script script,
+                                        ReloadableScript rescript)
+                throws IOException {
+            return new ScriptReference(source, script, rescript, queue);
+        }
+
         ScriptReference get(Trackable source) {
             ScriptReference ref;
             while((ref = (ScriptReference) queue.poll()) != null) {
@@ -479,9 +486,9 @@ public class ReloadableScript {
             return map.get(source);
         }
 
-        void put(Trackable source, Script script, ReloadableScript rescript)
+        void put(Trackable source, ScriptReference ref)
                 throws IOException {
-            map.put(source, new ScriptReference(source, script, rescript, queue));
+            map.put(source, ref);
         }
     }
 
