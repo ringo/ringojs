@@ -28,16 +28,34 @@ public class JsgiEnv extends ScriptableObject {
     HttpServletRequest request;
     HttpServletResponse response;
 
-    public JsgiEnv() {}
+    public JsgiEnv(Context cx, Scriptable scope) throws NoSuchMethodException {
+        int flags = PERMANENT;
+        defineProperty("REQUEST_METHOD", null, getMethod("getRequestMethod"), null, flags);
+        defineProperty("SERVER_NAME", null, getMethod("getServerName"), null, flags);
+        defineProperty("SERVER_PORT", null, getMethod("getServerPort"), null, flags);
+        defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
+        defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
+        defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
+        Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
+        ScriptableObject.defineProperty(this, "jsgi.version", version, flags);
+        ScriptableObject.defineProperty(this, "jsgi.multithread", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(this, "jsgi.multiprocess", Boolean.TRUE, flags);
+        ScriptableObject.defineProperty(this, "jsgi.run_once", Boolean.FALSE, flags);
+        defineProperty("jsgi.url_scheme", null, getMethod("getUrlScheme"), null, flags);
+        defineProperty("jsgi.servlet_request", null, getMethod("getServletRequest"), null, flags);
+        defineProperty("jsgi.servlet_response", null, getMethod("getServletResponse"), null, flags);
+        // JSGI spec and Jack's lint require env.constructor to be Object
+        defineProperty("constructor", scope.get("Object", scope), DONTENUM);
+        setPrototype(ScriptableObject.getObjectPrototype(scope));
+        setParentScope(scope);
+    }
 
-    public JsgiEnv(Object req, Object res) {
-        if (!(req instanceof HttpServletRequest)) {
-            throw new IllegalArgumentException("Wrong argument: " + req);
-        } else if (!(res instanceof HttpServletResponse)) {
-            throw new IllegalArgumentException("Wrong argument: " + res);
-        }
-        this.request = (HttpServletRequest) req;
-        this.response = (HttpServletResponse) res;
+    public JsgiEnv(HttpServletRequest request, HttpServletResponse response,
+                   Scriptable prototype, Scriptable scope) {
+        this.request = request;
+        this.response = response;
+        setPrototype(prototype);
+        setParentScope(scope);
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
             String value = request.getHeader(name);
@@ -49,6 +67,8 @@ public class JsgiEnv extends ScriptableObject {
         }
         put("SCRIPT_NAME", this, checkString(request.getContextPath() + request.getServletPath()));
         put("PATH_INFO", this, checkString(request.getPathInfo()));
+        // JSGI spec and Jack's lint require env.constructor to be Object
+        defineProperty("constructor", scope.get("Object", scope), DONTENUM);
     }
 
     public String getRequestMethod() {
@@ -85,27 +105,6 @@ public class JsgiEnv extends ScriptableObject {
 
     public Object getServletResponse() {
         return Context.javaToJS(response, this);
-    }
-
-    public static void finishInit(Scriptable scope, FunctionObject constructor, Scriptable prototype)
-            throws NoSuchMethodException {
-        int flags = PERMANENT;
-        Context cx = Context.getCurrentContext();
-        ScriptableObject proto = (ScriptableObject) prototype;
-        proto.defineProperty("REQUEST_METHOD", null, getMethod("getRequestMethod"), null, flags);
-        proto.defineProperty("SERVER_NAME", null, getMethod("getServerName"), null, flags);
-        proto.defineProperty("SERVER_PORT", null, getMethod("getServerPort"), null, flags);
-        proto.defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
-        proto.defineProperty("HTTP_VERSION", null, getMethod("getHttpVersion"), null, flags);
-        proto.defineProperty("REMOTE_HOST", null, getMethod("getRemoteHost"), null, flags);
-        Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
-        ScriptableObject.defineProperty(proto, "jsgi.version", version, flags);
-        ScriptableObject.defineProperty(proto, "jsgi.multithread", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(proto, "jsgi.multiprocess", Boolean.TRUE, flags);
-        ScriptableObject.defineProperty(proto, "jsgi.run_once", Boolean.FALSE, flags);
-        proto.defineProperty("jsgi.url_scheme", null, getMethod("getUrlScheme"), null, flags);
-        proto.defineProperty("jsgi.servlet_request", null, getMethod("getServletRequest"), null, flags);
-        proto.defineProperty("jsgi.servlet_response", null, getMethod("getServletResponse"), null, flags);
     }
 
     private static Method getMethod(String name) throws NoSuchMethodException {

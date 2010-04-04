@@ -16,6 +16,7 @@
 
 package org.ringojs.jsgi;
 
+import org.mozilla.javascript.Context;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
@@ -24,7 +25,6 @@ import org.ringojs.repository.WebappRepository;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Callable;
-import org.mozilla.javascript.WrappedException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,13 +33,13 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.File;
-import java.util.Queue;
 
 public class JsgiServlet extends HttpServlet {
 
     String module;
     Object function;
     RhinoEngine engine;
+    JsgiEnv envproto;
 
     public JsgiServlet() {}
 
@@ -50,11 +50,6 @@ public class JsgiServlet extends HttpServlet {
     public JsgiServlet(RhinoEngine engine, Callable callable) throws ServletException {
         this.engine = engine;
         this.function = callable;
-        try {
-            engine.defineHostClass(JsgiEnv.class);
-        } catch (Exception x) {
-            throw new ServletException(x);
-        }
     }
 
     @Override
@@ -84,13 +79,23 @@ public class JsgiServlet extends HttpServlet {
                 throw new ServletException(x);
             }
         }
+
+        Context cx = engine.getContextFactory().enterContext();
+        try {
+            envproto = new JsgiEnv(cx, engine.getScope());
+        } catch (NoSuchMethodException nsm) {
+            throw new ServletException(nsm);
+        } finally {
+            Context.exit();
+        }
+
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            JsgiEnv env = new JsgiEnv(request, response);
+            JsgiEnv env = new JsgiEnv(request, response, envproto, engine.getScope());
             engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
             RingoRunner.reportError(x, System.err, false);

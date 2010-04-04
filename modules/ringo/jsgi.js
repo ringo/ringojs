@@ -57,10 +57,6 @@ function initRequest(env) {
     Object.defineProperty(env, "jsgi.errors", {
         value: system.stderr
     });
-    // JSGI spec and Jack's lint require env.constructor to be Object
-    Object.defineProperty(env, "constructor", {
-        value: Object
-    });
 }
 
 /**
