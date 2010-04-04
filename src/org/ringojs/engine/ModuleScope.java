@@ -26,7 +26,7 @@ import java.net.URL;
  * A scriptable object that keeps track of the resource it has been loaded from
  * so requests to load other stuff can look for local resources.
  */
-public class ModuleScope extends NativeObject {
+public class ModuleScope extends ImporterTopLevel {
 
     private Trackable source;
     private Repository repository;
@@ -38,6 +38,8 @@ public class ModuleScope extends NativeObject {
     public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {
         setParentScope(null);
         setPrototype(prototype);
+        // for activating the ImporterTopLevel import* functions
+        activatePrototypeMap(3);
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
