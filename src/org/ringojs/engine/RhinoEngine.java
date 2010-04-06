@@ -51,6 +51,7 @@ public class RhinoEngine implements ScopeProvider {
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
     private RingoWrapFactory wrapFactory = new RingoWrapFactory();
+    private Set<Class> hostClasses;
 
     private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
@@ -141,14 +142,17 @@ public class RhinoEngine implements ScopeProvider {
      * @exception InvocationTargetException if an exception is thrown
      *            during execution of methods of the named class
      */
-    public void defineHostClass(Class clazz)
+    public void defineHostClass(Class<Scriptable> clazz)
             throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        synchronized (clazz) {
-            Set<Class> hostClasses = new HashSet<Class>();
-            if (!hostClasses.contains(clazz)) {
-               hostClasses.add(clazz);
-               ScriptableObject.defineClass(globalScope, clazz);
+        if (hostClasses != null && hostClasses.contains(clazz)) {
+            return;
+        }
+        synchronized (this) {
+            if (hostClasses == null) {
+                hostClasses = new HashSet<Class>();
             }
+            hostClasses.add(clazz);
+            ScriptableObject.defineClass(globalScope, clazz);
         }
     }
 
