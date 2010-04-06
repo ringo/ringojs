@@ -73,7 +73,6 @@ public class JsgiServlet extends HttpServlet {
                 }
                 String[] paths = StringUtils.split(modulePath, File.pathSeparator);
                 RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
-                ringoConfig.setHostClasses(new Class[] { JsgiEnv.class });
                 engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
