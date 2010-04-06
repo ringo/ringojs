@@ -1,6 +1,6 @@
 /**
- * @fileoverview <p>This module provides an implementation of the "fs-base" as
- * per the <a href="http://wiki.commonjs.org/wiki/Filesystem/A/0">CommonJS
+ * @fileoverview <p>This module provides an implementation of "fs-base" as
+ * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A/0">CommonJS
  * Filesystem/A/0</a> proposal.
  */
 
@@ -8,31 +8,20 @@ include('io');
 include('binary');
 require('core/array');
 
-export('absolute', // Filesystem/A
-       'base', // Filesystem/A
-       'canonical',
+export('canonical',
        'changeWorkingDirectory',
-       'directory', // Filesystem/A
        'workingDirectory',
        'exists',
-       'extension', // Filesystem/A
-       'isAbsolute', // non-standard/non-spec
-       'isRelative', // non-standard/non-spec
        'isDirectory',
        'isFile',
        'isReadable',
        'isWritable',
-       'join', // Filesystem/A
        'list',
        'makeDirectory',
-       'makeTree', // Filesystem/A
        'move',
-       'normal', // Filesystem/A
        'lastModified',
        'openRaw',
        'remove',
-       'relative', // Filesystem/A
-       'resolve', // Filesystem/A
        'removeDirectory',
        'size',
        'touch',
@@ -42,7 +31,6 @@ export('absolute', // Filesystem/A
        'isLink',
        'same',
        'sameFilesystem',
-       'split', // Filesystem/A
        'iterate',
        'Permissions',
        'owner',
@@ -55,10 +43,9 @@ export('absolute', // Filesystem/A
 var File = java.io.File,
     FileInputStream = java.io.FileInputStream,
     FileOutputStream = java.io.FileOutputStream;
+
 var SEPARATOR = File.separator;
-var SEPARATOR_RE = SEPARATOR == '/' ?
-                   new RegExp(SEPARATOR) :
-                   new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
+
 var POSIX = org.ringojs.util.POSIXSupport.getPOSIX();
 
 function openRaw(path, mode, permissions) {
@@ -143,13 +130,6 @@ function makeDirectory(path) {
     }
 }
 
-function makeTree(path) {
-    var file = resolveFile(path);
-    if (!file.isDirectory() && !file.mkdirs()) {
-        throw new Error("failed to make tree " + path);
-    }
-}
-
 function isReadable(path) {
     return resolveFile(path).canRead();
 }
@@ -164,16 +144,6 @@ function isFile(path) {
 
 function isDirectory(path) {
     return resolveFile(path).isDirectory();
-}
-
-// non-standard/non-spec
-function isAbsolute(path) {
-    return new File(path).isAbsolute();
-}
-
-// non-standard/non-spec
-function isRelative(path) {
-    return !isAbsolute(path);
 }
 
 function isLink(target) {
@@ -399,120 +369,6 @@ function applyMode(mode, options) {
         }
     }
     return options;
-}
-
-// the following are from the "Paths" - "Paths as Text" section from Filesystem/A
-// http://wiki.commonjs.org/wiki/Filesystem/A
-
-function join() {
-    return normal(Array.join(arguments, SEPARATOR));
-}
-
-function split(path) {
-    if (!path) {
-        return [];
-    }
-    return String(path).split(SEPARATOR_RE);
-}
-
-function normal(path) {
-    return resolve(path);
-}
-
-function absolute(path) {
-    return resolve(workingDirectory(), path);
-}
-
-function directory(path) {
-    return new File(path).getParent() || '.';
-}
-
-function base(path, ext) {
-    var name = split(path).peek();
-    if (ext && name) {
-        var diff = name.length - ext.length;
-        if (diff > -1 && name.lastIndexOf(ext) == diff) {
-            return name.substring(0, diff);
-        }
-    }
-    return name;
-}
-
-function extension(path) {
-    var name = basename(path);
-    if (!name) {
-        return '';
-    }
-    name = name.replace(/^\.+/, '');
-    var index = name.lastIndexOf('.');
-    return index > 0 ? name.substring(index) : '';
-}
-
-// Adapted from Narwhal.
-function resolve() {
-    var root = '';
-    var elements = [];
-    var leaf = '';
-    var path;
-    for (var i = 0; i < arguments.length; i++) {
-        path = String(arguments[i]);
-        if (path.trim() == '') {
-            continue;
-        }
-        var parts = path.split(SEPARATOR_RE);
-        if (isAbsolute(path)) {
-            // path is absolute, throw away everyting we have so far
-            root = parts.shift() + SEPARATOR;
-            elements = [];
-        }
-        leaf = parts.pop();
-        if (leaf == '.' || leaf == '..') {
-            parts.push(leaf);
-            leaf = '';
-        }
-        for (var j = 0; j < parts.length; j++) {
-            var part = parts[j];
-            if (part == '..') {
-                if (elements.length > 0 && elements.peek() != '..') {
-                    elements.pop();
-                } else if (!root) {
-                    elements.push(part);
-                }
-            } else if (part != '' && part != '.') {
-                elements.push(part);
-            }
-        }
-    }
-    path = elements.join(SEPARATOR);
-    if (path.length > 0) {
-        leaf = SEPARATOR + leaf;
-    }
-    return root + path + leaf;
-}
-
-// adapted from narwhal
-function relative(source, target) {
-    if (!target) {
-        target = source;
-        source = workingDirectory();
-    }
-    source = absolute(source);
-    target = absolute(target);
-    source = source.split(SEPARATOR_RE);
-    target = target.split(SEPARATOR_RE);
-    source.pop();
-    while (
-        source.length &&
-        target.length &&
-        target[0] == source[0]) {
-        source.shift();
-        target.shift();
-    }
-    while (source.length) {
-        source.shift();
-        target.unshift("..");
-    }
-    return target.join(SEPARATOR);
 }
 
 function resolveFile(path) {

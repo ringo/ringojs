@@ -1,6 +1,6 @@
 
 include('ringo/unittest');
-var fs = require('file');
+var fs = require('fs');
 
 var tests = [
     ['', '', ''],

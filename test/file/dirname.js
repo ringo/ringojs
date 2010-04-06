@@ -1,6 +1,6 @@
 
 include('ringo/unittest');
-var fs = require('file');
+var fs = require('fs');
 
 var tests = [
     ['', '.'],
@@ -13,7 +13,7 @@ var tests = [
 
 tests.forEach(function ([path, expected]) {
     exports['test "' + path + '"'] = function () {
-        var actual = fs.dirname(path);
+        var actual = fs.directory(path);
         assertEqual(expected, actual);
     };
 });

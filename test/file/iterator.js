@@ -1,12 +1,11 @@
 
 include('ringo/unittest');
-var fs = require("file");
+var fs = require("fs");
 
 /* a decorator that passes a path object corresponding
    to the test name and removes any files created
    therein afterward */
 var Test = function (block) {
-    var args = arguments;
     var exported = function () {
         for (var name in exports) {
             if (exports[name] === exported) {
@@ -18,7 +17,7 @@ var Test = function (block) {
                     block(path);
                 } finally {
                     if (path.exists())
-                        path.rmtree();
+                        path.removeTree();
                 }
             }
         }
