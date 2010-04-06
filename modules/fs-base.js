@@ -48,7 +48,12 @@ var File = java.io.File,
 
 var SEPARATOR = File.separator;
 
-var POSIX = org.ringojs.util.POSIXSupport.getPOSIX();
+var POSIX;
+try {
+    POSIX = org.ringojs.wrappers.POSIX.getPOSIX();
+} catch (error) {
+    print("POSIX not available: " + error.message);
+}
 
 function openRaw(path, mode, permissions) {
     // TODO many things missing here
