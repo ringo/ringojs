@@ -4,7 +4,7 @@
  * Filesystem/A</a> proposal.
  */
 
-var fs_base = require('fs-base');
+var fsBase = require('fs-base');
 include('io');
 
 module.shared = true;
@@ -19,8 +19,8 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
 // copy exports from fs-base
-for each (var key in Object.keys(fs_base)) {
-    exports[key] = fs_base[key];
+for each (var key in Object.keys(fsBase)) {
+    exports[key] = fsBase[key];
 }
 
 export('absolute',
@@ -100,9 +100,9 @@ function copy(from, to) {
 function copyTree(from, to) {
     var source = resolveFile(from);
     var target = resolveFile(to);
-    if (isDirectory(from)) {
-        mkdirs(target);
-        var files = list(source);
+    if (source.isDirectory()) {
+        makeTree(target);
+        var files = source.list();
         for each (var file in files) {
             copyTree(join(source, file), join(target, file));
         }
@@ -121,7 +121,7 @@ function makeTree(path) {
 function removeTree(path) {
     var file = resolveFile(path);
     // do not follow symlinks
-    if (file.isDirectory() && !fs_base.isLink(file.getPath())) {
+    if (file.isDirectory() && !fsBase.isLink(file.getPath())) {
         for each (var child in file.list()) {
             removeTree(join(file, child));
         }
@@ -142,7 +142,7 @@ function isRelative(path) {
 }
 
 function absolute(path) {
-    return resolve(fs_base.workingDirectory(), path);
+    return resolve(fsBase.workingDirectory(), path);
 }
 
 function base(path, ext) {
@@ -231,7 +231,7 @@ function resolve() {
 function relative(source, target) {
     if (!target) {
         target = source;
-        source = fs_base.workingDirectory();
+        source = fsBase.workingDirectory();
     }
     source = absolute(source);
     target = absolute(target);
@@ -326,7 +326,7 @@ function resolveFile(path) {
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
-    var file = new File(String(path));
+    var file = file instanceof File ? file : new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
 }
 
