@@ -229,7 +229,7 @@ exports.testStreamResponse = function() {
               clearInterval(intervalId);
               finished({})
            }
-        }, 2000);
+        }, 1000);
         var promise = {
             then: function(onFinish, onError, onProgress){
                 finished = onFinish;
@@ -247,9 +247,10 @@ exports.testStreamResponse = function() {
         'part': function(data, status, contentType, exchange) {
             j++;
             assertEqual("msg"+j, data);
-            assertEqual(status, 200);
+            assertEqual(200, status);
+            return;
         },
-        'error': function() {
+        'error': function(exception) {
             assertTrue(false);
         }
     });   

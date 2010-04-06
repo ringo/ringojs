@@ -158,6 +158,21 @@ var Exchange = function(url, options, callbacks) {
         }
         return cookies;
     });
+    
+    /**
+     * return response encoding
+     * NOTE HttpExchange._encoding knows about this but is protected
+     */
+    this.__defineGetter__('encoding', function() {
+        var contentType = this.contentType;
+        if (contentType) {
+            var idx = contentType.toLowerCase().indexOf('charset=');
+            if (idx > 0) {
+                return contentType.substring(idx+8);
+            }
+        }
+        return 'utf-8';
+    });
 
     /**
     * encode an object's properties into an uri encoded string
@@ -213,10 +228,12 @@ var Exchange = function(url, options, callbacks) {
             return;
         },
         'onResponseContent': function(content) {
-            this.super$onResponseContent(content);
             if (typeof(callbacks.part) === 'function') {
-                callbacks.part(content, self.status, self.contentType, self);
+                // NOTE if content is not decodable this is bad
+                //      probably better to pass buffer or bytes here
+                callbacks.part(content.toString(self.encoding), self.status, self.contentType, self);
             }
+            this.super$onResponseContent(content);
             return;
         },
         'onResponseHeader': function(key, value) {
