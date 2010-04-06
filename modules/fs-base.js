@@ -49,10 +49,10 @@ var File = java.io.File,
 var SEPARATOR = File.separator;
 
 var POSIX;
-try {
-    POSIX = org.ringojs.wrappers.POSIX.getPOSIX();
-} catch (error) {
-    print("POSIX not available: " + (error.message || error));
+
+function getPOSIX() {
+    POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
+    return POSIX;
 }
 
 function openRaw(path, mode, permissions) {
@@ -154,17 +154,20 @@ function isDirectory(path) {
 }
 
 function isLink(target) {
+    var POSIX = getPOSIX();
     var stat = POSIX.lstat(target);
     return stat.isSymlink();
 }
 
 function same(pathA, pathB) {
+    var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
     return stat1.isIdentical(stat2);
 }
 
 function sameFilesystem(pathA, pathB) {
+    var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
     return stat1.dev() == stat2.dev();
@@ -180,14 +183,17 @@ function touch(path, mtime) {
 }
 
 function symbolicLink(source, target) {
+    var POSIX = getPOSIX();
     return POSIX.symlink(source, target);
 }
 
 function hardLink(source, target) {
+    var POSIX = getPOSIX();
     return POSIX.link(source, target);
 }
 
 function readLink(path) {
+    var POSIX = getPOSIX();
     return POSIX.readlink(path);
 }
 
@@ -206,6 +212,19 @@ function iterate(path) {
 function Permissions(permissions, constructor) {
     if (!(this instanceof Permissions)) {
         return new Permissions(permissions, constructor);
+    }
+    if (!Permissions['default']) {
+        try {
+            var POSIX = getPOSIX();
+            // FIXME: no way to get umask without setting it?
+            var umask = POSIX.umask(0022);
+            if (umask != 0022) {
+                POSIX.umask(umask);
+            }
+            Permissions['default'] = new Permissions(~umask & 0777);
+        } catch (error) {
+            Permissions['default'] = new Permissions(0755);
+        }
     }
     this.update(Permissions['default']);
     this.update(permissions);
@@ -238,24 +257,15 @@ Permissions.prototype.toNumber = function() {
     return result;
 };
 
-try {
-    // FIXME: no way to get umask without setting it?
-    var umask = POSIX.umask(0022);
-    if (umask != 0022) {
-        POSIX.umask(umask);
-    }
-    Permissions['default'] = new Permissions(~umask & 0777);
-} catch (error) {
-    Permissions['default'] = new Permissions(0755);
-}
-
 function permissions(path) {
+    var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
     return new Permissions(stat.mode() & 0777);
 }
 
 function owner(path) {
     try {
+        var POSIX = getPOSIX();
         var uid = POSIX.stat(path).uid();
         var owner = POSIX.getpwuid(uid);
         return owner ? owner.pw_name : uid;
@@ -266,6 +276,7 @@ function owner(path) {
 
 function group(path) {
     try {
+        var POSIX = getPOSIX();
         var gid = POSIX.stat(path).gid();
         var group = POSIX.getgrgid(gid);
         return group ? group.gr_name : gid;
@@ -276,6 +287,7 @@ function group(path) {
 
 function changePermissions(path, permissions) {
     permissions = new Permissions(permissions);
+    var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
     // do not overwrite set-UID bits etc
     var preservedBits = stat.mode() & 07000;
@@ -285,12 +297,14 @@ function changePermissions(path, permissions) {
 
 // Supports user name string as well as uid int input.
 function changeOwner(path, user) {
+    var POSIX = getPOSIX();
     return POSIX.chown(path, typeof user === 'string' ?
             POSIX.getpwnam(user).pw_uid : user, -1);
 }
 
 // Supports group name string as well as gid int input.
 function changeGroup(path, group) {
+    var POSIX = getPOSIX();
     return POSIX.chown(path, -1, typeof group === 'string' ?
             POSIX.getgrnam(group).gr_gid : group);
 }
