@@ -1,3 +1,10 @@
+/**
+ * @fileoverview <p>This module provides a range of functions for
+ * filesystem/operating system interaction. This module is considered legacy
+ * as it is <i>mostly</i> superseded by fs-base. Please use fs-base wherever
+ * possible.</p>
+ */
+
 include('io');
 include('binary');
 require('core/array');

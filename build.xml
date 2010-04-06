@@ -152,6 +152,9 @@
             <arg value="-rfakeroot"/>
             <arg value="-b"/>
         </exec>
+        <exec executable="dh_clean">
+            <arg value="debian/stamp-ant-build"/>
+        </exec>
     </target>
 
     <!-- =================================================================== -->

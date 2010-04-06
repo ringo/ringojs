@@ -94,22 +94,28 @@ public class ReloadableScript {
         if (scriptref == null && optlevel > -1) {
             scriptref = cache.get(source);
         }
-        Script script = scriptref == null ? null : scriptref.get();
-        if (script == null || scriptref.checksum != source.getChecksum()) {
+        Script script;
+        // Note we check for scriptref not script, because even if script is null
+        // (e.g. because of syntax errors) we don't want to recompile unless it
+        // was updated on disk.
+        if (scriptref == null || scriptref.checksum != source.getChecksum()) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
             }
             exception = null;
+            errors = null;
             if (source instanceof Repository) {
                 script = getComposedScript(cx);
             } else {
                 script = getSimpleScript(cx);
             }
+            scriptref = cache.createReference(source, script, this);
             if (optlevel > -1) {
-                cache.put(source, script, this);
+                cache.put(source, scriptref);
             }
         } else {
+            script = scriptref.get();
             checksum = scriptref.checksum;
             errors = scriptref.errors;
             exception = scriptref.exception;
@@ -466,6 +472,12 @@ public class ReloadableScript {
             queue = new ReferenceQueue<Script>();
         }
 
+        ScriptReference createReference(Trackable source, Script script,
+                                        ReloadableScript rescript)
+                throws IOException {
+            return new ScriptReference(source, script, rescript, queue);
+        }
+
         ScriptReference get(Trackable source) {
             ScriptReference ref;
             while((ref = (ScriptReference) queue.poll()) != null) {
@@ -474,9 +486,9 @@ public class ReloadableScript {
             return map.get(source);
         }
 
-        void put(Trackable source, Script script, ReloadableScript rescript)
+        void put(Trackable source, ScriptReference ref)
                 throws IOException {
-            map.put(source, new ScriptReference(source, script, rescript, queue));
+            map.put(source, ref);
         }
     }
 

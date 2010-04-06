@@ -60,6 +60,9 @@ public class RingoContextFactory extends ContextFactory {
 
             case Context.FEATURE_PARENT_PROTO_PROPERTIES:
                 return parentProtoProperties;
+
+            case Context.FEATURE_LOCATION_INFORMATION_IN_ERROR:
+                return true;
         }
 
         return super.hasFeature(cx, featureIndex);

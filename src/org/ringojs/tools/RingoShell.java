@@ -46,10 +46,13 @@ public class RingoShell {
     File history;
     CodeSource codeSource = null;
 
-    public RingoShell(RingoConfiguration config, RhinoEngine engine,
-                      File history, boolean silent)
+    public RingoShell(RhinoEngine engine) throws IOException {
+        this(engine, null, false);
+    }
+
+    public RingoShell(RhinoEngine engine, File history, boolean silent)
             throws IOException {
-        this.config = config;
+        this.config = engine.getConfiguration();
         this.engine = engine;
         this.history = history;
     	this.scope = engine.getShellScope();
@@ -80,7 +83,6 @@ public class RingoShell {
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
-            cx.setOptimizationLevel(-1);
             String source = "";
             String prompt = ">> ";
             while (true) {
@@ -99,13 +101,19 @@ public class RingoShell {
                 prompt = ".. ";
             }
             try {
-                Object result = cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
+                Script script = cx.compileString(source, "<stdin>", lineno, codeSource);
+                Object result = script.exec(cx, scope);
                 // Avoid printing out undefined or function definitions.
                 if (result != Context.getUndefinedValue()) {
                     out.println(Context.toString(result));
                 }
                 out.flush();
                 lineno++;
+                // trigger GC once in a while - if we run in non-interpreter mode
+                // we generate a lot of classes to unload
+                if (lineno % 10 == 0) {
+                    System.gc();
+                }
             } catch (Exception ex) {
                 RingoRunner.reportError(ex, System.out, config.isVerbose());
             } finally {

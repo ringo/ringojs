@@ -33,7 +33,7 @@ function renderModuleList() {
     var rootPath = require('./config').rootPath;
     var repo = new ScriptRepository(require.paths.peek());
     var modules = repo.getScriptResources(true).filter(function(r) {
-        return r.moduleName != 'ringoglobal' &&  r.moduleName.indexOf('test') != 0;
+        return r.moduleName != 'ringo/global' &&  r.moduleName.indexOf('test') != 0;
     }).sort(function(a, b) {
         return a.moduleName > b.moduleName ? 1 : -1;
     });

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview <p>This module implements the Stream/TextStream classes as per
+ * the <a href="http://wiki.commonjs.org/wiki/IO/A">CommonJS IO/A</a>
+ * proposal.</p>
+ */
 
 defineClass(org.ringojs.wrappers.Stream);
 /**

@@ -21,34 +21,53 @@ import org.ringojs.util.ScriptUtils;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.lang.reflect.Constructor;
 
 /**
  * ScriptableMap is a wrapper for java.util.Map instances that allows developers
  * to interact with them as if it were a native JavaScript object.
- * @desc Wraps a Java Map into a JavaScript Object
  */
-public class ScriptableMap extends ScriptableObject implements Wrapper {
+public class ScriptableMap extends NativeJavaObject {
 
-    Map map;
+    boolean reflect;
+    Map<Object,Object> map;
     final static String CLASSNAME = "ScriptableMap";
 
+    // Set up a custom constructor, for this class is somewhere between a host class and
+    // a native wrapper, for which no standard constructor class exists
     public static void init(Scriptable scope) throws NoSuchMethodException {
-        Constructor cnst = ScriptableMap.class.getConstructor(Object.class);
-        FunctionObject jsCnst = new FunctionObject(CLASSNAME, cnst, scope);
-        jsCnst.addAsConstructor(scope, new ScriptableMap(scope, null));
+        BaseFunction ctor = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
+            @Override
+            public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
+                Object arg;
+                boolean reflect = false;
+                if (args.length > 2) {
+                    throw new EvaluatorException("ScriptableMap() called with too many arguments");
+                } if (args.length == 2) {
+                    reflect = ScriptRuntime.toBoolean(args[1]);
+                }
+                return new ScriptableMap(scope, args.length == 0 ? null : args[0], reflect);
+            }
+            @Override
+            public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                return construct(cx, scope, args);
+            }
+        };
+        ScriptableObject.defineProperty(scope, CLASSNAME, ctor,
+                ScriptableObject.DONTENUM | ScriptableObject.READONLY);
     }
 
-    public ScriptableMap(Object obj) {
+    private ScriptableMap(Scriptable scope, Object obj, boolean reflect) {
+        this.parent = scope;
+        this.reflect = reflect;
         if (obj instanceof Wrapper) {
             obj = ((Wrapper) obj).unwrap();
         }
         if (obj instanceof Map) {
             this.map = (Map) obj;
-        } else if (obj == Undefined.instance) {
-            this.map = new HashMap();
+        } else if (obj == null || obj == Undefined.instance) {
+            this.map = new HashMap<Object, Object>();
         } else if (obj instanceof Scriptable) {
-            this.map = new HashMap();
+            this.map = new HashMap<Object, Object>();
             Scriptable s = (Scriptable) obj;
             Object[] ids = s.getIds();
             for (Object id: ids) {
@@ -61,22 +80,42 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
         } else {
             throw new EvaluatorException("Invalid argument to ScriptableMap(): " + obj);
         }
+        this.javaObject = this.map;
+        this.staticType = this.map.getClass();
+        initMembers();
+        initPrototype(scope);
+
     }
 
-    public ScriptableMap(Scriptable scope, Map map) {
-        super(scope, ScriptUtils.getClassOrObjectProto(scope, CLASSNAME));
+    public ScriptableMap(Scriptable scope, Map<Object, Object> map) {
+        super(scope, map, map.getClass());
         this.map = map;
+        initPrototype(scope);
+    }
+
+    /**
+     * Set the prototype to the Array prototype so we can use array methds such as
+     * push, pop, shift, slice etc.
+     * @param scope the global scope for looking up the Array constructor
+     */
+    protected void initPrototype(Scriptable scope) {
+        Scriptable arrayProto = ScriptableObject.getClassPrototype(scope, "Object");
+        if (arrayProto != null) {
+            this.setPrototype(arrayProto);
+        }
     }
 
     public Object get(String name, Scriptable start) {
-        if (map == null)
+        if (map == null || (reflect && super.has(name, start))) {
             return super.get(name, start);
+        }
         return getInternal(name);
     }
 
     public Object get(int index, Scriptable start) {
-        if (map == null)
+        if (map == null) {
             return super.get(index, start);
+        }
         return getInternal(new Integer(index));
     }
 
@@ -89,7 +128,7 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
     }
 
     public boolean has(String name, Scriptable start) {
-        if (map == null) {
+        if (map == null || (reflect && super.has(name, start))) {
             return super.has(name, start);
         } else {
             return map.containsKey(name);
@@ -105,18 +144,18 @@ public class ScriptableMap extends ScriptableObject implements Wrapper {
     }
 
     public void put(String name, Scriptable start, Object value) {
-        if (map != null) {
-            putInternal(name, value);
-        } else {
+        if (map == null || (reflect && super.has(name, start))) {
             super.put(name, start, value);
+        } else {
+            putInternal(name, value);
         }
     }
 
     public void put(int index, Scriptable start, Object value) {
-        if (map != null) {
-            putInternal(new Integer(index), value);
-       } else {
-            super.put(index, start, value);
+        if (map == null) {
+             super.put(index, start, value);
+         } else {
+             putInternal(new Integer(index), value);
         }
     }
 

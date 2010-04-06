@@ -137,6 +137,14 @@ function Server(options) {
         return jetty != null && jetty.isRunning();
     };
 
+    /**
+     * Get the Jetty server instance
+     * @returns the Jetty Server instance
+     */
+    this.getJetty = function() {
+        return jetty;
+    };
+
     // Hack: keep jetty from creating a new shutdown hook with every new server
     java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
 

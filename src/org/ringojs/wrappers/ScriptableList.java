@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class ScriptableList extends NativeJavaObject {
 
-    List list;
+    List<Object> list;
     static final String CLASSNAME = "ScriptableList";
 
     // Set up a custom constructor, for this class is somewhere between a host class and
@@ -39,10 +39,10 @@ public class ScriptableList extends NativeJavaObject {
         BaseFunction ctor = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
             @Override
             public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
-                if (args.length != 1) {
+                if (args.length > 1) {
                     throw new EvaluatorException("ScriptableList() requires a java.util.List argument");
                 }
-                return new ScriptableList(scope, args[0]);
+                return new ScriptableList(scope, args.length == 0 ? null : args[0]);
             }
             @Override
             public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
@@ -69,8 +69,8 @@ public class ScriptableList extends NativeJavaObject {
             this.javaObject = this.list = new ArrayList<Object>((Collection<?>) obj);
         } else if (obj instanceof Map) {
             this.javaObject = this.list = new ArrayList<Object>(((Map<?,?>)obj).values());
-        } else if (obj == Undefined.instance) {
-            this.javaObject = this.list = new ArrayList();
+        } else if (obj == null || obj == Undefined.instance) {
+            this.javaObject = this.list = new ArrayList<Object>();
         } else {
             throw new EvaluatorException("Invalid argument to ScriptableList(): " + obj);
         }
@@ -85,7 +85,7 @@ public class ScriptableList extends NativeJavaObject {
      * @param scope the scope
      * @param list the list instance
      */
-    public ScriptableList(Scriptable scope, List list) {
+    public ScriptableList(Scriptable scope, List<Object> list) {
         super(scope, list, list.getClass());
         this.list = list;
         initPrototype(scope);
@@ -133,6 +133,30 @@ public class ScriptableList extends NativeJavaObject {
         if (list == null)
             return super.has(index, start);
         return index >= 0 && index < list.size();
+    }
+
+    public void put(String name, Scriptable start, Object value) {
+        if (list != null && "length".equals(name)) {
+            double d = ScriptRuntime.toNumber(value);
+            long longVal = ScriptRuntime.toUint32(d);
+            if (longVal != d) {
+                String msg = ScriptRuntime.getMessage0("msg.arraylength.bad");
+                throw ScriptRuntime.constructError("RangeError", msg);
+            }
+            int size = list.size();
+            if (longVal > size) {
+                for (int i = size; i < longVal; i++) {
+                    // push nulls as undefined is probably meaningless to java code
+                    list.add(null);
+                }
+            } else if (longVal < size) {
+                for (int i = size - 1; i >= longVal; i--) {
+                    list.remove(i);
+                }
+            }
+        } else {
+            super.put(name, start, value);
+        }
     }
 
     public void put(int index, Scriptable start, Object value) {

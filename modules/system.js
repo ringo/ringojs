@@ -1,3 +1,12 @@
+/**
+ * @fileoverview <p>This module provides an implementation of the system module
+ * compliant to the <a href="http://wiki.commonjs.org/wiki/System/1.0">CommonJS
+ * System/1.0</a> specification.</p>
+ *
+ * <p>Beyond the standard, a "print" function and some properties for Narwhal
+ * compatibility are provided.</p>
+ */
+
 var io = require('io');
 module.shared = true;
 

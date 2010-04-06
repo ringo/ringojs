@@ -1,4 +1,4 @@
-// use google datastore if it is available, else fall back to filestore
+// Use datastore implementation defined in config module
 var store = require('./config').store;
 
 export('Book', 'Author');
