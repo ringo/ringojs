@@ -147,32 +147,20 @@ function isDirectory(path) {
 }
 
 function isLink(target) {
-    try {
-        var stat = POSIX.lstat(target);
-        return stat.isSymlink();
-    } catch (error) {
-        return false;
-    }
+    var stat = POSIX.lstat(target);
+    return stat.isSymlink();
 }
 
 function same(pathA, pathB) {
-    try {
-        var stat1 = POSIX.stat(pathA);
-        var stat2 = POSIX.stat(pathB);
-        return stat1.isIdentical(stat2);
-    } catch (error) {
-        return false;
-    }
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.isIdentical(stat2);
 }
 
 function sameFilesystem(pathA, pathB) {
-    try {
-        var stat1 = POSIX.stat(pathA);
-        var stat2 = POSIX.stat(pathB);
-        return stat1.dev() == stat2.dev();
-    } catch (error) {
-        return false;
-    }
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.dev() == stat2.dev();
 }
 
 function canonical(path) {
