@@ -337,10 +337,11 @@ function path() {
     return new Path(join.apply(null, arguments));
 }
 
-function Path(path) {
+function Path() {
     if (!(this instanceof Path)) {
-        return new Path(path);
+        return new Path(join.apply(null, arguments));
     }
+    var path = join.apply(null, arguments)
     this.toString = function() path;
     return this;
 }
@@ -370,6 +371,10 @@ Path.prototype.to = function (target) {
 
 Path.prototype.from = function (target) {
     return exports.Path(relative(target, this.toString()));
+};
+
+Path.prototype.listPaths = function() {
+    return this.list().map(function (file) new Path(this, file), this);
 };
 
 var pathed = [
