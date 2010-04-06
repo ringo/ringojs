@@ -1,4 +1,4 @@
-var resolve = require('file').resolve;
+var {resolve} = require('fs');
 
 exports.httpConfig = {
     staticDir: './static'
