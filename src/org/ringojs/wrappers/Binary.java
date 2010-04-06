@@ -272,7 +272,7 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void copy(Binary target, int srcStartIndex, int srcEndIndex, Object targetIndex) {
+    public void copy(int srcStartIndex, int srcEndIndex, Binary target, Object targetIndex) {
         if (target.type != Type.ByteArray) {
             throw ScriptRuntime.typeError("Target object is not writable");
         } else if (srcStartIndex < 0 || srcStartIndex >= length) {
@@ -416,16 +416,20 @@ public class Binary extends ScriptableObject implements Wrapper {
     public synchronized Object split(Object delim, Object options) {
         byte[][] delimiters = getSplitDelimiters(delim);
         boolean includeDelimiter = false;
+        int count = Integer.MAX_VALUE;
         if (options instanceof Scriptable) {
             Scriptable o = (Scriptable) options;
-            Object include = o.get("includeDelimiter", o);
-            includeDelimiter = o != NOT_FOUND && ScriptRuntime.toBoolean(include);
+            Object include = ScriptableObject.getProperty(o, "includeDelimiter");
+            includeDelimiter = include != NOT_FOUND && ScriptRuntime.toBoolean(include);
+            Object max = ScriptableObject.getProperty(o, "count");
+            if (max != NOT_FOUND) count = ScriptRuntime.toInt32(max);
         }
         List<Binary> list = new ArrayList<Binary>();
         Scriptable scope = getParentScope();
         int index = 0;
+        int found = 0;
         outer:
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length && found < count - 1; i++) {
             inner:
             for (byte[] delimiter : delimiters) {
                 if (i + delimiter.length > length) {
@@ -442,6 +446,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 }
                 index = i + delimiter.length;
                 i = index - 1;
+                found++;
                 continue outer;
             }
         }
