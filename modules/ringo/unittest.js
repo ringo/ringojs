@@ -1,5 +1,6 @@
 import("core/string");
 var term = require("ringo/term");
+var fs = require("fs");
 
 module.shared = true;
 
@@ -124,7 +125,7 @@ var evalArguments = function(args, argsExpected) {
 this.run = function(modulePathOrScope, writer) {
     var scope;
     if (typeof(modulePathOrScope) === "string") {
-        scope = require(modulePathOrScope);
+        scope = require(fs.resolve(fs.workingDirectory(), modulePathOrScope));
     } else {
         scope = modulePathOrScope;
     }
