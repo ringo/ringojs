@@ -1,6 +1,6 @@
 include('ringo/unittest');
 var fileutils = require('ringo/fileutils');
-var fs = require('fs-base');
+var fs = require('fs');
 
 const PARENT = '/home/ringo/';
 const INVALID_CHILD = 'Projects';

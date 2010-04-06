@@ -1,6 +1,6 @@
 include('ringo/unittest');
 include('./testconsts');
-var fs = require('fs-base');
+var fs = require('fs');
 var {Store} = require('ringo/storage/filestore');
 var dbPath = fs.join(system.prefix, "test", "testdb");
 var store = new Store(dbPath);
