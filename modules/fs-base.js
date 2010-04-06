@@ -97,7 +97,7 @@ function exists(path) {
 }
 
 function workingDirectory() {
-    return java.lang.System.getProperty('user.dir');
+    return java.lang.System.getProperty('user.dir') + SEPARATOR;
 }
 
 function changeWorkingDirectory(path) {
@@ -420,7 +420,7 @@ function normal(path) {
 }
 
 function absolute(path) {
-    return resolve(join(workingDirectory(), ''), path);
+    return resolve(workingDirectory(), path);
 }
 
 function directory(path) {
@@ -494,7 +494,7 @@ function resolve() {
 function relative(source, target) {
     if (!target) {
         target = source;
-        source = workingDirectory() + '/';
+        source = workingDirectory();
     }
     source = absolute(source);
     target = absolute(target);
