@@ -52,7 +52,7 @@ var POSIX;
 try {
     POSIX = org.ringojs.wrappers.POSIX.getPOSIX();
 } catch (error) {
-    print("POSIX not available: " + error.message);
+    print("POSIX not available: " + (error.message || error));
 }
 
 function openRaw(path, mode, permissions) {
