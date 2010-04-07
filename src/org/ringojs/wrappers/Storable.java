@@ -259,7 +259,7 @@ public class Storable extends ScriptableObject {
         if (value instanceof Callable) {
             return ((Callable) value).call(Context.getCurrentContext(), getParentScope(), store, args);
         }
-        return NOT_FOUND;
+        throw new RuntimeException("Store does not implement '" + method + "' method");
     }
 
 }
