@@ -1,7 +1,8 @@
 exports.unittest = require('./ringo/unittest_test');
+exports.base64 = require('./ringo/base64_test');
 exports.args = require('./ringo/args_test');
 exports.array = require('./core/array_test');
-exports.buffer = require('./ringo/buffer_test')
+exports.buffer = require('./ringo/buffer_test');
 exports.object = require('./core/object_test');
 exports.file = require('./ringo/file_test');
 exports.fileutils = require('./ringo/fileutils_test');
