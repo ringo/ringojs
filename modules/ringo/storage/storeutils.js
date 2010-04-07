@@ -61,7 +61,7 @@ function getKey(type, arg) {
         return arg;
     }
     return null;
-};
+}
 
 function getType(key) {
     if (isKey(key)) {
@@ -113,9 +113,9 @@ function BaseTransaction() {
 
     this.registerKey = function(key) {
         keys.add(key.$ref);
-    }
+    };
 
     this.hasKey = function(key) {
         return keys.contains(key.$ref);
-    }
+    };
 }

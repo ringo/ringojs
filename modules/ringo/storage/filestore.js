@@ -46,7 +46,7 @@ function Store(path) {
             ctor.query = bindArguments(query, type);
         }
         return ctor;
-    }
+    };
 
     function create(type, key, entity) {
         var ctor = registry[type];
@@ -135,7 +135,7 @@ function Store(path) {
         tempfile.write(JSON.stringify(entity));
         tempfile.close();
         txn.updateResource({ file: file, tempfile: tempfile });
-    };
+    }
 
     function load(type, id) {
         var file = new File(new File(base, type), id);
@@ -152,7 +152,7 @@ function Store(path) {
             value: createKey(type, id)
         });
         return entity;
-    };
+    }
 
     function retrieve(type, id) {
         var entity = load(type, id);
@@ -160,7 +160,7 @@ function Store(path) {
             return create(type, createKey(type, id), entity);
         }
         return null;
-    };
+    }
 
     function retrieveAll(type) {
         var dir = new File(base, type);
@@ -177,7 +177,7 @@ function Store(path) {
             list.push(create(type, createKey(type, file.getName())));
         }
         return list;
-    };
+    }
 
     function removeImpl(key, txn) {
         if (!isKey(key)) {
@@ -186,7 +186,7 @@ function Store(path) {
         var [type, id] = key.$ref.split(":");
         var file = new File(new File(base, type), id);
         txn.deleteResource({ file: file });        
-    };
+    }
 
     function generateId(type) {
         var dir = new File(base, type);
@@ -199,12 +199,12 @@ function Store(path) {
 
         idMap[type] = id + 1;
         return file.getName();
-    };
+    }
 
     var base = new File(path);
     log.debug("Set up new store: " + base);
 
-};
+}
 
 function Transaction() {
 
@@ -215,11 +215,11 @@ function Transaction() {
 
     tx.deleteResource = function(res) {
         deleteList.push(res);
-    }
+    };
 
     tx.updateResource = function(res) {
         updateList.push(res);
-    }
+    };
 
     tx.commit = function() {
         for each (var res in updateList) {
@@ -244,13 +244,13 @@ function Transaction() {
 
         updateList = [];
         deleteList = [];
-    }
+    };
 
     tx.abort = function() {
         for each (var res in updateList) {
             res.tempfile.remove();
         }
-    }
+    };
 
     return tx;
 }
