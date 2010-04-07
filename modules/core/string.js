@@ -14,8 +14,6 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-var asJavaString = require('ringo/engine').asJavaString;
-
 module.shared = true;
 
 var ANUMPATTERN = /[^a-zA-Z0-9]/;
@@ -494,8 +492,7 @@ Object.defineProperty(String.prototype, "count", {
  */
 Object.defineProperty(String.prototype, "enbase64", {
     value: function() {
-        var bytes = asJavaString(this).getBytes();
-        return new Packages.sun.misc.BASE64Encoder().encode(bytes);
+        return require('ringo/base64').encode(this);
     }, writable: true
 });
 
@@ -505,8 +502,7 @@ Object.defineProperty(String.prototype, "enbase64", {
  */
 Object.defineProperty(String.prototype, "debase64", {
     value: function() {
-        var bytes = new Packages.sun.misc.BASE64Decoder().decodeBuffer(this);
-        return String(new java.lang.String(bytes));
+        return require('ringo/base64').decode(this);
     }, writable: true
 });
 
