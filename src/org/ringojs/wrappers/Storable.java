@@ -16,7 +16,7 @@ public class Storable extends ScriptableObject {
     private Object key;
     private Object entity;
 
-    enum FactoryType {CONSTRUCTOR, FACTORY};
+    enum FactoryType {CONSTRUCTOR, FACTORY}
 
     public Storable() {
         this.isPrototype = true;
@@ -37,18 +37,18 @@ public class Storable extends ScriptableObject {
     static class FactoryFunction extends BaseFunction {
 
         Storable prototype;
-        FactoryType type;
+        FactoryType factoryType;
 
-        FactoryFunction(Storable prototype, Scriptable scope, FactoryType type) {
+        FactoryFunction(Storable prototype, Scriptable scope, FactoryType factoryType) {
             this.prototype = prototype;
-            this.type = type;
+            this.factoryType = factoryType;
             ScriptRuntime.setFunctionProtoAndParent(this, scope);
         }
 
         @Override
         public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
             Storable storable = new Storable(prototype);
-            switch (type) {
+            switch (factoryType) {
                 case CONSTRUCTOR:
                     ScriptUtils.checkArguments(args, 0, 1);
                     Scriptable properties = ScriptUtils.getScriptableArgument(args, 0, true);
@@ -67,10 +67,25 @@ public class Storable extends ScriptableObject {
             storable.setPrototype(prototype);
             return storable;
         }
+
+        @Override
+        public int getArity() {
+            return factoryType == FactoryType.CONSTRUCTOR ? 1 : 2;
+        }
+
+        @Override
+        public String getFunctionName() {
+            return prototype.getType();
+        }
+
+        @Override
+        public int getLength() {
+            return getArity();
+        }
     }
 
     @JSStaticFunction
-    public static Scriptable defineClass(Scriptable store, String type)
+    public static Scriptable defineClass(Scriptable store, String type, Object mapping)
             throws NoSuchMethodException {
         int attr = DONTENUM | PERMANENT | READONLY;
         Scriptable scope = ScriptRuntime.getTopCallScope(Context.getCurrentContext());
@@ -80,11 +95,14 @@ public class Storable extends ScriptableObject {
         // create the constructor, visible to the application
         BaseFunction ctor = new FactoryFunction(prototype, scope, FactoryType.CONSTRUCTOR);
         ctor.setImmunePrototypeProperty(prototype);
-        prototype.setParentScope(ctor);
         defineProperty(prototype, "constructor", ctor, attr);
         // create the factory function, visible to the store implementation
         BaseFunction factory = new FactoryFunction(prototype, scope, FactoryType.FACTORY);
         ScriptableObject.defineProperty(ctor, "createInstance", factory, attr);
+        if (mapping != Undefined.instance) {
+            ctor.defineProperty("mapping", mapping, attr);
+            factory.defineProperty("mapping", mapping, attr);
+        }
         return ctor;
     }
 
@@ -219,6 +237,10 @@ public class Storable extends ScriptableObject {
             properties = loadProperties();
         }
         return properties.getIds();
+    }
+
+    public String getType() {
+        return type;
     }
 
     private boolean isPersistent() {
