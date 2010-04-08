@@ -4,7 +4,7 @@
 
 var system = require("system");
 var shell = require("ringo/shell");
-var fs = require("fs-base");
+var fs = require("fs");
 var futils = require("ringo/fileutils");
 var {ZipFile} = require("ringo/zip");
 var {Parser} = require("ringo/args");
