@@ -1,7 +1,8 @@
 require('core/object');
 require('core/array');
+var {Path} = require('fs');
+var futils = require('ringo/fileutils');
 include('ringo/engine');
-include('ringo/file');
 include('ringo/functional');
 include('./storeutils');
 include('./querysupport');
@@ -113,32 +114,28 @@ function Store(path) {
     function store(entity, txn) {
         var [type, id] = entity._key.$ref.split(":");
 
-        var dir = new File(base, type);
+        var dir = new Path(base, type);
         if (!dir.exists()) {
-            if (!dir.makeDirectory()) {
-                throw new Error("Can't create directory for type " + type);
-            }
+            dir.makeTree();
         }
 
-        var file = new File(dir, id);
-        if (file.exists() && !file.canWrite()) {
+        var file = new Path(dir, id);
+        if (file.exists() && !file.isWritable()) {
             throw new Error("No write permission for " + file);
         }
 
         var tempFileName = type + id + ".";
-        var tempfile = base.createTempFile(tempFileName, ".tmp");
+        var tempfile = new Path(futils.createTempFile(tempFileName, ".tmp", base));
 
         if(log.isDebugEnabled())
             log.debug("Storing object: " + entity.toSource());
 
-        tempfile.open({ append: true });
         tempfile.write(JSON.stringify(entity));
-        tempfile.close();
         txn.updateResource({ file: file, tempfile: tempfile });
     }
 
     function load(type, id) {
-        var file = new File(new File(base, type), id);
+        var file = new Path(base, type, id);
 
         if (!file.exists()) {
             return null;
@@ -146,7 +143,7 @@ function Store(path) {
             throw new Error("Is not a regular file: " + file);
         }
 
-        var content = file.readAll();
+        var content = file.read();
         var entity = JSON.parse(content);
         Object.defineProperty(entity, "_key", {
             value: createKey(type, id)
@@ -163,18 +160,18 @@ function Store(path) {
     }
 
     function retrieveAll(type) {
-        var dir = new File(base, type);
+        var dir = new Path(base, type);
         if (!dir.exists() || !dir.isDirectory()) {
             return [];
         }
-        var files = dir.listFiles();
+        var files = dir.listPaths();
         var list = [];
 
         for each (var file in files) {
-            if (!file.isFile() || file.isHidden()) {
+            if (!file.isFile() || futils.isHidden(file)) {
                 continue;
             }
-            list.push(create(type, createKey(type, file.getName())));
+            list.push(create(type, createKey(type, file.base())));
         }
         return list;
     }
@@ -184,24 +181,24 @@ function Store(path) {
             throw new Error("Invalid key object: " + key);
         }
         var [type, id] = key.$ref.split(":");
-        var file = new File(new File(base, type), id);
+        var file = new Path(base, type, id);
         txn.deleteResource({ file: file });        
     }
 
     function generateId(type) {
-        var dir = new File(base, type);
+        var dir = new Path(base, type);
         var id = idMap[type] || 1;
-        var file = new File(dir, id.toString(36));
+        var file = new Path(dir, id.toString(36));
         while(file.exists()) {
             id += 1;
-            file = new File(dir, id.toString(36));
+            file = new Path(dir, id.toString(36));
         }
 
         idMap[type] = id + 1;
-        return file.getName();
+        return file.base();
     }
 
-    var base = new File(path);
+    var base = new Path(path);
     log.debug("Set up new store: " + base);
 
 }
@@ -229,13 +226,7 @@ function Transaction() {
                 res.file.remove();
             }
             // move temporary file to permanent name
-            if (res.tempfile.renameTo(res.file)) {
-                // success - delete tmp file
-                res.tempfile.remove();
-            } else {
-                // error - leave tmp file and print a message
-                log.error("Couldn't move file, committed version is in " + res.tempfile);
-            }
+            res.tempfile.move(res.file);
         }
 
         for each (var res in deleteList) {

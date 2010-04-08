@@ -1,6 +1,5 @@
 require('core/string');
 require('core/array');
-include('ringo/file');
 include('ringo/parser');
 importPackage(org.mozilla.javascript);
 importPackage(org.ringojs.repository);
@@ -22,7 +21,7 @@ exports.ScriptRepository = function(path) {
 
 function ScriptRepository(path) {
     var repo = path instanceof Repository ?
-               path : new FileRepository(new java.io.File(path));
+               path : new FileRepository(path);
 
     /**
      * Get a list of script resources (files with a .js extension) in this

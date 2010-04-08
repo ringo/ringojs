@@ -4,7 +4,7 @@
  */
 
 var system = require('system');
-var fs = require('file');
+var fs = require('fs');
 
 module.shared = true;
 

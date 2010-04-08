@@ -1,6 +1,6 @@
 /**
- * @fileoverview <p>This module provides an implementation of the "fs-base" as
- * per the <a href="http://wiki.commonjs.org/wiki/Filesystem/A/0">CommonJS
+ * @fileoverview <p>This module provides an implementation of "fs-base" as
+ * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A/0">CommonJS
  * Filesystem/A/0</a> proposal.
  */
 
@@ -8,31 +8,22 @@ include('io');
 include('binary');
 require('core/array');
 
-export('absolute', // Filesystem/A
-       'base', // Filesystem/A
-       'canonical',
+module.shared = true;
+
+export('canonical',
        'changeWorkingDirectory',
-       'directory', // Filesystem/A
        'workingDirectory',
        'exists',
-       'extension', // Filesystem/A
-       'isAbsolute', // non-standard/non-spec
-       'isRelative', // non-standard/non-spec
        'isDirectory',
        'isFile',
        'isReadable',
        'isWritable',
-       'join', // Filesystem/A
        'list',
        'makeDirectory',
-       'makeTree', // Filesystem/A
        'move',
-       'normal', // Filesystem/A
        'lastModified',
        'openRaw',
        'remove',
-       'relative', // Filesystem/A
-       'resolve', // Filesystem/A
        'removeDirectory',
        'size',
        'touch',
@@ -42,7 +33,6 @@ export('absolute', // Filesystem/A
        'isLink',
        'same',
        'sameFilesystem',
-       'split', // Filesystem/A
        'iterate',
        'Permissions',
        'owner',
@@ -55,11 +45,15 @@ export('absolute', // Filesystem/A
 var File = java.io.File,
     FileInputStream = java.io.FileInputStream,
     FileOutputStream = java.io.FileOutputStream;
+
 var SEPARATOR = File.separator;
-var SEPARATOR_RE = SEPARATOR == '/' ?
-                   new RegExp(SEPARATOR) :
-                   new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
-var POSIX = org.ringojs.util.POSIXSupport.getPOSIX();
+
+var POSIX;
+
+function getPOSIX() {
+    POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
+    return POSIX;
+}
 
 function openRaw(path, mode, permissions) {
     // TODO many things missing here
@@ -97,7 +91,7 @@ function exists(path) {
 }
 
 function workingDirectory() {
-    return java.lang.System.getProperty('user.dir');
+    return java.lang.System.getProperty('user.dir') + SEPARATOR;
 }
 
 function changeWorkingDirectory(path) {
@@ -143,13 +137,6 @@ function makeDirectory(path) {
     }
 }
 
-function makeTree(path) {
-    var file = resolveFile(path);
-    if (!file.isDirectory() && !file.mkdirs()) {
-        throw new Error("failed to make tree " + path);
-    }
-}
-
 function isReadable(path) {
     return resolveFile(path).canRead();
 }
@@ -166,43 +153,24 @@ function isDirectory(path) {
     return resolveFile(path).isDirectory();
 }
 
-// non-standard/non-spec
-function isAbsolute(path) {
-    return new File(path).isAbsolute();
-}
-
-// non-standard/non-spec
-function isRelative(path) {
-    return !isAbsolute(path);
-}
-
 function isLink(target) {
-    try {
-        var stat = POSIX.lstat(target);
-        return stat.isSymlink();
-    } catch (error) {
-        return false;
-    }
+    var POSIX = getPOSIX();
+    var stat = POSIX.lstat(target);
+    return stat.isSymlink();
 }
 
 function same(pathA, pathB) {
-    try {
-        var stat1 = POSIX.stat(pathA);
-        var stat2 = POSIX.stat(pathB);
-        return stat1.isIdentical(stat2);
-    } catch (error) {
-        return false;
-    }
+    var POSIX = getPOSIX();
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.isIdentical(stat2);
 }
 
 function sameFilesystem(pathA, pathB) {
-    try {
-        var stat1 = POSIX.stat(pathA);
-        var stat2 = POSIX.stat(pathB);
-        return stat1.dev() == stat2.dev();
-    } catch (error) {
-        return false;
-    }
+    var POSIX = getPOSIX();
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.dev() == stat2.dev();
 }
 
 function canonical(path) {
@@ -215,14 +183,17 @@ function touch(path, mtime) {
 }
 
 function symbolicLink(source, target) {
+    var POSIX = getPOSIX();
     return POSIX.symlink(source, target);
 }
 
 function hardLink(source, target) {
+    var POSIX = getPOSIX();
     return POSIX.link(source, target);
 }
 
 function readLink(path) {
+    var POSIX = getPOSIX();
     return POSIX.readlink(path);
 }
 
@@ -241,6 +212,19 @@ function iterate(path) {
 function Permissions(permissions, constructor) {
     if (!(this instanceof Permissions)) {
         return new Permissions(permissions, constructor);
+    }
+    if (!Permissions['default']) {
+        try {
+            var POSIX = getPOSIX();
+            // FIXME: no way to get umask without setting it?
+            var umask = POSIX.umask(0022);
+            if (umask != 0022) {
+                POSIX.umask(umask);
+            }
+            Permissions['default'] = new Permissions(~umask & 0777);
+        } catch (error) {
+            Permissions['default'] = new Permissions(0755);
+        }
     }
     this.update(Permissions['default']);
     this.update(permissions);
@@ -273,24 +257,15 @@ Permissions.prototype.toNumber = function() {
     return result;
 };
 
-try {
-    // FIXME: no way to get umask without setting it?
-    var umask = POSIX.umask(0022);
-    if (umask != 0022) {
-        POSIX.umask(umask);
-    }
-    Permissions['default'] = new Permissions(~umask & 0777);
-} catch (error) {
-    Permissions['default'] = new Permissions(0755);
-}
-
 function permissions(path) {
+    var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
     return new Permissions(stat.mode() & 0777);
 }
 
 function owner(path) {
     try {
+        var POSIX = getPOSIX();
         var uid = POSIX.stat(path).uid();
         var owner = POSIX.getpwuid(uid);
         return owner ? owner.pw_name : uid;
@@ -301,6 +276,7 @@ function owner(path) {
 
 function group(path) {
     try {
+        var POSIX = getPOSIX();
         var gid = POSIX.stat(path).gid();
         var group = POSIX.getgrgid(gid);
         return group ? group.gr_name : gid;
@@ -311,6 +287,7 @@ function group(path) {
 
 function changePermissions(path, permissions) {
     permissions = new Permissions(permissions);
+    var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
     // do not overwrite set-UID bits etc
     var preservedBits = stat.mode() & 07000;
@@ -320,12 +297,14 @@ function changePermissions(path, permissions) {
 
 // Supports user name string as well as uid int input.
 function changeOwner(path, user) {
+    var POSIX = getPOSIX();
     return POSIX.chown(path, typeof user === 'string' ?
             POSIX.getpwnam(user).pw_uid : user, -1);
 }
 
 // Supports group name string as well as gid int input.
 function changeGroup(path, group) {
+    var POSIX = getPOSIX();
     return POSIX.chown(path, -1, typeof group === 'string' ?
             POSIX.getgrnam(group).gr_gid : group);
 }
@@ -401,120 +380,6 @@ function applyMode(mode, options) {
     return options;
 }
 
-// the following are from the "Paths" - "Paths as Text" section from Filesystem/A
-// http://wiki.commonjs.org/wiki/Filesystem/A
-
-function join() {
-    return normal(Array.join(arguments, SEPARATOR));
-}
-
-function split(path) {
-    if (!path) {
-        return [];
-    }
-    return String(path).split(SEPARATOR_RE);
-}
-
-function normal(path) {
-    return resolve(path);
-}
-
-function absolute(path) {
-    return resolve(join(workingDirectory(), ''), path);
-}
-
-function directory(path) {
-    return new File(path).getParent() || '.';
-}
-
-function base(path, ext) {
-    var name = split(path).peek();
-    if (ext && name) {
-        var diff = name.length - ext.length;
-        if (diff > -1 && name.lastIndexOf(ext) == diff) {
-            return name.substring(0, diff);
-        }
-    }
-    return name;
-}
-
-function extension(path) {
-    var name = basename(path);
-    if (!name) {
-        return '';
-    }
-    name = name.replace(/^\.+/, '');
-    var index = name.lastIndexOf('.');
-    return index > 0 ? name.substring(index) : '';
-}
-
-// Adapted from Narwhal.
-function resolve() {
-    var root = '';
-    var elements = [];
-    var leaf = '';
-    var path;
-    for (var i = 0; i < arguments.length; i++) {
-        path = String(arguments[i]);
-        if (path.trim() == '') {
-            continue;
-        }
-        var parts = path.split(SEPARATOR_RE);
-        if (isAbsolute(path)) {
-            // path is absolute, throw away everyting we have so far
-            root = parts.shift() + SEPARATOR;
-            elements = [];
-        }
-        leaf = parts.pop();
-        if (leaf == '.' || leaf == '..') {
-            parts.push(leaf);
-            leaf = '';
-        }
-        for (var j = 0; j < parts.length; j++) {
-            var part = parts[j];
-            if (part == '..') {
-                if (elements.length > 0 && elements.peek() != '..') {
-                    elements.pop();
-                } else if (!root) {
-                    elements.push(part);
-                }
-            } else if (part != '' && part != '.') {
-                elements.push(part);
-            }
-        }
-    }
-    path = elements.join(SEPARATOR);
-    if (path.length > 0) {
-        leaf = SEPARATOR + leaf;
-    }
-    return root + path + leaf;
-}
-
-// adapted from narwhal
-function relative(source, target) {
-    if (!target) {
-        target = source;
-        source = workingDirectory() + '/';
-    }
-    source = absolute(source);
-    target = absolute(target);
-    source = source.split(SEPARATOR_RE);
-    target = target.split(SEPARATOR_RE);
-    source.pop();
-    while (
-        source.length &&
-        target.length &&
-        target[0] == source[0]) {
-        source.shift();
-        target.shift();
-    }
-    while (source.length) {
-        source.shift();
-        target.unshift("..");
-    }
-    return target.join(SEPARATOR);
-}
-
 function resolveFile(path) {
     // Fix for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
     // relative files are not resolved against workingDirectory/user.dir in java,
@@ -522,6 +387,6 @@ function resolveFile(path) {
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
-    var file = new File(String(path));
+    var file = file instanceof File ? file : new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
 }

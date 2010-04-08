@@ -3,7 +3,7 @@
  */
 
 require('core/string');
-var file = require('file');
+var {join, Path, makeDirectory, move, copy, base} = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
 var Parser = require('ringo/args').Parser;
@@ -21,7 +21,7 @@ function createApplication(path, options) {
         throw "No destination path given.";
     }
 
-    var dest = new file.Path(path);
+    var dest = new Path(path);
 
     if (dest.exists() && !dest.isDirectory()) {
         throw dest + " exists but is not a directory.";
@@ -33,8 +33,8 @@ function createApplication(path, options) {
 
     if (options.appengine) {
         copyTree(home, "apps/appengine", dest);
-        copyTree(home, "modules", file.join(dest, "WEB-INF", "modules"));
-        copyTree(home, "apps/skeleton", file.join(dest, "WEB-INF", "app"));
+        copyTree(home, "modules", join(dest, "WEB-INF", "modules"));
+        copyTree(home, "apps/skeleton", join(dest, "WEB-INF", "app"));
         fixAppEngineDirs(dest);
         copyJars(home, dest);
     } else {
@@ -52,7 +52,7 @@ function createPackage(path, options) {
     }
 
     var home = engine.properties["ringo.home"];
-    var dest = new file.Path(file.join(home, "packages", path));
+    var dest = new Path(home, "packages", path);
 
     if (dest.exists() && !dest.isDirectory()) {
         throw dest + " exists but is not a directory.";
@@ -64,7 +64,7 @@ function createPackage(path, options) {
 }
 
 function copyTree(home, from, to) {
-    var source = new file.Path(file.join(home, from));
+    var source = new Path(home, from);
     if (!source.exists() || !source.isDirectory()) {
         throw "Can't find directory " + source + ".";
     }
@@ -75,12 +75,12 @@ function copyTree(home, from, to) {
 }
 
 function fixAppEngineDirs(dest) {
-    file.mkdir(file.join(dest, "static"));
-    var webinf = file.join(dest, "WEB-INF");
-    file.mkdir(file.join(webinf, "lib"));
-    file.mkdir(file.join(webinf, "classes"));
-    file.mkdir(file.join(webinf, "packages"));
-    file.move(file.join(webinf, "app", "static"), file.join(dest, "static"));    
+    makeDirectory(join(dest, "static"));
+    var webinf = join(dest, "WEB-INF");
+    makeDirectory(join(webinf, "lib"));
+    makeDirectory(join(webinf, "classes"));
+    makeDirectory(join(webinf, "packages"));
+    move(join(webinf, "app", "static"), join(dest, "static"));
 }
 
 function copyJars(home, dest) {
@@ -91,10 +91,10 @@ function copyJars(home, dest) {
         "slf4j/slf4j-api-1.5.10.jar",
         "slf4j/slf4j-log4j12-1.5.10.jar"
     ];
-    var libsrc = file.join(home, "lib");
-    var libdest = file.join(dest, "WEB-INF", "lib");
+    var libsrc = join(home, "lib");
+    var libdest = join(dest, "WEB-INF", "lib");
     for each (var jar in jars) {
-        file.copy(file.join(libsrc, jar), file.join(libdest, file.basename(jar)));
+        copy(join(libsrc, jar), join(libdest, base(jar)));
     }
 }
 

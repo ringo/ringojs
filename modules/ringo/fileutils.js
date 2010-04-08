@@ -4,9 +4,13 @@
 
 require('core/string');
 require('core/array');
-var fs = require('file');
+var fs = require('fs');
 
-export ('resolveUri', 'resolveId', 'createTempFile', 'roots', 'separator');
+export ('resolveUri', 'resolveId', 'isHidden', 'createTempFile', 'roots', 'separator');
+
+module.shared = true;
+
+var File = java.io.File;
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
@@ -84,13 +88,27 @@ function resolveId(parent, child) {
 /**
  * Create a new empty temporary file in the default directory for temporary files.
  * @param {String} prefix the prefix of the temporary file; must be at least three characters long
- * @param {String} suffix the suffix of the temporary file; may be null
+ * @param {String} suffix the suffix of the temporary file; may be undefined or null
+ * @param {String} directory optional directory in which to create the file. Pass undefined
+ *                 to use the system's default location for temporary files
  * @returns {File} the temporary file
  */
-function createTempFile(prefix, suffix) {
-   return java.io.File
-       .createTempFile(prefix, suffix || null)
-       .getPath();
+function createTempFile(prefix, suffix, directory) {
+    suffix = suffix || null;
+    directory = directory ? new File(directory) : null;
+    return File
+        .createTempFile(prefix, suffix, directory)
+        .getPath();
+}
+
+/**
+ * Tests whether the file represented by this File object is a hidden file.
+ * What constitutes a hidden file may depend on the platform we are running on.
+ * @returns Boolean true if this File object is hidden
+ * @type Boolean
+ */
+function isHidden(file) {
+    return new File(file).isHidden();
 }
 
 /**
@@ -99,11 +117,11 @@ function createTempFile(prefix, suffix) {
  * contains an element for each mounted drive.
  * @type Array
  */
-var roots = java.io.File.listRoots().map(String);
+var roots = File.listRoots().map(String);
 
 /**
  * The system-dependent file system separator character.
  * @type String
  */
-var separator = java.io.File.separator;
+var separator = File.separator;
 
