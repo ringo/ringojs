@@ -232,7 +232,7 @@ function getProps(store, entity) {
         } else if (value instanceof java.util.Date) {
             value = new Date(value.getTime());
         } else {
-            value = Context.javaToJS(value, global);
+            value = org.mozilla.javascript.Context.javaToJS(value, global);
         }
         props[i] = value;
     }
