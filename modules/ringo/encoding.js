@@ -15,10 +15,10 @@ function Decoder(charset, strict, capacity) {
     var input = ByteBuffer.allocate(capacity);
     var output = CharBuffer.allocate(decoder.averageCharsPerByte() * capacity);
 
-    var errorHandler = strict ?
+    var errorAction = strict ?
             CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
-    decoder.onMalformedInput(errorHandler);
-    decoder.onUnmappableCharacter(errorHandler);
+    decoder.onMalformedInput(errorAction);
+    decoder.onUnmappableCharacter(errorAction);
 
     var decoded;
 
@@ -71,5 +71,67 @@ function Decoder(charset, strict, capacity) {
         get: function() {
             return output.position();
         }
-    })
+    });
+}
+
+function Encoder(charset, strict, capacity) {
+
+    if (!(this instanceof Encoder)) {
+        return new Encoder(charset, strict, capacity);
+    }
+
+    capacity = capacity || 1024;
+    var encoder = Charset.forName(charset).newEncoder();
+    var encoded = new ByteArray(capacity);
+    var output = ByteBuffer.wrap(encoded);
+
+    var errorAction = strict ?
+            CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
+    encoder.onMalformedInput(errorAction);
+    encoder.onUnmappableCharacter(errorAction);
+
+    this.encode = function(string, start, end) {
+        start = start || 0;
+        end = end || string.length;
+        var input = CharBuffer.wrap(string, start, end);
+        var result = encoder.encode(input, output, false);
+        if (result.isError()) {
+            encoder.reset();
+            throw new Error(result);
+        }
+        return this;
+    };
+
+    this.close = function() {
+        var input = CharBuffer.wrap("");
+        var result = encoder.encode(input, output, true);
+        if (result.isError()) {
+            encoder.reset();
+            throw new Error(result);
+        }
+        return this;
+    };
+
+    this.toString = function() {
+        return "[Encoder " + output.position() + "]";
+    };
+
+    this.toByteString = function() {
+        return encoded.slice(0, output.position());
+    };
+
+    this.toByteArray = function() {
+        return encoded.slice(0, output.position());
+    };
+
+    this.clear = function() {
+        encoded.length = 0;
+        output.clear();
+    };
+
+    Object.defineProperty(this, "length", {
+        get: function() {
+            return output.position();
+        }
+    });
 }
