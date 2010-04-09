@@ -212,7 +212,7 @@ exports.testCallbacks = function() {
 /**
  * Streaming Response
  */
-exports.testStreamResponse = function() {
+exports._testStreamResponse = function() {
     getResponse = function(req){
         include('ringo/scheduler');
         // Sends a message once a second 10 times
