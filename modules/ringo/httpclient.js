@@ -21,26 +21,36 @@ var Cookie = function(cookieStr) {
     /**
      * @returns {String} the cookie's name
      */
-    this.__defineGetter__('name', function() {
-        return cookie.getName();
+    Object.defineProperty(this, "name", {
+        get: function() {
+           return cookie.getName();
+        }
     });
+
     /**
      * @returns {String} the cookie value
      */
-    this.__defineGetter__('value', function() {
-        return cookie.getValue();
+    Object.defineProperty(this, "value", {
+        get: function() {
+           return cookie.getValue();
+        }
     });
     /**
      * @returns {String} the cookie domain
      */
-    this.__defineGetter__('domain', function() {
-        return cookie.getDomain();
+    Object.defineProperty(this, "domain", {
+        get: function() {
+           return cookie.getDomain();
+        }
     });
+    
     /**
      * @returns {String} the cookie path
      */
-    this.__defineGetter__('path', function() {
-        return cookie.getPath();
+    Object.defineProperty(this, "path", {
+        get: function() {
+         return cookie.getPath();
+        }
     });
     
     /**
