@@ -4,10 +4,10 @@ export("Encoder", "Decoder");
 var {Charset, CharsetEncoder, CharsetDecoder, CodingErrorAction} = java.nio.charset;
 var {ByteBuffer, CharBuffer} = java.nio;
 
-function Decoder(charset, capacity, strict) {
+function Decoder(charset, strict, capacity) {
 
     if (!this instanceof Decoder) {
-        return new Decoder(charset, capacity);
+        return new Decoder(charset, strict, capacity);
     }
 
     capacity = capacity || 1024;
