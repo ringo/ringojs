@@ -6,7 +6,7 @@ var {ByteBuffer, CharBuffer} = java.nio;
 
 function Decoder(charset, strict, capacity) {
 
-    if (!this instanceof Decoder) {
+    if (!(this instanceof Decoder)) {
         return new Decoder(charset, strict, capacity);
     }
 
