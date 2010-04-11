@@ -213,19 +213,6 @@ function Permissions(permissions, constructor) {
     if (!(this instanceof Permissions)) {
         return new Permissions(permissions, constructor);
     }
-    if (!Permissions['default']) {
-        try {
-            var POSIX = getPOSIX();
-            // FIXME: no way to get umask without setting it?
-            var umask = POSIX.umask(0022);
-            if (umask != 0022) {
-                POSIX.umask(umask);
-            }
-            Permissions['default'] = new Permissions(~umask & 0777);
-        } catch (error) {
-            Permissions['default'] = new Permissions(0755);
-        }
-    }
     this.update(Permissions['default']);
     this.update(permissions);
     this.constructor = constructor;
@@ -256,6 +243,20 @@ Permissions.prototype.toNumber = function() {
     }
     return result;
 };
+
+if (!Permissions['default']) {
+    try {
+        var POSIX = getPOSIX();
+        // FIXME: no way to get umask without setting it?
+        var umask = POSIX.umask(0022);
+        if (umask != 0022) {
+            POSIX.umask(umask);
+        }
+        Permissions['default'] = new Permissions(~umask & 0777);
+    } catch (error) {
+        Permissions['default'] = new Permissions(0755);
+    }
+}
 
 function permissions(path) {
     var POSIX = getPOSIX();
