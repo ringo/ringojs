@@ -40,6 +40,18 @@ exports.testPersistUpdating = function () {
     assertEqual(VITAE_1, person.vitae);
 };
 
+exports.testPersistDeletion = function () {
+    person = createTestPerson();
+    person.save();
+    person = Person.all()[0];
+    assertPerson();
+    personId = person._id;
+    person.remove();
+    person = Person.get(personId);
+    assertNull(person);
+    assertEqual(0, Person.all().length);
+};
+
 exports.testBasicQuerying = function () {
     person = createTestPerson();
     person.save();
@@ -111,18 +123,6 @@ function testGreaterLessQuerying() {
             greater('birthDate', new Date(BIRTH_DATE_MILLIS - 1)).
             less('birthYear', BIRTH_YEAR + 1).select('lastName')[0]);
 }
-
-exports.testPersistDeletion = function () {
-    person = createTestPerson();
-    person.save();
-    person = Person.all()[0];
-    assertPerson();
-    personId = person._id;
-    person.remove();
-    person = Person.get(personId);
-    assertNull(person);
-    assertEqual(0, Person.all().length);
-};
 
 function createTestPerson() {
     return new Person({firstName: FIRST_NAME_1, lastName: LAST_NAME,
