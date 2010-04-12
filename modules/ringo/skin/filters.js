@@ -47,7 +47,7 @@ export('capitalize_filter',
  * @see String.prototype.toLowerCase
  */
 function lowercase_filter(input) {
-   return (input || "").toString().toLowerCase();
+   return String(input || "").toLowerCase();
 }
 
 
@@ -57,7 +57,7 @@ function lowercase_filter(input) {
  * @see String.prototype.toUpperCase
  */
 function uppercase_filter(input) {
-   return (input || "").toString().toUpperCase();
+   return String(input || "").toUpperCase();
 }
 
 
@@ -67,7 +67,7 @@ function uppercase_filter(input) {
  * @see String.prototype.capitalize
  */
 function capitalize_filter(input) {
-   return (input || "").toString().capitalize();
+   return String(input || "").capitalize();
 }
 
 
@@ -78,7 +78,7 @@ function capitalize_filter(input) {
  * @see String.prototype.titleize
  */
 function titleize_filter(input) {
-   return (input || "").toString().titleize();
+   return String(input || "").titleize();
 }
 
 
@@ -104,7 +104,7 @@ function truncate_filter(input, tag) {
  * @see String.prototype.trim
  */
 function trim_filter(input) {
-   return (input || "").toString().trim();
+   return String(input || "").trim();
 }
 
 
@@ -145,6 +145,7 @@ function escapeHtml_filter(input) {
  *        character encoding.
  */
 function escapeUrl_filter(input, tag) {
+   // TODO do we really have to use java.net.URLEncoder here?
    var charset = tag.getParameter('charset') || tag.parameters[0] || "utf8";
    return java.net.URLEncoder.encode(input || "", charset);
 }
@@ -155,7 +156,7 @@ function escapeUrl_filter(input, tag) {
  * definitions.
  */
 function escapeJavaScript_filter(input) {
-   var str = (input || "").toString();
+   var str = String(input || "");
    return str.replace('"', '\\"', "g")
              .replace("'", "\\'", "g")
              .replace('\n', '\\n', "g")
@@ -168,9 +169,8 @@ function escapeJavaScript_filter(input) {
  * Replaces linebreaks with HTML linebreaks.
  */
 function linebreakToHtml_filter(input) {
-   var replace = Packages.org.eclipse.util.StringUtil.replace;
-   var str = (input || "").toString();
-   return replace(str, '\n', '<br />');
+   var str = String(input || "");
+   return str.replace(/\n/g, '<br />');
 }
 
 
@@ -181,7 +181,7 @@ function linebreakToHtml_filter(input) {
  * @param new
  */
 function replace_filter(input, tag) {
-   var str = (input || "").toString();
+   var str = String(input || "");
    var oldString = tag.getParameter("old") || tag.parameters[0];
    var newString = tag.getParameter("new") || tag.parameters[1];
    return str.replace(new RegExp(oldString, "g"), newString);
@@ -199,7 +199,7 @@ function replace_filter(input, tag) {
 function substring_filter(input, tag) {
    var from = tag.getParameter("from") || tag.parameters[0];
    var to = tag.getParameter("to") || tag.parameters[1];
-   var str = (input || "").toString();
+   var str = String(input || "");
    return str.substring(from, to);
 }
 
