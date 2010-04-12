@@ -34,7 +34,7 @@ function Store() {
         remove: remove,
         getEntity: getEntity,
         getKey: getKey,
-        getProps: getProps,
+        getProperties: getProperties,
         getId: getId,
         equalKeys: equalKeys
     };

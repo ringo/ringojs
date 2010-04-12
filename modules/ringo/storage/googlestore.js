@@ -212,7 +212,7 @@ function getKey(type, arg) {
     return null;
 }
 
-function getProps(store, entity) {
+function getProperties(store, entity) {
     var props = {};
     var map = new ScriptableMap(entity.getProperties());
     for (var i in map) {

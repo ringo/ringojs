@@ -1,4 +1,4 @@
-export('equalKeys', 'updateEntity', 'getProps', 'getType', 'getKey', 'getId',
+export('equalKeys', 'updateEntity', 'getProperties', 'getType', 'getKey', 'getId',
         'isEntity', 'isKey', 'createKey', 'isStorable', 'isStorableDate', 'BaseTransaction');
 
 function equalKeys(key1, key2) {
@@ -33,7 +33,7 @@ function updateEntity(props, entity, txn) {
     return true;
 }
 
-function getProps(store, entity) {
+function getProperties(store, entity) {
     var props = {};
     for (var i in entity) {
         var value = entity[i];
