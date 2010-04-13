@@ -33,6 +33,8 @@ export('absolute',
        'isRelative', // non-standard/non-spec
        'join',
        'makeTree',
+       'listDirectoryTree',
+       'listTree',
        'normal',
        'open',
        'path',
@@ -116,6 +118,44 @@ function makeTree(path) {
     if (!file.isDirectory() && !file.mkdirs()) {
         throw new Error("failed to make tree " + path);
     }
+}
+
+function listDirectoryTree(path) {
+    path = path === '' ? '.' : String(path);
+    var result = [''];
+    fsBase.list(path).forEach(function (child) {
+        var childPath = join(path, child);
+        if (fsBase.isDirectory(childPath)) {
+            if (!fsBase.isLink(childPath)) {
+                result.push.apply(result, listDirectoryTree(childPath).
+                        map(function (p) join(child, p))
+                );
+            } else { // Don't follow symlinks.
+                result.push(childPath);
+            }
+        }
+    });
+    return result;
+}
+
+function listTree(path) {
+    path = path === '' ? '.' : String(path);
+    var result = [''];
+    fsBase.list(path).forEach(function (child) {
+        var childPath = join(path, child);
+        if (fsBase.isDirectory(childPath)) {
+            if (!fsBase.isLink(childPath)) {
+                result.push.apply(result, listTree(childPath).
+                        map(function (p) join(child, p))
+                );
+            } else { // Don't follow symlinks.
+                result.push(childPath);
+            }
+        } else { // Add files.
+            result.push(child);
+        }
+    });
+    return result;
 }
 
 function removeTree(path) {
@@ -413,6 +453,7 @@ var trivia = [
     'lastModified',
     'link',
     'list',
+    'listDirectoryTree',
     'listTree',
     'makeDirectory',
     'makeTree',
