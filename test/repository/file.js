@@ -1,10 +1,10 @@
 
 include("ringo/unittest");
-var {join, directory} = require("fs");
+var {join} = require("fs");
 
 importPackage(org.ringojs.repository);
-var path = join(directory(module.path), "data");
-var repo  = new FileRepository(path);
+var path = join(module.directory, "data");
+var repo = new FileRepository(path);
 
 require("./common").setup(exports, path, repo);
 

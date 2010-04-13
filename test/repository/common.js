@@ -1,6 +1,6 @@
 
 include("ringo/unittest");
-include("file");
+var {absolute, join} = require("fs");
 require("core/string");
 
 exports.setup = function(exports, path, repo) {

@@ -1,7 +1,7 @@
 
 include('ringo/unittest');
 include('ringo/engine');
-var fs = require('file');
+var fs = require('fs');
 
 [
     'absolute',
