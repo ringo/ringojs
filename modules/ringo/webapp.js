@@ -203,8 +203,7 @@ function main(path) {
     var cmd = system.args.shift();
     var options = daemon.parseOptions(system.args, {
         app: "app",
-        config: "config",
-        port: 8080
+        config: "config"
     });
 
     if (options.help) {
