@@ -2,8 +2,17 @@ exports.httpConfig = {
   staticDir: './static'
 };
 
+exports.scriptRepositories = require.paths;
+// you can use an array or object to define script repositories for jsdoc:
+/* exports.scriptRepositories = {
+    stable: "/home/hannes/git/ringojs-main/modules",
+    unstable: "/home/hannes/git/ringojs/modules"
+}; */
+
 exports.urls = [
-    [ '/(.*)', './actions', 'jsdoc' ]
+    [ /([^/]+)\/(.*)/, './actions', 'module' ],
+    [ /([^/]+)/, './actions', 'repository' ],
+    [ /^/, './actions', 'index' ]
 ];
 
 // the middleware stack

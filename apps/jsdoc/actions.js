@@ -3,35 +3,44 @@ include('ringo/jsdoc');
 require('core/array');
 require('core/string');
 var Buffer = require('ringo/buffer').Buffer;
-
+var {join, base, directory, canonical} = require('fs');
+var config = require('./config');
 var log = require('ringo/logging').getLogger(module.id);
 
-exports.jsdoc = function index(req, module) {
-    var repo = new ScriptRepository(require.paths.peek());
-    if (module && module != "/") {
-        var res = repo.getScriptResource(module + '.js');
-        if (!res.exists()) {
-            return notFoundResponse(req.scriptName + req.pathInfo);
-        }
-        var moduleDoc = parseResource(res);
-        // log.info("export()ed symbols: " + exported);
-        return skinResponse('./skins/jsdoc-module.html', {
-            title: "Module " + res.moduleName,
-            moduleName: module,
-            moduleDoc: moduleDoc,
-            moduleList: renderModuleList
-        });
-    } else {
-        return skinResponse('./skins/jsdoc-overview.html', {
-            title: "API Documentation",
-            moduleList: renderModuleList
-        });
-    }
+exports.index = function(req) {
+    return skinResponse('./skins/index.html', {
+        title: "API Documentation",
+        packageList: renderPackageList(req)
+    });
 };
 
-function renderModuleList() {
+exports.repository = function(req, repository) {
+    var repo = getScriptRepositories()[repository]
+    return skinResponse('./skins/package.html', {
+        title: "Repository " + getRepositoryName(repository, repo),
+        moduleList: renderModuleList.bind(this, repository)
+    });
+};
+
+exports.module = function(req, repository, module) {
+    var repo = getScriptRepositories()[repository]
+    var res = new ScriptRepository(repo).getScriptResource(module + '.js');
+    if (!res.exists()) {
+        return notFoundResponse(req.scriptName + req.pathInfo);
+    }
+    var moduleDoc = parseResource(res);
+    // log.info("export()ed symbols: " + exported);
+    return skinResponse('./skins/module.html', {
+        title: "Module " + res.moduleName,
+        moduleName: module,
+        moduleDoc: moduleDoc,
+        moduleList: renderModuleList.bind(this, repository)
+    });
+};
+
+function renderModuleList(repository) {
     var rootPath = require('./config').rootPath;
-    var repo = new ScriptRepository(require.paths.peek());
+    var repo = new ScriptRepository(getScriptRepositories()[repository]);
     var modules = repo.getScriptResources(true).filter(function(r) {
         return r.moduleName != 'ringo/global' &&  r.moduleName.indexOf('test') != 0;
     }).sort(function(a, b) {
@@ -67,7 +76,7 @@ function renderModuleList() {
                 indent += 2;
             }
             var label = j < path.length - 1 ?
-                        path[j] : '<a href="' + rootPath + module.moduleName + '">' + path[j] + '</a>';
+                        path[j] : '<a href="' + rootPath + repository + '/' + module.moduleName + '">' + path[j] + '</a>';
             buffer.write(' '.repeat(indent), '<li>', label);
             hasList = false;
         }
@@ -79,4 +88,30 @@ function renderModuleList() {
         buffer.writeln(' '.repeat(indent), '</ul>');
     }
     return buffer;
+}
+
+function getScriptRepositories() {
+    return config.scriptRepositories || require.paths;
+}
+
+function getRepositoryName(key, path) {
+    // check if key is numeric
+    if (+key == key) {
+        // use last two path elements as anchor text
+        // e.g. "ringojs/modules", "jetson/lib"
+        return join(base(directory(path)), base(canonical(path)));
+    }
+    return key;
+}
+
+function renderPackageList(req) {
+    var repos = getScriptRepositories();
+    var buffer = new Buffer();
+    for (var key in repos) {
+        var path = repos[key];
+        var name = getRepositoryName(key, path);
+        buffer.writeln('<div><a href="', req.rootPath, key, '/">',
+                name, '</a></div>');
+    }
+    return buffer.toString();
 }
