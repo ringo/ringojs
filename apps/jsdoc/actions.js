@@ -14,34 +14,37 @@ exports.index = function(req) {
     });
 };
 
-exports.repository = function(req, repository) {
-    var repo = getScriptRepositories()[repository]
+exports.repository = function(req, repositoryId) {
+    var repository = new ScriptRepository(getScriptRepositories()[repositoryId]);
+    if (!repository.exists()) {
+        return notFoundResponse(req.scriptName + req.pathInfo);
+    }
     return skinResponse('./skins/package.html', {
-        title: "Repository " + getRepositoryName(repository, repo),
-        moduleList: renderModuleList.bind(this, repository)
+        title: "Repository " + getRepositoryName(repositoryId, repository.getPath()),
+        moduleList: renderModuleList.bind(this, repositoryId, repository)
     });
 };
 
-exports.module = function(req, repository, module) {
-    var repo = getScriptRepositories()[repository]
-    var res = new ScriptRepository(repo).getScriptResource(module + '.js');
+exports.module = function(req, repositoryId, moduleId) {
+    var repository = new ScriptRepository(getScriptRepositories()[repositoryId]);
+    var res = repository.getScriptResource(moduleId + '.js');
     if (!res.exists()) {
+        log.error(res);
         return notFoundResponse(req.scriptName + req.pathInfo);
     }
     var moduleDoc = parseResource(res);
     // log.info("export()ed symbols: " + exported);
     return skinResponse('./skins/module.html', {
         title: "Module " + res.moduleName,
-        moduleName: module,
+        moduleName: moduleId,
         moduleDoc: moduleDoc,
-        moduleList: renderModuleList.bind(this, repository)
+        moduleList: renderModuleList.bind(this, repositoryId, repository)
     });
 };
 
-function renderModuleList(repository) {
+function renderModuleList(repositoryId, repository) {
     var rootPath = require('./config').rootPath;
-    var repo = new ScriptRepository(getScriptRepositories()[repository]);
-    var modules = repo.getScriptResources(true).filter(function(r) {
+    var modules = repository.getScriptResources(true).filter(function(r) {
         return r.moduleName != 'ringo/global' &&  r.moduleName.indexOf('test') != 0;
     }).sort(function(a, b) {
         return a.moduleName > b.moduleName ? 1 : -1;
@@ -76,7 +79,8 @@ function renderModuleList(repository) {
                 indent += 2;
             }
             var label = j < path.length - 1 ?
-                        path[j] : '<a href="' + rootPath + repository + '/' + module.moduleName + '">' + path[j] + '</a>';
+                    path[j] :
+                    '<a href="' + rootPath + repositoryId + '/' + module.moduleName + '">' + path[j] + '</a>';
             buffer.write(' '.repeat(indent), '<li>', label);
             hasList = false;
         }

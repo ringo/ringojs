@@ -43,6 +43,22 @@ function ScriptRepository(path) {
         return repo.getResource(path);
     };
 
+    /**
+     * Check whether this script repository exists.
+     * @returns {boolean} true if the repository exists
+     */
+    this.exists = function() {
+        return repo.exists();
+    };
+
+    /**
+     * Get the absolute path of this script repository.
+     * @returns {string} the absolute repository path
+     */
+    this.getPath = function() {
+        return repo.getPath();
+    };
+
 }
 
 /**
