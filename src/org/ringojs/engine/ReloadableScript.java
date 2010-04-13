@@ -94,11 +94,15 @@ public class ReloadableScript {
         if (scriptref == null && optlevel > -1) {
             scriptref = cache.get(source);
         }
-        Script script;
-        // Note we check for scriptref not script, because even if script is null
-        // (e.g. because of syntax errors) we don't want to recompile unless it
-        // was updated on disk.
-        if (scriptref == null || scriptref.checksum != source.getChecksum()) {
+        Script script = null;
+        if (scriptref != null) {
+            script = scriptref.get();
+            checksum = scriptref.checksum;
+            errors = scriptref.errors;
+            exception = scriptref.exception;
+        }
+        // recompile if neither script or exception are available, or if source has been updated
+        if ((script == null && exception == null) || checksum != source.getChecksum()) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
@@ -114,11 +118,6 @@ public class ReloadableScript {
             if (optlevel > -1) {
                 cache.put(source, scriptref);
             }
-        } else {
-            script = scriptref.get();
-            checksum = scriptref.checksum;
-            errors = scriptref.errors;
-            exception = scriptref.exception;
         }
         if (errors != null && !errors.isEmpty()) {
             RhinoEngine.errors.get().addAll(errors);
@@ -219,7 +218,6 @@ public class ReloadableScript {
         Object value = script.exec(cx, scope);
         if (scope instanceof ModuleScope) {
             checkShared(module);
-            module.setChecksum(getChecksum());
         }
         return value;
     }
@@ -242,7 +240,6 @@ public class ReloadableScript {
         }
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
-                && isUpToDate()
                 && module != null
                 && module.getChecksum() == getChecksum()) {
             // Reuse cached scope for shared modules.
@@ -278,9 +275,9 @@ public class ReloadableScript {
         }
         modules.put(source, module);
         // warnings are disabled in shell - enable warnings for module loading
-        ToolErrorReporter reporter =
-                cx.getErrorReporter() instanceof ToolErrorReporter ?
-                        (ToolErrorReporter) cx.getErrorReporter() : null;
+        ErrorReporter er = cx.getErrorReporter();
+        ToolErrorReporter reporter = er instanceof ToolErrorReporter ?
+                (ToolErrorReporter) er : null;
         if (reporter != null && !reporter.isReportingWarnings()) {
             try {
                 reporter.setIsReportingWarnings(true);
@@ -292,7 +289,6 @@ public class ReloadableScript {
             script.exec(cx, module);
         }
         checkShared(module);
-        module.setChecksum(getChecksum());
         return module;
     }
 
@@ -308,8 +304,9 @@ public class ReloadableScript {
      * Check if the module has the module.shared flag set, and set the moduleScope
      * field accordingly.
      * @param module the module scope
+     * @throws IOException source could not be checked because of an I/O error
      */
-    protected void checkShared(ModuleScope module) {
+    protected void checkShared(ModuleScope module) throws IOException {
         Scriptable meta = module.getMetaObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
@@ -317,6 +314,7 @@ public class ReloadableScript {
                 || moduleName.equals(engine.getMainModule());
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
+            module.setChecksum(getChecksum());
             engine.registerSharedScript(source, this);
             moduleScope = module;
         } else {
@@ -326,24 +324,15 @@ public class ReloadableScript {
     }
 
     /**
-     * Checks if the main file or any of the files it includes were updated 
-     * since the script was last parsed and evaluated.
-     * @return true if none of the included files has been updated since
-     * we last checked.
-     */
-    protected boolean isUpToDate() throws IOException {
-        return source.getChecksum() == checksum;
-    }
-
-    /**
      * Get the checksum of the script. For ordinary (non-shared) modules this is just
      * the checksum of the script code itself. For shared modules, it includes the
      * transitive sum of loaded module checksums, as shared modules need to be re-evaluated
      * even if just a dependency has been updated.
      * @return the evaluation checksum for this script
+     * @throws IOException source could not be checked because of an I/O error
      */
     protected long getChecksum() throws IOException {
-        long cs = checksum;
+        long cs = source.getChecksum();
         if (shared == Shared.TRUE) {
             Set<ReloadableScript> set = new HashSet<ReloadableScript>();
             for (ReloadableScript script: dependencies) {
@@ -359,6 +348,7 @@ public class ReloadableScript {
      * resource.
      * @param set visited script set to prevent cyclic invokation
      * @return the nested checksum
+     * @throws IOException source could not be checked because of an I/O error
      */
     protected long getNestedChecksum(Set<ReloadableScript> set) throws IOException {
         if (set.contains(this)) {
@@ -381,7 +371,7 @@ public class ReloadableScript {
      * modules, as we wouldn't normally notice they have been updated.
      *
      * Scripts loaded __after__ a module has been loaded do not count as dependencies,
-     * as they will be checked each time they are loaded.
+     * as they will be checked again at runtime.
      *
      * @param script a script we depend on
      */
