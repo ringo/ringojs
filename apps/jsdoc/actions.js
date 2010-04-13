@@ -15,7 +15,7 @@ exports.index = function(req) {
 };
 
 exports.repository = function(req, repositoryId) {
-    var repository = new ScriptRepository(getScriptRepositories()[repositoryId]);
+    var repository = getScriptRepository(repositoryId);
     if (!repository.exists()) {
         return notFoundResponse(req.scriptName + req.pathInfo);
     }
@@ -26,7 +26,7 @@ exports.repository = function(req, repositoryId) {
 };
 
 exports.module = function(req, repositoryId, moduleId) {
-    var repository = new ScriptRepository(getScriptRepositories()[repositoryId]);
+    var repository = getScriptRepository(repositoryId);
     var res = repository.getScriptResource(moduleId + '.js');
     if (!res.exists()) {
         log.error(res);
@@ -94,7 +94,11 @@ function renderModuleList(repositoryId, repository) {
     return buffer;
 }
 
-function getScriptRepositories() {
+function getScriptRepository(repositoryId) {
+    return new ScriptRepository(getRepositories()[repositoryId]);
+}
+
+function getRepositories() {
     return config.scriptRepositories || require.paths;
 }
 
@@ -109,7 +113,7 @@ function getRepositoryName(key, path) {
 }
 
 function renderPackageList(req) {
-    var repos = getScriptRepositories();
+    var repos = getRepositories();
     var buffer = new Buffer();
     for (var key in repos) {
         var path = repos[key];
