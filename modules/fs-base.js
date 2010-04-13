@@ -129,10 +129,11 @@ function lastModified(path) {
     return new Date(file.lastModified());
 }
 
-function makeDirectory(path) {
-    // TODO support permissions, use posix
-    var file = resolveFile(path);
-    if (!file.isDirectory() && !file.mkdir()) {
+function makeDirectory(path, permissions) {
+    permissions = permissions != null ?
+            new Permissions(permissions) : Permissions["default"];
+    var POSIX = getPOSIX();
+    if (POSIX.mkdir(path, permissions.toNumber()) != 0) {
         throw new Error("failed to make directory " + path);
     }
 }
