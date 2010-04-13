@@ -15,4 +15,4 @@ exports.testReadIndefinite = function() {
     var bytes = io.read();
     assertEqual(bytes.length, resource.length);
     assertEqual(bytes.decodeToString(), resource.content);
-}
+};
