@@ -17,7 +17,7 @@ exports.index = function(req) {
 exports.repository = function(req, repositoryId) {
     var repository = getScriptRepository(repositoryId);
     if (!repository.exists()) {
-        return notFoundResponse(req.scriptName + req.pathInfo);
+        return notFoundResponse(req.path);
     }
     return skinResponse('./skins/package.html', {
         title: "Repository " + getRepositoryName(repositoryId, repository.getPath()),
@@ -29,8 +29,7 @@ exports.module = function(req, repositoryId, moduleId) {
     var repository = getScriptRepository(repositoryId);
     var res = repository.getScriptResource(moduleId + '.js');
     if (!res.exists()) {
-        log.error(res);
-        return notFoundResponse(req.scriptName + req.pathInfo);
+        return notFoundResponse(req.path);
     }
     var moduleDoc = parseResource(res);
     // log.info("export()ed symbols: " + exported);
