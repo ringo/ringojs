@@ -45,7 +45,7 @@ exports.module = function(req, repositoryId, moduleId) {
 function renderModuleList(repositoryId, repository) {
     var rootPath = require('./config').rootPath;
     var modules = repository.getScriptResources(true).filter(function(r) {
-        return r.moduleName != 'ringo/global' &&  r.moduleName.indexOf('test') != 0;
+        return !r.moduleName.match(/^ringo\/?global$/) &&  !r.moduleName.startsWith('test');
     }).sort(function(a, b) {
         return a.moduleName > b.moduleName ? 1 : -1;
     });
