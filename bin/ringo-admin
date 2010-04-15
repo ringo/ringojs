@@ -1,3 +1,5 @@
 #!/bin/bash
 
-ringo "ringo/admin/main" "$@"
+RINGO_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
+
+"$RINGO_BIN/ringo" "ringo/admin/main" "$@"
