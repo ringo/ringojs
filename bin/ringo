@@ -1,10 +1,38 @@
 #!/bin/bash
 # Launches RingoJS
 
+#
+# find_ringo_home - mostly an emulation of GNU's `readlink -f`
+#
+function find_ringo_home() {
+    # save original working directory
+    ORIG_PWD="$(pwd -P)"
+
+    # walk the links! we cd into the dir of the target binary, read the link,
+    # make this link our new target, and start over. we stop as soon as the
+    # target is no link anymore.
+    T="$1"
+    while true; do
+        cd "$(dirname "$T")"
+        T="$(basename "$T")"
+        if [ ! -L "$T" ]; then break; fi
+        T="$(readlink "$T")"
+    done
+
+    # the final target is in bin/, change to parent and echo as home
+    cd ..
+    echo "$(pwd -P)"
+
+    # restore original working directory
+    cd "$ORIG_PWD"
+}
+
 if [ -z "$RINGO_HOME" ]; then
-    RINGO_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
-    RINGO_HOME=$RINGO_BIN/..
+    RINGO_HOME="$(find_ringo_home "$0")"
 fi
 
 # prepend rhino to bootclasspath to work around openjdk bug
-java -Xbootclasspath/p:"$RINGO_HOME/lib/js.jar" -jar "$RINGO_HOME/run.jar" "$@"
+exec java \
+    -Xbootclasspath/p:"$RINGO_HOME/lib/js.jar" \
+    -jar "$RINGO_HOME/run.jar" \
+    "$@"
