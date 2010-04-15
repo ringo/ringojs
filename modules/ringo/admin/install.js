@@ -48,7 +48,7 @@ function installPackage(url, options) {
                 || fail("package.json does not contain a package name");
         var dir = fs.join(packages, name);
         if (fs.exists(dir)) {
-            throw "Package already installed: " + dir;
+            throw new Error("Package already installed: " + dir);
         }
         print("Installing package " + name);
         for each (var entry in zip.entries) {

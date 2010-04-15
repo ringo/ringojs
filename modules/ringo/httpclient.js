@@ -127,7 +127,7 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
  * @constructor
  */
 var Exchange = function(url, options, callbacks) {
-    if (!url) throw 'url param required';
+    if (!url) throw new Error('missing url argument');
 
     var opts = Object.merge(options, {
         'data': {},
@@ -359,7 +359,7 @@ var extractOptionalArguments = function(args) {
     }
     
     if (types[0] != 'string') {
-        throw 'first argument (url) must be string';
+        throw new Error('first argument (url) must be string');
     }
 
     if (args.length == 1) {
@@ -371,21 +371,21 @@ var extractOptionalArguments = function(args) {
         if (types[1] == 'function') {
             return {
                 'url': args[0],
-                'success': args[1],
+                'success': args[1]
             };
         } else if (types[1] == 'object') {
             return {
                 'url': args[0],
-                'data': args[1],
+                'data': args[1]
             };
         }
-        throw 'two argument form must be (url, success) or (url, data)';
+        throw new Error('two argument form must be (url, success) or (url, data)');
     } else if (args.length == 3) {
         if (types[1] == 'function' && types[2] == 'function') {
             return {
                 'url': args[0],
                 'success': args[1],
-                'error': args[2],
+                'error': args[2]
             };
         } else if (types[1] == 'object' && types[2] == 'function') {
             return {
@@ -394,10 +394,10 @@ var extractOptionalArguments = function(args) {
                 'success': args[2]
             };
         } else {
-            throw 'three argument form must be (url, success, error) or (url, data, success)'
+            throw new Error('three argument form must be (url, success, error) or (url, data, success)');
         }
     }
-    throw 'unknown arguments';
+    throw new Error('unknown arguments');
 }
 
 /**

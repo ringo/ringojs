@@ -18,7 +18,7 @@ var description = "Create a new RingoJS web application or package";
  */
 function createApplication(path, options) {
     if (!path) {
-        throw "No destination path given.";
+        throw new Error("No destination path given");
     }
 
     var dest = new Path(path);
@@ -26,7 +26,7 @@ function createApplication(path, options) {
     if (dest.exists() && !dest.isDirectory()) {
         throw dest + " exists but is not a directory.";
     } else if (dest.isDirectory() && dest.list().length > 0) {
-        throw "Directory " + dest + " exists but is not empty.";
+        throw new Error("Directory " + dest + " exists but is not empty");
     }
 
     var home = engine.properties["ringo.home"];
@@ -48,7 +48,7 @@ function createApplication(path, options) {
  */
 function createPackage(path, options) {
     if (!path) {
-        throw "No destination path given.";
+        throw new Error("No destination path given");
     }
 
     var home = engine.properties["ringo.home"];
@@ -57,7 +57,7 @@ function createPackage(path, options) {
     if (dest.exists() && !dest.isDirectory()) {
         throw dest + " exists but is not a directory.";
     } else if (dest.isDirectory() && dest.list().length > 0) {
-        throw "Directory " + dest + " exists but is not empty.";
+        throw new Error("Directory " + dest + " exists but is not empty");
     }
 
     copyTree(home, "packages/namespace-skeleton", dest);
@@ -66,7 +66,7 @@ function createPackage(path, options) {
 function copyTree(home, from, to) {
     var source = new Path(home, from);
     if (!source.exists() || !source.isDirectory()) {
-        throw "Can't find directory " + source + ".";
+        throw new Error("Can't find directory " + source);
     }
 
     shell.write("Copying files from " + from + " to "  + to + "... ");
