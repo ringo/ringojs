@@ -49,7 +49,7 @@ exports.ByteString = ByteString;
 
 /**
  * Converts the String to a mutable ByteArray using the specified encoding.
- * @param {String} the name of the string encoding. Defaults to 'UTF-8'
+ * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
  * @returns a ByteArray representing the string
  */
 Object.defineProperty(String.prototype, 'toByteArray', {
@@ -61,7 +61,7 @@ Object.defineProperty(String.prototype, 'toByteArray', {
 
 /**
  * Converts the String to an immutable ByteSTring using the specified encoding.
- * @param {String} the name of the string encoding. Defaults to 'UTF-8'
+ * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
  * @returns a ByteArray representing the string
  */
 Object.defineProperty(String.prototype, 'toByteString', {
@@ -96,6 +96,7 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
 /**
  * Apply a function for each element in the ByteArray.
  * @param {Function} fn the function to call for each element
+ * @param {Object} thisObj optional this-object for callback
  */
 Object.defineProperty(ByteArray.prototype, 'forEach', {
     value: function(fn, thisObj) {
@@ -107,6 +108,7 @@ Object.defineProperty(ByteArray.prototype, 'forEach', {
  * Return a ByteArray containing the elements of this ByteArray for which
  * the callback function returns true.
  * @param {Function} callback the filter function
+ * @param {Object} thisObj optional this-object for callback
  * @returns {ByteArray} a new ByteArray
  */
 Object.defineProperty(ByteArray.prototype, 'filter', {
@@ -118,6 +120,7 @@ Object.defineProperty(ByteArray.prototype, 'filter', {
 /**
  * Tests whether some element in the array passes the test implemented by the provided function.
  * @param {Function} callback the callback function
+ * @param {Object} thisObj optional this-object for callback
  * @returns {Boolean} true if at least one invocation of callback returns true
  */
 Object.defineProperty(ByteArray.prototype, 'some', {
@@ -129,6 +132,7 @@ Object.defineProperty(ByteArray.prototype, 'some', {
 /**
  * Tests whether all elements in the array pass the test implemented by the provided function.
  * @param {Function} callback the callback function
+ * @param {Object} thisObj optional this-object for callback
  * @returns {Boolean} true if every invocation of callback returns true
  */
 Object.defineProperty(ByteArray.prototype, 'every', {
@@ -141,6 +145,7 @@ Object.defineProperty(ByteArray.prototype, 'every', {
  * Returns a new ByteArray whose content is the result of calling the provided function
  * with every element of the original ByteArray
  * @param {Function} callback the callback
+ * @param {Object} thisObj optional this-object for callback
  * @returns {ByteArray} a new ByteArray
  */
 Object.defineProperty(ByteArray.prototype, 'map', {
