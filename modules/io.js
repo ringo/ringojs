@@ -176,7 +176,17 @@ exports.TextStream = function TextStream(io, charset, buflen) {
  */
 
 /**
+ * @name Stream.prototype.readInto
+ * @function
+ */
+
+/**
  * @name Stream.prototype.flush
+ * @function
+ */
+
+/**
+ * @name Stream.prototype.close
  * @function
  */
 
@@ -199,4 +209,14 @@ exports.TextStream = function TextStream(io, charset, buflen) {
  * Get the Java input or output stream instance wrapped by this Stream. 
  * @name Stream.prototype.unwrap
  * @function
+ */
+
+/**
+ * @name Stream.prototype.inputStream
+ * @property
+ */
+
+/**
+ * @name Stream.prototype.outputStream
+ * @type java.io.OutputStream
  */
