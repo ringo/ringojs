@@ -23,7 +23,7 @@ var Cookie = function(cookieStr) {
      */
     Object.defineProperty(this, "name", {
         get: function() {
-           return cookie.getName();
+            return cookie.getName();
         }
     });
 
@@ -32,7 +32,7 @@ var Cookie = function(cookieStr) {
      */
     Object.defineProperty(this, "value", {
         get: function() {
-           return cookie.getValue();
+            return cookie.getValue();
         }
     });
     /**
@@ -40,7 +40,7 @@ var Cookie = function(cookieStr) {
      */
     Object.defineProperty(this, "domain", {
         get: function() {
-           return cookie.getDomain();
+            return cookie.getDomain();
         }
     });
     
@@ -49,7 +49,7 @@ var Cookie = function(cookieStr) {
      */
     Object.defineProperty(this, "path", {
         get: function() {
-         return cookie.getPath();
+            return cookie.getPath();
         }
     });
     
@@ -331,8 +331,7 @@ var Exchange = function(url, options, callbacks) {
  * Defaults for options passable to to request()
  */
 var defaultOptions = function(options) {
-    var options = options || {};
-    return Object.merge(options, {
+    return Object.merge(options || {}, {
         // exchange
         'data': {},
         'headers': {},
@@ -421,12 +420,12 @@ var Client = function(timeout) {
      */
     this.destroy = function() {
         client.stop();
-    }
+    };
     
     /**
      * @param {String} url the url to request
      * @param {Object|String|java.io.InputStream} data, optional
-     * @param {Function} success callback in case of successfull status code, optional
+     * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
     this.get = function(url, data, success, error) {
@@ -445,7 +444,7 @@ var Client = function(timeout) {
     /**
      * @param {String} url the url to request
      * @param {Object|String|java.io.InputStream} data, optional
-     * @param {Function} success callback in case of successfull status code, optional
+     * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
     this.post = function(url, data, success, error) {
