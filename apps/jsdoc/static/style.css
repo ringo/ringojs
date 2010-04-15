@@ -19,11 +19,11 @@ a {
 }
 
 a:hover {
-    color: dodgerblue;
+    text-decoration: underline;
 }
 
 a:active {
-    color: darkorange;
+    color: #ff8c00;
 }
 
 #wrap {

@@ -7,6 +7,10 @@ pre.code {
     line-height: 145%;
 }
 
+a {
+    text-decoration: none;
+}
+
 .section {
     color: #000;
     font-weight: 500;
