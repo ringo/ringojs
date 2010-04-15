@@ -489,15 +489,17 @@ var Client = function(timeout) {
             exchange.contentExchange.waitForDone();
         }
         return exchange;
-    }
+    };
 
     var client = new HttpClient();
     client.setConnectorType(HttpClient.CONNECTOR_SOCKET); // CONNECTOR_SELECT_CHANNEL
     // FIXME in jetty7
     //client.setThreadPool(QueuedThreadPool(250));
     //client.setMaxRedirects(2);
-    client.setTimeout(timeout || 5000);
-    client.setIdleTimeout(10000);
+    if (typeof timeout == "number") {
+        client.setTimeout(timeout);
+    }
+    // client.setIdleTimeout(10000);
     // TODO proxy stuff
     //client.setProxy(Adress);
     //client.setProxyAuthentication(ProxyAuthorization);
