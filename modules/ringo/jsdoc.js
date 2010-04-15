@@ -138,7 +138,9 @@ exports.parseResource = function(resource) {
                     || jsdoc.getTag("constructor") != null) {
                 jsdoc.isFunction = true;
                 // extract params
-                jsdoc.params = value.getParams().toArray().map(function(p) nodeToString(p));
+                if (value && value.type == Token.FUNCTION) {
+                    jsdoc.params = value.getParams().toArray().map(function(p) nodeToString(p));
+                }
             }
             if (jsdoc.getTag("constructor") != null
                     || jsdoc.getTag("class") != null) {
