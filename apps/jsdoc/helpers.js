@@ -99,7 +99,11 @@ exports.renderName_filter = function(doc) {
     }
     var processedParams = [];
     if (doc.isFunction) {
+        // use @param tags if available, else document actual function parameters
         var params = doc.getTags("param");
+        if (params.length == 0 && doc.params && doc.params.length > 0) {
+            params = doc.params;
+        }
         buffer.write('(<span class="dimmed">');
         for (var i = 0; i < params.length; i++) {
             var words = params[i].split(" ");
