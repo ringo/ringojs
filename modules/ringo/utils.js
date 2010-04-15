@@ -10,6 +10,8 @@ export('readOnlyPropertyDesc',
         'getJavaStack',
         'timer');
 
+module.shared = true;
+
 /**
  * Create a read-only property descriptor to be used as third argument in
  * Object.defineProperty that maps a property to a property in
@@ -144,10 +146,7 @@ function getScriptStack(error, prefix) {
     prefix = prefix || "";
     if (error && error.stack)
         return prefix + error.stack;
-    var exception = error && error.rhinoException ?
-        error.rhinoException : error;
-    return exception instanceof org.mozilla.javascript.RhinoException ?
-        prefix + exception.scriptStackTrace : '';
+    return "";
 }
 
 /**

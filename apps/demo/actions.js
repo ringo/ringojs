@@ -65,7 +65,7 @@ function logging(req) {
         log.info("Hello world!");
     } else if (req.params.error) {
         try {
-            foo.bar.moo;
+            throw new Error("something went wrong");
         } catch (e) {
             log.error(e);
         }
