@@ -5,7 +5,8 @@
 importPackage(org.eclipse.jetty.client);
 
 include('core/object');
-var Buffer = require('ringo/buffer').Buffer;
+var {Buffer} = require('ringo/buffer');
+var {getMimeParameter} = require('ringo/webapp/util');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('request',
@@ -190,15 +191,10 @@ var Exchange = function(url, options, callbacks) {
      * return response encoding
      * NOTE HttpExchange._encoding knows about this but is protected
      */
-    this.__defineGetter__('encoding', function() {
-        var contentType = this.contentType;
-        if (contentType) {
-            var idx = contentType.toLowerCase().indexOf('charset=');
-            if (idx > 0) {
-                return contentType.substring(idx+8);
-            }
+    Object.defineProperty(this, "encoding", {
+        get: function() {
+            return getMimeParameter(this.contentType, "charset") || 'utf-8';
         }
-        return 'utf-8';
     });
 
     /**
