@@ -14,6 +14,8 @@ export('request',
        'get',
        'Client');
 
+module.shared = true;
+
 /**
  * Wrapper around jetty.http.HttpCookie.
  */
@@ -511,10 +513,7 @@ var Client = function(timeout) {
  * @param {Object} options
  */
 var request = function(options) {
-    var client = new Client(options.timeout);
-    var exchange = client.request(options);
-    client.destroy();
-    return exchange;
+    return defaultClient.request(options);
 }
 
 /**
@@ -524,10 +523,7 @@ var post = function(url, data, success, error) {
     if (arguments.length < 4) {
         var {url, data, sucess, error} = extractOptionalArguments(arguments);
     }
-    var client = new Client();
-    var exchange = client.post(url, data, success, error);
-    client.destroy();
-    return exchange;
+    return defaultClient.post(url, data, success, error);
 }
 
 /**
@@ -540,8 +536,8 @@ var get = function(url, data, success, error) {
     if (arguments.length < 4) {
         var {url, data, success, error} = extractOptionalArguments(arguments);
     }
-    var client = new Client();
-    var exchange = client.get(url, data, success, error);
-    client.destroy();
-    return exchange;
+    return defaultClient.get(url, data, success, error);
 }
+
+// avoid reinstantiating default client if module is reevaluated.
+var defaultClient = defaultClient || new Client();
