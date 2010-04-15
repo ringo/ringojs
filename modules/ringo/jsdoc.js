@@ -1,6 +1,7 @@
 require('core/string');
 require('core/array');
 include('ringo/parser');
+include('ringo/buffer');
 importPackage(org.mozilla.javascript);
 importPackage(org.ringojs.repository);
 
@@ -281,6 +282,35 @@ var docProto = {
             if (this.tags[i][0] == name) result.push(this.tags[i][1]);
         }
         return result;
+    },
+    getParameterList: function() {
+        if (!this.parameterList) {
+            var params = this.getTags("param");
+            if (params.length == 0 && this.params && this.params.length > 0) {
+                params = this.params;
+            }
+            this.parameterList = params.map(function(p) {
+                var words = p.split(" ");
+                var type = words[0].match(/^{(\S+)}$/);
+                type = type && type[1];
+                var pname = type ? words[1] : words[0];
+                var desc = words.slice(type ? 2 : 1).join(" ");
+                return {type: type, name: pname, desc: desc};
+            });
+        }
+        return this.parameterList;
+    },
+    getParameterNames: function() {
+        if (this.parameterNames == null) {
+            var buffer = new Buffer();
+            var params = this.getParameterList();
+            for (var i = 0; i < params.length; i++) {
+                if (i > 0) buffer.write(", ");
+                buffer.write(params[i].name);
+            }
+            this.parameterNames = buffer.toString();
+        }
+        return this.parameterNames;
     },
     addTag: function(name, value) {
         this.tags.push([name, value]);

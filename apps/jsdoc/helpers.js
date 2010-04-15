@@ -49,11 +49,14 @@ exports.fileoverview_filter = function(docs) {
             buffer.write('<li>');
             if (node.item) {
                 var item = node.item;
-                if (item.isFunction && !item.isClass) name += "()";
                 if (node.isClass) name = "Class " + name;
                 buffer.write('<a onclick="return goto(\'#')
                         .write(item.id, '\')" href="#')
-                        .write(item.id, '">', name, '</a>');
+                        .write(item.id, '">', name);
+                if (item.isFunction && !item.isClass) {
+                    buffer.write('<span class="params">(', item.getParameterNames(), ')</span>');
+                }
+                buffer.writeln('</a>');
             } else {
                 node.isClass ?
                     buffer.write("Class ", name) :
@@ -97,28 +100,10 @@ exports.renderName_filter = function(doc) {
     } else {
         buffer.write(name);
     }
-    var processedParams = [];
     if (doc.isFunction) {
-        // use @param tags if available, else document actual function parameters
-        var params = doc.getTags("param");
-        if (params.length == 0 && doc.params && doc.params.length > 0) {
-            params = doc.params;
-        }
         buffer.write('(<span class="dimmed">');
-        for (var i = 0; i < params.length; i++) {
-            var words = params[i].split(" ");
-            var type = words[0].match(/^{(\S+)}$/);
-            type = type && type[1];
-            if (i > 0) buffer.write(", ");
-            var pname = type ? words[1] : words[0];
-            buffer.write(pname);
-            // add to processed parameter list
-            var desc = words.slice(type ? 2 : 1).join(" ");
-            processedParams.push({type: type, name: pname, desc: desc});
-        }
+        buffer.write(doc.getParameterNames());
         buffer.write('</span>)');
-        // cache processed parameters
-        doc.processedParams = processedParams;
     }
     // doc header anchor link
     buffer.write('<a onclick="return goto(\'#', doc.id, '\')" href="#', doc.id, '">');
@@ -129,10 +114,11 @@ exports.renderName_filter = function(doc) {
 exports.renderDoc_filter = function(doc) {
     var buffer = new Buffer("<p>", doc.getTag("desc") || "No description available.", "</p>");
     renderStandardTags(doc, buffer);
-    if (doc.processedParams && doc.processedParams.length) {
+    var paramList = doc.getParameterList();
+    if (paramList && paramList.length > 0) {
         buffer.writeln('<div class="subheader">Parameters</div>');
         buffer.writeln('<table class="subsection">');
-        for each (var param in doc.processedParams) {
+        for each (var param in paramList) {
             buffer.write('<tr><td>');
             var name = '<b>'+param.name+'</b>'; 
             buffer.write([param.type, name, param.desc].join('</td><td>'));
