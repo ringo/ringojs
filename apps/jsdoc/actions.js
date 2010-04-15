@@ -20,7 +20,7 @@ exports.repository = function(req, repositoryId) {
         return notFoundResponse(req.path);
     }
     return skinResponse('./skins/package.html', {
-        title: "Repository " + getRepositoryName(repositoryId, repository.getPath()),
+        title: "Repository " + getRepositoryName(repositoryId, repository),
         moduleList: renderModuleList.bind(this, repositoryId, repository)
     });
 };
@@ -50,7 +50,9 @@ function renderModuleList(repositoryId, repository) {
     });
     var previous = [];
     var indent = 0;
-    var buffer = new Buffer(); // '<ul class="apilist">');
+    var repositoryName = getRepositoryName(repositoryId, repository);
+    var buffer = new Buffer('<ul class="apilist"><li>');
+    buffer.writeln('<a href="', rootPath, repositoryId, '/', '">' + repositoryName + '</a>');
     for each (var module in modules) {
         var path = module.moduleName.split('/');
         var i;
@@ -80,7 +82,8 @@ function renderModuleList(repositoryId, repository) {
             var label = j < path.length - 1 ?
                     path[j] :
                     '<a href="' + rootPath + repositoryId + '/' + module.moduleName + '">' + path[j] + '</a>';
-            buffer.write(' '.repeat(indent), '<li>', label);
+            var tag = path.length > 1 ? '<li class="closed">' : '<li>';
+            buffer.write(' '.repeat(indent), tag, label);
             hasList = false;
         }
         previous = path;
@@ -90,6 +93,7 @@ function renderModuleList(repositoryId, repository) {
         indent -= 2;
         buffer.writeln(' '.repeat(indent), '</ul>');
     }
+    buffer.writeln('</li></ul>');
     return buffer;
 }
 
@@ -101,11 +105,12 @@ function getRepositories() {
     return config.scriptRepositories || require.paths;
 }
 
-function getRepositoryName(key, path) {
+function getRepositoryName(key, repository) {
     // check if key is numeric
     if (+key == key) {
         // use last two path elements as anchor text
         // e.g. "ringojs/modules", "jetson/lib"
+        var path = typeof repository == 'string' ? repository : repository.getPath();
         return join(base(directory(path)), base(canonical(path)));
     }
     return key;
@@ -113,12 +118,13 @@ function getRepositoryName(key, path) {
 
 function renderPackageList(req) {
     var repos = getRepositories();
-    var buffer = new Buffer();
+    var buffer = new Buffer('<ul class="apilist">');
     for (var key in repos) {
         var path = repos[key];
         var name = getRepositoryName(key, path);
-        buffer.writeln('<div><a href="', req.rootPath, key, '/">',
-                name, '</a></div>');
+        buffer.writeln('<li><a href="', req.rootPath, key, '/">',
+                name, '</a></li>');
     }
+    buffer.writeln('</ul>');
     return buffer.toString();
 }
