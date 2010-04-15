@@ -66,7 +66,9 @@ function open(path, options) {
 }
 
 function read(path, options) {
-    var stream = open(path, 'r', options);
+    options = options === undefined ? {} : checkOptions(options);
+    options.read = true;
+    var stream = open(path, options);
     try {
         return stream.read();
     } finally {
@@ -75,8 +77,10 @@ function read(path, options) {
 }
 
 function write(path, content, options) {
-    var mode = content instanceof Binary ? 'wb' : 'w';
-    var stream = open(path, mode, options);
+    options = options === undefined ? {} : checkOptions(options)
+    options.write = true
+    options.binary = content instanceof Binary
+    var stream = open(path, options);
     try {
         stream.write(content);
         stream.flush();
