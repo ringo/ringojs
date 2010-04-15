@@ -4,6 +4,8 @@
  * proposal.</p>
  */
 
+var ByteArray = require("binary").ByteArray;
+
 defineClass(org.ringojs.wrappers.Stream);
 /**
  * @constructor
@@ -20,11 +22,13 @@ var InputStreamReader = java.io.InputStreamReader,
 module.shared = true;
 
 Stream.prototype.copy = function(output) {
+    var length = 8192;
+    var buffer = new ByteArray(length);
     while (true) {
-         var buffer = this.read();
-         if (!buffer.length)
-             break;
-         output.write(buffer);
+        var read = this.readInto(buffer, 0, length);
+        if (read < 0)
+            break;
+        output.write(buffer, 0, read);
     }
     output.flush();
     return this;
@@ -108,7 +112,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
     };
 
     this.readInto = function (buffer) {
-        throw "NYI";
+        throw new Error("Not implemented");
     };
 
     this.copy = function (output) {
