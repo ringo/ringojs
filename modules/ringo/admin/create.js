@@ -75,7 +75,6 @@ function copyTree(home, from, to) {
 }
 
 function fixAppEngineDirs(dest) {
-    makeDirectory(join(dest, "static"));
     var webinf = join(dest, "WEB-INF");
     makeDirectory(join(webinf, "lib"));
     makeDirectory(join(webinf, "classes"));
