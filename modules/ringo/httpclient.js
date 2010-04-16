@@ -413,14 +413,6 @@ var extractOptionalArguments = function(args) {
 var Client = function(timeout) {
 
     /**
-     * stop the httpclient. the current request will finish but no subsequent
-     * requests are possible.
-     */
-    this.destroy = function() {
-        client.stop();
-    };
-    
-    /**
      * @param {String} url the url to request
      * @param {Object|String|java.io.InputStream} data, optional
      * @param {Function} success callback in case of successful status code, optional
@@ -494,10 +486,6 @@ var Client = function(timeout) {
     };
 
     var client = new HttpClient();
-    client.setConnectorType(HttpClient.CONNECTOR_SOCKET); // CONNECTOR_SELECT_CHANNEL
-    // FIXME in jetty7
-    //client.setThreadPool(QueuedThreadPool(250));
-    //client.setMaxRedirects(2);
     if (typeof timeout == "number") {
         client.setTimeout(timeout);
     }

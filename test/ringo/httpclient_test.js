@@ -45,6 +45,7 @@ exports.setUp = function() {
 exports.tearDown = function() {
     server.stop();
     server.destroy();
+    server = null;
     return;
 };
 
