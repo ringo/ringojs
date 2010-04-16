@@ -211,54 +211,6 @@ exports.testCallbacks = function() {
 };
 
 /**
- * Streaming Response
- */
-exports._testStreamResponse = function() {
-    getResponse = function(req){
-        include('ringo/scheduler');
-        // Sends a message once a second 10 times
-        var progress, finished;
-        var i = 0;
-        var intervalId = setInterval(function(){
-           i++;
-           progress({
-              status: 200,
-              headers:{'Content-Type': 'text/json'},
-              body: ["msg"+i]
-           });
-           if(i == 5){
-              clearInterval(intervalId);
-              finished({})
-           }
-        }, 1000);
-        var promise = {
-            then: function(onFinish, onError, onProgress){
-                finished = onFinish;
-                progress = onProgress;
-            }
-        };
-        return promise;
-    };
-   
-    var j = 0; 
-    var getStreamExchange = request({
-        'url': 'http://127.0.0.1:8080/',
-        'timeout': 10000,
-        'method': 'GET',
-        'part': function(data, status, contentType, exchange) {
-            j++;
-            assertEqual("msg"+j, data);
-            assertEqual(200, status);
-            return;
-        },
-        'error': function(exception) {
-            assertTrue(false);
-        }
-    });   
-};
-
-
-/**
  * Cookie set and read
  */
 exports.testCookie = function() {
@@ -349,22 +301,3 @@ exports.testStreamRequest = function() {
         }
     });
 };
-
-/*
---- high volume, hight latency
-exports.testTwitter = function() {
-    var getTwitterStream = client.req({
-        'url': 'http://stream.twitter.com/1/statuses/sample.json',
-        'async': true,
-        'timeout': 1000,
-        'username': 'oberhamsi',
-        'password': 'XXXXXXX',
-        'error': function(ex) {
-            print ('error ' + ex);
-        },
-        'part': function(data) {
-            print ('part ' + data)
-        },
-    });
-}
-*/
