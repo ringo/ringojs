@@ -212,7 +212,13 @@ exports.parseResource = function(resource) {
         if (node.type == Token.VAR || node.type == Token.LET) {
             for each (var n in ScriptableList(node.variables)) {
                 if (n.target.type == Token.NAME && exported.contains(n.target.string)) {
-                    addDocItem(n.target.string,  node.jsDoc);
+                    if (n.initializer && n.initializer.type == Token.FUNCTION) {
+                        // Note: We might still miss something like 
+                        // var foo = XXX.foo = function()...
+                        exportedFunction = n.initializer;
+                        exportedName = n.target.string;
+                    }
+                    addDocItem(n.target.string,  node.jsDoc, n.initializer);
                 } else if (n.initializer && n.initializer.type == Token.ASSIGN) {
                     checkAssignment(n.initializer, node, exported);
                 }
