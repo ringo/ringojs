@@ -62,10 +62,10 @@ function create(type, key, entity) {
     return ctor.createInstance(key, entity);
 }
 
-function evaluateQuery(query, property) {
+function evaluateQuery(query, property, options) {
     var result = [];
     var type = query.getKind();
-    var i = datastore.prepare(query).asIterator();
+    var i = (options ? datastore.prepare(query).asIterator(options) : datastore.prepare(query).asIterator());
     while (i.hasNext()) {
         var entity = i.next();
         var s = create(type, entity.getKey(), entity);
@@ -76,22 +76,48 @@ function evaluateQuery(query, property) {
 
 function BaseQuery(type) {
     this.select = function(property) {
-        return evaluateQuery(this.getQuery(), property);
+        return evaluateQuery(this.getQuery(), property, this.getFetchOptions());
     };
     this.getQuery = function() {
         return new Query(type);
     };
+    this.getFetchOptions = function() {
+        return null;
+    };
 }
 
 function OperatorQuery(parentQuery, operator, property, value) {
-    this.select = function(selectProperty) {
-        return evaluateQuery(this.getQuery(), selectProperty);
-    };
-    this.getQuery = function() {
-        var query = parentQuery.getQuery();
+    var query = parentQuery.getQuery();
+    parentQuery.getQuery = function() {
         return query.addFilter(property, operator, value);
     };
+    return parentQuery;
 }
+
+BaseQuery.prototype.orderBy = function(value, direction) {
+    var query = this.getQuery();
+    this.getQuery = function() {
+        var desc = (typeof direction !== 'undefined' && !!direction.match(/^DESC/i));
+        return query.addSort(value, (desc ? Query.SortDirection.DESCENDING : Query.SortDirection.ASCENDING));
+    };
+    return this;
+};
+
+BaseQuery.prototype.limit = function(value) {
+    var opts = this.getFetchOptions();
+    this.getFetchOptions = function() {
+        return (opts ? opts.limit(value) : FetchOptions.Builder.withLimit(value));
+    };
+    return this;
+};
+
+BaseQuery.prototype.offset = function(value) {
+    var opts = this.getFetchOptions();
+    this.getFetchOptions = function() {
+        return (opts ? opts.offset(value) : FetchOptions.Builder.withOffset(value));
+    };
+    return this;
+};
 
 BaseQuery.prototype.equals = function(property, value) {
     return new OperatorQuery(this, EQUAL, property, value);
