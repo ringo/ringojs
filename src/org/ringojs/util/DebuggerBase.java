@@ -57,6 +57,11 @@ public abstract class DebuggerBase implements Debugger {
         cx.setGeneratingDebug(true);
     }
 
+    public void detach() {
+        Context cx = Context.getCurrentContext();
+        cx.setDebugger(null, null);
+    }
+
     public Object getContextData() {
         return Context.getCurrentContext().getDebuggerContextData();
     }
