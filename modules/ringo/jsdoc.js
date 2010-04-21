@@ -157,11 +157,11 @@ exports.parseResource = function(resource) {
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
                 if (comment.commentType == Token.CommentType.JSDOC) {
-                    if (/@fileoverview\s/.test(comment.value)) {
+                    if (/@fileoverview\s/i.test(comment.value)) {
                         Object.defineProperty(jsdocs, "fileoverview", {
                             value: extractTags(comment.value)
                         });
-                    } else if (/@name\s/.test(comment.value)) {
+                    } else if (/@name\s/i.test(comment.value)) {
                         // JSDoc comments that have an explicit @name tag are used as is
                         // without further AST introspection. This can be used to document
                         // APIS that have no corresponding code, e.g. native host methods
@@ -284,8 +284,9 @@ function extractTags(/**String*/comment) {
         } else {
             var space = tag.search(/\s/);
             return space > -1 ?
-                   [tag.substring(0, space), tag.substring(space + 1).trim()] :
-                   [tag, ''];
+                   [tag.substring(0, space).toLowerCase(),
+                       tag.substring(space + 1).trim()] :
+                   [tag.toLowerCase(), ''];
         }
     });
     return Object.create(docProto, {
@@ -296,12 +297,14 @@ function extractTags(/**String*/comment) {
 // the prototype used for document items
 var docProto = {
     getTag: function(name) {
+        name = name.toLowerCase();
         for (var i = 0; i < this.tags.length; i++) {
             if (this.tags[i][0] == name) return this.tags[i][1];
         }
         return null;
     },
     getTags: function(name) {
+        name = name.toLowerCase();
         var result = [];
         for (var i = 0; i < this.tags.length; i++) {
             if (this.tags[i][0] == name) result.push(this.tags[i][1]);
