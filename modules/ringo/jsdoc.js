@@ -202,6 +202,25 @@ exports.parseResource = function(resource) {
                 }
             }
         }
+        // check for __define[GS]etter__
+        if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
+            var getprop = node.target;
+            if (["__defineGetter__", "__defineSetter__"].contains(getprop.property.string)) {
+               var args = ScriptableList(node.arguments);
+               var target = nodeToString(node.target).split('.');
+               var jsdoc = args[1].jsDoc;
+               var name = nodeToString(args[0]);
+               // prototype.__defineGetter__
+               if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                  target.pop();
+                  target.push(name);
+                  addDocItem(target.join('.'), jsdoc);
+               // this.__defineGetter__
+               } else if (target[0] == 'this' && exportedFunction != null) {
+                  addDocItem(exportedName + ".instance." + name, jsdoc, exported);
+               }
+            }
+        }
         // exported function
         if (node.type == Token.FUNCTION && (exported.contains(node.name) || /@name\s/.test(node.jsDoc))) {
             addDocItem(node.name, node.jsDoc, node);
