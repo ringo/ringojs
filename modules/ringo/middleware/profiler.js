@@ -27,7 +27,7 @@ exports.middleware = function(app) {
         try {
             return app(env);
         } finally {
-            log.info("\n", profiler.formatResult(maxFrames));
+            log.info("\n" + profiler.formatResult(maxFrames));
         }
     }
 }
