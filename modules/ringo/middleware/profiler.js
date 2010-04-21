@@ -13,6 +13,10 @@ var maxFrames = 30;
 exports.middleware = function(app) {
     return function(env) {
         if (engine.getOptimizationLevel() > -1) {
+            // restart evaluation in interpreter mode. Shared modules
+            // will still be optimized, so issue a warning
+            log.warn("Changing optimization level mid-flight results in incomplete profiling output.",
+                     "Run with optimization level -1 for accurate profiling.");
             engine.setOptimizationLevel(-1);
             throw {retry: true};
         }
