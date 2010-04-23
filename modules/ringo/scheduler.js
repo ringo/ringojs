@@ -4,8 +4,11 @@
 
 module.shared = true;
 
-var executor = executor || java.util.concurrent.Executors.newScheduledThreadPool(4);
-var MILLIS = java.util.concurrent.TimeUnit.MILLISECONDS;
+var {newScheduledThreadPool, newCachedThreadPool} = java.util.concurrent.Executors;
+var {MILLISECONDS} = java.util.concurrent.TimeUnit;
+
+var scheduler = scheduler || newScheduledThreadPool(4);
+var executor = executor || newCachedThreadPool();
 
 /**
  * Executes a function after specified delay.
@@ -22,7 +25,9 @@ exports.setTimeout = function(callback, delay) {
         }
     });
     delay = parseInt(delay, 10) || 0;
-    return executor.schedule(runnable, delay, MILLIS);
+    return delay == 0 ?
+            executor.submit(runnable) :
+            scheduler.schedule(runnable, delay, MILLISECONDS);
 };
 
 /**
@@ -57,7 +62,7 @@ exports.setInterval = function(callback, delay) {
         }
     });
     delay = parseInt(delay, 10) || 0;
-    return executor.scheduleAtFixedRate(runnable, 0, delay, MILLIS);
+    return scheduler.scheduleAtFixedRate(runnable, 0, delay, MILLISECONDS);
 };
 
 /**
