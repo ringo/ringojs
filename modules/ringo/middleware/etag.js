@@ -1,8 +1,10 @@
 require('core/string');
 require('core/array');
-include('ringo/webapp/util');
+var {Headers} = require('ringo/webapp/util');
 
 export('middleware');
+
+module.shared = true;
 
 /**
  * JSGI middleware for conditional HTTP GET request based on

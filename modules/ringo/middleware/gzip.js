@@ -1,9 +1,12 @@
-include('binary');
-include('ringo/webapp/util');
-importClass(java.io.ByteArrayOutputStream);
-importClass(java.util.zip.GZIPOutputStream);
+var {Binary, ByteArray, ByteString} = require('binary');
+var {ResponseFilter, Headers} = require('ringo/webapp/util');
+
+var {ByteArrayOutputStream} = java.io;
+var {GZIPOutputStream} = java.util.zip;
 
 export('middleware');
+
+module.shared = true;
 
 /**
  * JSGI middleware for GZIP compression.
@@ -35,7 +38,7 @@ function middleware(app) {
             res.body.close = function(fn) {
                 gzip.close();
                 fn(new ByteString(bytes.toByteArray()));
-            }
+            };
             // headers.set('Content-Length', res.body.length)
             headers.set('Content-Encoding', 'gzip');
         }

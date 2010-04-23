@@ -30,4 +30,4 @@ exports.middleware = function(app) {
             log.info("\n" + profiler.formatResult(maxFrames));
         }
     }
-}
+};

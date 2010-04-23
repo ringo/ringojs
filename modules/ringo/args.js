@@ -13,6 +13,8 @@
 require("core/array");
 require("core/string");
 
+module.shared = true;
+
 /**
  * Create a new command line option parser.
  */

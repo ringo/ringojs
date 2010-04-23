@@ -1,14 +1,11 @@
 require('core/string');
-include('ringo/functional');
-include('ringo/utils');
-include('./parameters');
-include('./fileupload');
-importClass(org.mozilla.javascript.Context);
-importClass(org.mozilla.javascript.Scriptable);
+var {isUrlEncoded, parseParameters} = require('./parameters');
+var {isFileUpload, parseFileUpload} = require('./fileupload');
+
+var {Context, Scriptable} = org.mozilla.javascript;
 
 export('Request', 'Session');
 
-// var log = require('ringo/logging').getLogger(module.id);
 module.shared = true;
 
 /**

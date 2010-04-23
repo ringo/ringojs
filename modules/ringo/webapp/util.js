@@ -1,6 +1,6 @@
 
 require('core/string');
-include('ringo/buffer');
+var {Buffer} = require('ringo/buffer');
 
 module.shared = true;
 

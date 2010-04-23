@@ -1,3 +1,6 @@
+
+module.shared = true;
+
 /**
  * Get an instance of org.ringojs.util.MarkdownProcessor with optionally
  * some methods overridden by the functions in the extension argument.

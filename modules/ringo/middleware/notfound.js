@@ -1,6 +1,8 @@
 
 var Response = require('ringo/webapp/response').Response;
 
+module.shared = true;
+
 /**
  * Standard 404 page
  */
