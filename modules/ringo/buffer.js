@@ -1,5 +1,5 @@
 require('core/string');
-include('ringo/engine');
+var {ByteString} = require('binary');
 
 export('Buffer');
 
@@ -60,20 +60,21 @@ function Buffer(parts) {
      * @param algorithm the algorithm to use, defaults to MD5
      */
     this.digest = function(algorithm) {
-        var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
+        var md = java.security.MessageDigest.getInstance(algorithm || "MD5");
         content.forEach(function(part) {
-            md.update(asJavaString(part).getBytes());
+            md.update(String(part).toByteString());
         });
-        var b = md.digest();
-        var buf = new java.lang.StringBuffer(b.length * 2);
-        var j;
-        for (var i in b) {
-            j = (b[i] < 0) ? (256 + b[i]) : b[i];
-            if (j < 16)
-                buf.append('0');
-            buf.append(java.lang.Integer.toHexString(j));
+        var b = ByteString.wrap(md.digest());
+        var buf = [];
+
+        for (var i = 0; i < b.length; i++) {
+            var j = b[i];
+            if (j < 16) {
+                buf[buf.length] = "0";
+            }
+            buf[buf.length] = j.toString(16);
         }
-        return buf.toString();
+        return buf.join("");
     };
 
     if (arguments.length > 0) {

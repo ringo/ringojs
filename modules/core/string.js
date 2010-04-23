@@ -319,9 +319,9 @@ Object.defineProperty(String.prototype, "unwrap", {
  */
 Object.defineProperty(String.prototype, "digest", {
     value: function(algorithm) {
-        var ByteString = require('binary').ByteString;
+        var {ByteString} = require('binary');
         var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
-        var b = new ByteString(md.digest(this.toByteString()));
+        var b = ByteString.wrap(md.digest(this.toByteString()));
         var buf = [];
 
         for (var i = 0; i < b.length; i++) {
