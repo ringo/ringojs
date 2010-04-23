@@ -1,7 +1,8 @@
 require('core/string');
 require('core/array');
-include('ringo/parser');
-include('ringo/buffer');
+var {visitScriptResource} = require('ringo/parser');
+var {Buffer} = require('ringo/buffer');
+
 importPackage(org.mozilla.javascript);
 importPackage(org.ringojs.repository);
 
