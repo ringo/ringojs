@@ -132,6 +132,8 @@ public class Binary extends ScriptableObject implements Wrapper {
         });
         FunctionObject constructor = new FunctionObject(type.toString(), ctorMember, scope);
         constructor.addAsConstructor(scope, prototype);
+        constructor.defineProperty("wrap", new Wrap(scope, prototype, type),
+                DONTENUM | READONLY | PERMANENT);
     }
 
     public Type getType() {
@@ -323,6 +325,12 @@ public class Binary extends ScriptableObject implements Wrapper {
         return "[object " + type.toString() + "]";
     }
 
+    /* @JSFunction
+    public String toString(Object encoding) {
+        return encoding == Undefined.instance ?
+            toString() : decodeToString(encoding);
+    } */
+
     @JSFunction
     public Object slice(Object begin, Object end) {
         if (begin == Undefined.instance && end == Undefined.instance) {
@@ -456,6 +464,38 @@ public class Binary extends ScriptableObject implements Wrapper {
             list.add(new Binary(scope, type, bytes, index, length - index));
         }
         return Context.getCurrentContext().newArray(scope, list.toArray());
+    }
+
+    /**
+     * Static method that wraps a java byte array without copying.
+     */
+    static class Wrap extends BaseFunction {
+        Type type;
+        Scriptable prototype;
+
+        Wrap(Scriptable scope, Scriptable prototype, Type type) {
+            super(scope, ScriptableObject.getFunctionPrototype(scope));
+            this.type = type;
+            this.prototype = prototype;
+        }
+
+        @Override
+        public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+            Object arg = ScriptUtils.getObjectArgument(args, 0, false);
+            if (arg instanceof Wrapper) {
+                arg = ((Wrapper) arg).unwrap();
+            }
+            if (!(arg instanceof byte[])) {
+                throw ScriptRuntime.typeError("wrap() requires an argument of type byte[]");
+            }
+            byte[] bytes = (byte[]) arg;
+            Binary wrapper = new Binary(type);
+            wrapper.bytes = bytes;
+            wrapper.length = bytes.length;
+            wrapper.setParentScope(getTopLevelScope(scope));
+            wrapper.setPrototype(prototype);
+            return wrapper;
+        }
     }
 
     @JSFunction("unwrap")
