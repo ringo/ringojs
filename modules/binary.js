@@ -347,3 +347,14 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @function
  */
 
+/**
+ * Create a ByteArray wrapper for a Java byte array without creating a new copy as the
+ * ByteArray constructor does. Any changes made on the ByteArray instance will be applied
+ * to the original byte array.
+ * @name ByteArray.wrap
+ * @param {Binary} bytes a Java byte array or Binary instance
+ * @returns {ByteArray} a ByteArray wrapping the argument
+ * @function
+ * @since 0.5
+ */
+
