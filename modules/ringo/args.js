@@ -165,10 +165,10 @@ exports.Parser = function() {
 };
 
 function missingValueError(option) {
-    throw new Error(option + " option requires a value.", -1);
+    throw new Error(option + " option requires a value.");
 }
 
 
 function unknownOptionError(option) {
-    throw new Error("Unknown option: " + option, -1);
+    throw new Error("Unknown option: " + option);
 }
