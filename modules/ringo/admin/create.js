@@ -76,7 +76,6 @@ function copyTree(home, from, to) {
 
 function fixAppEngineDirs(dest) {
     var webinf = join(dest, "WEB-INF");
-    makeDirectory(join(webinf, "lib"));
     makeDirectory(join(webinf, "classes"));
     makeDirectory(join(webinf, "packages"));
     move(join(webinf, "app", "static"), join(dest, "static"));
@@ -86,9 +85,7 @@ function copyJars(home, dest) {
     var jars = [
         "ringo.jar",
         "js.jar",
-        "log4j-1.2.15.jar",
-        "slf4j/slf4j-api-1.5.10.jar",
-        "slf4j/slf4j-log4j12-1.5.10.jar"
+        "slf4j/slf4j-api-1.5.10.jar"
     ];
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");
