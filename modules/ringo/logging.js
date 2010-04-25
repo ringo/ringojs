@@ -104,15 +104,17 @@ function Logger(name) {
  */
 var setConfig = exports.setConfig = function(resource) {
     var {path, url} = resource;
-    var PropertyConfigurator = org.apache.log4j.PropertyConfigurator,
-        DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
+    var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
+    var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
     var configurator = path.endsWith('.properties') || path.endsWith('.props') ?
                        PropertyConfigurator : DOMConfigurator;
-    configurator.configure(url);
-    try {
-        configurator.configureAndWatch(path, 2000);
-    } catch (e) {
-        print("Error watching log configuration file:", e);
+    if (typeof configurator.configure === "function") {
+        configurator.configure(url);
+        try {
+            configurator.configureAndWatch(path, 2000);
+        } catch (e) {
+            print("Error watching log configuration file:", e);
+        }
     }
     configured = true;
 };
