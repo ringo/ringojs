@@ -18,6 +18,8 @@ var LoggerFactory = org.slf4j.LoggerFactory;
 
 module.shared = true;
 var configured = false;
+// interval id for configuration watcher
+var configurationWatcher;
 
 var interceptors = new java.lang.ThreadLocal();
 
@@ -111,7 +113,18 @@ var setConfig = exports.setConfig = function(resource) {
     if (typeof configurator.configure === "function") {
         configurator.configure(url);
         try {
-            configurator.configureAndWatch(path, 2000);
+            // set up a scheduler to watch the configuration file for changes
+            var {setInterval, clearInterval} = require("./scheduler");
+            var lastModified = resource.lastModified();
+            if (configurationWatcher) {
+                clearInterval(configurationWatcher);
+            }
+            configurationWatcher = setInterval(function() {
+                if (resource.exists() && resource.lastModified() != lastModified) {
+                    lastModified = resource.lastModified();
+                    configurator.configure(url);
+                }
+            }, 3000);
         } catch (e) {
             print("Error watching log configuration file:", e);
         }
