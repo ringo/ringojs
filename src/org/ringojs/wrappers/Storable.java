@@ -185,6 +185,9 @@ public class Storable extends ScriptableObject {
 
     @Override
     public boolean has(String name, Scriptable start) {
+        if (super.has(name, this)) {
+            return true;
+        }
         if (isPrototype) {
             return super.has(name, start);
         }
@@ -196,7 +199,7 @@ public class Storable extends ScriptableObject {
 
     @Override
     public Object get(String name, Scriptable start) {
-        if (isPrototype) {
+        if (isPrototype || super.has(name, this)) {
             return super.get(name, start);
         }
         if (properties == null && isPersistent()) {
@@ -207,7 +210,7 @@ public class Storable extends ScriptableObject {
 
     @Override
     public void put(String name, Scriptable start, Object value) {
-        if (isPrototype) {
+        if (isPrototype || super.has(name, this)) {
             super.put(name, start, value);
         } else {
             if (properties == null) {
@@ -219,7 +222,7 @@ public class Storable extends ScriptableObject {
 
     @Override
     public void delete(String name) {
-        if (isPrototype) {
+        if (isPrototype || super.has(name, this)) {
             super.delete(name);
         } else {
             if (properties == null) {
