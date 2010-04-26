@@ -216,7 +216,7 @@ function main(path) {
 
     // if no explicit path is given use first command line argument
     path = path || system.args[0];
-    var fs = require("fs-base");
+    var fs = require("fs");
     if (path && fs.exists(path)) {
         if (fs.isFile(path)) {
             // if argument is a file use it as config module
@@ -228,6 +228,12 @@ function main(path) {
     }
     // prepend the web app's directory to the module search path
     require.paths.unshift(path);
+
+    // logging module is already loaded and configured, check if webapp provides
+    // its own log4j configuration file and apply it if so.
+    if (fs.isFile(fs.join(path, "config", "log4j.properties"))) {
+        require("./logging").setConfig(getResource('config/log4j.properties'));
+    }
 
     daemon.init();
     daemon.start();
