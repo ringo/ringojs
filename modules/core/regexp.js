@@ -13,6 +13,6 @@ module.shared = true;
 Object.defineProperty(RegExp, 'escape', {
     value:  function (str) {
         return str.replace(/[-[\]{}()*+?.\\^$|,#\s]/g, "\\$&");
-    }
+    }, writable: true
 });
 

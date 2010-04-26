@@ -20,7 +20,7 @@ Object.defineProperty(Number.prototype, 'format', {
         }
         var df = new java.text.DecimalFormat(fmt || "###,##0.##", symbols);
         return df.format(+this);
-    }
+    }, writable: true
 });
 
 /**
@@ -32,5 +32,5 @@ Object.defineProperty(Number.prototype, 'times', {
         for (var i = 0; i < this; i++) {
             fun(i);
         }
-    }
+    }, writable: true
 });

@@ -31,7 +31,7 @@ module.shared = true;
 Object.defineProperty(Array.prototype, "contains", {
     value: function(val) {
        return this.indexOf(val) > -1;
-    }
+    }, writable: true
 });
 
 /**
@@ -42,7 +42,7 @@ Object.defineProperty(Array.prototype, "contains", {
 Object.defineProperty(Array.prototype, "peek", {
     value: function() {
        return this[this.length - 1];
-    }
+    }, writable: true
 });
 
 /**
@@ -59,8 +59,8 @@ Object.defineProperty(Array.prototype, "remove", {
             this.splice(index, 1);
         }
         return this;
-    }
-})
+    }, writable: true
+});
 
 /**
  * Retrieve the union set of a bunch of arrays
@@ -81,7 +81,7 @@ Object.defineProperty(Array, "union", {
             }
         }
         return result;
-    }
+    }, writable: true
 });
 
 /**
@@ -106,7 +106,7 @@ Object.defineProperty(Array, "intersection", {
                 result.push(item);
         }
         return result;
-    }
+    }, writable: true
 });
 
 /**
@@ -115,7 +115,7 @@ Object.defineProperty(Array, "intersection", {
 Object.defineProperty(Array.prototype, "max", {
     value: function() {
         return Math.max.apply( Math, this );
-    }
+    }, writable: true
 });
 
 /**
@@ -124,7 +124,7 @@ Object.defineProperty(Array.prototype, "max", {
 Object.defineProperty(Array.prototype, "min", {
     value: function() {
         return Math.min.apply( Math, this );
-    }
+    }, writable: true
 });
 
 Object.defineProperty(Array.prototype, "partition", {
@@ -138,6 +138,6 @@ Object.defineProperty(Array.prototype, "partition", {
             }
         }
         return [trues, falses]
-    }
+    }, writable: true
 });
 

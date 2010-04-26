@@ -62,7 +62,7 @@ Object.defineProperty(Date.prototype, "format", {
         if (timezone && timezone != sdf.getTimeZone())
             sdf.setTimeZone(timezone);
         return sdf.format(this);
-    }
+    }, writable: true
 });
 
 
@@ -73,7 +73,7 @@ Object.defineProperty(Date.prototype, "format", {
 Object.defineProperty(Date.prototype, "toUtc", {
     value: function() {
         this.setMinutes(this.getMinutes() + this.getTimezoneOffset());
-    }
+    }, writable: true
 });
 
 /** 
@@ -83,7 +83,7 @@ Object.defineProperty(Date.prototype, "toUtc", {
 Object.defineProperty(Date.prototype, "toLocalTime", {
     value: function() {
         this.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-    }
+    }, writable: true
 });
 
 
@@ -94,7 +94,7 @@ Object.defineProperty(Date.prototype, "toLocalTime", {
 Object.defineProperty(Date.prototype, "diff", {
     value: function(dateObj) {
         return this.getTime() - dateObj.getTime();
-    }
+    }, writable: true
 });
 
 
@@ -146,7 +146,7 @@ Object.defineProperty(Date.prototype, "getTimespan", {
         }
         result.span = res.pop();
         return result;
-    }
+    }, writable: true
 });
 
 
@@ -161,7 +161,7 @@ Object.defineProperty(Date.prototype, "getAge", {
         if (!age.isFuture)
             return age.span;
         return null;
-    }
+    }, writable: true
 });
 
 
@@ -176,7 +176,7 @@ Object.defineProperty(Date.prototype, "getExpiry", {
         if (age.isFuture)
             return age.span;
         return null;
-    }
+    }, writable: true
 });
 
 
@@ -211,6 +211,6 @@ Object.defineProperty(Date.prototype, "equals", {
                     return false;
         }
         return true;
-    }
+    }, writable: true
 });
 
