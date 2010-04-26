@@ -5,10 +5,20 @@
 module.shared = true;
 
 var {newScheduledThreadPool, newCachedThreadPool} = java.util.concurrent.Executors;
+var {ThreadFactory} = java.util.concurrent;
 var {MILLISECONDS} = java.util.concurrent.TimeUnit;
 
-var scheduler = scheduler || newScheduledThreadPool(4);
+var ids = new java.util.concurrent.atomic.AtomicInteger();
+
 var executor = executor || newCachedThreadPool();
+var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
+    newThread: function(runnable) {
+        var thread = new java.lang.Thread(runnable,
+                "ringo-scheduler-" + ids.incrementAndGet());
+        thread.setDaemon(true);
+        return thread;
+    }
+}));
 
 /**
  * Executes a function after specified delay.
