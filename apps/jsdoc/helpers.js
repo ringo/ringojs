@@ -16,7 +16,9 @@ exports.fileoverview_filter = function(docs) {
         var doc = docs[i];
         var name = doc.name;
         // pragmatical class detection
-        doc.isClass = doc.isClass || docs[i + 1] && docs[i + 1].name.startsWith(name + ".");
+        var next = docs[i + 1];
+        doc.isClass = doc.isClass ||
+                (isClassName(name) && isClassMember(name, next && next.name));
         var path = name.split(".");
         // FIXME: __iterator__ property breaks TOC enumeration
         if (path.peek() == "__iterator__") continue;
@@ -27,7 +29,7 @@ exports.fileoverview_filter = function(docs) {
             if (elem == "prototype" || elem == "instance") {
                 elem = doc.isFunction ? "Instance Methods" : "Instance Properties";
             }
-            parent = getGroup(parent, elem, parent == topItems);
+            parent = getGroup(parent, elem, parent == topItems && isClassName(elem));
         }
         // try to detect static members
         if (parent.isClass) {
@@ -201,4 +203,14 @@ function getGroup(parent, groupName, isClass) {
         };
     }
     return group;
+}
+
+function isClassName(name) {
+    // check for capitalized name
+    return name && name[0] == name[0].toUpperCase();
+}
+
+function isClassMember(name, childName) {
+    // check if child name is a property of name
+    return childName && childName.startsWith(name);
 }
