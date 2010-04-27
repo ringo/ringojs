@@ -14,6 +14,19 @@
         $("div#menu > ul.apilist").treeview({
             persist: "cookie"
         });
+        $("a").click(function() {
+            // apply highlighting and animation to internal anchor links
+            var href = this.href;
+            var hash = href.indexOf("#");
+            if (hash > -1) {
+                var url = href.substring(0, hash);
+                if (location.href.substring(0, hash) == url) {
+                    goto(href.substring(hash));
+                    return false;
+                }
+            }
+            return true;
+        });        
         if (window.location.hash) {
             goto(window.location.hash);
         }

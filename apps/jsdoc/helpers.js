@@ -1,13 +1,14 @@
 
 require('core/string');
 require('core/array');
-var Buffer = require('ringo/buffer').Buffer;
+var {Markdown} = require('ringo/markdown');
+var {Buffer} = require('ringo/buffer');
 
 exports.fileoverview_filter = function(docs) {
     var buffer = new Buffer();
     if (docs.fileoverview) {
         buffer.write('<div class="fileoverview">');
-        buffer.write(docs.fileoverview.getTag("fileoverview"));
+        buffer.write(renderMarkdown(docs.fileoverview.getTag("fileoverview")));
         buffer.writeln('</div>');
         renderStandardTags(docs.fileoverview, buffer);
     }
@@ -52,8 +53,7 @@ exports.fileoverview_filter = function(docs) {
             if (node.item) {
                 var item = node.item;
                 if (node.isClass) name = "Class " + name;
-                buffer.write('<a onclick="return goto(\'#')
-                        .write(item.id, '\')" href="#')
+                buffer.write('<a href="#')
                         .write(item.id, '">', name);
                 if (item.isFunction && !item.isClass) {
                     buffer.write('<span class="params">(', item.getParameterNames(), ')</span>');
@@ -108,13 +108,13 @@ exports.renderName_filter = function(doc) {
         buffer.write('</span>)');
     }
     // doc header anchor link
-    buffer.write('<a onclick="return goto(\'#', doc.id, '\')" href="#', doc.id, '">');
+    buffer.write('<a href="#', doc.id, '">');
     buffer.write(' &#182; </a>');
     return buffer;
 };
 
 exports.renderDoc_filter = function(doc) {
-    var buffer = new Buffer("<p>", doc.getTag("desc") || "No description available.", "</p>");
+    var buffer = new Buffer(renderMarkdown(doc.getTag("desc") || "No description available."));
     renderStandardTags(doc, buffer);
     var paramList = doc.getParameterList();
     if (paramList && paramList.length > 0) {
@@ -122,7 +122,7 @@ exports.renderDoc_filter = function(doc) {
         buffer.writeln('<table class="subsection">');
         for each (var param in paramList) {
             buffer.write('<tr><td>');
-            var name = '<b>'+param.name+'</b>'; 
+            var name = '<b>' + param.name + '</b>';
             buffer.write([param.type, name, param.desc].join('</td><td>'));
             buffer.writeln('</td></tr>');
         }
@@ -165,8 +165,7 @@ exports.renderDoc_filter = function(doc) {
                 // apply some sanity checks to local targets like removing hashes and parantheses
                 link = link.replace(/^#/, '');
                 var id = link.replace(/\./g, '_').replace(/[\(\)]/g, '');
-                link = '<a onclick="return goto(\'#' + id
-                        + '\')" href="#' + id + '">' + link + '</a>';
+                link = '<a href="#' + id + '">' + link + '</a>';
             }
             buffer.writeln('<div class="subsection">', link, '</div>');
         }
@@ -213,4 +212,12 @@ function isClassName(name) {
 function isClassMember(name, childName) {
     // check if child name is a property of name
     return childName && childName.startsWith(name);
+}
+
+function renderMarkdown(text) {
+    return new Markdown({
+        getLink: function(id) {
+            return [id.replace(/\./g, "_"), null];
+        }
+    }).process(text);
 }
