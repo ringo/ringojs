@@ -1,6 +1,4 @@
 
-var {setTimeout} = require("ringo/scheduler");
-
 export("defer");
 
 var NEW = 0;
