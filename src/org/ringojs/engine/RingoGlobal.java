@@ -16,10 +16,22 @@
 
 package org.ringojs.engine;
 
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextAction;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.NativeJavaClass;
+import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.ScriptRuntime;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.WrappedException;
+import org.mozilla.javascript.Wrapper;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
 import org.ringojs.util.ScriptUtils;
-import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.shell.Global;
 import org.ringojs.wrappers.ModulePath;
 import org.ringojs.repository.Resource;
@@ -28,8 +40,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RingoGlobal extends Global {
+
+    private static ExecutorService threadPool;
 
     protected RingoGlobal() {}
 
@@ -52,7 +69,6 @@ public class RingoGlobal extends Global {
             "readUrl",
             "runCommand",
             "seal",
-            "spawn",
             "sync",
             "toint32",
             "version",
@@ -66,6 +82,7 @@ public class RingoGlobal extends Global {
             "getRepository",
             "addToClasspath",
             "privileged",
+            "spawn",
             "trycatch"
         };
         defineFunctionProperties(names, RingoGlobal.class,
@@ -198,15 +215,50 @@ public class RingoGlobal extends Global {
         }
     }
 
+    public static Object spawn(final Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+        if (args.length < 1  || !(args[0] instanceof Function)) {
+            throw Context.reportRuntimeError("spawn() requires a function argument");
+        }
+        final Scriptable scope = funObj.getParentScope();
+        final ContextFactory cxfactory = cx.getFactory();
+        final Function function = (Function) args[0];
+        Object[] newArgs = null;
+        if (args.length > 1 && args[1] instanceof Scriptable) {
+            newArgs = cx.getElements((Scriptable) args[1]);
+        }
+        if (newArgs == null) { newArgs = ScriptRuntime.emptyArgs; }
+        final Object[] functionArgs = newArgs;
+        return getThreadPool().submit(new Callable<Object>() {
+            public Object call() {
+                return cxfactory.call(new ContextAction() {
+                    public Object run(Context cx) {
+                        return function.call(cx, scope, scope, functionArgs);
+                    }
+                });
+            }
+        });
+    }
+
 
     public static Object getMain(Scriptable thisObj) {
         try {
-            Context cx = Context.getCurrentContext();
             RhinoEngine engine = RhinoEngine.engines.get();
             ModuleScope main = engine.getMainModuleScope();
             return main != null ? main.getMetaObject() : Undefined.instance;
         } catch (Exception x) {
             return Undefined.instance;
+        }
+    }
+
+    static ExecutorService getThreadPool() {
+        if (threadPool != null) {
+            return threadPool;
+        }
+        synchronized (Global.class) {
+            if (threadPool == null) {
+                threadPool = Executors.newCachedThreadPool();
+            }
+            return threadPool;
         }
     }
 
