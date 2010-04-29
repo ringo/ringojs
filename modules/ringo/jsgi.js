@@ -109,81 +109,69 @@ function writeBody(response, body, charset) {
     }
 }
 
-function writeAsync(request, response, result) {
-    var charset;
-    var part = result.part;
-    if (result.first) {
-        if (!part.status || !part.headers) {
-            throw new Error('No valid JSGI response: ' + result);
-        }
-        var {status, headers} = part;
-        response.status = status;
-        for (var name in headers) {
-            response.setHeader(name, headers[name]);
-        }
-        charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
+function writeAsync(servletResponse, jsgiResponse) {
+    if (!jsgiResponse.status || !jsgiResponse.headers || !jsgiResponse.body) {
+        throw new Error('No valid JSGI response: ' + jsgiResponse);
     }
-    if (part.body) {
-        writeBody(response, part.body, charset);
-        // this should cause data to be written to the client, doesn't seem to work
-        response.flushBuffer();
+    var {status, headers} = jsgiResponse;
+    servletResponse.status = status;
+    for (var name in headers) {
+        servletResponse.setHeader(name, headers[name]);
     }
+    var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
+    writeBody(servletResponse, jsgiResponse.body, charset);
 }
 
 function handleAsyncResponse(env, result) {
     // experimental support for asynchronous JSGI based on Jetty continuations
     var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
     var request = env['jsgi.servlet_request'];
-    var response = env['jsgi.servlet_response'];
-    //var queue = new java.util.concurrent.ConcurrentLinkedQueue();
-    //request.setAttribute('_ringo_response', queue);
     var continuation = ContinuationSupport.getContinuation(request);
-    var first = true, handled = false;
+    var handled = false;
     
-    var onFinish = function(part) {
+    var onFinish = sync(function(value) {
         if (handled) return;
-        log.debug("JSGI async finish called with: " + part);
-        var res = {
-            first: first,
-            last: true,
-            part: part
+        log.debug("JSGI async response finished", value);
+        handled = true;
+        writeAsync(continuation.getServletResponse(), value);
+        continuation.complete();
+    }, request);
+
+    var onError = sync(function(error) {
+        if (handled) return;
+        log.error("JSGI async error", error);
+        var jsgiResponse = {
+            status: 500,
+            headers: {"Content-Type": "text/html"},
+            body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>", String(error), "</p></body></html>"]
         };
         handled = true;
-        //queue.offer(res);
-        writeAsync(request, response, res);
+        writeAsync(continuation.getServletResponse(), jsgiResponse);
         continuation.complete();
-    };
-    var onError = function(error) {
-        if (handled) return;
-        log.error("JSGI async error: " + error);
-        if (first) {
-            commitResponse(env, {
+    }, request);
+
+    continuation.addContinuationListener(new org.eclipse.jetty.continuation.ContinuationListener({
+        onTimeout: sync(function() {
+            if (handled) return;
+            log.error("JSGI async timeout");
+            var jsgiResponse = {
                 status: 500,
                 headers: {"Content-Type": "text/html"},
-                body: ["<!DOCTYPE html><html><body><h1>Error</h1>", error.toString(), "</body></html>"]
-            })
-        }
-        handled = true;
-    };
-    var onProgress = function(part) {
-        log.debug('JSGI async progress called with: ' + part);
-        if (handled) return;
-        var res = {
-            first: first,
-            part: part
-        };
-        first = false;
-        //queue.offer(res);
-        writeAsync(request, response, res);
-        // continuation.suspend();
-    };
+                body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>Request timed out</p></body></html>"]
+            };
+            handled = true;
+            writeAsync(continuation.getServletResponse(), jsgiResponse);
+            continuation.complete();
+        }, request)
+    }));
+
     log.debug('handling JSGI async response, calling then');
-    // TODO sync callbacks on queue once rhino supports this (bug 513682)
-    result.then(onFinish, onError, onProgress);
-    if (!handled) {
-        continuation.setTimeout(12000);
+    sync(function() {
+        result.then(onFinish, onError);
+        // default async request timeout is 30 seconds
+        continuation.setTimeout(30000);
         continuation.suspend();
-    }
+    }, request)();
 }
 
 /**

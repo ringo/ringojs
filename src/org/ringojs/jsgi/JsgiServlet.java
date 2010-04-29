@@ -16,6 +16,7 @@
 
 package org.ringojs.jsgi;
 
+import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.Context;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
@@ -94,6 +95,10 @@ public class JsgiServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            if (ContinuationSupport.getContinuation(request).isExpired()) {
+                // Continuation timeouts are handled by ringo/jsgi module
+                return;
+            }
             JsgiEnv env = new JsgiEnv(request, response, envproto, engine.getScope());
             engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
