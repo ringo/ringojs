@@ -2,6 +2,9 @@
  * @fileoverview <p>This module provides an implementation of "fs" as
  * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS
  * Filesystem/A</a> proposal.
+ *
+ * The "fs" module provides a file system API for the manipulation of paths,
+ * directories, files, links, and the construction of file streams.
  */
 
 var fsBase = require('fs-base');
@@ -47,6 +50,10 @@ export('absolute',
        'split');
 
 
+/**
+ * Open an IO stream for reading/writing to the file corresponding to the given
+ * path.
+ */
 function open(path, options) {
     options = checkOptions(options);
     var file = resolveFile(path);
@@ -65,6 +72,9 @@ function open(path, options) {
     }
 }
 
+/**
+ * Open, read, and close a file, returning the file's contents.
+ */
 function read(path, options) {
     options = options === undefined ? {} : checkOptions(options);
     options.read = true;
@@ -76,6 +86,10 @@ function read(path, options) {
     }
 }
 
+/**
+ * Open, write, flush, and close a file, writing the given content. If
+ * content is a binary.ByteArray or binary.ByteString, binary mode is implied.
+ */
 function write(path, content, options) {
     options = options === undefined ? {} : checkOptions(options)
     options.write = true
@@ -89,6 +103,9 @@ function write(path, content, options) {
     }
 }
 
+/**
+ * Read data from one file and write it into another using binary mode.
+ */
 function copy(from, to) {
     var source = resolveFile(from);
     var target = resolveFile(to);
@@ -103,6 +120,11 @@ function copy(from, to) {
     }
 }
 
+/**
+ * Copy files from a source path to a target path. Files of the below the
+ * source path are copied to the corresponding locations relative to the target
+ * path, symbolic links to directories are copied but not traversed into.
+ */
 function copyTree(from, to) {
     var source = resolveFile(from);
     var target = resolveFile(to);
@@ -117,6 +139,10 @@ function copyTree(from, to) {
     }
 }
 
+/**
+ * Create the directory specified by "path" including any missing parent
+ * directories.
+ */
 function makeTree(path) {
     var file = resolveFile(path);
     if (!file.isDirectory() && !file.mkdirs()) {
@@ -124,6 +150,12 @@ function makeTree(path) {
     }
 }
 
+/**
+ * Return an array with all directories below (and including) the given path,
+ * as discovered by depth-first traversal. Entries are in lexically sorted
+ * order within directories. Symbolic links to directories are not traversed
+ * into.
+ */
 function listDirectoryTree(path) {
     path = path === '' ? '.' : String(path);
     var result = [''];
@@ -142,6 +174,12 @@ function listDirectoryTree(path) {
     return result;
 }
 
+/**
+ * Return an array with all paths (files, directories, etc.) below (and
+ * including) the given path, as discovered by depth-first traversal. Entries
+ * are in lexically sorted order within directories. Symbolic links to
+ * directories are returned but not traversed into.
+ */
 function listTree(path) {
     path = path === '' ? '.' : String(path);
     var result = [''];
@@ -162,6 +200,10 @@ function listTree(path) {
     return result;
 }
 
+/**
+ * Remove the element pointed to by the given path. If path points to a
+ * directory, all members of the directory are removed recursively.
+ */
 function removeTree(path) {
     var file = resolveFile(path);
     // do not follow symlinks
@@ -175,20 +217,37 @@ function removeTree(path) {
     }
 }
 
-// non-standard/non-spec
+/**
+ * Check whether the given pathname is absolute.
+ *
+ * This is a non-standard extension, not part of CommonJS Filesystem/A.
+ */
 function isAbsolute(path) {
     return new File(path).isAbsolute();
 }
 
-// non-standard/non-spec
+/**
+ * Check wheter the given pathname is relative (i.e. not absolute).
+ *
+ * This is a non-standard extension, not part of CommonJS Filesystem/A.
+ */
 function isRelative(path) {
     return !isAbsolute(path);
 }
 
+/**
+ * Make the given path absolute by resolving it against the current working
+ * directory.
+ */
 function absolute(path) {
     return resolve(fsBase.workingDirectory(), path);
 }
 
+/**
+ * Return the basename of the given path. That is the path with any leading
+ * directory components removed. If specified, also remove a trailing
+ * extension.
+ */
 function base(path, ext) {
     var name = split(path).peek();
     if (ext && name) {
@@ -200,10 +259,19 @@ function base(path, ext) {
     return name;
 }
 
+/**
+ * Return the dirname of the given path. That is the path with any trailing
+ * non-directory component removed.
+ */
 function directory(path) {
     return new File(path).getParent() || '.';
 }
 
+/**
+ * Return the extension of a given path. That is everything after the last dot
+ * in the basename of the given path, including the last dot. Returns an empty
+ * string if no valid extension exists.
+ */
 function extension(path) {
     var name = base(path);
     if (!name) {
@@ -214,10 +282,17 @@ function extension(path) {
     return index > 0 ? name.substring(index) : '';
 }
 
+/**
+ * Join a list of paths using the local file system's path separator and
+ * normalize the result.
+ */
 function join() {
     return normal(Array.join(arguments, SEPARATOR));
 }
 
+/**
+ * Split a given path into an array of path components.
+ */
 function split(path) {
     if (!path) {
         return [];
@@ -225,11 +300,20 @@ function split(path) {
     return String(path).split(SEPARATOR_RE);
 }
 
+/**
+ * Normalize a path by removing '.' and simplifying '..' components, wherever
+ * possible.
+ */
 function normal(path) {
     return resolve(path);
 }
 
 // Adapted from Narwhal.
+/**
+ * Join a list of paths by starting at an empty location and iteratively
+ * "walking" to each path given. Correctly takes into account both relative and
+ * absolute paths.
+ */
 function resolve() {
     var root = '';
     var elements = [];
@@ -271,7 +355,13 @@ function resolve() {
     return root + path + leaf;
 }
 
-// adapted from narwhal
+// Adapted from narwhal.
+/**
+ * Establish the relative path that links source to target by strictly
+ * traversing up ('..') to find a common ancestor of both paths. If the target
+ * is omitted, returns the path to the source from the current working
+ * directory.
+ */
 function relative(source, target) {
     if (!target) {
         target = source;
@@ -307,6 +397,9 @@ var optionsMask = {
     charset: 1
 };
 
+/**
+ * Internal.
+ */
 function checkOptions(options) {
     if (!options) {
         options = {};
@@ -330,7 +423,9 @@ function checkOptions(options) {
     return options;
 }
 
-// convert mode string to options object
+/**
+ * Internal. Convert a mode string to an options object.
+ */
 function applyMode(mode) {
     var options = {};
     for (var i = 0; i < mode.length; i++) {
@@ -363,6 +458,9 @@ function applyMode(mode) {
     return options;
 }
 
+/**
+ * Internal.
+ */
 function resolveFile(path) {
     // Fix for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
     // relative files are not resolved against workingDirectory/user.dir in java,
@@ -377,10 +475,16 @@ function resolveFile(path) {
 
 // Path object
 
+/**
+ * A shorthand for creating a new `Path` without the `new` keyword.
+ */
 function path() {
     return new Path(join.apply(null, arguments));
 }
 
+/**
+ * Path constructor. Path is a chainable shorthand for working with paths.
+ */
 function Path() {
     if (!(this instanceof Path)) {
         return new Path(join.apply(null, arguments));
@@ -392,15 +496,24 @@ function Path() {
 
 Path.prototype = new String();
 
+/**
+ * This is a non-standard extension, not part of CommonJS Filesystem/A.
+ */
 Path.prototype.valueOf = function() {
     return this.toString();
 };
 
+/**
+ * Join a list of paths to this path.
+ */
 Path.prototype.join = function() {
     return new Path(join.apply(null,
             [this.toString()].concat(Array.slice(arguments))));
 };
 
+/**
+ * Resolve against this path.
+ */
 Path.prototype.resolve = function () {
     return new Path(resolve.apply(
             null,
@@ -409,14 +522,26 @@ Path.prototype.resolve = function () {
     );
 };
 
+/**
+ * Return the relative path from this path to the given target path. Equivalent
+ * to `fs.Path(fs.relative(this, target))`.
+ */
 Path.prototype.to = function (target) {
     return exports.Path(relative(this.toString(), target));
 };
 
+/**
+ * Return the relative path from the given source path to this path. Equivalent
+ * to `fs.Path(fs.relative(source, this))`.
+ */
 Path.prototype.from = function (target) {
     return exports.Path(relative(target, this.toString()));
 };
 
+/**
+ * Return the names of all files in this path, in lexically sorted order and
+ * wrapped in Path objects.
+ */
 Path.prototype.listPaths = function() {
     return this.list().map(function (file) new Path(this, file), this);
 };
@@ -490,5 +615,3 @@ for (i = 0; i < trivia.length; i++) {
         };
     })(name);
 }
-
-
