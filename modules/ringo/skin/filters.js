@@ -216,7 +216,7 @@ function dateFormat_filter(input, tag) {
         return;
     }
     if (typeof input === "number") {
-        return new Date(input).format(format)
+        return new Date(input).format(format);
     }
     if (input instanceof Date) {
         return input.format(format);
