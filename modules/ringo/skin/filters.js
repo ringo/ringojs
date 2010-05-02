@@ -211,12 +211,16 @@ function substring_filter(input, tag) {
  * @param format
  */
 function dateFormat_filter(input, tag) {
-   var format = tag.getParameter("format") || tag.parameters[0];
-   if (!input) {
-      return;
-   } else {
-      return input.format(format);
-   }
+    var format = tag.getParameter("format") || tag.parameters[0];
+    if (!input) {
+        return;
+    }
+    if (typeof input === "number") {
+        return new Date(input).format(format)
+    }
+    if (input instanceof Date) {
+        return input.format(format);
+    }
 }
 
 (function() {
