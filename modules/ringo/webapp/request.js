@@ -236,6 +236,13 @@ Object.defineProperty(Request.prototype, "isHead", {
 });
 
 /**
+ * True if this is a XMLHttpRequest.
+ */
+Object.defineProperty(Request.prototype, "isXhr", {
+    get: function() this.getHeader("X-Requested-With") == "XMLHttpRequest"
+});
+
+/**
  * An HTTP session object. Properties of the session's data
  * object are persisted between requests of the same client.
  * @param env the JSGI env object
