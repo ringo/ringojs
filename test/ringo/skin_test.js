@@ -58,6 +58,13 @@ exports.testExtends = function () {
 
     skin = createSkin(getResource('./skins/child.html'));
     assertEqual('foo\n\nbar', render(skin).trim());
+}
+
+exports.testExternalSubskin = function () {
+    var skin;
+
+    skin = createSkin(getResource('./skins/foo.html'));
+    assertEqual('foo\nbar\nbaz\n', render(skin));
 };
 
 // --- filters ---

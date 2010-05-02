@@ -95,7 +95,7 @@ function createSkin(resourceOrString) {
     if (typeof(lastPart) === 'string' && lastPart.trim() === '') {
         mainSkin.pop();
     }
-    var skin = new Skin(mainSkin, subSkins, parentSkin);
+    var skin = new Skin(mainSkin, subSkins, parentSkin, resourceOrString);
     if (skincache)
         skincache[resourceOrString] = skin;
     return skin;
@@ -107,7 +107,7 @@ function createSkin(resourceOrString) {
  * @param mainSkin an array of skin parts: string literals and macro tags
  * @param subSkins a dictionary of named skin components
  */
-function Skin(mainSkin, subSkins, parentSkin) {
+function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
 
     var self = this;
 
@@ -123,11 +123,25 @@ function Skin(mainSkin, subSkins, parentSkin) {
     };
 
     this.renderSubskin = function renderSubskin(skinName, context) {
-        if (!subSkins[skinName] && parentSkin) {
-            // TODO: should we support loading of external top level skins here?
-            return renderInternal(parentSkin.getSkinParts(skinName), context);
+        var subSkin = subSkins[skinName];
+        if (!subSkin) {
+            // First, try to find subskin in parent skins.
+            var parts = parentSkin && parentSkin.getSkinParts(skinName);
+            if (parts) {
+                return renderInternal(parts, context);
+            }
+            // If that fails, try to load the subskin as external skin.
+            var skinResource = resolveSkin(resourceOrString, skinName);
+            if (skinResource && skinResource.exists()) {
+                subSkin = subSkins[skinName] = createSkin(skinResource);
+            }
+            // We still might have no subskin here. That's fine, as
+            // renderInternal can cope.
         }
-        return renderInternal(subSkins[skinName], context);
+        if (subSkin instanceof Skin) {
+            return subSkin.render(context);
+        }
+        return renderInternal(subSkin, context);
     };
 
     this.getSubskin = function getSubskin(skinName) {
