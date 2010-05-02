@@ -37,8 +37,9 @@ exports.testSubskin = function () {
     assertEqual('ab', render(skin));
 
     skin = createSkin('a<% s %><% subskin sub %>b');
-    context = {s_macro: function(macro, context, skin)
-            skin.renderSubskin('sub')};
+    context = {
+        s_macro: function(macro, context, skin) skin.renderSubskin('sub')
+    };
     assertEqual('ab', render(skin, context));
 };
 
@@ -58,6 +59,8 @@ exports.testExtends = function () {
     skin = createSkin(getResource('./skins/child.html'));
     assertEqual('foo\n\nbar', render(skin).trim());
 };
+
+// --- filters ---
 
 exports.testLowercaseFilter = function () {
     var string = 'ALL CAPS';

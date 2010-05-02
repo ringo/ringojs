@@ -1,4 +1,3 @@
-
 require('core/string');
 require('core/object');
 var engine = require('ringo/engine');
@@ -110,26 +109,23 @@ function Skin(mainSkin, subSkins, parentSkin) {
         context = webenv.loadMacros(context);
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
-        } else {
-            return renderInternal(mainSkin, context);
         }
+        return renderInternal(mainSkin, context);
     };
 
     this.renderSubskin = function renderSubskin(skinName, context) {
         if (!subSkins[skinName] && parentSkin) {
             // TODO: should we support loading of external top level skins here?
             return renderInternal(parentSkin.getSkinParts(skinName), context);
-        } else {
-            return renderInternal(subSkins[skinName], context);
         }
+        return renderInternal(subSkins[skinName], context);
     };
 
     this.getSubskin = function getSubskin(skinName) {
         if (subSkins[skinName]) {
             return new Skin(subSkins[skinName], subSkins, parentSkin);
-        } else {
-            return null;
         }
+        return null;
     };
 
     this.getSkinParts = function getSkinParts(skinName) {
@@ -142,14 +138,16 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     function renderInternal(parts, context) {
         var value = [renderPart(part, context) for each (part in parts)].join('');
-        if (parts && parts.subskinFilter)
+        if (parts && parts.subskinFilter) {
             return evaluateFilter(value, parts.subskinFilter, context);
+        }
         return value;
     }
 
     function renderPart(part, context) {
-        return part instanceof MacroTag && part.name ?
-                evaluateMacro(part, context) : part;
+        return part instanceof MacroTag && part.name
+                ? evaluateMacro(part, context)
+                : part;
     }
 
     function evaluateMacro(macro, context) {
@@ -199,9 +197,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
             } else if (value === undefined && isDefined(elem[last])) {
                 if (elem[last] instanceof Function) {
                     return elem[last].call(elem, macro, context, self);
-                } else {
-                    return elem[last];
                 }
+                return elem[last];
             }
         }
         // TODO: if filter is not found just return value as is
