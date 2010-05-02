@@ -38,6 +38,22 @@ function render(skinOrResource, context) {
 }
 
 /**
+ * Resolve a skin path (given as string) against a base (which can be either a
+ * resource or a name as string).
+ */
+function resolveSkin(base, skinPath) {
+    var skinResource;
+    var parentRepo = base.parentRepository;
+    if (parentRepo && skinPath.startsWith(".")) {
+        skinResource = parentRepo.getResource(skinPath);
+    }
+    if (!skinResource || !skinResource.exists()) {
+        skinResource = getResource(skinPath);
+    }
+    return skinResource;
+}
+
+/**
  * Parse a skin from a resource.
  * @param resourceOrString the skin resource or string
  */
@@ -60,14 +76,7 @@ function createSkin(resourceOrString) {
             eng.wrapArgument(macro, global);
             if (macro.name === 'extends') {
                 var skinPath = macro.getParameter(0);
-                var skinResource;
-                var parentRepo = resourceOrString.parentRepository;
-                if (parentRepo && skinPath.startsWith(".")) {
-                    skinResource = parentRepo.getResource(skinPath);
-                }
-                if (!skinResource || !skinResource.exists()) {
-                    skinResource = getResource(skinPath);
-                }
+                var skinResource = resolveSkin(resourceOrString, skinPath);
                 parentSkin = createSkin(skinResource);
             } else if (macro.name === 'subskin')  {
                 var skinName = macro.getParameter('name', 0);
