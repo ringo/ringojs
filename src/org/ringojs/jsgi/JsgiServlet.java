@@ -96,9 +96,12 @@ public class JsgiServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             if (ContinuationSupport.getContinuation(request).isExpired()) {
-                // Continuation timeouts are handled by ringo/jsgi module
-                return;
+                return; // continuation timeouts are handled by ringo/jsgi module
             }
+        } catch (NoClassDefFoundError ignore) {
+            // continuations may not be supported
+        }
+        try {
             JsgiEnv env = new JsgiEnv(request, response, envproto, engine.getScope());
             engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
         } catch (NoSuchMethodException x) {
