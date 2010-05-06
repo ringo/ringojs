@@ -52,6 +52,13 @@ exports.testSubskinWhitespace = function () {
     assertEqual('a\n\nb\n', render(skin));
 };
 
+exports.testExtends = function () {
+    var skin;
+
+    skin = createSkin(getResource('./skins/child.html'));
+    assertEqual('foo\n\nbar', render(skin).trim());
+};
+
 exports.testLowercaseFilter = function () {
     var string = 'ALL CAPS';
     var skin = createSkin('<% value | lowercase %>');
