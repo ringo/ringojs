@@ -41,6 +41,7 @@ public class JsgiServlet extends HttpServlet {
     Object function;
     RhinoEngine engine;
     JsgiEnv envproto;
+    boolean hasContinuation = false;
 
     public JsgiServlet() {}
 
@@ -64,13 +65,15 @@ public class JsgiServlet extends HttpServlet {
         }
 
         if (engine == null) {
-            String ringoHome = getInitParam(config, "ringoHome", "WEB-INF");
+            String ringoHome = getInitParam(config, "ringoHome", "/WEB-INF");
             String modulePath = getInitParam(config, "modulePath", "app");
 
             Repository home = new WebappRepository(config.getServletContext(), ringoHome);
             try {
                 if (!home.exists()) {
                     home = new FileRepository(ringoHome);
+                    System.err.println("Resource \"" + ringoHome + "\" not found, "
+                            + "reverting to file repository " + home);
                 }
                 String[] paths = StringUtils.split(modulePath, File.pathSeparator);
                 RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
@@ -89,17 +92,22 @@ public class JsgiServlet extends HttpServlet {
             Context.exit();
         }
 
+        try {
+            hasContinuation = ContinuationSupport.class != null;
+        } catch (NoClassDefFoundError ignore) {
+            hasContinuation = false;
+        }
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            if (ContinuationSupport.getContinuation(request).isExpired()) {
+            if (hasContinuation && ContinuationSupport.getContinuation(request).isExpired()) {
                 return; // continuation timeouts are handled by ringo/jsgi module
             }
-        } catch (NoClassDefFoundError ignore) {
-            // continuations may not be supported
+        } catch (Exception ignore) {
+            // continuation may not be set up even if class is availble - ignore
         }
         try {
             JsgiEnv env = new JsgiEnv(request, response, envproto, engine.getScope());
