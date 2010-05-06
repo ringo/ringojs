@@ -12,11 +12,11 @@ module.shared = true;
  * @param moduleId the module id. Ignored if functionObj is already a function.
  * @param functionObj the function, either as function object or function name to be
  *             imported from the module moduleId.
- * @param env the JSGI env object
+ * @param req the JSGI request object
  * @returns the JSGI response object
  */
-function handleRequest(moduleId, functionObj, env) {
-    initRequest(env);
+function handleRequest(moduleId, functionObj, request) {
+    initRequest(request);
     var app;
     if (typeof(functionObj) == 'function') {
         app = functionObj;
@@ -24,37 +24,37 @@ function handleRequest(moduleId, functionObj, env) {
         var module = require(moduleId);
         app = module[functionObj];
         var middleware = module.middleware || [];
-        env["ringo.config"] = moduleId;
+        // request.env["ringo.config"] = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     if (!(typeof(app) == 'function')) {
         throw new Error('No valid JSGI app: ' + app);
     }
-    var result = app(env);
+    var result = app(request);
     if (!result) {
         throw new Error('No valid JSGI response: ' + result);
     }
-    commitResponse(env, result);
+    commitResponse(request, result);
 }
 
 /**
  * Set up the I/O related properties of a jsgi environment object.
  * @param env a jsgi request object
  */
-function initRequest(env) {
+function initRequest(request) {
     var input, errors;
-    if (env.hasOwnProperty('jsgi.input')) {
+    if (request.hasOwnProperty('input')) {
         // already set up, probably because the original request threw a retry
         return;
     }
-    Object.defineProperty(env, "jsgi.input", {
+    Object.defineProperty(request, "input", {
         get: function() {
             if (!input)
-                input = new Stream(env['jsgi.servlet_request'].getInputStream());
+                input = new Stream(request.env.servlet_request.getInputStream());
             return input;
         }
     });
-    Object.defineProperty(env, "jsgi.errors", {
+    Object.defineProperty(request.jsgi, "errors", {
         value: system.stderr
     });
 }
@@ -68,13 +68,13 @@ function initRequest(env) {
  * @param env the JSGI env argument
  * @param result the object returned by a JSGI application
  */
-function commitResponse(env, result) {
+function commitResponse(req, result) {
     if (typeof result.then === "function") {
-        handleAsyncResponse(env, result);
+        handleAsyncResponse(req, result);
         return;
     }
-    var request = env['jsgi.servlet_request'];    
-    var response = env['jsgi.servlet_response'];
+    var request = req.env.servlet_request;
+    var response = req.env.servlet_response;
     var charset;
     if (!result.status || !result.headers || !result.body) {
         throw new Error('No valid JSGI response: ' + result);

@@ -40,7 +40,7 @@ public class JsgiServlet extends HttpServlet {
     String module;
     Object function;
     RhinoEngine engine;
-    JsgiEnv envproto;
+    JsgiRequest requestProto;
     boolean hasContinuation = false;
 
     public JsgiServlet() {}
@@ -77,6 +77,9 @@ public class JsgiServlet extends HttpServlet {
                 }
                 String[] paths = StringUtils.split(modulePath, File.pathSeparator);
                 RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
+                if ("true".equals(getInitParam(config, "debug", null))) {
+                    ringoConfig.setDebug(true);
+                }
                 engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
@@ -85,7 +88,7 @@ public class JsgiServlet extends HttpServlet {
 
         Context cx = engine.getContextFactory().enterContext();
         try {
-            envproto = new JsgiEnv(cx, engine.getScope());
+            requestProto = new JsgiRequest(cx, engine.getScope());
         } catch (NoSuchMethodException nsm) {
             throw new ServletException(nsm);
         } finally {
@@ -109,15 +112,18 @@ public class JsgiServlet extends HttpServlet {
         } catch (Exception ignore) {
             // continuation may not be set up even if class is availble - ignore
         }
+        Context cx = engine.getContextFactory().enterContext();
         try {
-            JsgiEnv env = new JsgiEnv(request, response, envproto, engine.getScope());
-            engine.invoke("ringo/jsgi", "handleRequest", module, function, env);
+            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope());
+            engine.invoke("ringo/jsgi", "handleRequest", module, function, req);
         } catch (NoSuchMethodException x) {
             RingoRunner.reportError(x, System.err, false);
             throw new ServletException(x);
         } catch (Exception x) {
             RingoRunner.reportError(x, System.err, false);
             throw new ServletException(x);
+        } finally {
+            Context.exit();
         }
     }
 
