@@ -34,8 +34,8 @@ function createApplication(path, options) {
     if (options.appengine) {
         var symlink = Boolean(options.symlink);
         copyTree(home, "apps/appengine", dest);
-        copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
         copyTree(home, "apps/skeleton", join(dest, "WEB-INF", "app"));
+        copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
         fixAppEngineDirs(dest);
         copyJars(home, dest, symlink);
     } else {
@@ -70,7 +70,7 @@ function copyTree(home, from, to, symlink) {
         throw new Error("Can't find directory " + source);
     }
     var msg = symlink ? "Linking" : "Copying";
-    shell.write(msg, from, "to", to, "... ");
+    shell.write(" +", msg, from, "to", to, "... ");
     if (symlink) {
         symbolicLink(source, to);
     } else {
@@ -98,7 +98,7 @@ function copyJars(home, dest, symlink) {
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");
     var msg = symlink ? "Linking" : "Copying";
-    shell.write(msg, "jar files to", libdest, "... ");
+    shell.write(" +", msg, "jar files to", libdest, "... ");
     for each (var jar in jars) {
         if (symlink) {
             symbolicLink(join(libsrc, jar), join(libdest, base(jar)));
