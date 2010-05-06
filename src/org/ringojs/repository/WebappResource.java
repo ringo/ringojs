@@ -20,7 +20,12 @@ public class WebappResource extends AbstractResource {
     }
 
     public long lastModified() {
-        return repository.lastModified();
+        try {
+            URL url = context.getResource(path);
+            return url == null ? 0 : url.openConnection().getLastModified();
+        } catch (Exception x) {
+            return 0;
+        }
     }
 
     public boolean exists() {

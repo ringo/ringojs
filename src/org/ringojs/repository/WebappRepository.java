@@ -10,7 +10,6 @@ public class WebappRepository extends AbstractRepository {
 
     ServletContext context;
 
-    long timestamp;
     private int exists = -1;
 
     public WebappRepository(ServletContext context, String path) {
@@ -23,7 +22,6 @@ public class WebappRepository extends AbstractRepository {
         }
         this.path = path;
         this.name = path;
-        this.timestamp = System.currentTimeMillis();
     }
 
     protected WebappRepository(ServletContext context, WebappRepository parent, String name) {
@@ -31,15 +29,19 @@ public class WebappRepository extends AbstractRepository {
         this.parent = parent;
         this.name = name;
         this.path = parent.path + name + "/";
-        this.timestamp = parent.timestamp;
     }
 
     public long getChecksum() {
-        return timestamp;
+        return lastModified();
     }
 
     public long lastModified() {
-        return timestamp;
+        try {
+            URL url = context.getResource(path);
+            return url == null ? 0 : url.openConnection().getLastModified();
+        } catch (Exception x) {
+            return 0;
+        }
     }
 
     public boolean exists() {
