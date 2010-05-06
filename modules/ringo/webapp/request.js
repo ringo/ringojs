@@ -9,45 +9,50 @@ export('Request', 'Session');
 module.shared = true;
 
 /**
- * A convenience wrapper around a JSGI env object.
- * @param env the JSGI env object
+ * Enhances a JSGI request object.
+ * @param request a JSGI 0.3 request object
  */
-function Request(req) {
+function Request(request) {
+
+    // check if req is already enhanced
+    if (request.hasOwnProperty("path")) {
+        return request;
+    }
 
     var params, cookies, session, headers;
-    var servletRequest = req.env.servlet_request;
+    var servletRequest = request.env.servlet_request;
 
     /**
      * The name of the encoding used for this request
      */
-    req.charset = servletRequest.getCharacterEncoding();
+    request.charset = servletRequest.getCharacterEncoding();
 
     /**
      * The request's content type, or undefined if not available.
      */
-    Object.defineProperty(req, "contentType", {value: req.headers["content-type"]});
+    Object.defineProperty(request, "contentType", {value: request.headers["content-type"]});
 
     /**
      * The request's content length, or undefined if not available.
      */
-    Object.defineProperty(req, "contentLength", {value: req.headers["content-length"]});
+    Object.defineProperty(request, "contentLength", {value: request.headers["content-length"]});
 
     /**
      * The full URI path of the request.
      */
-    Object.defineProperty(req, "path", {value: req.scriptName + req.pathInfo});
+    Object.defineProperty(request, "path", {value: request.scriptName + request.pathInfo});
 
     /**
      * The URL-decoded URI path.
      */
-    Object.defineProperty(req, "pathDecoded", {
+    Object.defineProperty(request, "pathDecoded", {
         get: function() { return decodeURI(this.path) }
     });
 
     /**
      * An object containing the parsed HTTP parameters sent with this request.
      */
-    Object.defineProperty(req, "params", {
+    Object.defineProperty(request, "params", {
         get: function() {
             if (!params) {
                 params = {};
@@ -68,7 +73,7 @@ function Request(req) {
     /**
      * An object containing the HTTP cookie values sent with this request
      */
-    Object.defineProperty(req, "cookies", {
+    Object.defineProperty(request, "cookies", {
         get: function() {
             if (!cookies) {
                 cookies = new ScriptableMap();
@@ -88,7 +93,7 @@ function Request(req) {
      * a new one will be created.
      * @see Session
      */
-    Object.defineProperty(req, "session", {
+    Object.defineProperty(request, "session", {
         get: function() {
             if (!session)
                 session = new Session(env);
@@ -100,16 +105,16 @@ function Request(req) {
      * Get a single request header value. If multiple headers exist for
      * the given name, only the first one is returned.
      */
-    Object.defineProperty(req, "getHeader", {
+    Object.defineProperty(request, "getHeader", {
         value: function getHeader(name) {
-            return req.headers[name.toLowerCase()];
+            return request.headers[name.toLowerCase()];
         }
     });
 
     /**
      * Get all header values for the given header name as an array.
      */
-    Object.defineProperty(req, "getHeaders", {
+    Object.defineProperty(request, "getHeaders", {
         value: function getHeaders(name) {
             var headers = [];
             var servletHeaders = servletRequest.getHeaders(name);
@@ -122,7 +127,7 @@ function Request(req) {
    /**
     * @ignore used internally by ringo/webapp
     */
-    Object.defineProperty(req, "appendToScriptName", {
+    Object.defineProperty(request, "appendToScriptName", {
         value: function appendToScriptName(fragment) {
             var path = this.pathInfo;
             var pos = path.indexOf(fragment);
@@ -139,7 +144,7 @@ function Request(req) {
     /**
      * @ignore used internally by ringo/webapp
      */
-    Object.defineProperty(req, "checkTrailingSlash", {
+    Object.defineProperty(request, "checkTrailingSlash", {
         value: function checkTrailingSlash() {
             // only redirect for GET requests
             if (!this.path.endsWith("/") && this.isGet) {
@@ -150,7 +155,7 @@ function Request(req) {
         }
     });
 
-    return req;
+    return request;
 }
 
 /**
