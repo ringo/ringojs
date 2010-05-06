@@ -201,10 +201,15 @@ function getConfig(configModuleName) {
 function main(path) {
     // parse command line options
     var cmd = system.args.shift();
-    var options = daemon.parseOptions(system.args, {
-        app: "app",
-        config: "config"
-    });
+    try {
+        var options = daemon.parseOptions(system.args, {
+            app: "app",
+            config: "config"
+        });
+    } catch (error) {
+        print(error);
+        require("ringo/shell").quit();
+    }
 
     if (options.help) {
         print("Usage:");

@@ -31,6 +31,13 @@ function parseOptions(arguments, defaults) {
     // parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
     parser.addOption("h", "help", null, "Print help message to stdout");
     options = parser.parse(arguments, defaults);
+    if (options.port && !isFinite(options.port)) {
+        var port = parseInt(options.port, 10);
+        if (isNaN(port) || port < 1) {
+            throw "Invalid value for port: " + options.port;
+        }
+        options.port = port;
+    }
     return options;
 }
 
