@@ -214,7 +214,7 @@ Object.defineProperty(String.prototype, "toCamelCase", {
             // foo-bar -> fooBar
             return l.toUpperCase();
         });
-    }
+    }, writable: true
 });
 
 
