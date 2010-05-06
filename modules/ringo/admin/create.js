@@ -3,7 +3,7 @@
  */
 
 require('core/string');
-var {join, Path, makeDirectory, move, copy, base} = require('fs');
+var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base} = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
 var Parser = require('ringo/args').Parser;
@@ -32,11 +32,12 @@ function createApplication(path, options) {
     var home = engine.properties["ringo.home"];
 
     if (options.appengine) {
+        var symlink = Boolean(options.symlink);
         copyTree(home, "apps/appengine", dest);
-        copyTree(home, "modules", join(dest, "WEB-INF", "modules"));
+        copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
         copyTree(home, "apps/skeleton", join(dest, "WEB-INF", "app"));
         fixAppEngineDirs(dest);
-        copyJars(home, dest);
+        copyJars(home, dest, symlink);
     } else {
         copyTree(home, "apps/skeleton", dest);
     }
@@ -63,14 +64,18 @@ function createPackage(path, options) {
     copyTree(home, "packages/namespace-skeleton", dest);
 }
 
-function copyTree(home, from, to) {
+function copyTree(home, from, to, symlink) {
     var source = new Path(home, from);
     if (!source.exists() || !source.isDirectory()) {
         throw new Error("Can't find directory " + source);
     }
-
-    shell.write("Copying files from " + from + " to "  + to + "... ");
-    source.copyTree(to);
+    var msg = symlink ? "Linking" : "Copying";
+    shell.write(msg, from, "to", to, "... ");
+    if (symlink) {
+        symbolicLink(source, to);
+    } else {
+        source.copyTree(to);
+    }
     print("done");
 }
 
@@ -78,10 +83,13 @@ function fixAppEngineDirs(dest) {
     var webinf = join(dest, "WEB-INF");
     makeDirectory(join(webinf, "classes"));
     makeDirectory(join(webinf, "packages"));
-    move(join(webinf, "app", "static"), join(dest, "static"));
+    var staticDir = join(webinf, "app", "static");
+    if (exists(staticDir)) {
+        move(staticDir, join(dest, "static"));
+    }
 }
 
-function copyJars(home, dest) {
+function copyJars(home, dest, symlink) {
     var jars = [
         "ringo.jar",
         "js.jar",
@@ -89,9 +97,16 @@ function copyJars(home, dest) {
     ];
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");
+    var msg = symlink ? "Linking" : "Copying";
+    shell.write(msg, "jar files to", libdest, "... ");
     for each (var jar in jars) {
-        copy(join(libsrc, jar), join(libdest, base(jar)));
+        if (symlink) {
+            symbolicLink(join(libsrc, jar), join(libdest, base(jar)));
+        } else {
+            copy(join(libsrc, jar), join(libdest, base(jar)));
+        }
     }
+    shell.writeln("done");
 }
 
 /**
@@ -102,6 +117,7 @@ function main(args) {
     var script = args.shift();
     var parser = new Parser();
     parser.addOption("a", "appengine", null, "Create a new Google App Engine application");
+    parser.addOption("s", "symlink", null, "Create symbolic links for jar and module files");
     parser.addOption("p", "package", null, "Create a new package");
     parser.addOption("h", "help", null, "Print help message and exit");
     var opts = parser.parse(args);
