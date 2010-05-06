@@ -53,7 +53,8 @@ public class JsgiRequest extends ScriptableObject {
         ScriptableObject.defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
         ScriptableObject.defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
         ScriptableObject.defineProperty(jsgi, "async", Boolean.TRUE, readonly);
-        ScriptableObject.defineProperty(jsgi, "run_once", Boolean.FALSE, readonly);
+        ScriptableObject.defineProperty(jsgi, "runOnce", Boolean.FALSE, readonly);
+        ScriptableObject.defineProperty(jsgi, "cgi", Boolean.FALSE, readonly);
     }
 
     /**
