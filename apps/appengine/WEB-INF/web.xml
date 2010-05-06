@@ -10,7 +10,7 @@
 		<servlet-class>org.ringojs.jsgi.JsgiServlet</servlet-class>
 		<init-param>
 			<param-name>ringoHome</param-name>
-			<param-value>WEB-INF</param-value>
+			<param-value>/WEB-INF</param-value>
 		</init-param>
 		<init-param>
 			<param-name>modulePath</param-name>
@@ -24,6 +24,7 @@
 			<param-name>functionName</param-name>
 			<param-value>app</param-value>
 		</init-param>
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet-mapping>
