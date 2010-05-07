@@ -1,6 +1,7 @@
 package org.ringojs.repository;
 
 import javax.servlet.ServletContext;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -15,14 +16,14 @@ public class WebappResource extends AbstractResource {
         this.context = context;
         this.repository = repository;
         this.name = name;
-        this.path = repository.getPath() + name;
+        this.path = repository.path + name;
         setBaseNameFromName(name);
     }
 
     public long lastModified() {
         try {
-            URL url = context.getResource(path);
-            return url == null ? 0 : url.openConnection().getLastModified();
+            String realPath = context.getRealPath(path);
+            return realPath == null ? 0 : new File(realPath).lastModified();
         } catch (Exception x) {
             return 0;
         }
@@ -55,7 +56,6 @@ public class WebappResource extends AbstractResource {
     public String toString() {
         return "WebappResource[" + path + "]";
     }
-
 
     @Override
     public int hashCode() {
