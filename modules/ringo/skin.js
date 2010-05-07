@@ -1,4 +1,3 @@
-
 require('core/string');
 require('core/object');
 var engine = require('ringo/engine');
@@ -39,6 +38,22 @@ function render(skinOrResource, context) {
 }
 
 /**
+ * Resolve a skin path (given as string) against a base (which can be either a
+ * resource or a name as string).
+ */
+function resolveSkin(base, skinPath) {
+    var skinResource;
+    var parentRepo = base.parentRepository;
+    if (parentRepo && skinPath.startsWith(".")) {
+        skinResource = parentRepo.getResource(skinPath);
+    }
+    if (!skinResource || !skinResource.exists()) {
+        skinResource = getResource(skinPath);
+    }
+    return skinResource;
+}
+
+/**
  * Parse a skin from a resource.
  * @param resourceOrString the skin resource or string
  */
@@ -61,14 +76,7 @@ function createSkin(resourceOrString) {
             eng.wrapArgument(macro, global);
             if (macro.name === 'extends') {
                 var skinPath = macro.getParameter(0);
-                var skinResource;
-                var parentRepo = resourceOrString.parentRepository;
-                if (parentRepo && skinPath.startsWith(".")) {
-                    skinResource = parentRepo.getResource(skinPath);
-                }
-                if (!skinResource || !skinResource.exists()) {
-                    skinResource = getResource(skinPath);
-                }
+                var skinResource = resolveSkin(resourceOrString, skinPath);
                 parentSkin = createSkin(skinResource);
             } else if (macro.name === 'subskin')  {
                 var skinName = macro.getParameter('name', 0);
@@ -87,7 +95,7 @@ function createSkin(resourceOrString) {
     if (typeof(lastPart) === 'string' && lastPart.trim() === '') {
         mainSkin.pop();
     }
-    var skin = new Skin(mainSkin, subSkins, parentSkin);
+    var skin = new Skin(mainSkin, subSkins, parentSkin, resourceOrString);
     if (skincache)
         skincache[resourceOrString] = skin;
     return skin;
@@ -99,7 +107,7 @@ function createSkin(resourceOrString) {
  * @param mainSkin an array of skin parts: string literals and macro tags
  * @param subSkins a dictionary of named skin components
  */
-function Skin(mainSkin, subSkins, parentSkin) {
+function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
 
     var self = this;
 
@@ -110,26 +118,37 @@ function Skin(mainSkin, subSkins, parentSkin) {
         context = webenv.loadMacros(context);
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
-        } else {
-            return renderInternal(mainSkin, context);
         }
+        return renderInternal(mainSkin, context);
     };
 
     this.renderSubskin = function renderSubskin(skinName, context) {
-        if (!subSkins[skinName] && parentSkin) {
-            // TODO: should we support loading of external top level skins here?
-            return renderInternal(parentSkin.getSkinParts(skinName), context);
-        } else {
-            return renderInternal(subSkins[skinName], context);
+        var subSkin = subSkins[skinName];
+        if (!subSkin) {
+            // First, try to find subskin in parent skins.
+            var parts = parentSkin && parentSkin.getSkinParts(skinName);
+            if (parts) {
+                return renderInternal(parts, context);
+            }
+            // If that fails, try to load the subskin as external skin.
+            var skinResource = resolveSkin(resourceOrString, skinName);
+            if (skinResource && skinResource.exists()) {
+                subSkin = subSkins[skinName] = createSkin(skinResource);
+            }
+            // We still might have no subskin here. That's fine, as
+            // renderInternal can cope.
         }
+        if (subSkin instanceof Skin) {
+            return subSkin.render(context);
+        }
+        return renderInternal(subSkin, context);
     };
 
     this.getSubskin = function getSubskin(skinName) {
         if (subSkins[skinName]) {
             return new Skin(subSkins[skinName], subSkins, parentSkin);
-        } else {
-            return null;
         }
+        return null;
     };
 
     this.getSkinParts = function getSkinParts(skinName) {
@@ -142,14 +161,16 @@ function Skin(mainSkin, subSkins, parentSkin) {
 
     function renderInternal(parts, context) {
         var value = [renderPart(part, context) for each (part in parts)].join('');
-        if (parts && parts.subskinFilter)
+        if (parts && parts.subskinFilter) {
             return evaluateFilter(value, parts.subskinFilter, context);
+        }
         return value;
     }
 
     function renderPart(part, context) {
-        return part instanceof MacroTag && part.name ?
-                evaluateMacro(part, context) : part;
+        return part instanceof MacroTag && part.name
+                ? evaluateMacro(part, context)
+                : part;
     }
 
     function evaluateMacro(macro, context) {
@@ -199,9 +220,8 @@ function Skin(mainSkin, subSkins, parentSkin) {
             } else if (value === undefined && isDefined(elem[last])) {
                 if (elem[last] instanceof Function) {
                     return elem[last].call(elem, macro, context, self);
-                } else {
-                    return elem[last];
                 }
+                return elem[last];
             }
         }
         // TODO: if filter is not found just return value as is
