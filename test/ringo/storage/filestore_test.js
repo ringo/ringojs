@@ -4,7 +4,7 @@ var fs = require('fs');
 var {Store} = require('ringo/storage/filestore');
 var dbPath = fs.join(system.prefix, 'test', 'testdb');
 var store = new Store(dbPath);
-var personId, person, Person = store.defineClass('Person');
+var personId, person, Person = store.defineEntity('Person');
 
 exports.setUp = exports.tearDown = function () {
     if (fs.isDirectory(dbPath)) {

@@ -3,7 +3,7 @@ require('core/string');
 var {addHostObject} = require('ringo/engine');
 var {bindArguments} = require('ringo/functional');
 
-export('defineClass', 'beginTransaction', 'getTransaction', 'commitTransaction', 'abortTransaction');
+export('defineEntity', 'beginTransaction', 'getTransaction', 'commitTransaction', 'abortTransaction');
 
 importPackage(com.google.appengine.api.datastore);
 addHostObject(org.ringojs.wrappers.Storable);
@@ -27,10 +27,10 @@ var LESS_THAN_OR_EQUAL =    Query.FilterOperator.LESS_THAN_OR_EQUAL;
 var ASCENDING =             Query.SortDirection.ASCENDING;
 var DESCENDING =            Query.SortDirection.DESCENDING;
 
-function defineClass(type) {
+function defineEntity(type) {
     var ctor = registry[type];
     if (!ctor) {
-        ctor = registry[type] = Storable.defineClass(self, type);
+        ctor = registry[type] = Storable.defineEntity(self, type);
         ctor.all = bindArguments(all, type);
         ctor.get = bindArguments(get, type);
         ctor.query = bindArguments(query, type);

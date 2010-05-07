@@ -2,7 +2,7 @@ include('ringo/unittest');
 include('./testconsts');
 var {Store} = require('ringo/storage/memstore');
 var store = new Store();
-var personId, person, Person = store.defineClass('Person');
+var personId, person, Person = store.defineEntity('Person');
 
 exports.setUp = exports.tearDown = function () {
     for each (let instance in Person.all()) {

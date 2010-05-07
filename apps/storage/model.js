@@ -9,7 +9,7 @@ module.shared = true;
  * Book class
  * @param properties object containing persistent properties
  */
-var Book = store.defineClass('Book');
+var Book = store.defineEntity('Book');
 
 Book.prototype.getFullTitle = function() {
     return this.author.name + ": " + this.title;
@@ -19,5 +19,5 @@ Book.prototype.getFullTitle = function() {
  * Author class
  * @param properties object containing persistent properties
  */
-var Author = store.defineClass('Author');
+var Author = store.defineEntity('Author');
 

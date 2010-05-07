@@ -85,7 +85,7 @@ public class Storable extends ScriptableObject {
     }
 
     @JSStaticFunction
-    public static Scriptable defineClass(Scriptable store, String type, Object mapping)
+    public static Scriptable defineEntity(Scriptable store, String type, Object mapping)
             throws NoSuchMethodException {
         int attr = DONTENUM | PERMANENT | READONLY;
         Scriptable scope = ScriptRuntime.getTopCallScope(Context.getCurrentContext());

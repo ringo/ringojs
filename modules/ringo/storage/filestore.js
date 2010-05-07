@@ -38,10 +38,10 @@ function Store(path) {
         equalKeys: equalKeys
     };
 
-    this.defineClass = function(type) {
+    this.defineEntity = function(type) {
         var ctor = registry[type];
         if (!ctor) {
-            ctor = registry[type] = Storable.defineClass(proxy, type);
+            ctor = registry[type] = Storable.defineEntity(proxy, type);
             ctor.all = bindArguments(all, type);
             ctor.get = bindArguments(get, type);
             ctor.query = bindArguments(query, type);
