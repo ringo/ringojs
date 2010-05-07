@@ -1,7 +1,7 @@
 
 require('core/string');
-include('ringo/engine');
-include('ringo/functional');
+var {addHostObject} = require('ringo/engine');
+var {bindArguments} = require('ringo/functional');
 
 export('defineClass', 'beginTransaction', 'getTransaction', 'commitTransaction', 'abortTransaction');
 
@@ -23,6 +23,9 @@ var GREATER_THAN =          Query.FilterOperator.GREATER_THAN;
 var GREATER_THAN_OR_EQUAL = Query.FilterOperator.GREATER_THAN_OR_EQUAL;
 var LESS_THAN =             Query.FilterOperator.LESS_THAN;
 var LESS_THAN_OR_EQUAL =    Query.FilterOperator.LESS_THAN_OR_EQUAL;
+
+var ASCENDING =             Query.SortDirection.ASCENDING;
+var DESCENDING =            Query.SortDirection.DESCENDING;
 
 function defineClass(type) {
     var ctor = registry[type];
@@ -65,7 +68,8 @@ function create(type, key, entity) {
 function evaluateQuery(query, property, options) {
     var result = [];
     var type = query.getKind();
-    var i = (options ? datastore.prepare(query).asIterator(options) : datastore.prepare(query).asIterator());
+    var prepared = datastore.prepare(query);
+    var i = options ? prepared.asIterator(options) : prepared.asIterator();
     while (i.hasNext()) {
         var entity = i.next();
         var s = create(type, entity.getKey(), entity);
@@ -75,72 +79,54 @@ function evaluateQuery(query, property, options) {
 }
 
 function BaseQuery(type) {
+    var query = new Query(type);
+    var options;
+
     this.select = function(property) {
-        return evaluateQuery(this.getQuery(), property, this.getFetchOptions());
+        return evaluateQuery(query, property, options);
     };
-    this.getQuery = function() {
-        return new Query(type);
+
+    this.equals = function(property, value) {
+        query.addFilter(property, EQUAL, value);
+        return this;
     };
-    this.getFetchOptions = function() {
-        return null;
+
+    this.greater = function(property, value) {
+        query.addFilter(property, GREATER_THAN, value);
+        return this;
+    };
+
+    this.greaterEquals = function(property, value) {
+        query.addFilter(property, GREATER_THAN_OR_EQUAL, value);
+        return this;
+    };
+
+    this.less = function(property, value) {
+        query.addFilter(property, LESS_THAN, value);
+        return this;
+    };
+
+    this.lessEquals = function(property, value) {
+        query.addFilter(property, LESS_THAN_OR_EQUAL, value);
+        return this;
+    };
+
+    this.orderBy = function(value, direction) {
+        direction = /desc/i.test(direction) ? DESCENDING : ASCENDING;
+        query.addSort(value, direction);
+        return this;
+    };
+
+    this.limit = function(value) {
+        options = options ? options.limit(value) : FetchOptions.Builder.withLimit(value);
+        return this;
+    };
+
+    this.offset = function(value) {
+        options = options ? options.offset(value) : FetchOptions.Builder.withOffset(value);
+        return this;
     };
 }
-
-function OperatorQuery(parentQuery, operator, property, value) {
-    var query = parentQuery.getQuery();
-    parentQuery.getQuery = function() {
-        return query.addFilter(property, operator, value);
-    };
-    return parentQuery;
-}
-
-BaseQuery.prototype.orderBy = function(value, direction) {
-    var query = this.getQuery();
-    this.getQuery = function() {
-        var desc = (typeof direction !== 'undefined' && !!direction.match(/^DESC/i));
-        return query.addSort(value, (desc ? Query.SortDirection.DESCENDING : Query.SortDirection.ASCENDING));
-    };
-    return this;
-};
-
-BaseQuery.prototype.limit = function(value) {
-    var opts = this.getFetchOptions();
-    this.getFetchOptions = function() {
-        return (opts ? opts.limit(value) : FetchOptions.Builder.withLimit(value));
-    };
-    return this;
-};
-
-BaseQuery.prototype.offset = function(value) {
-    var opts = this.getFetchOptions();
-    this.getFetchOptions = function() {
-        return (opts ? opts.offset(value) : FetchOptions.Builder.withOffset(value));
-    };
-    return this;
-};
-
-BaseQuery.prototype.equals = function(property, value) {
-    return new OperatorQuery(this, EQUAL, property, value);
-};
-
-BaseQuery.prototype.greater = function(property, value) {
-    return new OperatorQuery(this, GREATER_THAN, property, value);
-};
-
-BaseQuery.prototype.greaterEquals = function(property, value) {
-    return new OperatorQuery(this, GREATER_THAN_OR_EQUAL, property, value);
-};
-
-BaseQuery.prototype.less = function(property, value) {
-    return new OperatorQuery(this, LESS_THAN, property, value);
-};
-
-BaseQuery.prototype.lessEquals = function(property, value) {
-    return new OperatorQuery(this, LESS_THAN_OR_EQUAL, property, value);
-};
-
-BaseQuery.prototype.clone(OperatorQuery.prototype);
-
 
 function all(type) {
     return evaluateQuery(new Query(type));
