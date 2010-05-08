@@ -28,8 +28,8 @@ function installPackage(url, options) {
     }
     url = new java.net.URL(url);
     var temp = futils.createTempFile("ringo-install", ".zip");
-    print("Downloading " + url);
     try {
+        print("Downloading " + url);
         var out = fs.openRaw(temp, {write: true});
         new Stream(url.openStream()).copy(out).close();
         out.close();
@@ -48,7 +48,10 @@ function installPackage(url, options) {
                 || fail("package.json does not contain a package name");
         var dir = fs.join(packages, name);
         if (fs.exists(dir)) {
-            throw new Error("Package already installed: " + dir);
+            if (!options.force)
+                throw new Error("Package already installed: " + dir);
+            print("Removing currently installed version of package " + name);
+            fs.removeTree(dir);
         }
         print("Installing package " + name);
         for each (var entry in zip.entries) {
@@ -99,6 +102,7 @@ function main(args) {
     var parser = new Parser();
     parser.addOption("p", "packages", "DIR", "Packages directory to install into");
     parser.addOption("h", "help", null, "Print help message and exit");
+    parser.addOption("f", "force", null, "Force install, even if package already exists");
     var opts = parser.parse(args);
     if (opts.help) {
         print("Creates a new RingoJS application");
