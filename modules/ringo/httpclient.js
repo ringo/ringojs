@@ -10,10 +10,7 @@ var {getMimeParameter} = require('ringo/webapp/util');
 var base64 = require('ringo/base64');
 var log = require('ringo/logging').getLogger(module.id);
 
-export('request',
-       'post',
-       'get',
-       'Client');
+export('request', 'post', 'get', 'del', 'put', 'Client');
 
 module.shared = true;
 
@@ -452,6 +449,44 @@ var Client = function(timeout) {
     };
     
     /**
+     * @param {String} url the url to request
+     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Function} success callback in case of successful status code, optional
+     * @param {Function} error callback in case of any error - transmission or response, optional
+     */
+    this.del = function(url, data, success, error) {
+        if (arguments.length < 4) {
+            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+        }
+        return this.request({
+            'method': 'DELETE',
+            'url': url,
+            'data': data,
+            'success': success,
+            'error': error
+        });
+    };
+    
+    /**
+     * @param {String} url the url to request
+     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Function} success callback in case of successful status code, optional
+     * @param {Function} error callback in case of any error - transmission or response, optional
+     */
+    this.put = function(url, data, success, error) {
+        if (arguments.length < 4) {
+            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+        }
+        return this.request({
+            'method': 'PUT',
+            'url': url,
+            'data': data,
+            'success': success,
+            'error': error
+        });
+    };
+    
+    /**
      * Do a generic request.
      * @param {Object} options
      */
@@ -498,35 +533,16 @@ var Client = function(timeout) {
     return this;
 };
 
+// avoid reinstantiating default client if module is reevaluated.
+var defaultClient = defaultClient || new Client();
+
 /**
  * @param {Object} options
  */
-var request = function(options) {
-    return defaultClient.request(options);
-}
+var request = defaultClient.request;
+var post = defaultClient.post;
+var get = defaultClient.get;
+var del = defaultClient.del;
+var put = defaultClient.put;
 
-/**
- *
- */
-var post = function(url, data, success, error) {
-    if (arguments.length < 4) {
-        var {url, data, sucess, error} = extractOptionalArguments(arguments);
-    }
-    return defaultClient.post(url, data, success, error);
-}
 
-/**
- * @param {String} url
- * @param {Object|String|java.io.InputStream} data, optional
- * @param {Function} success callback in case of successfull status code, optional
- * @param {Function} error callback in case of any error - transmission or response, optional
- */
-var get = function(url, data, success, error) {
-    if (arguments.length < 4) {
-        var {url, data, success, error} = extractOptionalArguments(arguments);
-    }
-    return defaultClient.get(url, data, success, error);
-}
-
-// avoid reinstantiating default client if module is reevaluated.
-var defaultClient = defaultClient || new Client();

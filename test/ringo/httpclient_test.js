@@ -1,5 +1,5 @@
 include('ringo/unittest');
-var {Client, request, post, get} = require('ringo/httpclient');
+var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var Server = require('ringo/httpserver').Server;
 
 var server;
@@ -74,19 +74,14 @@ exports.testBasic = function() {
  */
 exports.testConvenience = function() {
     getResponse = function(req) {
-        if (req.isPost) {
-            return new Response('post');
-        } else if (req.isGet) {
-            if (req.params.foo) {
-                return new Response ('get with param');
-            }
-            return new Response('get');
+        if (req.isGet && req.params.foo) {
+            return new Response ('get with param');
         }
-    }
-    
+        return new Response(req.method);
+    };    
     post('http://127.0.0.1:8080/', function(data, status) {
         assertEqual(200, status);
-        assertEqual('post', data);
+        assertEqual('POST', data);
     });
     
     get('http://127.0.0.1:8080/', {'foo': 'bar'}, function(data, status) {
@@ -94,14 +89,15 @@ exports.testConvenience = function() {
         assertEqual('get with param', data);
     });
     
-    get('http://127.0.0.1:8080/', function(data, status) {
-            assertEqual(200, status);
-            assertEqual('get', data);
-        }, function() {
-            assertTrue(false);
-        }
-    );
+    del('http://127.0.0.1:8080/', function(data, status) {
+        assertEqual(200, status);
+        assertEqual('DELETE', data);
+    });
     
+    put('http://127.0.0.1:8080/', function(data, status) {
+        assertEqual(200, status);
+        assertEqual('PUT', data);
+    }); 
     
     
 };
