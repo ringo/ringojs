@@ -7,6 +7,7 @@ importPackage(org.eclipse.jetty.client);
 include('core/object');
 var {Buffer} = require('ringo/buffer');
 var {getMimeParameter} = require('ringo/webapp/util');
+var base64 = require('ringo/base64');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('request',
@@ -294,7 +295,7 @@ var Exchange = function(url, options, callbacks) {
     exchange.setMethod(opts.method);
     
     if (opts.username && opts.password) {
-        var authKey = (opts.username + ':' + opts.password).enbase64();
+        var authKey = base64.encode(opts.username + ':' + opts.password);
         var authHeaderValue = "Basic " + authKey;
         exchange.addRequestHeader("Authorization", authHeaderValue);
     }
