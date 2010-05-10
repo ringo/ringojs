@@ -376,66 +376,126 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  */
 
 /**
+ * Returns a byte for byte copy of this immutable ByteString as a mutable
+ * ByteArray.
  * @name ByteString.prototype.toByteArray
  * @function
  */
 
 /**
+ * Returns this ByteString itself.
  * @name ByteString.prototype.toByteString
  * @function
  */
 
 /**
+ * Returns an array containing the bytes as numbers.
  * @name ByteString.prototype.toArray
  * @function
  */
 
 /**
+ * Returns a debug representation such as `"[ByteSTring 10]"` where 10 is the
+ * length of this ByteString.
  * @name ByteString.prototype.toString
  * @function
  */
 
 /**
+ * Returns this ByteString as string, decoded using the given charset.
  * @name ByteString.prototype.decodeToString
+ * @param {String} charset the name of the string encoding
  * @function
  */
 
 /**
+ * Returns the index of the first occurrence of sequence (a Number or a
+ * ByteString or ByteArray of any length), or -1 if none was found. If start
+ * and/or stop are specified, only elements between the indexes start and stop
+ * are searched.
+ * @param {Number|Binary} sequence the number or binary to look for
+ * @param {Number} start optional index position at which to start searching
+ * @param {Number} stop optional index position at which to stop searching
+ * @returns {Number} the index of the first occurrence of sequence, or -1
  * @name ByteString.prototype.indexOf
  * @function
  */
 
 /**
+ * Returns the index of the last occurrence of sequence (a Number or a
+ * ByteString or ByteArray of any length) or -1 if none was found. If start
+ * and/or stop are specified, only elements between the indexes start and stop
+ * are searched.
+ * @param {Number|Binary} sequence the number or binary to look for
+ * @param {Number} start optional index position at which to start searching
+ * @param {Number} stop optional index position at which to stop searching
+ * @returns {Number} the index of the last occurrence of sequence, or -1
  * @name ByteString.prototype.lastIndexOf
  * @function
  */
 
 /**
+ * Returns the byte at the given offset.
  * @name ByteString.prototype.byteAt
+ * @param {Number} offset
+ * @returns {Number}
  * @function
  */
 
 /**
+ * Returns the byte at the given offset as a ByteString. `get(offset)` is
+ * analogous to indexing with brackets (`[offset]`).
  * @name ByteString.prototype.get
+ * @param {Number} offset
+ * @returns {ByteString}
  * @function
  */
 
 /**
+ * Copy a range of bytes between start and stop from this ByteString to a
+ * target ByteArray at the given targetStart offset.
+ * @param {Number} start
+ * @param {Number} end
+ * @param {ByteArray} target
+ * @param {Number} targetStart
  * @name ByteString.prototype.copy
  * @function
  */
 
 /**
+ * Split at delimiter, which can by a Number, a ByteString, a ByteArray or an
+ * Array of the prior (containing multiple delimiters, i.e., "split at any of
+ * these delimiters"). Delimiters can have arbitrary size.
+ * @param {Number|Binary} delimiter one or more delimiter items
+ * @param {Object} options optional object parameter with the following
+ *        optional properties: <ul>
+ *        <li>count - Maximum number of elements (ignoring delimiters) to
+ *        return. The last returned element may contain delimiters.</li>
+ *        <li>includeDelimiter - Whether the delimiter should be included in
+ *        the result.</li></ul>
  * @name ByteString.prototype.split
  * @function
  */
 
 /**
+ * Returns a new ByteString containing a portion of this ByteString.
+ * @param {Number} begin Zero-based index at which to begin extraction.
+ *        As a negative index, begin indicates an offset from the end of the
+ *        sequence.
+ * @param {Number} end Zero-based index at which to end extraction. slice
+ *        extracts up to but not including end. As a negative index, end
+ *        indicates an offset from the end of the sequence. If end is omitted,
+ *        slice extracts to the end of the sequence.
+ * @returns {ByteString} a new ByteString
  * @name ByteString.prototype.slice
  * @function
  */
 
 /**
+ * Returns a ByteString composed of itself concatenated with the given
+ * ByteString, ByteArray, and Array values.
+ * @param {Binary|Array} arg... one or more elements to concatenate
+ * @returns {ByteString} a new ByteString
  * @name ByteString.prototype.concat
  * @function
  */
