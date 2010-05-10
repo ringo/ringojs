@@ -374,3 +374,68 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @function
  * @since 0.5
  */
+
+/**
+ * @name ByteString.prototype.toByteArray
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.toByteString
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.toArray
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.toString
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.decodeToString
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.indexOf
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.lastIndexOf
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.byteAt
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.get
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.copy
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.split
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.slice
+ * @function
+ */
+
+/**
+ * @name ByteString.prototype.concat
+ * @function
+ */
