@@ -24,9 +24,9 @@ case "$1" in
             adduser --system --home /usr/share/ringojs --no-create-home \
             --group --disabled-password --shell /bin/false ringojs
         fi
-	chown -R ringojs:adm /var/lib/ringojs
-	chown -R ringojs:adm /var/log/ringojs
-	chmod 750 /var/log/ringojs
+        chown -R ringojs:adm /var/lib/ringojs
+        chown -R ringojs:adm /var/log/ringojs
+        chmod 750 /var/log/ringojs
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
@@ -44,5 +44,3 @@ esac
 #DEBHELPER#
 
 exit 0
-
-
