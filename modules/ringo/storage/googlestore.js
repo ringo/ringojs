@@ -137,11 +137,11 @@ function query(type) {
 }
 
 function get(type, id) {
-	var key = KeyFactory.createKey(rootKey, type, id);
-	if (!isKey(key)) {
-		throw Error("Storable.get() called with non-key argument");
-	}
-	return create(key.getKind(), key, datastore.get(getTransaction(), key));
+    var key = KeyFactory.createKey(rootKey, type, id);
+    if (!isKey(key)) {
+        throw Error("Storable.get() called with non-key argument");
+    }
+    return create(key.getKind(), key, datastore.get(getTransaction(), key));
 }
 
 function save(props, entity, entities) {
@@ -172,7 +172,7 @@ function save(props, entity, entities) {
             value = list;
         } else if (typeof value === 'string' && value.length > 500) {
             // maximal length for ordinary strings is 500 chars in datastore
-            value = new Text(value); 
+            value = new Text(value);
         } else if (value instanceof Date) {
             value = new java.util.Date(value.getTime());
         }
