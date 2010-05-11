@@ -156,7 +156,7 @@ function parseFileUpload(env, params, encoding, streamFactory) {
 
 function memoryStreamFactory(data, encoding) {
     var isFile = data.filename != null;
-    var stream = new MemoryStream(0);
+    var stream = new MemoryStream();
     var close = stream.close;
     // overwrite stream.close to set the part's content in data
     stream.close = function() {

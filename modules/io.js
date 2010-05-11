@@ -57,7 +57,7 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
 
     var buffer, length;
     if (!bufferOrCapacity) {
-        buffer = new ByteArray(1024);
+        buffer = new ByteArray(0);
         length = 0;
     } else if (bufferOrCapacity instanceof Binary) {
         buffer = bufferOrCapacity;
@@ -180,7 +180,7 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
      */
     Object.defineProperty(stream, "content", {
         get: function() {
-            return ByteString.wrap(buffer.slice(0, position));
+            return buffer;
         }
     });
 
