@@ -4,12 +4,18 @@ require('core/array');
 include('binary');
 include('./util');
 include('./parameters');
+var {createTempFile} = require('ringo/fileutils');
+var {open} = require('fs');
+var {MemoryStream} = require('io');
 
-export('isFileUpload', 'parseFileUpload');
+module.shared = true;
+
+export('isFileUpload', 'parseFileUpload', 'memoryStreamFactory', 'tempFileStreamFactory');
 
 var log = require('ringo/logging').getLogger(module.id);
 
 var HYPHEN  = "-".charCodeAt(0);
+var CR = "\r".charCodeAt(0);
 var CRLF = new ByteString("\r\n", "ASCII");
 var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 
@@ -25,14 +31,15 @@ function isFileUpload(contentType) {
 
 
 /**
- * Rough but working first draft of file upload support.
- * Everything's done in memory so beware of large files.
+ * Parses a multipart MIME input stream.
  * @param env the JSGI env object
  * @param params the parameter object to parse into
  * @param encoding the encoding to apply to non-file parameters
+ * @param streamFactory factory function to create streams for mime parts
  */
-function parseFileUpload(env, params, encoding) {
+function parseFileUpload(env, params, encoding, streamFactory) {
     encoding = encoding || "UTF-8";
+    streamFactory = streamFactory || memoryStreamFactory;
     var boundary = getMimeParameter(env.CONTENT_TYPE, "boundary");
     if (!boundary) {
         return;
@@ -40,37 +47,49 @@ function parseFileUpload(env, params, encoding) {
     boundary = new ByteArray("--" + boundary, "ASCII");
     var input = env["jsgi.input"];
     var buflen = 8192;
-    var refillThreshold = 6144;
-    var buffer = new ByteArray(buflen);
-    var data;
+    var buffer = new ByteArray(buflen); // input buffer
+    var data;  // data object for current mime part properties
+    var stream; // stream to write current mime part to
     var eof = false;
     // the central variables for managing the buffer:
     // current position and end of read bytes
-    var position = 0, end = 0;
+    var position = 0, limit = 0;
 
-    var refill = function() {
-        if (position < end) {
-            buffer.copy(position, end, buffer, 0);
-            end -= position;
-            position = 0;
-        } else {
-            position = end = 0;
+    var refill = function(waitForMore) {
+        if (position > 0) {
+            // "compact" buffer
+            if (position < limit) {
+                buffer.copy(position, limit, buffer, 0);
+                limit -= position;
+                position = 0;
+            } else {
+                position = limit = 0;
+            }
         }
-        // read into buffer starting at index end
-        var read = input.readInto(buffer, end);
-        if (read > -1) {
-            end += read;
-        } else {
-            eof = true;
-        }
-        return read;
+        // read into buffer starting at limit
+        var totalRead = 0;
+        do {
+            var read = input.readInto(buffer, limit, buffer.length);
+            if (read > -1) {
+                totalRead += read;
+                limit += read;
+            } else {
+                eof = true;
+            }
+        } while (waitForMore && !eof && limit < buffer.length);
+        return totalRead;
     };
-    refill();
-    var boundaryPos = buffer.indexOf(boundary, position, end);
 
-    while (!eof) {
+    refill();
+
+    while (position < limit) {
         if (!data) {
+            var boundaryPos = buffer.indexOf(boundary, position, limit);
             if (boundaryPos < 0) {
+                if (!eof && limit < buffer.length) {
+                    refill(true);
+                    continue;
+                }
                 throw new Error("boundary not found in multipart stream");
             }
             // move position past boundary to beginning of multipart headers
@@ -79,11 +98,11 @@ function parseFileUpload(env, params, encoding) {
                 // reached final boundary
                 break;
             }
-            var b = buffer.indexOf(EMPTY_LINE, position, end);
+            var b = buffer.indexOf(EMPTY_LINE, position, limit);
             if (b < 0) {
                 throw new Error("could not parse headers");
             }
-            data = {value: new ByteArray(0)};
+            data = {};
             var headers = [];
             buffer.slice(position, b).split(CRLF).forEach(function(line) {
                 line = line.decodeToString(encoding);
@@ -104,31 +123,59 @@ function parseFileUpload(env, params, encoding) {
             }
             // move position after the empty line that separates headers from body
             position = b + EMPTY_LINE.length;
+            // create stream for mime part
+            stream = streamFactory(data, encoding);
         }
-        boundaryPos = buffer.indexOf(boundary, position, end);
+        boundaryPos = buffer.indexOf(boundary, position, limit);
         if (boundaryPos < 0) {
             // no terminating boundary found, slurp bytes and check for
-            // partial boundary at buffer end which we know starts with "--".
-            var hyphen = buffer.indexOf(HYPHEN, Math.max(position, end - boundary.length), end);
-            var copyEnd =  (hyphen < 0) ? end : hyphen;
-            buffer.copy(position, copyEnd, data.value, data.value.length);
-            position = copyEnd;
+            // partial boundary at buffer end which we know starts with "\r\n--"
+            // but we just check for \r to keep it simple.
+            var cr = buffer.indexOf(CR, Math.max(position, limit - boundary.length - 2), limit);
+            var end =  (cr < 0) ? limit : cr;
+            stream.write(buffer, position, end);
+            // stream.flush();
+            position = end;
             if (!eof) {
                 refill();
             }
         } else {
             // found terminating boundary, complete data and merge into parameters
-            buffer.copy(position, boundaryPos - CRLF.length, data.value, data.value.length);
+            stream.write(buffer, position, boundaryPos - 2);
+            stream.close();
             position = boundaryPos;
-            if (data.filename) {
-                mergeParameter(params, data.name, data);
+            if (typeof data.value === "string") {
+                mergeParameter(params, data.name, data.value);
             } else {
-                mergeParameter(params, data.name, data.value.decodeToString(encoding));
+                mergeParameter(params, data.name, data);
             }
-            data = null;
-            if (position > refillThreshold && !eof) {
-                refill();
-            }
+            data = stream = null;
         }
     }
+}
+
+function memoryStreamFactory(data, encoding) {
+    var isFile = data.filename != null;
+    var stream = new MemoryStream(0);
+    var close = stream.close;
+    // overwrite stream.close to set the part's content in data
+    stream.close = function() {
+        close.apply(stream);
+        // set value property to binary for file uploads, string for form data
+        if (isFile) {
+            data.value = stream.content;
+        } else {
+            data.value = stream.content.decodeToString(encoding);
+        }
+    };
+    return stream;
+}
+
+function tempFileStreamFactory(data, encoding) {
+    if (data.filename == null) {
+        // use in-memory streams for form data
+        return memoryStreamFactory(data, encoding)
+    }
+    data.tempfile = createTempFile("ringo-upload-");
+    return open(data.tempfile, {write: true, binary: true});
 }
