@@ -7,10 +7,12 @@
 var ByteArray = require("binary").ByteArray;
 
 defineClass(org.ringojs.wrappers.Stream);
+
 /**
  * @constructor
  */
 exports.Stream = Stream;
+
 /** @ignore Narwhal compatibility */
 exports.IO = Stream;
 
@@ -43,14 +45,14 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 
     if (io.readable()) {
         reader = charset == undefined ?
-                 new InputStreamReader(io.inputStream) : 
+                 new InputStreamReader(io.inputStream) :
                  new InputStreamReader(io.inputStream, charset);
         reader = new BufferedReader(reader, buflen || 8192);
     }
 
     if (io.writable()) {
         writer = charset == undefined ?
-                 new OutputStreamWriter(io.outputStream):
+                 new OutputStreamWriter(io.outputStream) :
                  new OutputStreamWriter(io.outputStream, charset);
         writer = new BufferedWriter(writer, buflen || 8192);
     }
@@ -206,7 +208,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
  */
 
 /**
- * Get the Java input or output stream instance wrapped by this Stream. 
+ * Get the Java input or output stream instance wrapped by this Stream.
  * @name Stream.prototype.unwrap
  * @function
  */
