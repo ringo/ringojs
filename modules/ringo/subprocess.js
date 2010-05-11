@@ -5,6 +5,15 @@ function createProcess(args) {
     return java.lang.Runtime.getRuntime().exec(command);
 }
 
+function connect(process, output, errput) {
+    spawn(function() {
+        new TextStream(new Stream(process.inputStream)).copy(output);
+    }).get();
+    spawn(function() {
+        new TextStream(new Stream(process.errorStream)).copy(errput);
+    }).get();
+}
+
 /**
  * executes a given command and returns the
  * standard output.  If the exit status is non-zero,
@@ -14,12 +23,14 @@ function createProcess(args) {
  */
 exports.command = function() {
     var process = createProcess(arguments);
+    var output = new TextStream(new MemoryStream());
+    var error = new TextStream(new MemoryStream());
+    connect(process, output, error);
     var status = process.waitFor();
     if (status != 0) {
-        var error = new TextStream(new Stream(process.getErrorStream())).read();
-        throw new Error("(" + status + ") " + error);
+        throw new Error("(" + status + ") " + error.content);
     }
-    return new TextStream(new Stream(process.getInputStream())).read();
+    return output.content;
 };
 
 /**
@@ -30,13 +41,10 @@ exports.command = function() {
  */
 exports.system = function() {
     var process = createProcess(arguments);
-    try {
-        return process.waitFor();
-    } finally {
-        new TextStream(new Stream(process.getInputStream())).copy(system.stdout);
-        new TextStream(new Stream(process.getErrorStream())).copy(system.stderr);
-    }
+    connect(process, system.stdout, system.stderr);
+    return process.waitFor();
 };
+
 /**
  * executes a given command quietly and returns
  * the exit status.
@@ -45,7 +53,19 @@ exports.system = function() {
  */
 exports.status = function() {
     var process = createProcess(arguments);
+    connect(process, dummyStream(), dummyStream());
     return process.waitFor();
 };
+
+function dummyStream() {
+    return {
+        writable: function() true,
+        readable: function() false,
+        seekable: function() false,
+        write: function() this,
+        flush: function() this,
+        close: function() this        
+    }
+}
 
 
