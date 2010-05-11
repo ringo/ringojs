@@ -96,13 +96,18 @@ public class Binary extends ScriptableObject implements Wrapper {
             }
         } else if (arg instanceof Number && type == Type.ByteArray) {
             return new Binary(scope, type, ((Number) arg).intValue());
-        } else if (arg instanceof NativeArray) {
-            NativeArray array = (NativeArray) arg;
-            Integer ids[] = array.getIndexIds();
-            Binary bytes = new Binary(scope, type, ids.length);
-            for (int id : ids) {
-                Object value = array.get(id, array);
-                bytes.putInternal(id, value);
+        } else if (ScriptRuntime.isArrayObject(arg)) {
+            Scriptable object = (Scriptable) arg;
+            long longLength =  ScriptRuntime.toUint32(
+                    ScriptRuntime.getObjectProp(object, "length", cx));
+            if (longLength > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException();
+            }
+            int length = (int) longLength;
+            Binary bytes = new Binary(scope, type, length);
+            for (int i = 0; i < length; i++) {
+                Object value = ScriptableObject.getProperty(object, i);
+                bytes.putInternal(i, value);
             }
             return bytes;
         } else if (arg instanceof byte[]) {
@@ -356,9 +361,30 @@ public class Binary extends ScriptableObject implements Wrapper {
         List<byte[]> arglist = new ArrayList<byte[]>(args.length);
         for (Object arg : args) {
             if (arg instanceof Binary) {
-                byte[] b = ((Binary) arg).getBytes();
-                arglength += b.length;
-                arglist.add(b);
+                byte[] bytes = ((Binary) arg).getBytes();
+                arglength += bytes.length;
+                arglist.add(bytes);
+            } else if (ScriptRuntime.isArrayObject(arg)) {
+                Scriptable object = (Scriptable) arg;
+                long longLength =  ScriptRuntime.toUint32(
+                        ScriptRuntime.getObjectProp(object, "length", cx));
+                if (longLength > Integer.MAX_VALUE) {
+                    throw new IllegalArgumentException();
+                }
+                int length = (int) longLength;
+                byte[] bytes = new byte[length];
+                for (int i = 0; i < length; i++) {
+                    Object value = ScriptableObject.getProperty(object, i);
+                    if (!(value instanceof Number)) {
+                        throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
+                    }
+                    int n = ((Number) value).intValue();
+                    bytes[i] = (byte) (0xff & n);
+                }
+                arglength += bytes.length;
+                arglist.add(bytes);
+            } else {
+                throw ScriptRuntime.typeError("Unsupported argument: " + arg);
             }
         }
         Binary thisByteArray = (Binary) thisObj;
