@@ -4,7 +4,8 @@
  * proposal.</p>
  */
 
-var ByteArray = require("binary").ByteArray;
+var {Binary, ByteArray, ByteString} = require("binary");
+var {Encoder, Decoder} = require("ringo/encoding");
 
 defineClass(org.ringojs.wrappers.Stream);
 
@@ -43,6 +44,217 @@ Stream.prototype.copy = function(output) {
 };
 
 /**
+ * In binary stream that reads from and/or writes to an in-memory byte array. If the stream
+ * is writable, its internal buffer will automatically on demand.
+ * @param {Binary|number} bufferOrCapacity the buffer to use, or the capacity of the buffer
+ * to allocate . If this is a number, a ByteArray with the given length is allocated.
+ * If this is a ByteArray, the resulting stream is both readable, writable, and seekable.
+ * If this is a ByteString, the resulting stream is readable and seekable but not writable.
+ * If undefined, a ByteArray of length 1024 is allocated as buffer.
+ * @constructor
+ */
+exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
+
+    var buffer, length;
+    if (!bufferOrCapacity) {
+        buffer = new ByteArray(1024);
+        length = 0;
+    } else if (bufferOrCapacity instanceof Binary) {
+        buffer = bufferOrCapacity;
+        length = buffer.length;
+    } else if (typeof bufferOrCapacity == "number") {
+        buffer = new ByteArray(bufferOrCapacity);
+        length = 0;
+    } else {
+        throw new Error("buffer argument must be Binary or undefined");
+    }
+
+    var stream = Object.create(Stream.prototype);
+    var position = 0;
+    var closed = false;
+    var canWrite = buffer instanceof ByteArray;
+
+    function checkClosed() {
+        if (closed) {
+            throw new Error("Stream has been closed");
+        }
+    }
+
+    /**
+     * @name MemoryStream.instance.readable
+     * @function
+     */
+    stream.readable = function() {
+       return true;
+    };
+
+    /**
+     * @name MemoryStream.instance.writable
+     * @function
+     */
+    stream.writable = function() {
+        return buffer instanceof ByteArray;
+    };
+
+    /**
+     * @name MemoryStream.instance.seekable
+     * @function
+     */
+    stream.seekable = function() {
+        return true;
+    };
+
+    /**
+     * @name MemoryStream.instance.read
+     * @function
+     */
+    stream.read = function(num) {
+        checkClosed();
+        var result;
+        if (isFinite(num)) {
+            if (num < 0) {
+                throw new Error("read(): argument must not be negative");
+            }
+            num = Math.min(position + num, length);
+            result = ByteString.wrap(buffer.slice(position, position + num));
+            position += num;
+            return result;
+        } else {
+            result = ByteString.wrap(buffer.slice(position, length));
+            position = length;
+        }
+        return result;
+    };
+
+    /**
+     * @name MemoryStream.instance.readInto
+     * @function
+     */
+    stream.readInto = function(target, begin, end) {
+        checkClosed();
+        if (!(target instanceof ByteArray)) {
+            throw new Error("readInto(): first argument must be ByteArray");
+        }
+        if (position >= length) {
+            return -1;
+        }
+        begin = begin === undefined ? 0 : Math.max(0, begin);
+        end = end === undefined ? target.length : Math.min(target.length, end);
+        if (begin < 0 || end < 0) {
+            throw new Error("readInto(): begin and end must not be negative");
+        } else if (begin > end) {
+            throw new Error("readInto(): end must be greater than begin");
+        }
+        var count = Math.min(length - position, end - begin);
+        buffer.copy(position, position + count, target, begin);
+        position += count;
+        return count;
+    };
+
+    /**
+     * @name MemoryStream.instance.write
+     * @function
+     */
+    stream.write = function(source, begin, end) {
+        if (typeof source === "string") {
+            system.stderr.print("Warning: binary write called with string argument. Using default encoding");
+            source = source.toByteString();
+        }
+        if (!(source instanceof Binary)) {
+            throw new Error("write(): first argument must be binary");
+        }
+        begin = begin === undefined ? 0 : Math.max(0, begin);
+        end = end === undefined ? source.length : Math.min(source.length, end);
+        if (begin > end) {
+            throw new Error("write(): end must be greater than begin");
+        }
+        var count = end - begin;
+        source.copy(begin, end, buffer, position);
+        position += count;
+        length = Math.max(length, position);
+    };
+
+    /**
+     * @name MemoryStream.instance.content
+     */
+    Object.defineProperty(stream, "content", {
+        get: function() {
+            return ByteString.wrap(buffer.slice(0, position));
+        }
+    });
+
+    /**
+     * @name MemoryStream.instance.length
+     */
+    Object.defineProperty(stream, "length", {
+        get: function() {
+            checkClosed();
+            return length
+        },
+        set: function(value) {
+            if (canWrite) {
+                checkClosed();
+                length = buffer.length = value;
+                position = Math.min(position, length);
+            }
+        }
+    });
+
+    /**
+     * @name MemoryStream.instance.position
+     */
+    Object.defineProperty(stream, "position", {
+        get: function() {
+            checkClosed();
+            return position;
+        },
+        set: function(value) {
+            checkClosed();
+            position = Math.min(Math.max(0, value), length);
+        }
+    });
+
+    /**
+     * @name MemoryStream.instance.skip
+     * @function
+     */
+    stream.skip = function(num) {
+        checkClosed();
+        num = +num;
+        if (isNaN(num)) {
+            throw new Error("skip() requires a number argument");
+        } else if (skip < 0) {
+            throw new Error("Argument to skip() must not be negative");
+        }
+        position += Math.max(num, length - position);
+    };
+
+    /**
+     * @name MemoryStream.instance.flush
+     * @function
+     */
+    stream.flush = function() {
+        checkClosed();
+    };
+
+    /**
+     * @name MemoryStream.instance.close
+     * @function
+     */
+    stream.close = function() {
+        checkClosed();
+        closed = true;
+        buffer = null;
+    };
+
+    stream.closed = function() {
+        return closed;
+    };
+
+    return stream;
+};
+
+/**
  * A TextStream implements an I/O stream used to read and write strings. It
  * wraps a raw Stream and exposes a similar interface.
  * @param {Stream} io The raw Stream to be wrapped.
@@ -55,20 +267,19 @@ exports.TextStream = function TextStream(io, charset, buflen) {
         return new exports.TextStream(io, charset, buflen);
     }
 
+    charset = charset || "utf8";
     var reader, writer;
+    var encoder, decoder;
+    var DEFAULTSIZE = 8192;
 
     if (io.readable()) {
-        reader = charset == undefined ?
-                 new InputStreamReader(io.inputStream) :
-                 new InputStreamReader(io.inputStream, charset);
-        reader = new BufferedReader(reader, buflen || 8192);
+        decoder = new Decoder(charset, false, buflen || DEFAULTSIZE);
+        decoder.readFrom(io);
     }
 
     if (io.writable()) {
-        writer = charset == undefined ?
-                 new OutputStreamWriter(io.outputStream) :
-                 new OutputStreamWriter(io.outputStream, charset);
-        writer = new BufferedWriter(writer, buflen || 8192);
+        encoder = new Encoder(charset, false, buflen || DEFAULTSIZE);
+        encoder.writeTo(io);
     }
 
     /** See `Stream.prototype.readable`. */
@@ -95,16 +306,16 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * @returns {String}
      */
     this.readLine = function () {
-        var line = reader.readLine();
+        var line = decoder.readLine(true);
         if (line === null)
-            return '';
-        return String(line) + "\n";
+            return "";
+        return String(line);
     };
 
     /**
      * Returns this stream (which also is an Iterator).
      */
-    this.iterator = function () {
+    this.iterator = this.__iterator__ = function () {
         return this;
     };
 
@@ -113,21 +324,16 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * `StopIteration` if the end of the stream is reached.
      */
     this.next = function () {
-        var line = reader.readLine();
-        if (line === null)
+        var line = decoder.readLine(false);
+        if (line == null) {
             throw StopIteration;
+        }
         return String(line);
     };
 
-    this.forEach = function (block, context) {
-        var line;
-        while (true) {
-            try {
-                line = this.next();
-            } catch (exception) {
-                break;
-            }
-            block.call(context, line);
+    this.forEach = function (callback, thisObj) {
+        for (var line in this) {
+            callback.call(thisObj, line);
         }
     };
 
@@ -178,7 +384,9 @@ exports.TextStream = function TextStream(io, charset, buflen) {
     };
 
     this.write = function () {
-        writer.write.apply(writer, arguments);
+        for (var i = 0; i < arguments.length; i++) {
+            encoder.encode(String(arguments[i]));
+        }
         return this;
     };
 
@@ -219,7 +427,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 
     /** See `Stream.prototype.flush`. */
     this.flush = function () {
-        writer.flush();
+        io.flush();
         return this;
     };
 
@@ -227,6 +435,16 @@ exports.TextStream = function TextStream(io, charset, buflen) {
     this.close = function () {
         io.close();
     };
+
+    Object.defineProperty(this, "content", {
+        get: function() {
+            var wrappedContent = io.content;
+            if (!wrappedContent) {
+                return "";
+            }
+            return wrappedContent.decodeToString(charset);
+        }
+    });
 
     return this;
 };
