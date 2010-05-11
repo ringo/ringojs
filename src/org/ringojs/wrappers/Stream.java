@@ -135,7 +135,7 @@ public class Stream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void write(Object arg, Object offset, Object length) {
+    public void write(Object arg, Object start, Object end) {
         if (arg instanceof Wrapper) {
             arg = ((Wrapper) arg).unwrap();
         }
@@ -154,17 +154,10 @@ public class Stream extends ScriptableObject implements Wrapper {
         if (output == null) {
             throw ScriptRuntime.typeError("no output stream");
         }
-        int off = offset == Undefined.instance ? -1 : ScriptRuntime.toInt32(offset);
-        int len = length == Undefined.instance ? -1 : ScriptRuntime.toInt32(length);
+        int from = start == Undefined.instance ? 0 : ScriptRuntime.toInt32(start);
+        int to = end == Undefined.instance ? bytes.length : ScriptRuntime.toInt32(end);
         try {
-            if (off > -1) {
-                if (len < 0) {
-                    len = bytes.length - off;
-                }
-                output.write(bytes, off, len);
-            } else {
-                output.write(bytes);
-            }
+            output.write(bytes, from, to - from);
         } catch (IOException iox) {
             throw Context.throwAsScriptRuntimeEx(iox);
         }
