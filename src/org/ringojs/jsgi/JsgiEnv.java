@@ -30,7 +30,6 @@ public class JsgiEnv extends ScriptableObject {
 
     public JsgiEnv(Context cx, Scriptable scope) throws NoSuchMethodException {
         int flags = PERMANENT;
-        defineProperty("REQUEST_METHOD", null, getMethod("getRequestMethod"), null, flags);
         defineProperty("SERVER_NAME", null, getMethod("getServerName"), null, flags);
         defineProperty("SERVER_PORT", null, getMethod("getServerPort"), null, flags);
         defineProperty("QUERY_STRING", null, getMethod("getQueryString"), null, flags);
@@ -67,12 +66,9 @@ public class JsgiEnv extends ScriptableObject {
         }
         put("SCRIPT_NAME", this, checkString(request.getContextPath() + request.getServletPath()));
         put("PATH_INFO", this, checkString(request.getPathInfo()));
+        put("REQUEST_METHOD", this, checkString(request.getMethod()));
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", scope.get("Object", scope), DONTENUM);
-    }
-
-    public String getRequestMethod() {
-        return checkString(request.getMethod());
     }
 
     public String getServerName() {
