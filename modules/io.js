@@ -115,9 +115,9 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
             if (num < 0) {
                 throw new Error("read(): argument must not be negative");
             }
-            num = Math.min(position + num, length);
-            result = ByteString.wrap(buffer.slice(position, position + num));
-            position += num;
+            var end = Math.min(position + num, length);
+            result = ByteString.wrap(buffer.slice(position, end));
+            position = end;
             return result;
         } else {
             result = ByteString.wrap(buffer.slice(position, length));
@@ -223,10 +223,10 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
         num = +num;
         if (isNaN(num)) {
             throw new Error("skip() requires a number argument");
-        } else if (skip < 0) {
+        } else if (num < 0) {
             throw new Error("Argument to skip() must not be negative");
         }
-        position += Math.max(num, length - position);
+        position += Math.min(num, length - position);
     };
 
     /**
