@@ -156,6 +156,7 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
      * @function
      */
     stream.write = function(source, begin, end) {
+        checkClosed();
         if (typeof source === "string") {
             system.stderr.print("Warning: binary write called with string argument. Using default encoding");
             source = source.toByteString();
@@ -238,15 +239,20 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
     };
 
     /**
+     * Closes the stream, freeing the resources it is holding.
      * @name MemoryStream.instance.close
      * @function
      */
     stream.close = function() {
         checkClosed();
         closed = true;
-        buffer = null;
     };
 
+    /**
+     * Returns true if the stream is closed, false otherwise.
+     * @name MemoryStream.instance.close
+     * @function
+     */
     stream.closed = function() {
         return closed;
     };
