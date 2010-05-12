@@ -69,7 +69,10 @@ function initRequest(request) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(req, result) {
-    if (!result.status || !result.headers || !result.body) {
+    var {status, headers, body} = result;
+    var request = req.env.servlet_request;
+    var response = req.env.servlet_response;
+    if (!status || !headers || !body) {
         // As a convenient shorthand, we also handle async responses returning the
         // not only the promise but the full deferred (as obtained by
         // ringo.promise.defer()).
@@ -79,14 +82,11 @@ function commitResponse(req, result) {
         // If the response has a "then" function, we asume it is a promise and
         // switch to async reponse handling.
         if (typeof result.then === "function") {
-            handleAsyncResponse(env, result);
+            handleAsyncResponse(request, result);
             return;
         }
         throw new Error('No valid JSGI response: ' + result);
     }
-    var {status, headers, body} = result;
-    var request = req.env.servlet_request;
-    var response = req.env.servlet_response;
     response.setStatus(status);
     for (var key in headers) {
         headers[key].split("\n").forEach(function(value) {
@@ -129,10 +129,9 @@ function writeAsync(servletResponse, jsgiResponse) {
     writeBody(servletResponse, jsgiResponse.body, charset);
 }
 
-function handleAsyncResponse(env, result) {
+function handleAsyncResponse(request, result) {
     // experimental support for asynchronous JSGI based on Jetty continuations
     var ContinuationSupport = org.eclipse.jetty.continuation.ContinuationSupport;
-    var request = env['jsgi.servlet_request'];
     var continuation = ContinuationSupport.getContinuation(request);
     var handled = false;
 
