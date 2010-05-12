@@ -7,9 +7,9 @@ module.shared = true;
  * Standard 404 page
  */
 exports.middleware = function(app) {
-    return function(env) {
+    return function(request) {
         try {
-            return app(env);
+            return app(request);
         } catch (e if e.notfound) {
             var res = new Response();
             var msg = 'Not Found';
@@ -17,7 +17,7 @@ exports.middleware = function(app) {
             res.contentType = 'text/html';
             res.writeln('<html><title>', msg, '</title>');
             res.writeln('<body><h2>', msg, '</h2>');
-            var path = env.SCRIPT_NAME + env.PATH_INFO;
+            var path = request.scriptName + request.pathInfo;
             res.writeln('<p>The requested URL', path, 'was not found on the server.</p>');
             res.writeln('</body></html>');
             return res.close();

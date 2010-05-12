@@ -10,16 +10,16 @@ module.shared = true;
  * JSGI middleware to display error messages and stack traces.
  */
 exports.middleware = function(app) {
-    return function(env) {
+    return function(request) {
         try {
-            return app(env);
+            return app(request);
         } catch (error if !error.retry && !error.notfound) {
-            return handleError(env, error);
+            return handleError(request, error);
         }
     }
 };
 
-function handleError(env, error) {
+function handleError(request, error) {
     var res = new Response();
     res.status = 500;
     res.contentType = 'text/html';

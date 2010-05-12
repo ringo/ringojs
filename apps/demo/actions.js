@@ -76,7 +76,7 @@ function logging(req) {
             return skinResponse('./skins/logging.txt', {
                 title: "Logging &amp; Profiling"
             });
-        })(req.env);
+        })(req);
     }
     return skinResponse('./skins/logging.txt', { title: "Logging &amp; Profiling" });
 }
