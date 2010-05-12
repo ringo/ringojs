@@ -211,7 +211,7 @@ function isClassName(name) {
 
 function isClassMember(name, childName) {
     // check if child name is a property of name
-    return childName && childName.startsWith(name);
+    return childName && childName.startsWith(name + ".");
 }
 
 function renderMarkdown(text) {
