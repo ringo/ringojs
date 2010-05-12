@@ -484,19 +484,6 @@ public class RhinoEngine implements ScopeProvider {
     /**
      * Load a Javascript module into a module scope. This checks if the module has already
      * been loaded in the current context and if so returns the existing module scope.
-     * @param moduleName the module name
-     * @param loadingScope the scope requesting the module
-     * @return the loaded module scope
-     * @throws IOException indicates that in input/output related error occurred
-     */
-    public ModuleScope loadModule(String moduleName, Scriptable loadingScope)
-            throws IOException {
-        return loadModule(Context.getCurrentContext(), moduleName, loadingScope);
-     }
-
-    /**
-     * Load a Javascript module into a module scope. This checks if the module has already
-     * been loaded in the current context and if so returns the existing module scope.
      * @param cx the current context
      * @param moduleName the module name
      * @param loadingScope the scope requesting the module
