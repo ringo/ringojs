@@ -1,4 +1,1 @@
-#!/bin/bash
-# A minimal wrapper to run ringo admin scripts. Requires `ringo` to be on the
-# PATH.
-exec ringo ringo/admin/main "$@"
+ringo

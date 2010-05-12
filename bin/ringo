@@ -31,8 +31,16 @@ if [ -z "$RINGO_HOME" ]; then
     RINGO_HOME="$(find_ringo_home "$0")"
 fi
 
+# arg0-based toggling of special behaviour
+RINGO_OPTS=
+case "$(basename "$0")" in
+    ringo-admin)    RINGO_OPTS="ringo/admin/main" ;;
+    ringo-web)      RINGO_OPTS="ringo/webapp" ;;
+    narwhal)        RINGO_OPTS="--legacy-mode" ;;
+esac
+
 # prepend rhino to bootclasspath to work around openjdk bug
 exec java \
     -Xbootclasspath/p:"$RINGO_HOME/lib/js.jar" \
     -jar "$RINGO_HOME/run.jar" \
-    "$@"
+    $RINGO_OPTS "$@"
