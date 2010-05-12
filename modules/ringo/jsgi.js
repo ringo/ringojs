@@ -73,7 +73,7 @@ function commitResponse(env, result) {
         handleAsyncResponse(env, result);
         return;
     }
-    var request = env['jsgi.servlet_request'];    
+    var request = env['jsgi.servlet_request'];
     var response = env['jsgi.servlet_response'];
     var charset;
     if (!result.status || !result.headers || !result.body) {
@@ -128,7 +128,7 @@ function handleAsyncResponse(env, result) {
     var request = env['jsgi.servlet_request'];
     var continuation = ContinuationSupport.getContinuation(request);
     var handled = false;
-    
+
     var onFinish = sync(function(value) {
         if (handled) return;
         log.debug("JSGI async response finished", value);
