@@ -1,5 +1,4 @@
 #!/bin/bash
-
-RINGO_BIN=`dirname $0 | sed -e "s#^\\([^/]\\)#${PWD}/\\1#"` # sed makes absolute
-
-"$RINGO_BIN/ringo" "ringo/admin/main" "$@"
+# A minimal wrapper to run ringo admin scripts. Requires `ringo` to be on the
+# PATH.
+exec ringo ringo/admin/main "$@"

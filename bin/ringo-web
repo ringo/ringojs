@@ -1,3 +1,4 @@
-#! /usr/bin/env ringo
-
-require("ringo/webapp").main();
+#!/bin/bash
+# A convenience wrapper to run ringo webapps. Requires `ringo` to be on the
+# PATH.
+exec ringo ringo/webapp "$@"

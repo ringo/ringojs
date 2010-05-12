@@ -1,4 +1,3 @@
 #!/bin/bash
-# run ringo with --legacy-mode for better narwhal compatibilty
-
-ringo -l "$@"
+# Run RingoJS in "legacy mode" for improved Narwhal compatibilty.
+exec ringo --legacy-mode "$@"
