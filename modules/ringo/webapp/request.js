@@ -1,3 +1,8 @@
+/**
+ * @fileOverview Adds convenience properties and methods to  a
+ * [JSGI 0.3 request object](http://wiki.commonjs.org/wiki/JSGI/Level0/A/Draft2#Request).
+ */
+
 require('core/string');
 var {isUrlEncoded, parseParameters} = require('./parameters');
 var {isFileUpload, parseFileUpload} = require('./fileupload');
@@ -9,8 +14,11 @@ export('Request', 'Session');
 module.shared = true;
 
 /**
- * Adds convenience properties and methods to  a JSGI request object.
+ * Adds convenience properties and methods to  a
+ * [JSGI 0.3 request object](http://wiki.commonjs.org/wiki/JSGI/Level0/A/Draft2#Request).
+ *
  * @param request a JSGI 0.3 request object
+ * @class Request
  */
 function Request(request) {
 
@@ -24,31 +32,37 @@ function Request(request) {
 
     /**
      * The name of the encoding used for this request
+     * @name Request.instance.charset
      */
     request.charset = servletRequest.getCharacterEncoding();
 
     /**
      * The request's content type, or undefined if not available.
+     * @name Request.instance.contentType
      */
     request.contentType = request.headers["content-type"];
 
     /**
      * The request's content length, or undefined if not available.
+     * @name Request.instance.contentLength
      */
     request.contentLength = request.headers["content-length"];
 
     /**
      * The full URI path of the request.
+     * @name Request.instance.path
      */
     request.path = request.scriptName + request.pathInfo;
 
     /**
      * The URL-decoded URI path.
+     * @name Request.instance.pathDecoded
      */
     request.pathDecoded = decodeURI(request.path);
 
     /**
      * An object containing the parsed HTTP parameters sent with this request.
+     * @name Request.instance.params
      */
     Object.defineProperty(request, "params", {
         get: function() {
@@ -70,6 +84,7 @@ function Request(request) {
 
     /**
      * An object containing the HTTP cookie values sent with this request
+     * @name Request.instance.cookies
      */
     Object.defineProperty(request, "cookies", {
         get: function() {
@@ -90,6 +105,7 @@ function Request(request) {
      * A session object for the current request. If no session exists
      * a new one will be created.
      * @see Session
+     * @name Request.instance.session
      */
     Object.defineProperty(request, "session", {
         get: function() {
@@ -102,6 +118,8 @@ function Request(request) {
     /**
      * Get a single request header value. If multiple headers exist for
      * the given name, only the first one is returned.
+     * @name Request.instance.getHeader
+     * @function
      */
     request.getHeader = function getHeader(name) {
         return request.headers[name.toLowerCase()];
@@ -109,6 +127,8 @@ function Request(request) {
 
     /**
      * Get all header values for the given header name as an array.
+     * @name Request.instance.getHeaders
+     * @function
      */
     request.getHeaders = function getHeaders(name) {
         var headers = [];
@@ -120,6 +140,8 @@ function Request(request) {
 
     /**
      * Reset the scriptName and pathInfo properties to their original values.
+     * @name Request.instance.reset
+     * @function
      */
     request.reset = function() {
         request.scriptName = servletRequest.getContextPath()
@@ -129,6 +151,7 @@ function Request(request) {
 
     /**
      * True if this is a HTTP GET request.
+     * @name Request.instance.isGet
      */
     Object.defineProperty(request, "isGet", {
         get: function() {
@@ -138,6 +161,7 @@ function Request(request) {
 
     /**
      * True if this is a HTTP POST request.
+     * @name Request.instance.isPost
      */
     Object.defineProperty(request, "isPost", {
         get: function() {
@@ -147,6 +171,7 @@ function Request(request) {
 
     /**
      * True if this is a HTTP PUT request.
+     * @name Request.instance.isPut
      */
     Object.defineProperty(request, "isPut", {
         get: function() {
@@ -156,6 +181,7 @@ function Request(request) {
 
     /**
      * True if this is a HTTP DELETE request.
+     * @name Request.instance.isDelete
      */
     Object.defineProperty(request, "isDelete", {
         get: function() {
@@ -165,6 +191,7 @@ function Request(request) {
 
     /**
      * True if this is a HTTP HEAD request.
+     * @name Request.instance.isHead
      */
     Object.defineProperty(request, "isHead", {
         get: function() {
@@ -174,6 +201,7 @@ function Request(request) {
 
     /**
      * True if this is a XMLHttpRequest.
+     * @name Request.instance.isXhr
      */
     Object.defineProperty(request, "isXhr", {
         get: function() {
