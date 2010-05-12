@@ -42,6 +42,8 @@ public class ReloadableScript {
     final Trackable source;
     final RhinoEngine engine;
     final String moduleName;
+    // true if we should reload modified source files
+    boolean reloading;
     // the checksum of the underlying resource or repository when
     // the script was last compiled
     long checksum = -1;
@@ -76,6 +78,7 @@ public class ReloadableScript {
     public ReloadableScript(Trackable source, RhinoEngine engine) {
         this.source = source;
         this.engine = engine;
+        reloading = engine.getConfiguration().isReloading();
         moduleName = source.getModuleName();
     }
 
@@ -102,7 +105,7 @@ public class ReloadableScript {
             exception = scriptref.exception;
         }
         // recompile if neither script or exception are available, or if source has been updated
-        if ((script == null && exception == null) || checksum != source.getChecksum()) {
+        if ((script == null && exception == null) || (reloading && checksum != source.getChecksum())) {
             shared = Shared.UNKNOWN;
             if (!source.exists()) {
                 throw new IOException(source + " not found or not readable");
@@ -241,7 +244,7 @@ public class ReloadableScript {
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
                 && module != null
-                && module.getChecksum() == getChecksum()) {
+                && (!reloading || module.getChecksum() == getChecksum())) {
             // Reuse cached scope for shared modules.
             modules.put(source, module);
             return module;

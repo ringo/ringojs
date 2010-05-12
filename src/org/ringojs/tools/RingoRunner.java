@@ -52,6 +52,7 @@ public class RingoRunner {
     boolean verbose = false;
     boolean silent = false;
     boolean legacyMode = false;
+    boolean productionMode = false;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -64,9 +65,10 @@ public class RingoRunner {
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
-        {"p", "policy", "Set java policy file and enable security manager", "URL"},
+        {"p", "production", "Disable module reloading and warnings", ""},
+        {"P", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
-        {"V", "verbose", "Verbose mode: print Java stack traces", ""},
+        {"V", "verbose", "Print java stack traces on errors", ""},
         {"v", "version", "Print version number and exit", ""},
     };
 
@@ -116,7 +118,8 @@ public class RingoRunner {
             config.setDebug(debug);
             config.setVerbose(verbose);
             config.setParentProtoProperties(legacyMode);
-            config.setStrictVars(!legacyMode);
+            config.setStrictVars(!legacyMode && !productionMode);
+            config.setReloading(!productionMode);
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -342,6 +345,8 @@ public class RingoRunner {
             expr = arg;
         } else if ("silent".equals(option)) {
             silent = runShell = true;
+        } else if ("production".equals(option)) {
+            productionMode = true;
         } else if ("verbose".equals(option)) {
             verbose = true;
         } else if ("legacy-mode".equals(option)) {

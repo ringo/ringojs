@@ -53,6 +53,7 @@ public class RingoConfiguration {
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
+    private boolean reloading = true;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -399,6 +400,14 @@ public class RingoConfiguration {
 
     public void setSealed(boolean sealed) {
         this.sealed = sealed;
+    }
+
+    public boolean isReloading() {
+        return reloading;
+    }
+
+    public void setReloading(boolean reloading) {
+        this.reloading = reloading;
     }
 
     public boolean isPolicyEnabled() {
