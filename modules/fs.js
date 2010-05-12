@@ -4,7 +4,8 @@
  * Filesystem/A</a> proposal.
  *
  * The "fs" module provides a file system API for the manipulation of paths,
- * directories, files, links, and the construction of file streams.
+ * directories, files, links, and the construction of file streams in addition
+ * to the functions exported by [fs-base](./fs-base).
  */
 
 var fsBase = require('fs-base');
