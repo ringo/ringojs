@@ -307,7 +307,7 @@ var Exchange = function(url, options, callbacks) {
         content = encodeContent(opts.data);
     }
     
-    if (opts.method === 'POST') {
+    if (opts.method === 'POST' || opts.method === 'PUT') {
         if (typeof(content) === 'string') {
             exchange.setRequestContent(org.eclipse.jetty.io.ByteArrayBuffer(content));
         // FIXME only allow streaming types
@@ -371,7 +371,7 @@ var extractOptionalArguments = function(args) {
                 'url': args[0],
                 'success': args[1]
             };
-        } else if (types[1] == 'object') {
+        } else {
             return {
                 'url': args[0],
                 'data': args[1]
@@ -396,7 +396,7 @@ var extractOptionalArguments = function(args) {
         }
     }
     throw new Error('unknown arguments');
-}
+};
 
 /**
  * A HttpClient which can be used for multiple requests.
@@ -418,7 +418,7 @@ var Client = function(timeout) {
      */
     this.get = function(url, data, success, error) {
         if (arguments.length < 4) {
-            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+            var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
             'method': 'GET',
@@ -437,7 +437,7 @@ var Client = function(timeout) {
      */
     this.post = function(url, data, success, error) {
         if (arguments.length < 4) {
-            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+            var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
             'method': 'POST',
@@ -456,7 +456,7 @@ var Client = function(timeout) {
      */
     this.del = function(url, data, success, error) {
         if (arguments.length < 4) {
-            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+            var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
             'method': 'DELETE',
@@ -475,7 +475,7 @@ var Client = function(timeout) {
      */
     this.put = function(url, data, success, error) {
         if (arguments.length < 4) {
-            var {url, data, sucess, error} = extractOptionalArguments(arguments);
+            var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
             'method': 'PUT',
