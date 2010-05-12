@@ -452,6 +452,12 @@ exports.TextStream = function TextStream(io, charset, buflen) {
         }
     });
 
+    Object.defineProperty(this, "raw", {
+        get: function() {
+            return io;
+        }
+    });
+
     return this;
 };
 
