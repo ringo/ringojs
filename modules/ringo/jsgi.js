@@ -65,22 +65,21 @@ function initRequest(request) {
  * you won't need this unless you're implementing your own servlet
  * based JSGI connector.
  *
- * @param env the JSGI env argument
+ * @param req the JSGI request argument
  * @param result the object returned by a JSGI application
  */
 function commitResponse(req, result) {
-    if (typeof result.then === "function") {
-        handleAsyncResponse(req, result);
-        return;
-    }
-    var request = req.env.servlet_request;
-    var response = req.env.servlet_response;
-    var charset;
     if (!result.status || !result.headers || !result.body) {
+        if (typeof result.then === "function") {
+            handleAsyncResponse(req, result);
+            return;
+        }
         throw new Error('No valid JSGI response: ' + result);
     }
     var {status, headers, body} = result;
-    response.status = status;
+    var request = req.env.servlet_request;
+    var response = req.env.servlet_response;
+    response.setStatus(status);
     for (var key in headers) {
         headers[key].split("\n").forEach(function(value) {
             response.addHeader(key, value);
@@ -133,6 +132,9 @@ function handleAsyncResponse(env, result) {
         if (handled) return;
         log.debug("JSGI async response finished", value);
         handled = true;
+        if (value && typeof value.close === 'function') {
+            value = value.close();
+        }
         writeAsync(continuation.getServletResponse(), value);
         continuation.complete();
     }, request);

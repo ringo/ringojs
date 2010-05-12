@@ -12,9 +12,9 @@ module.shared = true;
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */
 exports.middleware = function(app) {
-    return function(env) {
+    return function(request) {
         if (!responseLogEnabled) {
-            return app(env);
+            return app(request);
         }
 
         var messages = [];
@@ -22,7 +22,7 @@ exports.middleware = function(app) {
         var start = Date.now();
         try {
             logging.setInterceptor(messages);
-            res = app(env);
+            res = app(request);
         } finally {
             logging.setInterceptor(null);
         }

@@ -9,12 +9,12 @@ export('Request', 'Session');
 module.shared = true;
 
 /**
- * Enhances a JSGI request object.
+ * Adds convenience properties and methods to  a JSGI request object.
  * @param request a JSGI 0.3 request object
  */
 function Request(request) {
 
-    // check if req is already enhanced
+    // check if request is already extended
     if (request.hasOwnProperty("path")) {
         return request;
     }
@@ -30,23 +30,31 @@ function Request(request) {
     /**
      * The request's content type, or undefined if not available.
      */
-    Object.defineProperty(request, "contentType", {value: request.headers["content-type"]});
+    Object.defineProperty(request, "contentType", {
+        value: request.headers["content-type"]
+    });
 
     /**
      * The request's content length, or undefined if not available.
      */
-    Object.defineProperty(request, "contentLength", {value: request.headers["content-length"]});
+    Object.defineProperty(request, "contentLength", {
+        value: request.headers["content-length"]
+    });
 
     /**
      * The full URI path of the request.
      */
-    Object.defineProperty(request, "path", {value: request.scriptName + request.pathInfo});
+    Object.defineProperty(request, "path", {
+        value: request.scriptName + request.pathInfo
+    });
 
     /**
      * The URL-decoded URI path.
      */
     Object.defineProperty(request, "pathDecoded", {
-        get: function() { return decodeURI(this.path) }
+        get: function() {
+            return decodeURI(this.path);
+        }
     });
 
     /**
@@ -58,10 +66,10 @@ function Request(request) {
                 params = {};
                 if (this.isPost) {
                     if (isUrlEncoded(this.contentType)) {
-                        var body = env["jsgi.input"].read();
+                        var body = this.input.read();
                         parseParameters(body, params, this.charset);
                     } else if (isFileUpload(this.contentType)) {
-                        parseFileUpload(env, params, this.charset);
+                        parseFileUpload(this, params, this.charset);
                     }
                 }
                 parseParameters(this.queryString, params, this.charset);
@@ -96,7 +104,7 @@ function Request(request) {
     Object.defineProperty(request, "session", {
         get: function() {
             if (!session)
-                session = new Session(env);
+                session = new Session(this);
             return session;
         }
     });
@@ -105,53 +113,81 @@ function Request(request) {
      * Get a single request header value. If multiple headers exist for
      * the given name, only the first one is returned.
      */
-    Object.defineProperty(request, "getHeader", {
-        value: function getHeader(name) {
-            return request.headers[name.toLowerCase()];
-        }
-    });
+    request.getHeader = function getHeader(name) {
+        return request.headers[name.toLowerCase()];
+    };
 
     /**
      * Get all header values for the given header name as an array.
      */
-    Object.defineProperty(request, "getHeaders", {
-        value: function getHeaders(name) {
-            var headers = [];
-            var servletHeaders = servletRequest.getHeaders(name);
-            while (servletHeaders.hasMoreElements())
-                headers.push(servletHeaders.nextElement());
-            return headers;
-        }
-    });
+    request.getHeaders = function getHeaders(name) {
+        var headers = [];
+        var servletHeaders = servletRequest.getHeaders(name);
+        while (servletHeaders.hasMoreElements())
+            headers.push(servletHeaders.nextElement());
+        return headers;
+    };
 
-   /**
-    * @ignore used internally by ringo/webapp
-    */
-    Object.defineProperty(request, "appendToScriptName", {
-        value: function appendToScriptName(fragment) {
-            var path = this.pathInfo;
-            var pos = path.indexOf(fragment);
-            if (pos > -1) {
-                pos +=  fragment.length;
-                // add matching pattern to script-name
-                this.scriptName += path.substring(0, pos);
-                // ... and remove it from path-info
-                this.pathInfo = path.substring(pos);
-            }
+    /**
+     * Reset the scriptName and pathInfo properties to their original values.
+     */
+    request.reset = function() {
+        request.scriptName = servletRequest.getContextPath()
+                           + servletRequest.getServletPath();
+        request.pathInfo = servletRequest.getPathInfo();
+    };
+
+    /**
+     * True if this is a HTTP GET request.
+     */
+    Object.defineProperty(request, "isGet", {
+        get: function() {
+            return this.method == "GET";
         }
     });
 
     /**
-     * @ignore used internally by ringo/webapp
+     * True if this is a HTTP POST request.
      */
-    Object.defineProperty(request, "checkTrailingSlash", {
-        value: function checkTrailingSlash() {
-            // only redirect for GET requests
-            if (!this.path.endsWith("/") && this.isGet) {
-                var path = this.queryString ?
-                           this.path + "/?" + this.queryString : this.path + "/";
-                throw {redirect: path};
-            }
+    Object.defineProperty(request, "isPost", {
+        get: function() {
+            return this.method == "POST";
+        }
+    });
+
+    /**
+     * True if this is a HTTP PUT request.
+     */
+    Object.defineProperty(request, "isPut", {
+        get: function() {
+            return this.method == "PUT";
+        }
+    });
+
+    /**
+     * True if this is a HTTP DELETE request.
+     */
+    Object.defineProperty(request, "isDelete", {
+        get: function() {
+            return this.method == "DELETE";
+        }
+    });
+
+    /**
+     * True if this is a HTTP HEAD request.
+     */
+    Object.defineProperty(request, "isHead", {
+        get: function() {
+            return this.method == "HEAD";
+        }
+    });
+
+    /**
+     * True if this is a XMLHttpRequest.
+     */
+    Object.defineProperty(request, "isXhr", {
+        get: function() {
+            return this.headers["x-requested-with"] == "XMLHttpRequest";
         }
     });
 
@@ -159,58 +195,16 @@ function Request(request) {
 }
 
 /**
- * True if this is a HTTP GET request.
- */
-Object.defineProperty(Request.prototype, "isGet", {
-    get: function() { return this.method == "GET"; }
-});
-
-/**
- * True if this is a HTTP POST request.
- */
-Object.defineProperty(Request.prototype, "isPost", {
-    get: function() { return this.method == "POST"; }
-});
-
-/**
- * True if this is a HTTP PUT request.
- */
-Object.defineProperty(Request.prototype, "isPut", {
-    get: function() { return this.method == "PUT"; }
-});
-
-/**
- * True if this is a HTTP DELETE request.
- */
-Object.defineProperty(Request.prototype, "isDelete", {
-    get: function() { return this.method == "DELETE"; }
-});
-
-/**
- * True if this is a HTTP HEAD request.
- */
-Object.defineProperty(Request.prototype, "isHead", {
-    get: function() { return this.method == "HEAD"; }
-});
-
-/**
- * True if this is a XMLHttpRequest.
- */
-Object.defineProperty(Request.prototype, "isXhr", {
-    get: function() this.getHeader("X-Requested-With") == "XMLHttpRequest"
-});
-
-/**
  * An HTTP session object. Properties of the session's data
  * object are persisted between requests of the same client.
- * @param env the JSGI env object
+ * @param request the JSGI request object
  */
-function Session(env) {
+function Session(request) {
 
     var data;
 
     function getSession() {
-        return env["jsgi.servlet_request"].getSession();
+        return request.env.servlet_request.getSession();
     }
 
     /**

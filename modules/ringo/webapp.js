@@ -84,7 +84,7 @@ function resolveInConfig(req, webenv, config, configId) {
             var module = getModule(moduleId);
             log.debug("Resolved module: {} -> {}", moduleId, module);
             // move matching path fragment from PATH_INFO to SCRIPT_NAME
-            req.appendToScriptName(match[0]);
+            appendToScriptName(req, match[0]);
             // prepare action arguments, adding regexp capture groups if any
             var args = [req].concat(match.slice(1));
             // lookup action in module
@@ -151,7 +151,7 @@ function getAction(req, module, urlconf, args) {
                     // If the request path contains additional elements check whether the
                     // candidate function has formal arguments to take them
                     if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
-                        req.appendToScriptName(name);
+                        appendToScriptName(req, name);
                         Array.prototype.push.apply(args, path.slice(1));
                         return action;
                     }
@@ -170,13 +170,34 @@ function getAction(req, module, urlconf, args) {
         }
         if (path.length == 0 || args.length + path.length <= action.length) {
             if (path.length == 0 && args.slice(1).join('').length == 0) {
-                req.checkTrailingSlash();
+                checkTrailingSlash(req);
             }
             Array.prototype.push.apply(args, path);
             return action;
         }
     }
     return null;
+}
+
+function checkTrailingSlash(req) {
+    // only redirect for GET requests
+    if (!req.path.endsWith("/") && req.isGet) {
+        var path = req.queryString ?
+                req.path + "/?" + req.queryString : req.path + "/";
+        throw {redirect: path};
+    }
+}
+
+function appendToScriptName(req, fragment) {
+    var path = req.pathInfo;
+    var pos = path.indexOf(fragment);
+    if (pos > -1) {
+        pos += fragment.length;
+        // add matching pattern to script-name
+        req.scriptName += path.substring(0, pos);
+        // ... and remove it from path-info
+        req.pathInfo = path.substring(pos);
+    }
 }
 
 function splitPath(path) {

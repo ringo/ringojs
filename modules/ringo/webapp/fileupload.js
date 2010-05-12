@@ -32,20 +32,21 @@ function isFileUpload(contentType) {
 
 /**
  * Parses a multipart MIME input stream.
- * @param env the JSGI env object
- * @param params the parameter object to parse into
- * @param encoding the encoding to apply to non-file parameters
- * @param streamFactory factory function to create streams for mime parts
- */
-function parseFileUpload(env, params, encoding, streamFactory) {
+ * Parses a multipart MIME input stream.
+* @param request the JSGI request object
+* @param params the parameter object to parse into
+* @param encoding the encoding to apply to non-file parameters
+* @param streamFactory factory function to create streams for mime parts
+*/
+function parseFileUpload(request, params, encoding, streamFactory) {
     encoding = encoding || "UTF-8";
     streamFactory = streamFactory || memoryStreamFactory;
-    var boundary = getMimeParameter(env.CONTENT_TYPE, "boundary");
+    var boundary = getMimeParameter(request.headers["content-type"], "boundary");
     if (!boundary) {
         return;
     }
     boundary = new ByteArray("--" + boundary, "ASCII");
-    var input = env["jsgi.input"];
+    var input = request.input;
     var buflen = 8192;
     var buffer = new ByteArray(buflen); // input buffer
     var data;  // data object for current mime part properties

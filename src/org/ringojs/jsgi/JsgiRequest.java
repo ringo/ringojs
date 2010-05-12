@@ -38,7 +38,6 @@ public class JsgiRequest extends ScriptableObject {
     public JsgiRequest(Context cx, Scriptable scope) throws NoSuchMethodException {
         setParentScope(scope);
         setPrototype(ScriptableObject.getObjectPrototype(scope));
-        defineProperty("method", null, getMethod("getRequestMethod"), null, readonly);
         defineProperty("host", null, getMethod("getServerName"), null, readonly);
         defineProperty("port", null, getMethod("getServerPort"), null, readonly);
         defineProperty("queryString", null, getMethod("getQueryString"), null, readonly);
@@ -79,16 +78,13 @@ public class JsgiRequest extends ScriptableObject {
         }
         put("scriptName", this, checkString(request.getContextPath() + request.getServletPath()));
         put("pathInfo", this, checkString(request.getPathInfo()));
+        put("method", this, checkString(request.getMethod()));
         Scriptable env = cx.newObject(scope);
         ScriptableObject.defineProperty(this, "env", env, permanent);
         ScriptableObject.defineProperty(env, "servlet_request", Context.javaToJS(request, this), permanent);
         ScriptableObject.defineProperty(env, "servlet_response", Context.javaToJS(response, this), permanent);
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", scope.get("Object", scope), DONTENUM);
-    }
-
-    public String getRequestMethod() {
-        return checkString(request.getMethod());
     }
 
     public String getServerName() {

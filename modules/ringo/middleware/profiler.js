@@ -11,12 +11,15 @@ var maxFrames = 30;
  * level to -1 and adds a profiler.
  */
 exports.middleware = function(app) {
-    return function(env) {
+    return function(request) {
         if (engine.getOptimizationLevel() > -1) {
             // restart evaluation in interpreter mode. Shared modules
             // will still be optimized, so issue a warning
             log.warn("Changing optimization level mid-flight results in incomplete profiling output.",
                      "Run with optimization level -1 for accurate profiling.");
+            if (typeof request.reset === "function") {
+                request.reset();
+            }
             engine.setOptimizationLevel(-1);
             throw {retry: true};
         }
@@ -25,7 +28,7 @@ exports.middleware = function(app) {
 
         // get the response passing the request on to the middleware chain
         try {
-            return app(env);
+            return app(request);
         } finally {
             log.info("\n" + profiler.formatResult(maxFrames));
         }
