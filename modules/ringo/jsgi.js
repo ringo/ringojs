@@ -69,6 +69,14 @@ function initRequest(env) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(env, result) {
+    // As a convenient shorthand, we also handle async responses returning the
+    // not only the promise but the full deferred (as obtained by
+    // ringo.promise.defer()).
+    if (result.promise && typeof result.promise.then === "function") {
+        result = result.promise;
+    }
+    // If the response has a "then" function, we asume it is a promise and
+    // switch to async reponse handling.
     if (typeof result.then === "function") {
         handleAsyncResponse(env, result);
         return;
