@@ -101,10 +101,15 @@ function Logger(name) {
 
 /**
  * Configure log4j using the given file resource.
- * Make sure to set the reset property to true in the <log4j:configuration> header
- * e.g. <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/' reset="true">
+ *
+ * If you plan to update the configuration make sure to set the
+ * reset property to true in your configuration file.
+ *
+ * @param {Resource} resource the configuration resource in XML or properties format
+ * @param {Boolean} watchForUpdates if true a scheduler thread is started that
+ * repeatedly checks the resource for updates.  
  */
-var setConfig = exports.setConfig = function(resource) {
+var setConfig = exports.setConfig = function(resource, watchForUpdates) {
     var {path, url} = resource;
     var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
     var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
@@ -112,21 +117,23 @@ var setConfig = exports.setConfig = function(resource) {
                        PropertyConfigurator : DOMConfigurator;
     if (typeof configurator.configure === "function") {
         configurator.configure(url);
-        try {
-            // set up a scheduler to watch the configuration file for changes
-            var {setInterval, clearInterval} = require("./scheduler");
-            var lastModified = resource.lastModified();
-            if (configurationWatcher) {
-                clearInterval(configurationWatcher);
-            }
-            configurationWatcher = setInterval(function() {
-                if (resource.exists() && resource.lastModified() != lastModified) {
-                    lastModified = resource.lastModified();
-                    configurator.configure(url);
+        if (watchForUpdates) {
+            try {
+                // set up a scheduler to watch the configuration file for changes
+                var {setInterval, clearInterval} = require("./scheduler");
+                var lastModified = resource.lastModified();
+                if (configurationWatcher) {
+                    clearInterval(configurationWatcher);
                 }
-            }, 3000);
-        } catch (e) {
-            print("Error watching log configuration file:", e);
+                configurationWatcher = setInterval(function() {
+                    if (resource.exists() && resource.lastModified() != lastModified) {
+                        lastModified = resource.lastModified();
+                        configurator.configure(url);
+                    }
+                }, 3000);
+            } catch (e) {
+                print("Error watching log configuration file:", e);
+            }
         }
     }
     configured = true;
