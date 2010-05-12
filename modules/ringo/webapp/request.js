@@ -30,32 +30,22 @@ function Request(request) {
     /**
      * The request's content type, or undefined if not available.
      */
-    Object.defineProperty(request, "contentType", {
-        value: request.headers["content-type"]
-    });
+    request.contentType = request.headers["content-type"];
 
     /**
      * The request's content length, or undefined if not available.
      */
-    Object.defineProperty(request, "contentLength", {
-        value: request.headers["content-length"]
-    });
+    request.contentLength = request.headers["content-length"];
 
     /**
      * The full URI path of the request.
      */
-    Object.defineProperty(request, "path", {
-        value: request.scriptName + request.pathInfo
-    });
+    request.path = request.scriptName + request.pathInfo;
 
     /**
      * The URL-decoded URI path.
      */
-    Object.defineProperty(request, "pathDecoded", {
-        get: function() {
-            return decodeURI(this.path);
-        }
-    });
+    request.pathDecoded = decodeURI(request.path);
 
     /**
      * An object containing the parsed HTTP parameters sent with this request.
