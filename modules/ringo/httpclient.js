@@ -1,5 +1,6 @@
 /**
- * The HttpClient and it's convinience methods provide 
+ * @fileOverview A scalable HTTP client that provides both synchronous and
+ * asynchronous modes of operation.
  */
 
 importPackage(org.eclipse.jetty.client);
@@ -537,12 +538,30 @@ var Client = function(timeout) {
 var defaultClient = defaultClient || new Client();
 
 /**
+ * Convenience function to make a generic HTTP request without creating a new client.
  * @param {Object} options
  */
 var request = defaultClient.request;
+/**
+ * Convenience function to make a POST request without creating a new client.
+ * @param {Object} options
+ */
 var post = defaultClient.post;
+/**
+ * Convenience function to make a GET request without creating a new client.
+ * @param {Object} options
+ */
 var get = defaultClient.get;
+/**
+ * Convenience function to make a DELETE request without creating a new client.
+ * @param {Object} options
+ */
 var del = defaultClient.del;
+
+/**
+ * Convenience function to make a PUT request without creating a new client.
+ * @param {Object} options
+ */
 var put = defaultClient.put;
 
 
