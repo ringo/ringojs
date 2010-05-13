@@ -251,7 +251,7 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
 
     /**
      * Returns true if the stream is closed, false otherwise.
-     * @name MemoryStream.instance.close
+     * @name MemoryStream.instance.closed
      * @function
      */
     stream.closed = function() {
@@ -321,6 +321,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 
     /**
      * Returns this stream (which also is an Iterator).
+     * @function
      */
     this.iterator = this.__iterator__ = function () {
         return this;
