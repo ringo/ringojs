@@ -177,13 +177,10 @@ public class Stream extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public void skip(int num) {
+    public int skip(int num) {
         try {
             if (input != null) {
-                // TODO throw exception if actual skipped bytes != num?
-                // skip() should probably return the number of actual skpped bytes,
-                // like java InputStream.skip() does.
-                input.skip(num);
+                return (int) input.skip(num);
             } else {
                 throw Context.reportRuntimeError(
                         "skip() invoked on non-readable Stream");

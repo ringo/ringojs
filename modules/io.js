@@ -221,13 +221,14 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
      */
     stream.skip = function(num) {
         checkClosed();
-        num = +num;
+        num = Math.min(parseInt(num, 10), length - position);
         if (isNaN(num)) {
             throw new Error("skip() requires a number argument");
         } else if (num < 0) {
             throw new Error("Argument to skip() must not be negative");
         }
-        position += Math.min(num, length - position);
+        position += num;
+        return num
     };
 
     /**
@@ -496,6 +497,15 @@ exports.TextStream = function TextStream(io, charset, buflen) {
  */
 
 /**
+ * Try to skip over num bytes in the stream. Returns the number of acutal bytes skipped
+ * or throws an error if the operation could not be completed.
+ * @name Stream.prototype.skip
+ * @param {Number} num bytes to skip
+ * @returns {Number} actual bytes skipped
+ * @function
+ */
+
+/**
  * Flushes the bytes written to the stream to the underlying medium.
  * @name Stream.prototype.flush
  * @function
@@ -504,6 +514,12 @@ exports.TextStream = function TextStream(io, charset, buflen) {
 /**
  * Closes the stream, freeing the resources it is holding.
  * @name Stream.prototype.close
+ * @function
+ */
+
+/**
+ * Returns true if the stream has been closed, false otherwise.
+ * @name Stream.prototype.closed
  * @function
  */
 
