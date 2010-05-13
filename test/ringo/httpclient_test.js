@@ -3,6 +3,9 @@ var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var Server = require('ringo/httpserver').Server;
 
 var server;
+var host = "127.0.0.1";
+var port = "8080";
+var baseUri = "http://" + host + ":" + port + "/";
 
 /**
  * tests overwrite getResponse() to control the response they expect back
@@ -29,8 +32,8 @@ exports.setUp = function() {
     };
    
     var config = {
-       'host': '127.0.0.1',
-       'port': 8080,
+       host: host,
+       port: port,
     };
 
     server = new Server(config);
@@ -50,6 +53,38 @@ exports.tearDown = function() {
 };
 
 /**
+ * test that callbacks get called at all; all other
+ * tests rely on that.
+ */
+exports.testCallbacksGetCalled = function() {
+   getResponse = function(req) {
+      return new Response('');
+   }
+
+   var successCalled = false;
+   var completeCalled = false;
+   var errorNotCalled = true;
+   var exchange = request({
+      url: baseUri,
+      success: function() {
+         successCalled = true;
+      },
+      complete: function() {
+         completeCalled = true;
+      },
+      error: function() {
+         errorNotCalled = false;
+      },
+   });
+   assertTrue(successCalled);
+   assertTrue(completeCalled);
+   assertTrue(errorNotCalled);
+   
+   return;
+
+};
+
+/**
  * test basic get
  */
 exports.testBasic = function() {
@@ -58,11 +93,11 @@ exports.testBasic = function() {
    }
 
    var exchange = request({
-      'url': 'http://127.0.0.1:8080/',
-      'success': function(data, status, contentType, exchange) {
+      url: baseUri,
+      success: function(data, status, contentType, exchange) {
          assertEqual(data, '<h1>This is the Response Text</h1>');
       },
-      'error': function(data) {
+      error: function(data) {
          assertEqual(true, false);
       },
    });
@@ -79,22 +114,22 @@ exports.testConvenience = function() {
         }
         return new Response(req.method);
     };    
-    post('http://127.0.0.1:8080/', function(data, status) {
+    post(baseUri, function(data, status) {
         assertEqual(200, status);
         assertEqual('POST', data);
     });
     
-    get('http://127.0.0.1:8080/', {'foo': 'bar'}, function(data, status) {
+    get(baseUri, {foo: 'bar'}, function(data, status) {
         assertEqual(200, status);
         assertEqual('get with param', data);
     });
     
-    del('http://127.0.0.1:8080/', function(data, status) {
+    del(baseUri, function(data, status) {
         assertEqual(200, status);
         assertEqual('DELETE', data);
     });
     
-    put('http://127.0.0.1:8080/', function(data, status) {
+    put(baseUri, function(data, status) {
         assertEqual(200, status);
         assertEqual('PUT', data);
     }); 
@@ -111,32 +146,32 @@ exports.testParams = function() {
         return new Response(JSON.stringify(req.params));
     }
     var data = {
-        "a": "fääßß",
-        "b": "fööööbääzz",
-        "c": "08083",
-        "d": "0x0004"
+        a: "fääßß",
+        b: "fööööbääzz",
+        c: "08083",
+        d: "0x0004"
     };
     var getExchange = request({
-        'url': 'http://127.0.0.1:8080/',
-        'method': 'GET',
-        'data': data,
-        'success': function(content) {
+        url: baseUri,
+        method: 'GET',
+        data: data,
+        success: function(content) {
              var receivedData = JSON.parse(content);
              assertEqual(data, receivedData);
         },
-        'error': function(content) {
+        error: function(content) {
             assertTrue(false);
         }
     });
     var postExchange = request({
-        'url': 'http://127.0.0.1:8080/',
-        'method': 'POST',
-        'data': data,
-        'success': function(content) {
+        url: baseUri,
+        method: 'POST',
+        data: data,
+        success: function(content) {
              var receivedData = JSON.parse(content);
              assertEqual(data, receivedData);
         },
-        'error': function(exception, exchange) {
+        error: function(exception, exchange) {
             assertEqual(Exception, exception);
         }
     });
@@ -161,46 +196,46 @@ exports.testCallbacks = function() {
     }
    // success shouldn't get called
     var getErrorExchange = request({
-        'url': 'http://127.0.0.1:8080/notfound',
-        'method': 'GET',
-        'complete': function(data, status, contentType, exchange) {
+        url: baseUri + 'notfound',
+        method: 'GET',
+        complete: function(data, status, contentType, exchange) {
             assertEqual(status, 404);
             return;
         },
-        'success': function() {
+        success: function() {
             // should not get called
             assertTrue(false);
         },
-        'error': function(exception, exchange) {
+        error: function(exception, exchange) {
             assertEqual(exception, null);
             assertEqual(exchange.status, 404);
         }
     });
 
     var getSuccessExchange  = request({
-        'url': 'http://127.0.0.1:8080/success',
-        'method': 'GET',
-        'complete': function(data, status, contentType, exchange) {
+        url: baseUri + 'success',
+        method: 'GET',
+        complete: function(data, status, contentType, exchange) {
             assertEqual('text/json; charset=utf-8', contentType);
             assertEqual(200, status);
             return;
         },
-        'success': function(data, status, contentType, exchange) {
+        success: function(data, status, contentType, exchange) {
             assertEqual('text/json; charset=utf-8', contentType);
             assertEqual(200, status);
         },
         
-        'error': function() {
+        error: function() {
             assertTrue(false);
         }
     });
     var getRedirectExchange = request({
-        'url': 'http://127.0.0.1:8080/redirect',
-        'method': 'GET',
-        'complete': function(data, status, contentType, exchange) {
+        url: baseUri + 'redirect',
+        method: 'GET',
+        complete: function(data, status, contentType, exchange) {
              assertEqual(303, status);
         },
-        'error': function(ex) {
+        error: function(ex) {
             assertTrue(false);
         },
     });
@@ -223,16 +258,16 @@ exports.testCookie = function() {
 
     // recieve cookie
     request({
-        'url': 'http://127.0.0.1:8080/',
-        'method': 'GET',
-        'data': {'cookievalue': COOKIE_VALUE},
-        'complete': function(data, status, contentType, exchange) {
+        url: baseUri,
+        method: 'GET',
+        data: {'cookievalue': COOKIE_VALUE},
+        complete: function(data, status, contentType, exchange) {
             assertEqual(200, status);
         },
-        'success': function(data, status, contentType, exchange) {
+        success: function(data, status, contentType, exchange) {
             assertEqual(COOKIE_VALUE, exchange.cookies[COOKIE_NAME].value);
         },
-        'error': function() {
+        error: function() {
             assertTrue(false);
         }
     });
@@ -285,13 +320,13 @@ exports.testStreamRequest = function() {
     inputStream.read(inputByteArray, 0, size);
     var sendInputStream = resource.getInputStream()
     var streamSender = request({
-        'url': 'http://127.0.0.1:8080/',
-        'method': 'POST',
-        'data': sendInputStream,
-        'error': function() {
+        url: baseUri,
+        method: 'POST',
+        data: sendInputStream,
+        error: function() {
             assertFalse(true);
         },
-        'complete': function(data, status, contentType, exchange) {
+        complete: function(data, status, contentType, exchange) {
             assertEqual (inputByteArray.unwrap(), exchange.contentBytes);
             assertEqual('image/png', contentType);
         }
