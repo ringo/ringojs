@@ -258,7 +258,7 @@ exports.testStreamRequest = function() {
                         forEach: function(fn) {
                             var read, bufsize = 8192;
                             var buffer = new ByteArray(bufsize);
-                            input = env["jsgi.input"];
+                            input = env.input;
                             while ((read = input.readInto(buffer)) > -1) {
                                 buffer.length = read;
                                 fn(buffer);

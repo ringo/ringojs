@@ -129,12 +129,12 @@ var Exchange = function(url, options, callbacks) {
     if (!url) throw new Error('missing url argument');
 
     var opts = Object.merge(options, {
-        'data': {},
-        'headers': {},
-        'method': 'GET',
-        'contentType': 'application/x-www-form-urlencoded;charset=utf-8',
-        'username': undefined,
-        'password': undefined
+        data: {},
+        headers: {},
+        method: 'GET',
+        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+        username: undefined,
+        password: undefined
     });
       
     this.toString = function() {
@@ -235,7 +235,7 @@ var Exchange = function(url, options, callbacks) {
     var self = this;
     var responseFields = new org.eclipse.jetty.http.HttpFields();
     var exchange = new JavaAdapter(ContentExchange, {
-        'onResponseComplete': function() {
+        onResponseComplete: function() {
             this.super$onResponseComplete();
             if (typeof(callbacks.complete) === 'function') {
                 callbacks.complete(self.content, self.status, self.contentType, self);
@@ -251,7 +251,7 @@ var Exchange = function(url, options, callbacks) {
             }
             return;
         },
-        'onResponseContent': function(content) {
+        onResponseContent: function(content) {
             if (typeof(callbacks.part) === 'function') {
                 // NOTE if content is not decodable this is bad
                 //      probably better to pass buffer or bytes here
@@ -260,26 +260,26 @@ var Exchange = function(url, options, callbacks) {
             this.super$onResponseContent(content);
             return;
         },
-        'onResponseHeader': function(key, value) {
+        onResponseHeader: function(key, value) {
             this.super$onResponseHeader(key, value);
             responseFields.add(key, value);
             return;
         },
-        'onConnectionFailed': function(exception) {
+        onConnectionFailed: function(exception) {
             this.super$onConnectionFailed(exception);
             if (typeof(callbacks.error) === 'function') {
                 callbacks.error(exception, self);
             }
             return;
         },
-        'onException': function(exception) {
+        onException: function(exception) {
             this.super$onException(exception);
             if (typeof(callbacks.error) === 'function') {
                 callbacks.error(exception, self);
             }
             return;
         },
-        'onExpire': function() {
+        onExpire: function() {
             this.super$onExpire();
             if (typeof(callbacks.error) === 'function') {
                 // FIXME need a timeout exception to pass
@@ -330,16 +330,16 @@ var Exchange = function(url, options, callbacks) {
 var defaultOptions = function(options) {
     return Object.merge(options || {}, {
         // exchange
-        'data': {},
-        'headers': {},
-        'method': 'GET',
-        'contentType': 'application/x-www-form-urlencoded;charset=utf-8',
-        'username': undefined,
-        'password': undefined,
+        data: {},
+        headers: {},
+        method: 'GET',
+        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+        username: undefined,
+        password: undefined,
         // client
-        'async': false, // NOTE: true doesn't make sense for ringo
-        'cache': true,
-        'timeout': 1000
+        async: false, // NOTE: true doesn't make sense for ringo
+        cache: true,
+        timeout: 1000
     });
 };
 
@@ -363,34 +363,34 @@ var extractOptionalArguments = function(args) {
 
     if (args.length == 1) {
         return {
-            'url': args[0]
+            url: args[0]
         };
 
     } else if (args.length == 2) {
         if (types[1] == 'function') {
             return {
-                'url': args[0],
-                'success': args[1]
+                url: args[0],
+                success: args[1]
             };
         } else {
             return {
-                'url': args[0],
-                'data': args[1]
+                url: args[0],
+                data: args[1]
             };
         }
         throw new Error('two argument form must be (url, success) or (url, data)');
     } else if (args.length == 3) {
         if (types[1] == 'function' && types[2] == 'function') {
             return {
-                'url': args[0],
-                'success': args[1],
-                'error': args[2]
+                url: args[0],
+                success: args[1],
+                error: args[2]
             };
         } else if (types[1] == 'object' && types[2] == 'function') {
             return {
-                'url': args[0],
-                'data': args[1],
-                'success': args[2]
+                url: args[0],
+                data: args[1],
+                success: args[2]
             };
         } else {
             throw new Error('three argument form must be (url, success, error) or (url, data, success)');
@@ -422,11 +422,11 @@ var Client = function(timeout) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
-            'method': 'GET',
-            'url': url,
-            'data': data,
-            'success': success,
-            'error': error
+            method: 'GET',
+            url: url,
+            data: data,
+            success: success,
+            error: error
         });    
     };
     
@@ -441,11 +441,11 @@ var Client = function(timeout) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
-            'method': 'POST',
-            'url': url,
-            'data': data,
-            'success': success,
-            'error': error
+            method: 'POST',
+            url: url,
+            data: data,
+            success: success,
+            error: error
         });
     };
     
@@ -460,11 +460,11 @@ var Client = function(timeout) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
-            'method': 'DELETE',
-            'url': url,
-            'data': data,
-            'success': success,
-            'error': error
+            method: 'DELETE',
+            url: url,
+            data: data,
+            success: success,
+            error: error
         });
     };
     
@@ -479,11 +479,11 @@ var Client = function(timeout) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
         }
         return this.request({
-            'method': 'PUT',
-            'url': url,
-            'data': data,
-            'success': success,
-            'error': error
+            method: 'PUT',
+            url: url,
+            data: data,
+            success: success,
+            error: error
         });
     };
     
@@ -494,17 +494,17 @@ var Client = function(timeout) {
     this.request = function(options) {
         var opts = defaultOptions(options);
         var exchange = new Exchange(opts.url, {
-            'method': opts.method,
-            'data': opts.data,
-            'headers': opts.headers,
-            'username': opts.username,
-            'password': opts.password,
-            'contentType': opts.contentType
+            method: opts.method,
+            data: opts.data,
+            headers: opts.headers,
+            username: opts.username,
+            password: opts.password,
+            contentType: opts.contentType
         }, {
-            'success': opts.success,
-            'complete': opts.complete,
-            'error': opts.error,
-            'part': opts.part
+            success: opts.success,
+            complete: opts.complete,
+            error: opts.error,
+            part: opts.part
         });
         if (typeof(opts.beforeSend) === 'function') {
             opts.beforeSend(exchange);
