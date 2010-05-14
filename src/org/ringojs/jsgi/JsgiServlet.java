@@ -60,13 +60,18 @@ public class JsgiServlet extends HttpServlet {
 
         // don't overwrite function if it was set in constructor
         if (function == null) {
-            module = getInitParam(config, "moduleName", "config");
-            function = getInitParam(config, "functionName", "app");
+            module = getStringParameter(config, "config", "config");
+            function = getStringParameter(config, "app", "app");
         }
 
         if (engine == null) {
-            String ringoHome = getInitParam(config, "ringoHome", "/WEB-INF");
-            String modulePath = getInitParam(config, "modulePath", "app");
+            String ringoHome = getStringParameter(config, "ringo-home", "/WEB-INF");
+            String modulePath = getStringParameter(config, "module-path", "app");
+            int optlevel = getIntParameter(config, "optlevel", 0);
+            boolean debug = getBooleanParameter(config, "debug", false);
+            boolean production = getBooleanParameter(config, "production", false);
+            boolean verbose = getBooleanParameter(config, "verbose", false);
+            boolean legacyMode = getBooleanParameter(config, "legacy-mode", false);
 
             Repository home = new WebappRepository(config.getServletContext(), ringoHome);
             try {
@@ -77,9 +82,12 @@ public class JsgiServlet extends HttpServlet {
                 }
                 String[] paths = StringUtils.split(modulePath, File.pathSeparator);
                 RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
-                if ("true".equals(getInitParam(config, "debug", null))) {
-                    ringoConfig.setDebug(true);
-                }
+                ringoConfig.setDebug(debug);
+                ringoConfig.setVerbose(verbose);
+                ringoConfig.setParentProtoProperties(legacyMode);
+                ringoConfig.setStrictVars(!legacyMode && !production);
+                ringoConfig.setReloading(!production);
+                ringoConfig.setOptLevel(optlevel);
                 engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
@@ -127,9 +135,34 @@ public class JsgiServlet extends HttpServlet {
         }
     }
 
-    private String getInitParam(ServletConfig config, String name, String defaultValue) {
+    private String getStringParameter(ServletConfig config, String name, String defaultValue) {
         String value = config.getInitParameter(name);
         return value == null ? defaultValue : value;
     }
 
+    private int getIntParameter(ServletConfig config, String name, int defaultValue) {
+        String value = config.getInitParameter(name);
+        if (value != null) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException nfx) {
+                System.err.println("Invalid value for parameter \"" + name + "\": " + value);
+            }
+        }
+        return defaultValue;
+    }
+
+    private boolean getBooleanParameter(ServletConfig config, String name, boolean defaultValue) {
+        String value = config.getInitParameter(name);
+        if (value != null) {
+            if ("true".equals(value) || "1".equals(value) || "on".equals(value)) {
+                return true;
+            }
+            if ("false".equals(value) || "0".equals(value) || "off".equals(value)) {
+                return false;
+            }
+            System.err.println("Invalid value for parameter \"" + name + "\": " + value);
+        }
+        return defaultValue;
+    }
 }

@@ -9,19 +9,19 @@
 		<servlet-name>ringo</servlet-name>
 		<servlet-class>org.ringojs.jsgi.JsgiServlet</servlet-class>
 		<init-param>
-			<param-name>ringoHome</param-name>
+			<param-name>ringo-home</param-name>
 			<param-value>/WEB-INF</param-value>
 		</init-param>
 		<init-param>
-			<param-name>modulePath</param-name>
+			<param-name>module-path</param-name>
 			<param-value>app</param-value>
 		</init-param>
 		<init-param>
-			<param-name>moduleName</param-name>
+			<param-name>config</param-name>
 			<param-value>config</param-value>
 		</init-param>
 		<init-param>
-			<param-name>functionName</param-name>
+			<param-name>app</param-name>
 			<param-value>app</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
