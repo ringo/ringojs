@@ -57,7 +57,7 @@ public class RhinoEngine implements ScopeProvider {
     private ModuleScope mainScope = null;
 
     public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 4));
+    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 5));
 
     public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
     static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
