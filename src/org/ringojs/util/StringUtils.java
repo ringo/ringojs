@@ -12,6 +12,7 @@
 package org.ringojs.util;
 
 
+import java.nio.CharBuffer;
 import java.util.StringTokenizer;
 
 /**
@@ -101,6 +102,30 @@ public class StringUtils {
         }
         String lower = str.toLowerCase();
         return lower.endsWith(".zip") || lower.endsWith(".jar");
+    }
+
+    /**
+     * Scan for a newline sequence in the given CharBuffer, starting at
+     * position from until buffer.position(). A newline sequence is one of
+     * "r\n", "\r", or "\n". Returns the index of the 
+     * first newline sequence, or -1 if none was found.
+     *
+     * @param buffer the character buffer
+     * @param from the position to start searching
+     * @return the index of first newline sequence found, or -1
+     */
+    public static int searchNewline(CharBuffer buffer, int from) {
+        int to = buffer.position();
+        if (from >= to) {
+            return -1;
+        }
+        char[] chars = buffer.array();
+        for (int i = from; i < to; i++) {
+            if (chars[i] == '\n' || (chars[i] == '\r' && i < to - 1)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

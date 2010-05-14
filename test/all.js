@@ -4,6 +4,7 @@ exports.args = require('./ringo/args_test');
 exports.array = require('./core/array_test');
 exports.buffer = require('./ringo/buffer_test');
 exports.object = require('./core/object_test');
+exports.encoding = require('./ringo/encoding_test');
 exports.fileutils = require('./ringo/fileutils_test');
 exports.skin = require('./ringo/skin_test');
 exports.string = require('./core/string_test');

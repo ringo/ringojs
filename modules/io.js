@@ -367,7 +367,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * @returns {String}
      */
     this.read = function () {
-        return io.read().decodeToString(charset);
+        return decoder.read();
     };
 
     /**

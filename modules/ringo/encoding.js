@@ -7,8 +7,8 @@ var log = require("ringo/logging").getLogger(module.id);
 
 var {Charset, CharsetEncoder, CharsetDecoder, CodingErrorAction} = java.nio.charset;
 var {ByteBuffer, CharBuffer} = java.nio;
-
-var linePattern = java.util.regex.Pattern.compile("\r\n|\n|\r");
+var StringUtils = org.ringojs.util.StringUtils;
+var JavaString = java.lang.String;
 
 var DEFAULTSIZE = 8192;
 
@@ -18,13 +18,13 @@ function Decoder(charset, strict, capacity) {
         return new Decoder(charset, strict, capacity);
     }
 
-    capacity = capacity || DEFAULTSIZE;
     var decoder = Charset.forName(charset).newDecoder();
+    // input buffer must be able to contain any character
+    capacity = Math.max(capacity, 8) || DEFAULTSIZE;
     var input = ByteBuffer.allocate(capacity);
     var output = CharBuffer.allocate(decoder.averageCharsPerByte() * capacity);
     var stream;
     var mark = 0;
-    log.debug("created decoder for", charset);
 
     var errorAction = strict ?
             CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
@@ -33,35 +33,44 @@ function Decoder(charset, strict, capacity) {
 
     var decoded;
 
+    /**
+     * Decode bytes from the given buffer.
+     * @param bytes a ByteString or ByteArray
+     * @param start The start index, or 0 if undefined
+     * @param end the end index, or bytes.length if undefined
+     */
     this.decode = function(bytes, start, end) {
         start = start || 0;
         end = end || bytes.length;
         while (end > start) {
             var count = Math.min(end - start, input.capacity() - input.position());
             input.put(bytes, start, count);
-            input.flip();
-            var result = decoder.decode(input, output, false);
-            while (result.isOverflow()) {
-                // grow output buffer
-                capacity += Math.max(capacity, end - start);
-                log.debug("Growing decoder output buffer to", capacity);
-                var newOutput = CharBuffer.allocate(1.2 * capacity * decoder.averageCharsPerByte());
-                output.flip();
-                newOutput.append(output);
-                output = newOutput;
-                result = decoder.decode(input, output, false);
-            }
+            decodeInput(end - start);
             start += count;
-            if (result.isError()) {
-                decoder.reset();
-                input.clear();
-                throw new Error(result);
-            }
-            input.compact();
         }
         decoded = null;
         return this;
     };
+
+    function decodeInput(remaining) {
+        input.flip();
+        var result = decoder.decode(input, output, false);
+        while (result.isOverflow()) {
+            // grow output buffer
+            capacity += Math.max(capacity, remaining);
+            var newOutput = CharBuffer.allocate(1.2 * capacity * decoder.averageCharsPerByte());
+            output.flip();
+            newOutput.append(output);
+            output = newOutput;
+            result = decoder.decode(input, output, false);
+        }
+        if (result.isError()) {
+            decoder.reset();
+            input.clear();
+            throw new Error(result);
+        }
+        input.compact();
+    }
 
     this.close = function() {
         input.flip();
@@ -74,60 +83,74 @@ function Decoder(charset, strict, capacity) {
         return this;
     };
 
-    function searchNewline() {
-        output.flip();
-        try {
-            var matcher = linePattern.matcher(output);
-            var result = matcher.find(mark);
-        } finally {
-            output.position(output.limit());
-            output.limit(output.capacity());
-        }
-        return result;
-    }
-
-    this.readLine = function(includeNewline) {
+    this.read = function() {
         var eof = false;
-        while (stream && !eof && !searchNewline()) {
-            var b = stream.read(4096);
-            log.debug("Read", b.length, "bytes from stream");
-            if (b.length == 0) {
+        while (stream && !eof) {
+            if (mark > 0) {
+                output.limit(output.position());
+                output.position(mark);
+                output.compact();
+                mark = 0;
+            }
+            var position = input.position();
+            var read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
+            if (read < 0) {
                 // end of stream has been reached
                 eof = true;
             } else {
-                this.decode(b);
+                input.position(position + read);
+                decodeInput(0);
             }
         }
         output.flip();
-        var matcher = linePattern.matcher(output);
+        decoded = null; // invalidate
+        return mark == output.limit() ?
+                    null : String(output.subSequence(mark, output.limit()));
+    };
+
+    this.readLine = function(includeNewline) {
+        var eof = false;
+        var newline = StringUtils.searchNewline(output, mark);
+        while (stream && !eof && newline < 0) {
+            if (mark > 0) {
+                output.limit(output.position());
+                output.position(mark);
+                output.compact();
+                mark = 0;
+            }
+            var position = input.position();
+            var read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
+            if (read < 0) {
+                // end of stream has been reached
+                eof = true;
+            } else {
+                var from = output.position();
+                input.position(position + read);
+                decodeInput(0);
+                newline = StringUtils.searchNewline(output, from);
+            }
+        }
+        output.flip();
         var result;
-        if (matcher.find(mark)) {
-            var pos = matcher.start();
-            var nline = matcher.group().length;
-            result = String(output.subSequence(mark, includeNewline ? pos + nline : pos));
-            mark = pos + nline;
+        if (newline > -1) {
+            var pos = output.charAt(newline) == '\r' && output.charAt(newline + 1) == '\n' ?
+                    newline + 2 : newline + 1;
+            result = String(output.subSequence(mark, includeNewline ? pos : newline));
+            mark = pos;
             output.position(output.limit());
             output.limit(output.capacity());
         } else if (eof) {
             result =  mark == output.limit() ?
                     null : String(output.subSequence(mark, output.limit()));
             this.clear();
-        } else {
-            output.position(mark);
-            output.compact();
-            var buffer = ByteArray.wrap(input.array());
-
-            mark = 0;
-            result = null;
         }
+        decoded = null; // invalidate
         return result;
     };
 
     this.toString = function() {
         if (decoded == null) {
-            decoded = output.flip().toString();
-            output.position(output.limit());
-            output.limit(output.capacity());
+            decoded = String(JavaString(output.array(), mark, output.position() - mark));
         }
         return decoded;
     };
@@ -138,17 +161,19 @@ function Decoder(charset, strict, capacity) {
 
     this.readFrom = function(source) {
         stream = source;
+        return this;
     };
 
     this.clear = function() {
         decoded = null;
         output.clear();
         mark = 0;
+        return this;
     };
 
     Object.defineProperty(this, "length", {
         get: function() {
-            return output.position();
+            return output.position() - mark;
         }
     });
 }
@@ -164,7 +189,6 @@ function Encoder(charset, strict, capacity) {
     var encoded = new ByteArray(capacity);
     var output = ByteBuffer.wrap(encoded);
     var stream;
-    log.debug("created encoder for", charset);
 
     var errorAction = strict ?
             CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
@@ -180,7 +204,6 @@ function Encoder(charset, strict, capacity) {
             // grow output buffer
             capacity += Math.max(capacity, Math.round(1.2 * (end - start) * encoder.averageBytesPerChar()));
             encoded.length = capacity;
-            log.debug("Growing encoder output buffer to", capacity);
             var position = output.position();
             output = ByteBuffer.wrap(encoded);
             output.position(position);
@@ -227,10 +250,12 @@ function Encoder(charset, strict, capacity) {
 
     this.writeTo = function(sink) {
         stream = sink;
+        return this;
     };
 
     this.clear = function() {
         output.clear();
+        return this;
     };
 
     Object.defineProperty(this, "length", {
