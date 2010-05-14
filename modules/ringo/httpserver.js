@@ -68,7 +68,7 @@ function Server(options) {
      * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
      */
     this.addApplication = function(path, vhosts, app, engine) {
-        log.info("Adding JSGI handler: " + path + " -> " + app.toSource());
+        log.info("Adding JSGI handler:", path, "->", app.toSource());
         var context = createContext(path, vhosts, true, true);
         engine = engine || require('ringo/engine').getRhinoEngine();
         var isFunction = typeof app === "function";
@@ -78,8 +78,8 @@ function Server(options) {
         var jpkg = org.eclipse.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(servlet);
         if (!isFunction) {
-            servletHolder.setInitParameter('moduleName', app.config || 'config');
-            servletHolder.setInitParameter('functionName', app.app || 'app');
+            servletHolder.setInitParameter('config', app.config || 'config');
+            servletHolder.setInitParameter('app', app.app || 'app');
         }
         context.addServlet(servletHolder, "/*");
         if (jetty.isRunning()) {
@@ -95,7 +95,7 @@ function Server(options) {
      * @param {string} dir the directory from which to serve static resources
      */
     this.addStaticResources = function(path, vhosts, dir) {
-        log.info("Adding static handler: " + path + " -> " + dir);
+        log.info("Adding static handler:", path, "->", dir);
         var context = createContext(path, vhosts, false, true);
         var repo = getRepository(dir);
         context.setResourceBase(repo.exists() ? repo.getPath() : dir);
