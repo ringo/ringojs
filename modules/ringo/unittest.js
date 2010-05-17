@@ -2,8 +2,6 @@ import("core/string");
 var term = require("ringo/term");
 var fs = require("fs");
 
-module.shared = true;
-
 export(
     "run",
     "jsDump", // this is needed in selftests

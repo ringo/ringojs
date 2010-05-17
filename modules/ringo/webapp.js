@@ -18,8 +18,6 @@ export('getConfig',
 
 var log = require('ringo/logging').getLogger(module.id);
 
-module.shared = true;
-
 /**
  * Handler function called by the JSGI servlet.
  *

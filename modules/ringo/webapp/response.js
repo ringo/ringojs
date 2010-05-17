@@ -14,8 +14,6 @@ export('Response',
        'notFoundResponse',
        'errorResponse');
 
-module.shared = true;
-
 function Response() {
 
     // missing new security belt

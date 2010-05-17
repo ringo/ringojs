@@ -10,8 +10,6 @@ export('readOnlyPropertyDesc',
         'getJavaStack',
         'timer');
 
-module.shared = true;
-
 /**
  * Create a read-only property descriptor to be used as third argument in
  * Object.defineProperty that maps a property to a property in

@@ -23,8 +23,6 @@ var InputStreamReader = java.io.InputStreamReader,
     OutputStreamWriter = java.io.OutputStreamWriter,
     BufferedWriter = java.io.BufferedWriter;
 
-module.shared = true;
-
 /**
  * Reads from all data available from this stream and writes the result to the
  * given output stream, flushing afterwards.

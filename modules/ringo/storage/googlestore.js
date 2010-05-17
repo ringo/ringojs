@@ -8,7 +8,6 @@ export('defineEntity', 'beginTransaction', 'getTransaction', 'commitTransaction'
 importPackage(com.google.appengine.api.datastore);
 addHostObject(org.ringojs.wrappers.Storable);
 
-module.shared = true;
 var datastore = DatastoreServiceFactory.getDatastoreService();
 var registry = {};
 var self = this;

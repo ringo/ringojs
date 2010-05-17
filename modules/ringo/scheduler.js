@@ -2,8 +2,6 @@
  * @fileoverview This module provides support for scheduling invocation of functions.
  */
 
-module.shared = true;
-
 var {newScheduledThreadPool, newCachedThreadPool} = java.util.concurrent.Executors;
 var {ThreadFactory} = java.util.concurrent;
 var {MILLISECONDS} = java.util.concurrent.TimeUnit;

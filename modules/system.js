@@ -8,7 +8,6 @@
  */
 
 var {Stream, TextStream} = require('io');
-module.shared = true;
 
 /**
  * A TextStream to read from stdin.

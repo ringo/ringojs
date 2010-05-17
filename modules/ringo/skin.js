@@ -4,7 +4,6 @@ var engine = require('ringo/engine');
 
 export('render', 'createSkin', 'Skin');
 
-module.shared = true;
 var log = require('ringo/logging').getLogger(module.id);
 var skincache = false; // {}
 

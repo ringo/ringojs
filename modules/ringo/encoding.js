@@ -1,8 +1,6 @@
 
 export("Encoder", "Decoder");
 
-module.shared = true;
-
 var log = require("ringo/logging").getLogger(module.id);
 
 var {Charset, CharsetEncoder, CharsetDecoder, CodingErrorAction} = java.nio.charset;

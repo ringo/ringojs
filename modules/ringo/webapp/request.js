@@ -11,8 +11,6 @@ var {Context, Scriptable} = org.mozilla.javascript;
 
 export('Request', 'Session');
 
-module.shared = true;
-
 /**
  * Adds convenience properties and methods to  a
  * [JSGI 0.3 request object](http://wiki.commonjs.org/wiki/JSGI/Level0/A/Draft2#Request).

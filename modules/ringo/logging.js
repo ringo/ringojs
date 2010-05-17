@@ -16,7 +16,6 @@ var utils = require('ringo/utils');
 
 var LoggerFactory = org.slf4j.LoggerFactory;
 
-module.shared = true;
 var configured = false;
 // interval id for configuration watcher
 var configurationWatcher;

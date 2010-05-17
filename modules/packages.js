@@ -7,8 +7,6 @@ var system = require('system');
 var fs = require('fs');
 var engine = require('ringo/engine');
 
-module.shared = true;
-
 export('load', 'normalize', 'catalog');
 
 var catalog;

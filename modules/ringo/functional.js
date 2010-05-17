@@ -1,8 +1,6 @@
 
 export('bindArguments', 'bindThisObject');
 
-module.shared = true;
-
 /**
  * Return a function wrapper around another function that binds
  * some or all arguments of the original function. The argument

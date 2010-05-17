@@ -2,8 +2,6 @@
  * @fileoverview Adds useful methods to the JS Number type.
  */
 
-module.shared = true;
-
 /**
  * Format a number using java.text.DecimalFormat.
  * @param fmt the format to apply

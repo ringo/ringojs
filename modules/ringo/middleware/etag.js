@@ -4,8 +4,6 @@ var {Headers} = require('ringo/webapp/util');
 
 export('middleware');
 
-module.shared = true;
-
 /**
  * JSGI middleware for conditional HTTP GET request based on
  * response body message digests.

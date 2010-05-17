@@ -11,8 +11,6 @@
 var fsBase = require('fs-base');
 include('io');
 
-module.shared = true;
-
 var File = java.io.File,
     FileInputStream = java.io.FileInputStream,
     FileOutputStream = java.io.FileOutputStream;

@@ -17,8 +17,6 @@
 
 defineClass(org.ringojs.wrappers.Binary);
 
-module.shared = true;
-
 /**
  * Abstract base class for ByteArray and ByteString
  * @constructor

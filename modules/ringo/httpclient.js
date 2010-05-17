@@ -13,8 +13,6 @@ var log = require('ringo/logging').getLogger(module.id);
 
 export('request', 'post', 'get', 'del', 'put', 'Client');
 
-module.shared = true;
-
 /**
  * Wrapper around jetty.http.HttpCookie.
  */

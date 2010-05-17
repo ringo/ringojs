@@ -18,8 +18,6 @@
  * @fileoverview Adds useful methods to the JavaScript Object type.
  */
 
-module.shared = true;
-
 /**
  * copy the properties of an object into
  * a new object

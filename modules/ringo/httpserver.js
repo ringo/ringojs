@@ -6,8 +6,6 @@ export('Server');
 
 require('core/object');
 
-// mark this module as shared between all requests
-module.shared = true;
 var log = require('ringo/logging').getLogger(module.id);
 
 

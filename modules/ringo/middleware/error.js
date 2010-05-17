@@ -4,8 +4,6 @@ var engine = require('ringo/engine');
 var log = require('ringo/logging').getLogger(module.id);
 var Buffer = require('ringo/buffer').Buffer;
 
-module.shared = true;
-
 /**
  * JSGI middleware to display error messages and stack traces.
  */

@@ -8,8 +8,6 @@ var fs = require('fs');
 
 export ('resolveUri', 'resolveId', 'isHidden', 'createTempFile', 'roots', 'separator');
 
-module.shared = true;
-
 var File = java.io.File;
 
 /**

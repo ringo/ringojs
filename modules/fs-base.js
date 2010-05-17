@@ -8,8 +8,6 @@ include('io');
 include('binary');
 require('core/array');
 
-module.shared = true;
-
 export('canonical',
        'changeWorkingDirectory',
        'workingDirectory',

@@ -6,8 +6,6 @@ var {Headers, ResponseFilter} = require('ringo/webapp/util');
 
 var responseLogEnabled = true;
 
-module.shared = true;
-
 /**
  * Render log4j messages to response buffer in the style of helma 1 res.debug().
  */

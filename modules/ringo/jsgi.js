@@ -5,7 +5,6 @@ include("binary");
 
 export('handleRequest');
 var log = require('ringo/logging').getLogger(module.id);
-module.shared = true;
 
 /**
  * Handle a JSGI request.

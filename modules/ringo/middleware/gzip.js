@@ -6,8 +6,6 @@ var {GZIPOutputStream} = java.util.zip;
 
 export('middleware');
 
-module.shared = true;
-
 /**
  * JSGI middleware for GZIP compression.
  * @param app the JSGI application

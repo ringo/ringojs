@@ -3,8 +3,6 @@ var {ByteString} = require('binary');
 
 export('Buffer');
 
-module.shared = true;
-
 /**
  * A utility class for composing strings. This is implemented
  * as a simple wrapper around a JavaScript array.

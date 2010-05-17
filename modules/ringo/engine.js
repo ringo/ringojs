@@ -24,9 +24,6 @@ export( 'properties',
 
 var rhino = org.mozilla.javascript;
 
-// mark this module as shared between all requests
-module.shared = true;
-
 /**
  * An object reflecting the Java system properties.
  */

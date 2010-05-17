@@ -13,8 +13,6 @@ var options,
     server,
     parser;
 
-module.shared = true;
-
 export('parseOptions', 'init', 'start', 'stop', 'destroy', 'getServer');
 
 function parseOptions(arguments, defaults) {

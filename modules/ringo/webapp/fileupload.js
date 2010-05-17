@@ -8,8 +8,6 @@ var {createTempFile} = require('ringo/fileutils');
 var {open} = require('fs');
 var {MemoryStream} = require('io');
 
-module.shared = true;
-
 export('isFileUpload', 'parseFileUpload', 'BufferFactory', 'TempFileFactory');
 
 var log = require('ringo/logging').getLogger(module.id);

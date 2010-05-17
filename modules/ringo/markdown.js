@@ -2,7 +2,6 @@
  * @fileOverview A fast and extensible
  * [Markdown](http://daringfireball.net/projects/markdown/) formatter.
  */
-module.shared = true;
 
 /**
  * Get an instance of org.ringojs.util.MarkdownProcessor. Passing in an

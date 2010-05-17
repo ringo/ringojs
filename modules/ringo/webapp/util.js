@@ -2,8 +2,6 @@
 require('core/string');
 var {Buffer} = require('ringo/buffer');
 
-module.shared = true;
-
 export('ResponseFilter', 'Headers', 'getMimeParameter');
 
 /**

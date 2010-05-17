@@ -14,8 +14,6 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-module.shared = true;
-
 var ANUMPATTERN = /[^a-zA-Z0-9]/;
 var APATTERN = /[^a-zA-Z]/;
 var NUMPATTERN = /[^0-9]/;
