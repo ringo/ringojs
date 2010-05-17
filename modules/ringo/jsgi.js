@@ -24,7 +24,7 @@ function handleRequest(moduleId, functionObj, request) {
         var module = require(moduleId);
         app = module[functionObj];
         var middleware = module.middleware || [];
-        // request.env["ringo.config"] = moduleId;
+        request.env.ringo_config = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     if (!(typeof(app) == 'function')) {

@@ -23,11 +23,11 @@ module.shared = true;
 /**
  * Handler function called by the JSGI servlet.
  *
- * @param env the JSGI environment argument
+ * @param req the JSGI 0.3 request object
  */
-function handleRequest(env) {
+function handleRequest(req) {
     // get config and apply it to req, res
-    var configId = env['ringo.config'] || 'config';
+    var configId = req.env.ringo_config || 'config';
     var config = getConfig(configId);
     if (log.isDebugEnabled()){
         log.debug('got config: ' + config.toSource());
@@ -35,7 +35,7 @@ function handleRequest(env) {
 
     // set req in webapp env module
     var webenv = require('ringo/webapp/env');
-    var req = Request(env);
+    req = Request(req);
     var res = null;
     webenv.setRequest(req);
 
