@@ -313,7 +313,7 @@ public class ReloadableScript {
         Scriptable meta = module.getMetaObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
-        boolean isShared = meta.get("shared", meta) == Boolean.TRUE
+        boolean isShared = meta.get("shared", meta) != Boolean.FALSE
                 || moduleName.equals(engine.getMainModule());
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
