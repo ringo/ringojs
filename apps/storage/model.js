@@ -3,8 +3,6 @@ var store = require('./config').store;
 
 export('Book', 'Author');
 
-module.shared = true;
-
 /**
  * Book class
  * @param properties object containing persistent properties

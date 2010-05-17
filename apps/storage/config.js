@@ -1,6 +1,3 @@
-// shared in order not to recreate Store for each request 
-module.shared = true;
-
 // to use Google app engine store replace the two lines below with:
 // exports.store = require('ringo/storage/googlestore');
 var Store = require('ringo/storage/filestore').Store;
