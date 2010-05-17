@@ -113,12 +113,22 @@ function Server(options) {
      * @param {string} path a request path such as "/foo/bar" or "/"
      * @param {string|array} vhosts optional single or multiple virtual host names.
      *   A virtual host may start with a "*." wildcard.
-     * @param {servlet} a java object implementing the javax.servlet.Servlet interface.
+     * @param {Servlet} a java object implementing the javax.servlet.Servlet interface.
+     * @param {object} options object. Supports the following boolean flags:
+     *         - sessions - enable session support
+     *         - security - enable security support
+     *         - redirect - enable redirects from /path to /path/ 
      * @since: 0.5
      */
-    this.addServlet = function(path, vhosts, servlet) {
+    this.addServlet = function(path, vhosts, servlet, options) {
         log.info("Adding Servlet:", path, "->", servlet);
-        var context = createContext(path, vhosts, true, true);
+        options = options || {};
+        var sessions = Boolean(options.sessions);
+        var security = Boolean(options.security);
+        var context = createContext(path, vhosts, sessions, security);
+        // avoid redirecting from /path to /path/ - this is a common cause for problems
+        // with cometd, websocket and the like as clients tend not to follow redirects.
+        context.setAllowNullPathInfo(!Boolean(options.redirect));
         var jpkg = org.eclipse.jetty.servlet;
         var servletHolder = new jpkg.ServletHolder(servlet);
         context.addServlet(servletHolder, "/*");
