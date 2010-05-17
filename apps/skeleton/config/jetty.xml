@@ -16,17 +16,18 @@
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">
-      <!-- Default bounded blocking threadpool
-      -->
+      <!-- Default queued blocking threadpool -->
       <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-        <Set name="minThreads">10</Set>
-        <Set name="maxThreads">200</Set>
+        <Set name="minThreads">8</Set>
+        <Set name="maxThreads">254</Set>
       </New>
 
-      <!-- Optional Java 5 bounded threadpool with job queue
-      <New class="org.eclipse.thread.concurrent.ThreadPool">
-        <Set name="corePoolSize">50</Set>
-        <Set name="maximumPoolSize">50</Set>
+      <!-- Optional Java 5 bounded threadpool with job queue -->
+      <!--
+      <New class="org.eclipse.jetty.util.thread.ExecutorThreadPool">
+        <Arg type="int">32</Arg>
+        <Arg type="int">256</Arg>
+        <Arg type="int">60000</Arg>
       </New>
       -->
     </Set>
@@ -48,11 +49,11 @@
           <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
             <Set name="host"><Property name="host"/></Set>
             <Set name="port"><Property name="port" default="8080"/></Set>
-            <Set name="maxIdleTime">30000</Set>
-            <Set name="Acceptors">2</Set>
+            <Set name="maxIdleTime">300000</Set>
+            <Set name="Acceptors">8</Set>
             <Set name="statsOn">false</Set>
             <Set name="confidentialPort">8443</Set>
-	    <Set name="lowResourcesConnections">5000</Set>
+	    <Set name="lowResourcesConnections">20000</Set>
 	    <Set name="lowResourcesMaxIdleTime">5000</Set>
           </New>
       </Arg>
@@ -188,11 +189,9 @@
     <!-- =========================================================== -->
     <!-- extra options                                               -->
     <!-- =========================================================== -->
+    <Set name="stopAtShutdown">true</Set>
     <Set name="sendServerVersion">true</Set>
     <Set name="sendDateHeader">true</Set>
-    <!-- Disable graceful shutdown in development mode. -->
-    <!-- You probably want this enabled for deployment. -->
-    <!-- Set name="gracefulShutdown">0</Set -->
-    <!-- Set name="stopAtShutdown">true</Set -->
+    <Set name="gracefulShutdown">1000</Set>
 
 </Configure>
