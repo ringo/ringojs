@@ -13,7 +13,6 @@ var fileutils = require('ringo/fileutils');
 var daemon = require('ringo/webapp/daemon');
 
 export('getConfig',
-       'getServer',
        'handleRequest',
        'main');
 
@@ -36,7 +35,7 @@ function handleRequest(env) {
 
     // set req in webapp env module
     var webenv = require('ringo/webapp/env');
-    var req = new Request(env);
+    var req = Request(env);
     var res = null;
     webenv.setRequest(req);
 
