@@ -109,6 +109,25 @@ function Server(options) {
     };
 
     /**
+     * Map a request path to a servlet.
+     * @param {string} path a request path such as "/foo/bar" or "/"
+     * @param {string|array} vhosts optional single or multiple virtual host names.
+     *   A virtual host may start with a "*." wildcard.
+     * @param {servlet} a java object implementing the javax.servlet.Servlet interface.
+     * @since: 0.5
+     */
+    this.addServlet = function(path, vhosts, servlet) {
+        log.info("Adding Servlet:", path, "->", servlet);
+        var context = createContext(path, vhosts, true, true);
+        var jpkg = org.eclipse.jetty.servlet;
+        var servletHolder = new jpkg.ServletHolder(servlet);
+        context.addServlet(servletHolder, "/*");
+        if (jetty.isRunning()) {
+            context.start();
+        }
+    };
+
+    /**
      * Start the HTTP server.
      */
     this.start = function() {
