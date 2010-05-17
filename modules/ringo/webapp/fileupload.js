@@ -10,7 +10,7 @@ var {MemoryStream} = require('io');
 
 module.shared = true;
 
-export('isFileUpload', 'parseFileUpload', 'memoryStreamFactory', 'tempFileStreamFactory');
+export('isFileUpload', 'parseFileUpload', 'BufferFactory', 'TempFileFactory');
 
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -40,7 +40,7 @@ function isFileUpload(contentType) {
 */
 function parseFileUpload(request, params, encoding, streamFactory) {
     encoding = encoding || "UTF-8";
-    streamFactory = streamFactory || memoryStreamFactory;
+    streamFactory = streamFactory || BufferFactory;
     var boundary = getMimeParameter(request.headers["content-type"], "boundary");
     if (!boundary) {
         return;
@@ -48,6 +48,7 @@ function parseFileUpload(request, params, encoding, streamFactory) {
     boundary = new ByteArray("--" + boundary, "ASCII");
     var input = request.input;
     var buflen = 8192;
+    var refillThreshold = 1024; // minimum fill to start parsing
     var buffer = new ByteArray(buflen); // input buffer
     var data;  // data object for current mime part properties
     var stream; // stream to write current mime part to
@@ -85,12 +86,12 @@ function parseFileUpload(request, params, encoding, streamFactory) {
 
     while (position < limit) {
         if (!data) {
+            // refill buffer if we don't have enough fresh bytes
+            if (!eof && limit - position < refillThreshold) {
+                refill(true);
+            }
             var boundaryPos = buffer.indexOf(boundary, position, limit);
             if (boundaryPos < 0) {
-                if (!eof && limit < buffer.length) {
-                    refill(true);
-                    continue;
-                }
                 throw new Error("boundary not found in multipart stream");
             }
             // move position past boundary to beginning of multipart headers
@@ -155,7 +156,14 @@ function parseFileUpload(request, params, encoding, streamFactory) {
     }
 }
 
-function memoryStreamFactory(data, encoding) {
+/**
+ * A stream factory that stores file upload in a memory buffer. This
+ * function is not meant to be called directly but to be passed as streamFactory
+ * argument to [parseFileUpload()][parseFileUpload].
+ *
+ * The buffer is stored in the `value` property of the parameter's data object.
+ */
+function BufferFactory(data, encoding) {
     var isFile = data.filename != null;
     var stream = new MemoryStream();
     var close = stream.close;
@@ -172,7 +180,15 @@ function memoryStreamFactory(data, encoding) {
     return stream;
 }
 
-function tempFileStreamFactory(data, encoding) {
+/**
+ * A stream factory that stores file uploads in temporary files. This
+ * function is not meant to be called directly but to be passed as streamFactory
+ * argument to [parseFileUpload()][parseFileUpload].
+ *
+ * The name of the temporary file is stored in the `tempfile` property
+ * of the parameter's data object.
+ */
+function TempFileFactory(data, encoding) {
     if (data.filename == null) {
         // use in-memory streams for form data
         return memoryStreamFactory(data, encoding)
