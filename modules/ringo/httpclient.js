@@ -5,8 +5,10 @@
 
 importPackage(org.eclipse.jetty.client);
 
-include('core/object');
+require('core/object');
+var {ByteString} = require('binary');
 var {Buffer} = require('ringo/buffer');
+var {Decoder} = require('ringo/encoding');
 var {getMimeParameter} = require('ringo/webapp/util');
 var base64 = require('ringo/base64');
 var log = require('ringo/logging').getLogger(module.id);
@@ -134,9 +136,9 @@ var Exchange = function(url, options, callbacks) {
         username: undefined,
         password: undefined
     });
-      
+
     this.toString = function() {
-        return "[ringo.httpclient.Exchange] " + url + "/";
+        return "[ringo.httpclient.Exchange] " + url;
     };
     
     Object.defineProperty(this, "status", {
@@ -156,7 +158,7 @@ var Exchange = function(url, options, callbacks) {
     });
     Object.defineProperty(this, "contentBytes", {
         get: function() {
-            return exchange.getResponseContentBytes();
+            return ByteString.wrap(exchange.getResponseContentBytes());
         }
     });
     Object.defineProperty(this, "contentChunk", {
@@ -232,15 +234,17 @@ var Exchange = function(url, options, callbacks) {
 
     var self = this;
     var responseFields = new org.eclipse.jetty.http.HttpFields();
+    var decoder;
     var exchange = new JavaAdapter(ContentExchange, {
         onResponseComplete: function() {
             this.super$onResponseComplete();
+            var content = opts.binary ? self.contentBytes : self.content;
             if (typeof(callbacks.complete) === 'function') {
-                callbacks.complete(self.content, self.status, self.contentType, self);
+                callbacks.complete(content, self.status, self.contentType, self);
             }
             if (self.status >= 200 && self.status < 400) {
                 if (typeof(callbacks.success) === 'function') {
-                    callbacks.success(self.content, self.status, self.contentType, self);
+                    callbacks.success(content, self.status, self.contentType, self);
                 }
             } else if (self.status >= 300 && self.status < 400) {
                 // FIXME auto handle redirects
@@ -251,11 +255,23 @@ var Exchange = function(url, options, callbacks) {
         },
         onResponseContent: function(content) {
             if (typeof(callbacks.part) === 'function') {
-                // NOTE if content is not decodable this is bad
-                //      probably better to pass buffer or bytes here
-                callbacks.part(content.toString(self.encoding), self.status, self.contentType, self);
+                if (opts.binary) {
+                    var bytes = ByteString.wrap(content.asArray());
+                    callbacks.part(bytes, self.status, self.contentType, self);
+                } else {
+                    decoder = decoder || new Decoder(self.encoding);
+                    bytes = content.array();
+                    if (bytes == null) {
+                        decoder.decode(content.asArray(), 0, content.length());
+                    } else {
+                        decoder.decode(bytes, content.getIndex(), content.putIndex());
+                    }
+                    callbacks.part(decoder.toString(), self.status, self.contentType, self);
+                    decoder.clear();
+                }
+            } else {
+                this.super$onResponseContent(content);
             }
-            this.super$onResponseContent(content);
             return;
         },
         onResponseHeader: function(key, value) {
@@ -335,9 +351,9 @@ var defaultOptions = function(options) {
         username: undefined,
         password: undefined,
         // client
-        async: false, // NOTE: true doesn't make sense for ringo
+        async: false,
         cache: true,
-        timeout: 1000
+        binary: false
     });
 };
 
@@ -497,7 +513,8 @@ var Client = function(timeout) {
             headers: opts.headers,
             username: opts.username,
             password: opts.password,
-            contentType: opts.contentType
+            contentType: opts.contentType,
+            binary: opts.binary
         }, {
             success: opts.success,
             complete: opts.complete,
