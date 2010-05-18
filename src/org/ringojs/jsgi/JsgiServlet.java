@@ -80,7 +80,8 @@ public class JsgiServlet extends HttpServlet {
                     System.err.println("Resource \"" + ringoHome + "\" not found, "
                             + "reverting to file repository " + home);
                 }
-                String[] paths = StringUtils.split(modulePath, File.pathSeparator);
+                // Use ',' as platform agnostic path separator
+                String[] paths = StringUtils.split(modulePath, ",");
                 RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
