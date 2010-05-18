@@ -14,7 +14,8 @@ exports.setUp = exports.tearDown = function () {
 exports.testPersistCreation = function () {
     person = createTestPerson();
     person.save();
-    person = Person.get(1);
+    personId = person._id;
+    person = Person.get(personId);
     assertPerson();
     assertEqual(FIRST_NAME_1, person.firstName);
     assertEqual(LAST_NAME, person.lastName);
