@@ -66,7 +66,7 @@ function Server(options) {
      * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
      */
     this.addApplication = function(path, vhosts, app, engine) {
-        log.info("Adding JSGI handler:", path, "->", app.toSource());
+        log.debug("Adding JSGI handler:", path, "->", app.toSource());
         var context = createContext(path, vhosts, true, true);
         engine = engine || require('ringo/engine').getRhinoEngine();
         var isFunction = typeof app === "function";
@@ -93,7 +93,7 @@ function Server(options) {
      * @param {string} dir the directory from which to serve static resources
      */
     this.addStaticResources = function(path, vhosts, dir) {
-        log.info("Adding static handler:", path, "->", dir);
+        log.debug("Adding static handler:", path, "->", dir);
         var context = createContext(path, vhosts, false, true);
         var repo = getRepository(dir);
         context.setResourceBase(repo.exists() ? repo.getPath() : dir);
@@ -119,7 +119,7 @@ function Server(options) {
      * @since: 0.5
      */
     this.addServlet = function(path, vhosts, servlet, options) {
-        log.info("Adding Servlet:", path, "->", servlet);
+        log.debug("Adding Servlet:", path, "->", servlet);
         options = options || {};
         var sessions = Boolean(options.sessions);
         var security = Boolean(options.security);
