@@ -4,7 +4,7 @@ var Server = require('ringo/httpserver').Server;
 
 var server;
 var host = "127.0.0.1";
-var port = "8080";
+var port = "8282";
 var baseUri = "http://" + host + ":" + port + "/";
 
 /**
@@ -12,7 +12,7 @@ var baseUri = "http://" + host + ":" + port + "/";
  */
 var getResponse = function(req) {
    return new Response("<h1> This is a basic Response</h1>");
-}
+};
 
 /**
  * setUp pre every test
@@ -33,13 +33,14 @@ exports.setUp = function() {
    
     var config = {
        host: host,
-       port: port,
+       port: port
     };
 
     server = new Server(config);
     server.addApplication("/", '', handleRequest);
     server.start();
-    return;
+    // FIXME without this the test may hang in some configurations
+    java.lang.Thread.currentThread().sleep(1000);
 };
 
 /**
@@ -49,7 +50,6 @@ exports.tearDown = function() {
     server.stop();
     server.destroy();
     server = null;
-    return;
 };
 
 /**
@@ -59,11 +59,9 @@ exports.tearDown = function() {
 exports.testCallbacksGetCalled = function() {
    getResponse = function(req) {
       return new Response('');
-   }
+   };
 
-   var successCalled = false;
-   var completeCalled = false;
-   var errorNotCalled = true;
+   var successCalled, completeCalled, errorCalled;
    var exchange = request({
       url: baseUri,
       success: function() {
@@ -73,15 +71,12 @@ exports.testCallbacksGetCalled = function() {
          completeCalled = true;
       },
       error: function() {
-         errorNotCalled = false;
-      },
+         errorCalled = true;
+      }
    });
    assertTrue(successCalled);
    assertTrue(completeCalled);
-   assertTrue(errorNotCalled);
-   
-   return;
-
+   assertUndefined(errorCalled);
 };
 
 /**
@@ -90,18 +85,20 @@ exports.testCallbacksGetCalled = function() {
 exports.testBasic = function() {
    getResponse = function(req) {
       return new Response('<h1>This is the Response Text</h1>');
-   }
+   };
 
+   var errorCalled, myData;
    var exchange = request({
       url: baseUri,
       success: function(data, status, contentType, exchange) {
-         assertEqual(data, '<h1>This is the Response Text</h1>');
+         myData = data;
       },
-      error: function(data) {
-         assertEqual(true, false);
-      },
+      error: function() {
+         errorCalled = true;
+      }
    });
-   return;
+   assertUndefined(errorCalled);
+   assertEqual(myData, '<h1>This is the Response Text</h1>');
 };
 
 /**
@@ -109,32 +106,35 @@ exports.testBasic = function() {
  */
 exports.testConvenience = function() {
     getResponse = function(req) {
-        if (req.isGet && req.params.foo) {
-            return new Response ('get with param');
+        if (req.params.foo) {
+            return new Response (req.method + ' with param');
         }
         return new Response(req.method);
-    };    
-    post(baseUri, function(data, status) {
-        assertEqual(200, status);
-        assertEqual('POST', data);
-    });
-    
-    get(baseUri, {foo: 'bar'}, function(data, status) {
-        assertEqual(200, status);
-        assertEqual('get with param', data);
-    });
-    
-    del(baseUri, function(data, status) {
-        assertEqual(200, status);
-        assertEqual('DELETE', data);
-    });
-    
-    put(baseUri, function(data, status) {
-        assertEqual(200, status);
-        assertEqual('PUT', data);
-    }); 
-    
-    
+    };
+    var myStatus, myData;
+    var callback = function(data, status) {
+        myData = data;
+        myStatus = status;
+    };
+    post(baseUri, callback);
+    assertEqual(200, myStatus);
+    assertEqual('POST', myData);
+
+    post(baseUri, {foo: 'bar'}, callback);
+    assertEqual(200, myStatus);
+    assertEqual('POST with param', myData);
+
+    get(baseUri, {foo: 'bar'}, callback);
+    assertEqual(200, myStatus);
+    assertEqual('GET with param', myData);
+
+    del(baseUri, callback);
+    assertEqual(200, myStatus);
+    assertEqual('DELETE', myData);
+
+    put(baseUri, callback);
+    assertEqual(200, myStatus);
+    assertEqual('PUT', myData);
 };
 
 
@@ -144,7 +144,7 @@ exports.testConvenience = function() {
 exports.testParams = function() {
     getResponse = function(req) {
         return new Response(JSON.stringify(req.params));
-    }
+    };
     var data = {
         a: "fääßß",
         b: "fööööbääzz",
@@ -154,28 +154,21 @@ exports.testParams = function() {
     var getExchange = request({
         url: baseUri,
         method: 'GET',
-        data: data,
-        success: function(content) {
-             var receivedData = JSON.parse(content);
-             assertEqual(data, receivedData);
-        },
-        error: function(content) {
-            assertTrue(false);
-        }
+        data: data
     });
+    assertEqual(200, getExchange.status);
+    var receivedData = JSON.parse(getExchange.content);
+    assertEqual(data, receivedData);
+
     var postExchange = request({
         url: baseUri,
         method: 'POST',
-        data: data,
-        success: function(content) {
-             var receivedData = JSON.parse(content);
-             assertEqual(data, receivedData);
-        },
-        error: function(exception, exchange) {
-            assertEqual(Exception, exception);
-        }
+        data: data
     });
-}
+    assertEqual(200, postExchange.status);
+    receivedData = JSON.parse(postExchange.content);
+    assertEqual(data, receivedData);
+};
 
 /**
  * Callbacks
@@ -193,52 +186,56 @@ exports.testCallbacks = function() {
         } else if (req.pathInfo == '/redirectlocation') {
             return new Response('redirect success');
         }
-    }
-   // success shouldn't get called
+    };
+    var myStatus, successCalled, errorCalled, myMessage, myContentType;
+    // success shouldn't get called
     var getErrorExchange = request({
         url: baseUri + 'notfound',
         method: 'GET',
         complete: function(data, status, contentType, exchange) {
-            assertEqual(status, 404);
-            return;
+            myStatus = status;
         },
         success: function() {
-            // should not get called
-            assertTrue(false);
+            successCalled = true
         },
-        error: function(exception, exchange) {
-            assertEqual(exception, null);
-            assertEqual(exchange.status, 404);
+        error: function(message, status, exchange) {
+            myMessage = message;
         }
     });
+    assertUndefined(successCalled);
+    assertEqual(myStatus, 404);
+    assertEqual(getErrorExchange.status, 404);
+    assertEqual(myMessage, "Not Found");
 
-    var getSuccessExchange  = request({
+    var getSuccessExchange = request({
         url: baseUri + 'success',
         method: 'GET',
         complete: function(data, status, contentType, exchange) {
-            assertEqual('text/json; charset=utf-8', contentType);
-            assertEqual(200, status);
-            return;
+            myStatus = status;
         },
         success: function(data, status, contentType, exchange) {
-            assertEqual('text/json; charset=utf-8', contentType);
-            assertEqual(200, status);
+            myContentType = contentType;
         },
-        
         error: function() {
-            assertTrue(false);
+            errorCalled = true;
         }
     });
+    assertEqual('text/json; charset=utf-8', myContentType);
+    assertEqual(200, myStatus);
+    assertUndefined(errorCalled);
+
     var getRedirectExchange = request({
         url: baseUri + 'redirect',
         method: 'GET',
         complete: function(data, status, contentType, exchange) {
-             assertEqual(303, status);
+            myStatus = status;
         },
-        error: function(ex) {
-            assertTrue(false);
-        },
+        error: function(message) {
+            errorCalled = true;
+        }
     });
+    assertEqual(303, myStatus);
+    assertUndefined(errorCalled);
 };
 
 /**
@@ -254,25 +251,27 @@ exports.testCookie = function() {
         res.setCookie(COOKIE_NAME, req.params.cookievalue, 5);
         // set cookie
         return res;
-    }
+    };
 
     // recieve cookie
+    var myStatus, myExchange, errorCalled;
     request({
         url: baseUri,
         method: 'GET',
         data: {'cookievalue': COOKIE_VALUE},
         complete: function(data, status, contentType, exchange) {
-            assertEqual(200, status);
+            myStatus = status;
         },
         success: function(data, status, contentType, exchange) {
-            assertEqual(COOKIE_VALUE, exchange.cookies[COOKIE_NAME].value);
+            myExchange = exchange;
         },
         error: function() {
-            assertTrue(false);
+            errorCalled = true;
         }
     });
-
-    return;
+    assertUndefined(errorCalled);
+    assertEqual(200, myStatus);
+    assertEqual(COOKIE_VALUE, myExchange.cookies[COOKIE_NAME].value);
 };
 
 
@@ -287,7 +286,7 @@ exports.testStreamRequest = function() {
             return {
                     status: 200,
                     headers: {
-                        'Content-Type': 'image/png',
+                        'Content-Type': 'image/png'
                     },
                     body: {
                         forEach: function(fn) {
@@ -309,26 +308,32 @@ exports.testStreamRequest = function() {
                 };
             
         }
-    }
+    };
 
-    include('io');
     var resource = getResource('./upload_test.png');
+    var ByteArray = require('binary').ByteArray;
     var inputStream = resource.getInputStream();
     // small <1k file, just read it all in
-    var size = inputStream.available();
+    var size = resource.getLength();
     var inputByteArray = new ByteArray(size);
     inputStream.read(inputByteArray, 0, size);
-    var sendInputStream = resource.getInputStream()
-    var streamSender = request({
+    var sendInputStream = resource.getInputStream();
+    var myExchange, myContentType, errorCalled;
+    request({
         url: baseUri,
         method: 'POST',
         data: sendInputStream,
         error: function() {
-            assertFalse(true);
+            errorCalled = true;
         },
         complete: function(data, status, contentType, exchange) {
-            assertEqual (inputByteArray.unwrap(), exchange.contentBytes);
-            assertEqual('image/png', contentType);
+            myExchange = exchange;
+            myContentType = contentType;
         }
     });
+    assertUndefined(errorCalled);
+    assertNotNull(myExchange);
+    assertEqual (inputByteArray.length, myExchange.contentBytes.length);
+    assertEqual (inputByteArray.toArray(), myExchange.contentBytes.toArray());
+    assertEqual('image/png', myContentType);
 };
