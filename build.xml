@@ -136,9 +136,9 @@
         </zip>
         <tar tarfile="../${project}-${version}.tar">
             <tarfileset dir="${home}" prefix="${project}-${version}"
-             filemode="755" includes="bin/ringo" />
+             filemode="755" includes="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/narwhal" />
             <tarfileset dir="${home}" prefix="${project}-${version}"
-             excludes="bin/ringo,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
+             excludes="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/narwhal,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
         </tar>
         <gzip src="../${project}-${version}.tar" destfile="../${project}-${version}.tar.gz"/>
         <delete file="../${project}-${version}.tar"/>
