@@ -445,6 +445,8 @@ var Client = function(timeout) {
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
+     * @returns {Exchange} exchange object
+     * @see Client.instance.request
      */
     this.get = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -465,6 +467,8 @@ var Client = function(timeout) {
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
+     * @returns {Exchange} exchange object
+     * @see Client.instance.request
      */
     this.post = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -485,6 +489,8 @@ var Client = function(timeout) {
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
+     * @returns {Exchange} exchange object
+     * @see Client.instance.request
      */
     this.del = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -505,6 +511,8 @@ var Client = function(timeout) {
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
+     * @returns {Exchange} exchange object
+     * @see Client.instance.request
      */
     this.put = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -520,22 +528,28 @@ var Client = function(timeout) {
     };
     
     /**
-     * Make a generic request. The options argument may contain the following properties:
+     * Make a generic request.
+     *
+     * #### Generic request options
+     *
+     *  The `options` object may contain the following properties:
      *
      *  - `url`: the request URL
      *  - `method`: request method such as GET or POST
      *  - `data`: request data as string, object, or, for POST or PUT requests,
-     *       Stream or Binary. 
+     *     Stream or Binary.
      *  - `headers`: request headers
      *  - `username`: username for HTTP authentication
      *  - `password`: password for HTTP authentication
      *  - `contentType`: the contentType
      *  - `async`: if true this method will return immedialtely , else it will block
-     *       until the request is completed
+     *     until the request is completed
      *  - `binary`: if true if content should be delivered as binary,
-     *       else it will be decoded to string
+     *     else it will be decoded to string
      *
-     *  It may also contain the following callback functions:
+     *  #### Callbacks
+     *
+     *  The `options` object may also contain the following callback functions:
      *
      *  - `complete`: called when the request is completed
      *  - `success`: called when the request is completed successfully
@@ -543,19 +557,20 @@ var Client = function(timeout) {
      *  - `part`: called when a part of the response is available
      *  - `beforeSend`: called with the Exchange object as argument before the request is sent
      *
-     *  The `complete`, `part`, and `success` callbacks are called with the following arguments:
-     *  - `content`: the content as String or ByteString
-     *  - `status`: the HTTP status code
-     *  - `contentType`: the content type
-     *  - `exchange`: the exchange object
+     *  The following arguments are passed to the `complete`, `success` and `part` callbacks:
+     *  1. `content`: the content as String or ByteString
+     *  2. `status`: the HTTP status code
+     *  3. `contentType`: the content type
+     *  4. `exchange`: the exchange object
      *
-     * The `error` callback is with the following arguments:
-     * - `message`: the error message. This is either the message from an exception thrown
+     *  The following arguments are passed to the `error` callback:
+     *  1. `message`: the error message. This is either the message from an exception thrown
      *     during request processing or an HTTP error message
-     * - `status`: the HTTP status code. This is `0` if no response was received
-     * - `exchange`: the exchange object
+     *  2. `status`: the HTTP status code. This is `0` if no response was received
+     *  3. `exchange`: the exchange object
      *  
      * @param {Object} options
+     * @returns {Exchange} exchange object
      */
     this.request = function(options) {
         var opts = defaultOptions(options);
@@ -607,6 +622,7 @@ var defaultClient = defaultClient || new Client();
 /**
  * Convenience function to make a generic HTTP request without creating a new client.
  * @param {Object} options
+ * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
 var request = defaultClient.request;
@@ -616,6 +632,8 @@ var request = defaultClient.request;
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
+ * @returns {Exchange} exchange object
+ * @see Client.instance.request
  */
 var post = defaultClient.post;
 /**
@@ -624,6 +642,8 @@ var post = defaultClient.post;
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
+ * @returns {Exchange} exchange object
+ * @see Client.instance.request
  */
 var get = defaultClient.get;
 /**
@@ -632,6 +652,8 @@ var get = defaultClient.get;
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
+ * @returns {Exchange} exchange object
+ * @see Client.instance.request
  */
 var del = defaultClient.del;
 
@@ -641,6 +663,8 @@ var del = defaultClient.del;
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
+ * @returns {Exchange} exchange object
+ * @see Client.instance.request
  */
 var put = defaultClient.put;
 
