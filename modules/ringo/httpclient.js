@@ -6,7 +6,7 @@
 importPackage(org.eclipse.jetty.client);
 
 require('core/object');
-var {ByteString} = require('binary');
+var {ByteString, Binary} = require('binary');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
 var {getMimeParameter} = require('ringo/webapp/util');
@@ -84,21 +84,21 @@ var Cookie = function(cookieStr) {
     if (cookieData.name && cookieData.value) {
         if (cookieData.domain) {
             if (cookieData.path) {
-                cookie = new Packages.org.eclipse.jetty.http.HttpCookie(
+                cookie = new org.eclipse.jetty.http.HttpCookie(
                     cookieData.name,
                     cookieData.value,
                     cookieData.domain,
                     cookieData.path
                 );
             } else {
-                cookie = new Packages.org.eclipse.jetty.http.HttpCookie(
+                cookie = new org.eclipse.jetty.http.HttpCookie(
                     cookieData.name,
                     cookieData.value,
                     cookieData.domain
                 );            
             }
         } else {
-            cookie = new Packages.org.eclipse.jetty.http.HttpCookie(cookieData.name, cookieData.value);
+            cookie = new org.eclipse.jetty.http.HttpCookie(cookieData.name, cookieData.value);
         }
     }
     
@@ -228,6 +228,17 @@ var Exchange = function(url, options, callbacks) {
         return encodedContent;
     };
 
+    var getStatusMessage = function(status) {
+        var message;
+        try {
+            var code = org.eclipse.jetty.http.HttpStatus.getCode(status);
+            message = code && code.getMessage();
+        } catch (error) {
+             // ignore
+        }
+        return message || "Unknown status code (" + status + ")";
+    };
+
     /**
     * Constructor
     */
@@ -242,14 +253,15 @@ var Exchange = function(url, options, callbacks) {
             if (typeof(callbacks.complete) === 'function') {
                 callbacks.complete(content, self.status, self.contentType, self);
             }
+            // FIXME auto handle redirects for 3xx responses -
+            // these are currently treated as success
             if (self.status >= 200 && self.status < 400) {
                 if (typeof(callbacks.success) === 'function') {
                     callbacks.success(content, self.status, self.contentType, self);
                 }
-            } else if (self.status >= 300 && self.status < 400) {
-                // FIXME auto handle redirects
             } else if (typeof(callbacks.error) === 'function') {
-                callbacks.error(null, self);
+                var message = getStatusMessage(self.status);
+                callbacks.error(message, self.status, self);
             }
             return;
         },
@@ -282,22 +294,23 @@ var Exchange = function(url, options, callbacks) {
         onConnectionFailed: function(exception) {
             this.super$onConnectionFailed(exception);
             if (typeof(callbacks.error) === 'function') {
-                callbacks.error(exception, self);
+                var message = exception.getMessage() || exception.toString();
+                callbacks.error(message, 0, self);
             }
             return;
         },
         onException: function(exception) {
             this.super$onException(exception);
             if (typeof(callbacks.error) === 'function') {
-                callbacks.error(exception, self);
+                var message = exception.getMessage() || exception.toString();
+                callbacks.error(message, 0, self);
             }
             return;
         },
         onExpire: function() {
             this.super$onExpire();
             if (typeof(callbacks.error) === 'function') {
-                // FIXME need a timeout exception to pass
-                callbacks.error('expired', this);
+                callbacks.error('Request expired', 0, self);
             }
             return;
         },
@@ -324,8 +337,9 @@ var Exchange = function(url, options, callbacks) {
     
     if (opts.method === 'POST' || opts.method === 'PUT') {
         if (typeof(content) === 'string') {
-            exchange.setRequestContent(org.eclipse.jetty.io.ByteArrayBuffer(content));
-        // FIXME only allow streaming types
+            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content, "utf-8"));
+        } else if (content instanceof Binary) {
+            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content));
         } else if (typeof(content) !== 'undefined') {
             exchange.setRequestContentSource(content);
         }
@@ -426,8 +440,9 @@ var extractOptionalArguments = function(args) {
 var Client = function(timeout) {
 
     /**
+     * Make a GET request.
      * @param {String} url the url to request
-     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
@@ -445,8 +460,9 @@ var Client = function(timeout) {
     };
     
     /**
+     * Make a POST request.
      * @param {String} url the url to request
-     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
@@ -464,8 +480,9 @@ var Client = function(timeout) {
     };
     
     /**
+     * Make a DELETE request.
      * @param {String} url the url to request
-     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
@@ -483,8 +500,9 @@ var Client = function(timeout) {
     };
     
     /**
+     * Make a PUT request.
      * @param {String} url the url to request
-     * @param {Object|String|java.io.InputStream} data, optional
+     * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      */
@@ -502,7 +520,41 @@ var Client = function(timeout) {
     };
     
     /**
-     * Do a generic request.
+     * Make a generic request. The options argument may contain the following properties:
+     *
+     *  - `url`: the request URL
+     *  - `method`: request method such as GET or POST
+     *  - `data`: request data as string, object, or, for POST or PUT requests,
+     *       Stream or Binary. 
+     *  - `headers`: request headers
+     *  - `username`: username for HTTP authentication
+     *  - `password`: password for HTTP authentication
+     *  - `contentType`: the contentType
+     *  - `async`: if true this method will return immedialtely , else it will block
+     *       until the request is completed
+     *  - `binary`: if true if content should be delivered as binary,
+     *       else it will be decoded to string
+     *
+     *  It may also contain the following callback functions:
+     *
+     *  - `complete`: called when the request is completed
+     *  - `success`: called when the request is completed successfully
+     *  - `error`: called when the request is completed with an error
+     *  - `part`: called when a part of the response is available
+     *  - `beforeSend`: called with the Exchange object as argument before the request is sent
+     *
+     *  The `complete`, `part`, and `success` callbacks are called with the following arguments:
+     *  - `content`: the content as String or ByteString
+     *  - `status`: the HTTP status code
+     *  - `contentType`: the content type
+     *  - `exchange`: the exchange object
+     *
+     * The `error` callback is with the following arguments:
+     * - `message`: the error message. This is either the message from an exception thrown
+     *     during request processing or an HTTP error message
+     * - `status`: the HTTP status code. This is `0` if no response was received
+     * - `exchange`: the exchange object
+     *  
      * @param {Object} options
      */
     this.request = function(options) {
@@ -555,27 +607,40 @@ var defaultClient = defaultClient || new Client();
 /**
  * Convenience function to make a generic HTTP request without creating a new client.
  * @param {Object} options
+ * @see Client.instance.request
  */
 var request = defaultClient.request;
 /**
  * Convenience function to make a POST request without creating a new client.
- * @param {Object} options
+ * @param {String} url the url to request
+ * @param {Object|String|Binary|Stream} data request data, optional
+ * @param {Function} success callback in case of successful status code, optional
+ * @param {Function} error callback in case of any error - transmission or response, optional
  */
 var post = defaultClient.post;
 /**
  * Convenience function to make a GET request without creating a new client.
- * @param {Object} options
+ * @param {String} url the url to request
+ * @param {Object|String} data request data, optional
+ * @param {Function} success callback in case of successful status code, optional
+ * @param {Function} error callback in case of any error - transmission or response, optional
  */
 var get = defaultClient.get;
 /**
  * Convenience function to make a DELETE request without creating a new client.
- * @param {Object} options
+ * @param {String} url the url to request
+ * @param {Object|String} data request data, optional
+ * @param {Function} success callback in case of successful status code, optional
+ * @param {Function} error callback in case of any error - transmission or response, optional
  */
 var del = defaultClient.del;
 
 /**
  * Convenience function to make a PUT request without creating a new client.
- * @param {Object} options
+ * @param {String} url the url to request
+ * @param {Object|String|Binary|Stream} data request data, optional
+ * @param {Function} success callback in case of successful status code, optional
+ * @param {Function} error callback in case of any error - transmission or response, optional
  */
 var put = defaultClient.put;
 
