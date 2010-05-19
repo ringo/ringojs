@@ -262,6 +262,8 @@ function main(path) {
     daemon.start();
 }
 
-if (require.main == module) {
+var started; // protect against restarting on reload
+if (require.main == module && !started) {
     main();
+    started = true;
 }
