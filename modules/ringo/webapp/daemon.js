@@ -103,9 +103,12 @@ function start() {
 function stop() {
     log.info("stop");
     server.stop();
+    var config = require(options.config || "config");
     // stop extensions
     if (Array.isArray(config.extensions)) {
-        config.extensions.forEach(function stopExtension(ext) {
+        // stop extensions in reverse order
+        var reverted = Array.apply([], config.extensions).reverse();
+        reverted.forEach(function stopExtension(ext) {
             try {
                 log.debug("Stopping extension", ext);
                 var module = ext;
