@@ -12,7 +12,8 @@ export('load', 'normalize', 'catalog');
 var catalog;
 
 function load() {
-    if (catalog) {
+    if (catalog || !require.paths) {
+        // we're either already set up or running in secure sandbox mode
         return;
     }
 
