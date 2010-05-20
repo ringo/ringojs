@@ -1,7 +1,8 @@
 include('io');
 
 function createProcess(args) {
-    var command = Array.map(args, String);
+    // make command either a single string or an array of strings
+    var command = args.length == 1 ? String(args[0]) : Array.map(args, String);
     return java.lang.Runtime.getRuntime().exec(command);
 }
 
