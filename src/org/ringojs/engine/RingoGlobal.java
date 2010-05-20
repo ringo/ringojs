@@ -43,10 +43,13 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RingoGlobal extends Global {
 
     private static ExecutorService threadPool;
+    private static AtomicInteger ids = new AtomicInteger();
 
     protected RingoGlobal() {}
 
@@ -256,7 +259,14 @@ public class RingoGlobal extends Global {
         }
         synchronized (Global.class) {
             if (threadPool == null) {
-                threadPool = Executors.newCachedThreadPool();
+                threadPool = Executors.newCachedThreadPool(new ThreadFactory() {
+                    public Thread newThread(Runnable runnable) {
+                        Thread thread = new Thread(runnable,
+                                "ringo-spawn-" + ids.incrementAndGet());
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
             }
             return threadPool;
         }
