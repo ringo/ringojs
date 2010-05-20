@@ -203,6 +203,39 @@ exports.parseResource = function(resource) {
                 }
             }
         }
+        
+        // check for Object.defineProperties(foo, {bar: {}})
+        if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
+            var getprop = node.target;
+            if (getprop.target.type == Token.NAME && getprop.target.string == "Object"
+                    && getprop.property.string == "defineProperties") {
+                var args = ScriptableList(node.arguments);
+                var target = nodeToString(args[0]).split('.');
+                var jsdoc, value;
+
+                var isExported = false;
+                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                    isExported = true;
+                } else if (target[0] == 'this' && exportedFunction != null) {
+                    target[0] = exportedName;
+                    target.push('instance');
+                    isExported = true;
+                }
+                if (isExported) {
+                    // object literal holding multiple property descs
+                    var objectElements = args[1].elements;
+                    for (var i=0;i<objectElements.size();i++) {
+                        var left = objectElements.get(i).left;
+                        value = nodeToString(left);
+                        target.push(value);
+                        jsdoc = left.jsDoc;
+                        addDocItem(target.join('.'), jsdoc, value);
+                        target.pop();
+                    }       
+                }
+            }
+        }
+        
         // check for __define[GS]etter__
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
