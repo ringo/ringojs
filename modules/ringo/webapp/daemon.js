@@ -13,7 +13,7 @@ var options,
     server,
     parser;
 
-export('parseOptions', 'init', 'start', 'stop', 'destroy', 'getServer');
+export('init', 'start', 'stop', 'destroy', 'getServer', 'parseOptions', 'getHelp');
 
 function parseOptions(arguments, defaults) {
     // parse command line options
@@ -26,7 +26,7 @@ function parseOptions(arguments, defaults) {
     parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)");
     parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
     parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
-    // parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
+    parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
     parser.addOption("h", "help", null, "Print help message to stdout");
     options = parser.parse(arguments, defaults);
     if (options.port && !isFinite(options.port)) {
@@ -37,6 +37,10 @@ function parseOptions(arguments, defaults) {
         options.port = port;
     }
     return options;
+}
+
+function getHelp() {
+    return parser && parser.help() || "";
 }
 
 function init() {

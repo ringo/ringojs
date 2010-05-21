@@ -233,7 +233,7 @@ function main(path) {
         print("Usage:");
         print("", cmd, "[OPTIONS]", "[PATH]");
         print("Options:");
-        print(parser.help());
+        print(daemon.getHelp());
         require("ringo/shell").quit();
     }
 
