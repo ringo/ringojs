@@ -37,7 +37,7 @@ exports.setUp = function() {
     };
 
     server = new Server(config);
-    server.addApplication("/", '', handleRequest);
+    server.getDefaultContext().serveApplication(handleRequest);
     server.start();
     // FIXME without this the test may hang in some configurations
     java.lang.Thread.currentThread().sleep(1000);

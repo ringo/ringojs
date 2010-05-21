@@ -41,98 +41,109 @@ function Server(options) {
 
     // the jetty server instance
     var jetty;
+    var defaultContext;
+    var contextMap = {};
     var xmlconfig;
 
-    function createContext(path, vhosts, enableSessions, enableSecurity) {
+    /**
+     * Get the server's default context. The default context is the
+     * context that is created when the server is created. 
+     * @since: 0.6
+     * @returns the default context
+     */
+    this.getDefaultContext = function() {
+        return defaultContext;
+    };
+
+    /**
+     * Get a servlet application context for the given path and virtual hosts, creating
+     * it if it doesn't exist.
+     * @param {string} path the context root path such as "/" or "/app"
+     * @param {string|array} virtualHosts optional single or multiple virtual host names.
+     *   A virtual host may start with a "*." wildcard.
+     * @param {Object} options, may have the following properties:
+     *   sessions: true to enable sessions for this context, false otherwise
+     *   security: true to enable security for this context, false otherwise
+     * @since: 0.6
+     * @returns a Context object
+     */
+    this.getContext = function(path, virtualHosts, options) {
         var idMap = xmlconfig.getIdMap();
-        var contexts = idMap.get("Contexts");
-        var context = new org.eclipse.jetty.servlet.ServletContextHandler(contexts, path, enableSessions, enableSecurity);
-        if (vhosts) {
-            context.setVirtualHosts(Array.isArray(vhosts) ? vhosts : [String(vhosts)]);
-        }
-        return context;
-    }
-
-    /**
-     * Map a request path to a JSGI application.
-     * Map a request path to a directory containing static resources.
-     * @param {string} path a request path such as "/foo/bar" or "/"
-     * @param {string|array} vhosts optional single or multiple virtual host names.
-     *   A virtual host may start with a "*." wildcard.
-     * @param {function|object} app a JSGI application, either as a function or an object
-     *   with properties <code>moduleName</code> and <code>functionName</code> defining
-     *   the application.
-     *   <div><code>{ moduleName: 'config', functionName: 'app' }</code></div>
-     * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
-     */
-    this.addApplication = function(path, vhosts, app, engine) {
-        log.debug("Adding JSGI handler:", path, "->", app.toSource());
-        var context = createContext(path, vhosts, true, true);
-        engine = engine || require('ringo/engine').getRhinoEngine();
-        var isFunction = typeof app === "function";
-        var servlet = isFunction ?
-                      new JsgiServlet(engine, app) :
-                      new JsgiServlet(engine);
-        var jpkg = org.eclipse.jetty.servlet;
-        var servletHolder = new jpkg.ServletHolder(servlet);
-        if (!isFunction) {
-            servletHolder.setInitParameter('config', app.config || 'config');
-            servletHolder.setInitParameter('app', app.app || 'app');
-        }
-        context.addServlet(servletHolder, "/*");
-        if (jetty.isRunning()) {
-            context.start();
-        }
-    };
-
-    /**
-     * Map a request path to a directory containing static resources.
-     * @param {string} path a request path such as "/foo/bar" or "/"
-     * @param {string|array} vhosts optional single or multiple virtual host names
-     *   A virtual host may start with a "*." wildcard.
-     * @param {string} dir the directory from which to serve static resources
-     */
-    this.addStaticResources = function(path, vhosts, dir) {
-        log.debug("Adding static handler:", path, "->", dir);
-        var context = createContext(path, vhosts, false, true);
-        var repo = getRepository(dir);
-        context.setResourceBase(repo.exists() ? repo.getPath() : dir);
-        var jpkg = org.eclipse.jetty.servlet;
-        var servletHolder = new jpkg.ServletHolder(jpkg.DefaultServlet);
-        // staticHolder.setInitParameter("aliases", "true");
-        context.addServlet(servletHolder, "/*");
-        if (jetty.isRunning()) {
-            context.start();
-        }
-    };
-
-    /**
-     * Map a request path to a servlet.
-     * @param {string} path a request path such as "/foo/bar" or "/"
-     * @param {string|array} vhosts optional single or multiple virtual host names.
-     *   A virtual host may start with a "*." wildcard.
-     * @param {Servlet} servlet a java object implementing the javax.servlet.Servlet interface.
-     * @param {object} options object. Supports the following boolean flags:
-     *         - sessions - enable session support
-     *         - security - enable security support
-     *         - redirect - enable redirects from /path to /path/ 
-     * @since: 0.5
-     */
-    this.addServlet = function(path, vhosts, servlet, options) {
-        log.debug("Adding Servlet:", path, "->", servlet);
         options = options || {};
-        var sessions = Boolean(options.sessions);
-        var security = Boolean(options.security);
-        var context = createContext(path, vhosts, sessions, security);
-        // avoid redirecting from /path to /path/ - this is a common cause for problems
-        // with cometd, websocket and the like as clients tend not to follow redirects.
-        context.setAllowNullPathInfo(!Boolean(options.redirect));
-        var jpkg = org.eclipse.jetty.servlet;
-        var servletHolder = new jpkg.ServletHolder(servlet);
-        context.addServlet(servletHolder, "/*");
-        if (jetty.isRunning()) {
-            context.start();
+        var contextKey = virtualHosts ? String(virtualHosts) + path : path;
+        var cx = contextMap[contextKey];
+        if (!cx) {
+            var contexts = idMap.get("Contexts");
+            var sessions = Boolean(options.sessions);
+            var security = Boolean(options.security);
+            cx = new org.eclipse.jetty.servlet.ServletContextHandler(contexts, path, sessions, security);
+            if (virtualHosts) {
+                cx.setVirtualHosts(Array.isArray(virtualHosts) ? virtualHosts : [String(virtualHosts)]);
+            }
+            contextMap[contextKey] = cx;
+            if (jetty.isRunning()) {
+                cx.start();
+            }
         }
+
+        return {
+            /**
+             * Map this context to a JSGI application.
+             * @param {function|object} app a JSGI application, either as a function or an object
+             *   with properties <code>moduleName</code> and <code>functionName</code> defining
+             *   the application.
+             *   <div><code>{ moduleName: 'config', functionName: 'app' }</code></div>
+             * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
+             * @since: 0.6
+             * @name Context.instance.serveApplication
+             */
+            serveApplication: function(app, engine) {
+                log.debug("Adding JSGI application:", cx, "->", app);
+                engine = engine || require('ringo/engine').getRhinoEngine();
+                var isFunction = typeof app === "function";
+                var servlet = isFunction ?
+                              new JsgiServlet(engine, app) :
+                              new JsgiServlet(engine);
+                var jpkg = org.eclipse.jetty.servlet;
+                var servletHolder = new jpkg.ServletHolder(servlet);
+                if (!isFunction) {
+                    servletHolder.setInitParameter('config', app.config || 'config');
+                    servletHolder.setInitParameter('app', app.app || 'app');
+                }
+                cx.addServlet(servletHolder, "/*");
+            },
+            /**
+             * Map this context to a directory containing static resources.
+             * @param {string} dir the directory from which to serve static resources
+             * @since: 0.6
+             * @name Context.instance.serveStatic
+             */
+            serveStatic: function(dir) {
+                log.debug("Adding static handler:", cx, "->", dir);
+                var repo = getRepository(dir);
+                cx.setResourceBase(repo.exists() ? repo.getPath() : dir);
+                var jpkg = org.eclipse.jetty.servlet;
+                var servletHolder = new jpkg.ServletHolder(jpkg.DefaultServlet);
+                cx.addServlet(servletHolder, "/*");
+            },
+            /**
+             * Map a request path within this context to the given servlet.
+             * @param {string} servletPath the servlet path
+             * @param {Servlet} servlet a java object implementing the javax.servlet.Servlet interface.
+             * @param {Object} initParams optional object containing servlet init parameters
+             * @since: 0.6
+             * @name Context.instance.addServlet
+             */
+            addServlet: function(servletPath, servlet, initParams) {
+                log.debug("Adding Servlet:", servletPath, "->", servlet);
+                var jpkg = org.eclipse.jetty.servlet;
+                var servletHolder = new jpkg.ServletHolder(servlet);
+                for (var p in initParams) {
+                    servletHolder.setInitParameter(p, initParams[p])
+                }
+                cx.addServlet(servletHolder, servletPath);
+            }
+        };
     };
 
     /**
@@ -172,11 +183,8 @@ function Server(options) {
         return jetty;
     };
 
-    // Hack: keep jetty from creating a new shutdown hook with every new server
-    java.lang.System.setProperty("JETTY_NO_SHUTDOWN_HOOK", "true");
-
-    // init code
     options = options || {};
+
     var jettyFile = options.jettyConfig || 'config/jetty.xml';
     var jettyConfig = getResource(jettyFile);
     if (!jettyConfig.exists()) {
@@ -192,16 +200,22 @@ function Server(options) {
     if (options.host) props.put('host', options.host);
     xmlconfig.configure(jetty);
 
+    // create default context
+    defaultContext = this.getContext(options.mountpoint || "/", options.virtualHost, {
+        security: true,
+        sessions: true
+    });
+
     // If options defines an application mount it
     if (options.app && options.config) {
-        this.addApplication(options.mountpoint || '/', options.virtualHost, options);
+        defaultContext.serveApplication(options);
     }
 
     // Allow definition of app/static mappings in server config for convenience
     if (options.staticDir) {
         var fileutils = require('ringo/fileutils');
-        this.addStaticResources(options.staticMountpoint || '/static',
-                options.virtualHost, fileutils.resolveId(options.config, options.staticDir));
+        var staticContext = this.getContext(options.staticMountpoint || '/static', options.virtualHost);
+        staticContext.serveStatic(fileutils.resolveId(options.config, options.staticDir));
     }
 
     // Start listeners. This allows us to run on priviledged port 80 under jsvc
