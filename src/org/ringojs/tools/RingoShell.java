@@ -190,18 +190,11 @@ public class RingoShell {
                     start = i - lastpart.length();
                     while (obj != null) {
                         // System.err.println(word + " -- " + obj);
-                        Object[] ids = obj instanceof ScriptableObject ?
-                                ((ScriptableObject) obj).getAllIds() :
-                                obj.getIds();
-                        for(Object id: ids) {
-                            String str = id.toString();
-                            if (str.startsWith(lastpart) || word.endsWith(".")) {
-                                if (obj.get(str, obj) instanceof Callable) {
-                                    list.add(str + "(");
-                                } else {
-                                    list.add(str);
-                                }
-                            }
+                        Object[] ids = obj.getIds();
+                        collectIds(ids, obj, word, lastpart, list);
+                        if (list.isEmpty() && obj instanceof ScriptableObject) {
+                            ids = ((ScriptableObject) obj).getAllIds();
+                            collectIds(ids, obj, word, lastpart, list);
                         }
                         if (word.endsWith(".") && obj instanceof ModuleScope) {
                             // don't walk scope prototype chain if nothing to compare yet -
@@ -216,6 +209,22 @@ public class RingoShell {
             }
             Collections.sort(list);
             return start;
+        }
+
+        private void collectIds(Object[] ids, Scriptable obj, String word, String lastpart, List list) {
+            for(Object id: ids) {
+                if (!(id instanceof String)) {
+                    continue;
+                }
+                String str = (String) id;
+                if (str.startsWith(lastpart) || word.endsWith(".")) {
+                    if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
+                        list.add(str + "(");
+                    } else {
+                        list.add(str);
+                    }
+                }
+            }
         }
 
     }
