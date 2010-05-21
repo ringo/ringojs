@@ -61,7 +61,7 @@ function Server(options) {
      * @param {string} path the context root path such as "/" or "/app"
      * @param {string|array} virtualHosts optional single or multiple virtual host names.
      *   A virtual host may start with a "*." wildcard.
-     * @param {Object} options, may have the following properties:
+     * @param {Object} options may have the following properties:
      *   sessions: true to enable sessions for this context, false otherwise
      *   security: true to enable security for this context, false otherwise
      * @since: 0.6
