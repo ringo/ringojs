@@ -29,8 +29,8 @@ var log = require('ringo/logging').getLogger(module.id);
  * <li>mountpoint ('/')</li>
  * <li>staticDir ('static')</li>
  * <li>staticMountpoint ('/static')</li>
- * <li>moduleName ('config')</li>
- * <li>functionName ('app')</li>
+ * <li>config ('config')</li>
+ * <li>app ('app')</li>
  * </ul>
  */
 function Server(options) {
@@ -90,9 +90,9 @@ function Server(options) {
             /**
              * Map this context to a JSGI application.
              * @param {function|object} app a JSGI application, either as a function or an object
-             *   with properties <code>moduleName</code> and <code>functionName</code> defining
+             *   with properties <code>config</code> and <code>app</code> defining
              *   the application.
-             *   <div><code>{ moduleName: 'config', functionName: 'app' }</code></div>
+             *   <div><code>{ config: 'config', app: 'app' }</code></div>
              * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
              * @since: 0.6
              * @name Context.instance.serveApplication
