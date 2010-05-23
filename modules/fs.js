@@ -162,11 +162,10 @@ function listDirectoryTree(path) {
         var childPath = join(path, child);
         if (fsBase.isDirectory(childPath)) {
             if (!fsBase.isLink(childPath)) {
-                result.push.apply(result, listDirectoryTree(childPath).
-                        map(function (p) join(child, p))
-                );
+                result.push.apply(result,
+                        listDirectoryTree(childPath).map(function (p) join(child, p)));
             } else { // Don't follow symlinks.
-                result.push(childPath);
+                result.push(child);
             }
         }
     });
@@ -184,15 +183,12 @@ function listTree(path) {
     var result = [''];
     fsBase.list(path).forEach(function (child) {
         var childPath = join(path, child);
-        if (fsBase.isDirectory(childPath)) {
-            if (!fsBase.isLink(childPath)) {
-                result.push.apply(result, listTree(childPath).
-                        map(function (p) join(child, p))
-                );
-            } else { // Don't follow symlinks.
-                result.push(childPath);
-            }
-        } else { // Add files.
+        // Don't follow directory symlinks, but include them
+        if (fsBase.isDirectory(childPath) && !fsBase.isLink(childPath)) {
+            result.push.apply(result,
+                    listTree(childPath).map(function (p) join(child, p)));
+        } else {
+            // Add file or symlinked directory.
             result.push(child);
         }
     });
