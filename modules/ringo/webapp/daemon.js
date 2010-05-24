@@ -81,7 +81,8 @@ function start() {
     if (Array.isArray(config.static)) {
         config.static.forEach(function(spec) {
             var dir = resolveId(options.config, spec[1]);
-            server.addStaticResources(spec[0], null, dir);
+            var ctx = server.getContext(spec[0], null);
+            ctx.serveStatic(dir)
         });
     }
     server.start();
