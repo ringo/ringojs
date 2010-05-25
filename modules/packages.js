@@ -4,7 +4,6 @@
  */
 
 var system = require('system');
-var fs = require('fs');
 var engine = require('ringo/engine');
 
 export('load', 'normalize', 'catalog');
@@ -39,7 +38,7 @@ function load() {
                 var dir = directory.getChildRepository("engines");
                 for each (var engine in system.engines) {
                     var path = dir.getChildRepository(engine + "/lib");
-                    if (fs.isDirectory(path)) {
+                    if (path.exists()) {
                         require.paths.push(path);
                     }
                 }
