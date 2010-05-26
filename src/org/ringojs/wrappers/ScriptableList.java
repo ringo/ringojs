@@ -163,9 +163,9 @@ public class ScriptableList extends NativeJavaObject {
         if (list != null) {
             try {
                 if (index == list.size()) {
-                    list.add(Context.jsToJava(value, ScriptRuntime.ObjectClass));
+                    list.add(ScriptUtils.jsToJava(value));
                 } else {
-                    list.set(index, Context.jsToJava(value, ScriptRuntime.ObjectClass));
+                    list.set(index, ScriptUtils.jsToJava(value));
                 }
             } catch (RuntimeException e) {
                 Context.throwAsScriptRuntimeEx(e);

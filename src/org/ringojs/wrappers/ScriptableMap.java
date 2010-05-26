@@ -160,8 +160,7 @@ public class ScriptableMap extends NativeJavaObject {
 
     private void putInternal(Object key, Object value) {
         try {
-            map.put(key, Context.jsToJava(value,
-                    ScriptRuntime.ObjectClass));
+            map.put(key, ScriptUtils.jsToJava(value));
         } catch (RuntimeException e) {
             Context.throwAsScriptRuntimeEx(e);
         }

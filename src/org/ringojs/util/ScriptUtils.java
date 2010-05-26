@@ -53,6 +53,19 @@ public class ScriptUtils {
     }
 
     /**
+     * Unwrap a JS object to a java object. This is much more conservative than
+     * Context.jsToJava in that it will preserve undefined values.
+     * @param obj a JavaScript value
+     * @return a Java object corresponding to obj
+     */
+    public static Object jsToJava(Object obj) {
+        while (obj instanceof Wrapper) {
+            obj = ((Wrapper) obj).unwrap();
+        }
+        return obj;
+    }
+
+    /**
      * Return a class prototype, or the object prototype if the class
      * is not defined.
      * @param scope the scope
