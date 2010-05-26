@@ -195,13 +195,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
         return value;
     }
 
-    function evaluateExpression(macro, context, suffix, value) {
-        if (log.isDebugEnabled()) {
-            log.debug('evaluating expression: ', macro);
-        }
-
-        // Evaluate nested macros.
-        //
+    function evaluateNestedMacros(macro, context) {
         // We need to keep the original nested "MacroTag" objects obtained from
         // parsing around, in order to be able to safely re-evaluate the same
         // skin in differing contexts.
@@ -220,6 +214,13 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
                 macro.namedParameters[k] = evaluateExpression(param, context, '_macro');
             }
         }
+    }
+
+    function evaluateExpression(macro, context, suffix, value) {
+        if (log.isDebugEnabled()) {
+            log.debug('evaluating expression: ', macro);
+        }
+        evaluateNestedMacros(macro, context);
         if (builtin[macro.name]) {
             return builtin[macro.name](macro, context);
         }
