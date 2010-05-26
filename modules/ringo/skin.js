@@ -199,17 +199,24 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
         if (log.isDebugEnabled()) {
             log.debug('evaluating expression: ', macro);
         }
-        // evaluate nested macros
-        var paramLength = macro.parameters.length;
-        for (var p = 0; p < paramLength; p++) {
-            var param = macro.parameters[p];
+
+        // Evaluate nested macros.
+        //
+        // We need to keep the original nested "MacroTag" objects obtained from
+        // parsing around, in order to be able to safely re-evaluate the same
+        // skin in differing contexts.
+        macro.nested = macro.nested || {};
+        for (var i in macro.parameters) {
+            var param = macro.nested[i] || macro.parameters[i];
             if (param instanceof MacroTag) {
-                macro.parameters[p] = evaluateExpression(param, context, '_macro');
+                macro.nested[i] = param;
+                macro.parameters[i] = evaluateExpression(param, context, '_macro');
             }
         }
         for (var k in macro.namedParameters) {
-            param = macro.namedParameters[k];
+            var param = macro.nested[k] || macro.namedParameters[k];
             if (param instanceof MacroTag) {
+                macro.nested[k] = param;
                 macro.namedParameters[k] = evaluateExpression(param, context, '_macro');
             }
         }

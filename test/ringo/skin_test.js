@@ -20,6 +20,16 @@ exports.testMacro = function () {
     assertEqual('before HERE after', render(skin, context));
 };
 
+exports.testNestedMacro = function () {
+    var skin = createSkin('<% echo <% foo %> %>');
+
+    assertEqual('a', render(skin, {foo: 'a'}));
+
+    // ensure that rendering a skin (with nested macros) multiple times in
+    // differing contexts works as expected.
+    assertEqual('b', render(skin, {foo: 'b'}));
+};
+
 exports.testFilter = function () {
     var skin = createSkin('before <% x | filter %> after');
     var context = {filter_filter: function (str) 'HERE'};
@@ -65,6 +75,24 @@ exports.testExternalSubskin = function () {
 
     skin = createSkin(getResource('./skins/foo.html'));
     assertEqual('foo\nbar\nbaz\n', render(skin));
+};
+
+// --- builtins ---
+
+exports.testIfBuiltin = function () {
+    var skin = createSkin('<% if <% x %> render tt %>' +
+                          '<% if not <% x %> render ff %>' +
+                          '\n<% x %>' +
+                          '<% subskin tt %>tt' +
+                          '<% subskin ff %>ff');
+
+    assertEqual('tt\ntrue',     render(skin, {x: true}).trim());
+    assertEqual('tt\n42',       render(skin, {x: 42}).trim());
+    assertEqual('tt',           render(skin, {x: []}).trim());
+
+    assertEqual('ff\nfalse',    render(skin, {x: false}).trim());
+    assertEqual('ff',           render(skin, {x: null}).trim());
+    assertEqual('ff',           render(skin, {}).trim());
 };
 
 // --- filters ---
