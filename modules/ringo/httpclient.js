@@ -20,38 +20,38 @@ export('request', 'post', 'get', 'del', 'put', 'Client');
  */
 var Cookie = function(cookieStr) {
     
-    /**
-     * @returns {String} the cookie's name
-     */
-    Object.defineProperty(this, "name", {
-        get: function() {
-            return cookie.getName();
-        }
-    });
-
-    /**
-     * @returns {String} the cookie value
-     */
-    Object.defineProperty(this, "value", {
-        get: function() {
-            return cookie.getValue();
-        }
-    });
-    /**
-     * @returns {String} the cookie domain
-     */
-    Object.defineProperty(this, "domain", {
-        get: function() {
-            return cookie.getDomain();
-        }
-    });
-    
-    /**
-     * @returns {String} the cookie path
-     */
-    Object.defineProperty(this, "path", {
-        get: function() {
-            return cookie.getPath();
+    Object.defineProperties(this, {
+        /**
+         * @returns {String} the cookie's name
+         */
+        name: {
+            get: function() {
+                return cookie.getName();
+            }
+        },
+        /**
+         * @returns {String} the cookie value
+         */
+        value: {
+            get: function() {
+                return cookie.getValue();
+            }
+        },
+        /**
+         * @returns {String} the cookie domain
+         */
+        domain: {
+            get: function() {
+                return cookie.getDomain();
+            }
+        },
+        /**
+         * @returns {String} the cookie path
+         */
+        path: {
+            get: function() {
+                return cookie.getPath();
+            }
         }
     });
     
@@ -141,61 +141,62 @@ var Exchange = function(url, options, callbacks) {
         return "[ringo.httpclient.Exchange] " + url;
     };
     
-    Object.defineProperty(this, "status", {
-        get: function() {
-            return exchange.getResponseStatus();
-        }
-    });
-    Object.defineProperty(this, "contentType", {
-        get: function() {
-            return responseFields.getStringField('Content-Type');
-        }
-    });
-    Object.defineProperty(this, "content", {
-        get: function() {
-            return exchange.getResponseContent();
-        }
-    });
-    Object.defineProperty(this, "contentBytes", {
-        get: function() {
-            return ByteString.wrap(exchange.getResponseContentBytes());
-        }
-    });
-    Object.defineProperty(this, "contentChunk", {
-        get: function() {
-            return exchange.getRequestContentChunk();
-        }
-    });
-    Object.defineProperty(this, "contentExchange", {
-        get: function() {
-            return exchange;
-        }
-    });
-    Object.defineProperty(this, "responseHeaders", {
-        get: function() {
-            return responseFields;
-        }
-    });
-    Object.defineProperty(this, "cookies", {
-        get: function() {
-            var cookies = {};
-            var cookieHeaders = responseFields.getValues("Set-Cookie");
-            while (cookieHeaders.hasMoreElements()) {
-                var cookie = new Cookie(cookieHeaders.nextElement());
-                cookies[cookie.name] = cookie;
+    Object.defineProperties(this, {
+        status: {
+            get: function() {
+                return exchange.getResponseStatus();
             }
-            return cookies;
-        }
-    });
-
-    /**
-     * return response encoding
-     * NOTE HttpExchange._encoding knows about this but is protected
-     */
-    Object.defineProperty(this, "encoding", {
-        get: function() {
-            return getMimeParameter(this.contentType, "charset") || 'utf-8';
-        }
+        },
+        contentType: {
+            get: function() {
+                return responseFields.getStringField('Content-Type');
+            }
+        },
+        content: {
+            get: function() {
+                return exchange.getResponseContent();
+            }
+        },
+        contentBytes: {
+            get: function() {
+                return ByteString.wrap(exchange.getResponseContentBytes());
+            }
+        },
+        contentChunk: {
+            get: function() {
+                return exchange.getRequestContentChunk();
+            }
+        },
+        contentExchange: {
+            get: function() {
+                return exchange;
+            }
+        },
+        responseHeaders: {
+            get: function() {
+                return responseFields;
+            }
+        },
+        cookies: {
+            get: function() {
+                var cookies = {};
+                var cookieHeaders = responseFields.getValues("Set-Cookie");
+                while (cookieHeaders.hasMoreElements()) {
+                    var cookie = new Cookie(cookieHeaders.nextElement());
+                    cookies[cookie.name] = cookie;
+                }
+                return cookies;
+            }
+        },
+        /**
+         * return response encoding
+         * NOTE HttpExchange._encoding knows about this but is protected
+         */
+        encoding: {
+            get: function() {
+                return getMimeParameter(this.contentType, "charset") || 'utf-8';
+            }
+        },
     });
 
     /**
