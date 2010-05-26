@@ -126,7 +126,7 @@ public class MacroTag extends ScriptableObject {
     }
 
     /**
-     * A Javascript object containing all named parameters in this macro tagg.
+     * A Javascript object containing all named parameters in this macro tag.
      */
     @JSGetter
     public Object getNamedParameters() {
