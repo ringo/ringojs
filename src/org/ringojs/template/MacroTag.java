@@ -46,7 +46,7 @@ public class MacroTag extends ScriptableObject {
     static final Object[] ownIds = new Object[] {"name", "parameters",
                                                  "parameterNames", "filter"};
 
-    Object jsParams, jsNames;
+    Object jsParams, jsNames, jsNamedParams;
 
     public MacroTag() {}
 
@@ -123,6 +123,17 @@ public class MacroTag extends ScriptableObject {
             jsParams = new ScriptableList(getTopLevelScope(this), args);
         }
         return jsParams;
+    }
+
+    /**
+     * A Javascript object containing all named parameters in this macro tagg.
+     */
+    @JSGetter
+    public Object getNamedParameters() {
+        if (jsNamedParams == null) {
+            jsNamedParams = new ScriptableMap(getTopLevelScope(this), namedArgs);
+        }
+        return jsNamedParams;
     }
 
     /**

@@ -61,7 +61,7 @@ function createSkin(resourceOrString) {
         return skincache[resourceOrString];
     }
     if (log.isDebugEnabled())
-        log.debug("creating skin: " + resourceOrString);
+        log.debug("creating skin: ", resourceOrString);
     var mainSkin = [];
     var subSkins = {};
     var currentSkin = mainSkin;
@@ -196,8 +196,23 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     }
 
     function evaluateExpression(macro, context, suffix, value) {
-        if (log.isDebugEnabled())
-            log.debug('evaluating expression: ' + macro);
+        if (log.isDebugEnabled()) {
+            log.debug('evaluating expression: ', macro);
+        }
+        // evaluate nested macros
+        var paramLength = macro.parameters.length;
+        for (var p = 0; p < paramLength; p++) {
+            var param = macro.parameters[p];
+            if (param instanceof MacroTag) {
+                macro.parameters[p] = evaluateExpression(param, context, '_macro');
+            }
+        }
+        for (var k in macro.namedParameters) {
+            param = macro.namedParameters[k];
+            if (param instanceof MacroTag) {
+                macro.namedParameters[k] = evaluateExpression(param, context, '_macro');
+            }
+        }
         if (builtin[macro.name]) {
             return builtin[macro.name](macro, context);
         }
@@ -238,23 +253,19 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     // builtin macro handlers
     var builtin = {
         "render": function(macro, context) {
-            var skinName = macro.getParameter(0);
-            var skin = getEvaluatedParameter(skinName, context, 'render:skin');
+            var skin = macro.getParameter(0);
             return skin == null ? "" : self.renderSubskin(skin, context);
         },
 
         "echo": function(macro, context) {
-            var result = macro.parameters.map(function(elem) {
-                return getEvaluatedParameter(elem, context, 'echo');
-            });
+            var result = macro.parameters;
             var wrapper = macro.getParameter("wrap") || macro.getParameter("echo-wrap");
             if (wrapper != null) {
-                wrapper = getEvaluatedParameter(wrapper, context);
                 result = result.map(function(part) {return wrapper[0] + part + wrapper[1]});
             }
             var separator = macro.getParameter("separator");
             if (separator != null) {
-                return result.join(getEvaluatedParameter(separator), context, 'for:separator');
+                return result.join(separator);
             }
             return result.join(' ');
         },
@@ -264,8 +275,8 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
                 return "[Error in for-in macro: not enough parameters]";
             if (macro.parameters[1] != "in")
                 return "[Error in for-in macro: expected in]";
-            var name = getEvaluatedParameter(macro.parameters[0], context, 'for:name');
-            var list = getEvaluatedParameter(macro.parameters[2], context, 'for:list');
+            var name = macro.parameters[0];
+            var list = macro.parameters[2];
             var subContext = context.clone();
             var subMacro = macro.getSubMacro(3);
             if (subMacro.name == "and") {
@@ -274,17 +285,16 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
             var result = [];
             for (var [index, value] in list) {
                 subContext['index'] = index
-                subContext[name] = getEvaluatedParameter(value, context, 'for:value');
+                subContext[name] = value;
                 result.push(evaluateMacro(subMacro, subContext));
             }
             var wrapper = macro.getParameter("wrap") || macro.getParameter(name + "-wrap");
             if (wrapper != null) {
-                wrapper = getEvaluatedParameter(wrapper, context);
                 result = result.map(function(part) {return wrapper[0] + part + wrapper[1]});
             }
             var separator = macro.getParameter("separator");
             if (separator != null) {
-                return result.join(getEvaluatedParameter(separator), context, 'for:separator');
+                return result.join(separator);
             }
             return result.join('');
         },
@@ -300,7 +310,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
             if (bypass) {
                 index++;
             } else {
-                var condition = getEvaluatedParameter(macro.parameters[index++], context, 'if:condition');
+                var condition = macro.parameters[index++];
                 result = negated ? !condition : !!condition;
             }
             var subName = macro.parameters[index];
@@ -318,27 +328,16 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
         "set": function(macro, context) {
             if (macro.parameters.length < 2)
                 return "[Error in set macro: not enough parameters]";
-            var map = getEvaluatedParameter(macro.parameters[0], context, 'with:map');
+            var map = macro.parameters[0];
             var subContext = context.clone();
             var subMacro = macro.getSubMacro(1);
             for (var [key, value] in map) {
-                subContext[key] = getEvaluatedParameter(value, context, 'with:value');;
+                subContext[key] = value;
             }
             return evaluateMacro(subMacro, subContext);
         }
 
     };
-
-    function getEvaluatedParameter(value, context, logprefix) {
-        if (log.isDebugEnabled())
-            log.debug(logprefix + ': macro called with value: ' + value);
-        if (value instanceof MacroTag) {
-            value = evaluateExpression(value, context, '_macro');
-            if (log.isDebugEnabled())
-                log.debug(logprefix + ': evaluated value macro, got ' + value);
-        }
-        return value;
-    }
 
     this.toString = function toString() {
         return "[Skin Object]";

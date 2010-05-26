@@ -29,7 +29,7 @@ import java.util.HashMap;
 public class ScriptableMap extends NativeJavaObject {
 
     boolean reflect;
-    Map<Object,Object> map;
+    Map map;
     final static String CLASSNAME = "ScriptableMap";
 
     // Set up a custom constructor, for this class is somewhere between a host class and
@@ -38,7 +38,6 @@ public class ScriptableMap extends NativeJavaObject {
         BaseFunction ctor = new BaseFunction(scope, ScriptableObject.getFunctionPrototype(scope)) {
             @Override
             public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
-                Object arg;
                 boolean reflect = false;
                 if (args.length > 2) {
                     throw new EvaluatorException("ScriptableMap() called with too many arguments");
@@ -65,9 +64,9 @@ public class ScriptableMap extends NativeJavaObject {
         if (obj instanceof Map) {
             this.map = (Map) obj;
         } else if (obj == null || obj == Undefined.instance) {
-            this.map = new HashMap<Object, Object>();
+            this.map = new HashMap();
         } else if (obj instanceof Scriptable) {
-            this.map = new HashMap<Object, Object>();
+            this.map = new HashMap();
             Scriptable s = (Scriptable) obj;
             Object[] ids = s.getIds();
             for (Object id: ids) {
@@ -87,7 +86,7 @@ public class ScriptableMap extends NativeJavaObject {
 
     }
 
-    public ScriptableMap(Scriptable scope, Map<Object, Object> map) {
+    public ScriptableMap(Scriptable scope, Map map) {
         super(scope, map, map.getClass());
         this.map = map;
         initPrototype(scope);
