@@ -95,6 +95,38 @@ exports.testIfBuiltin = function () {
     assertEqual('ff',           render(skin, {}).trim());
 };
 
+exports.testForBuiltin = function () {
+    var skin;
+
+    skin = createSkin('<% for x in <% xs %> render item %>' +
+                      '<% subskin item %><% x %>,');
+    assertEqual('foo,bar,baz,', render(skin, {xs: ['foo', 'bar', 'baz']}));
+    assertEqual('',             render(skin, {xs: []}));
+
+    skin = createSkin('<% for x in ["Foo", "Bar", "Baz"] render item %>' +
+                      '<% subskin item %><% x %>');
+    assertEqual('FooBarBaz',    render(skin));
+
+    skin = createSkin('<% for x in [Foo, Bar, Baz] render item %>' +
+                      '<% subskin item %><% x %>');
+    assertEqual('FooBarBaz',    render(skin));
+};
+
+exports.testSetBuiltin = function () {
+    var skin;
+
+    skin = createSkin('<% set {x: "foo"} render item %>' +
+                      '<% subskin item %><% x %>');
+    assertEqual('foo', render(skin));
+    assertEqual('foo', render(skin, {x: 'bar'}));
+
+    skin = createSkin('<% render item %>' +
+                      '<% set {x: "Override"} render item %>' +
+                      '<% render item %>' +
+                      '<% subskin item %><% x %>');
+    assertEqual('OriginalOverrideOriginal', render(skin, {x: 'Original'}));
+};
+
 // --- filters ---
 
 exports.testLowercaseFilter = function () {

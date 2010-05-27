@@ -285,7 +285,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
                 return "[Error in for-in macro: expected in]";
             var name = macro.parameters[0];
             var list = macro.parameters[2];
-            var subContext = context.clone();
+            var subContext = (context || {}).clone();
             var subMacro = macro.getSubMacro(3);
             if (subMacro.name == "and") {
                 subMacro.name = "for";
@@ -337,7 +337,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
             if (macro.parameters.length < 2)
                 return "[Error in set macro: not enough parameters]";
             var map = macro.parameters[0];
-            var subContext = context.clone();
+            var subContext = (context || {}).clone();
             var subMacro = macro.getSubMacro(1);
             for (var [key, value] in map) {
                 subContext[key] = value;
