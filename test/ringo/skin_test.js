@@ -95,7 +95,7 @@ exports.testIfBuiltin = function () {
     assertEqual('ff',           render(skin, {}).trim());
 };
 
-exports.testForBuiltin = function () {
+exports.testForBuiltinBasic = function () {
     var skin;
 
     skin = createSkin('<% for x in <% xs %> render item %>' +
@@ -110,6 +110,42 @@ exports.testForBuiltin = function () {
     skin = createSkin('<% for x in [Foo, Bar, Baz] render item %>' +
                       '<% subskin item %><% x %>');
     assertEqual('FooBarBaz',    render(skin));
+};
+
+exports.testForBuiltinSeparator = function () {
+    var skin = createSkin('<% for x in <% xs %> separator=: render item %>' +
+                          '<% subskin item %><% x %>');
+    assertEqual('foo:bar:baz',  render(skin, {xs: ['foo', 'bar', 'baz']}));
+    assertEqual('foo',          render(skin, {xs: ['foo']}));
+    assertEqual('',             render(skin, {xs: []}));
+};
+
+exports.testForBuiltinWrap = function () {
+    var skin = createSkin('<% for x in <% xs %> wrap=[A,Z] render item %>' +
+                          '<% subskin item %><% x %>');
+    assertEqual('AaZAbZAcZ',    render(skin, {xs: ['a', 'b', 'c']}));
+    assertEqual('AaZ',          render(skin, {xs: ['a']}));
+    assertEqual('',             render(skin, {xs: []}));
+};
+
+exports.testForBuiltinIndex = function () {
+    var skin = createSkin('<% for x in <% xs %> render item %>' +
+                          '<% subskin item %><% index %>');
+    assertEqual('012',          render(skin, {xs: ['a', 'b', 'c']}));
+    assertEqual('0',            render(skin, {xs: ['a']}));
+    assertEqual('',             render(skin, {xs: []}));
+};
+
+exports.testForBuiltinNestedFor = function () {
+    var skin;
+
+    skin = createSkin('<% for x in <% xs %> and y in <% ys %> render item %>' +
+                      '<% subskin item %>(<% x %><% y %>)');
+    assertEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
+
+    skin = createSkin('<% for x in <% xs %> for y in <% ys %> render item %>' +
+                      '<% subskin item %>(<% x %><% y %>)');
+    assertEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
 };
 
 exports.testSetBuiltin = function () {
