@@ -6,7 +6,7 @@
 var system = require('system');
 var engine = require('ringo/engine');
 
-export('load', 'loadPackage', 'normalize', 'catalog');
+export('load', 'loadPackages', 'loadPackage', 'normalize', 'catalog');
 
 var catalog;
 
@@ -18,13 +18,13 @@ function load() {
 
     catalog = {};
 
-    // loop through packages and configure resources
-    var packages = engine.getRingoHome().getChildRepository("packages");
-    if (!packages.exists()) {
-        print("No packages installed, skipping package setup");
-        return;
+    loadPackages(engine.getRingoHome().getChildRepository("packages"));
+}
+
+function loadPackages(directory) {
+    if (directory.exists()) {
+        directory.getRepositories().forEach(loadPackage);
     }
-    packages.getRepositories().forEach(loadPackage);
 }
 
 function loadPackage(directory) {
