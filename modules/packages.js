@@ -11,13 +11,11 @@ export('load', 'loadPackages', 'loadPackage', 'normalize', 'catalog');
 var catalog;
 
 function load() {
+    // Check if we're either already set up or running in secure sandbox mode.
     if (catalog || !require.paths) {
-        // we're either already set up or running in secure sandbox mode
         return;
     }
-
     catalog = {};
-
     loadPackages(engine.getRingoHome().getChildRepository("packages"));
 }
 
@@ -30,12 +28,12 @@ function loadPackages(repository) {
 function loadPackage(repository) {
     try {
         var jsonPath = repository.getResource("package.json");
-        var package = JSON.parse(jsonPath.getContent());
-        var name = package.name || repository.getName();
-        package.directory = repository;
+        var pkg = JSON.parse(jsonPath.getContent());
+        var name = pkg.name || repository.getName();
+        pkg.directory = repository;
 
         // check engine specific libs
-        handleResource(package.engines || "engines", function(engines) {
+        handleResource(pkg.engines || "engines", function(engines) {
             var dir = repository.getChildRepository("engines");
             for each (var engine in system.engines) {
                 var path = dir.getChildRepository(engine + "/lib");
@@ -45,28 +43,31 @@ function loadPackage(repository) {
             }
         });
 
-        var lib = (package.directories && package.directories.lib) || package.lib || "lib";
+        var lib = (pkg.directories && pkg.directories.lib) || pkg.lib || "lib";
         handleResource(lib, function(lib) {
             require.paths.push(repository.getChildRepository(lib));
         });
 
-        var jars = (package.directories && package.directories.jars) || package.jars;
+        var jars = (pkg.directories && pkg.directories.jars) || pkg.jars;
         handleResource(jars, function(res) {
             var files;
             var path = repository.getChildRepository(res);
             if (path.exists()) {
-                files = [p for each (p in path.getResources()) if (p.getName().match(/\.jar$/))];
+                files = [p for each (p in path.getResources())
+                           if (p.getName().match(/\.jar$/))];
             } else {
                 files = [repository.getResource(res)];
             }
-            for each (var file in files)
+            for each (var file in files) {
                 addToClasspath(file);
+            }
         });
 
-        catalog[name] = package;
+        catalog[name] = pkg;
 
     } catch (error) {
-        system.stderr.print("Error configuring package " + repository + ": " + error);
+        system.stderr.print(
+                "Error configuring package " + repository + ": " + error);
     }
 }
 
