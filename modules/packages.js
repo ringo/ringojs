@@ -21,22 +21,22 @@ function load() {
     loadPackages(engine.getRingoHome().getChildRepository("packages"));
 }
 
-function loadPackages(directory) {
-    if (directory.exists()) {
-        directory.getRepositories().forEach(loadPackage);
+function loadPackages(repository) {
+    if (repository.exists()) {
+        repository.getRepositories().forEach(loadPackage);
     }
 }
 
-function loadPackage(directory) {
+function loadPackage(repository) {
     try {
-        var jsonPath = directory.getResource("package.json");
+        var jsonPath = repository.getResource("package.json");
         var package = JSON.parse(jsonPath.getContent());
-        var name = package.name || directory.getName();
-        package.directory = directory;
+        var name = package.name || repository.getName();
+        package.directory = repository;
 
         // check engine specific libs
         handleResource(package.engines || "engines", function(engines) {
-            var dir = directory.getChildRepository("engines");
+            var dir = repository.getChildRepository("engines");
             for each (var engine in system.engines) {
                 var path = dir.getChildRepository(engine + "/lib");
                 if (path.exists()) {
@@ -47,17 +47,17 @@ function loadPackage(directory) {
 
         var lib = (package.directories && package.directories.lib) || package.lib || "lib";
         handleResource(lib, function(lib) {
-            require.paths.push(directory.getChildRepository(lib));
+            require.paths.push(repository.getChildRepository(lib));
         });
 
         var jars = (package.directories && package.directories.jars) || package.jars;
         handleResource(jars, function(res) {
             var files;
-            var path = directory.getChildRepository(res);
+            var path = repository.getChildRepository(res);
             if (path.exists()) {
                 files = [p for each (p in path.getResources()) if (p.getName().match(/\.jar$/))];
             } else {
-                files = [directory.getResource(res)];
+                files = [repository.getResource(res)];
             }
             for each (var file in files)
                 addToClasspath(file);
@@ -66,7 +66,7 @@ function loadPackage(directory) {
         catalog[name] = package;
 
     } catch (error) {
-        system.stderr.print("Error configuring package " + directory + ": " + error);
+        system.stderr.print("Error configuring package " + repository + ": " + error);
     }
 }
 
