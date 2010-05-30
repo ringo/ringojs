@@ -30,6 +30,15 @@ function loadPackage(repository) {
         var jsonPath = repository.getResource("package.json");
         var pkg = JSON.parse(jsonPath.getContent());
         var name = pkg.name || repository.getName();
+        if (catalog[name]) {
+            system.stderr.print(
+                    "Tried to load package `" + name + "` " +
+                    "from `" + repository + "`, but a package with the same " +
+                    "name has already been loaded " +
+                    "from `" + catalog[name].directory + "`.");
+            return;
+        }
+
         pkg.directory = repository;
 
         // check engine specific libs
