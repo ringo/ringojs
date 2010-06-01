@@ -22,7 +22,7 @@ function Store() {
 
     this.dump = function() {
         print(data.toSource());
-    }
+    };
 
     var proxy = {
         all: all,
@@ -47,10 +47,13 @@ function Store() {
             ctor.query = bindArguments(query, type);
         }
         return ctor;
-    }
+    };
 
     function create(type, key, entity) {
         var ctor = registry[type];
+        if (!ctor) {
+            throw new Error('Entity "' + type + '" is not defined');
+        }
         return ctor.createInstance(key, entity);
     }
 
@@ -99,7 +102,7 @@ function Store() {
             data[type] = dir = {};
         }
         dir[id] = JSON.stringify(entity);
-    };
+    }
 
     function load(type, id) {
         var dir = data[type];
@@ -111,7 +114,7 @@ function Store() {
             value: createKey(type, id)
         });
         return entity;
-    };
+    }
 
     function retrieve(type, id) {
         var entity = load(type, id);
@@ -119,16 +122,16 @@ function Store() {
             return create(type, entity._key, entity);
         }
         return null;
-    };
+    }
 
     function retrieveAll(type) {
         var dir = data[type];
-        var list = []
+        var list = [];
         for (var id in dir) {
             list.push(create(type, createKey(type, id)));
         }
         return list;
-    };
+    }
 
     function remove(key, txn) {
         if (!isKey(key)) {
@@ -139,14 +142,14 @@ function Store() {
         if (dir && dir[id]) {
             delete(dir[id]);
         }
-    };
+    }
 
     function generateId(type) {
         var id = idMap[type] || 1;
         idMap[type] = id + 1;
         return String(id);
-    };
-};
+    }
+}
 
 function dump() {
     datastore.dump();

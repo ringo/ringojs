@@ -61,6 +61,9 @@ function abortTransaction() {
 
 function create(type, key, entity) {
     var ctor = registry[type];
+    if (!ctor) {
+        throw new Error('Entity "' + type + '" is not defined');
+    }
     return ctor.createInstance(key, entity);
 }
 
