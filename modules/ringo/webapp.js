@@ -28,7 +28,7 @@ function handleRequest(req) {
     var configId = req.env.ringo_config || 'config';
     var config = getConfig(configId);
     if (log.isDebugEnabled()){
-        log.debug('got config: ' + config.toSource());
+        log.debug('got config', config);
     }
 
     // set req in webapp env module
@@ -65,15 +65,13 @@ function resolveInConfig(req, webenv, config, configId) {
         throw {notfound: true};
     }
 
-    var path = req.pathInfo.replace(/^\/+|\/+$/g, "");
-
     for each (var urlEntry in config.urls) {
         if (!Array.isArray(urlEntry) || urlEntry.length < 2) {
             log.info("Ignoring unsupported URL mapping: " + urlEntry);
             continue;
         }
-        log.debug("checking url line: {}", urlEntry);
-        var match = getPattern(urlEntry).exec(path);
+        log.debug("checking url line: {} against {}", urlEntry, req.pathInfo);
+        var match = getPattern(urlEntry).exec(req.pathInfo);
         log.debug("got match: {}", match);
 
         if (match) {
@@ -104,8 +102,6 @@ function resolveInConfig(req, webenv, config, configId) {
 function getPattern(spec) {
     var pattern = spec[0];
     if (typeof pattern == "string") {
-        if (pattern.startsWith("/"))
-            pattern = pattern.replace("/", "^");
         pattern = spec[0] = new RegExp(pattern);
     } else if (!(pattern instanceof RegExp)) {
         throw Error("Pattern must be a regular expression or string");

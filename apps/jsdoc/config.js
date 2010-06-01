@@ -10,7 +10,7 @@ exports.scriptRepositories = require.paths;
 }; */
 
 exports.urls = [
-    [ /([^/]+)\/(.*)/, './actions', 'module' ],
+    [ /([^/]+)\/(.+)/, './actions', 'module' ],
     [ /([^/]+)/, './actions', 'repository' ],
     [ /^/, './actions', 'index' ]
 ];
