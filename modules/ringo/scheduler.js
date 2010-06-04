@@ -60,20 +60,12 @@ exports.clearTimeout = function(id) {
  */
 exports.setInterval = function(callback, delay) {
     var args = Array.slice(arguments, 2);
-    var running = false;
     var runnable = new java.lang.Runnable({
         run: function() {
-            // do not run if previous invocation is still active
-            if (running) {
-                return;
-            }
-            running = true;
             try {
                 callback.apply(global, args);
             } catch (e) {
                 // ignore
-            } finally {
-                running = false;
             }
         }
     });
