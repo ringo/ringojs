@@ -3,7 +3,7 @@
  */
 
 var {newScheduledThreadPool, newCachedThreadPool} = java.util.concurrent.Executors;
-var {ThreadFactory} = java.util.concurrent;
+var {Callable, ThreadFactory} = java.util.concurrent;
 var {MILLISECONDS} = java.util.concurrent.TimeUnit;
 
 var ids = new java.util.concurrent.atomic.AtomicInteger();
@@ -27,9 +27,9 @@ var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
  */
 exports.setTimeout = function(callback, delay) {
     var args = Array.slice(arguments, 2);
-    var runnable = new java.lang.Runnable({
-        run: function() {
-            callback.apply(global, args);
+    var runnable = new Callable({
+        call: function() {
+            return callback.apply(global, args);
         }
     });
     delay = parseInt(delay, 10) || 0;
@@ -60,17 +60,25 @@ exports.clearTimeout = function(id) {
  */
 exports.setInterval = function(callback, delay) {
     var args = Array.slice(arguments, 2);
+    var running = false;
     var runnable = new java.lang.Runnable({
         run: function() {
+            // do not run if previous invocation is still active
+            if (running) {
+                return;
+            }
+            running = true;
             try {
                 callback.apply(global, args);
             } catch (e) {
                 // ignore
+            } finally {
+                running = false;
             }
         }
     });
-    delay = parseInt(delay, 10) || 0;
-    return scheduler.scheduleAtFixedRate(runnable, 0, delay, MILLISECONDS);
+    delay = Math.max(parseInt(delay, 10) || 0, 1);
+    return scheduler.scheduleAtFixedRate(runnable, delay, delay, MILLISECONDS);
 };
 
 /**
