@@ -15,8 +15,18 @@ exports.testValue = function () {
 };
 
 exports.testMacro = function () {
-    var skin = createSkin('before <% macro %> after');
-    var context = {macro_macro: function () 'HERE'};
+    var skin, context;
+
+    skin = createSkin('before <% foo %> after');
+    context = {foo_macro: function () 'HERE'};
+    assertEqual('before HERE after', render(skin, context));
+
+    skin = createSkin('before <% foo HERE %> after');
+    context = {foo_macro: function (macro) macro.parameters[0]};
+    assertEqual('before HERE after', render(skin, context));
+
+    skin = createSkin('before <% foo bar=HERE %> after');
+    context = {foo_macro: function (macro) macro.getParameter('bar')};
     assertEqual('before HERE after', render(skin, context));
 };
 
@@ -31,8 +41,18 @@ exports.testNestedMacro = function () {
 };
 
 exports.testFilter = function () {
-    var skin = createSkin('before <% x | filter %> after');
-    var context = {filter_filter: function (str) 'HERE'};
+    var skin, context;
+
+    skin = createSkin('before <% x | foo %> after');
+    context = {foo_filter: function (str) 'HERE'};
+    assertEqual('before HERE after', render(skin, context));
+
+    skin = createSkin('before <% x | foo HERE %> after');
+    context = {foo_filter: function (str, filter) filter.parameters[0]};
+    assertEqual('before HERE after', render(skin, context));
+
+    skin = createSkin('before <% x | foo bar=HERE %> after');
+    context = {foo_filter: function (str, filter) filter.getParameter('bar')};
     assertEqual('before HERE after', render(skin, context));
 };
 
