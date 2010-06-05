@@ -42,6 +42,12 @@ exports.args = global.arguments || [];
  */
 exports.env = new ScriptableMap(java.lang.System.getenv());
 
+/**
+ * Terminates the current process.
+ * @param {number=} status The exit status.
+ */
+exports.exit = Packages.java.lang.System.exit;
+
 // Narwhal compatibility
 var engine = org.ringojs.engine.RhinoEngine.getEngine();
 var home = engine.getRingoHome();
