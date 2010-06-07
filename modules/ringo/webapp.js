@@ -140,6 +140,11 @@ function getAction(req, module, urlconf, args) {
             name = path[0];
             if (name) {
                 action = module[name.replace(/\./g, "_")];
+                // actions may be specific to HTTP methods:
+                // { GET: function()..., POST: function()... };
+                if (action && typeof action[req.method] == "function") {
+                    action = action[req.method];
+                }
                 if (typeof action == "function") {
                     // If the request path contains additional elements check whether the
                     // candidate function has formal arguments to take them
