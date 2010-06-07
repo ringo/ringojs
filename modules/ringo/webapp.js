@@ -160,6 +160,10 @@ function getAction(req, module, urlconf, args) {
         }
         action = module[name];
     }
+    // check for HTTP method specific action
+    if (action && typeof action[req.method] == "function") {
+        action = action[req.method];
+    }
     if (typeof action == "function") {
         // insert predefined arguments if defined in url-conf
         if (urlconf.length > 3) {
