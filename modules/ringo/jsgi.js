@@ -104,12 +104,12 @@ function writeBody(response, body, charset) {
                 part = part.toByteString(charset);
             }
             output.write(part);
-            output.flush();
         };
         body.forEach(writer);
         if (typeof body.close == "function") {
             body.close(writer);
         }
+        output.close();
     } else {
         throw new Error("Response body doesn't implement forEach: " + body);
     }
