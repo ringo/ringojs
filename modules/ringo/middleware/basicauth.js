@@ -14,8 +14,6 @@ require('core/string');
 var base64 = require('ringo/base64');
 var {auth} = require('config');
 
-module.shared = true;
-
 exports.middleware = function (app) {
     return function (req) {
         // normalize multiple slashes in request path
