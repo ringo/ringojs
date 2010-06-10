@@ -26,7 +26,7 @@ function Request(request) {
     }
 
     var params, cookies, session, headers;
-    var servletRequest = request.env.servlet_request;
+    var servletRequest = request.env.servletRequest;
 
     /**
      * The name of the encoding used for this request
@@ -219,7 +219,7 @@ function Session(request) {
 
     var data;
     var servletRequest = request instanceof javax.servlet.ServletRequest ? 
-            request : request.env.servlet_request;
+            request : request.env.servletRequest;
 
     function getSession() {
         return servletRequest.getSession();

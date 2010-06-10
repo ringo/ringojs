@@ -28,7 +28,6 @@ public class JsgiRequest extends ScriptableObject {
     Scriptable jsgiObject;
     HttpServletRequest request;
     HttpServletResponse response;
-    int permanent = PERMANENT;
     int readonly = PERMANENT | READONLY;
     Object httpVersion;
 
@@ -67,9 +66,9 @@ public class JsgiRequest extends ScriptableObject {
         setParentScope(scope);
         Scriptable jsgi = cx.newObject(scope);
         jsgi.setPrototype(prototype.jsgiObject);
-        ScriptableObject.defineProperty(this, "jsgi", jsgi, permanent);
+        ScriptableObject.defineProperty(this, "jsgi", jsgi, PERMANENT);
         Scriptable headers = cx.newObject(scope);
-        ScriptableObject.defineProperty(this, "headers", headers, permanent);
+        ScriptableObject.defineProperty(this, "headers", headers, PERMANENT);
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
             String value = request.getHeader(name);
@@ -80,9 +79,9 @@ public class JsgiRequest extends ScriptableObject {
         put("pathInfo", this, checkString(request.getPathInfo()));
         put("method", this, checkString(request.getMethod()));
         Scriptable env = cx.newObject(scope);
-        ScriptableObject.defineProperty(this, "env", env, permanent);
-        ScriptableObject.defineProperty(env, "servlet_request", Context.javaToJS(request, this), permanent);
-        ScriptableObject.defineProperty(env, "servlet_response", Context.javaToJS(response, this), permanent);
+        ScriptableObject.defineProperty(this, "env", env, PERMANENT);
+        ScriptableObject.defineProperty(env, "servletRequest", Context.javaToJS(request, this), PERMANENT);
+        ScriptableObject.defineProperty(env, "servletResponse", Context.javaToJS(response, this), PERMANENT);
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", scope.get("Object", scope), DONTENUM);
     }

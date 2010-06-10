@@ -49,7 +49,7 @@ function initRequest(request) {
     Object.defineProperty(request, "input", {
         get: function() {
             if (!input)
-                input = new Stream(request.env.servlet_request.getInputStream());
+                input = new Stream(request.env.servletRequest.getInputStream());
             return input;
         }
     });
@@ -69,8 +69,8 @@ function initRequest(request) {
  */
 function commitResponse(req, result) {
     var {status, headers, body} = result;
-    var request = req.env.servlet_request;
-    var response = req.env.servlet_response;
+    var request = req.env.servletRequest;
+    var response = req.env.servletResponse;
     if (!status || !headers || !body) {
         // As a convenient shorthand, we also handle async responses returning the
         // not only the promise but the full deferred (as obtained by
