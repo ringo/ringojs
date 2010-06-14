@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var fs = require('fs');
 var {separator, roots} = require('ringo/fileutils');
 

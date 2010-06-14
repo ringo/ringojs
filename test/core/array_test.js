@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 require("core/array");
 
 // test data

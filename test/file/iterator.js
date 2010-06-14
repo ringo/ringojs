@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var fs = require("fs");
 
 /* a decorator that passes a path object corresponding

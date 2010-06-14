@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var Parser = require('ringo/args').Parser;
 
 exports.setUp = exports.tearDown = function() {}

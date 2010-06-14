@@ -385,7 +385,7 @@ EvaluationError.prototype = new Error();
  */
 if (require.main == module.id) {
     if (system.args.length == 1) {
-        term.writeln("Usage: bin/ringo ringo/unittest test/file1 test/file2");
+        term.writeln("Usage: bin/ringo test test/file1 test/file2");
     } else {
         var writer = new TermWriter();
         for (var i=1; i<system.args.length; i+=1) {

@@ -1,5 +1,5 @@
 include('io');
-var assert = require("ringo/assert");
+var assert = require("assert");
 
 exports.testReadFixed = function() {
     var resource = getResource('./io_test.js');
@@ -10,7 +10,7 @@ exports.testReadFixed = function() {
 };
 
 exports.testReadIndefinite = function() {
-    var resource = getResource('./ringo/assert.js');
+    var resource = getResource('./assert.js');
     var io = new Stream(resource.inputStream);
     var bytes = io.read();
     assert.strictEqual(bytes.length, resource.length);

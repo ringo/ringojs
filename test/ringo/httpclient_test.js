@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var Server = require('ringo/httpserver').Server;
 

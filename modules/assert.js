@@ -28,7 +28,7 @@ var {
     jsDump,
     getType,
     getStackTrace
-} = require("./unittest");
+} = require("./test");
 
 /**
 * @param {Object} args The arguments array.
@@ -151,7 +151,7 @@ function objectsAreEqual(obj1, obj2) {
         return propsAreEqual;
     }
     // array comparison
-    if (getType(obj1) === "array" && getType(obj2) === "array") {
+    if (getType(obj1) === "array") {
         return obj1.length === obj2.length && obj1.every(function(value, idx) {
             return isDeepEqual(value, obj2[idx]);
         });

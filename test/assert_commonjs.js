@@ -5,7 +5,7 @@
 
 // strangely meta, no?
 
-var assert = require('ringo/assert');
+var assert = require('assert');
 
 function makeBlock(f) {
     var args = Array.prototype.slice.call(arguments,1);

@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 include('ringo/skin');
 var filters = require('ringo/skin/filters');
 

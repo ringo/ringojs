@@ -1,6 +1,6 @@
 
 include('ringo/engine');
-var assert = require('ringo/assert');
+var assert = require('assert');
 var fs = require('fs');
 
 [

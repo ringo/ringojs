@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var base64 = require('ringo/base64');
 var {ByteString} = require('binary');
 

@@ -1,4 +1,5 @@
-exports.testAssert = require('./ringo/assert');
+exports.testAssert = require('./assert');
+exports.testAssertCommonJs = require('./assert_commonjs');
 exports.testBase64 = require('./ringo/base64_test');
 exports.testArgs = require('./ringo/args_test');
 exports.testArray = require('./core/array_test');
@@ -19,5 +20,5 @@ exports.testModules = require('./modules/all');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
-    require('ringo/unittest').run(exports);
+    require('test').run(exports);
 }

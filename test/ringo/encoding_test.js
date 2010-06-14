@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 include('ringo/encoding');
 include('binary');
 include('io');

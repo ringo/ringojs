@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 include('./testconsts');
 var {Store} = require('ringo/storage/memstore');
 var store = new Store();

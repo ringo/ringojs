@@ -1,4 +1,4 @@
-var assert = require("ringo/assert");
+var assert = require("assert");
 var utils = require('ringo/utils');
 
 const TEMPLATE = 'Here\'s {} and {}.';
