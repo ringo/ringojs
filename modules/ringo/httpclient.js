@@ -626,7 +626,10 @@ var defaultClient = defaultClient || new Client();
  * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
-var request = defaultClient.request;
+var request = function() {
+    return defaultClient.request.apply(defaultClient, arguments);
+};
+
 /**
  * Convenience function to make a POST request without creating a new client.
  * @param {String} url the url to request
@@ -636,7 +639,10 @@ var request = defaultClient.request;
  * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
-var post = defaultClient.post;
+var post = function() {
+    return defaultClient.post.apply(defaultClient, arguments);
+};
+
 /**
  * Convenience function to make a GET request without creating a new client.
  * @param {String} url the url to request
@@ -646,7 +652,10 @@ var post = defaultClient.post;
  * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
-var get = defaultClient.get;
+var get = function() {
+    return defaultClient.get.apply(defaultClient, arguments);
+};
+
 /**
  * Convenience function to make a DELETE request without creating a new client.
  * @param {String} url the url to request
@@ -656,7 +665,9 @@ var get = defaultClient.get;
  * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
-var del = defaultClient.del;
+var del = function() {
+    return defaultClient.del.apply(defaultClient, arguments);
+};
 
 /**
  * Convenience function to make a PUT request without creating a new client.
@@ -667,6 +678,8 @@ var del = defaultClient.del;
  * @returns {Exchange} exchange object
  * @see Client.instance.request
  */
-var put = defaultClient.put;
+var put = function() {
+    return defaultClient.put.apply(defaultClient, arguments);
+};
 
 
