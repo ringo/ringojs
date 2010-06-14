@@ -1,5 +1,4 @@
-
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var fs = require('fs');
 var {separator, roots} = require('ringo/fileutils');
 
@@ -36,7 +35,7 @@ var tests = [
 tests.forEach(function([parts, expected]) {
     exports['test ' + parts.toSource()] = function () {
         var result = fs.resolve.apply(null, parts.map(localize));
-        assertEqual(localize(expected), result);
+        assert.strictEqual(localize(expected), result);
     };
 });
 

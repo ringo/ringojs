@@ -1,17 +1,17 @@
-include('ringo/unittest');
+var assert = require("ringo/assert");
 include('ringo/skin');
 var filters = require('ringo/skin/filters');
 
 exports.testBasic = function () {
     var skin = createSkin('simple');
-    assertEqual('simple', render(skin));
-    assertEqual('simple', render(skin, {}));
+    assert.strictEqual('simple', render(skin));
+    assert.strictEqual('simple', render(skin, {}));
 };
 
 exports.testValue = function () {
     var skin = createSkin('before <% value %> after');
     var context = {value: 'HERE'};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 };
 
 exports.testMacro = function () {
@@ -19,25 +19,25 @@ exports.testMacro = function () {
 
     skin = createSkin('before <% foo %> after');
     context = {foo_macro: function () 'HERE'};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 
     skin = createSkin('before <% foo HERE %> after');
     context = {foo_macro: function (macro) macro.parameters[0]};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 
     skin = createSkin('before <% foo bar=HERE %> after');
     context = {foo_macro: function (macro) macro.getParameter('bar')};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 };
 
 exports.testNestedMacro = function () {
     var skin = createSkin('<% echo <% foo %> %>');
 
-    assertEqual('a', render(skin, {foo: 'a'}));
+    assert.strictEqual('a', render(skin, {foo: 'a'}));
 
     // ensure that rendering a skin (with nested macros) multiple times in
     // differing contexts works as expected.
-    assertEqual('b', render(skin, {foo: 'b'}));
+    assert.strictEqual('b', render(skin, {foo: 'b'}));
 };
 
 exports.testFilter = function () {
@@ -45,15 +45,15 @@ exports.testFilter = function () {
 
     skin = createSkin('before <% x | foo %> after');
     context = {foo_filter: function (str) 'HERE'};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 
     skin = createSkin('before <% x | foo HERE %> after');
     context = {foo_filter: function (str, filter) filter.parameters[0]};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 
     skin = createSkin('before <% x | foo bar=HERE %> after');
     context = {foo_filter: function (str, filter) filter.getParameter('bar')};
-    assertEqual('before HERE after', render(skin, context));
+    assert.strictEqual('before HERE after', render(skin, context));
 };
 
 exports.testSubskin = function () {
@@ -61,40 +61,40 @@ exports.testSubskin = function () {
     var context;
 
     skin = createSkin('a<% subskin sub %>b');
-    assertEqual('a', render(skin));
+    assert.strictEqual('a', render(skin));
 
     skin = createSkin('a<% render sub %><% subskin sub %>b');
-    assertEqual('ab', render(skin));
+    assert.strictEqual('ab', render(skin));
 
     skin = createSkin('a<% s %><% subskin sub %>b');
     context = {
         s_macro: function(macro, context, skin) skin.renderSubskin('sub')
     };
-    assertEqual('ab', render(skin, context));
+    assert.strictEqual('ab', render(skin, context));
 };
 
 exports.testSubskinWhitespace = function () {
     var skin;
 
     skin = createSkin('a\n<% subskin sub %>\nb\n');
-    assertEqual('a\n', render(skin));
+    assert.strictEqual('a\n', render(skin));
 
     skin = createSkin('a\n<% render sub %>\n<% subskin sub %>\nb\n');
-    assertEqual('a\n\nb\n', render(skin));
+    assert.strictEqual('a\n\nb\n', render(skin));
 };
 
 exports.testExtends = function () {
     var skin;
 
     skin = createSkin(getResource('./skins/child.html'));
-    assertEqual('foo\n\nbar', render(skin).trim());
+    assert.strictEqual('foo\n\nbar', render(skin).trim());
 }
 
 exports.testExternalSubskin = function () {
     var skin;
 
     skin = createSkin(getResource('./skins/foo.html'));
-    assertEqual('foo\nbar\nbaz\n', render(skin));
+    assert.strictEqual('foo\nbar\nbaz\n', render(skin));
 };
 
 // --- builtins ---
@@ -106,13 +106,13 @@ exports.testIfBuiltin = function () {
                           '<% subskin tt %>tt' +
                           '<% subskin ff %>ff');
 
-    assertEqual('tt\ntrue',     render(skin, {x: true}).trim());
-    assertEqual('tt\n42',       render(skin, {x: 42}).trim());
-    assertEqual('tt',           render(skin, {x: []}).trim());
+    assert.strictEqual('tt\ntrue',     render(skin, {x: true}).trim());
+    assert.strictEqual('tt\n42',       render(skin, {x: 42}).trim());
+    assert.strictEqual('tt',           render(skin, {x: []}).trim());
 
-    assertEqual('ff\nfalse',    render(skin, {x: false}).trim());
-    assertEqual('ff',           render(skin, {x: null}).trim());
-    assertEqual('ff',           render(skin, {}).trim());
+    assert.strictEqual('ff\nfalse',    render(skin, {x: false}).trim());
+    assert.strictEqual('ff',           render(skin, {x: null}).trim());
+    assert.strictEqual('ff',           render(skin, {}).trim());
 };
 
 exports.testForBuiltinBasic = function () {
@@ -120,40 +120,40 @@ exports.testForBuiltinBasic = function () {
 
     skin = createSkin('<% for x in <% xs %> render item %>' +
                       '<% subskin item %><% x %>,');
-    assertEqual('foo,bar,baz,', render(skin, {xs: ['foo', 'bar', 'baz']}));
-    assertEqual('',             render(skin, {xs: []}));
+    assert.strictEqual('foo,bar,baz,', render(skin, {xs: ['foo', 'bar', 'baz']}));
+    assert.strictEqual('',             render(skin, {xs: []}));
 
     skin = createSkin('<% for x in ["Foo", "Bar", "Baz"] render item %>' +
                       '<% subskin item %><% x %>');
-    assertEqual('FooBarBaz',    render(skin));
+    assert.strictEqual('FooBarBaz',    render(skin));
 
     skin = createSkin('<% for x in [Foo, Bar, Baz] render item %>' +
                       '<% subskin item %><% x %>');
-    assertEqual('FooBarBaz',    render(skin));
+    assert.strictEqual('FooBarBaz',    render(skin));
 };
 
 exports.testForBuiltinSeparator = function () {
     var skin = createSkin('<% for x in <% xs %> separator=: render item %>' +
                           '<% subskin item %><% x %>');
-    assertEqual('foo:bar:baz',  render(skin, {xs: ['foo', 'bar', 'baz']}));
-    assertEqual('foo',          render(skin, {xs: ['foo']}));
-    assertEqual('',             render(skin, {xs: []}));
+    assert.strictEqual('foo:bar:baz',  render(skin, {xs: ['foo', 'bar', 'baz']}));
+    assert.strictEqual('foo',          render(skin, {xs: ['foo']}));
+    assert.strictEqual('',             render(skin, {xs: []}));
 };
 
 exports.testForBuiltinWrap = function () {
     var skin = createSkin('<% for x in <% xs %> wrap=[A,Z] render item %>' +
                           '<% subskin item %><% x %>');
-    assertEqual('AaZAbZAcZ',    render(skin, {xs: ['a', 'b', 'c']}));
-    assertEqual('AaZ',          render(skin, {xs: ['a']}));
-    assertEqual('',             render(skin, {xs: []}));
+    assert.strictEqual('AaZAbZAcZ',    render(skin, {xs: ['a', 'b', 'c']}));
+    assert.strictEqual('AaZ',          render(skin, {xs: ['a']}));
+    assert.strictEqual('',             render(skin, {xs: []}));
 };
 
 exports.testForBuiltinIndex = function () {
     var skin = createSkin('<% for x in <% xs %> render item %>' +
                           '<% subskin item %><% index %>');
-    assertEqual('012',          render(skin, {xs: ['a', 'b', 'c']}));
-    assertEqual('0',            render(skin, {xs: ['a']}));
-    assertEqual('',             render(skin, {xs: []}));
+    assert.strictEqual('012',          render(skin, {xs: ['a', 'b', 'c']}));
+    assert.strictEqual('0',            render(skin, {xs: ['a']}));
+    assert.strictEqual('',             render(skin, {xs: []}));
 };
 
 exports.testForBuiltinNestedFor = function () {
@@ -161,11 +161,11 @@ exports.testForBuiltinNestedFor = function () {
 
     skin = createSkin('<% for x in <% xs %> and y in <% ys %> render item %>' +
                       '<% subskin item %>(<% x %><% y %>)');
-    assertEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
+    assert.strictEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
 
     skin = createSkin('<% for x in <% xs %> for y in <% ys %> render item %>' +
                       '<% subskin item %>(<% x %><% y %>)');
-    assertEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
+    assert.strictEqual('(14)(15)(24)(25)', render(skin, {xs: [1, 2], ys: [4, 5]}));
 };
 
 exports.testSetBuiltin = function () {
@@ -173,14 +173,14 @@ exports.testSetBuiltin = function () {
 
     skin = createSkin('<% set {x: "foo"} render item %>' +
                       '<% subskin item %><% x %>');
-    assertEqual('foo', render(skin));
-    assertEqual('foo', render(skin, {x: 'bar'}));
+    assert.strictEqual('foo', render(skin));
+    assert.strictEqual('foo', render(skin, {x: 'bar'}));
 
     skin = createSkin('<% render item %>' +
                       '<% set {x: "Override"} render item %>' +
                       '<% render item %>' +
                       '<% subskin item %><% x %>');
-    assertEqual('OriginalOverrideOriginal', render(skin, {x: 'Original'}));
+    assert.strictEqual('OriginalOverrideOriginal', render(skin, {x: 'Original'}));
 };
 
 // --- filters ---
@@ -189,49 +189,49 @@ exports.testLowercaseFilter = function () {
     var string = 'ALL CAPS';
     var skin = createSkin('<% value | lowercase %>');
     var context = {value: string, lowercase_filter: filters.lowercase_filter};
-    assertEqual(string.toLowerCase(), render(skin, context));
+    assert.strictEqual(string.toLowerCase(), render(skin, context));
 };
 
 exports.testUppercaseFilter = function () {
     var string = 'wannabe caps';
     var skin = createSkin('<% value | uppercase %>');
     var context = {value: string, uppercase_filter: filters.uppercase_filter};
-    assertEqual(string.toUpperCase(), render(skin, context));
+    assert.strictEqual(string.toUpperCase(), render(skin, context));
 };
 
 exports.testCapitalizeFilter = function () {
     var string = 'capitalize me.';
     var skin = createSkin('<% value | capitalize %>');
     var context = {value: string, capitalize_filter: filters.capitalize_filter};
-    assertEqual(string.capitalize(), render(skin, context));
+    assert.strictEqual(string.capitalize(), render(skin, context));
 };
 
 exports.testTitleizeFilter = function () {
     var string = 'titleize me';
     var skin = createSkin('<% value | titleize %>');
     var context = {value: string, titleize_filter: filters.titleize_filter};
-    assertEqual(string.titleize(), render(skin, context));
+    assert.strictEqual(string.titleize(), render(skin, context));
 };
 
 exports.testTrimFilter = function () {
     var string = ' trim me  ';
     var skin = createSkin('<% value | trim %>');
     var context = {value: string, trim_filter: filters.trim_filter};
-    assertEqual(string.trim(), render(skin, context));
+    assert.strictEqual(string.trim(), render(skin, context));
 };
 
 exports.testStripTagsFilter = function () {
     var string = '<tag>content</tag>';
     var skin = createSkin('<% value | stripTags %>');
     var context = {value: string, stripTags_filter: filters.stripTags_filter};
-    assertEqual(string.stripTags(), render(skin, context));
+    assert.strictEqual(string.stripTags(), render(skin, context));
 };
 
 exports.testEscapeUrlFilter = function () {
     var string = 'http://ringojs.org/Web Framework/';
     var skin = createSkin('<% value | escapeUrl %>');
     var context = {value: string, escapeUrl_filter: filters.escapeUrl_filter};
-    assertEqual(java.net.URLEncoder.encode(string, 'utf8'),
+    assert.strictEqual(java.net.URLEncoder.encode(string, 'utf8'),
             render(skin, context));
 };
 
@@ -239,7 +239,7 @@ exports.testEscapeHtmlFilter = function () {
     var string = '<p>Some text.</p>';
     var skin = createSkin('<% value | escapeHtml %>');
     var context = {value: string, escapeHtml_filter: filters.escapeHtml_filter};
-    assertEqual(string.escapeHtml(), render(skin, context));
+    assert.strictEqual(string.escapeHtml(), render(skin, context));
 };
 
 exports.testTruncateFilter = function () {
@@ -247,5 +247,5 @@ exports.testTruncateFilter = function () {
     var skin = createSkin('<% value | truncate limit="10" %>');
     var context = {value: string, truncate_filter: filters.truncate_filter};
     // This filter shall leave short enough strings alone.
-    assertEqual(string, render(skin, context));
+    assert.strictEqual(string, render(skin, context));
 };

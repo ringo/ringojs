@@ -1,4 +1,4 @@
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var utils = require('ringo/utils');
 
 const TEMPLATE = 'Here\'s {} and {}.';
@@ -18,27 +18,27 @@ const RESULT_6 = RESULT_3 + SPACE + NULL + SPACE + UNDEFINED;
 
 exports.testFormat = function () {
     // format string replacement
-    assertEqual(RESULT_1, utils.format(TEMPLATE, FOO, BAR));
-    assertEqual(RESULT_2, utils.format(TEMPLATE, SPACE, NUM));
-    assertEqual(RESULT_3, utils.format(TEMPLATE, NULL, UNDEFINED));
+    assert.strictEqual(RESULT_1, utils.format(TEMPLATE, FOO, BAR));
+    assert.strictEqual(RESULT_2, utils.format(TEMPLATE, SPACE, NUM));
+    assert.strictEqual(RESULT_3, utils.format(TEMPLATE, NULL, UNDEFINED));
     // format string replacement with additional args
-    assertEqual(RESULT_4, utils.format(TEMPLATE, FOO, BAR, FOO, BAR));
-    assertEqual(RESULT_5, utils.format(TEMPLATE, SPACE, NUM, SPACE, NUM));
-    assertEqual(RESULT_6, utils.format(TEMPLATE, NULL, UNDEFINED, NULL, UNDEFINED));
+    assert.strictEqual(RESULT_4, utils.format(TEMPLATE, FOO, BAR, FOO, BAR));
+    assert.strictEqual(RESULT_5, utils.format(TEMPLATE, SPACE, NUM, SPACE, NUM));
+    assert.strictEqual(RESULT_6, utils.format(TEMPLATE, NULL, UNDEFINED, NULL, UNDEFINED));
     // no format string
-    assertEqual(RESULT_4, utils.format(RESULT_1, FOO, BAR));
-    assertEqual(RESULT_5, utils.format(RESULT_2, SPACE, NUM));
-    assertEqual(RESULT_6, utils.format(RESULT_3, NULL, UNDEFINED));
+    assert.strictEqual(RESULT_4, utils.format(RESULT_1, FOO, BAR));
+    assert.strictEqual(RESULT_5, utils.format(RESULT_2, SPACE, NUM));
+    assert.strictEqual(RESULT_6, utils.format(RESULT_3, NULL, UNDEFINED));
     // null/undefined/number as first argument
-    assertEqual(NULL + SPACE + FOO_BAR, utils.format(null, FOO, BAR));
-    assertEqual(UNDEFINED + SPACE + FOO_BAR, utils.format(undefined, FOO, BAR));
-    assertEqual(NUM + SPACE + FOO_BAR, utils.format(NUM, FOO, BAR));
+    assert.strictEqual(NULL + SPACE + FOO_BAR, utils.format(null, FOO, BAR));
+    assert.strictEqual(UNDEFINED + SPACE + FOO_BAR, utils.format(undefined, FOO, BAR));
+    assert.strictEqual(NUM + SPACE + FOO_BAR, utils.format(NUM, FOO, BAR));
     // null/undefined/number as last argument
-    assertEqual(FOO_BAR + SPACE + NULL, utils.format(FOO, BAR, null));
-    assertEqual(FOO_BAR + SPACE + UNDEFINED, utils.format(FOO, BAR, undefined));
-    assertEqual(FOO_BAR + SPACE + NUM, utils.format(FOO, BAR, NUM));
+    assert.strictEqual(FOO_BAR + SPACE + NULL, utils.format(FOO, BAR, null));
+    assert.strictEqual(FOO_BAR + SPACE + UNDEFINED, utils.format(FOO, BAR, undefined));
+    assert.strictEqual(FOO_BAR + SPACE + NUM, utils.format(FOO, BAR, NUM));
     //  null/undefined/no argument
-    assertEqual(NULL, utils.format(null));
-    assertEqual(UNDEFINED, utils.format(undefined));
-    assertEqual('', utils.format());
+    assert.strictEqual(NULL, utils.format(null));
+    assert.strictEqual(UNDEFINED, utils.format(undefined));
+    assert.strictEqual('', utils.format());
 };

@@ -1,5 +1,4 @@
-
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var fs = require('fs');
 
 var tests = [
@@ -21,7 +20,7 @@ tests.forEach(function ([source, target, expected]) {
     var name = '"' + source + '" -> "' + target + '" = "' + expected + '"';
     exports['test ' + name] = function () {
         var actual = fs.relative(source, target);
-        assertEqual(expected, actual);
+        assert.strictEqual(expected, actual);
     };
 });
 

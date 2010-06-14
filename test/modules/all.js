@@ -1,6 +1,6 @@
 
-include('ringo/unittest');
 include('ringo/engine');
+var assert = require('ringo/assert');
 var fs = require('fs');
 
 [
@@ -22,7 +22,7 @@ var fs = require('fs');
         var done;
 
         var print = function (message) {
-            assertFalse(/^FAIL/.test(message));
+            assert.isFalse(/^FAIL/.test(message));
             if (/^ERROR/.test(message))
                 throw new Error(message);
             if (/^DONE/.test(message))
@@ -40,7 +40,7 @@ var fs = require('fs');
         );
 
         sandbox.runScript('program.js');
-        assertTrue(done, 'done');
+        assert.isTrue(done, 'done');
     };
 });
 

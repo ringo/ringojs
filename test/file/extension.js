@@ -1,5 +1,4 @@
-
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var fs = require('fs');
 
 var tests = [
@@ -37,7 +36,7 @@ var tests = [
 tests.forEach(function ([path, expected]) {
     exports['test "' + path + '"'] = function () {
         var actual = fs.extension(path);
-        assertEqual(expected, actual);
+        assert.strictEqual(expected, actual);
     };
 });
 

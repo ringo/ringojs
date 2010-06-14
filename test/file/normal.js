@@ -1,5 +1,4 @@
-
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var fs = require('fs');
 var separator = require('ringo/fileutils').separator;
 
@@ -19,7 +18,7 @@ var tests = [
 tests.forEach(function([path, expected]) {
     exports['test "' + path + '"'] = function () {
         var result = fs.normal(localize(path));
-        assertEqual(localize(expected), result);
+        assert.strictEqual(localize(expected), result);
     };
 });
 

@@ -1,4 +1,4 @@
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var Server = require('ringo/httpserver').Server;
 
@@ -74,9 +74,9 @@ exports.testCallbacksGetCalled = function() {
          errorCalled = true;
       }
    });
-   assertTrue(successCalled);
-   assertTrue(completeCalled);
-   assertUndefined(errorCalled);
+   assert.isTrue(successCalled);
+   assert.isTrue(completeCalled);
+   assert.isUndefined(errorCalled);
 };
 
 /**
@@ -97,8 +97,8 @@ exports.testBasic = function() {
          errorCalled = true;
       }
    });
-   assertUndefined(errorCalled);
-   assertEqual(myData, '<h1>This is the Response Text</h1>');
+   assert.isUndefined(errorCalled);
+   assert.strictEqual(myData, '<h1>This is the Response Text</h1>');
 };
 
 /**
@@ -117,24 +117,24 @@ exports.testConvenience = function() {
         myStatus = status;
     };
     post(baseUri, callback);
-    assertEqual(200, myStatus);
-    assertEqual('POST', myData);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('POST', myData);
 
     post(baseUri, {foo: 'bar'}, callback);
-    assertEqual(200, myStatus);
-    assertEqual('POST with param', myData);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('POST with param', myData);
 
     get(baseUri, {foo: 'bar'}, callback);
-    assertEqual(200, myStatus);
-    assertEqual('GET with param', myData);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('GET with param', myData);
 
     del(baseUri, callback);
-    assertEqual(200, myStatus);
-    assertEqual('DELETE', myData);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('DELETE', myData);
 
     put(baseUri, callback);
-    assertEqual(200, myStatus);
-    assertEqual('PUT', myData);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('PUT', myData);
 };
 
 
@@ -156,18 +156,18 @@ exports.testParams = function() {
         method: 'GET',
         data: data
     });
-    assertEqual(200, getExchange.status);
+    assert.strictEqual(200, getExchange.status);
     var receivedData = JSON.parse(getExchange.content);
-    assertEqual(data, receivedData);
+    assert.deepEqual(data, receivedData);
 
     var postExchange = request({
         url: baseUri,
         method: 'POST',
         data: data
     });
-    assertEqual(200, postExchange.status);
+    assert.strictEqual(200, postExchange.status);
     receivedData = JSON.parse(postExchange.content);
-    assertEqual(data, receivedData);
+    assert.deepEqual(data, receivedData);
 };
 
 /**
@@ -202,10 +202,10 @@ exports.testCallbacks = function() {
             myMessage = message;
         }
     });
-    assertUndefined(successCalled);
-    assertEqual(myStatus, 404);
-    assertEqual(getErrorExchange.status, 404);
-    assertEqual(myMessage, "Not Found");
+    assert.isUndefined(successCalled);
+    assert.strictEqual(myStatus, 404);
+    assert.strictEqual(getErrorExchange.status, 404);
+    assert.strictEqual(myMessage, "Not Found");
 
     var getSuccessExchange = request({
         url: baseUri + 'success',
@@ -220,9 +220,9 @@ exports.testCallbacks = function() {
             errorCalled = true;
         }
     });
-    assertEqual('text/json; charset=utf-8', myContentType);
-    assertEqual(200, myStatus);
-    assertUndefined(errorCalled);
+    assert.strictEqual('text/json; charset=utf-8', myContentType);
+    assert.strictEqual(200, myStatus);
+    assert.isUndefined(errorCalled);
 
     var getRedirectExchange = request({
         url: baseUri + 'redirect',
@@ -234,8 +234,8 @@ exports.testCallbacks = function() {
             errorCalled = true;
         }
     });
-    assertEqual(303, myStatus);
-    assertUndefined(errorCalled);
+    assert.strictEqual(303, myStatus);
+    assert.isUndefined(errorCalled);
 };
 
 /**
@@ -269,9 +269,9 @@ exports.testCookie = function() {
             errorCalled = true;
         }
     });
-    assertUndefined(errorCalled);
-    assertEqual(200, myStatus);
-    assertEqual(COOKIE_VALUE, myExchange.cookies[COOKIE_NAME].value);
+    assert.isUndefined(errorCalled);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual(COOKIE_VALUE, myExchange.cookies[COOKIE_NAME].value);
 };
 
 
@@ -331,9 +331,9 @@ exports.testStreamRequest = function() {
             myContentType = contentType;
         }
     });
-    assertUndefined(errorCalled);
-    assertNotNull(myExchange);
-    assertEqual (inputByteArray.length, myExchange.contentBytes.length);
-    assertEqual (inputByteArray.toArray(), myExchange.contentBytes.toArray());
-    assertEqual('image/png', myContentType);
+    assert.isUndefined(errorCalled);
+    assert.isNotNull(myExchange);
+    assert.strictEqual (inputByteArray.length, myExchange.contentBytes.length);
+    assert.deepEqual (inputByteArray.toArray(), myExchange.contentBytes.toArray());
+    assert.strictEqual('image/png', myContentType);
 };

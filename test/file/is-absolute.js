@@ -1,9 +1,8 @@
-
-include('ringo/unittest');
+var assert = require("ringo/assert");
 var fs = require('fs');
 
 exports.testIsAbsolute = function () {
-    assertEqual(true, fs.isAbsolute(fs.absolute(module.path)));
+    assert.isTrue(fs.isAbsolute(fs.absolute(module.path)));
 };
 
 if (require.main === module.id) {

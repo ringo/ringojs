@@ -1,4 +1,4 @@
-include('ringo/unittest');
+var assert = require("ringo/assert");
 include('./testconsts');
 var fs = require('fs');
 var {Store} = require('ringo/storage/filestore');
@@ -10,7 +10,7 @@ exports.setUp = exports.tearDown = function () {
     if (fs.isDirectory(dbPath)) {
         fs.removeTree(dbPath); // Clean up.
     }
-    assertFalse(fs.isDirectory(dbPath));
+    assert.isFalse(fs.isDirectory(dbPath));
 };
 
 exports.testPersistCreation = function () {
@@ -19,11 +19,11 @@ exports.testPersistCreation = function () {
     personId = person._id;
     person = Person.get(personId);
     assertPerson();
-    assertEqual(FIRST_NAME_1, person.firstName);
-    assertEqual(LAST_NAME, person.lastName);
-    assertEqual(new Date(BIRTH_DATE_MILLIS), person.birthDate);
-    assertEqual(BIRTH_YEAR, person.birthYear);
-    assertEqual(VITAE_1, person.vitae);
+    assert.strictEqual(FIRST_NAME_1, person.firstName);
+    assert.strictEqual(LAST_NAME, person.lastName);
+    assert.deepEqual(new Date(BIRTH_DATE_MILLIS), person.birthDate);
+    assert.strictEqual(BIRTH_YEAR, person.birthYear);
+    assert.strictEqual(VITAE_1, person.vitae);
 };
 
 exports.testPersistUpdating = function () {
@@ -36,11 +36,11 @@ exports.testPersistUpdating = function () {
     person.save();
     person = Person.get(personId);
     assertPerson();
-    assertEqual(FIRST_NAME_2, person.firstName);
-    assertEqual(LAST_NAME, person.lastName);
-    assertEqual(new Date(BIRTH_DATE_MILLIS), person.birthDate);
-    assertEqual(BIRTH_YEAR, person.birthYear);
-    assertEqual(VITAE_1, person.vitae);
+    assert.strictEqual(FIRST_NAME_2, person.firstName);
+    assert.strictEqual(LAST_NAME, person.lastName);
+    assert.deepEqual(new Date(BIRTH_DATE_MILLIS), person.birthDate);
+    assert.strictEqual(BIRTH_YEAR, person.birthYear);
+    assert.strictEqual(VITAE_1, person.vitae);
 };
 
 exports.testPersistDeletion = function () {
@@ -51,8 +51,8 @@ exports.testPersistDeletion = function () {
     personId = person._id;
     person.remove();
     person = Person.get(personId);
-    assertNull(person);
-    assertEqual(0, Person.all().length);
+    assert.isNull(person);
+    assert.strictEqual(0, Person.all().length);
 };
 
 exports.testBasicQuerying = function () {
@@ -62,67 +62,67 @@ exports.testBasicQuerying = function () {
     person.firstName = FIRST_NAME_2;
     person.vitae = VITAE_2;
     person.save();
-    assertTrue(Person.all()[0] instanceof Storable &&
+    assert.isTrue(Person.all()[0] instanceof Storable &&
             Person.all()[0] instanceof Person);
-    assertEqual(2, Person.all().length);
-    assertEqual(LAST_NAME, Person.all()[0].lastName);
+    assert.strictEqual(2, Person.all().length);
+    assert.strictEqual(LAST_NAME, Person.all()[0].lastName);
     var queriedPerson = Person.query().equals('firstName', FIRST_NAME_1).
             select()[0];
-    assertTrue(queriedPerson instanceof Storable &&
+    assert.isTrue(queriedPerson instanceof Storable &&
             queriedPerson instanceof Person);
-    assertEqual(1, Person.query().equals('firstName', FIRST_NAME_1).select().
+    assert.strictEqual(1, Person.query().equals('firstName', FIRST_NAME_1).select().
             length);
-    assertEqual(FIRST_NAME_1, Person.query().equals('firstName', FIRST_NAME_1).
+    assert.strictEqual(FIRST_NAME_1, Person.query().equals('firstName', FIRST_NAME_1).
             select('firstName')[0]);
-    assertEqual(2, Person.query().equals('lastName', LAST_NAME).select().
+    assert.strictEqual(2, Person.query().equals('lastName', LAST_NAME).select().
             length);
-    assertEqual(VITAE_2, Person.query().equals('lastName', LAST_NAME).
+    assert.strictEqual(VITAE_2, Person.query().equals('lastName', LAST_NAME).
             equals('firstName', FIRST_NAME_2).select('vitae')[0]);
     testGreaterLessQuerying();
 };
 
 function testGreaterLessQuerying() {
-    assertEqual(2, Person.query().greater('birthYear', BIRTH_YEAR - 1).select().
+    assert.strictEqual(2, Person.query().greater('birthYear', BIRTH_YEAR - 1).select().
             length);
-    assertEqual(0, Person.query().greater('birthYear', BIRTH_YEAR + 1).select().
+    assert.strictEqual(0, Person.query().greater('birthYear', BIRTH_YEAR + 1).select().
             length);
-    assertEqual(2, Person.query().less('birthYear', BIRTH_YEAR + 1).select().
+    assert.strictEqual(2, Person.query().less('birthYear', BIRTH_YEAR + 1).select().
             length);
-    assertEqual(0, Person.query().less('birthYear', BIRTH_YEAR - 1).select().
+    assert.strictEqual(0, Person.query().less('birthYear', BIRTH_YEAR - 1).select().
             length);
-    assertEqual(2, Person.query().greaterEquals('birthYear', BIRTH_YEAR).
+    assert.strictEqual(2, Person.query().greaterEquals('birthYear', BIRTH_YEAR).
             select().length);
-    assertEqual(2, Person.query().greaterEquals('birthYear', BIRTH_YEAR - 1).
+    assert.strictEqual(2, Person.query().greaterEquals('birthYear', BIRTH_YEAR - 1).
             select().length);
-    assertEqual(0, Person.query().greaterEquals('birthYear', BIRTH_YEAR + 1).
+    assert.strictEqual(0, Person.query().greaterEquals('birthYear', BIRTH_YEAR + 1).
             select().length);
-    assertEqual(2, Person.query().lessEquals('birthYear', BIRTH_YEAR).select().
+    assert.strictEqual(2, Person.query().lessEquals('birthYear', BIRTH_YEAR).select().
             length);
-    assertEqual(2, Person.query().lessEquals('birthYear', BIRTH_YEAR + 1).
+    assert.strictEqual(2, Person.query().lessEquals('birthYear', BIRTH_YEAR + 1).
             select().length);
-    assertEqual(0, Person.query().lessEquals('birthYear', BIRTH_YEAR - 1).
+    assert.strictEqual(0, Person.query().lessEquals('birthYear', BIRTH_YEAR - 1).
             select().length);
-    assertEqual(2, Person.query().greater('birthDate', new Date(
+    assert.strictEqual(2, Person.query().greater('birthDate', new Date(
             BIRTH_DATE_MILLIS - 1)).select().length);
-    assertEqual(0, Person.query().greater('birthDate', new Date(
+    assert.strictEqual(0, Person.query().greater('birthDate', new Date(
             BIRTH_DATE_MILLIS)).select().length);
-    assertEqual(2, Person.query().less('birthDate', new Date(BIRTH_DATE_MILLIS +
+    assert.strictEqual(2, Person.query().less('birthDate', new Date(BIRTH_DATE_MILLIS +
             1)).select().length);
-    assertEqual(0, Person.query().less('birthDate', new Date(BIRTH_DATE_MILLIS)
+    assert.strictEqual(0, Person.query().less('birthDate', new Date(BIRTH_DATE_MILLIS)
             ).select().length);
-    assertEqual(2, Person.query().greaterEquals('birthDate', new Date(
+    assert.strictEqual(2, Person.query().greaterEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS)).select().length);
-    assertEqual(2, Person.query().greaterEquals('birthDate', new Date(
+    assert.strictEqual(2, Person.query().greaterEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS - 1)).select().length);
-    assertEqual(0, Person.query().greaterEquals('birthDate', new Date(
+    assert.strictEqual(0, Person.query().greaterEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS + 1)).select().length);
-    assertEqual(2, Person.query().lessEquals('birthDate', new Date(
+    assert.strictEqual(2, Person.query().lessEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS)).select().length);
-    assertEqual(2, Person.query().lessEquals('birthDate', new Date(
+    assert.strictEqual(2, Person.query().lessEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS + 1)).select().length);
-    assertEqual(0, Person.query().lessEquals('birthDate', new Date(
+    assert.strictEqual(0, Person.query().lessEquals('birthDate', new Date(
             BIRTH_DATE_MILLIS - 1)).select().length);
-    assertEqual(LAST_NAME, Person.query().equals('lastName', LAST_NAME).
+    assert.strictEqual(LAST_NAME, Person.query().equals('lastName', LAST_NAME).
             greater('birthDate', new Date(BIRTH_DATE_MILLIS - 1)).
             less('birthYear', BIRTH_YEAR + 1).select('lastName')[0]);
 }
@@ -134,7 +134,7 @@ function createTestPerson() {
 }
 
 function assertPerson() {
-    assertNotNull(person);
-    assertTrue(person instanceof Storable &&
+    assert.isNotNull(person);
+    assert.isTrue(person instanceof Storable &&
             person instanceof Person);
 }

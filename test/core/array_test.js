@@ -1,4 +1,4 @@
-include("ringo/unittest");
+var assert = require("ringo/assert");
 require("core/array");
 
 // test data
@@ -27,34 +27,34 @@ var arrayWithFiveObjects = [obj1, obj2, obj3, obj4, obj1];
 
 exports.testAssertTrue = function() {
    // testing the test environment
-   assertTrue(true);
+   assert.isTrue(true);
    return;
 };
 
 exports.testArrayIndexOf = function() {
    
    // test with empty array   
-   assertEqual( empty.indexOf(string3), -1 );
-   assertEqual( empty.indexOf(null), -1 );
-   assertEqual( empty.indexOf(undefined), -1 );
+   assert.strictEqual( empty.indexOf(string3), -1 );
+   assert.strictEqual( empty.indexOf(null), -1 );
+   assert.strictEqual( empty.indexOf(undefined), -1 );
 
    // test with strings
-   assertEqual( arrayWithOneString.indexOf(string1), 0 );
-   assertEqual( arrayWithTwoStrings.indexOf(string1), 0 );
-   assertEqual( arrayWithFiveStrings.indexOf(string1), 0 );
-   assertEqual( arrayWithFiveOneStrings.indexOf(string1), 0 );
+   assert.strictEqual( arrayWithOneString.indexOf(string1), 0 );
+   assert.strictEqual( arrayWithTwoStrings.indexOf(string1), 0 );
+   assert.strictEqual( arrayWithFiveStrings.indexOf(string1), 0 );
+   assert.strictEqual( arrayWithFiveOneStrings.indexOf(string1), 0 );
 
-   assertNotEqual( arrayWithTwoStrings.indexOf(string3), 2 );
-   assertEqual( arrayWithTwoStrings.indexOf(string3), -1 );
-   assertEqual( arrayWithFiveStrings.indexOf(string3), 2 );
+   assert.notStrictEqual( arrayWithTwoStrings.indexOf(string3), 2 );
+   assert.strictEqual( arrayWithTwoStrings.indexOf(string3), -1 );
+   assert.strictEqual( arrayWithFiveStrings.indexOf(string3), 2 );
    
    // test with objects
-   assertEqual( arrayWithOneObject.indexOf(obj1), 0 );
-   assertEqual( arrayWithTwoObjects.indexOf(obj1), 0 );
-   assertEqual( arrayWithTwoObjects.indexOf(obj2), 1 );
+   assert.strictEqual( arrayWithOneObject.indexOf(obj1), 0 );
+   assert.strictEqual( arrayWithTwoObjects.indexOf(obj1), 0 );
+   assert.strictEqual( arrayWithTwoObjects.indexOf(obj2), 1 );
 
-   assertEqual( arrayWithFiveObjects.indexOf(obj4), 0 );
-   assertEqual( arrayWithFiveObjects.indexOf(obj1), 0 );
+   assert.strictEqual( arrayWithFiveObjects.indexOf(obj4), 0 );
+   assert.strictEqual( arrayWithFiveObjects.indexOf(obj1), 0 );
 
    return;
 };
@@ -63,29 +63,29 @@ exports.testArrayIndexOf = function() {
 exports.testArrayLastIndexOf = function() {
    
    // test with empty array
-   assertEqual( empty.lastIndexOf(string3), -1 );
-   assertEqual( empty.lastIndexOf(null), -1 );
-   assertEqual( empty.lastIndexOf(undefined), -1 );
+   assert.strictEqual( empty.lastIndexOf(string3), -1 );
+   assert.strictEqual( empty.lastIndexOf(null), -1 );
+   assert.strictEqual( empty.lastIndexOf(undefined), -1 );
 
    // test with strings
-   assertEqual( arrayWithOneString.lastIndexOf(string1), 0 );
-   assertEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
-   assertEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
-   assertEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
+   assert.strictEqual( arrayWithOneString.lastIndexOf(string1), 0 );
+   assert.strictEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
+   assert.strictEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
+   assert.strictEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
 
 
-   assertNotEqual( arrayWithTwoStrings.lastIndexOf(string3), 2 );
-   assertEqual( arrayWithTwoStrings.lastIndexOf(string3), -1 );
-   assertEqual( arrayWithFiveStrings.lastIndexOf(string3), 2 );
+   assert.notStrictEqual( arrayWithTwoStrings.lastIndexOf(string3), 2 );
+   assert.strictEqual( arrayWithTwoStrings.lastIndexOf(string3), -1 );
+   assert.strictEqual( arrayWithFiveStrings.lastIndexOf(string3), 2 );
    
    // test with objects
-   assertEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
-   assertEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
-   assertEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
+   assert.strictEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
+   assert.strictEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
+   assert.strictEqual( arrayWithTwoObjects.lastIndexOf(obj2), 1 );
 
 
-   assertEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
-   assertEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
+   assert.strictEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
+   assert.strictEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
 
    return;
 };
@@ -96,26 +96,26 @@ exports.testArrayContains = function() {
    // Array.prototype.contains = Array.prototype.include;
    
    // test with empty array   
-   assertFalse( empty.contains(string3) );
-   assertFalse( empty.contains(null) );
-   assertFalse( empty.contains(undefined) );
+   assert.isFalse( empty.contains(string3) );
+   assert.isFalse( empty.contains(null) );
+   assert.isFalse( empty.contains(undefined) );
 
    // test with strings
-   assertTrue( arrayWithOneString.contains(string1) );
-   assertTrue( arrayWithTwoStrings.contains(string1) );
-   assertTrue( arrayWithFiveStrings.contains(string1) );
-   assertTrue( arrayWithFiveOneStrings.contains(string1) );
+   assert.isTrue( arrayWithOneString.contains(string1) );
+   assert.isTrue( arrayWithTwoStrings.contains(string1) );
+   assert.isTrue( arrayWithFiveStrings.contains(string1) );
+   assert.isTrue( arrayWithFiveOneStrings.contains(string1) );
 
-   assertFalse( arrayWithTwoStrings.contains(string3) );
-   assertTrue( arrayWithFiveStrings.contains(string3) );
+   assert.isFalse( arrayWithTwoStrings.contains(string3) );
+   assert.isTrue( arrayWithFiveStrings.contains(string3) );
    
    // test with objects
-   assertTrue( arrayWithOneObject.contains(obj1) );
-   assertTrue( arrayWithTwoObjects.contains(obj1) );
-   assertTrue( arrayWithTwoObjects.contains(obj2) );
+   assert.isTrue( arrayWithOneObject.contains(obj1) );
+   assert.isTrue( arrayWithTwoObjects.contains(obj1) );
+   assert.isTrue( arrayWithTwoObjects.contains(obj2) );
 
-   assertTrue( arrayWithFiveObjects.contains(obj4) );
-   assertTrue( arrayWithFiveObjects.contains(obj1) );   
+   assert.isTrue( arrayWithFiveObjects.contains(obj4) );
+   assert.isTrue( arrayWithFiveObjects.contains(obj1) );   
 
    return;
 };
@@ -124,64 +124,64 @@ exports.testArrayContains = function() {
 exports.testArrayUnion = function() {
 
    // test with empty
-   assertEqual(
+   assert.deepEqual(
       Array.union(empty, empty), 
       []
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(empty, arrayWithTwoStrings), 
       ["one", "two"]
    );
    
    // test with strings
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithOneString, arrayWithOneString), 
       ["one"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithOneString, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       arrayWithFiveStrings
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithOneString, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["one", "two", "three"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoThreeStrings, arrayWithOneString), 
       ["two", "three", "one"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two", "three", "one"]
    );
    
    // test with objects
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
    );
 
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
-   assertEqual(
+   assert.deepEqual(
       Array.union(arrayWithFiveObjects, empty),
       [obj1, obj2, obj3]
    );
@@ -193,69 +193,69 @@ exports.testArrayUnion = function() {
 exports.testArrayIntersection = function() {
 
    // test with empty
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(empty, empty), 
       []
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(empty, arrayWithTwoStrings), 
       []
    );
    
    // test with strings
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithOneString, arrayWithOneString), 
       ["one"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithOneString, arrayWithTwoStrings), 
       ["one"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoStrings), 
       ["one", "two"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithFiveStrings), 
       arrayWithTwoStrings
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithFiveOneStrings, arrayWithFiveStrings), 
       ["one"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithOneString, arrayWithTwoThreeStrings), 
       []
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoStrings, arrayWithTwoThreeStrings), 
       ["two"]
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithOneString), 
       []
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings), 
       ["two"]
    );
    
    // test with objects
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithOneObject, arrayWithOneObject), 
       arrayWithOneObject
    );
 
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithFiveObjects, arrayWithTwoObjects),
       [obj1, obj2]
    );
 
-   assertEqual(
+   assert.deepEqual(
       Array.intersection(arrayWithFiveObjects, empty), 
       []
    );

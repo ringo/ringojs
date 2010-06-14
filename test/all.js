@@ -1,4 +1,4 @@
-exports.unittest = require('./ringo/unittest_test');
+exports.assert = require('./ringo/assert');
 exports.base64 = require('./ringo/base64_test');
 exports.args = require('./ringo/args_test');
 exports.array = require('./core/array_test');

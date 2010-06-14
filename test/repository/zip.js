@@ -1,5 +1,3 @@
-
-include("ringo/unittest");
 var {join} = require("fs");
 
 importPackage(org.ringojs.repository);
