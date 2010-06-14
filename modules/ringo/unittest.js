@@ -40,6 +40,9 @@ function jsDump(value, lvl) {
         case "null":
             return String(value);
         case "function":
+            if (getType(value.name) === "string" && value.name.length > 0) {
+                return value.name;
+            }
             return value.toSource();
         case "array":
             var buf = value.map(function(val) {
@@ -164,7 +167,10 @@ function executeTestScope(scope, summary, writer, path) {
     // loop over all exported properties and see if there are test methods to run
     for (var name in scope) {
         var value = scope[name];
-        if (name.startsWith("test") && value instanceof Function) {
+        if (name === "test" || !name.startsWith("test")) {
+            continue;
+        }
+        if (value instanceof Function) {
             writer.writeTestStart(name);
             var start = null;
             var time = 0;

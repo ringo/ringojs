@@ -1,6 +1,6 @@
 
-exports.bytearrayTests = require('./bytearray-tests');
-exports.bytearrayEncodingsTests = require('./bytearray-encodings-tests');
-exports.bytestringTests = require('./bytestring-tests');
-exports.bytestringEncodingsTests = require('./bytestring-encodings-tests');
-exports.bytearraySlice = require('./bytearray-slice');
+exports.testBytearray = require('./bytearray-tests');
+exports.testBytearrayEncodings = require('./bytearray-encodings-tests');
+exports.testBytestring = require('./bytestring-tests');
+exports.testBytestringEncodings = require('./bytestring-encodings-tests');
+exports.testBytearraySlice = require('./bytearray-slice');

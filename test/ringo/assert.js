@@ -460,6 +460,6 @@ exports.testDumpRegExp = function() {
 };
 
 exports.testDumpFunction = function() {
-    assert.strictEqual(jsDump(exports.testDumpObject), exports.testDumpObject.toSource());
+    assert.equal(jsDump(exports.testDumpObject), exports.testDumpObject.toSource());
     return;
 };

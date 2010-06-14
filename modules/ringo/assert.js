@@ -171,7 +171,7 @@ function fail(options) {
     throw new AssertionError(options);
 }
 
-function formatMessage(message, comment) {
+function prependComment(message, comment) {
     if (getType(comment) === "string" && comment.length > 0) {
         return comment + "\n" + message;
     }
@@ -238,6 +238,11 @@ function AssertionError(options) {
 AssertionError.prototype = new Error();
 
 /** @ignore */
+AssertionError.toString = function() {
+    return "[AssertionError]";
+};
+
+/** @ignore */
 AssertionError.prototype.toString = function() {
     return "[AssertionError '" + this.message + "']";
 };
@@ -270,6 +275,16 @@ function ArgumentsError(message) {
 };
 ArgumentsError.prototype = new Error();
 
+/** @ignore */
+ArgumentsError.toString = function() {
+    return "[ArgumentsError]";
+};
+
+/** @ignore */
+ArgumentsError.prototype.toString = function() {
+    return "[ArgumentsError '" + this.message + "']";
+};
+
 
 
 
@@ -289,7 +304,7 @@ function ok(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (!!value === false) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be truthy", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be truthy", comment),
             "actual": value,
             "expected": true
         });
@@ -308,7 +323,7 @@ function equal(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (actual != expected) {
         fail({
-            "message": formatMessage("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
+            "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
         });
@@ -327,7 +342,7 @@ function notEqual(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (actual == expected) {
         fail({
-            "message": formatMessage("Expected different value than " + jsDump(expected) +
+            "message": prependComment("Expected different value than " + jsDump(expected) +
                        ", got equivalent value " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
@@ -347,7 +362,7 @@ function deepEqual(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (isDeepEqual(actual, expected) === false) {
         fail({
-            "message": formatMessage("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
+            "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
         });
@@ -366,7 +381,7 @@ function notDeepEqual(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (isDeepEqual(actual, expected) === true) {
         fail({
-            "message": formatMessage("Expected different value than " + jsDump(expected) +
+            "message": prependComment("Expected different value than " + jsDump(expected) +
                        ", got deep equal value " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
@@ -386,7 +401,7 @@ function strictEqual(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (actual !== expected) {
         fail({
-            "message": formatMessage("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
+            "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
         });
@@ -405,7 +420,7 @@ function notStrictEqual(actual, expected) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (actual === expected) {
         fail({
-            "message": formatMessage("Expected different value than " + jsDump(expected) +
+            "message": prependComment("Expected different value than " + jsDump(expected) +
                        ", got strictly equal value " + jsDump(actual), comment),
             "actual": actual,
             "expected": expected
@@ -463,7 +478,10 @@ function throws(func, expectedError) {
         }
         return;
     }
-    fail("Expected exception " + jsDump(expectedError) + " to be thrown");
+    if (expectedError != null) {
+        fail("Expected exception " + jsDump(expectedError) + " to be thrown");
+    }
+    fail("Expected exception to be thrown");
 }
 
 
@@ -487,7 +505,7 @@ function isTrue(value) {
                 jsDump(value));
     } else if (value !== true) {
         fail({
-            "message": formatMessage("Expected true, got " + jsDump(value), comment),
+            "message": prependComment("Expected true, got " + jsDump(value), comment),
             "actual": value,
             "expected": true
         });
@@ -508,7 +526,7 @@ function isFalse(value) {
                              jsDump(value));
     } else if (value === true) {
         fail({
-            "message": formatMessage("Expected false, got " + jsDump(value), comment),
+            "message": prependComment("Expected false, got " + jsDump(value), comment),
             "actual": value,
             "expected": false
         });
@@ -526,7 +544,7 @@ function isNull(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (value !== null) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be null", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be null", comment),
             "actual": value,
             "expected": null
         });
@@ -544,7 +562,7 @@ function isNotNull(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (value === null) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be not null", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be not null", comment),
             "actual": value,
         });
     }
@@ -561,7 +579,7 @@ function isUndefined(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (value !== undefined) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be undefined", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be undefined", comment),
             "actual": value,
             "expected": undefined
         });
@@ -579,7 +597,7 @@ function isNotUndefined(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (value === undefined) {
         fail({
-            "message": formatMessage("Expected argument to be not undefined", comment),
+            "message": prependComment("Expected argument to be not undefined", comment),
             "actual": value,
         });
     }
@@ -596,7 +614,7 @@ function isNaN(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (global.isNaN(value) === false) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be NaN", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be NaN", comment),
             "actual": value,
             "expected": NaN
         });
@@ -614,7 +632,7 @@ function isNotNaN(value) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (global.isNaN(value) === true) {
         fail({
-            "message": formatMessage("Expected " + jsDump(value) + " to be a number", comment),
+            "message": prependComment("Expected " + jsDump(value) + " to be a number", comment),
             "actual": value,
             "expected": Number
         });
@@ -633,7 +651,7 @@ function stringContains(value, pattern) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (getType(pattern) === "string") {
         if (value.indexOf(pattern) < 0) {
-            fail(formatMessage("Expected string " + jsDump(pattern) +
+            fail(prependComment("Expected string " + jsDump(pattern) +
                     " to be found in " + jsDump(value), comment));
         }
     } else {
@@ -654,7 +672,7 @@ function matches(value, expr) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (getType(expr) === "regexp") {
         if (expr.test(value) == false) {
-            fail(formatMessage("Expected pattern " + jsDump(expr) + " to match " +
+            fail(prependComment("Expected pattern " + jsDump(expr) + " to match " +
                     jsDump(value), comment));
         }
     } else {
