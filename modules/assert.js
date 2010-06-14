@@ -115,6 +115,13 @@ function isStrictEqual(val1, val2) {
     return comparator(val1, val2);
 };
 
+/**
+ * Deep-compares both arguments
+ * @param {Object} value1 The argument to be compared
+ * @param {Object} value2 The argument to be compared to
+ * @returns True if arguments are equal, false otherwise
+ * @type Boolean
+ */
 function isDeepEqual(value1, value2) {
     if (value1 === value2) {
         return true;
@@ -127,6 +134,13 @@ function isDeepEqual(value1, value2) {
     }
 }
 
+/**
+ * Returns true if the objects passed as argument are equal
+ * @param {Object} value1 The object to be compared
+ * @param {Object} value2 The object to be compared to
+ * @returns True if the objects are equal, false otherwise
+ * @type Boolean
+ */
 function objectsAreEqual(obj1, obj2) {
     if (isNullOrUndefined(obj1) || isNullOrUndefined(obj2)) {
         return false;
@@ -159,18 +173,43 @@ function objectsAreEqual(obj1, obj2) {
     return true;
 }
 
+/**
+ * Returns true if the argument is null or undefined
+ * @param {Object} obj The object to test
+ * @returns True if the argument is null or undefined
+ * @type Boolean
+ */
 function isNullOrUndefined(obj) {
     return obj === null || obj === undefined;
 }
 
+/**
+ * Returns the names of owned properties of the object passed as argument.
+ * Note that this only includes those properties for which hasOwnProperty
+ * returns true
+ * @param {Object} obj The object to return its propery names for
+ * @returns The property names
+ * @type Array
+ */
 function getOwnKeys(obj) {
     return [key for (key in obj) if (Object.prototype.hasOwnProperty.call(obj, key))].sort();
 }
 
+/**
+ * Basic failure method
+ * @param {Object|String} options An object containing optional "message", "actual"
+ * and "expected" properties, or alternatively a message string
+ * @throws AssertionError
+ */
 function fail(options) {
     throw new AssertionError(options);
 }
 
+/**
+ * Prepends the comment to the message, if given
+ * @returns The message
+ * @type String
+ */
 function prependComment(message, comment) {
     if (getType(comment) === "string" && comment.length > 0) {
         return comment + "\n" + message;
