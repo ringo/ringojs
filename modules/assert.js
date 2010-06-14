@@ -51,7 +51,7 @@ function evalArguments(args, argsExpected) {
  * @type Object
  * @final
  */
-var comparators = (function() {
+const comparators = (function() {
     var isStrictlyEqual = function(a, b) {
         return a === b;
     };
