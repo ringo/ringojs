@@ -232,12 +232,11 @@ var Exchange = function(url, options, callbacks) {
             }
         },
         /**
-         * Checks if the request has completed.
-         * @returns true if the request has completed, false otherwise
-         * @name Exchange.instance.isDone
+         * True if the request has completed, false otherwise
+         * @name Exchange.instance.done
          */
-        isDone: {
-            value: function() {
+        done: {
+            get: function() {
                 return exchange.isDone();
             }
         },
