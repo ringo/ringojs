@@ -21,7 +21,7 @@ function upload(req) {
     if (req.isPost && req.params.file) {
         return {
             status: 200,
-            headers: {"Content-Type": req.params.file.contentType},
+            headers: {"Content-Type": req.params.file.contentType || "text/plain"},
             body: [req.params.file.value]
         };
     }
