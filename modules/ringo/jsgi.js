@@ -88,7 +88,13 @@ function commitResponse(req, result) {
     }
     response.setStatus(status);
     for (var key in headers) {
-        headers[key].split("\n").forEach(function(value) {
+        var values = headers[key];
+        if (typeof values === "string") {
+            values = values.split("\n");
+        } else if (!Array.isArray(values)) {
+            continue;
+        }
+        values.forEach(function(value) {
             response.addHeader(key, value);
         });
     }
