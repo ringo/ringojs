@@ -230,6 +230,27 @@ var Exchange = function(url, options, callbacks) {
             get: function() {
                 return getMimeParameter(this.contentType, "charset") || 'utf-8';
             }
+        },
+        /**
+         * Checks if the request has completed.
+         * @returns true if the request has completed, false otherwise
+         * @name Exchange.instance.isDone
+         */
+        isDone: {
+            value: function() {
+                return exchange.isDone();
+            }
+        },
+        /**
+         * Waits for the request to complete.
+         * @returns the Exchange object
+         * @name Exchange.instance.wait
+         */
+        wait: {
+            value: function() {
+                exchange.waitForDone();
+                return this;
+            }
         }
     });
 
