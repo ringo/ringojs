@@ -242,7 +242,9 @@ var Exchange = function(url, options, callbacks) {
             }
         },
         /**
-         * Waits for the request to complete.
+         * Waits for the request to complete and returns the Exchange object itself.
+         * This method returns immediately if the request has already completed.
+         * Otherwise, it will block the current thread until completion.
          * @returns the Exchange object
          * @name Exchange.instance.wait
          */
