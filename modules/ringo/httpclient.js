@@ -124,6 +124,7 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
 /**
  * An Exchange encapsulates the Request and Response of an HTTP Exchange.
  * @constructor
+ * @name Exchange
  */
 var Exchange = function(url, options, callbacks) {
     if (!url) throw new Error('missing url argument');
@@ -142,41 +143,73 @@ var Exchange = function(url, options, callbacks) {
     };
     
     Object.defineProperties(this, {
+        /**
+         * The response status code
+         * @name Exchange.instance.status
+         */
         status: {
             get: function() {
                 return exchange.getResponseStatus();
             }
         },
+        /**
+         * The response content type
+         * @name Exchange.instance.contentType
+         */
         contentType: {
             get: function() {
                 return responseFields.getStringField('Content-Type');
             }
         },
+        /**
+         * The response body as String
+         * @name Exchange.instance.content
+         */
         content: {
             get: function() {
                 return exchange.getResponseContent();
             }
         },
+        /**
+         * The response body as ByteString
+         * @name Exchange.instance.contentBytes
+         */
         contentBytes: {
             get: function() {
                 return ByteString.wrap(exchange.getResponseContentBytes());
             }
         },
+        /**
+         * @name Exchange.instance.contentChunk
+         */
         contentChunk: {
             get: function() {
                 return exchange.getRequestContentChunk();
             }
         },
+        /**
+         * The Jetty ContentExchange object
+         * @see http://download.eclipse.org/jetty/7.0.2.v20100331/apidocs/org/eclipse/jetty/client/ContentExchange.html
+         * @name Exchange.instance.contentExchange
+         */
         contentExchange: {
             get: function() {
                 return exchange;
             }
         },
+        /**
+         * The response headers
+         * @name Exchange.instance.responseHeaders
+         */
         responseHeaders: {
             get: function() {
                 return responseFields;
             }
         },
+        /**
+         * The cookies set by the server
+         * @name Exchange.instance.cookies
+         */
         cookies: {
             get: function() {
                 var cookies = {};
@@ -189,14 +222,15 @@ var Exchange = function(url, options, callbacks) {
             }
         },
         /**
-         * return response encoding
-         * NOTE HttpExchange._encoding knows about this but is protected
+         * The response encoding
+         * @name Exchange.instance.encoding
          */
         encoding: {
+            // NOTE HttpExchange._encoding knows about this but is protected
             get: function() {
                 return getMimeParameter(this.contentType, "charset") || 'utf-8';
             }
-        },
+        }
     });
 
     /**
