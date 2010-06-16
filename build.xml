@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 
-<project name="RingoJS" default="usage" basedir=".">
+<project name="RingoJS" default="usage" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
     <target name="usage">
         <echo message=""/>
         <echo message="RingoJS build targets"/>
         <echo message=""/>
+        <echo message=" update     --> retrieve dependencies via Apache Ivy"/>
         <echo message=" compile    --> compiles the source code to ./build/classes"/>
         <echo message=" jar        --> generates the ./lib/ringo.jar file"/>
         <echo message=" test       --> run JUnit and RingoJS tests"/>
@@ -46,6 +47,13 @@
             </fileset>
             <pathelement location="${classes}"/>
         </path>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Fetches dependencies via Apache Ivy                                 -->
+    <!-- =================================================================== -->
+    <target name="update">
+        <ivy:retrieve type="jar" pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
     </target>
 
     <!-- =================================================================== -->

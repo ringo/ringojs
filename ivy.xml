@@ -1,0 +1,21 @@
+<ivy-module version="2.0">
+    <info organisation="org.ringojs" module="ringojs"/>
+    <dependencies>
+        <!-- currently only jetty dependency is tracked via ivy -->
+        <dependency org="org.eclipse.jetty" name="jetty-client" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-continuation" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-http" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-io" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-security" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-server" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-util" rev="7.1.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-xml" rev="7.1.+"/>
+        <dependency org="javax.servlet" name="servlet-api" rev="2.5"/>
+        <!-- exclude transitive dependencies we already have or don't need -->
+        <exclude org="org.mortbay.jetty" module="jetty-util" />
+        <exclude org="org.mortbay.jetty" module="servlet-api" />
+        <exclude org="org.slf4j" module="slf4j-api" />
+    </dependencies>
+</ivy-module>
+
