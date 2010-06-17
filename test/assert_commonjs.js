@@ -71,8 +71,10 @@ exports['test 7.4 deepEqual {a:4} {a:4,b:true}'] = function () {
     assert['throws'](makeBlock(assert.deepEqual, {a:4}, {a:4,b:true}), assert.AssertionError);
 };
 
-// FIXME (ro): this fails
-// exports['test deepEqual ["a"], {0:"a"}'] = makeBlock(assert.deepEqual, ["a"], {0:"a"});
+// NOTE: this fails due to different implementation of 7.4 (instead of
+// comparing prototype property using Object.getPrototypeOf())
+exports['test deepEqual ["a"], {0:"a"}'] = makeBlock(assert.deepEqual, ["a"], {0:"a"});
+
 //(although not necessarily the same order),
 exports['test deepEqual {a:4,b:"1"} {b:"1",a:4}'] = makeBlock(assert.deepEqual, {a:4,b:"1"}, {b:"1",a:4});
 
@@ -123,6 +125,8 @@ exports['test deepEqual "" ""'] = function () {
     assert.deepEqual("", "");
 };
 
+// NOTE: this fails due to 7.3 (narwhal implements a special case
+// for this, see also known spec bugs at http://wiki.commonjs.org/wiki/Unit_Testing)
 exports['test deepEqual "" [""]'] = function () {
     assert['throws'](makeBlock(assert.deepEqual, '', ['']), assert.AssertionError);
 };
@@ -146,6 +150,7 @@ exports['test throw AssertionError'] = function () {
     //if not passing an error, catch all.
     assert['throws'](makeBlock(thrower, TypeError));
     //when passing a type, only catch errors of the appropriate type
+    // NOTE: this fails, the spec doesn't say anything only catching expected errors
     var threw = false;
     try {
         assert['throws'](makeBlock(thrower, TypeError), assert.AssertionError);

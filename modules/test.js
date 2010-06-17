@@ -115,7 +115,7 @@ function getStackTrace(trace) {
         if (el.fileName != null && el.lineNumber > -1) {
             // exclude all lines containing the unittest module itself
             // FIXME (ro): this is quite ugly, but it works ...
-            if (el.fileName.indexOf(module.id) === 0 || el.fileName.indexOf("ringo/assert") === 0) {
+            if (el.fileName.indexOf(module.id) === 0 || el.fileName.indexOf("assert") === 0) {
                 continue;
             }
             stack.push("at " + el.fileName + ":" + el.lineNumber);
