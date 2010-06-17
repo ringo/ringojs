@@ -54,7 +54,7 @@ Object.defineProperty(String.prototype, 'toByteArray', {
     value: function(charset) {
         charset = charset || 'utf8';
         return new ByteArray(String(this), charset);
-    }
+    }, writable: true
 });
 
 /**
@@ -66,7 +66,7 @@ Object.defineProperty(String.prototype, 'toByteString', {
     value: function(charset) {
         charset = charset || 'utf8';
         return new ByteString(String(this), charset);
-    }
+    }, writable: true
 });
 
 /**
@@ -76,7 +76,7 @@ Object.defineProperty(String.prototype, 'toByteString', {
 Object.defineProperty(ByteArray.prototype, 'reverse', {
     value: function() {
         return Array.reverse(this);
-    }
+    }, writable: true
 });
 
 /**
@@ -88,7 +88,7 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
     value: function(fn) {
         fn = fn || function(a, b) a - b;
         return Array.sort(this, fn);
-    }
+    }, writable: true
 });
 
 /**
@@ -99,7 +99,7 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
 Object.defineProperty(ByteArray.prototype, 'forEach', {
     value: function(fn, thisObj) {
         Array.forEach(this, fn, thisObj);
-    }
+    }, writable: true
 });
 
 /**
@@ -112,7 +112,7 @@ Object.defineProperty(ByteArray.prototype, 'forEach', {
 Object.defineProperty(ByteArray.prototype, 'filter', {
     value: function(fn, thisObj) {
         return new ByteArray(Array.filter(this, fn, thisObj));
-    }
+    }, writable: true
 });
 
 /**
@@ -125,7 +125,7 @@ Object.defineProperty(ByteArray.prototype, 'filter', {
 Object.defineProperty(ByteArray.prototype, 'some', {
     value: function(fn, thisObj) {
         return Array.some(this, fn, thisObj);
-    }
+    }, writable: true
 });
 
 /**
@@ -138,7 +138,7 @@ Object.defineProperty(ByteArray.prototype, 'some', {
 Object.defineProperty(ByteArray.prototype, 'every', {
     value: function(fn, thisObj) {
         return Array.every(this, fn, thisObj);
-    }
+    }, writable: true
 });
 
 /**
@@ -151,7 +151,7 @@ Object.defineProperty(ByteArray.prototype, 'every', {
 Object.defineProperty(ByteArray.prototype, 'map', {
     value: function(fn, thisObj) {
         return new ByteArray(Array.map(this, fn, thisObj));
-    }
+    }, writable: true
 });
 
 /**
@@ -169,7 +169,7 @@ Object.defineProperty(ByteArray.prototype, 'reduce', {
         return initialValue === undefined ?
                Array.reduce(this, fn) :
                Array.reduce(this, fn, initialValue);
-    }
+    }, writable: true
 });
 
 /**
@@ -188,7 +188,7 @@ Object.defineProperty(ByteArray.prototype, 'reduceRight', {
         return initialValue === undefined ?
                Array.reduceRight(this, fn) :
                Array.reduceRight(this, fn, initialValue);
-    }
+    }, writable: true
 });
 
 /**
@@ -198,7 +198,7 @@ Object.defineProperty(ByteArray.prototype, 'reduceRight', {
 Object.defineProperty(ByteArray.prototype, 'pop', {
     value: function() {
         return Array.pop(this);
-    }
+    }, writable: true
 });
 
 /**
@@ -209,7 +209,7 @@ Object.defineProperty(ByteArray.prototype, 'pop', {
 Object.defineProperty(ByteArray.prototype, 'push', {
     value: function() {
         return Array.prototype.push.apply(this, arguments);
-    }
+    }, writable: true
 });
 
 /**
@@ -220,7 +220,7 @@ Object.defineProperty(ByteArray.prototype, 'push', {
 Object.defineProperty(ByteArray.prototype, 'shift', {
     value: function() {
         return Array.shift(this);
-    }
+    }, writable: true
 });
 
 /**
@@ -232,7 +232,7 @@ Object.defineProperty(ByteArray.prototype, 'shift', {
 Object.defineProperty(ByteArray.prototype, 'unshift', {
     value: function() {
         return Array.prototype.unshift.apply(this, arguments);
-    }
+    }, writable: true
 });
 
 /**
@@ -246,7 +246,7 @@ Object.defineProperty(ByteArray.prototype, 'unshift', {
 Object.defineProperty(ByteArray.prototype, 'splice', {
     value: function() {
         return new ByteArray(Array.prototype.splice.apply(this, arguments));
-    }
+    }, writable: true
 });
 
 /**
