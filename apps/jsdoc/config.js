@@ -2,17 +2,19 @@ exports.httpConfig = {
   staticDir: './static'
 };
 
-exports.scriptRepositories = require.paths;
-// you can use an array or object to define script repositories for jsdoc:
-/* exports.scriptRepositories = {
-    stable: "/home/hannes/git/ringojs-main/modules",
-    unstable: "/home/hannes/git/ringojs/modules"
-}; */
+// you can use an array or object to define script repositories for jsdoc
+// default it will load repos from require.paths
+/*exports.scriptRepositories = {
+    'stable': "/home/simon/ringojs.ringo/modules/",
+    'jsdoc-branch': "/home/simon/ringojs.oberhamsi/modules/",
+};
+*/
+
 
 exports.urls = [
-    [ /([^/]+)\/(.+)/, './actions', 'module' ],
-    [ /([^/]+)/, './actions', 'repository' ],
-    [ /^/, './actions', 'index' ]
+    [ /\/(?:index\.html)?/, './actions', 'index' ],
+    [ /([^/]+)\/([^/]+\/(?:[^\.]*\/)?)(?:index\.html)?/, './actions', 'module' ],
+    [ /([^/]+)\/(?:index\.html)?/, './actions', 'repository' ],
 ];
 
 // the middleware stack
@@ -29,7 +31,7 @@ exports.middleware = [
 exports.app = require('ringo/webapp').handleRequest;
 
 exports.macros = [
-    require('./helpers'),
+    './macros',
     'ringo/skin/macros',
     'ringo/skin/filters'
 ];

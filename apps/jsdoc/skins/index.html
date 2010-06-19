@@ -1,21 +1,10 @@
 <% extends skins/base.html %>
 
-<% subskin head %>
-<link rel="stylesheet" href="<% href /static/jsdoc.css %>" />
-<link rel="stylesheet" href="<% href /static/jquery.treeview.css %>" />
-<script type="text/javascript" src="<% href /static/jquery-1.3.2.min.js %>"></script>
-<script type="text/javascript" src="<% href /static/jquery.cookie.js %>"></script>
-<script type="text/javascript" src="<% href /static/jquery.treeview.min.js %>"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("div#menu > ul.apilist").treeview();
-    });
-</script>
+<% subskin content %>
+<h1> Select Version </h1>
+<ul class="repositorylist">
+    <% for repository in <% repositories %> render repositoryItem %>
+</ul>
 
-<% subskin content | markdown %>
-<% packageList %>
-
-<% subskin menu %>
-<div><a href="<% href / %>">Overview</a></div>
-<% navigation %>
-<% packageList %>
+<% subskin repositoryItem %>
+<li>  <a href="<% repositoryUrl <% rootPath %> <% index %> %>index.html"><% index %> </a> </li>
