@@ -235,7 +235,7 @@ function Response() {
  */
 function skinResponse(skin, context) {
     if (!(skin instanceof org.ringojs.repository.Resource)) {
-        skin = this.getResource(skin);
+        skin = getResource(skin);
     }
     var render = require('ringo/skin').render;
     return new Response(render(skin, context));
