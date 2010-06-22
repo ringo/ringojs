@@ -235,7 +235,13 @@ function Response() {
  */
 function skinResponse(skin, context) {
     if (!(skin instanceof org.ringojs.repository.Resource)) {
-        skin = getResource(skin);
+        var s = getResource(skin);
+        if (!s || !s.exists()) {
+            // try locating resource relative to implicit this
+            // which may be the calling module
+            s = this.getResource(skin);
+        }
+        skin = s;
     }
     var render = require('ringo/skin').render;
     return new Response(render(skin, context));
