@@ -35,7 +35,7 @@ function testing(req) {
         var test = require("ringo/engine").getRingoHome().getResource("test/all")
         var tests = require(test.path);
         var formatter = new (require("./helpers").HtmlTestFormatter)();
-        require("ringo/unittest").run(tests, formatter);
+        require("test").run(tests, formatter);
         return new Response(formatter);
     }
     return skinResponse('./skins/testing.txt', {
