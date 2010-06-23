@@ -7,9 +7,9 @@ $(document).ready(function() {
     $(".jsdoc-fileoverview").each(function(idx, overview) {
         var $overview = $(overview);
         //console.log($(":first", $overview));
-        var $allButFirstParagraph = $("p", $overview).not(":first-child");
-        if ($allButFirstParagraph.length) {
-            $allButFirstParagraph.hide();
+        var $allButFirstElement = $overview.children().not(":first-child");
+        if ($allButFirstElement.length) {
+            $allButFirstElement.hide();
             $overview.append($showMoreLink.clone());
         }
         return;
