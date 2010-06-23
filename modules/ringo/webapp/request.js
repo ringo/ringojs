@@ -3,6 +3,7 @@
  * [JSGI 0.3 request object](http://wiki.commonjs.org/wiki/JSGI/Level0/A/Draft2#Request).
  */
 
+require('core/object');
 require('core/string');
 var {isUrlEncoded, parseParameters} = require('./parameters');
 var {isFileUpload, parseFileUpload} = require('./fileupload');
@@ -25,7 +26,7 @@ function Request(request) {
         return request;
     }
 
-    var params, cookies, session, headers;
+    var params, queryParams, postParams, cookies, session, headers;
     var servletRequest = request.env.servletRequest;
 
     /**
@@ -59,22 +60,47 @@ function Request(request) {
     request.pathDecoded = decodeURI(request.path);
 
     /**
+     * An object containing the parsed HTTP query string parameters sent with this request.
+     * @name Request.instance.queryParams
+     */
+    Object.defineProperty(request, "queryParams", {
+        get: function() {
+            if (!queryParams) {
+                queryParams = {};
+                parseParameters(this.queryString, queryParams, this.charset);
+            }
+            return queryParams;
+        }
+    });
+
+    /**
+     * An object containing the parsed HTTP POST parameters sent with this request.
+     * @name Request.instance.postParams
+     */
+    Object.defineProperty(request, "postParams", {
+        get: function() {
+            if (!postParams) {
+                postParams = {};
+                if (this.isPost) {
+                    if (isUrlEncoded(this.contentType)) {
+                        parseParameters(this.input.read(), postParams, this.charset);
+                    } else if (isFileUpload(this.contentType)) {
+                        parseFileUpload(this, postParams, this.charset);
+                    }
+                }
+            }
+            return postParams;
+        }
+    });
+
+    /**
      * An object containing the parsed HTTP parameters sent with this request.
      * @name Request.instance.params
      */
     Object.defineProperty(request, "params", {
         get: function() {
             if (!params) {
-                params = {};
-                if (this.isPost) {
-                    if (isUrlEncoded(this.contentType)) {
-                        var body = this.input.read();
-                        parseParameters(body, params, this.charset);
-                    } else if (isFileUpload(this.contentType)) {
-                        parseFileUpload(this, params, this.charset);
-                    }
-                }
-                parseParameters(this.queryString, params, this.charset);
+                params = Object.merge(this.postParams, this.queryParams);
             }
             return params;
         }
