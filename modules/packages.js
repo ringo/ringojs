@@ -21,7 +21,7 @@ function load() {
 
 /**
  * Load all packages contained in `repository`.
- * @param String|Repository repository a path or Ringo repository
+ * @param repository String|Repository a path or Ringo repository
  */
 function loadPackages(repository) {
     if (typeof repository === "string") {
@@ -34,7 +34,7 @@ function loadPackages(repository) {
 
 /**
  * Load a single package located in `repository`.
- * @param String|Repository repository a path or Ringo repository
+ * @param repository String|Repository a path or Ringo repository
  */
 function loadPackage(repository) {
     if (typeof repository === "string") {
