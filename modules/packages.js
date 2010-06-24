@@ -19,13 +19,27 @@ function load() {
     loadPackages(engine.getRingoHome().getChildRepository("packages"));
 }
 
+/**
+ * Load all packages contained in `repository`.
+ * @param String|Repository repository a path or Ringo repository
+ */
 function loadPackages(repository) {
+    if (typeof repository === "string") {
+        repository = getRepository(repository);
+    }
     if (repository.exists()) {
         repository.getRepositories().forEach(loadPackage);
     }
 }
 
+/**
+ * Load a single package located in `repository`.
+ * @param String|Repository repository a path or Ringo repository
+ */
 function loadPackage(repository) {
+    if (typeof repository === "string") {
+        repository = getRepository(repository);
+    }
     try {
         var jsonPath = repository.getResource("package.json");
         var pkg = JSON.parse(jsonPath.getContent());
