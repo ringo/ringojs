@@ -81,7 +81,7 @@ function Request(request) {
         get: function() {
             if (!postParams) {
                 postParams = {};
-                if (this.isPost) {
+                if (this.isPost || this.isPut) {
                     if (isUrlEncoded(this.contentType)) {
                         parseParameters(this.input.read(), postParams, this.charset);
                     } else if (isFileUpload(this.contentType)) {
