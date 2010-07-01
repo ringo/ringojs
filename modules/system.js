@@ -77,10 +77,10 @@ exports.env = new ScriptableMap(System.getenv());
 
 /**
  * Terminates the current process.
- * @param {number} status The exit status.
+ * @param {number} status The exit status, defaults to 0.
  */
 exports.exit = function(status) {
-    System.exit(status);
+    System.exit(status || 0);
 };
 
 // Narwhal compatibility
