@@ -1,7 +1,8 @@
 
-include('ringo/webapp/util');
-include('io');
-include("binary");
+var {Headers, getMimeParameter} = require('ringo/webapp/util');
+var {Stream} = require('io');
+var {Binary, ByteString} = require('binary');
+var system = require('system')
 
 export('handleRequest');
 var log = require('ringo/logging').getLogger(module.id);

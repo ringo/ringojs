@@ -5,10 +5,9 @@
 // import modules
 require('core/object');
 require('core/string');
-
-include('ringo/webapp/request');
-include('ringo/webapp/response');
-
+var {Request} = require('ringo/webapp/request');
+var {Response, redirectResponse} = require('ringo/webapp/response');
+var system = require('system');
 var fileutils = require('ringo/fileutils');
 var daemon = require('ringo/webapp/daemon');
 
