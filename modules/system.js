@@ -7,23 +7,56 @@
  * compatibility are provided.</p>
  */
 
-var {Stream, TextStream} = require('io');
+var stdin, stdout, stderr;
+var System = java.lang.System;
 
 /**
  * A TextStream to read from stdin.
  */
-exports.stdin = new TextStream(new Stream(java.lang.System['in']));
-
+Object.defineProperty(exports, "stdin", {
+    get: function() {
+        if (!stdin) {
+            var {Stream, TextStream} = require('io');
+            stdin = new TextStream(new Stream(System['in']));
+        }
+        return stdin;
+    },
+    set: function(value) {
+        stdin = value;
+    }, configurable: true
+});
 
 /**
  * A TextStream to write to stdout.
  */
-exports.stdout = new TextStream(new Stream(java.lang.System.out));
+Object.defineProperty(exports, "stdout", {
+    get: function() {
+        if (!stdout) {
+            var {Stream, TextStream} = require('io');
+            stdout = new TextStream(new Stream(System.out));
+        }
+        return stdout;
+    },
+    set: function(value) {
+        stdout = value;
+    }, configurable: true
+});
 
 /**
  * A TextStream to write to stderr.
  */
-exports.stderr = new TextStream(new Stream(java.lang.System.err));
+Object.defineProperty(exports, "stderr", {
+    get: function() {
+        if (!stderr) {
+            var {Stream, TextStream} = require('io');
+            stderr = new TextStream(new Stream(System.err));
+        }
+        return stderr;
+    },
+    set: function(value) {
+        stderr = value;
+    }, configurable: true
+});
 
 /**
  * A utility function to write to stdout.
@@ -40,13 +73,15 @@ exports.args = global.arguments || [];
 /**
  * An object containing our environment variables.
  */
-exports.env = new ScriptableMap(java.lang.System.getenv());
+exports.env = new ScriptableMap(System.getenv());
 
 /**
  * Terminates the current process.
- * @param {number=} status The exit status.
+ * @param {number} status The exit status.
  */
-exports.exit = Packages.java.lang.System.exit;
+exports.exit = function(status) {
+    System.exit(status);
+};
 
 // Narwhal compatibility
 var engine = org.ringojs.engine.RhinoEngine.getEngine();
