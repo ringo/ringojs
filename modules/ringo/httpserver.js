@@ -22,8 +22,8 @@ var log = require('ringo/logging').getLogger(module.id);
  * <li>host (undefined)</li>
  * </ul>
  *
- * For convenience, the constructor supports the definition of a JSGI and static
- * resource mapping in the config object using the following properties:
+ * For convenience, the constructor supports the definition of a JSGI application
+ * and static resource mapping in the config object using the following properties:
  * <ul>
  * <li>virtualHost (undefined)</li>
  * <li>mountpoint ('/')</li>
@@ -207,7 +207,9 @@ function Server(options) {
     });
 
     // If options defines an application mount it
-    if (options.app && options.config) {
+    if (typeof options.app === "function") {
+        defaultContext.serveApplication(options.app);
+    } else if (options.app && options.config) {
         defaultContext.serveApplication(options);
     }
 
