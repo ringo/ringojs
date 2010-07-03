@@ -848,7 +848,7 @@ public class MarkdownProcessor {
             while (j < length && chars[j] >= '0' && chars[j] <= '9' ) {
                 j += 1;
             }
-            if (j < length && chars[j] == '.') {
+            if (j < length - 1 && chars[j] == '.' && isSpace(chars[j + 1])) {
                 checkCloseList("ol", nesting);
                 checkOpenList("ol", nesting);
                 i = j + 1;
