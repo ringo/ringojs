@@ -245,7 +245,7 @@ function getProperties(store, entity) {
             value = value.getValue();
         } else if (value instanceof java.util.Date) {
             value = new Date(value.getTime());
-        } else {
+        } else if (value !== undefined) {
             value = org.mozilla.javascript.Context.javaToJS(value, global);
         }
         props[i] = value;
