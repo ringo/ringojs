@@ -41,6 +41,14 @@ public interface Resource extends Trackable {
     public InputStream getInputStream() throws IOException;
 
     /**
+     * Returns a reader for the resource using the given character encoding
+     * @param encoding the character encoding
+     * @return the reader
+     * @throws IOException if a I/O related error occurs
+     */
+    public Reader getReader(String encoding) throws IOException;
+
+    /**
      * Returns a reader for the resource
      * @return the reader
      * @throws IOException if a I/O related error occurs

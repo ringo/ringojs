@@ -61,6 +61,10 @@ public abstract class AbstractResource implements Resource {
         return stream;
     }
 
+    public Reader getReader(String encoding) throws IOException {
+        return new InputStreamReader(getInputStream(), encoding);
+    }
+
     public Reader getReader() throws IOException {
         return new InputStreamReader(getInputStream());
     }
