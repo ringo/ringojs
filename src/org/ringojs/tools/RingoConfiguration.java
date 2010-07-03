@@ -54,6 +54,7 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
+    private String charset = "UTF-8";
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -384,6 +385,14 @@ public class RingoConfiguration {
             Collections.addAll(list, repo.getResources(path, recursive));
         }
         return list;
+    }
+
+    public String getCharset() {
+        return charset;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
     public ClassShutter getClassShutter() {

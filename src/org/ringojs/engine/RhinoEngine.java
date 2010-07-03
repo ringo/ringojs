@@ -539,6 +539,10 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
+    public String getCharset() {
+        return config.getCharset();
+    }
+
     /**
      * Get the currently active RhinoEngine instance.
      * @return the current RhinoEngine

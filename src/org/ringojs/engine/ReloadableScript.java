@@ -145,10 +145,11 @@ public class ReloadableScript {
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
         Script script = null;
+        String charset = engine.getCharset();
         try {
             CodeSource source = engine.isPolicyEnabled() ?
                     new CodeSource(resource.getUrl(), (CodeSigner[]) null) : null;
-            script = cx.compileReader(resource.getReader(), resource.getRelativePath(), 1, source);
+            script = cx.compileReader(resource.getReader(charset), resource.getRelativePath(), 1, source);
         } catch (Exception x) {
             exception = x;
         } finally {
@@ -175,12 +176,13 @@ public class ReloadableScript {
         final List<Script> scripts = new ArrayList<Script>();
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
+        String charset = engine.getCharset();        
         try {
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {
                     CodeSource source = engine.isPolicyEnabled() ?
                             new CodeSource(res.getUrl(), (CodeSigner[]) null) : null;
-                    scripts.add(cx.compileReader(res.getReader(), res.getRelativePath(), 1, source));
+                    scripts.add(cx.compileReader(res.getReader(charset), res.getRelativePath(), 1, source));
                 }
            }
         } catch (Exception x) {

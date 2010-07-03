@@ -47,6 +47,7 @@ public class RingoRunner {
     String[] scriptArgs = new String[0];
     String expr = null;
     File history = null;
+    String charset;
     boolean runShell = false;
     boolean debug = false;
     boolean verbose = false;
@@ -57,6 +58,7 @@ public class RingoRunner {
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
+        {"c", "charset", "Set character encoding for scripts (default: utf-8)", "CHARSET"},
         {"D", "java-property", "Set Java system property K to value V", "K=V"},
         {"d", "debug", "Run with debugger GUI", ""},
         {"e", "expression", "Run the given expression as script", "EXPR"},
@@ -120,6 +122,9 @@ public class RingoRunner {
             config.setParentProtoProperties(legacyMode);
             config.setStrictVars(!legacyMode && !productionMode);
             config.setReloading(!productionMode);
+            if (charset != null) {
+                config.setCharset(charset);
+            }
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
             reportError(x, err, verbose);
@@ -341,6 +346,8 @@ public class RingoRunner {
             }
         } else if ("bootscript".equals(option)) {
             bootScripts.add(arg);
+        } else if ("charset".equals(option)) {
+            charset = arg;
         } else if ("expression".equals(option)) {
             expr = arg;
         } else if ("silent".equals(option)) {
