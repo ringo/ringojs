@@ -21,32 +21,56 @@ var config = require('./config.js');
 // need apps/jsdoc on path for skin extend to work
 require.paths.unshift(module.directory);
 
-// for all rendering we will need config.macros in context
+// need config.macros in context for skin rendering
 var defaultContext = {};
-for each (var moduleId in config.macros) {
+config.macros.forEach(function(moduleId) {
     defaultContext = Object.merge(defaultContext ,require(fileutils.resolveId(module.directory, moduleId)));
-}
+});
+
+// documentation source types 
+const SOURCE_MULTIREPOSITORY = 0
+const SOURCE_REPOSITORY = 1;
+const SOURCE_MODULE = 2;
+
+// page types
+const PAGE_REPOSITORYLIST = 0;
+const PAGE_MODULELIST = 1;
+const PAGE_MODULE = 2;
 
 /**
- * Write documentation page repository listing to directory. Corresponds to actions:index
+ * Get relative root path for one of the following pages:
+ *   * repositoryList
+ *     * moduleList
+ *       * moduleDoc
  *
- * @param {String} target
- * @param {Array} repositories list of repositories
- * @see {./jsdocserializer.repositoryList}
+ * The difficulty is that the depth for moduleDoc & moduleList varies depending
+ * on the kind of documentation we render (single vs multi module vs multi repository).
+ *
+ * @param {Number} pageType the type of page we need relative root path for; see PAGE_* consts
+ * @param {Number} docSourceType the type of documentation; see RENDER_* consts
+ * @param {String} moduleId optional moduleId of module to be rendered if the pageType is module
  */
-function writeRepositoryList(target, repositories) {
-    var repoListHtml = render('./skins/index.html', 
-        Object.merge(defaultContext, {
-        repositories: repositories,
-        rootPath: './',
-        })
-    );
-    write(join(target, 'index.html'), repoListHtml);
-    return;
+function getRelativeRootPath(pageType, docSourceType, moduleId) {
+    if (pageType == PAGE_REPOSITORYLIST) {
+        return './';
+    } else if (pageType == PAGE_MODULELIST) {
+        return docSourceType === SOURCE_MULTIREPOSITORY ? '../' : './';
+    } else if (pageType == PAGE_MODULE) {
+        if (docSourceType == SOURCE_MODULE) {
+            return './';
+        } else {
+            var slashCount = moduleId.count('/');
+            if (docSourceType == SOURCE_REPOSITORY) {
+                return '../' + '../'.repeat(slashCount);
+            } else if (docSourceType == SOURCE_MULTIREPOSITORY) {
+                return '../../' + '../'.repeat(slashCount);
+            }
+        }
+    }
 };
 
 /**
- * Copy static files of this webapp to directory
+ * Copy static files of this webapp to target directory
  *
  * @param {String} target 
  */
@@ -57,26 +81,36 @@ function copyStaticFiles(target) {
 };
 
 /**
+ * Write documentation page repository listing to directory. Corresponds to actions:index
+ *
+ * @param {String} target path to write to
+ * @param {Array} repositories list of repositories
+ * @see {./jsdocserializer.repositoryList}
+ */
+function writeRepositoryList(target, repositories) {
+    var repoListHtml = render('./skins/index.html', 
+        Object.merge(defaultContext, {
+        repositories: repositories,
+        rootPath: getRelativeRootPath(PAGE_REPOSITORYLIST),
+        })
+    );
+    write(join(target, 'index.html'), repoListHtml);
+    return;
+};
+
+/**
  * Write the module list to directory. Corresponds to actions:repository
  *
  * @param {String} target directory of file to be written
  * @param {String} repository path
- * @param {Boolean} isSingleRepo true if this repo is part of a single repo doc
+ * @param {Number} docSourceType one of RENDER_* consts
  */
-function writeModuleList(target, repositoryPath, isSingleRepo) {
-    isSingleRepo = isSingleRepo || false;
-    
-    // modulelist's url in multi repo: /repo/module/
-    // modulelist's url in single repo: /module/
-    var rootPath = isSingleRepo === true ? './' : '../';
-    
+function writeModuleList(target, repositoryPath, docSourceType) {
     var repositoryHtml = render('./skins/repository.html', 
         Object.merge(defaultContext, {
             repositoryName: getRepositoryName(repositoryPath),
             modules: moduleList(repositoryPath),
-            rootPath: rootPath,
-            // NOTE this context prop is read by macro to determine urls
-            isSingleRepo: isSingleRepo,
+            rootPath: getRelativeRootPath(PAGE_MODULELIST, docSourceType),
         })
     );
     write(join(target, 'index.html'), repositoryHtml);
@@ -88,29 +122,18 @@ function writeModuleList(target, repositoryPath, isSingleRepo) {
  * @param {String} directory
  * @param {String} repository path
  * @param {String} moduleId
- * @param {Boolean} isSingleModule true if this is the only html page that will be rendered
- * @param {Boolean} isSingleRepo true if this is a html page part of a single repo documentation
+ * @param {Number} docSourceType one of RENDER_* consts
  */
-var writeModuleDoc = function writeModuleDoc(target, repositoryPath, moduleId, isSingleModule, isSingleRepo){
-    isSingleModule = isSingleModule || false;
-    isSingleRepo = isSingleRepo || false;
-    
+function writeModuleDoc(target, repositoryPath, moduleId, docSourceType){    
     // FIXME use util/* functions instead of core/*... once they landed
     include('core/string');
     
     var moduleDirectory = target;
-    var rootPath = './';
     var modules = [];
-    // if it's not a single module it lives in its own directory & needs modulelist
-    if (!isSingleModule) {
+    // not a single module doc?
+    if (docSourceType != SOURCE_MODULE) {
         moduleDirectory = join(target, moduleId);
         makeTree(moduleDirectory);
-        var slashCount = moduleId.count('/');
-        rootPath = '../../' + '../'.repeat(slashCount);
-        // a single repo does not have the 'repo' part of a url
-        if (isSingleRepo) {
-            rootPath = '../' + '../'.repeat(slashCount);
-        }
         modules = moduleList(repositoryPath);
     }
     
@@ -121,12 +144,11 @@ var writeModuleDoc = function writeModuleDoc(target, repositoryPath, moduleId, i
     
     var moduleHtml = render('./skins/module.html', 
         Object.merge(defaultContext, {
-            rootPath: rootPath,
+            rootPath: getRelativeRootPath(PAGE_MODULE, docSourceType, moduleId),
             repositoryName: getRepositoryName(repositoryPath),
             moduleId: moduleId,
             modules: modules,
             module: structureModuleDoc(docs),
-            isSingleRepo: isSingleRepo
         })
     );
 
@@ -141,13 +163,13 @@ var writeModuleDoc = function writeModuleDoc(target, repositoryPath, moduleId, i
  *
  * A single module can be specified as the moduleit of a module in require.paths.
  * Only one html page describing that module will be rendered.
- *    statify -s ringo/skin
+ *    ringo doc.js -s ringo/skin
  *
  * One ore more repositories can be rendered. If more then one repository is
  * passed, the repository overview page will be rendered
  *
- *   statify -s /home/simon/ringojs/modules/
- *   statify -s /home/simon/ringojs/modules/:/home/simon/ringojs.ringo/modules/
+ *   ringo doc.js -s /home/simon/ringojs/modules/
+ *   ringo doc.js -s /home/simon/ringojs/modules/:/home/simon/ringojs.ringo/modules/
  *
  * @param args
  */
@@ -199,7 +221,7 @@ function main(args) {
 
     var script = args.shift();
     var parser = new Parser();
-    parser.addOption("s", "source", "module|repository", "Moduleid or list of : seperated paths ");
+    parser.addOption("s", "source", "module|repository", "Module id or list of : seperated paths ");
     parser.addOption("d", "directory", "directory", "Directory for output files (default: 'out')");
     parser.addOption("q", "quiet", null, "Do not output any messages.");
     parser.addOption("h", "help", null, "Print help message and exit");
@@ -224,20 +246,25 @@ function main(args) {
         throw new Error("Directory " + dest + " exists but is not empty");
     }
     
-    // figure out what kind of doc we write, single module, multi repos 
+    // figure out what type of doc we write, single module, multi repos 
     // or single repo
     var sourceIsDirectory = isDirectory(sources[0]);
-    var isMultiRepos = sourceIsDirectory && sources.length > 1;
-    var isSingleModule = !isMultiRepos && isModuleId(sources[0]);
-    if (!isSingleModule && !isMultiRepos && !sourceIsDirectory) {
+    var sourceIsDirectories = sourceIsDirectory && sources.length > 1;
+    var sourceIsModule = !sourceIsDirectories && isModuleId(sources[0]);
+    if (!sourceIsModule && !sourceIsDirectories && !sourceIsDirectory) {
         throw new Error('Invalid source specified.');
         return;
     }
-    
+    var docSourceType = sourceIsModule ? SOURCE_MODULE :
+                    sourceIsDirectories ? SOURCE_MULTIREPOSITORY : SOURCE_REPOSITORY;
+
+    // if it's a single repo the macros return different urls
+    defaultContext.isSingleRepo = (docSourceType != SOURCE_MULTIREPOSITORY)
+
     if (!quiet) print ('Writing to ' + exportDirectory + '...');
     
     // single module is one html file & static dir
-    if (isSingleModule) {
+    if (docSourceType === SOURCE_MODULE) {
         var moduleId = sources[0];
         // find the repository this module is in
         var repositoryPath = getRepositoryPath(moduleId);
@@ -247,9 +274,9 @@ function main(args) {
         }
         copyStaticFiles(exportDirectory);
         if (!quiet) print(moduleId);
-        writeModuleDoc(exportDirectory, repositoryPath, moduleId, true);
+        writeModuleDoc(exportDirectory, repositoryPath, moduleId, docSourceType);
     // multi repos: show everything we got
-    } else if (isMultiRepos) {
+    } else if (docSourceType == SOURCE_MULTIREPOSITORY) {
         var repos = repositoryList(sources);
         writeRepositoryList(exportDirectory, repos);
         copyStaticFiles(exportDirectory);
@@ -258,23 +285,23 @@ function main(args) {
             var directory = join(exportDirectory, repoName);
             makeTree(directory);
             if (!quiet) print(repoPath);
-            writeModuleList(directory, repoPath);
+            writeModuleList(directory, repoPath, docSourceType);
             // render module view
             moduleList(repoPath).forEach(function(module) {
                 if (!quiet) print('\t' + module.id);
-                writeModuleDoc(directory, repoPath, module.id);
+                writeModuleDoc(directory, repoPath, module.id, docSourceType);
                 return;
             });
         };
     // single repo has no repo list
-    } else {
+    } else if (docSourceType == SOURCE_REPOSITORY) {
         copyStaticFiles(exportDirectory);
         var repositoryPath = sources[0];
         if (!quiet) print(repositoryPath);
-        writeModuleList(exportDirectory, repositoryPath, true);
+        writeModuleList(exportDirectory, repositoryPath, docSourceType);
         moduleList(repositoryPath).forEach(function(module) {
             if (!quiet) print('\t' + module.id);
-            writeModuleDoc(exportDirectory, repositoryPath, module.id, false, true);
+            writeModuleDoc(exportDirectory, repositoryPath, module.id, docSourceType);
         });
     
     };
