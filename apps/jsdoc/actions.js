@@ -23,7 +23,7 @@ exports.repository = function(req, repositoryName) {
     return skinResponse('./skins/repository.html', {
         rootPath: require('./config').rootPath,
         repositoryName: repositoryName,
-        modules: moduleList(repositoryPath),
+        modules: moduleList(repositoryPath, config.detailedModuleList),
     });
 };
 

@@ -109,7 +109,7 @@ function writeModuleList(target, repositoryPath, docSourceType) {
     var repositoryHtml = render('./skins/repository.html', 
         Object.merge(defaultContext, {
             repositoryName: getRepositoryName(repositoryPath),
-            modules: moduleList(repositoryPath),
+            modules: moduleList(repositoryPath, true),
             rootPath: getRelativeRootPath(PAGE_MODULELIST, docSourceType),
         })
     );

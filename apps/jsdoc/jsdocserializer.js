@@ -31,17 +31,23 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
  * modules for the given repositoryPath.
  *
  * @param {String} repositoryPath
+ * @param {Boolean} moduleFileOverview if true every module will be parsed and it's 
+                fileoverview attached. default: false.
  * @returns {Array} modules
  */
-var moduleList = exports.moduleList = function(repositoryPath) {
+var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
     var repository = new ScriptRepository(repositoryPath);
     var modules = repository.getScriptResources(true).filter(function(r) {
         return !r.moduleName.match(/^ringo\/?global$/) &&  !r.moduleName.startsWith('test');
     }).map(function(mod) {
-        var docItems = parseResource(mod); 
+        var fileoverview = undefined;
+        if (moduleFileOverview == true) {
+            var docItems = parseResource(mod);
+            fileoverview = docItems.fileoverview && docItems.fileoverview.getTag('fileoverview') || '';
+        }
         return {
             id: mod.moduleName.replace(/\./g,'/'),
-            fileoverview: docItems.fileoverview && docItems.fileoverview.getTag('fileoverview') || '',
+            fileoverview: fileoverview,
         }
     }).sort(function(a, b) {
         return a.id > b.id ? 1 : -1;

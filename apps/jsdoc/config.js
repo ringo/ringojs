@@ -10,6 +10,8 @@ exports.httpConfig = {
 };
 */
 
+// rendering the fileoverview of each module in the module list is slow
+exports.detailedModuleList = true;
 
 exports.urls = [
     [ /\/(?:index\.html)?/, './actions', 'index' ],
