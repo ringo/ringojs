@@ -479,6 +479,7 @@ function path() {
 
 /**
  * Path constructor. Path is a chainable shorthand for working with paths.
+ * @augments String
  */
 function Path() {
     if (!(this instanceof Path)) {
@@ -489,6 +490,7 @@ function Path() {
     return this;
 }
 
+/** @ignore */
 Path.prototype = new String();
 
 /**

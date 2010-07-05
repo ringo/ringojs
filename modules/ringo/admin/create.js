@@ -10,6 +10,7 @@ var Parser = require('ringo/args').Parser;
 
 export('createApplication', 'createPackage', 'main', 'description');
 
+/** @ignore */
 var description = "Create a new RingoJS web application or package";
 
 /**

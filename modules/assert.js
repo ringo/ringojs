@@ -161,6 +161,7 @@ function prependComment(message, comment) {
  * @param.actual {Object} The actual value
  * @param.expected {Object} The expected value
  * @constructor
+ * @augments Error
  */
 function AssertionError(options) {
     // accept a single string argument
@@ -203,6 +204,8 @@ function AssertionError(options) {
 
     return this;
 };
+
+/** @ignore */
 AssertionError.prototype = new Error();
 
 /** @ignore */
@@ -241,6 +244,8 @@ function ArgumentsError(message) {
 
     return this;
 };
+
+/** @ignore */
 ArgumentsError.prototype = new Error();
 
 /** @ignore */

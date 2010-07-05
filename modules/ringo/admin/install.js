@@ -12,6 +12,7 @@ require("core/string");
 
 export('installPackage', 'main', 'description');
 
+/** @ignore */
 var description = "Download and install a RingoJS package from a zip URL";
 
 /**
