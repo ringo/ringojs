@@ -85,7 +85,6 @@ function resolveInConfig(req, webenv, config, configId) {
             var action = getAction(req, module, urlEntry, remainingPath, args);
             // log.debug("got action: " + action);
             if (typeof action == "function") {
-                shiftPath(req, remainingPath);
                 var res = action.apply(module, args);
                 if (res && typeof res.close === 'function') {
                     return res.close();
@@ -150,6 +149,7 @@ function getAction(req, module, urlconf, remainingPath, args) {
                     // If the request path contains additional elements check whether the
                     // candidate function has formal arguments to take them
                     if (path.length <= 1 || args.length + path.length - 1 <= action.length) {
+                        shiftPath(req, remainingPath);
                         shiftPath(req, getRemainingPath(req, name));
                         Array.prototype.push.apply(args, path.slice(1));
                         return action;
@@ -172,6 +172,7 @@ function getAction(req, module, urlconf, remainingPath, args) {
             Array.prototype.splice.apply(args, spliceArgs);
         }
         if (path.length == 0 || args.length + path.length <= action.length) {
+            shiftPath(req, remainingPath);
             if (path.length == 0 && args.slice(1).join("").length == 0) {
                 checkTrailingSlash(req);
             }
