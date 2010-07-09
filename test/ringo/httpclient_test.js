@@ -182,12 +182,16 @@ exports.testCallbacks = function() {
             res.contentType = 'text/json';
             return res;
         } else if (req.pathInfo == '/redirect') {
-            return redirectResponse('/redirectlocation');
+            return {
+                status: 302,
+                headers: {Location: '/redirectlocation'},
+                body: ["Found: " + '/redirectlocation']
+            };
         } else if (req.pathInfo == '/redirectlocation') {
             return new Response('redirect success');
         }
     };
-    var myStatus, successCalled, errorCalled, myMessage, myContentType;
+    var myStatus, successCalled, errorCalled, myMessage, myContentType, myData;
     // success shouldn't get called
     var getErrorExchange = request({
         url: baseUri + 'notfound',
@@ -229,12 +233,14 @@ exports.testCallbacks = function() {
         method: 'GET',
         complete: function(data, status, contentType, exchange) {
             myStatus = status;
+            myData = data;
         },
         error: function(message) {
             errorCalled = true;
         }
     });
-    assert.strictEqual(303, myStatus);
+    assert.strictEqual(200, myStatus);
+    assert.strictEqual('redirect success', myData);
     assert.isUndefined(errorCalled);
 };
 

@@ -310,8 +310,9 @@ var Exchange = function(url, options, callbacks) {
             if (typeof(callbacks.complete) === 'function') {
                 callbacks.complete(content, self.status, self.contentType, self);
             }
-            // FIXME auto handle redirects for 3xx responses -
-            // these are currently treated as success
+            // This callback will only see a redirect status if the max number
+            // of redirects handled by the RedirectListener are reached or
+            // the client was instantianted with followRedirects = false.
             if (self.status >= 200 && self.status < 400) {
                 if (typeof(callbacks.success) === 'function') {
                     callbacks.success(content, self.status, self.contentType, self);
@@ -492,9 +493,10 @@ var extractOptionalArguments = function(args) {
  * or if you want cookies to be preserved between multiple requests.
  
  * @param {Number} timeout The connection timeout
+ * @param {Boolean} followRedirects If true then redirects (301, 302) are followed
  * @constructor
  */
-var Client = function(timeout) {
+var Client = function(timeout, followRedirects) {
 
     /**
      * Make a GET request.
@@ -665,6 +667,11 @@ var Client = function(timeout) {
     if (typeof timeout == "number") {
         client.setTimeout(timeout);
     }
+    
+    if (followRedirects !== false) {
+        client.registerListener('org.eclipse.jetty.client.RedirectListener');
+    }
+    // client.setMaxRedirects(20); // jetty default = 20
     // client.setIdleTimeout(10000);
     // TODO proxy stuff
     //client.setProxy(Adress);
