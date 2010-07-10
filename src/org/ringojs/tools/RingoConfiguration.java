@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
@@ -130,6 +132,29 @@ public class RingoConfiguration {
             if (repository != null && repository.exists()) {
                 repository.setRoot();
                 return repository;
+            }
+            // Try to resolve path as classpath resource
+            URL url = RingoConfiguration.class.getResource("/" + path);
+            if (url != null && "jar".equals(url.getProtocol())) {
+                String jar = url.getPath();
+                int excl = jar.indexOf("!");
+
+                if (excl > -1) {
+                    url = new URL(jar.substring(0, excl));
+                    if ("file".equals(url.getProtocol())) {
+                        jar = url.getPath();
+                        try {
+                            jar = URLDecoder.decode(jar, System.getProperty("file.encoding"));
+                        } catch (UnsupportedEncodingException x) {
+                            System.err.println("Unable to decode jar URL: " + x);
+                        }
+                        repository = new ZipRepository(jar).getChildRepository(path);
+                        if (repository.exists()) {
+                            repository.setRoot();
+                            return repository;
+                        }
+                    }
+                }
             }
             // then try to resolve against current directory
             file = file.getAbsoluteFile();
