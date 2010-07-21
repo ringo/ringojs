@@ -16,8 +16,6 @@
 
 package org.ringojs.engine;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ringojs.repository.*;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoDebugger;
@@ -35,6 +33,8 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -64,7 +64,7 @@ public class RhinoEngine implements ScopeProvider {
     static final ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
     static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
 
-    private Logger log = LoggerFactory.getLogger("org.ringojs.javascript.RhinoEngine");
+    private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
 
     /**
      * Create a RhinoEngine which loads scripts from directory <code>dir</code>
@@ -327,7 +327,7 @@ public class RhinoEngine implements ScopeProvider {
             try {
                 evaluateScript(cx, getScript("ringo/shell"), scope);
             } catch (Exception x) {
-                log.error("Warning: couldn't load module 'ringo/shell'", x);
+                log.log(Level.SEVERE, "Warning: couldn't load module 'ringo/shell'", x);
             }
             return scope;
         } finally {

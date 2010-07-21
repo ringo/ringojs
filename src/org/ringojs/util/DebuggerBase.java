@@ -1,13 +1,14 @@
 package org.ringojs.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.debug.DebugFrame;
 import org.mozilla.javascript.debug.DebuggableScript;
 import org.mozilla.javascript.debug.Debugger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A base class for Debuggers and Profilers implemented in Javascript.
@@ -18,7 +19,7 @@ public abstract class DebuggerBase implements Debugger {
 
     String debuggerScript;
     int debuggerScriptDepth = 0;
-    Logger log = LoggerFactory.getLogger("org.ringojs.util.DebuggerBase");
+    Logger log = Logger.getLogger("org.ringojs.util.DebuggerBase");
 
     public abstract DebuggerBase createDebugger();
 
@@ -80,8 +81,8 @@ public abstract class DebuggerBase implements Debugger {
 
     public DebugFrame getFrame(Context cx, DebuggableScript fnOrScript) {
         String path = fnOrScript.getSourceName();
-        if (log.isDebugEnabled()) {
-            log.debug("Getting Frame for " + path +
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Getting Frame for " + path +
                       ", debugger script depth is " + debuggerScriptDepth);
         }
         if (debuggerScriptDepth > 0 || path.equals(debuggerScript)) {
@@ -107,12 +108,12 @@ public abstract class DebuggerBase implements Debugger {
     class DebuggerScriptFrame implements DebugFrame {
 
         public void onEnter(Context cx, Scriptable activation, Scriptable thisObj, Object[] args) {
-            log.debug("Entering debugger script frame");
+            log.fine("Entering debugger script frame");
             debuggerScriptDepth ++;
         }
 
         public void onExit(Context cx, boolean byThrow, Object resultOrException) {
-            log.debug("Exiting debugger script frame");
+            log.fine("Exiting debugger script frame");
             debuggerScriptDepth --;
         }
 

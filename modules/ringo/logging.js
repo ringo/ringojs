@@ -1,8 +1,9 @@
 /**
- * @fileoverview <p>This module provides generic logging support. It uses
- * <a href="http://logging.apache.org/log4j/">Apache log4j</a> by default,
- * but can be used with any Logging framework supported by
- * <a href="http://www.slf4j.org/">SLF4J</a>.<p>
+ * @fileoverview <p>This module provides generic logging support for Ringo
+ * applications. It uses <a href="http://www.slf4j.org/">SLF4J</a> or
+ * <a href="http://logging.apache.org/log4j/">Apache log4j</a> if either is
+ * detected in the classpath, and will fall back to java.util.logging
+ * otherwise.<p>
  *
  * <p>If the first argument passed to any of the logging methods is a string
  * containing any number of curly bracket pairs ({}), the logger will interpret
@@ -14,8 +15,6 @@
 require('core/string');
 var utils = require('ringo/utils');
 
-var LoggerFactory = org.slf4j.LoggerFactory;
-
 var configured = false;
 // interval id for configuration watcher
 var configurationWatcher;
@@ -25,77 +24,78 @@ var interceptors = new java.lang.ThreadLocal();
 /**
  * Logger class. This constructor is not exported, use this module's
  * {@link getLogger} to get a logger instance. 
- * @param name
+ * @param name the Logger name
+ * @param impl the logger implementation
  * @constructor
  * @name Logger
  * @see getLogger
  */
-function Logger(name) {
+function Logger(name, impl) {
 
-    var log = LoggerFactory.getLogger(name.replace(/\//g, '.'));
-
-    /**
-     * Log a debug message.
-     */
     this.trace = function() {
-        if (log.isTraceEnabled()) {
+        if (impl.isTraceEnabled()) {
             var msg = formatMessage(arguments);
-            log.trace(msg);
-            intercept("TRACE", log, msg);
+            impl.trace(msg);
+            intercept("TRACE", name, msg);
         }
     };
 
     this.debug = function() {
-        if (log.isDebugEnabled()) {
+        if (impl.isDebugEnabled()) {
             var msg = formatMessage(arguments);
-            log.debug(msg);
-            intercept("DEBUG", log, msg);
+            impl.debug(msg);
+            intercept("DEBUG", name, msg);
         }
     };
 
     this.info = function() {
-        if (log.isInfoEnabled()) {
+        if (impl.isInfoEnabled()) {
             var msg = formatMessage(arguments);
-            log.info(msg);
-            intercept("INFO", log, msg);
+            impl.info(msg);
+            intercept("INFO", name, msg);
         }
     };
 
     this.warn = function() {
-        if (log.isWarnEnabled()) {
+        if (impl.isWarnEnabled()) {
             var msg = formatMessage(arguments);
-            log.warn(msg);
-            intercept("WARN", log, msg);
+            impl.warn(msg);
+            intercept("WARN", name, msg);
         }
     };
 
     this.error = function() {
-        if (log.isErrorEnabled()) {
+        if (impl.isErrorEnabled()) {
             var msg = formatMessage(arguments);
-            log.error(msg);
-            intercept("ERROR", log, msg);
+            impl.error(msg);
+            intercept("ERROR", name, msg);
         }
     };
 
-    this.isTraceEnabled = function() {
-        return log.isTraceEnabled();
-    };
+    /**
+     * @function
+     */
+    this.isTraceEnabled = impl.isTraceEnabled.bind(impl);
 
-    this.isDebugEnabled = function() {
-        return log.isDebugEnabled();
-    };
+    /**
+     * @function
+     */
+    this.isDebugEnabled = impl.isDebugEnabled.bind(impl);
 
-    this.isInfoEnabled = function() {
-        return log.isInfoEnabled();
-    };
+    /**
+     * @function
+     */
+    this.isInfoEnabled = impl.isInfoEnabled.bind(impl);
 
-    this.isWarnEnabled = function() {
-        return log.isWarnEnabled();
-    };
+    /**
+     * @function
+     */
+    this.isWarnEnabled = impl.isWarnEnabled.bind(impl);
 
-    this.isErrorEnabled = function() {
-        return log.isErrorEnabled();
-    };
+    /**
+     * @function
+     */
+    this.isErrorEnabled = impl.isErrorEnabled.bind(impl);
 }
 
 /**
@@ -144,11 +144,9 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
  * @returns {Logger} a logger instance for the given name
  */
 var getLogger = exports.getLogger = function(name) {
-    if (!configured) {
-        // getResource('foo').name gets us the absolute path to a local resource
-        this.setConfig(getResource('config/log4j.properties'));
-    }
-    return new Logger(name);
+    name = name.replace(/\//g, '.');
+    var impl = new LoggerImpl(name);
+    return new Logger(name, impl);
 };
 
 /**
@@ -168,10 +166,10 @@ exports.getInterceptor = function() {
     return interceptors.get();
 };
 
-function intercept(level, log, message) {
+function intercept(level, name, message) {
     var interceptor = interceptors.get();
     if (interceptor) {
-        interceptor.push([Date.now(), level, log.getName(), message]);
+        interceptor.push([Date.now(), level, name, message]);
     }
 }
 
@@ -189,3 +187,164 @@ function formatMessage(args) {
     return message;
 }
 
+/**
+ * Logger implementation based on java.util.logging
+ * @param name the logger name
+ */
+function JdkLogger(name) {
+    
+    var log = java.util.logging.Logger.getLogger(name);
+    var Level = java.util.logging.Level;
+
+    this.trace = function(msg) {
+        log.logp(Level.FINEST, null, null, msg);
+    };
+
+    this.debug = function(msg) {
+        log.logp(Level.FINE, null, null, msg);
+    };
+
+    this.info = function(msg) {
+        log.logp(Level.INFO, null, null, msg);
+    };
+
+    this.warn = function(msg) {
+        log.logp(Level.WARNING, null, null, msg);
+    };
+
+    this.error = function(msg) {
+        log.logp(Level.SEVERE, null, null, msg);
+    };
+
+    this.isTraceEnabled = function() {
+        return log.isLoggable(Level.FINEST);
+    };
+
+    this.isDebugEnabled = function() {
+        return log.isLoggable(Level.FINE);
+    };
+
+    this.isInfoEnabled = function() {
+        return log.isLoggable(Level.INFO);
+    };
+
+    this.isWarnEnabled = function() {
+        return log.isLoggable(Level.WARNING);
+    };
+
+    this.isErrorEnabled = function() {
+        return log.isLoggable(Level.SEVERE);
+    };
+}
+
+/**
+ * Logger implementation based on log4j
+ * @param name the logger name
+ */
+function Log4jLogger(name) {
+
+    if (!configured) {
+        setConfig(getResource('config/log4j.properties'));
+    }
+    var Level = org.apache.log4j.Level;
+    var log = org.apache.log4j.LogManager.getLogger(name);
+
+    this.trace = function(msg) {
+        // TODO: older versions of log4j don't support trace
+        log.trace(msg);
+    };
+
+    this.debug = function(msg) {
+        log.debug(msg);
+    };
+
+    this.info = function(msg) {
+        log.info(msg);
+    };
+
+    this.warn = function(msg) {
+        log.warn(msg);
+    };
+
+    this.error = function(msg) {
+        log.error(msg);
+    };
+
+    this.isTraceEnabled = function() {
+        return log.isTraceEnabled();
+    };
+
+    this.isDebugEnabled = function() {
+        return log.isDebugEnabled();
+    };
+
+    this.isInfoEnabled = function() {
+        return log.isInfoEnabled();
+    };
+
+    this.isWarnEnabled = function() {
+        return log.isEnabledFor(Level.WARN);
+    };
+
+    this.isErrorEnabled = function() {
+        return log.isEnabledFor(Level.ERROR);
+    };
+}
+
+/**
+ * Logger implementation based on SLF4J
+ * @param name the logger name
+ */
+function Slf4jLogger(name) {
+
+    var log = org.slf4j.LoggerFactory.getLogger(name);
+
+    this.trace = function(msg) {
+        log.trace(msg);
+    };
+
+    this.debug = function(msg) {
+        log.debug(msg);
+    };
+
+    this.info = function(msg) {
+        log.info(msg);
+    };
+
+    this.warn = function(msg) {
+        log.warn(msg);
+    };
+
+    this.error = function(msg) {
+        log.error(msg);
+    };
+
+    this.isTraceEnabled = function() {
+        return log.isTraceEnabled();
+    };
+
+    this.isDebugEnabled = function() {
+        return log.isDebugEnabled();
+    };
+
+    this.isInfoEnabled = function() {
+        return log.isInfoEnabled();
+    };
+
+    this.isWarnEnabled = function() {
+        return log.isWarnEnabled();
+    };
+
+    this.isErrorEnabled = function() {
+        return log.isErrorEnabled();
+    };
+}
+
+var LoggerImpl;
+if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
+    LoggerImpl = Slf4jLogger;
+} else if (typeof org.apache.log4j.LogManager.getLogger === "function") {
+    LoggerImpl = Log4jLogger;
+} else {
+    LoggerImpl = JdkLogger;
+}

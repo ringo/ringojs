@@ -17,8 +17,6 @@
 package org.ringojs.tools;
 
 import org.ringojs.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
 
@@ -33,6 +31,7 @@ import java.util.List;
 import java.util.Collections;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 
 /**
  * This class describes the configuration for a RingoJS application or shell session.
@@ -106,7 +105,7 @@ public class RingoConfiguration {
                 System.setProperty("log4j.configuration", "file:" + log4jConfig.getPath());
             }
         }
-        getLogger().debug("Parsed repository list: " + repositories);
+        getLogger().fine("Parsed repository list: " + repositories);
     }
 
     public void addModuleRepository(Repository repository) throws IOException {
@@ -469,7 +468,7 @@ public class RingoConfiguration {
     }
 
     private Logger getLogger() {
-        return LoggerFactory.getLogger("org.ringojs.tools");
+        return Logger.getLogger("org.ringojs.tools");
     }
 }
 

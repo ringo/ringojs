@@ -21,8 +21,6 @@ import org.ringojs.repository.Resource;
 import org.ringojs.repository.Trackable;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.ref.ReferenceQueue;
@@ -31,6 +29,8 @@ import java.util.*;
 import java.security.CodeSource;
 import java.security.CodeSigner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class represents a JavaScript Resource.
@@ -67,7 +67,7 @@ public class ReloadableScript {
         UNKNOWN, FALSE, TRUE
     }
 
-    private static Logger log = LoggerFactory.getLogger(ReloadableScript.class);
+    private static Logger log = Logger.getLogger("org.ringojs.engine.ReloadableScript");
 
     /**
      * Construct a Script from the given script resource.
@@ -275,8 +275,8 @@ public class ReloadableScript {
         } else {
             module.reset();
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Loading module: " + moduleName);
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Loading module: " + moduleName);
         }
         modules.put(source, module);
         // warnings are disabled in shell - enable warnings for module loading
