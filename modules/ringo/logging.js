@@ -297,6 +297,9 @@ function Log4jLogger(name) {
  */
 function Slf4jLogger(name) {
 
+    if (!configured) {
+        setConfig(getResource('config/log4j.properties'));
+    }
     var log = org.slf4j.LoggerFactory.getLogger(name);
 
     this.trace = function(msg) {
