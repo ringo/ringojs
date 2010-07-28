@@ -69,9 +69,13 @@ function initRequest(request) {
  * @param result the object returned by a JSGI application
  */
 function commitResponse(req, result) {
-    var {status, headers, body} = result;
     var request = req.env.servletRequest;
     var response = req.env.servletResponse;
+    if (response.isCommitted()) {
+        // Allow application/middleware to handle request via Servlet API
+        return;
+    }
+    var {status, headers, body} = result;
     if (!status || !headers || !body) {
         // As a convenient shorthand, we also handle async responses returning the
         // not only the promise but the full deferred (as obtained by
