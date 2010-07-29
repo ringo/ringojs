@@ -1,9 +1,9 @@
-include('binary');
-include('io');
-include('ringo/buffer');
-include('./util');
-include('./mime');
-require('core/date');
+var {ByteArray} = require('binary');
+var {Stream} = require('io');
+var {Buffer} = require('ringo/buffer');
+var {Headers, getMimeParameter} = require('./util');
+var {mimeType} = require('./mime');
+var DATE = require('ringo/utils/date');
 
 export('Response',
        'skinResponse',
@@ -189,7 +189,7 @@ function Response() {
                 new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
             var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
             buffer.write("; expires=");
-            buffer.write(expires.format(cookieDateFormat, "en", "GMT"));
+            buffer.write(DATE.format(expires, cookieDateFormat, "en", "GMT"));
         }
         options = options || {};
         var path = options.path || "/";

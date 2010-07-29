@@ -2,8 +2,6 @@
  * A module to access and manipulate the rhino engine running this application
  */
 
-require('core/object');
-
 export( 'properties',
         'addHostObject',
         'addRepository',

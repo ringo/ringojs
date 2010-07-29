@@ -10,7 +10,7 @@
  *     };
  */
 
-require('core/string');
+var STRING = require('ringo/utils/string');
 var base64 = require('ringo/base64');
 var {auth} = require('config');
 
@@ -29,7 +29,7 @@ exports.middleware = function (app) {
             if (req.headers.authorization) { // Extract credentials from HTTP.
                 var credentials = base64.decode(req.headers.authorization
                         .replace(/Basic /, '')).split(':');
-                if (credentials[1].digest('sha1') === toAuth[credentials[0]]) {
+                if (STRING.digest(credentials[1], 'sha1') === toAuth[credentials[0]]) {
                     return app(req); // Authorization.
                 }
             }

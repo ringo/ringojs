@@ -1,5 +1,4 @@
-require('core/object');
-require('core/array');
+var OBJECT = require('ringo/utils/object');
 var {Path} = require('fs');
 var futils = require('ringo/fileutils');
 include('ringo/engine');
@@ -103,7 +102,7 @@ function Store(path) {
         } else if (isEntity(arg)) {
             return arg;
         } else if (arg instanceof Object) {
-            var entity = arg.clone({});
+            var entity = OBJECT.clone(arg, {});
             Object.defineProperty(entity, "_key", {
                 value: createKey(type, generateId(type))
             });

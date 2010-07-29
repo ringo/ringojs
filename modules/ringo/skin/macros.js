@@ -1,5 +1,4 @@
-include('ringo/markdown');
-require('core/string');
+var {Markdown} = require('ringo/markdown');
 var fileutils = require('../fileutils');
 
 exports.href_macro = function(tag) {

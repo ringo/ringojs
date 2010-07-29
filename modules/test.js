@@ -1,4 +1,4 @@
-require("core/string");
+var STRING = require("ringo/utils/string");
 var term = require("ringo/term");
 var fs = require("fs");
 
@@ -58,7 +58,7 @@ function jsDump(value, lvl) {
     }
 };
 jsDump.indent = function(lvl) {
-    return " ".repeat(4 * lvl);
+    return STRING.repeat(" ", 4 * lvl);
 };
 jsDump.quote = function(str) {
     return '"' + str.toString().replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
@@ -167,7 +167,7 @@ function executeTestScope(scope, summary, writer, path) {
     // loop over all exported properties and see if there are test methods to run
     for (var name in scope) {
         var value = scope[name];
-        if (name === "test" || !name.startsWith("test")) {
+        if (name === "test" || !STRING.startsWith(name, "test")) {
             continue;
         }
         if (value instanceof Function) {
@@ -241,7 +241,7 @@ TermWriter.prototype.toString = function() {
  * Write a header at the beginning of a unit test(suite)
  */
 TermWriter.prototype.writeHeader = function() {
-    term.writeln("=".repeat(80));
+    term.writeln("================================================================================");
     return;
 };
 
@@ -287,11 +287,11 @@ TermWriter.prototype.writeTestPassed = function(time) {
 TermWriter.prototype.writeTestFailed = function(exception) {
     term.writeln(term.BOLD, term.WHITE, term.ONRED, " FAILED ");
     exception.message.split(/\n/).forEach(function(line) {
-        term.writeln(" ".repeat(2), term.BOLD, term.RED, line);
+        term.writeln("  ", term.BOLD, term.RED, line);
     });
     if (exception.stackTrace != null) {
         exception.stackTrace.forEach(function(line) {
-            term.writeln(" ".repeat(2), term.BOLD, line);
+            term.writeln("  ", term.BOLD, line);
         });
     }
     term.writeln("");
@@ -304,7 +304,7 @@ TermWriter.prototype.writeTestFailed = function(exception) {
  */
 TermWriter.prototype.writeSummary = function(summary) {
     if (summary.testsRun > 0) {
-        term.writeln("-".repeat(80));
+        term.writeln("--------------------------------------------------------------------------------");
         term.writeln("Executed", summary.testsRun, "tests in", summary.time, "ms ");
         term.writeln(term.BOLD, "Passed", summary.passed + ";", "Failed", summary.failures + ";", "Errors", summary.errors + ";");
     } else {

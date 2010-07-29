@@ -2,8 +2,7 @@
  * @fileOverview A collection of file related utilities.
  */
 
-require('core/string');
-require('core/array');
+var ARRAY = require('ringo/utils/array');
 var fs = require('fs');
 
 export ('resolveUri', 'resolveId', 'isHidden', 'createTempFile', 'roots', 'separator');
@@ -43,7 +42,7 @@ function resolveUri() {
         for (var j = 0; j < parts.length; j++) {
             var part = parts[j];
             if (part == '..') {
-                if (elements.length > 0 && elements.peek() != '..') {
+                if (elements.length > 0 && ARRAY.peek(elements) != '..') {
                     elements.pop();
                 } else if (!root) {
                     elements.push(part);

@@ -17,10 +17,9 @@ export('bindArguments', 'bindThisObject');
 function bindArguments(fn /*, arg, ... */) {
     if (typeof(fn) != "function")
         throw new Error("Not a function: " + fn);
-    var slice = Array.prototype.slice;
-    var pre_args = slice.call(arguments, 1);
+    var predefArgs = Array.slice(arguments, 1);
     return function() {
-        var args = pre_args.concat(slice.call(arguments));
+        var args = predefArgs.concat(Array.slice(arguments));
         return fn.apply(this, args);
     }
 }

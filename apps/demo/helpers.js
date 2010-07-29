@@ -1,7 +1,6 @@
-require('core/string');
-include('ringo/markdown');
-include('ringo/buffer');
-include('ringo/skin');
+var {Markdown} = require('ringo/markdown');
+var {Buffer} = require('ringo/buffer');
+var {render} = require('ringo/skin');
 var fileutils = require('ringo/fileutils');
 
 exports.markdown_filter = function(content) {
@@ -76,11 +75,11 @@ exports.HtmlTestFormatter = function() {
         buffer.write(" <div style='float: right; background: red; color: white; padding: 2px;'>FAILED</div> ");
         buffer.write("<pre style='font-weight: bold;'>");
         exception.message.split(/\n/).forEach(function(line) {
-            buffer.writeln(" ".repeat(2), line);
+            buffer.writeln("  ", line);
         });
         if (exception.stackTrace != null) {
             exception.stackTrace.forEach(function(line) {
-                buffer.writeln(" ".repeat(2), line);
+                buffer.writeln("  ", line);
             });
         }
         buffer.write("</pre></div>");

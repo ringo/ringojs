@@ -110,6 +110,6 @@ Object.defineProperty(this, "global", { value: this });
     };
 
     // whatever
-    require('core/regexp');
+    require('ringo/utils/regexp');
 
 })(global);

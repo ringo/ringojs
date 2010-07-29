@@ -1,5 +1,5 @@
-require('core/string');
-require('core/array');
+var STRING = require('ringo/utils/string');
+var ARRAY = require('ringo/utils/array');
 var {visitScriptResource} = require('ringo/parser');
 var {Buffer} = require('ringo/buffer');
 
@@ -33,7 +33,7 @@ function ScriptRepository(path) {
      */
     this.getScriptResources = function(nested) {
         var list = repo.getResources(Boolean(nested));
-        return list.filter(function(r) {return r.name.endsWith('.js');});
+        return list.filter(function(r) {return STRING.endsWith(r.name, '.js');});
     };
 
     /**
@@ -83,7 +83,7 @@ exports.parseResource = function(resource) {
                 var target = node.left.target;
                 var name = node.left.property.string;
                 var propname = nodeToString(node.left);
-                if (propname.startsWith('exports.') && !exported.contains(name)) {
+                if (STRING.startsWith(propname, 'exports.') && !ARRAY.contains(exported, name)) {
 
                     addDocItem(name, root.jsDoc, node.right);
                     exported.push(name);
@@ -99,12 +99,12 @@ exports.parseResource = function(resource) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
                          } */
-                    } else if (exported.contains(name)) {
+                    } else if (ARRAY.contains(exported, name)) {
                         addDocItem(name, root.jsDoc, node.right);
                     }
                 } else {
                     var chain = propname.split(".");
-                    if (exported.contains(chain[0])) {
+                    if (ARRAY.contains(exported, chain[0])) {
                         // Foo.bar or Foo.prototype.bar assignment where Foo is exported
                         addDocItem(propname, root.jsDoc, node.right);
                     }
@@ -193,7 +193,7 @@ exports.parseResource = function(resource) {
                         value = args[2].elements.get(0).right;
                     }
                 }
-                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                if (ARRAY.contains(exported, target[0]) || ARRAY.contains(standardObjects, target[0])) {
                     target.push(nodeToString(args[1]));
                     addDocItem(target.join('.'), jsdoc, value);
                 } else if (target[0] == 'this' && exportedFunction != null) {
@@ -214,7 +214,7 @@ exports.parseResource = function(resource) {
                 var jsdoc, value;
 
                 var isExported = false;
-                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                if (ARRAY.contains(exported, target[0]) || ARRAY.contains(standardObjects, target[0])) {
                     isExported = true;
                 } else if (target[0] == 'this' && exportedFunction != null) {
                     target[0] = exportedName;
@@ -239,13 +239,13 @@ exports.parseResource = function(resource) {
         // check for __define[GS]etter__
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
-            if (["__defineGetter__", "__defineSetter__"].contains(getprop.property.string)) {
+            if (ARRAY.contains(["__defineGetter__", "__defineSetter__"], getprop.property.string)) {
                var args = ScriptableList(node.arguments);
                var target = nodeToString(node.target).split('.');
                var jsdoc = args[1].jsDoc;
                var name = nodeToString(args[0]);
                // prototype.__defineGetter__
-               if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+               if (ARRAY.contains(exported, target[0]) || ARRAY.contains(standardObjects, target[0])) {
                   target.pop();
                   target.push(name);
                   addDocItem(target.join('.'), jsdoc);
@@ -256,7 +256,7 @@ exports.parseResource = function(resource) {
             }
         }
         // exported function
-        if (node.type == Token.FUNCTION && (exported.contains(node.name) || /@name\s/.test(node.jsDoc))) {
+        if (node.type == Token.FUNCTION && (ARRAY.contains(exported, node.name) || /@name\s/.test(node.jsDoc))) {
             addDocItem(node.name, node.jsDoc, node);
             exportedFunction = node;
             exportedName = node.name;
@@ -264,7 +264,7 @@ exports.parseResource = function(resource) {
         // var foo = exports.foo = bar
         if (node.type == Token.VAR || node.type == Token.LET) {
             for each (var n in ScriptableList(node.variables)) {
-                if (n.target.type == Token.NAME && exported.contains(n.target.string)) {
+                if (n.target.type == Token.NAME && ARRAY.contains(exported, n.target.string)) {
                     if (n.initializer && n.initializer.type == Token.FUNCTION) {
                         // Note: We might still miss something like 
                         // var foo = XXX.foo = function()...
@@ -307,13 +307,13 @@ function unwrapComment(/**String*/comment) {
 function extractTags(/**String*/comment) {
     if (!comment) {
         comment = "";
-    } else if (comment.startsWith("/**")) {
+    } else if (STRING.startsWith(comment, "/**")) {
         comment = unwrapComment(comment).trim();
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
             .filter(function($){ return $.match(/\S/); });
     tags = tags.map(function(tag, idx) {
-        if (idx == 0 && !comment.startsWith('@')) {
+        if (idx == 0 && !STRING.startsWith(comment, '@')) {
             return ['desc', tag.trim()];
         } else {
             var space = tag.search(/\s/);

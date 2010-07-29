@@ -1,9 +1,8 @@
 
-require('core/string');
-require('core/array');
-include('binary');
-include('./util');
-include('./parameters');
+var STRING = require('ringo/utils/string');
+var {ByteArray, ByteString} = require('binary');
+var {getMimeParameter} = require('./util');
+var {mergeParameter} = require('./parameters');
 var {createTempFile} = require('ringo/fileutils');
 var {open} = require('fs');
 var {MemoryStream} = require('io');
@@ -23,8 +22,8 @@ var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
  * @return true if the content type can be parsed as form data by this module
  */
 function isFileUpload(contentType) {
-    return contentType && String(contentType)
-            .toLowerCase().startsWith("multipart/form-data");
+    return contentType && STRING.startsWith(
+            String(contentType).toLowerCase(), "multipart/form-data");
 }
 
 
@@ -107,17 +106,17 @@ function parseFileUpload(request, params, encoding, streamFactory) {
             buffer.slice(position, b).split(CRLF).forEach(function(line) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
-                if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
+                if ((STRING.startsWith(line, " ") || STRING.startsWith(line, "\t")) && headers.length) {
                     headers.peek() += line;
                 } else {
                     headers.push(line);
                 }
             });
             for each (var header in headers) {
-                if (header.toLowerCase().startsWith("content-disposition:")) {
+                if (STRING.startsWith(header.toLowerCase(), "content-disposition:")) {
                     data.name = getMimeParameter(header, "name");
                     data.filename = getMimeParameter(header, "filename");
-                } else if (header.toLowerCase().startsWith("content-type:")) {
+                } else if (STRING.startsWith(header.toLowerCase(), "content-type:")) {
                     data.contentType = header.substring(13).trim();
                 }
             }

@@ -8,7 +8,7 @@ var fs = require("fs");
 var futils = require("ringo/fileutils");
 var {ZipFile} = require("ringo/zip");
 var {Parser} = require("ringo/args");
-require("core/string");
+var STRING = require('ringo/utils/string');
 
 export('installPackage', 'main', 'description');
 
@@ -37,7 +37,7 @@ function installPackage(url, options) {
         var zip = new ZipFile(temp);
         // get common prefix shared by all items in zip file
         var prefix = zip.entries.reduce(function(prev, current) {
-            return prev.getCommonPrefix(current);
+            return STRING.getCommonPrefix(prev, current);
         });
         // we assume package.json to be in prefix/package.json
         var json = prefix + "package.json";
