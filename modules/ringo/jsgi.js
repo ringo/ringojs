@@ -91,6 +91,10 @@ function commitResponse(req, result) {
         }
         throw new Error('No valid JSGI response: ' + result);
     }
+    // special convention to skip writing the response
+    if (Headers(headers).get("X-JSGI-Skip-Response")) {
+        return;
+    }
     response.setStatus(status);
     for (var key in headers) {
         var values = headers[key];
@@ -103,7 +107,7 @@ function commitResponse(req, result) {
             response.addHeader(key, value);
         });
     }
-    var charset = getMimeParameter(Headers(headers).get("Content-Type"), "charset");
+    var charset = getMimeParameter(headers.get("Content-Type"), "charset");
     writeBody(response, body, charset);
 }
 
