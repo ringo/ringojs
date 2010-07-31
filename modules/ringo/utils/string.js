@@ -59,6 +59,7 @@ export('isDateFormat',
        'debase64',
        'stripTags',
        'escapeHtml',
+       'Sorter',
        'compose',
        'random',
        'join');
@@ -477,6 +478,26 @@ function escapeHtml(string) {
             .replace(/"/g, '&quot;')
             .replace(/>/g, '&gt;')
             .replace(/</g, '&lt;');
+}
+
+/**
+ * factory to create functions for sorting objects in an array
+ * @param {String} field name of the field each object is compared with
+ * @param {Number} order (ascending or descending)
+ * @returns {Function} ready for use in Array.prototype.sort
+ */
+function Sorter(field, order) {
+    if (!order)
+        order = 1;
+    return function(a, b) {
+        var str1 = String(a[field] || '').toLowerCase();
+        var str2 = String(b[field] || '').toLowerCase();
+        if (str1 > str2)
+            return order;
+        if (str1 < str2)
+            return order * -1;
+        return 0;
+    };
 }
 
 /**
