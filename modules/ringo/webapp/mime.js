@@ -3,8 +3,8 @@
 // returns MIME type for extension, or fallback, or octet-steam
 exports.mimeType = function(fileName, fallback) {
     var ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
-    return this.MIME_TYPES[ext] || fallback || 'application/octet-stream';
-},
+    return exports.MIME_TYPES[ext] || fallback || 'application/octet-stream';
+};
 
 // List of most common mime-types, stolen from Rack.
 exports.MIME_TYPES = {
@@ -173,4 +173,4 @@ exports.MIME_TYPES = {
     ".yaml"    : "text/yaml",
     ".yml"     : "text/yaml",
     ".zip"     : "application/zip"
-}
+};
