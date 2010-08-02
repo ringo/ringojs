@@ -1,4 +1,3 @@
-require('core/string');
 var {ByteString} = require('binary');
 
 export('Buffer');

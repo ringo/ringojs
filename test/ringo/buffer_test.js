@@ -1,12 +1,12 @@
 var assert = require("assert");
 include('ringo/buffer');
-require('core/string');
+var digest = require('ringo/utils/string').digest;
 
 var buffer = new Buffer();
-const STRING1 = 'foo';
-const STRING2 = 'bar';
-const STRING3 = 'baz';
-const EOL = '\r\n';
+var STRING1 = 'foo';
+var STRING2 = 'bar';
+var STRING3 = 'baz';
+var EOL = '\r\n';
 
 exports.setUp = function () buffer.reset();
 exports.testWrite = function () {
@@ -33,5 +33,5 @@ exports.testForEach = function () {
 
 exports.testDigest = function () {
     buffer.write(STRING1);
-    assert.strictEqual(STRING1.digest(), buffer.digest());
+    assert.strictEqual(digest(STRING1), buffer.digest());
 };

@@ -6,7 +6,6 @@
 
 include('io');
 include('binary');
-require('core/array');
 
 export('canonical',
        'changeWorkingDirectory',

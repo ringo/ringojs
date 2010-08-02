@@ -1,6 +1,6 @@
 
-require('core/string');
-require('core/array');
+var STRING = require('ringo/utils/string');
+var ARRAY = require('ringo/utils/array');
 var {Markdown} = require('ringo/markdown');
 var {Buffer} = require('ringo/buffer');
 
@@ -22,7 +22,7 @@ exports.fileoverview_filter = function(docs) {
                 (isClassName(name) && isClassMember(name, next && next.name));
         var path = name.split(".");
         // FIXME: __iterator__ property breaks TOC enumeration
-        if (path.peek() == "__iterator__") continue;
+        if (ARRAY.peek(path) == "__iterator__") continue;
         var id = doc.id = path.join("_");
         var parent = topItems;
         for (var p = 0, l = path.length - 1; p < l; p++) {
@@ -159,7 +159,7 @@ exports.renderDoc_filter = function(doc) {
     if (see.length) {
         buffer.writeln('<div class="subheader">See</div>');
         for each (var link in see) {
-            if (link.isUrl()) {
+            if (STRING.isUrl(link)) {
                 link = '<a href="' + link + '">' + link + '</a>';
             } else {
                 // apply some sanity checks to local targets like removing hashes and parantheses
@@ -211,7 +211,7 @@ function isClassName(name) {
 
 function isClassMember(name, childName) {
     // check if child name is a property of name
-    return childName && childName.startsWith(name + ".");
+    return childName && STRING.startsWith(childName, name + ".");
 }
 
 function renderMarkdown(text) {

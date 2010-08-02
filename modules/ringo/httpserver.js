@@ -4,8 +4,6 @@
 
 export('Server');
 
-require('core/object');
-
 var log = require('ringo/logging').getLogger(module.id);
 
 

@@ -1,4 +1,5 @@
-require('core/number');
+var NUMBER = require('ringo/utils/number');
+var STRING = require('ringo/utils/string');
 var Buffer = require('ringo/buffer').Buffer;
 var logging = require('ringo/logging');
 var utils = require('ringo/utils');
@@ -29,7 +30,7 @@ exports.middleware = function(app) {
 
         // only do this for ordinary HTML responses
         var contentType = Headers(headers).get("content-type");
-        if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
+        if (status != 200 && status < 400 || !contentType || !STRING.startsWith(contentType, "text/html")) {
             return res;
         }
 
@@ -61,7 +62,7 @@ function appendMessage(buffer, item, start) {
     var bgcolor = colors[level] || '#fff';
     buffer.write("<div class='ringo-debug-line' style='background:", bgcolor,
                  "; color: black; border-top: 1px solid black; clear: both;'>");
-    var timePassed = (time - start).format("00000");
+    var timePassed = NUMBER.format(time - start, "00000");
     var formatted = utils.format("{} [{}] {}: {}", timePassed, level, name, message);
     if (multiline) {
         buffer.write("<pre>", formatted, "</pre>");

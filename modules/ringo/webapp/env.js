@@ -7,7 +7,7 @@
  * loaded module will depend on whether the loading module is shared or not.
  */
 
-require('core/string');
+var OBJECT = require('ringo/utils/object');
 var fileutils = require('ringo/fileutils');
 
 module.shared = false;
@@ -52,7 +52,7 @@ exports.loadMacros = function(context) {
         var config = configs[i];
         if (config && Array.isArray(config.macros)) {
             for each (var moduleId in config.macros) {
-                context = Object.merge(context,
+                context = OBJECT.merge(context,
                         loadModule(moduleId, configIds[i]));
             }
         }

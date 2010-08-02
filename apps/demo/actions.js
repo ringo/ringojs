@@ -1,5 +1,5 @@
-include('ringo/webapp/response');
-include('ringo/webapp/continuation');
+var {Response, skinResponse} = require('ringo/webapp/response');
+var {ContinuationSession} = require('ringo/webapp/continuation');
 
 var log = require('ringo/logging').getLogger(module.id);
 
