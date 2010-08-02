@@ -43,7 +43,7 @@ $(document).ready(function() {
 <% subskin moduleItemLong %>
 <li >
 
-<h2><a href="<% moduleUrl <% rootPath %> <% repositoryName%> <% module.id %> %>/index.html"> <% module.id %> </a></h2>
+<h2><a href="<% rootPath %><% module.id %>/index.html"> <% module.id | replace "/" "." %> </a></h2>
 <div class="jsdoc-fileoverview">
     <% module.fileoverview | markdown %>
 </div>

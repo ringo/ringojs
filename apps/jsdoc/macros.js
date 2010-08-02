@@ -17,31 +17,3 @@ exports.listProperty_filter = function(items, tag) {
 exports.join_filter = function(items, tag) {
     return items.join(tag.parameters[0] || ',');
 };
-
-/**
- * Returns url to a repository
- * @param {String} repositoryName
- */
-exports.repositoryUrl_macro = function(tag, context) {
-    var rootPath = tag.parameters[0];
-    var repositoryName = tag.parameters[1];
-    if (context.isSingleRepo) {
-        return rootPath;
-    }
-    return rootPath + repositoryName + '/';
-};
-
-/**
- * Retruns url to a module
- * @param {String} repositoryName
- * @param {String} moduleId
- */
-exports.moduleUrl_macro = function(tag, context) {
-    var rootPath = tag.parameters[0];
-    var repositoryName = tag.parameters[1];
-    var moduleId = tag.parameters[2];
-    if (context.isSingleRepo) {
-        return rootPath + moduleId;
-    }
-    return rootPath + repositoryName + '/' + moduleId;
-};

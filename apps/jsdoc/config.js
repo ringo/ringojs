@@ -4,19 +4,17 @@ exports.httpConfig = {
 
 // you can use an array or object to define script repositories for jsdoc
 // default it will load repos from require.paths
-/*exports.scriptRepositories = {
-    'stable': "/home/simon/ringojs.ringo/modules/",
-    'jsdoc-branch': "/home/simon/ringojs.oberhamsi/modules/",
+exports.repository = {
+    path: require.paths[0],
+    name: "Master"
 };
-*/
 
 // rendering the fileoverview of each module in the module list is slow
 exports.detailedModuleList = true;
 
 exports.urls = [
-    [ /\/(?:index\.html)?/, './actions', 'index' ],
-    [ /([^/]+)\/([^/]+\/(?:[^\.]*\/)?)(?:index\.html)?/, './actions', 'module' ],
-    [ /([^/]+)\/(?:index\.html)?/, './actions', 'repository' ],
+    [ /\/(?:index\.html)?/, './actions', 'repository' ],
+    [ /\/([^/]+\/(?:[^\.]*\/)?)(?:index\.html)?/, './actions', 'module' ],
 ];
 
 // the middleware stack

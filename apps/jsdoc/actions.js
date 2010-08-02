@@ -1,25 +1,16 @@
 // stdlib
-include('ringo/webapp/response');
+var {skinResponse} = require('ringo/webapp/response');
+
 // custom
 var {repositoryList, moduleList, moduleDoc, structureModuleDoc, getRepositoryName} = require('./jsdocserializer');
 var config = require('./config');
 
-/** 
- * List of repositories to choose from.
- */
-exports.index = function(req) {
-    return skinResponse('./skins/index.html', {
-        rootPath: require('./config').rootPath,
-        repositories: config.scriptRepositories || repositoryList(require.paths),
-    });
-};
-
 /**
  * A Repository's module list.
  */
-exports.repository = function(req, repositoryName) {
-    var repositoryPath = config.scriptRepositories && config.scriptRepositories[repositoryName] ||
-                    repositoryList(require.paths)[repositoryName];
+exports.repository = function(req) {
+    var repositoryPath = config.repository.path;
+    var repositoryName = config.repository.name;
     return skinResponse('./skins/repository.html', {
         rootPath: require('./config').rootPath,
         repositoryName: repositoryName,
@@ -30,10 +21,10 @@ exports.repository = function(req, repositoryName) {
 /**
  * Module Documentation Page.
  */
-exports.module = function(req, repositoryName, moduleId) {
+exports.module = function(req, moduleId) {
+    var repositoryPath = config.repository.path;
+    var repositoryName = config.repository.name;
     moduleId = moduleId.slice(-1) === '/' ? moduleId.slice(0,-1) : moduleId;
-    var repositoryPath = config.scriptRepositories && config.scriptRepositories[repositoryName] ||
-                    repositoryList(require.paths)[repositoryName];
     return skinResponse('./skins/module.html', {
         rootPath: require('./config').rootPath,
         repositoryName: repositoryName,

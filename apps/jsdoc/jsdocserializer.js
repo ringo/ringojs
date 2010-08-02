@@ -11,6 +11,7 @@
  */
 
 // stdlib
+var STRING = require('ringo/utils/string');
 var {parseResource} = require('ringo/jsdoc');
 var {ScriptRepository} = require('ringo/jsdoc');
 var {join, base, directory, canonical} = require('fs');
@@ -38,7 +39,7 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
 var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
     var repository = new ScriptRepository(repositoryPath);
     var modules = repository.getScriptResources(true).filter(function(r) {
-        return !r.moduleName.match(/^ringo\/?global$/) &&  !r.moduleName.startsWith('test');
+        return !r.moduleName.match(/^ringo\/?global$/) &&  !STRING.startsWith(r.moduleName, 'test');
     }).map(function(mod) {
         var fileoverview = undefined;
         if (moduleFileOverview == true) {
@@ -257,7 +258,7 @@ function getRelatedClass(item) {
 
 function getSees(item) {
     return item.getTags('see').map(function(link) {
-        if (link.isUrl()) {
+        if (STRING.isUrl(link)) {
             link = '<a href="' + link + '">' + link + '</a>';
         } else {
             // apply some sanity checks to local targets like removing hashes and parantheses
@@ -290,5 +291,5 @@ function isClassName(name) {
 
 function isClassMember(name, childName) {
     // check if child name is a property of name
-    return childName && childName.startsWith(name + ".");
+    return childName && STRING.startsWith(childName, name + ".");
 };
