@@ -117,12 +117,6 @@ require(moduleName)
     Modules proposal. It tries to locate a module in the module path, loads it
     and returns its exports object.
 
-import(moduleName)
-
-    The import function builds on top of require, additionally setting a
-    property in the calling module scope whose name is the name of the loaded
-    module and whose value is the loaded module's exports object.
-
 include(moduleName)
 
     The include function builds on top of require, additionally copying all
