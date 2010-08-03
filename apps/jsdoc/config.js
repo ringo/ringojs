@@ -10,19 +10,18 @@ exports.scriptRepositories = require.paths;
 }; */
 
 exports.urls = [
-    [ /([^/]+)\/(.+)/, './actions', 'module' ],
-    [ /([^/]+)/, './actions', 'repository' ],
-    [ /^/, './actions', 'index' ]
+    [ /([^/]+)\/(.+)/, require('./actions'), 'module' ],
+    [ /([^/]+)/, require('./actions'), 'repository' ],
+    [ /^/, require('./actions'), 'index' ]
 ];
 
 // the middleware stack
 exports.middleware = [
-    'ringo/middleware/gzip',
-    'ringo/middleware/etag',
-    'ringo/middleware/responselog',
-    'ringo/middleware/error',
-    'ringo/middleware/notfound',
-    // 'ringo/middleware/profiler'
+    require('ringo/middleware/gzip').middleware,
+    require('ringo/middleware/etag').middleware,
+    require('ringo/middleware/responselog').middleware,
+    require('ringo/middleware/error').middleware,
+    require('ringo/middleware/notfound').middleware
 ];
 
 // the JSGI app
@@ -30,8 +29,8 @@ exports.app = require('ringo/webapp').handleRequest;
 
 exports.macros = [
     require('./helpers'),
-    'ringo/skin/macros',
-    'ringo/skin/filters'
+    require('ringo/skin/macros'),
+    require('ringo/skin/filters')
 ];
 
 exports.charset = 'UTF-8';
