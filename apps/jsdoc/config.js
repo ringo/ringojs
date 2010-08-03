@@ -10,9 +10,9 @@ exports.scriptRepositories = require.paths;
 }; */
 
 exports.urls = [
-    [ /([^/]+)\/(.+)/, require('./actions'), 'module' ],
-    [ /([^/]+)/, require('./actions'), 'repository' ],
-    [ /^/, require('./actions'), 'index' ]
+    [ /([^/]+)\/(.+)/, require('./actions').module ],
+    [ /([^/]+)/, require('./actions').repository ],
+    [ /^/, require('./actions').index ]
 ];
 
 // the middleware stack
