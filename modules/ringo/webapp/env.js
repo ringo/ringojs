@@ -1,27 +1,23 @@
 /**
- * This is a module that is loaded per-request and provides the current
- * webapp JSGI env, request, and config objects to other modules.
- *
- * Note that this module should be loaded within the function that uses
- * it to make sure we get a fresh version. Otherwise, the state of the
- * loaded module will depend on whether the loading module is shared or not.
+ * @fileOverview This module can be used to lookup the current
+ * JSGI request and config module in a web application.
  */
 
 var OBJECT = require('ringo/utils/object');
 var fileutils = require('ringo/fileutils');
 
-module.shared = false;
-
-var request;
-var configs = [];
-var configIds = [];
+var current = current || new java.lang.ThreadLocal();
 
 exports.setRequest = function(req) {
-    request = req;
+    current.set({
+        request: req,
+        configs: [],
+        configIds: []
+    });
 };
 
 exports.getRequest = function() {
-    return request;
+    return current.get().request;
 };
 
 /**
@@ -29,31 +25,27 @@ exports.getRequest = function() {
  * current module.
  */
 exports.pushConfig = function(config, configId) {
-    configs.push(config);
-    configIds.push(configId);
-    exports.config = config;
+    var curr = current.get();
+    curr.configs.push(config);
+    curr.configIds.push(configId);
 };
 
 exports.getConfigs = function() {
-    return configs;
-};
-
-exports.getConfig = function() {
-    return config;
+    return current.get().configs;
 };
 
 exports.reset = function() {
-    configs = [];
-    configIds = [];
+    current.remove();
 };
 
 exports.loadMacros = function(context) {
-    for (var i = 0; i < configs.length; i++) {
-        var config = configs[i];
+    var curr = current.get();
+    for (var i = 0; i < curr.configs.length; i++) {
+        var config = curr.configs[i];
         if (config && Array.isArray(config.macros)) {
             for each (var moduleId in config.macros) {
                 context = OBJECT.merge(context,
-                        loadModule(moduleId, configIds[i]));
+                        loadModule(moduleId, curr.configIds[i]));
             }
         }
     }
