@@ -4,6 +4,7 @@ var {Buffer} = require('ringo/buffer');
 var {Headers, getMimeParameter} = require('./util');
 var {mimeType} = require('./mime');
 var DATE = require('ringo/utils/date');
+var webenv = require('ringo/webapp/env');
 
 export('Response',
        'skinResponse',
@@ -23,7 +24,7 @@ function Response() {
         return response;
     }
 
-    var config = require('ringo/webapp/env').config;
+    var config = webenv.getConfig();
     var status = 200;
     var charset = config && config.charset || 'utf-8';
     var contentType = config && config.contentType || 'text/html';

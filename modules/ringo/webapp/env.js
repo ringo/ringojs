@@ -8,6 +8,10 @@ var fileutils = require('ringo/fileutils');
 
 var current = current || new java.lang.ThreadLocal();
 
+/**
+ * Registers a request with the current thread
+ * @param req a JSGI request object
+ */
 exports.setRequest = function(req) {
     current.set({
         request: req,
@@ -16,31 +20,57 @@ exports.setRequest = function(req) {
     });
 };
 
-exports.getRequest = function() {
-    return current.get().request;
-};
-
 /**
- * Adds a config module to the config module array and sets it as the
- * current module.
+ * Registers a nested config module to the configs array and
+ * sets it as the current module. This throws an Error if no
+ * request is associated with the current thread.
  */
 exports.pushConfig = function(config, configId) {
     var curr = current.get();
+    if (!curr) {
+        throw new Error("No request registered with current thread");
+    }
+    curr.config = config;
     curr.configs.push(config);
     curr.configIds.push(configId);
 };
 
-exports.getConfigs = function() {
-    return current.get().configs;
+/**
+ * Get the request associated with the current thread.
+ */
+exports.getRequest = function() {
+    var curr = current.get();
+    return curr ? curr.request : null;
 };
 
+/**
+ * Get the config module associated with the current thread.
+ */
+exports.getConfig = function() {
+    var curr = current.get();
+    return curr ? curr.config : null;
+};
+
+/**
+ * Get an array containing all config modules associated with the
+ * current thread.
+ */
+exports.getConfigs = function() {
+    var curr = current.get();
+    return curr ? curr.configs : null;
+};
+
+/**
+ * Unregister any request and config objects previously associated with
+ * the current request.
+ */
 exports.reset = function() {
     current.remove();
 };
 
 exports.loadMacros = function(context) {
     var curr = current.get();
-    for (var i = 0; i < curr.configs.length; i++) {
+    for (var i = 0; curr && i < curr.configs.length; i++) {
         var config = curr.configs[i];
         if (config && Array.isArray(config.macros)) {
             for each (var moduleId in config.macros) {

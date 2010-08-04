@@ -1,6 +1,7 @@
 var STRING = require('ringo/utils/string');
 var OBJECT = require('ringo/utils/object');
 var engine = require('ringo/engine');
+var webenv = require('ringo/webapp/env');
 
 export('render', 'createSkin', 'Skin');
 
@@ -113,7 +114,6 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     this.render = function render(context) {
         // extend context by globally provided macros and filters.
         // user-provided context overrides globally defined stuff
-        var webenv = require('ringo/webapp/env');
         context = webenv.loadMacros(context);
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
