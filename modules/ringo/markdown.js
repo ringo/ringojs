@@ -24,3 +24,12 @@ exports.Markdown = function Markdown(extension) {
     extension = extension || {};
     return new JavaAdapter(org.ringojs.util.MarkdownProcessor, extension);
 };
+
+/**
+ * Converts a string of Markdown formatted text to HTML.
+ *
+ * @param {String} text Markdown formatted text
+ * @returns {String} the Markdown text converted to HTML
+ * @function
+ * @name Markdown.instance.process
+ */
