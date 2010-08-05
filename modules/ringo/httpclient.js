@@ -5,7 +5,7 @@
 
 importPackage(org.eclipse.jetty.client);
 
-var OBJECT = require('ringo/utils/object');
+var objects = require('ringo/utils/objects');
 var {ByteString, Binary} = require('binary');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
@@ -129,7 +129,7 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
 var Exchange = function(url, options, callbacks) {
     if (!url) throw new Error('missing url argument');
 
-    var opts = OBJECT.merge(options, {
+    var opts = objects.merge(options, {
         data: {},
         headers: {},
         method: 'GET',
@@ -414,7 +414,7 @@ var Exchange = function(url, options, callbacks) {
  * Defaults for options passable to to request()
  */
 var defaultOptions = function(options) {
-    return OBJECT.merge(options || {}, {
+    return objects.merge(options || {}, {
         // exchange
         data: {},
         headers: {},

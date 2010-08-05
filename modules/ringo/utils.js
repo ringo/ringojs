@@ -1,5 +1,5 @@
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 
 export('readOnlyPropertyDesc',
         'writeOnlyPropertyDesc',
@@ -117,7 +117,7 @@ function format() {
     var index = 1;
     // Replace placehoder with argument as long as possible
     if (typeof format === "string") {
-        if (STRING.contains(format, "{}") && arguments.length > 1) {
+        if (strings.contains(format, "{}") && arguments.length > 1) {
             var args = arguments;
             format = format.replace(/{}/g, function(m) {
                 return index < args.length ? args[index++] : m;

@@ -1,6 +1,6 @@
 var assert = require("assert");
 var {absolute, join} = require("fs");
-var STRING = require("ringo/utils/string");
+var strings = require("ringo/utils/strings");
 
 exports.setup = function(exports, path, repo) {
 
@@ -21,8 +21,8 @@ exports.setup = function(exports, path, repo) {
         assert.strictEqual(res.path, absolute(join(path, "nested", "nested.txt")));
         assert.strictEqual(res.length, 2240);
         assert.strictEqual(res.content.length, 2240);
-        assert.isTrue(STRING.startsWith(res.content, "Lorem ipsum dolor sit amet"));
-        assert.isTrue(STRING.endsWith(res.content.trim(), "id est laborum."));
+        assert.isTrue(strings.startsWith(res.content, "Lorem ipsum dolor sit amet"));
+        assert.isTrue(strings.endsWith(res.content.trim(), "id est laborum."));
     };
 
     exports.testNonExistingResource = function() {

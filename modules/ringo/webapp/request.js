@@ -3,7 +3,7 @@
  * [JSGI 0.3 request object](http://wiki.commonjs.org/wiki/JSGI/Level0/A/Draft2#Request).
  */
 
-var OBJECT = require('ringo/utils/object');
+var objects = require('ringo/utils/objects');
 var {isUrlEncoded, parseParameters} = require('./parameters');
 var {isFileUpload, parseFileUpload} = require('./fileupload');
 
@@ -99,7 +99,7 @@ function Request(request) {
     Object.defineProperty(request, "params", {
         get: function() {
             if (!params) {
-                params = OBJECT.merge(this.postParams, this.queryParams);
+                params = objects.merge(this.postParams, this.queryParams);
             }
             return params;
         }

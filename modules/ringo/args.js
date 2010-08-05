@@ -10,7 +10,7 @@
  * --option=value (alternative long option with value)</pre>
  */
 
-var STRING = require("ringo/utils/string");
+var strings = require("ringo/utils/strings");
 
 /**
  * Create a new command line option parser.
@@ -57,7 +57,7 @@ exports.Parser = function() {
         }
         var maxlength = lines.reduce(function(prev, val) Math.max(val.flags.length, prev), 0);
         return lines.map(
-            function(s) STRING.pad(s.flags, " ", 2 + maxlength) + s.helpText
+            function(s) strings.pad(s.flags, " ", 2 + maxlength) + s.helpText
         ).join("\n");
     };
 
@@ -78,10 +78,10 @@ exports.Parser = function() {
         result = result || {};
         while (args.length > 0) {
             var option = args[0];
-            if (!STRING.startsWith(option, "-")) {
+            if (!strings.startsWith(option, "-")) {
                 break;
             }
-            if (STRING.startsWith(option, "--")) {
+            if (strings.startsWith(option, "--")) {
                 parseLongOption(option.substring(2), args, result);
             } else {
                 parseShortOption(option.substring(1), args, result);
@@ -122,7 +122,7 @@ exports.Parser = function() {
                 i = length;
             }
             var propertyName = def.longName || def.shortName;
-            result[STRING.toCamelCase(propertyName)] = optarg || true;
+            result[strings.toCamelCase(propertyName)] = optarg || true;
         }
         args.splice(0, consumedNext ? 2 : 1);
     }
@@ -130,7 +130,7 @@ exports.Parser = function() {
     function parseLongOption(opt, args, result) {
         var def = null;
         for each (var d in options) {
-            if (opt == d.longName || (STRING.startsWith(opt, d.longName)
+            if (opt == d.longName || (strings.startsWith(opt, d.longName)
                     && opt.charAt(d.longName.length) == '=')) {
                 def = d;
                 break;
@@ -156,7 +156,7 @@ exports.Parser = function() {
                 optarg = opt.substring(length + 1);
             }
         }
-        result[STRING.toCamelCase(def.longName)] = optarg || true;
+        result[strings.toCamelCase(def.longName)] = optarg || true;
         args.splice(0, consumedNext ? 2 : 1);
     }
 };

@@ -1,5 +1,5 @@
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var {Binary, ByteArray, ByteString} = require('binary');
 
 export('isUrlEncoded', 'parseParameters', 'mergeParameter');
@@ -27,7 +27,7 @@ var CHAR_f = "f".charCodeAt(0);
  * @returns true if the content type can be parsed as form data by this module
  */
 function isUrlEncoded(contentType) {
-    return contentType && STRING.startsWith(
+    return contentType && strings.startsWith(
             String(contentType).toLowerCase(),
             "application/x-www-form-urlencoded");
 }

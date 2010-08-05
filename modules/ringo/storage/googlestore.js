@@ -1,5 +1,5 @@
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var {addHostObject} = require('ringo/engine');
 var {bindArguments} = require('ringo/functional');
 
@@ -204,7 +204,7 @@ function getEntity(type, arg) {
         // need them before to resolve references in pre-store
         var id, idlength = 10;
         do {
-            id = "k" + STRING.random(idlength++);
+            id = "k" + strings.random(idlength++);
             var entity = new Entity(type, id, rootKey);
             try {
                 datastore.get(getTransaction(), entity.getKey()) != null

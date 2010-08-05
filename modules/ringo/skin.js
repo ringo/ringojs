@@ -1,5 +1,5 @@
-var STRING = require('ringo/utils/string');
-var OBJECT = require('ringo/utils/object');
+var strings = require('ringo/utils/strings');
+var objects = require('ringo/utils/objects');
 var engine = require('ringo/engine');
 var webenv = require('ringo/webapp/env');
 
@@ -44,7 +44,7 @@ function render(skinOrResource, context) {
 function resolveSkin(base, skinPath) {
     var skinResource;
     var parentRepo = base.parentRepository;
-    if (parentRepo && STRING.startsWith(skinPath, ".")) {
+    if (parentRepo && strings.startsWith(skinPath, ".")) {
         skinResource = parentRepo.getResource(skinPath);
     }
     if (!skinResource || !skinResource.exists()) {
@@ -285,7 +285,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
                 return "[Error in for-in macro: expected in]";
             var name = macro.parameters[0];
             var list = macro.parameters[2];
-            var subContext = OBJECT.clone(context || {});
+            var subContext = objects.clone(context || {});
             var subMacro = macro.getSubMacro(3);
             if (subMacro.name == "and") {
                 subMacro.name = "for";
@@ -337,7 +337,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
             if (macro.parameters.length < 2)
                 return "[Error in set macro: not enough parameters]";
             var map = macro.parameters[0];
-            var subContext = OBJECT.clone(context || {});
+            var subContext = objects.clone(context || {});
             var subMacro = macro.getSubMacro(1);
             for (var [key, value] in map) {
                 subContext[key] = value;

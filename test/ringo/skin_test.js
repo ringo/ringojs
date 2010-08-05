@@ -1,4 +1,4 @@
-var STRING = require("ringo/utils/string");
+var strings = require("ringo/utils/strings");
 var assert = require("assert");
 include('ringo/skin');
 var filters = require('ringo/skin/filters');
@@ -204,14 +204,14 @@ exports.testCapitalizeFilter = function () {
     var string = 'capitalize me.';
     var skin = createSkin('<% value | capitalize %>');
     var context = {value: string, capitalize_filter: filters.capitalize_filter};
-    assert.strictEqual(STRING.capitalize(string), render(skin, context));
+    assert.strictEqual(strings.capitalize(string), render(skin, context));
 };
 
 exports.testTitleizeFilter = function () {
     var string = 'titleize me';
     var skin = createSkin('<% value | titleize %>');
     var context = {value: string, titleize_filter: filters.titleize_filter};
-    assert.strictEqual(STRING.titleize(string), render(skin, context));
+    assert.strictEqual(strings.titleize(string), render(skin, context));
 };
 
 exports.testTrimFilter = function () {
@@ -225,7 +225,7 @@ exports.testStripTagsFilter = function () {
     var string = '<tag>content</tag>';
     var skin = createSkin('<% value | stripTags %>');
     var context = {value: string, stripTags_filter: filters.stripTags_filter};
-    assert.strictEqual(STRING.stripTags(string), render(skin, context));
+    assert.strictEqual(strings.stripTags(string), render(skin, context));
 };
 
 exports.testEscapeUrlFilter = function () {
@@ -240,7 +240,7 @@ exports.testEscapeHtmlFilter = function () {
     var string = '<p>Some text.</p>';
     var skin = createSkin('<% value | escapeHtml %>');
     var context = {value: string, escapeHtml_filter: filters.escapeHtml_filter};
-    assert.strictEqual(STRING.escapeHtml(string), render(skin, context));
+    assert.strictEqual(strings.escapeHtml(string), render(skin, context));
 };
 
 exports.testTruncateFilter = function () {

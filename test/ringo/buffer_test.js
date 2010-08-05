@@ -1,6 +1,6 @@
 var assert = require("assert");
 include('ringo/buffer');
-var digest = require('ringo/utils/string').digest;
+var digest = require('ringo/utils/strings').digest;
 
 var buffer = new Buffer();
 var STRING1 = 'foo';

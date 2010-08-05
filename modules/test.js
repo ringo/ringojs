@@ -1,4 +1,4 @@
-var STRING = require("ringo/utils/string");
+var strings = require("ringo/utils/strings");
 var term = require("ringo/term");
 var fs = require("fs");
 
@@ -58,7 +58,7 @@ function jsDump(value, lvl) {
     }
 };
 jsDump.indent = function(lvl) {
-    return STRING.repeat(" ", 4 * lvl);
+    return strings.repeat(" ", 4 * lvl);
 };
 jsDump.quote = function(str) {
     return '"' + str.toString().replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
@@ -167,7 +167,7 @@ function executeTestScope(scope, summary, writer, path) {
     // loop over all exported properties and see if there are test methods to run
     for (var name in scope) {
         var value = scope[name];
-        if (name === "test" || !STRING.startsWith(name, "test")) {
+        if (name === "test" || !strings.startsWith(name, "test")) {
             continue;
         }
         if (value instanceof Function) {

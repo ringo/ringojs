@@ -2,7 +2,7 @@
  * Continuation support for RingoJS
  */
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('ContinuationSession');
@@ -82,7 +82,7 @@ function ContinuationSession(req, id, step) {
     function generateId() {
         var id;
         do {
-            id = STRING.random(5);
+            id = strings.random(5);
         } while (getData(req, id))
         return id;
     }

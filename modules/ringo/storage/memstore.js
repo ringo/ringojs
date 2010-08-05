@@ -1,4 +1,4 @@
-var OBJECT = require('ringo/utils/object');
+var objects = require('ringo/utils/objects');
 var {addHostObject} = require('ringo/engine');
 var {bindArguments} = require('ringo/functional');
 var {equalKeys, updateEntity, getProperties, getKey, getId, isEntity, isKey, createKey, BaseTransaction}
@@ -86,7 +86,7 @@ function Store() {
         } else if (isEntity(arg)) {
             return arg;
         } else if (arg instanceof Object) {
-            var entity = OBJECT.clone(arg);
+            var entity = objects.clone(arg);
             Object.defineProperty(entity, "_key", {
                 value: createKey(type, generateId(type))
             });

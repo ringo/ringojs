@@ -3,7 +3,7 @@ var {Stream} = require('io');
 var {Buffer} = require('ringo/buffer');
 var {Headers, getMimeParameter} = require('./util');
 var {mimeType} = require('./mime');
-var DATE = require('ringo/utils/date');
+var dates = require('ringo/utils/dates');
 var webenv = require('ringo/webapp/env');
 
 export('Response',
@@ -190,7 +190,7 @@ function Response() {
                 new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
             var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
             buffer.write("; expires=");
-            buffer.write(DATE.format(expires, cookieDateFormat, "en", "GMT"));
+            buffer.write(dates.format(expires, cookieDateFormat, "en", "GMT"));
         }
         options = options || {};
         var path = options.path || "/";

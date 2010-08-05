@@ -8,7 +8,7 @@
  * to the functions exported by [fs-base](./fs-base).
  */
 
-var ARRAY = require('ringo/utils/array');
+var arrays = require('ringo/utils/arrays');
 var fsBase = require('fs-base');
 include('io');
 
@@ -245,7 +245,7 @@ function absolute(path) {
  * extension.
  */
 function base(path, ext) {
-    var name = ARRAY.peek(split(path));
+    var name = arrays.peek(split(path));
     if (ext && name) {
         var diff = name.length - ext.length;
         if (diff > -1 && name.lastIndexOf(ext) == diff) {
@@ -334,7 +334,7 @@ function resolve() {
         for (var j = 0; j < parts.length; j++) {
             var part = parts[j];
             if (part == '..') {
-                if (elements.length > 0 && ARRAY.peek(elements) != '..') {
+                if (elements.length > 0 && arrays.peek(elements) != '..') {
                     elements.pop();
                 } else if (!root) {
                     elements.push(part);

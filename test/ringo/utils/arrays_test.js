@@ -1,5 +1,5 @@
 var assert = require("assert");
-var ARRAY = require("ringo/utils/array");
+var arrays = require("ringo/utils/arrays");
 
 // test data
 var empty = [];
@@ -96,26 +96,26 @@ exports.testArrayContains = function() {
    // Array.prototype.contains = Array.prototype.include;
    
    // test with empty array   
-   assert.isFalse( ARRAY.contains(empty, string3) );
-   assert.isFalse( ARRAY.contains(empty, null) );
-   assert.isFalse( ARRAY.contains(empty, undefined) );
+   assert.isFalse( arrays.contains(empty, string3) );
+   assert.isFalse( arrays.contains(empty, null) );
+   assert.isFalse( arrays.contains(empty, undefined) );
 
    // test with strings
-   assert.isTrue( ARRAY.contains(arrayWithOneString, string1) );
-   assert.isTrue( ARRAY.contains(arrayWithTwoStrings, string1) );
-   assert.isTrue( ARRAY.contains(arrayWithFiveStrings, string1) );
-   assert.isTrue( ARRAY.contains(arrayWithFiveOneStrings, string1) );
+   assert.isTrue( arrays.contains(arrayWithOneString, string1) );
+   assert.isTrue( arrays.contains(arrayWithTwoStrings, string1) );
+   assert.isTrue( arrays.contains(arrayWithFiveStrings, string1) );
+   assert.isTrue( arrays.contains(arrayWithFiveOneStrings, string1) );
 
-   assert.isFalse( ARRAY.contains(arrayWithTwoStrings, string3) );
-   assert.isTrue( ARRAY.contains(arrayWithFiveStrings, string3) );
+   assert.isFalse( arrays.contains(arrayWithTwoStrings, string3) );
+   assert.isTrue( arrays.contains(arrayWithFiveStrings, string3) );
    
    // test with objects
-   assert.isTrue( ARRAY.contains(arrayWithOneObject, obj1) );
-   assert.isTrue( ARRAY.contains(arrayWithTwoObjects, obj1) );
-   assert.isTrue( ARRAY.contains(arrayWithTwoObjects, obj2) );
+   assert.isTrue( arrays.contains(arrayWithOneObject, obj1) );
+   assert.isTrue( arrays.contains(arrayWithTwoObjects, obj1) );
+   assert.isTrue( arrays.contains(arrayWithTwoObjects, obj2) );
 
-   assert.isTrue( ARRAY.contains(arrayWithFiveObjects, obj4) );
-   assert.isTrue( ARRAY.contains(arrayWithFiveObjects, obj1) );
+   assert.isTrue( arrays.contains(arrayWithFiveObjects, obj4) );
+   assert.isTrue( arrays.contains(arrayWithFiveObjects, obj1) );
 
    return;
 };
@@ -125,64 +125,64 @@ exports.testArrayUnion = function() {
 
    // test with empty
    assert.deepEqual(
-      ARRAY.union(empty, empty),
+      arrays.union(empty, empty),
       []
    );
    assert.deepEqual(
-      ARRAY.union(empty, arrayWithTwoStrings),
+      arrays.union(empty, arrayWithTwoStrings),
       ["one", "two"]
    );
    
    // test with strings
    assert.deepEqual(
-      ARRAY.union(arrayWithOneString, arrayWithOneString),
+      arrays.union(arrayWithOneString, arrayWithOneString),
       ["one"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithOneString, arrayWithTwoStrings),
+      arrays.union(arrayWithOneString, arrayWithTwoStrings),
       ["one", "two"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoStrings, arrayWithTwoStrings),
+      arrays.union(arrayWithTwoStrings, arrayWithTwoStrings),
       ["one", "two"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoStrings, arrayWithFiveStrings),
+      arrays.union(arrayWithTwoStrings, arrayWithFiveStrings),
       arrayWithFiveStrings
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithFiveOneStrings, arrayWithFiveStrings),
+      arrays.union(arrayWithFiveOneStrings, arrayWithFiveStrings),
       arrayWithFiveStrings
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithOneString, arrayWithTwoThreeStrings),
+      arrays.union(arrayWithOneString, arrayWithTwoThreeStrings),
       ["one", "two", "three"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoStrings, arrayWithTwoThreeStrings),
+      arrays.union(arrayWithTwoStrings, arrayWithTwoThreeStrings),
       ["one", "two", "three"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoThreeStrings, arrayWithOneString),
+      arrays.union(arrayWithTwoThreeStrings, arrayWithOneString),
       ["two", "three", "one"]
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoThreeStrings, arrayWithTwoStrings),
+      arrays.union(arrayWithTwoThreeStrings, arrayWithTwoStrings),
       ["two", "three", "one"]
    );
    
    // test with objects
    assert.deepEqual(
-      ARRAY.union(arrayWithOneObject, arrayWithOneObject),
+      arrays.union(arrayWithOneObject, arrayWithOneObject),
       arrayWithOneObject
    );
 
    assert.deepEqual(
-      ARRAY.union(arrayWithTwoObjects, arrayWithTwoObjects),
+      arrays.union(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
    assert.deepEqual(
-      ARRAY.union(arrayWithFiveObjects, empty),
+      arrays.union(arrayWithFiveObjects, empty),
       [obj1, obj2, obj3]
    );
 
@@ -194,69 +194,69 @@ exports.testArrayIntersection = function() {
 
    // test with empty
    assert.deepEqual(
-      ARRAY.intersection(empty, empty),
+      arrays.intersection(empty, empty),
       []
    );
    assert.deepEqual(
-      ARRAY.intersection(empty, arrayWithTwoStrings),
+      arrays.intersection(empty, arrayWithTwoStrings),
       []
    );
    
    // test with strings
    assert.deepEqual(
-      ARRAY.intersection(arrayWithOneString, arrayWithOneString),
+      arrays.intersection(arrayWithOneString, arrayWithOneString),
       ["one"]
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithOneString, arrayWithTwoStrings),
+      arrays.intersection(arrayWithOneString, arrayWithTwoStrings),
       ["one"]
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoStrings, arrayWithTwoStrings),
+      arrays.intersection(arrayWithTwoStrings, arrayWithTwoStrings),
       ["one", "two"]
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoStrings, arrayWithFiveStrings),
+      arrays.intersection(arrayWithTwoStrings, arrayWithFiveStrings),
       arrayWithTwoStrings
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithFiveOneStrings, arrayWithFiveStrings),
+      arrays.intersection(arrayWithFiveOneStrings, arrayWithFiveStrings),
       ["one"]
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithOneString, arrayWithTwoThreeStrings),
+      arrays.intersection(arrayWithOneString, arrayWithTwoThreeStrings),
       []
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoStrings, arrayWithTwoThreeStrings),
+      arrays.intersection(arrayWithTwoStrings, arrayWithTwoThreeStrings),
       ["two"]
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoThreeStrings, arrayWithOneString),
+      arrays.intersection(arrayWithTwoThreeStrings, arrayWithOneString),
       []
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings),
+      arrays.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings),
       ["two"]
    );
    
    // test with objects
    assert.deepEqual(
-      ARRAY.intersection(arrayWithOneObject, arrayWithOneObject),
+      arrays.intersection(arrayWithOneObject, arrayWithOneObject),
       arrayWithOneObject
    );
 
    assert.deepEqual(
-      ARRAY.intersection(arrayWithTwoObjects, arrayWithTwoObjects),
+      arrays.intersection(arrayWithTwoObjects, arrayWithTwoObjects),
       arrayWithTwoObjects
    );
    assert.deepEqual(
-      ARRAY.intersection(arrayWithFiveObjects, arrayWithTwoObjects),
+      arrays.intersection(arrayWithFiveObjects, arrayWithTwoObjects),
       [obj1, obj2]
    );
 
    assert.deepEqual(
-      ARRAY.intersection(arrayWithFiveObjects, empty), 
+      arrays.intersection(arrayWithFiveObjects, empty), 
       []
    );
    

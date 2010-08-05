@@ -3,7 +3,7 @@
  */
 
 // import modules
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var {Request} = require('ringo/webapp/request');
 var {Response, redirectResponse} = require('ringo/webapp/response');
 var system = require('system');
@@ -181,7 +181,7 @@ function getAction(req, module, urlconf, remainingPath, args) {
 
 function checkTrailingSlash(req) {
     // only redirect for GET requests
-    if (!STRING.endsWith(req.path, "/") && req.isGet) {
+    if (!strings.endsWith(req.path, "/") && req.isGet) {
         var path = req.queryString ?
                 req.path + "/?" + req.queryString : req.path + "/";
         throw {redirect: path};

@@ -1,6 +1,6 @@
 include('ringo/webapp/response');
 include('ringo/jsdoc');
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var Buffer = require('ringo/buffer').Buffer;
 var {join, base, directory, canonical} = require('fs');
 var config = require('./config');
@@ -43,7 +43,7 @@ exports.module = function(req, repositoryId, moduleId) {
 function renderModuleList(repositoryId, repository) {
     var rootPath = require('./config').rootPath;
     var modules = repository.getScriptResources(true).filter(function(r) {
-        return !r.moduleName.match(/^ringo\/?global$/) /* && !STRING.startsWith(r.moduleName, 'test')*/;
+        return !r.moduleName.match(/^ringo\/?global$/) /* && !strings.startsWith(r.moduleName, 'test')*/;
     }).sort(function(a, b) {
         return a.moduleName > b.moduleName ? 1 : -1;
     });
@@ -60,11 +60,11 @@ function renderModuleList(repositoryId, repository) {
             if (previous[i - 1] != path[i - 1]) {
                 if (i < previous.length) {
                     indent -= 2;
-                    buffer.writeln(STRING.repeat(' ', indent), '</ul>');
+                    buffer.writeln(strings.repeat(' ', indent), '</ul>');
                     indent -= 2;
                 }
                 if (i < previous.length) {
-                    buffer.write(STRING.repeat(' ', indent));
+                    buffer.write(strings.repeat(' ', indent));
                 }
                 buffer.writeln('</li>');
                 hasList = true;
@@ -75,14 +75,14 @@ function renderModuleList(repositoryId, repository) {
         for(var j = i; j < path.length; j++) {
             if (!hasList) {
                 indent += 2;
-                buffer.writeln().writeln(STRING.repeat(' ', indent), '<ul class="apilist">');
+                buffer.writeln().writeln(strings.repeat(' ', indent), '<ul class="apilist">');
                 indent += 2;
             }
             var label = j < path.length - 1 ?
                     path[j] :
                     '<a href="' + rootPath + repositoryId + '/' + module.moduleName + '">' + path[j] + '</a>';
             var tag = path.length > 1 ? '<li class="closed">' : '<li>';
-            buffer.write(STRING.repeat(' ', indent), tag, label);
+            buffer.write(strings.repeat(' ', indent), tag, label);
             hasList = false;
         }
         previous = path;
@@ -90,7 +90,7 @@ function renderModuleList(repositoryId, repository) {
     for (var z = 0; z < previous.length; z++) {
         buffer.writeln('</li>');
         indent -= 2;
-        buffer.writeln(STRING.repeat(' ', indent), '</ul>');
+        buffer.writeln(strings.repeat(' ', indent), '</ul>');
     }
     buffer.writeln('</li></ul>');
     return buffer;

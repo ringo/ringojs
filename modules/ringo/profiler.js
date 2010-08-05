@@ -4,7 +4,7 @@
  * the profiler on optimized code will produce no data.
  */
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
 var Buffer = require('ringo/buffer').Buffer;
 
@@ -97,7 +97,7 @@ function Profiler() {
         var maxLength = 0;
         // find common prefix in path names
         var commonPrefix = list.reduce(function(previous, current) {
-            return STRING.getCommonPrefix(previous, current.name);
+            return strings.getCommonPrefix(previous, current.name);
         }, "");
         var lines = [];
         for each (var item in list) {

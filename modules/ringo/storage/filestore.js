@@ -1,4 +1,4 @@
-var OBJECT = require('ringo/utils/object');
+var objects = require('ringo/utils/objects');
 var {Path} = require('fs');
 var futils = require('ringo/fileutils');
 include('ringo/engine');
@@ -102,7 +102,7 @@ function Store(path) {
         } else if (isEntity(arg)) {
             return arg;
         } else if (arg instanceof Object) {
-            var entity = OBJECT.clone(arg, {});
+            var entity = objects.clone(arg, {});
             Object.defineProperty(entity, "_key", {
                 value: createKey(type, generateId(type))
             });

@@ -3,7 +3,7 @@
  * JSGI request and config module in a web application.
  */
 
-var OBJECT = require('ringo/utils/object');
+var objects = require('ringo/utils/objects');
 var fileutils = require('ringo/fileutils');
 
 var current = current || new java.lang.ThreadLocal();
@@ -74,7 +74,7 @@ exports.loadMacros = function(context) {
         var config = curr.configs[i];
         if (config && Array.isArray(config.macros)) {
             for each (var moduleId in config.macros) {
-                context = OBJECT.merge(context,
+                context = objects.merge(context,
                         loadModule(moduleId, curr.configIds[i]));
             }
         }

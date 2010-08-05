@@ -1,5 +1,5 @@
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var {ByteArray, ByteString} = require('binary');
 var {getMimeParameter} = require('./util');
 var {mergeParameter} = require('./parameters');
@@ -22,7 +22,7 @@ var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
  * @return true if the content type can be parsed as form data by this module
  */
 function isFileUpload(contentType) {
-    return contentType && STRING.startsWith(
+    return contentType && strings.startsWith(
             String(contentType).toLowerCase(), "multipart/form-data");
 }
 
@@ -106,17 +106,17 @@ function parseFileUpload(request, params, encoding, streamFactory) {
             buffer.slice(position, b).split(CRLF).forEach(function(line) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
-                if ((STRING.startsWith(line, " ") || STRING.startsWith(line, "\t")) && headers.length) {
+                if ((strings.startsWith(line, " ") || strings.startsWith(line, "\t")) && headers.length) {
                     headers.peek() += line;
                 } else {
                     headers.push(line);
                 }
             });
             for each (var header in headers) {
-                if (STRING.startsWith(header.toLowerCase(), "content-disposition:")) {
+                if (strings.startsWith(header.toLowerCase(), "content-disposition:")) {
                     data.name = getMimeParameter(header, "name");
                     data.filename = getMimeParameter(header, "filename");
-                } else if (STRING.startsWith(header.toLowerCase(), "content-type:")) {
+                } else if (strings.startsWith(header.toLowerCase(), "content-type:")) {
                     data.contentType = header.substring(13).trim();
                 }
             }

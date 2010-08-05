@@ -18,8 +18,8 @@
  * @fileoverview Implements some useful macro filters.
  */
 
-var STRING = require('ringo/utils/string');
-var DATE = require('ringo/utils/date');
+var strings = require('ringo/utils/strings');
+var dates = require('ringo/utils/dates');
 
 export('capitalize_filter',
         'dateFormat_filter',
@@ -67,7 +67,7 @@ function uppercase_filter(input) {
  * @see String.prototype.capitalize
  */
 function capitalize_filter(input) {
-   return STRING.capitalize(String(input || ""));
+   return strings.capitalize(String(input || ""));
 }
 
 
@@ -78,7 +78,7 @@ function capitalize_filter(input) {
  * @see String.prototype.titleize
  */
 function titleize_filter(input) {
-   return STRING.titleize(String(input || ""));
+   return strings.titleize(String(input || ""));
 }
 
 
@@ -115,7 +115,7 @@ function trim_filter(input) {
  * @see String.prototype.stripTags
  */
 function stripTags_filter(input) {
-   return STRING.stripTags(String(input || ""));
+   return strings.stripTags(String(input || ""));
 };
 
 
@@ -133,7 +133,7 @@ function escapeXml_filter(input) {
  * @see String.prototype.escapeHtml
  */
 function escapeHtml_filter(input) {
-    return STRING.escapeHtml(String(input || ""));
+    return strings.escapeHtml(String(input || ""));
 }
 
 /**
@@ -216,10 +216,10 @@ function dateFormat_filter(input, tag) {
         return;
     }
     if (typeof input === "number") {
-        return DATE.format(new Date(input), format);
+        return dates.format(new Date(input), format);
     }
     if (input instanceof Date) {
-        return DATE.format(input, format);
+        return dates.format(input, format);
     }
 }
 

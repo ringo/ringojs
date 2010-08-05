@@ -1,4 +1,4 @@
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var {Headers} = require('ringo/webapp/util');
 
 export('middleware');
@@ -22,7 +22,7 @@ function middleware(app) {
             var digest = '"' + body.digest() + '"';
             headers = Headers(headers);
             headers.set("ETag", digest);
-            if (etags && STRING.contains(etags, digest)) {
+            if (etags && strings.contains(etags, digest)) {
                 // return not-modified response
                 headers.unset('Content-Length');
                 return {status: 304, headers: headers, body: []};

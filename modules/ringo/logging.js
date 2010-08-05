@@ -12,7 +12,7 @@
  * logger will render a stack trace for it and append it to the log message.</p>
  */
 
-var STRING = require('ringo/utils/string');
+var strings = require('ringo/utils/strings');
 var utils = require('ringo/utils');
 
 var configured = false;
@@ -112,7 +112,7 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
     var {path, url} = resource;
     var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
     var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
-    var configurator = STRING.endsWith(path, '.properties') || STRING.endsWith(path, '.props') ?
+    var configurator = strings.endsWith(path, '.properties') || strings.endsWith(path, '.props') ?
                        PropertyConfigurator : DOMConfigurator;
     if (typeof configurator.configure === "function") {
         configurator.configure(url);
