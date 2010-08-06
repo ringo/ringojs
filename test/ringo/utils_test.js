@@ -42,3 +42,5 @@ exports.testFormat = function () {
     assert.strictEqual(UNDEFINED, utils.format(undefined));
     assert.strictEqual('', utils.format());
 };
+
+exports.testDates = require("./utils/dates_test");
