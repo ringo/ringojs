@@ -1,0 +1,52 @@
+<% extends skins/base.html %>
+
+<% subskin head %>
+<script>
+$(document).ready(function() {
+    var $showMoreLink = $('.jsdoc-showmore');
+    $(".jsdoc-fileoverview").each(function(idx, overview) {
+        var $overview = $(overview);
+        //console.log($(":first", $overview));
+        var $allButFirstElement = $overview.children().not(":first-child");
+        if ($allButFirstElement.length) {
+            $allButFirstElement.hide();
+            $overview.append($showMoreLink.clone());
+        }
+        return;
+    });
+    $(".jsdoc-showmore").click(function() {
+        $(this).hide().siblings().show();
+    });
+});
+</script>
+
+<% subskin menu %>
+    <% render repositorySwitcher %>
+    <% render moduleList %>
+
+<% subskin content %>
+
+<div id="content">
+    <h1><% repositoryName %></h1>
+    
+    <ul class="modulelist">
+        <% for module in <% modules %> render moduleItemLong %>
+    </ul>
+    
+</div>
+
+<div style="display:none">
+    <!-- added to fileoverviews with hidden paragraphs --->
+    <span class="jsdoc-showmore showmore">.. show more</span>
+</div>
+
+<% subskin moduleItemLong %>
+<li >
+
+<h2><a href="<% rootPath %><% module.id %>/index.html"> <% module.id | replace "/" "." %> </a></h2>
+<div class="jsdoc-fileoverview">
+    <% module.fileoverview | markdown %>
+</div>
+
+</li>
+

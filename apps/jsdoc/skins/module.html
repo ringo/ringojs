@@ -1,60 +1,168 @@
 <% extends skins/base.html %>
 
-<% subskin head %>
-<link rel="stylesheet" href="<% href /static/jsdoc.css %>" />        
-<link rel="stylesheet" href="<% href /static/jquery.treeview.css %>" />
-<link rel="stylesheet" href="<% href /static/sh_ide-codewarrior.min.css %>" />
-<script type="text/javascript" src="<% href /static/jquery-1.3.2.min.js %>"></script>
-<script type="text/javascript" src="<% href /static/jquery.cookie.js %>"></script>
-<script type="text/javascript" src="<% href /static/jquery.treeview.min.js %>"></script>
-<script type="text/javascript" src="<% href /static/sh_main.min.js %>"></script>
-<script type="text/javascript" src="<% href /static/sh_javascript.min.js %>"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("div#menu > ul.apilist").treeview({
-            persist: "cookie"
-        });
-        $("a").click(function() {
-            // apply highlighting and animation to internal anchor links
-            var href = this.href;
-            var hash = href.indexOf("#");
-            if (hash > -1) {
-                var url = href.substring(0, hash);
-                if (location.href.substring(0, hash) == url) {
-                    goto(href.substring(hash));
-                    return false;
-                }
-            }
-            return true;
-        });        
-        if (window.location.hash) {
-            goto(window.location.hash);
-        }
-    });
-    function goto(id) {
-        var target = $(id);
-        if (target.length) {
-            $(".docitem").removeClass("highlighted");
-            $(id).addClass("highlighted");
-            $('html, body').animate({scrollTop: $(id).offset().top - 20});
-            window.location.hash = id;
-        }
-        return false;
-    }
-</script>
-
-<% subskin menu %>
-<div><a href="<% href / %>">Overview</a></div>
-<% navigation %>
-<% moduleList %>
-
 <% subskin content %>
-<% moduleDoc | fileoverview %>
-<% for item in <% moduleDoc %> render jsdoc %>
+    <div >
+        <div class="moduleheader">
+            <h1 class="modulename"> Module <% moduleId %> </h1>
+            <div class="fileoverview">
+                <% module.fileoverview | markdown %>
+            </div>
 
-<% subskin jsdoc %>
-<div class="docitem" id="<% item.name | replace '\\.' '_' %>">
-<h3 class="docheader"><% item | renderName %></h3>
-<div><% item | renderDoc %></div>
+            <div class="moduleoverview">
+                <% if <% module.danglingFunctions.length %> or <% module.danglingProperties.length %> render danglingOverview %>
+                
+                <div class="classes">
+                    <% for class in <% module.classes %> render classOverview %>
+                </div>
+            </div>
+        </div>
+        <hr/>
+        <div class="details">
+            <% for item in <% module.items %> render docItem %>
+        </div>
+    </div>
+
+<% subskin danglingOverview %>
+<div class="classoverview">
+    <% if <% module.danglingFunctions.length %> render moduleFunctionsOverview %>
+    <% if <% module.danglingProperties.length %> render modulePropertiesOverview %>
 </div>
-<hr/>
+
+
+<% subskin moduleFunctionsOverview %>
+<div>
+    <h3>Functions</h3>
+    <ul class="propertyoverview">
+        <% for item in <% module.danglingFunctions %> render propertyOverview %>
+    </ul>
+</div>
+
+<% subskin modulePropertiesOverview %>
+<div>
+    <h3>Properties</h3>
+    <ul class="propertyoverview">
+        <% for item in <% module.danglingProperties %> render propertyOverview %>
+    </ul>
+</div>
+
+
+<% subskin propertyOverview %>
+<li>
+    <a href="#<% item.name %>" class="jsdoc-title"> <% item.shortName %></a><% if <% item.isFunction %> render parameterLine %>
+    </a>
+</li>
+
+<% subskin parameterLine %>
+(<% item.parameters | listProperty 'name' %>)
+
+<% subskin classOverview %>
+
+    <div class="classoverview">
+        <h2> Class <a href="#<% class.name %>" class="jsdoc-title"><% class.name %></a></h2>
+        <% if <% class.methods.length %> render classMethodsOverview %>
+        <% if <% class.properties.length %> render classPropertiesOverview %>
+        <% if <% class.staticMethods.length %> render classStaticMethodsOverview %>
+        <% if <% class.staticProperties.length %> render classStaticPropertiesOverview %>
+    </div>
+    
+<% subskin classMethodsOverview %>
+<div>
+    <h3>Instance Methods</h3>
+    <ul class="propertyoverview">
+        <% for item in <% class.methods %> render propertyOverview %>
+    </ul>
+</div>
+        
+<% subskin classPropertiesOverview %>
+<div>
+    <h3>Instance Properties</h3>
+    <ul class="propertyoverview">
+        <% for item in <% class.properties %> render propertyOverview %>
+    </ul>
+</div>
+
+<% subskin classStaticMethodsOverview %>
+<div>
+    <h3>Static Methods</h3>
+    <ul class="propertyoverview">
+        <% for item in <% class.staticMethods %> render propertyOverview %>
+    </ul>
+</div>
+
+<% subskin classStaticPropertiesOverview %>
+<div>
+    <h3>Static Properties</h3>
+    <ul class="propertyoverview">
+        <% for item in <% class.staticProperties %> render propertyOverview %>
+    </ul>
+</div>
+
+<% subskin docItem %>
+<!-- tpl-docitem -->
+<div>
+    <div class="docitem">
+        <h3>
+           <% render namePrefix %><a id="<% item.name %>" href="#<% item.name %>" class="itemtitle"><% item.shortName %>
+
+            </a>
+            <% if <% item.isFunction %> render parameterLine %>
+        </h3>
+        <div>
+            <% item.desc | markdown %>
+        </div>
+
+        <% if <% item.parameters.length %> and <% item.parameters | haveDescOrType %>
+            render parametersSection %>
+                
+        <% if <% item.returns.name %> or <% item.returns.type %> render returnsSection %>
+        
+        <% if <% item.throws.length %> render throwsSection %>
+        
+        <% if <% item.sees.length %> render seesSection %>
+    </div>
+    <hr/>
+</div>
+
+<% subskin namePrefix %>
+<span class="itemtitle"><% item.relatedClass %><% if <% item.relatedClass %> echo '.' %><% if <%item.relatedClass %> and not <% item.isStatic %> echo 'prototype.' %></span><% subskin parametersSection %>
+<div>
+    <h4>Parameters</h4>
+    <table>
+        <% for param in <% item.parameters %> render parameterRow %>
+    </table>
+</div>
+
+<% subskin seesSection %>
+<div>            
+    <h4>See</h4>
+    <div> 
+        <% item.sees | join '<br/>'%>
+    </div>
+</div>      
+
+<% subskin throwsSection %>
+<div>
+    <h4>Throws</h4>
+    <div>
+        <% item.throws | join ',' %>
+    </div>
+</div>
+
+
+<% subskin returnsSection %>
+<div>
+    <h4><% if <% item.isFunction %> echo 'Returns' %> <% if not <% item.isProperty %> echo 'Type' %></h4>
+    <table>
+        <tr>
+            <td><% item.returns.type %></td>
+            <td><% item.returns.name %></td>
+        </tr>
+    </table>
+</div>
+
+<% subskin parameterRow %>
+<tr>
+    <td><% param.type %></td>
+    <td class="paramname"><% param.name %></td>
+    <td><% param.desc %></td>
+</tr>

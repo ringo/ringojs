@@ -1,25 +1,74 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html >
+
+<html lang="de" dir="ltr">
 <head>
 <title><% title %></title>
-<link rel="stylesheet" href="/static/style.css" />
+<link rel="stylesheet" href="<% rootPath %>static/style.css" />
+<link rel="stylesheet" href="<% rootPath %>static/jsdoc.css" />
+<link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" /> 
+<link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" /> 
+<script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
+
+<script>
+$(document).ready(function() {
+    /**
+     * Filters $list (must be ul) with given query. lowercase string comparision
+     */
+    var filterList = function(query, $list) {
+        if (!query) {
+            $('li', $list).show();
+            return false;
+        }
+        var found = false;
+        $('li', $list).each(function() {
+            var $item = $(this);
+            if ($item.html().toLowerCase().indexOf(query) < 0) {
+                $item.hide();
+            } else {
+                $item.show();
+                found = true;
+            }
+        });
+        return found;
+    };
+    
+    // search module list
+    $("#jsdoc-leftnavsearch").keyup(function() {
+        var query = $.trim($(this).val().toLowerCase());
+        filterList(query, $('.jsdoc-leftnav'));
+    });
+    
+});
+</script>
 <% render head %>
 </head>
 
-<body onload="sh_highlightDocument();">
+<body>
 <div id="wrap">
-<div id="main">
-<h1><% title %></h1>
-<% render content %>
-</div>
+    <div id="main">
+    <% render content %>
+    </div>
 
-<div id="menu">
-<% render menu %>
-</div>
+    <div id="menu">
+
+    <% render menu %>
+
+    </div>
 </div>
 </body>
 </html>
+    
+<% subskin menu %>
+<div>
+    <a class="repositoryname" href="<% rootPath %>index.html"><% repositoryName %> </a>
+</div>
+<input id="jsdoc-leftnavsearch" type="text">
+<ul class="jsdoc-leftnav leftnav">
+    <% for module in <% modules %> render "moduleItem" %>
+</ul>
 
+<% subskin moduleItem %>
+    <li><a href="<% rootPath %><% module.id %>/index.html"><% module.id | replace "/" "." %></a> </li>
+    
 <% subskin 'content' %>
 Overwrite this subskin to add content.

@@ -7,66 +7,15 @@ pre.code {
     line-height: 145%;
 }
 
-a {
-    text-decoration: none;
-}
-
-.section {
-    color: #000;
-    font-weight: 500;
-    border-bottom: 1px solid #999;
-}
-
-.subheader {
-    color: green;
-    font-weight: bold;
-}
-
-table.subsection td {
+table td {
     vertical-align: top;
     padding: 0 6px;
 }
 
-div.subsection {
-    padding-left: 12px;
-}
-
-ul.apilist {
-    list-style: none;
-}
-
-div#main ul.apilist {
-    padding-left: 1.5em;
-}
-
-div#menu ul.apilist {
-    line-height: normal;
-    padding-left: 0.3em;
-}
-
-.fileoverview {
-    margin-bottom: 1em;
-}
-
-.docitem {
-    position: relative;
-    left: -14px;
-    padding-left: 10px;
-    border-left: 4px solid white;
-}
-
-.docheader a:link, .docheader a:visited {
-    text-decoration: none;
-    color: #999;
-    visibility: hidden;
-}
-
-.docheader:hover a {
-    visibility: visible;
-}
-
-.highlighted {
-    border-left: 4px solid green;
+h4 {
+    margin: 5px;
+    color: green;
+    font-weight: bold;   
 }
 
 .dimmed {
@@ -74,23 +23,57 @@ div#menu ul.apilist {
     font-weight: 500;
 }
 
-ul.apilist {
-    list-style: none;
+
+
+.paramname {
+    font-weight:bold;
 }
 
-div#main ul.apilist {
-    padding-left: 1.5em;
+.leftnav, .repositorylist, .propertyoverview {
+    list-style-type: none;
+    padding: 5px;
 }
 
-div#menu ul.apilist {
-    line-height: normal;
-    padding-left: 0.3em;
+.docitem .itemtitle {
+    font-size:large;
+    text-decoration:none;
 }
 
-hr {
-    border: 0;
-    color: #999;
-    background-color: #999;
-    height: 1px;
+ul.modulelist {
+    list-style-type:none;
 }
 
+.repositoryname {
+    font-weight:bold;
+}
+
+.moduleheader {
+    padding: 8px;
+}
+
+h2, h3 {
+    margin-bottom: 5px;
+}
+
+h3 {
+    font-size: small;
+}
+
+ul {
+    margin: 5px;
+}
+
+.classoverview, .modulecontainer {
+    background-color: #f1ffcc; /*#f7ffe5; */
+    padding: 5px;
+    margin: 5px;
+}
+
+.modulename {
+    background-color: #f1ffcc;
+}
+
+.showmore {
+    color: blue;
+    cursor: pointer;
+}
