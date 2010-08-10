@@ -5,7 +5,7 @@
  *
  * @see http://code.google.com/p/jsdoc-toolkit/
  */
- 
+
 // stdlib
 var fileutils = require('ringo/fileutils');
 var {makeTree, write, copyTree, join, Path} = require('fs');
@@ -32,7 +32,7 @@ config.macros.forEach(function(moduleId) {
 /**
  * Copy static files of this webapp to target directory
  *
- * @param {String} target 
+ * @param {String} target
  */
 function copyStaticFiles(target) {
     makeTree(join(target, 'static'));
@@ -47,7 +47,7 @@ function copyStaticFiles(target) {
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
-    var repositoryHtml = render('./skins/repository.html', 
+    var repositoryHtml = render('./skins/repository.html',
         objects.merge(defaultContext, {
             repositoryName: repository.name,
             modules: moduleList(repository.path, true),
@@ -64,24 +64,23 @@ function writeModuleList(target, repository) {
  * @param {String} repository path
  * @param {String} moduleId
  */
-function writeModuleDoc(target, repository, moduleId){    
-    
+function writeModuleDoc(target, repository, moduleId){
+
     var moduleDirectory = target;
     var modules = [];
     moduleDirectory = join(target, moduleId);
     makeTree(moduleDirectory);
     modules = moduleList(repository.path);
-    
+
     var docs = moduleDoc(repository.path, moduleId);
     if (docs == null) {
         throw new Error('Could not parse JsDoc for ' + repository.path + moduleId);
     }
-    
+
     var slashCount = strings.count(moduleId, '/');
     var relativeRoot = '../' + strings.repeat('../', slashCount);
 
-    
-    var moduleHtml = render('./skins/module.html', 
+    var moduleHtml = render('./skins/module.html',
         objects.merge(defaultContext, {
             rootPath: relativeRoot,
             repositoryName: repository.name,
@@ -138,7 +137,7 @@ function main(args) {
     if (!opts.source) {
         throw new Error('No source specified.');
     }
-    
+
     var exportDirectory = join(opts.directory || './out/');
     var repository = {
         path: opts.source,
@@ -153,8 +152,8 @@ function main(args) {
     } else if (dest.isDirectory() && dest.list().length > 0) {
         throw new Error('Directory ' + dest + ' exists but is not empty');
     }
-    
-    // figure out what type of doc we write, single module, multi repos 
+
+    // figure out what type of doc we write, single module, multi repos
     // or single repo
     if (!isDirectory(repository.path)) {
         throw new Error('Invalid source specified. Must be directory.');
@@ -162,7 +161,7 @@ function main(args) {
     }
 
     if (!quiet) print ('Writing to ' + exportDirectory + '...');
-    
+
     copyStaticFiles(exportDirectory);
     if (!quiet) print(repository.path);
     writeModuleList(exportDirectory, repository);
@@ -172,7 +171,7 @@ function main(args) {
     });
 
     if (!quiet) print('Finished writing to ' + exportDirectory);
-    return;  
+    return;
 };
 
 if (require.main == module) {

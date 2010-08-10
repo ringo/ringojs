@@ -37,27 +37,27 @@ var moduleDocExpected = {
                 {
                     "name": "stringParam",
                     "type": "String",
-                    "desc": "a string parameter" 
+                    "desc": "a string parameter"
                 },
                 {
                     "name": "numberParam",
                     "type": "Number",
-                    "desc": "a number parameter" 
-                } 
+                    "desc": "a number parameter"
+                }
             ],
             "throws": [
-                "Error might throw error if revolution fails" 
+                "Error might throw error if revolution fails"
             ],
             "sees": [
-                "<a href=\"http://en.wikipedia.org/wiki/Tsar\">http://en.wikipedia.org/wiki/Tsar</a>" 
+                "<a href=\"http://en.wikipedia.org/wiki/Tsar\">http://en.wikipedia.org/wiki/Tsar</a>"
             ],
             "returns": {
                 "name": " a Zar instance",
-                "type": "Zar" 
+                "type": "Zar"
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.defineMultiOne",
@@ -68,21 +68,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": true,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": "Boolean" 
+                "type": "Boolean"
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.defineMultiTwo",
@@ -93,21 +93,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": true,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": "Number" 
+                "type": "Number"
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.prototype.deprecateMe",
@@ -118,21 +118,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": false,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": "don't use this" 
+            "deprecated": "don't use this"
         },
         {
             "name": "Zar.prototype.instanceFn",
@@ -146,22 +146,22 @@ var moduleDocExpected = {
                 {
                     "name": "doSomething",
                     "type": "Boolean",
-                    "desc": "param is not visible in function def" 
-                } 
+                    "desc": "param is not visible in function def"
+                }
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.prototype.zarPrototype",
@@ -172,21 +172,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": false,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.prototype.zarPrototypeProp",
@@ -197,21 +197,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": false,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.prototype.zarPrototypeTwo",
@@ -222,21 +222,21 @@ var moduleDocExpected = {
             "isFunction": true,
             "isStatic": false,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.zarDefine",
@@ -247,21 +247,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": true,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.zarStatic",
@@ -272,21 +272,21 @@ var moduleDocExpected = {
             "isFunction": undefined,
             "isStatic": true,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": null,
-                "type": null 
+                "type": null
             },
             "example": null,
             "since": null,
-            "deprecated": null 
+            "deprecated": null
         },
         {
             "name": "Zar.zarStaticFn",
@@ -297,23 +297,23 @@ var moduleDocExpected = {
             "isFunction": true,
             "isStatic": true,
             "parameters": [
-                
+
             ],
             "throws": [
-                
+
             ],
             "sees": [
-                
+
             ],
             "returns": {
                 "name": " a true or false value",
-                "type": "Boolean" 
+                "type": "Boolean"
             },
             "example": null,
             "since": null,
-            "deprecated": null 
-        } 
-    ] 
+            "deprecated": null
+        }
+    ]
 };
 
 

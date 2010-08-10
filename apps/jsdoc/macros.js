@@ -4,7 +4,7 @@
  */
 exports.listProperty_filter = function(items, tag) {
     var prop = tag.parameters[0] || tag.getParameter('property');
-    var params = (items || []).map(function(param) {  
+    var params = (items || []).map(function(param) {
         return param[prop];
     });
     return params.join(', ');

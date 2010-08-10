@@ -10,7 +10,7 @@
 
             <div class="moduleoverview">
                 <% if <% module.danglingFunctions.length %> or <% module.danglingProperties.length %> render danglingOverview %>
-                
+
                 <div class="classes">
                     <% for class in <% module.classes %> render classOverview %>
                 </div>
@@ -64,7 +64,7 @@
         <% if <% class.staticMethods.length %> render classStaticMethodsOverview %>
         <% if <% class.staticProperties.length %> render classStaticPropertiesOverview %>
     </div>
-    
+
 <% subskin classMethodsOverview %>
 <div>
     <h3>Instance Methods</h3>
@@ -72,7 +72,7 @@
         <% for item in <% class.methods %> render propertyOverview %>
     </ul>
 </div>
-        
+
 <% subskin classPropertiesOverview %>
 <div>
     <h3>Instance Properties</h3>
@@ -113,11 +113,11 @@
 
         <% if <% item.parameters.length %> and <% item.parameters | haveDescOrType %>
             render parametersSection %>
-                
+
         <% if <% item.returns.name %> or <% item.returns.type %> render returnsSection %>
-        
+
         <% if <% item.throws.length %> render throwsSection %>
-        
+
         <% if <% item.sees.length %> render seesSection %>
     </div>
     <hr/>
@@ -133,12 +133,12 @@
 </div>
 
 <% subskin seesSection %>
-<div>            
+<div>
     <h4>See</h4>
-    <div> 
+    <div>
         <% item.sees | join '<br/>'%>
     </div>
-</div>      
+</div>
 
 <% subskin throwsSection %>
 <div>

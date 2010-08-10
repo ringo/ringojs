@@ -5,8 +5,8 @@
 <title><% title %></title>
 <link rel="stylesheet" href="<% rootPath %>static/style.css" />
 <link rel="stylesheet" href="<% rootPath %>static/jsdoc.css" />
-<link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" /> 
-<link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" /> 
+<link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
+<link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
 <script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
 
 <script>
@@ -31,13 +31,13 @@ $(document).ready(function() {
         });
         return found;
     };
-    
+
     // search module list
     $("#jsdoc-leftnavsearch").keyup(function() {
         var query = $.trim($(this).val().toLowerCase());
         filterList(query, $('.jsdoc-leftnav'));
     });
-    
+
 });
 </script>
 <% render head %>
@@ -57,7 +57,7 @@ $(document).ready(function() {
 </div>
 </body>
 </html>
-    
+
 <% subskin menu %>
 <div>
     <a class="repositoryname" href="<% rootPath %>index.html"><% repositoryName %> </a>
@@ -69,6 +69,6 @@ $(document).ready(function() {
 
 <% subskin moduleItem %>
     <li><a href="<% rootPath %><% module.id %>/index.html"><% module.id | replace "/" "." %></a> </li>
-    
+
 <% subskin 'content' %>
 Overwrite this subskin to add content.

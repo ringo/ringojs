@@ -1,12 +1,12 @@
 /**
- * @fileoverview This module creates jsonable objects from the documentation 
+ * @fileoverview This module creates jsonable objects from the documentation
  * extracted by `ringo/jsdoc`.
  *
  * `moduleDoc()` returns an object with an unsorted list of all jsdoc'ed properties
  * found in a module. `structureModuleDoc()` can turn this object into something more
  * structured: it collects all classes, attaches them their properties and also
  * puts all the module properties into extra lists.
- 
+ *
  * @see ringo/jsdoc
  */
 
@@ -32,8 +32,8 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
  * modules for the given repositoryPath.
  *
  * @param {String} repositoryPath
- * @param {Boolean} moduleFileOverview if true every module will be parsed and it's 
-                fileoverview attached. default: false.
+ * @param {Boolean} moduleFileOverview if true every module will be parsed and
+ *                  it's fileoverview attached. default: false.
  * @returns {Array} modules
  */
 var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
@@ -53,7 +53,7 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
     }).sort(function(a, b) {
         return a.id > b.id ? 1 : -1;
     });
-    
+
    return modules;
 };
 
@@ -125,10 +125,10 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
     return doc;
 };
 
-/** 
+/**
  * Transforms the JsDoc Data as generated moduleDoc into this structure and leaves
  * all other properties (`items`, `fileoverview`,..) attached.
- * 
+ *
  *  {
  *      danglingFunctions: [],
  *      danglingProperties: [],
@@ -146,12 +146,12 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
  * @returns {Object}
  *
  */
-exports.structureModuleDoc = function(data) {    
+exports.structureModuleDoc = function(data) {
 
     var classes = data.items.filter(function(item) {
         return item.isClass;
     });
-    
+
     var filterByName = function(className) {
         return (function(item) {
             return item.name === className;
@@ -161,11 +161,11 @@ exports.structureModuleDoc = function(data) {
     var functions = data.items.filter(function(item) {
         return item.isFunction && !item.IsClass;
     });
-    
+
     var properties = data.items.filter(function(item) {
         return !item.isFunction && !item.isClass;
     });
-    
+
     // if we find a function for a class which isn't yet in classes
     // add it.
     functions.forEach(function(item) {
@@ -179,20 +179,20 @@ exports.structureModuleDoc = function(data) {
             }
         }
     });
-    
+
     // now that we have all classes sort 'em
     classes.sort(function(a,b) {
         return a.name < b.name ? -1 : 1;
     });
-    
+
     data.danglingFunctions = functions.filter(function(item) {
         return !item.relatedClass && !item.isClass;
     });
-    
+
     data.danglingProperties = properties.filter(function(item) {
         return !item.relatedClass;
     });
-    
+
     classes.forEach(function(class, i) {
         function isStatic(item) {
             return item.relatedClass === class.name && item.isStatic;
@@ -203,7 +203,7 @@ exports.structureModuleDoc = function(data) {
 
         class.methods = functions.filter(isNotStatic);;
         class.properties = properties.filter(isNotStatic);
-        
+
         class.staticProperties = properties.filter(isStatic);
         class.staticMethods = functions.filter(isStatic);
     });
@@ -279,7 +279,7 @@ function getReturns(item) {
             if (type) {
                 returns = returns.substring(type[0].length);
                 type = type[1];
-            }            
+            }
         }
     }
     return [returns, type];
