@@ -69,6 +69,17 @@ exports.testParse = function() {
             hour: 21,
             minutes: 21,
             seconds: 25
+        },
+        "T18:30:15.91Z": {
+            hour: 18,
+            minutes: 30,
+            seconds: 15,
+            milliseconds: 910
+        },
+        "T02:51:25+05:30": { // IST
+            hour: 21,
+            minutes: 21,
+            seconds: 25
         }
     };
 
@@ -76,10 +87,12 @@ exports.testParse = function() {
     for (var str in cases) {
         o = cases[str];
         got = dates.parse(str);
-        exp = new Date(Date.UTC(o.year, o.month, o.date, o.hour || 0, o.minutes || 0, o.seconds || 0, o.milliseconds || 0));
-        assert.strictEqual(got.getUTCFullYear(), exp.getUTCFullYear(), str + ": correct UTCFullYear");
-        assert.strictEqual(got.getUTCMonth(), exp.getUTCMonth(), str + ": correct UTCMonth");
-        assert.strictEqual(got.getUTCDate(), exp.getUTCDate(), str + ": correct UTCDate");
+        exp = new Date(Date.UTC(o.year || 0, o.month || 0, o.date || 1, o.hour || 0, o.minutes || 0, o.seconds || 0, o.milliseconds || 0));
+        if ("year" in o) {
+            assert.strictEqual(got.getUTCFullYear(), exp.getUTCFullYear(), str + ": correct UTCFullYear");
+            assert.strictEqual(got.getUTCMonth(), exp.getUTCMonth(), str + ": correct UTCMonth");
+            assert.strictEqual(got.getUTCDate(), exp.getUTCDate(), str + ": correct UTCDate");            
+        }
         assert.strictEqual(got.getUTCHours(), exp.getUTCHours(), str + ": correct UTCHours");
         assert.strictEqual(got.getUTCMinutes(), exp.getUTCMinutes(), str + ": correct UTCMinutes");
         assert.strictEqual(got.getUTCSeconds(), exp.getUTCSeconds(), str + ": correct UTCSeconds");
