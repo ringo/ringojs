@@ -66,7 +66,7 @@ function format(date, format, locale, timezone) {
 function parse(str) {
     var parts = str.split("T");
     var dateParts = parts[0].split("-");
-    var year = parseInt(dateParts[0], 10);
+    var year = parseInt(dateParts[0], 10) || 0;
     var month, day;
     if (dateParts.length > 1) {
         month = parseInt(dateParts[1], 10) - 1;
