@@ -136,12 +136,12 @@ public class JsgiServlet extends HttpServlet {
         }
     }
 
-    private String getStringParameter(ServletConfig config, String name, String defaultValue) {
+    protected String getStringParameter(ServletConfig config, String name, String defaultValue) {
         String value = config.getInitParameter(name);
         return value == null ? defaultValue : value;
     }
 
-    private int getIntParameter(ServletConfig config, String name, int defaultValue) {
+    protected int getIntParameter(ServletConfig config, String name, int defaultValue) {
         String value = config.getInitParameter(name);
         if (value != null) {
             try {
@@ -153,7 +153,7 @@ public class JsgiServlet extends HttpServlet {
         return defaultValue;
     }
 
-    private boolean getBooleanParameter(ServletConfig config, String name, boolean defaultValue) {
+    protected boolean getBooleanParameter(ServletConfig config, String name, boolean defaultValue) {
         String value = config.getInitParameter(name);
         if (value != null) {
             if ("true".equals(value) || "1".equals(value) || "on".equals(value)) {

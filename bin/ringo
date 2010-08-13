@@ -36,6 +36,7 @@ RINGO_OPTS=
 case "$(basename "$0")" in
     ringo-admin)    RINGO_OPTS="ringo/admin/main" ;;
     ringo-web)      RINGO_OPTS="ringo/webapp" ;;
+    ringo-doc)      RINGO_OPTS="$RINGO_HOME/apps/jsdoc/doc.js" ;;
     narwhal)        RINGO_OPTS="--legacy-mode" ;;
 esac
 

@@ -43,7 +43,7 @@
     <!-- Use this connector for many frequently idle connections
          and for threadless continuations.
     -->
-    
+
     <Call name="addConnector">
       <Arg>
           <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
@@ -53,12 +53,12 @@
             <Set name="Acceptors">8</Set>
             <Set name="statsOn">false</Set>
             <Set name="confidentialPort">8443</Set>
-	    <Set name="lowResourcesConnections">20000</Set>
-	    <Set name="lowResourcesMaxIdleTime">5000</Set>
+            <Set name="lowResourcesConnections">20000</Set>
+            <Set name="lowResourcesMaxIdleTime">5000</Set>
           </New>
       </Arg>
     </Call>
-    
+
     <!-- Use this connector if NIO is not available.
     <Call name="addConnector">
       <Arg>
@@ -77,7 +77,7 @@
     <!-- see jetty-ssl.xml to add an ssl connector. use                  -->
     <!-- java -jar start.jar etc/jetty.xml etc/jetty-ssl.xml             -->
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-    
+
     <!-- =========================================================== -->
     <!-- Set up global session ID manager                            -->
     <!-- =========================================================== -->

@@ -4,7 +4,7 @@ body, html {
 }
 
 body {
-    min-width: 830px;
+    min-width: 850px;
     font-family: sans-serif;
     font-size: 80%;
     line-height: 170%;
@@ -60,7 +60,6 @@ a:active {
 
 #menu {
     float: right;
-    width: 200px;
     padding-top: 8em;
 }
 
@@ -71,3 +70,9 @@ a:active {
     font-size: 80%;
     clear:both;
 }
+
+.hidden {
+    visibility:none;
+    display:none;
+}
+
