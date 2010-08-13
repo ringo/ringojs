@@ -1,5 +1,14 @@
 <% extends skins/base.html %>
 
+<% subskin head %>
+<script>
+    $(window).bind('hashchange', function() {
+        $('.docitem').removeClass('highlight');
+        var $docItem = $('[docitem=' + location.hash.substr(1) + ']');
+        $docItem.addClass('highlight');
+    });
+</script>
+
 <% subskin content %>
     <div >
         <div class="moduleheader">
@@ -100,7 +109,7 @@
 <% subskin docItem %>
 <!-- tpl-docitem -->
 <div>
-    <div class="docitem">
+    <div class="docitem" docitem="<% item.name %>">
         <h3>
            <% render namePrefix %><a id="<% item.name %>" href="#<% item.name %>" class="itemtitle"><% item.shortName %>
 

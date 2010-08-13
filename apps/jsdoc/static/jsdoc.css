@@ -23,8 +23,6 @@ h4 {
     font-weight: 500;
 }
 
-
-
 .paramname {
     font-weight:bold;
 }
@@ -34,9 +32,20 @@ h4 {
     padding: 5px;
 }
 
+.docitem {
+    margin: 0 0 0 5px;
+    padding: 0 0 0 10px;
+}
+
 .docitem .itemtitle {
     font-size:large;
     text-decoration:none;
+}
+
+
+.docitem.highlight {
+    border-left: 4px solid green;
+    padding: 0 0 0 6px;
 }
 
 ul.modulelist {
