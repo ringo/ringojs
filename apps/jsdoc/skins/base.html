@@ -60,7 +60,7 @@ $(document).ready(function() {
 
 <% subskin menu %>
 <div>
-    <a class="repositoryname" href="<% rootPath %>index.html"><% repositoryName %> </a>
+    <a class="repositoryname" href="<% rootPath %><% if <% isStaticRenderer %> echo index.html %>"><% repositoryName %> </a>
 </div>
 <input id="jsdoc-leftnavsearch" type="text">
 <ul class="jsdoc-leftnav leftnav">
@@ -68,7 +68,7 @@ $(document).ready(function() {
 </ul>
 
 <% subskin moduleItem %>
-    <li><a href="<% rootPath %><% module.id %>/index.html"><% module.id | replace "/" "." %></a> </li>
+    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id | replace "/" "." %></a> </li>
 
 <% subskin 'content' %>
 Overwrite this subskin to add content.

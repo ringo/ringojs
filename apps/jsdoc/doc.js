@@ -29,6 +29,9 @@ config.macros.forEach(function(moduleId) {
     defaultContext = objects.merge(defaultContext ,require(fileutils.resolveId(module.directory, moduleId)));
 });
 
+// let skins now we are in static mode
+defaultContext.isStaticRenderer = true;
+
 /**
  * Copy static files of this webapp to target directory
  *
