@@ -76,10 +76,21 @@ exports.testParse = function() {
             seconds: 15,
             milliseconds: 910
         },
+        "T21:51:25Z": {
+            hour: 21,
+            minutes: 51,
+            seconds: 25
+        },
         "T02:51:25+05:30": { // IST
             hour: 21,
             minutes: 21,
             seconds: 25
+        },
+        "T2:51:25.1234-7": { // lenient
+            hour: 9,
+            minutes: 51,
+            seconds: 25,
+            milliseconds: 123
         }
     };
 
