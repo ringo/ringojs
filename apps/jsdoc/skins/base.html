@@ -68,7 +68,7 @@ $(document).ready(function() {
 </ul>
 
 <% subskin moduleItem %>
-    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id | replace "/" "." %></a> </li>
+    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id %></a> </li>
 
 <% subskin 'content' %>
 Overwrite this subskin to add content.
