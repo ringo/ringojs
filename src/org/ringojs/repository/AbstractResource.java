@@ -99,7 +99,7 @@ public abstract class AbstractResource implements Resource {
     }
 
     public String getContent() throws IOException {
-        return getContent(null);
+        return getContent("utf-8");
     }
 
     /**
