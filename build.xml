@@ -10,7 +10,7 @@
         <echo message=" compile    --> compiles the source code to ./build/classes"/>
         <echo message=" jar        --> generates the ./lib/ringo.jar file"/>
         <echo message=" test       --> run JUnit and RingoJS tests"/>
-        <echo message=" apidocs    --> generates the API docs"/>
+        <echo message=" docs       --> generates the API docs"/>
         <echo message=" package    --> creates RingoJS distribution"/>
         <echo message=" dpkg       --> creates RingoJS debian package"/>
         <echo message=" clean      --> clean up compiled resources"/>
@@ -30,7 +30,8 @@
         <property name="build" value="${home}/build"/>
         <property name="classes" value="${build}/classes"/>
         <property name="docs" value="${home}/docs"/>
-        <property name="javadocs" value="${home}/docs/api"/>
+        <property name="jsdocs" value="${home}/docs/modules"/>
+        <property name="javadocs" value="${home}/docs/java"/>
 
         <property name="ringo.jar" value="${lib}/ringo.jar"/>
 
@@ -79,7 +80,7 @@
     <!-- =================================================================== -->
     <target name="test" depends="jar">
         <java jar="run.jar" fork="true">
-            <arg value="test/all"/>
+            <arg value="test/all.js"/>
         </java>
         <junit haltonfailure="true">
             <classpath refid="classpath"/>
@@ -110,34 +111,28 @@
     <!-- =================================================================== -->
     <!-- Creates the API documentation                                       -->
     <!-- =================================================================== -->
-    <target name="apidocs" depends="init">
+    <target name="docs" depends="jar">
         <mkdir dir="${javadocs}"/>
         <javadoc packagenames="org.ringojs.*"
             destdir="${javadocs}"
-            windowtitle="RingoJS API"
-            doctitle="RingoJS API">
+            windowtitle="RingoJS Java API"
+            doctitle="RingoJS Java API">
             <fileset dir="${src}" includes="**/*.java" />
             <classpath refid="classpath"/>
        </javadoc>
-    </target>
-
-    <!-- =================================================================== -->
-    <!-- Creates the Rhino/Javascript API documentation as JSON file         -->
-    <!-- =================================================================== -->
-    <target name="rhinodocs" depends="jar">
-        <javadoc packagenames="org.ringojs.web,org.ringojs.template"
-                 sourcepath="${src}"
-                 doclet="org.ringojsjs.tools.RhinoDoclet"
-                 docletpath="${lib}/ringo.jar">
-                 <classpath refid="classpath"/>
-        </javadoc>
-        <echo message="Javascript documentation generated in docs/core/rhinodoc.js"/>
+       <delete dir="${jsdocs}"/>
+       <java jar="run.jar" fork="true">
+           <arg value="${home}/apps/jsdoc/doc.js"/>
+           <arg  value="--source=${home}/modules"/>
+           <arg  value="--directory=${jsdocs}"/>
+           <arg  value="--name=RingoJS Module API"/>
+       </java>
     </target>
 
     <!-- =================================================================== -->
     <!-- Create zipped files for distribution                                -->
     <!-- =================================================================== -->
-    <target name="package" depends="jar,apidocs,test">
+    <target name="package" depends="jar,docs,test">
         <zip zipfile="../${project}-${version}.zip">
             <zipfileset dir="${home}" prefix="${project}-${version}"
              excludes="build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**" />
