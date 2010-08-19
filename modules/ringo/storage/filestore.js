@@ -165,14 +165,14 @@ function Store(path) {
         if (!dir.exists() || !dir.isDirectory()) {
             return [];
         }
-        var files = dir.listPaths();
+        var paths = dir.listPaths();
         var list = [];
 
-        for each (var file in files) {
-            if (!file.isFile() || files.isHidden(file)) {
+        for each (var path in paths) {
+            if (!path.isFile() || files.isHidden(path)) {
                 continue;
             }
-            list.push(create(type, createKey(type, file.base())));
+            list.push(create(type, createKey(type, path.base())));
         }
         return list;
     }
