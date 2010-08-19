@@ -192,7 +192,6 @@ public class MacroTag extends ScriptableObject {
      * number of string or integer arguments. It evaluates the arguments as parameter
      * names or parameter indices until a parameter is found and returns it. If the
      * arguments don't match a parameter, the method returns null.
-     * @rhinoparam nameOrIndex StringOrInteger one or more parameter names or indices.
      * @return Object The first parameter that matches one of the arguments.
      */
     @JSFunction

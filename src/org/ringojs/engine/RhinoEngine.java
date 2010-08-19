@@ -857,7 +857,7 @@ public class RhinoEngine implements ScopeProvider {
 
     /**
      * Get the engine's WrapFactory.
-     * @return
+     * @return the engine's WrapFactory instance
      */
     public WrapFactory getWrapFactory() {
         return wrapFactory;

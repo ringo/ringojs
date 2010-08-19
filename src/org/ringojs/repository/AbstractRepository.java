@@ -255,8 +255,8 @@ public abstract class AbstractRepository implements Repository {
     }
 
     /**
-     * Returns the repositories full name as string representation.
-     * @see {getName()}
+     * Returns the repositories full path as string representation.
+     * @see #getPath()
      */
     public String toString() {
         return getPath();
