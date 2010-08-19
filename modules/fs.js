@@ -279,11 +279,15 @@ function extension(path) {
 }
 
 /**
- * Join a list of paths using the local file system's path separator and
- * normalize the result.
+ * Join a list of paths using the local file system's path separator.
+ * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
+ * @see http://wiki.commonjs.org/wiki/Filesystem/Join
+ *
  */
 function join() {
-    return normal(Array.join(arguments, SEPARATOR));
+    // filter out empty strings to avoid join("", "foo") -> "/foo"
+    var args = Array.filter(arguments, function(p) p != "")
+    return args.join(SEPARATOR);
 }
 
 /**
