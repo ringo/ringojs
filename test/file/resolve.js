@@ -1,6 +1,6 @@
 var assert = require("assert");
 var fs = require('fs');
-var {separator, roots} = require('ringo/fileutils');
+var {separator, roots} = require('ringo/utils/files');
 
 var tests = [
     [['/'], '/'],

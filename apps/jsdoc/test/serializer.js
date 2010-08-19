@@ -1,11 +1,11 @@
 // stdlib
 var assert = require("assert");
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 importPackage(org.ringojs.repository);
 // custom
 var {moduleDoc, moduleList} = require('../jsdocserializer');
 
-var fooBarRepo = new ZipRepository(fileutils.resolveId(module.directory, './foobarRepository.zip'));
+var fooBarRepo = new ZipRepository(files.resolveId(module.directory, './foobarRepository.zip'));
 
 var moduleListExpected = [
     {

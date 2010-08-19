@@ -7,7 +7,7 @@ var strings = require('ringo/utils/strings');
 var {Request} = require('ringo/webapp/request');
 var {Response, redirectResponse} = require('ringo/webapp/response');
 var system = require('system');
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 var daemon = require('ringo/webapp/daemon');
 var webenv = require('ringo/webapp/env');
 
@@ -108,7 +108,7 @@ function getPattern(spec) {
 function resolveId(parent, spec) {
     var moduleId = spec[1];
     if (typeof moduleId == "string") {
-        return fileutils.resolveId(parent, moduleId);
+        return files.resolveId(parent, moduleId);
     } else {
         return moduleId;
     }
