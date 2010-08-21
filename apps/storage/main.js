@@ -9,7 +9,7 @@ function index(req) {
     if (req.params.save) {
         return createBook(req);
     }
-    return Response.skin('./skins/index.html', {
+    return Response.skin(module.directory + 'skins/index.html', {
         title: 'Storage',
         books: Book.all(),
         action: req.path
@@ -26,11 +26,11 @@ function edit(req, id) {
         book.save();
         return Response.redirect("../");
     }
-    return Response.skin('./skins/edit.html', {
+    return Response.skin(module.directory + 'skins/edit.html', {
         title: 'Storage',
         book: book,
         action: req.path
-    })
+    });
 }
 
 function remove(req, id) {
@@ -38,11 +38,11 @@ function remove(req, id) {
     if (req.params.remove && req.isPost) {
         return removeBook(req, book);
     }
-    return Response.skin('./skins/remove.html', {
+    return Response.skin(module.directory + 'skins/remove.html', {
         title: 'Storage',
         book: book,
         action: req.path
-    })
+    });
 }
 
 // Simple RESTful API example.

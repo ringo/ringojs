@@ -6,5 +6,5 @@ exports.index = function (req) {
         title: 'Modules',
         path: req.scriptName + req.pathInfo
     };
-    return Response.skin('./skins/modules.txt', context);
+    return Response.skin(module.directory + 'skins/modules.txt', context);
 };

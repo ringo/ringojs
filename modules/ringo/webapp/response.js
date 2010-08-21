@@ -224,15 +224,12 @@ function Response() {
 
 /**
  * A response object rendered from a skin.
- * @param {Resource|String} skin the skin resource or path.
+ * @param {Resource|String} skin the skin resource or path
  * @param {Object} context the skin context object
  */
 Response.skin = function (skin, context) {
     if (!(skin instanceof org.ringojs.repository.Resource)) {
-        // try locating resource relative to implicit this object
-        // which may be the calling module
-        skin = typeof this.getResource === "function" ?
-                this.getResource(skin) : getResource(skin);
+        skin = getResource(skin);
     }
     var render = require('ringo/skin').render;
     return new Response(render(skin, context));
@@ -269,10 +266,10 @@ Response.static = function (resource, contentType) {
         resource = getResource(resource);
     }
     if (!(resource instanceof org.ringojs.repository.Resource)) {
-        throw Error("Wrong argument for staticResponse: " + typeof(resource));
+        throw Error("Wrong argument for static response: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return notFoundResponse(String(resource));
+        return Response.notFound(String(resource));
     }
     var input;
     return {

@@ -11,7 +11,7 @@ var config = require('./config');
 exports.repository = function(req) {
     var repositoryPath = config.repository.path;
     var repositoryName = config.repository.name;
-    return Response.skin('./skins/repository.html', {
+    return Response.skin(module.directory + 'skins/repository.html', {
         rootPath: require('./config').rootPath,
         repositoryName: repositoryName,
         modules: moduleList(repositoryPath, config.detailedModuleList),
@@ -25,7 +25,7 @@ exports.module = function(req, moduleId) {
     var repositoryPath = config.repository.path;
     var repositoryName = config.repository.name;
     moduleId = moduleId.slice(-1) === '/' ? moduleId.slice(0,-1) : moduleId;
-    return Response.skin('./skins/module.html', {
+    return Response.skin(module.directory + 'skins/module.html', {
         rootPath: require('./config').rootPath,
         repositoryName: repositoryName,
         moduleId: moduleId,
