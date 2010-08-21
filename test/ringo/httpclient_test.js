@@ -176,7 +176,7 @@ exports.testParams = function() {
 exports.testCallbacks = function() {
     getResponse = function(req) {
         if (req.pathInfo == '/notfound') {
-            return notFoundResponse('error');
+            return Response.notFound('error');
         } else if (req.pathInfo == '/success') {
             var res = new Response('success');
             res.contentType = 'text/json';

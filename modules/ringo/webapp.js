@@ -5,7 +5,7 @@
 // import modules
 var strings = require('ringo/utils/strings');
 var {Request} = require('ringo/webapp/request');
-var {Response, redirectResponse} = require('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 var system = require('system');
 var files = require('ringo/utils/files');
 var daemon = require('ringo/webapp/daemon');
@@ -40,7 +40,7 @@ function handleRequest(req) {
     try {
         return resolveInConfig(req, config, configId);
     } catch (e if e.redirect) {
-        return redirectResponse(e.redirect);
+        return Response.redirect(e.redirect);
     } finally {
         webenv.reset();
     }

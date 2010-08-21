@@ -1,12 +1,10 @@
 // a simple web app/module
-include('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 
-export('index');
-
-function index(req) {
+exports.index = function (req) {
     var context = {
         title: 'Modules',
         path: req.scriptName + req.pathInfo
     };
-    return skinResponse('./skins/modules.txt', context);
-}
+    return Response.skin('./skins/modules.txt', context);
+};

@@ -1,4 +1,4 @@
-include('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 include('./model');
 
 export('index', 'edit', 'remove');
@@ -9,7 +9,7 @@ function index(req) {
     if (req.params.save) {
         return createBook(req);
     }
-    return skinResponse('./skins/index.html', {
+    return Response.skin('./skins/index.html', {
         title: 'Storage',
         books: Book.all(),
         action: req.path
@@ -24,9 +24,9 @@ function edit(req, id) {
         book.title = req.params.title;
         author.save();
         book.save();
-        return redirectResponse("../");
+        return Response.redirect("../");
     }
-    return skinResponse('./skins/edit.html', {
+    return Response.skin('./skins/edit.html', {
         title: 'Storage',
         book: book,
         action: req.path
@@ -38,7 +38,7 @@ function remove(req, id) {
     if (req.params.remove && req.isPost) {
         return removeBook(req, book);
     }
-    return skinResponse('./skins/remove.html', {
+    return Response.skin('./skins/remove.html', {
         title: 'Storage',
         book: book,
         action: req.path
@@ -47,13 +47,14 @@ function remove(req, id) {
 
 // Simple RESTful API example.
 exports.books = function (req, resource) {
-    if (!/^[0-9a-z]+\.(json|xml)$/.test(resource)) // Validate URI.
-        return errorResponse('Invalid request; check URI.');
+    if (!/^[0-9a-z]+\.(json|xml)$/.test(resource)) { // Validate URI.
+        return Response.error('Invalid request; check URI.');
+    }
     var [id, type] = resource.split('.');
     var book = Book.get(id); // Figure out response.
-    return !book ? notFoundResponse(req.path) : type == 'json' ?
-            jsonResponse({author: book.author.name, title: book.title}) :
-            xmlResponse(<book>
+    return !book ? Response.notFound(req.path) : type == 'json' ?
+            Response.json({author: book.author.name, title: book.title}) :
+            Response.xml(<book>
                             <author>{book.author.name}</author>
                             <title>{book.title}</title>
                         </book>);
@@ -66,14 +67,14 @@ function createBook(req) {
     // author is saved transitively
     // author.save();
     book.save();
-    return redirectResponse(req.path);
+    return Response.redirect(req.path);
 }
 
 function removeBook(req, book) {
     // no cascading delete
     book.author.remove();
     book.remove();
-    return redirectResponse("../");
+    return Response.redirect("../");
 }
 
 if (require.main == module) {

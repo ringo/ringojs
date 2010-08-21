@@ -1,5 +1,4 @@
-
-var Response = require('ringo/webapp/response').Response;
+var {Response} = require('ringo/webapp/response');
 
 /**
  * Standard 404 page

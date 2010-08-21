@@ -1,4 +1,4 @@
-var {Response, skinResponse} = require('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 var {ContinuationSession} = require('ringo/webapp/continuation');
 
 var log = require('ringo/logging').getLogger(module.id);
@@ -8,7 +8,7 @@ export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continua
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return skinResponse('./skins/welcome.txt', {title: 'Demo'});
+    return Response.skin('./skins/welcome.txt', {title: 'Demo'});
 }
 
 // additional path elements are passed to the action as arguments,
@@ -25,7 +25,7 @@ function upload(req) {
             body: [req.params.file.value]
         };
     }
-    return skinResponse('./skins/upload.txt', {
+    return Response.skin('./skins/upload.txt', {
         title: "File Upload"
     });
 }
@@ -38,7 +38,7 @@ function testing(req) {
         require("test").run(tests, formatter);
         return new Response(formatter);
     }
-    return skinResponse('./skins/testing.txt', {
+    return Response.skin('./skins/testing.txt', {
         title: "Unit Testing"
     });
 }
@@ -47,12 +47,12 @@ exports.params = function(req) {
    // if (req.isPost) {
         return new Response(JSON.stringify(req.params));
    // }
-    return skinResponse('skins/form.html');
+    return Response.skin('skins/form.html');
 }
 
 // demo for skins, macros, filters
 function skins(req) {
-    return skinResponse('./skins/skins.txt', {
+    return Response.skin('./skins/skins.txt', {
         title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
@@ -73,12 +73,12 @@ function logging(req) {
         // build and run a small profiler middleware stack
         var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
-            return skinResponse('./skins/logging.txt', {
+            return Response.skin('./skins/logging.txt', {
                 title: "Logging &amp; Profiling"
             });
         })(req);
     }
-    return skinResponse('./skins/logging.txt', { title: "Logging &amp; Profiling" });
+    return Response.skin('./skins/logging.txt', { title: "Logging &amp; Profiling" });
 }
 
 // demo for continuation support
@@ -88,7 +88,7 @@ function continuation(req, cont_id, cont_step) {
 
     if (!session.isActive()) {
         // render welcome page
-        return skinResponse('./skins/continuation.txt', {
+        return Response.skin('./skins/continuation.txt', {
             session: session,
             page: "welcome",
             title: "Continuations"
@@ -96,7 +96,7 @@ function continuation(req, cont_id, cont_step) {
     }
 
     session.addPage("ask_name", function(req) {
-        return skinResponse('./skins/continuation.txt', {
+        return Response.skin('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 1"
@@ -106,7 +106,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_food", function(req) {
         if (req.isPost)
             session.data.name = req.params.name;
-        return skinResponse('./skins/continuation.txt', {
+        return Response.skin('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 2"
@@ -116,7 +116,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("ask_animal", function(req) {
         if (req.isPost)
             session.data.food = req.params.food;
-        return skinResponse('./skins/continuation.txt', {
+        return Response.skin('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Question 3"
@@ -126,7 +126,7 @@ function continuation(req, cont_id, cont_step) {
     session.addPage("result", function(req) {
         if (req.isPost)
             session.data.animal = req.params.animal;
-        return skinResponse('./skins/continuation.txt', {
+        return Response.skin('./skins/continuation.txt', {
             session: session,
             page: session.page,
             title: "Thank you!"
