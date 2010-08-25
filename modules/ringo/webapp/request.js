@@ -278,7 +278,7 @@ function Session(request) {
      */
     Object.defineProperty(this, "isNew", {
         get: function() {
-            getSession().isNew();
+            return getSession().isNew();
         }
     })
 
