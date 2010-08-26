@@ -13,7 +13,7 @@
  */
 
 var strings = require('ringo/utils/strings');
-var utils = require('ringo/utils');
+var debug = require('ringo/utils/debug');
 
 var configured = false;
 // interval id for configuration watcher
@@ -174,13 +174,13 @@ function intercept(level, name, message) {
 }
 
 function formatMessage(args) {
-    var message = utils.format.apply(null, args);
+    var message = strings.format.apply(null, args);
     for each (var arg in args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                utils.getScriptStack(arg, "\nScript stack:\n"),
-                utils.getJavaStack(arg, "Java stack:\n")
+                debug.getScriptStack(arg, "\nScript stack:\n"),
+                debug.getJavaStack(arg, "Java stack:\n")
             ].join('');
         }
     }
