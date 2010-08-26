@@ -3,13 +3,13 @@ RingoJS
 
 RingoJS is a JavaScript runtime written in Java based on Mozilla Rhino.
 
-It adds a number of features to Rhino that make it suitable for real world,
-large scale application development:
+It adds a number of features to Rhino that make it suitable for real-world,
+large-scale application development:
 
   * A fast, auto-reloading, and CommonJS-compliant module loader.
   * A rich set of modules covering I/O, logging, persistence, development tools
     and much more.
-  * Scalable HTTP client and server based on the Jetty project.
+  * Scalable HTTP server and client based on the Jetty project.
   * Support for CommonJS packages to install or write additional software
     components.
 
