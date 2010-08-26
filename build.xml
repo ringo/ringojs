@@ -21,7 +21,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="ringojs"/>
-        <property name="version" value="0.5"/>
+        <property name="version" value="0.6"/>
 
         <property name="home" value="."/>
 
