@@ -2,7 +2,6 @@ var numbers = require('ringo/utils/numbers');
 var strings = require('ringo/utils/strings');
 var Buffer = require('ringo/buffer').Buffer;
 var logging = require('ringo/logging');
-var utils = require('ringo/utils');
 var {Headers, ResponseFilter} = require('ringo/webapp/util');
 
 var responseLogEnabled = true;
@@ -63,7 +62,7 @@ function appendMessage(buffer, item, start) {
     buffer.write("<div class='ringo-debug-line' style='background:", bgcolor,
                  "; color: black; border-top: 1px solid black; clear: both;'>");
     var timePassed = numbers.format(time - start, "00000");
-    var formatted = utils.format("{} [{}] {}: {}", timePassed, level, name, message);
+    var formatted = strings.format("{} [{}] {}: {}", timePassed, level, name, message);
     if (multiline) {
         buffer.write("<pre>", formatted, "</pre>");
     } else {
