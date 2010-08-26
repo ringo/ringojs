@@ -8,7 +8,7 @@ export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continua
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return Response.skin(module.directory + 'skins/welcome.txt', {title: 'Demo'});
+    return Response.skin(module.resolve('skins/welcome.txt'), {title: 'Demo'});
 }
 
 // additional path elements are passed to the action as arguments,
@@ -25,7 +25,7 @@ function upload(req) {
             body: [req.params.file.value]
         };
     }
-    return Response.skin(module.directory + 'skins/upload.txt', {
+    return Response.skin(module.resolve('skins/upload.txt'), {
         title: "File Upload"
     });
 }
@@ -38,7 +38,7 @@ function testing(req) {
         require("test").run(tests, formatter);
         return new Response(formatter);
     }
-    return Response.skin(module.directory + 'skins/testing.txt', {
+    return Response.skin(module.resolve('skins/testing.txt'), {
         title: "Unit Testing"
     });
 }
@@ -47,12 +47,12 @@ exports.params = function(req) {
    // if (req.isPost) {
         return new Response(JSON.stringify(req.params));
    // }
-    return Response.skin(module.directory + 'skins/form.html');
+    return Response.skin(module.resolve('skins/form.html'));
 }
 
 // demo for skins, macros, filters
 function skins(req) {
-    return Response.skin(module.directory + 'skins/skins.txt', {
+    return Response.skin(module.resolve('skins/skins.txt'), {
         title: 'Skins',
         name: 'Luisa',
         names: ['Benni', 'Emma', 'Luca', 'Selma']
@@ -73,12 +73,12 @@ function logging(req) {
         // build and run a small profiler middleware stack
         var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
-            return Response.skin(module.directory + 'skins/logging.txt', {
+            return Response.skin(module.resolve('skins/logging.txt'), {
                 title: "Logging &amp; Profiling"
             });
         })(req);
     }
-    return Response.skin(module.directory + 'skins/logging.txt', {
+    return Response.skin(module.resolve('skins/logging.txt'), {
         title: "Logging &amp; Profiling"
     });
 }
@@ -90,7 +90,7 @@ function continuation(req, cont_id, cont_step) {
 
     if (!session.isActive()) {
         // render welcome page
-        return Response.skin(module.directory + 'skins/continuation.txt', {
+        return Response.skin(module.resolve('skins/continuation.txt'), {
             session: session,
             page: "welcome",
             title: "Continuations"
@@ -98,7 +98,7 @@ function continuation(req, cont_id, cont_step) {
     }
 
     session.addPage("ask_name", function(req) {
-        return Response.skin(module.directory + 'skins/continuation.txt', {
+        return Response.skin(module.resolve('skins/continuation.txt'), {
             session: session,
             page: session.page,
             title: "Question 1"
@@ -109,7 +109,7 @@ function continuation(req, cont_id, cont_step) {
         if (req.isPost) {
             session.data.name = req.params.name;
         }
-        return Response.skin(module.directory + 'skins/continuation.txt', {
+        return Response.skin(module.resolve('skins/continuation.txt'), {
             session: session,
             page: session.page,
             title: "Question 2"
@@ -120,7 +120,7 @@ function continuation(req, cont_id, cont_step) {
         if (req.isPost) {
             session.data.food = req.params.food;
         }
-        return Response.skin(module.directory + 'skins/continuation.txt', {
+        return Response.skin(module.resolve('skins/continuation.txt'), {
             session: session,
             page: session.page,
             title: "Question 3"
@@ -131,7 +131,7 @@ function continuation(req, cont_id, cont_step) {
         if (req.isPost) {
             session.data.animal = req.params.animal;
         }
-        return Response.skin(module.directory + 'skins/continuation.txt', {
+        return Response.skin(module.resolve('skins/continuation.txt'), {
             session: session,
             page: session.page,
             title: "Thank you!"

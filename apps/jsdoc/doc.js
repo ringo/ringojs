@@ -26,7 +26,7 @@ require.paths.unshift(module.directory);
 // need config.macros in context for skin rendering
 var defaultContext = {};
 config.macros.forEach(function(moduleId) {
-    defaultContext = objects.merge(defaultContext ,require(files.resolveId(module.directory, moduleId)));
+    defaultContext = objects.merge(defaultContext, require(files.resolveId(module.directory, moduleId)));
 });
 
 // let skins now we are in static mode
