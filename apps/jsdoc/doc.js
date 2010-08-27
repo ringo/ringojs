@@ -33,8 +33,8 @@ defaultContext.isStaticRenderer = true;
  */
 var renderRepository = exports.renderRepository = function (repository, exportDirectory, quiet) {
     // need apps/jsdoc on path for skin extend to work
-    if (require.paths.indexOf(module.directory)) {
-        require.paths.unshift(module.directory);
+    if (require.paths.indexOf(module.directory) != -1) {
+        require.paths.push(module.directory);
     }
     config.macros.forEach(function(moduleId) {
         defaultContext = objects.merge(defaultContext,
