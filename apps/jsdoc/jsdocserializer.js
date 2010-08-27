@@ -39,7 +39,7 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
 var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
     var repository = new ScriptRepository(repositoryPath);
     var modules = repository.getScriptResources(true).filter(function(r) {
-        return !r.moduleName.match(/^ringo\/?global$/) &&  !strings.startsWith(r.moduleName, 'test');
+        return !r.moduleName.match(/^ringo\/?global$/);
     }).map(function(mod) {
         var fileoverview = undefined;
         if (moduleFileOverview == true) {
