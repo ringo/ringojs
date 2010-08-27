@@ -14,7 +14,7 @@ exports.detailedModuleList = true;
 
 exports.urls = [
     [ /\/(?:index\.html)?/, './actions', 'repository' ],
-    [ /\/([^/]+\/(?:[^\.]*\/)?)(?:index\.html)?/, './actions', 'module' ],
+    [ /\/(.*\/)(?:index\.html)?/, './actions', 'module' ],
 ];
 
 // the middleware stack
