@@ -1,4 +1,5 @@
 
+var arrays = require('ringo/utils/arrays');
 var strings = require('ringo/utils/strings');
 var {ByteArray, ByteString} = require('binary');
 var {getMimeParameter} = require('./util');
@@ -107,7 +108,7 @@ function parseFileUpload(request, params, encoding, streamFactory) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
                 if ((strings.startsWith(line, " ") || strings.startsWith(line, "\t")) && headers.length) {
-                    headers.peek() += line;
+                    arrays.peek(headers) += line;
                 } else {
                     headers.push(line);
                 }
