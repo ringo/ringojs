@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Assertion library covering the
+ * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0) specification
+ * and a few additional convenience methods. 
+ */
+
 export(
    "AssertionError",
    "ArgumentsError",

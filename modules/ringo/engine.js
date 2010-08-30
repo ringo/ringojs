@@ -1,5 +1,5 @@
 /**
- * A module to access and manipulate the rhino engine running this application
+ * @fileOverview Provides access to the Rhino JavaScript engine.
  */
 
 export( 'properties',

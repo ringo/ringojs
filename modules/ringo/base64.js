@@ -13,7 +13,7 @@
 // -- hannesw Hannes Wallnoefer
 
 /**
- * Provides Base64 encoding and decoding for binary data and strings.
+ * @fileOverview Base64 encoding and decoding for binary data and strings.
  */
 
 var encodeChars = [

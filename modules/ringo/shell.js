@@ -1,5 +1,6 @@
-// This module is evaluated on shell scopes,
-// so to extend the ringo shell just add stuff here.
+/**
+ * @fileOverview provides functions to work with the Ringo shell.
+ */
 
 export('write', 'writeln', 'read', 'readln', 'start', 'quit');
 

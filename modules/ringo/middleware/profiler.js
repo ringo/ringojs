@@ -1,3 +1,7 @@
+/**
+ * @fileOverview Profiler middleware.
+ */
+
 var engine = require('ringo/engine');
 var Profiler = require('ringo/profiler').Profiler;
 var Buffer = require('ringo/buffer').Buffer;

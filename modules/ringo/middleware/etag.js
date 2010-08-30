@@ -1,3 +1,7 @@
+/**
+ * @fileOverview Middleware that supports conditional GET requests via ETag headers.
+ */
+
 var strings = require('ringo/utils/strings');
 var {Headers} = require('ringo/webapp/util');
 
@@ -5,7 +9,8 @@ export('middleware');
 
 /**
  * JSGI middleware for conditional HTTP GET request based on
- * response body message digests.
+ * response body message digests. The response body must implement
+ * a digest() method for this middleware to work.
  * @param app the JSGI application
  * @returns the wrapped JSGI app
  */

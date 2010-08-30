@@ -1,3 +1,7 @@
+/**
+ * @fileOverview This module provides a flexible templating system.
+ */
+
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
 var engine = require('ringo/engine');

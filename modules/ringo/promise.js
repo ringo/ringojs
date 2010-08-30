@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Allows to work with deferred values that will be resolved in the future.
+ */
 
 export("defer");
 

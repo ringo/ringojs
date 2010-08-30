@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Middleware to catch errors and generate simple error pages.
+ */
 var strings = require('ringo/utils/strings');
 var {Response} = require('ringo/webapp/response');
 var engine = require('ringo/engine');

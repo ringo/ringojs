@@ -1,3 +1,7 @@
+/**
+ * @fileOverview Low level support for parsing JSDoc-style comments from JavaScript files.
+ */
+
 var strings = require('ringo/utils/strings');
 var arrays = require('ringo/utils/arrays');
 var {visitScriptResource} = require('ringo/parser');

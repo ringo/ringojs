@@ -1,5 +1,5 @@
 /**
- * Module for starting and stopping the jetty http server.
+ * @fileOverview A wrapper for the Jetty HTTP server.
  */
 
 export('Server');

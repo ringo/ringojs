@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Low-level support for character encoding and decoding.
+ */
 
 export("Encoder", "Decoder");
 

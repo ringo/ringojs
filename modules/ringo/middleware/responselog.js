@@ -1,3 +1,7 @@
+/**
+ * Middleware for appending log messages to response applying some HTML formatting.
+ */
+
 var numbers = require('ringo/utils/numbers');
 var strings = require('ringo/utils/strings');
 var Buffer = require('ringo/buffer').Buffer;
@@ -7,7 +11,9 @@ var {Headers, ResponseFilter} = require('ringo/webapp/util');
 var responseLogEnabled = true;
 
 /**
- * Render log4j messages to response buffer in the style of helma 1 res.debug().
+ * Middleware for appending log messages to response body. This middleware catches all log
+ * messages issued during the execution of the request and, if the response is HTML,
+ * appends them to the response body using some HTML formatting.
  */
 exports.middleware = function(app) {
     return function(request) {
