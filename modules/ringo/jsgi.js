@@ -192,7 +192,7 @@ function handleAsyncResponse(request, result) {
     sync(function() {
         result.then(onFinish, onError);
         // default async request timeout is 30 seconds
-        continuation.setTimeout(30000);
+        continuation.setTimeout(result.timeout || 30000);
         continuation.suspend();
     }, request)();
 }
