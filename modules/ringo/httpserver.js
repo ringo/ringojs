@@ -122,6 +122,7 @@ function Server(options) {
                 cx.setResourceBase(repo.exists() ? repo.getPath() : dir);
                 var jpkg = org.eclipse.jetty.servlet;
                 var servletHolder = new jpkg.ServletHolder(jpkg.DefaultServlet);
+                servletHolder.setInitParameter('aliases', true);
                 cx.addServlet(servletHolder, "/*");
             },
             /**
