@@ -6,8 +6,8 @@ var FULFILLED = 1;
 var FAILED = 2;
 
 /**
- * Returns an object representing a deferred value. The deferred is a JavaScript object with two
- * properties: a promise object and a resolve function.
+ * Returns an object of type `Deferred` representing a deferred value. 
+ * The deferred is a JavaScript object with two properties: a `Promise` object and a resolve function.
  *
  * The promise object can be used to [register a callback][#deferred.promise.then] to be invoked when
  * the promise is eventually resolved, or [wait for the promise to be resolved][#deferred.promise.wait].
@@ -35,7 +35,7 @@ function defer() {
 
     /**
      * Resolve the promise.
-     * @name deferred.resolve
+     * @name Deferred.prototype.resolve
      * @param {Object} result the result or error value
      * @param {boolean} isError if true the promise is resolved as failed
      * @type function
@@ -71,12 +71,12 @@ function defer() {
     /**
      * A promise object.
      * @ignore
-     * @name deferred.promise
+     * @name Promise
      */
     var promise = {
         /**
          * Invoke a callback or errback function when the promise is resolved.
-         * @name deferred.promise.then
+         * @name Promise.prototype.then
          * @param {function} callback called if the promise is resolved as fulfilled
          * @param {function} errback called if the promise is resolved as failed
          * @return {Object} a new promise that resolves to the return value of the
@@ -102,7 +102,7 @@ function defer() {
         
         /**
          * Wait for the promise to be resolved.
-         * @name deferred.promise.wait
+         * @name Promise.prototype.wait
          * @param {number} timeout optional time in milliseconds to wait for. If undefined
          *    wait() blocks forever.
          * @return {Object} the value if the promise is resolved as fulfilled
@@ -128,5 +128,16 @@ function defer() {
         resolve: resolve,
         promise: promise
     };
-
 }
+
+/** 
+ * @name Deferred
+ */
+
+/** 
+ * The promise object can be used to [register a callback][#deferred.promise.then] to be invoked when
+ * the promise is eventually resolved, or [wait for the promise to be resolved][#deferred.promise.wait].
+ * @name Deferred.prototype.promise
+ *
+ */
+
