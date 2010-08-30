@@ -132,7 +132,6 @@ $(document).ready(jsdocSetup);
         <div>
             <% item.desc | markdown %>
         </div>
-        <h4> Example </h4>
         <pre class="sh_javascript sh_sourceCode"><% item.example %></pre>
 
         <% if <% item.parameters.length %> and <% item.parameters | haveDescOrType %>
