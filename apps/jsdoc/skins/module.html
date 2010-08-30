@@ -132,8 +132,8 @@ $(document).ready(jsdocSetup);
         <div>
             <% item.desc | markdown %>
         </div>
-        <pre class="sh_javascript sh_sourceCode"><% item.example %></pre>
-
+        <% if <% item.example %> render exampleSection %>
+        
         <% if <% item.parameters.length %> and <% item.parameters | haveDescOrType %>
             render parametersSection %>
 
@@ -189,3 +189,9 @@ $(document).ready(jsdocSetup);
     <td class="paramname"><% param.name %></td>
     <td><% param.desc %></td>
 </tr>
+
+<% subskin exampleSection %>
+<div>
+    <h4> Example </h4>
+    <pre class="sh_javascript sh_sourceCode"><% item.example %></pre>
+</div>
