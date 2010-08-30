@@ -17,7 +17,7 @@ exports.middleware = function(app) {
             var path = request.scriptName + request.pathInfo;
             res.writeln('<p>The requested URL', path, 'was not found on the server.</p>');
             res.writeln('</body></html>');
-            return res.close();
+            return res;
         }
     };
 };

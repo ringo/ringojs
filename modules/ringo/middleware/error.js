@@ -44,7 +44,7 @@ function handleError(request, error) {
     }    
     res.writeln('</body></html>');
     log.error(error);
-    return res.close();
+    return res;
 }
 
 function renderSyntaxError(error) {

@@ -81,11 +81,7 @@ function resolveInConfig(req, config, configId) {
             var action = getAction(req, module, urlEntry, remainingPath, args);
             // log.debug("got action: " + action);
             if (typeof action == "function") {
-                var res = action.apply(module, args);
-                if (res && typeof res.close === 'function') {
-                    return res.close();
-                }
-                return res;
+                return action.apply(module, args);
             } else if (Array.isArray(module.urls)) {
                 shiftPath(req, remainingPath);
                 return resolveInConfig(req, module, moduleId);

@@ -1,3 +1,9 @@
+/**
+ * @fileOverview This module provides a Response helper classes for composing JSGI response objects.
+ * The Response class also features a number of static methods for composing special-purpose
+ * response objects.
+ */
+
 var {ByteArray} = require('binary');
 var {Stream} = require('io');
 var {Buffer} = require('ringo/buffer');
@@ -8,6 +14,11 @@ var webenv = require('ringo/webapp/env');
 
 export('Response');
 
+/**
+ * A Response helper class for composing text-based HTTP responses.
+ * This class also provides a number of static helper methods for
+ * composing special-purpose response objects.
+ */
 function Response() {
 
     // missing new security belt
@@ -21,27 +32,35 @@ function Response() {
     var status = 200;
     var charset = config && config.charset || 'utf-8';
     var contentType = config && config.contentType || 'text/html';
-    var headers = new Headers();
-    var buffer = new Buffer();
+    var headers = new Headers({
+        'Content-Type' : contentType + "; charset=" + charset
+    });
+    var body = new Buffer();
 
+    /**
+     * Append one or more arguments to the response body.
+     */
     this.write = function write() {
         var length = arguments.length;
         for (var i = 0; i < length; i++) {
-            buffer.write(String(arguments[i]));
+            body.write(String(arguments[i]));
             if (i < length - 1)
-                buffer.write(' ');
+                body.write(' ');
         }
         return this;
     };
 
     this.write.apply(this, arguments);
 
+    /**
+     * Append one or more arguments to the response body,
+     * followed by a `'\r\n'` sequence.
+     */
     this.writeln = function writeln() {
         this.write.apply(this, arguments);
-        buffer.write('\r\n');
+        body.write('\r\n');
         return this;
     };
-
 
     /**
      * Render a skin to the response's buffer
@@ -50,73 +69,101 @@ function Response() {
      */
     this.render = function render(skin, context) {
         var render = require('ringo/skin').render;
-        buffer.write(render(skin, context));
+        body.write(render(skin, context));
     };
 
     /**
-     * Print a debug message to the rendered page.
+     * The character encoding of the response.
      */
-    this.debug =  function debug() {
-        var buffer = this.debugBuffer || new Buffer();
-        buffer.write("<div class=\"ringo-debug-line\" style=\"background: yellow;");
-        buffer.write("color: black; border-top: 1px solid black;\">");
-        var length = arguments.length;
-        for (var i = 0; i < length; i++) {
-            buffer.write(arguments[i]);
-            if (i < length - 1) {
-                buffer.write(" ");
-            }
-        }
-        buffer.writeln("</div>");
-        this.debugBuffer = buffer;
-        return null;
-    };
-
-    /**
-     * Write the debug buffer to the response's main buffer.
-     */
-    this.flushDebug = function() {
-        if (this.debugBuffer != null) {
-            this.write(this.debugBuffer);
-            this.debugBuffer.reset();
-        }
-        return null;
-    };
-
-    this.redirect = function(location) {
-        status = 303;
-        headers.set('Location', String(location));
-    };
-
     Object.defineProperty(this, 'charset', {
         get: function() {
             return charset;
         },
         set: function(c) {
             charset = c;
+            updateContentType();
         }
     });
 
+    /**
+     * The Content-Type of the response.
+     */
     Object.defineProperty(this, 'contentType', {
         get: function() {
             return contentType;
         },
         set: function(c) {
             contentType = c;
+            updateContentType();
         }
     });
 
+    function updateContentType() {
+        if (contentType) {
+            if (charset) {
+                headers.set("Content-Type", contentType + "; charset=" + charset);
+            } else {
+                headers.set("Content-Type", contentType);
+            }
+        } else {
+            headers.unset("Content-Type");
+        }
+    }
+
+    /**
+     * The HTTP status code of the response.
+     */
     Object.defineProperty(this, 'status', {
         get: function() {
             return status;
         },
         set: function(s) {
+            if (isNaN(s)) {
+                throw new Error("HTTP status code must be numeric");
+            }
             status = s;
-        }
+        },
+        enumerable: true
     });
 
+    /**
+     * Property to get or set the response headers.
+     */
+    Object.defineProperty(this, 'headers', {
+        get: function() {
+            return headers;
+        },
+        set: function(h) {
+            headers = Headers(h);
+        },
+        enumerable: true
+    });
+
+    /**
+     * Property to get or set the response body. While this property can
+     * be set to any valid JSGI response body, the `write` and `writeln`
+     * methods of this response will only work if the response has a `write`
+     * method taking one or more string arguments.
+     */
+    Object.defineProperty(this, 'body', {
+        get: function() {
+            return body;
+        },
+        set: function(b) {
+            // Note: if this is set to anything else than a buffer object it will
+            // break our write methods
+            body = b;
+        },
+        enumerable: true
+    });
+
+    /**
+     * Get the response header value for a given key.
+     * @param key {String} the header name
+     * @returns {String} the header value
+     */
     this.getHeader = function(key) {
-        headers.get(String(key));
+        return headers.get(String(key));
     };
 
     /**
@@ -129,10 +176,10 @@ function Response() {
     this.setHeader = function(key, value) {
         key = String(key);
         if (key.toLowerCase() == "content-type") {
-            contentType = String(value);
-            charset = getMimeParameter(contentType, "charset") || charset;
+            this.contentType = String(value);
+        } else {
+            headers.set(key, String(value));
         }
-        headers.set(key, String(value));
         return this;
     };
 
@@ -199,25 +246,6 @@ function Response() {
         }
         this.addHeader("Set-Cookie", buffer.toString());
         return this;
-    };
-
-    /**
-     * Close and convert this response into a JSGI response object.
-     * @returns a JSGI 0.2 response object
-     */
-    this.close = function() {
-        this.flushDebug();
-        if (contentType && !headers.contains('content-type')) {
-            if (charset) {
-                contentType += "; charset=" + charset;
-            }
-            headers.set("Content-Type", contentType);
-        }
-        return {
-            status: status,
-            headers: headers,
-            body: buffer
-        };
     };
 
 }

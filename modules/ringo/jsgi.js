@@ -153,9 +153,6 @@ function handleAsyncResponse(request, result) {
         if (handled) return;
         log.debug("JSGI async response finished", value);
         handled = true;
-        if (value && typeof value.close === 'function') {
-            value = value.close();
-        }
         writeAsync(continuation.getServletResponse(), value);
         continuation.complete();
     }, request);
