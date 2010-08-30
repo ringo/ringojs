@@ -70,6 +70,7 @@ function defer() {
 
     /**
      * A promise object.
+     * @ignore
      * @name deferred.promise
      */
     var promise = {
