@@ -260,7 +260,6 @@ function getRelatedClass(item) {
             return true;
         };
     }).join('.');
-    return relatedClass;
 }
 
 function getSees(item) {
