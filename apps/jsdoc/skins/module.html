@@ -1,13 +1,26 @@
 <% extends skins/base.html %>
 
 <% subskin head %>
+<link rel="stylesheet" href="<% rootPath %>static/style.css" />
+<link rel="stylesheet" href="<% rootPath %>static/jsdoc.css" />
+<script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
+<script type="text/javascript" src="<% rootPath %>static/jsdoc.js"></script>
 <script>
-    $(window).bind('hashchange', function() {
-        $('.docitem').removeClass('highlight');
-        var $docItem = $('[docitem=' + location.hash.substr(1) + ']');
-        $docItem.addClass('highlight');
-    });
+$(document).ready(jsdocSetup);
 </script>
+
+
+<% subskin menu %>
+<div>
+    <a class="repositoryname" href="<% rootPath %><% if <% isStaticRenderer %> echo index.html %>"><% repositoryName %> </a>
+</div>
+<input id="jsdoc-leftnavsearch" type="text">
+<ul class="jsdoc-leftnav leftnav">
+    <% for module in <% modules %> render "moduleItem" %>
+</ul>
+
+<% subskin moduleItem %>
+    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id %></a> </li>
 
 <% subskin content %>
     <div >
