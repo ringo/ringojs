@@ -36,7 +36,8 @@ function connect(process, output, errput) {
  * executes a given command and returns the
  * standard output.  If the exit status is non-zero,
  * throws an Error.
- * @param {String} command... and optional arguments as individual strings
+ * @param {String} command... command and optional arguments as single or multiple
+ * string parameters
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
@@ -57,7 +58,8 @@ exports.command = function() {
 /**
  * executes a given command, attached to this process's
  * output and error streams, and returns the exit status.
- * @param {String} command... and optional arguments as individual strings
+ * @param {String} command... command and optional arguments as single or multiple
+ * string parameters
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
@@ -72,7 +74,8 @@ exports.system = function() {
 /**
  * executes a given command quietly and returns
  * the exit status.
- * @param {String} command... and optional arguments as individual strings
+ * @param {String} command... command and optional arguments as single or multiple
+ * string parameters
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
