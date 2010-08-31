@@ -385,7 +385,7 @@ Response.error = function (msg) {
 function AsyncResponse(request, timeout, autoflush) {
     var req = request.env.servletRequest;
     var res = request.env.servletResponse;
-    var state = 0;
+    var state = 0; // 1: headers written, 2: closed
     var continuation;
     return {
         /**
@@ -416,10 +416,10 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.write
           */
          write: sync(function(data, encoding) {
-            if (state == 3) {
+            if (state == 2) {
                 throw new Error("Response has been closed");
             }
-            state = 2;
+            state = 1;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -438,10 +438,10 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.flush
           */
         flush: sync(function() {
-            if (state == 3) {
+            if (state == 2) {
                 throw new Error("Response has been closed");
             }
-            state = 2;
+            state = 1;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -456,10 +456,10 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.close
           */
         close: sync(function() {
-            if (state == 3) {
+            if (state == 2) {
                 throw new Error("close() must only be called once");
             }
-            state = 3;
+            state = 2;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -471,7 +471,7 @@ function AsyncResponse(request, timeout, autoflush) {
         }),
         // Used internally by ringo/jsgi
         suspend: sync(function() {
-            if (state < 3) {
+            if (state < 2) {
                 var {ContinuationSupport} = org.eclipse.jetty.continuation;
                 continuation = ContinuationSupport.getContinuation(req);
                 continuation.setTimeout(timeout || 30000);
