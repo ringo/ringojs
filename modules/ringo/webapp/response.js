@@ -445,8 +445,7 @@ function AsyncResponse(request, timeout, autoflush) {
             if (continuation) {
                 res = continuation.getServletResponse();
             }
-            var out = res.getOutputStream();
-            out.flush();
+            res.getOutputStream().flush();
             return this;
         }),
         /**
@@ -463,8 +462,7 @@ function AsyncResponse(request, timeout, autoflush) {
             if (continuation) {
                 res = continuation.getServletResponse();
             }
-            var out = res.getOutputStream();
-            out.close();
+            res.getOutputStream().close();
             if (continuation) {
                 continuation.complete();
             }
