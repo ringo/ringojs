@@ -158,7 +158,7 @@ exports['test throw AssertionError'] = function () {
         threw = true;
         assert.ok(e instanceof TypeError, 'type');
     }
-    assert.ok(threw, 'assert.throws with an explicit error is eating extra errors', assert.AssertionError);
+    assert.ok(threw, 'assert.throws with an explicit error is eating extra errors');
     threw = false;
 
 };
