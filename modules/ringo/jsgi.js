@@ -123,7 +123,6 @@ function writeBody(response, body, charset) {
         if (typeof body.close == "function") {
             body.close(writer);
         }
-        output.close();
     } else {
         throw new Error("Response body doesn't implement forEach: " + body);
     }
