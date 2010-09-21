@@ -116,6 +116,38 @@ exports.testIfBuiltin = function () {
     assert.strictEqual('ff',           render(skin, {}).trim());
 };
 
+exports.testIfBuiltinNested = function () {
+    function testOne(skin, boolFn, x, y) {
+        assert.strictEqual(boolFn(x, y) ? 'tt' : '',
+                           render(skin, {x: x, y: y}));
+    }
+
+    function testAll(skin, boolFn) {
+        for each (let x in [true, false])
+            for each (let y in [true, false])
+                testOne(skin, boolFn, x, y);
+    }
+
+    var tests = [
+        // if-if (== if-and)
+        ['<% if <% x %> if <% y %> echo "tt" %>',           function (x, y) x && y],
+        // if-and
+        ['<% if <% x %> and <% y %> echo "tt" %>',          function (x, y) x && y],
+        ['<% if <% x %> and not <% y %> echo "tt" %>',      function (x, y) x && !y],
+        ['<% if not <% x %> and <% y %> echo "tt" %>',      function (x, y) !x && y],
+        ['<% if not <% x %> and not <% y %> echo "tt" %>',  function (x, y) !x && !y],
+        // if-or
+        ['<% if <% x %> or <% y %> echo "tt" %>',           function (x, y) x || y],
+        ['<% if <% x %> or not <% y %> echo "tt" %>',       function (x, y) x || !y],
+        ['<% if not <% x %> or <% y %> echo "tt" %>',       function (x, y) !x || y],
+        ['<% if not <% x %> or not <% y %> echo "tt" %>',   function (x, y) !x || !y],
+    ];
+
+    for each (let [skinStr, boolFn] in tests) {
+        testAll(createSkin(skinStr), boolFn);
+    }
+};
+
 exports.testForBuiltinBasic = function () {
     var skin;
 
