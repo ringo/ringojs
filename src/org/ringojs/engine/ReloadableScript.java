@@ -48,7 +48,7 @@ public class ReloadableScript {
     // the script was last compiled
     long checksum = -1;
     // true if module scope is shared
-    Shared shared;
+    Shared shared = Shared.UNKNOWN;
     // the compiled script
     ScriptReference scriptref;
     // any exception that may have been thrown during compilation.
