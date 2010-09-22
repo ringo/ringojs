@@ -374,7 +374,6 @@ var Exchange = function(url, options, callbacks) {
         },
     });
     
-    exchange.setRequestContentType(opts.contentType);
     exchange.setMethod(opts.method);
     
     if (opts.username && opts.password) {
@@ -401,6 +400,7 @@ var Exchange = function(url, options, callbacks) {
         } else if (typeof(content) !== 'undefined') {
             exchange.setRequestContentSource(content);
         }
+        exchange.setRequestContentType(opts.contentType);
     } else if (typeof(content) === 'string' && content.length) {
         url += "?" + content;
     }
