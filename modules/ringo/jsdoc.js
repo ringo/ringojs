@@ -4,7 +4,7 @@
 
 var strings = require('ringo/utils/strings');
 var arrays = require('ringo/utils/arrays');
-var {visitScriptResource} = require('ringo/parser');
+var {visitScriptResource, isName, getName, getTypeName, Token} = require('ringo/parser');
 var {Buffer} = require('ringo/buffer');
 
 importPackage(org.mozilla.javascript);
@@ -383,30 +383,6 @@ var docProto = {
     }
 };
 
-/**
- * Utility function to test whether a node is a Name node
- * (a node of type org.mozilla.javascript.ast.Name)
- * @param {Object} node an AST node
- * @returns {Boolean} true if node is a name node
- */
-function isName(node) {
-    return node instanceof org.mozilla.javascript.ast.Name;
-}
-
-/**
- * Utility function to get the name value of a node, or the empty
- * string if it is not a name node.
- * @param {AstNode} node an AST node
- * @returns {String} the name value of the node
- */
-function getName(node) {
-    return exports.isName(node) ? node.getString() : "";
-}
-
-function getTypeName(node) {
-    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
-}
-
 var nodeToString = function(node) {
     if (node.type == Token.GETPROP) {
         return [nodeToString(node.target), node.property.string].join('.');
@@ -420,10 +396,3 @@ var nodeToString = function(node) {
         return getTypeName(node);
     }
 };
-
-/**
- * Export org.mozilla.javascript.Token to allow for easy type checking on AST nodes:
- *
- *     node.type == Token.NAME
- */
-var Token = org.mozilla.javascript.Token;
