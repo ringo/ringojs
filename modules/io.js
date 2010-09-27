@@ -410,7 +410,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * This is a non-standard extension, not part of CommonJS IO/A.
      */
     this.writeLines = function (lines) {
-        lines.forEach(this.writeLine);
+        lines.forEach(this.writeLine, this);
         return this;
     };
 
