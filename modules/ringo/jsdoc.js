@@ -4,7 +4,7 @@
 
 var strings = require('ringo/utils/strings');
 var arrays = require('ringo/utils/arrays');
-var {visitScriptResource, isName, getName, getTypeName, Token} = require('ringo/parser');
+var {Parser, Token, getTypeName} = require('ringo/parser');
 var {Buffer} = require('ringo/buffer');
 
 importPackage(org.mozilla.javascript);
@@ -157,7 +157,7 @@ exports.parseResource = function(resource) {
         }
     };
 
-    visitScriptResource(resource, function(node) {
+    new Parser({parseComments: true}).visit(resource, function(node) {
         // loop through all comments looking for dangling jsdocs
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
