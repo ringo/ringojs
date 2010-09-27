@@ -101,7 +101,7 @@ function isName(node) {
  * @returns {String} the name value of the node
  */
 function getName(node) {
-    return isNameNode(node) ? node.getString() : "";
+    return isName(node) ? node.getString() : "";
 }
 
 /**
