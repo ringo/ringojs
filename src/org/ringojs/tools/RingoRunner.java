@@ -16,6 +16,7 @@
 
 package org.ringojs.tools;
 
+import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.SyntaxError;
@@ -398,6 +399,9 @@ public class RingoRunner {
             output.println(((RhinoException) x).getScriptStackTrace());
         }
         if (debug) {
+            if (x instanceof WrappedException) {
+                x = ((WrappedException)x).getWrappedException();
+            }
             x.printStackTrace(output);
         }
     }
