@@ -74,6 +74,18 @@ public class StringUtils {
     }
 
     /**
+     * Escape the string to make it safe for use within an HTML document.
+     * @param str the string to escape
+     * @return  the escaped string
+     */
+    public static String escapeHtml(String str) {
+        return str.replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\"", "&quot;");
+    }
+
+    /**
      * Split a string and try to convert to an array of classes.
      * @param str a string containint class names
      * @param delim the delimiter

@@ -5,7 +5,7 @@ var strings = require('ringo/utils/strings');
 var {Response} = require('ringo/webapp/response');
 var engine = require('ringo/engine');
 var log = require('ringo/logging').getLogger(module.id);
-var Buffer = require('ringo/buffer').Buffer;
+var {Buffer} = require('ringo/buffer');
 
 /**
  * JSGI middleware to display error messages and stack traces.
@@ -21,47 +21,30 @@ exports.middleware = function(app) {
 };
 
 function handleError(request, error) {
-    var res = new Response();
-    res.status = 500;
-    res.contentType = 'text/html';
-    var msg = strings.escapeHtml(String(error));
-    res.writeln('<html><title>', msg, '</title>');
-    res.writeln('<body><h1>', msg, '</h1>');
-    var errors = engine.getErrors();
-    for each (var e in errors) {
-        res.writeln(renderSyntaxError(e));
-    }
+    var title, body = new Buffer();
     if (error.fileName && error.lineNumber) {
-        res.writeln('<p>In file<b>', error.fileName, '</b>at line<b>', error.lineNumber, '</b></p>');
+        body.write('<p>In file <b>').write(error.fileName).write('</b> at line <b>')
+                   .write(error.lineNumber).writeln('</b>');
     }
+    body.writeln.apply(body, engine.getErrors().map(function(e) {
+        return e.toHtml();
+    }));
     if (error.stack) {
-        res.writeln('<h3>Script Stack</h3>');
-        res.writeln('<pre>', error.stack, '</pre>');
+        body.write('<h3>Script Stack</h3><pre>').write(error.stack).write('</pre>');
     }
-    if (error.rhinoException) {
-        res.writeln('<h3>Java Stack</h3>');
+    /* if (error.rhinoException) {
         var writer = new java.io.StringWriter();
         var printer = new java.io.PrintWriter(writer);
         error.rhinoException.printStackTrace(printer);
-        res.writeln('<pre>', strings.escapeHtml(writer.toString()), '</pre>');
-    }    
-    res.writeln('</body></html>');
+        javaStack =  strings.escapeHtml(writer.toString());
+    } */
+
+    var res = Response.skin(module.resolve("error.html"), {
+        title: strings.escapeHtml(String(error)),
+        body: body
+    });
+    res.status = 500;
+    res.contentType = 'text/html';
     log.error(error);
     return res;
 }
-
-function renderSyntaxError(error) {
-    var buffer = new Buffer();
-    buffer.write("<div class='stack'>in ").write(error.sourceName);
-    buffer.write(", line ").write(error.line);
-    buffer.write(": <b>").write(strings.escapeHtml(error.message)).write("</b></div>");
-    if (error.lineSource) {
-        buffer.write("<pre>").write(strings.escapeHtml(error.lineSource)).write("\n");
-        for (var i = 0; i < error.offset - 1; i++) {
-            buffer.write(' ');
-        }
-        buffer.write("<b>^</b></pre>");
-    }
-    return buffer;
-}
-

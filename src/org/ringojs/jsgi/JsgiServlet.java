@@ -19,6 +19,7 @@ package org.ringojs.jsgi;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
+import org.ringojs.engine.SyntaxError;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
@@ -35,6 +36,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
 
@@ -163,12 +165,16 @@ public class JsgiServlet extends HttpServlet {
         StringBuffer body = new StringBuffer();
         if (t instanceof RhinoException) {
             RhinoException rx = (RhinoException) t;
-            body.append("in <b>")
+            body.append("<p>In file <b>")
                     .append(rx.sourceName())
                     .append("</b> at line <b>")
                     .append(rx.lineNumber())
-                    .append("</b>")
-                    .append("<h3>Script Stack</h3><pre>")
+                    .append("</b></p>");
+            List<SyntaxError> errors = RhinoEngine.errors.get();
+            for (SyntaxError error : errors) {
+                body.append(error.toHtml());
+            }
+            body.append("<h3>Script Stack</h3><pre>")
                     .append(rx.getScriptStackTrace())
                     .append("</pre>");
         }
