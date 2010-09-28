@@ -15,10 +15,30 @@
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
 
-include('ringo/shell');
+var system = require('system');
+var {Stream, TextStream} = require('io');
+var {AnsiConsole} = org.fusesource.jansi;
+var System = java.lang.System;
 
-var env = require('system').env;
-var enabled = env && "TERM" in env;
+var env = system.env;
+var supportedTerminals = {
+    'ansi': 1,
+    'vt100': 1,
+    'xterm': 1,
+    'xtermc': 1,
+    'xterm-color': 1,
+    'gnome-terminal': 1
+};
+var jansiInstalled = typeof AnsiConsole === "function";
+var enabled = (env.TERM && env.TERM in supportedTerminals) || jansiInstalled;
+
+if (jansiInstalled) {
+    // Jansi wraps System.out and System.err so we need to
+    // reset stdout and stderr in the system module
+    AnsiConsole.systemInstall();
+    system.stdout = new TextStream(new Stream(System.out));
+    system.stderr = new TextStream(new Stream(System.err));
+}
 
 exports.RESET =     "\u001B[0m";
 exports.BOLD =      "\u001B[1m";
@@ -46,12 +66,13 @@ exports.ONWHITE =   "\u001B[47m";
 exports.write = function() {
     for (var i = 0; i < arguments.length; i++) {
         var arg = String(arguments[i]);
+        var out = system.stdout;
         if (arg.charCodeAt(0) == 27) {
-            if (enabled) write(arg);
+            if (enabled) out.write(arg);
         } else {
-            write(arg);
+            out.write(arg);
             if (i < arguments.length - 1) {
-                write(" ");
+                out.write(" ");
             }
         }
     }
@@ -59,15 +80,6 @@ exports.write = function() {
 
 exports.writeln = function() {
     exports.write.apply(this, arguments);
-    writeln(enabled ? exports.RESET : "");
+    system.stdout.writeLine(enabled ? exports.RESET : "");
 };
 
-// re-export ringo/shell's read() and readln()
-/**
- * @function
- */
-exports.read = read;
-/**
- * @function
- */
-exports.readln = readln;
