@@ -46,6 +46,10 @@ public class RingoShell {
     File history;
     CodeSource codeSource = null;
 
+    public RingoShell() throws IOException {
+        this(RhinoEngine.getEngine(), null, false);
+    }
+
     public RingoShell(RhinoEngine engine) throws IOException {
         this(engine, null, false);
     }
@@ -78,13 +82,13 @@ public class RingoShell {
             history = new File(System.getProperty("user.home"), ".ringo-history");
         }
         reader.setHistory(new History(history));
-        PrintWriter out = new PrintWriter(System.out);
+        PrintStream out = System.out;
         int lineno = 0;
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             String source = "";
-            String prompt = ">> ";
+            String prompt = getPrompt();
             while (true) {
                 String newline = reader.readLine(prompt);
                 if (newline == null) {
@@ -98,16 +102,12 @@ public class RingoShell {
                 if (cx.stringIsCompilableUnit(source)) {
                     break;
                 }
-                prompt = ".. ";
+                prompt = getSecondaryPrompt();
             }
             try {
                 Script script = cx.compileString(source, "<stdin>", lineno, codeSource);
                 Object result = script.exec(cx, scope);
-                // Avoid printing out undefined or function definitions.
-                if (result != Context.getUndefinedValue()) {
-                    out.println(Context.toString(result));
-                }
-                out.flush();
+                printResult(result, out);
                 lineno++;
                 // trigger GC once in a while - if we run in non-interpreter mode
                 // we generate a lot of classes to unload
@@ -115,12 +115,34 @@ public class RingoShell {
                     System.gc();
                 }
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.out, config.isVerbose());
+                // TODO: shouldn't this print to System.err?
+                printError(ex, System.out, config.isVerbose());
             } finally {
                 Context.exit();
             }
         }
         System.exit(0);
+    }
+
+    protected String getPrompt() {
+        return ">> ";
+    }
+
+    protected String getSecondaryPrompt() {
+        return ".. ";
+    }
+
+    protected void printResult(Object result, PrintStream out) {
+        // Avoid printing out undefined or function definitions.
+        if (result != Context.getUndefinedValue()) {
+            out.println(Context.toString(result));
+        }
+        out.flush();
+    }
+
+    protected void printError(Exception ex, PrintStream out, boolean verbose) {
+        // default implementation forwards to RingoRunner.reportError()
+        RingoRunner.reportError(ex, out, verbose);
     }
 
     private void runSilently() throws IOException {
@@ -146,7 +168,7 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.err, config.isVerbose());
+                printError(ex, System.err, config.isVerbose());
             } finally {
                 Context.exit();
             }
