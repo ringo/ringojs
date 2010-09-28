@@ -10,17 +10,27 @@ var {Buffer} = require('ringo/buffer');
 /**
  * JSGI middleware to display error messages and stack traces.
  */
-exports.middleware = function(app) {
+exports.middleware = function(app, skin) {
+    if (arguments.length == 1) {
+        if (typeof app === 'string') {
+            skin = app;
+            return function(app) {
+                return exports.middleware(app, skin);
+            };
+        } else {
+            skin = module.resolve('error.html');
+        }
+    }
     return function(request) {
         try {
             return app(request);
         } catch (error if !error.retry && !error.notfound) {
-            return handleError(request, error);
+            return handleError(request, error, skin);
         }
     }
 };
 
-function handleError(request, error) {
+function handleError(request, error, skin) {
     var title, body = new Buffer();
     if (error.fileName && error.lineNumber) {
         body.write('<p>In file <b>')
@@ -44,7 +54,7 @@ function handleError(request, error) {
         javaStack =  strings.escapeHtml(writer.toString());
     } */
 
-    var res = Response.skin(module.resolve("error.html"), {
+    var res = Response.skin(skin, {
         title: strings.escapeHtml(String(error)),
         body: body
     });
