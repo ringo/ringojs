@@ -99,8 +99,9 @@
     <!-- =================================================================== -->
     <target name="jar" depends="compile">
         <jar jarfile="${ringo.jar}">
-            <fileset dir="${classes}" excludes="**/package.html"/>
+            <fileset dir="${classes}"/>
             <fileset dir="${home}" includes="modules/**"/>
+            <fileset dir="${src}" excludes="**/*.java,**/package.html"/>
         </jar>
         <jar jarfile="run.jar"
             basedir="${classes}"
