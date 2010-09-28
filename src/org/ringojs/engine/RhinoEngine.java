@@ -824,7 +824,7 @@ public class RhinoEngine implements ScopeProvider {
         return loader;
     }
 
-    public RingoConfiguration getConfiguration() {
+    public RingoConfiguration getConfig() {
         return config;
     }
 

@@ -78,7 +78,7 @@ public class ReloadableScript {
     public ReloadableScript(Trackable source, RhinoEngine engine) {
         this.source = source;
         this.engine = engine;
-        reloading = engine.getConfiguration().isReloading();
+        reloading = engine.getConfig().isReloading();
         moduleName = source.getModuleName();
     }
 

@@ -56,7 +56,7 @@ public class RingoShell {
 
     public RingoShell(RhinoEngine engine, File history, boolean silent)
             throws IOException {
-        this.config = engine.getConfiguration();
+        this.config = engine.getConfig();
         this.engine = engine;
         this.history = history;
     	this.scope = engine.getShellScope();

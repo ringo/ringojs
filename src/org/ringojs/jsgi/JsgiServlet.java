@@ -131,7 +131,7 @@ public class JsgiServlet extends HttpServlet {
         } catch (Exception x) {
             try {
                 renderError(x, response);
-                RingoRunner.reportError(x, System.err, engine.getConfiguration().isVerbose());
+                RingoRunner.reportError(x, System.err, engine.getConfig().isVerbose());
             } catch (Exception failed) {
                 // custom error reporting failed, rethrow original exception for default handling
                 RingoRunner.reportError(x, System.err, false);
