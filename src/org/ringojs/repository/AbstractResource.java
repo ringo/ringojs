@@ -74,7 +74,7 @@ public abstract class AbstractResource implements Resource {
         try {
             byte[] buf = new byte[1024];
             int read = 0;
-            while (read < buf.length) {
+            while (true) {
                 int r = in.read(buf, read, buf.length - read);
                 if (r == -1) {
                     break;
