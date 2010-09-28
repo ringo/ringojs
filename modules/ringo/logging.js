@@ -18,6 +18,7 @@ var debug = require('ringo/utils/debug');
 var configured = false;
 // interval id for configuration watcher
 var configurationWatcher;
+var verbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
 
 var interceptors = new java.lang.ThreadLocal();
 
@@ -180,7 +181,7 @@ function formatMessage(args) {
             message  = [
                 message,
                 debug.getScriptStack(arg, "\nScript stack:\n"),
-                debug.getJavaStack(arg, "Java stack:\n")
+                verbose ? debug.getJavaStack(arg, "Java stack:\n") : null
             ].join('');
         }
     }
