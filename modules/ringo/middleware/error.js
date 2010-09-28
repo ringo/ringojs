@@ -23,14 +23,19 @@ exports.middleware = function(app) {
 function handleError(request, error) {
     var title, body = new Buffer();
     if (error.fileName && error.lineNumber) {
-        body.write('<p>In file <b>').write(error.fileName).write('</b> at line <b>')
-                   .write(error.lineNumber).writeln('</b>');
+        body.write('<p>In file <b>')
+                .write(error.fileName)
+                .write('</b> at line <b>')
+                .write(error.lineNumber)
+                .writeln('</b>');
     }
     body.writeln.apply(body, engine.getErrors().map(function(e) {
         return e.toHtml();
     }));
     if (error.stack) {
-        body.write('<h3>Script Stack</h3><pre>').write(error.stack).write('</pre>');
+        body.write('<h3>Script Stack</h3><pre>')
+                .write(error.stack)
+                .write('</pre>');
     }
     /* if (error.rhinoException) {
         var writer = new java.io.StringWriter();

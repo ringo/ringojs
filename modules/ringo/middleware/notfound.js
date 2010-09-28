@@ -11,15 +11,14 @@ exports.middleware = function(app) {
         try {
             return app(request);
         } catch (e if e.notfound) {
-            var res = new Response();
-            var msg = 'Not Found';
+
+            var res = Response.skin(module.resolve("notfound.html"), {
+                title: "Not Found",
+                body: "<p>The requested URL <b>" + request.scriptName
+                        + request.pathInfo + "</b> was not found on the server.</p>"
+            });
             res.status = 404;
             res.contentType = 'text/html';
-            res.writeln('<html><title>', msg, '</title>');
-            res.writeln('<body><h2>', msg, '</h2>');
-            var path = request.scriptName + request.pathInfo;
-            res.writeln('<p>The requested URL', path, 'was not found on the server.</p>');
-            res.writeln('</body></html>');
             return res;
         }
     };
