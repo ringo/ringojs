@@ -30,6 +30,6 @@ exports.module = function(req, moduleId) {
         repositoryName: repositoryName,
         moduleId: moduleId,
         modules: moduleList(repositoryPath),
-        module: structureModuleDoc(moduleDoc(repositoryPath, moduleId)),
+        item: structureModuleDoc(moduleDoc(repositoryPath, moduleId)),
     });
 };

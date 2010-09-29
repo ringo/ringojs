@@ -87,6 +87,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
         doc.example = docItems.fileoverview.getTag('example');
         doc.since = docItems.fileoverview.getTag('since');
         doc.deprecated = docItems.fileoverview.getTag('deprecated');
+        doc.sees = getSees(docItems.fileoverview);
     }
     // tags for all items in this module
     var items = [];

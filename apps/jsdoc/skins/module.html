@@ -26,27 +26,30 @@ $(document).ready(jsdocSetup);
         <div class="moduleheader">
             <h1 class="modulename"> Module <% moduleId %> </h1>
             <div class="fileoverview">
-                <% module.fileoverview | markdown %>
+                <% item.fileoverview | markdown %>
             </div>
 
+            <% if <% item.example %> render exampleSection %>
+            <% if <% item.sees.length %> render seesSection %>
+
             <div class="moduleoverview">
-                <% if <% module.danglingFunctions.length %> or <% module.danglingProperties.length %> render danglingOverview %>
+                <% if <% item.danglingFunctions.length %> or <% item.danglingProperties.length %> render danglingOverview %>
 
                 <div class="classes">
-                    <% for class in <% module.classes %> render classOverview %>
+                    <% for class in <% item.classes %> render classOverview %>
                 </div>
             </div>
         </div>
         <hr/>
         <div class="details">
-            <% for item in <% module.items %> render docItem %>
+            <% for item in <% item.items %> render docItem %>
         </div>
     </div>
 
 <% subskin danglingOverview %>
 <div class="classoverview">
-    <% if <% module.danglingFunctions.length %> render moduleFunctionsOverview %>
-    <% if <% module.danglingProperties.length %> render modulePropertiesOverview %>
+    <% if <% item.danglingFunctions.length %> render moduleFunctionsOverview %>
+    <% if <% item.danglingProperties.length %> render modulePropertiesOverview %>
 </div>
 
 
@@ -54,7 +57,7 @@ $(document).ready(jsdocSetup);
 <div>
     <h3>Functions</h3>
     <ul class="propertyoverview">
-        <% for item in <% module.danglingFunctions %> render propertyOverview %>
+        <% for item in <% item.danglingFunctions %> render propertyOverview %>
     </ul>
 </div>
 
@@ -62,7 +65,7 @@ $(document).ready(jsdocSetup);
 <div>
     <h3>Properties</h3>
     <ul class="propertyoverview">
-        <% for item in <% module.danglingProperties %> render propertyOverview %>
+        <% for item in <% item.danglingProperties %> render propertyOverview %>
     </ul>
 </div>
 

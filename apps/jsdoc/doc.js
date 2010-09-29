@@ -112,7 +112,7 @@ function writeModuleDoc(target, repository, moduleId){
             repositoryName: repository.name,
             moduleId: moduleId,
             modules: modules,
-            module: structureModuleDoc(docs),
+            item: structureModuleDoc(docs),
         })
     );
 
