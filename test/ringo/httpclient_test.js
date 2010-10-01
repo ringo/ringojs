@@ -24,11 +24,7 @@ exports.setUp = function() {
         var req = new Request(env);
         req.charset = config.charset || 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
-        var res = getResponse(req, env);
-        if (res instanceof Response) {
-           return res.close();
-        }
-        return res;
+        return getResponse(req, env);
     };
    
     var config = {
