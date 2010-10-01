@@ -1,6 +1,6 @@
 var assert = require("assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
-var Server = require('ringo/httpserver').Server;
+var {Server} = require('ringo/httpserver');
 var {Request} = require('ringo/webapp/request');
 var {Response} = require('ringo/webapp/response');
 
@@ -12,9 +12,7 @@ var baseUri = "http://" + host + ":" + port + "/";
 /**
  * tests overwrite getResponse() to control the response they expect back
  */
-var getResponse = function(req) {
-   return new Response("<h1> This is a basic Response</h1>");
-};
+var getResponse;
 
 /**
  * setUp pre every test
@@ -248,14 +246,13 @@ exports.testCookie = function() {
     var COOKIE_VALUE = 'cookie value with s p   a c es';
     
     getResponse = function(req) {
-
+        // set cookie
         var res = new Response('cookie set');
         res.setCookie(COOKIE_NAME, req.params.cookievalue, 5);
-        // set cookie
         return res;
     };
 
-    // recieve cookie
+    // receive cookie
     var myStatus, myExchange, errorCalled;
     request({
         url: baseUri,
