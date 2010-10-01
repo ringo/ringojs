@@ -1,6 +1,8 @@
 var assert = require("assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var Server = require('ringo/httpserver').Server;
+var {Request} = require('ringo/webapp/request');
+var {Response} = require('ringo/webapp/response');
 
 var server;
 var host = "127.0.0.1";
@@ -19,8 +21,6 @@ var getResponse = function(req) {
  */
 exports.setUp = function() {
     var handleRequest = function(env) {
-        include('ringo/webapp/request');
-        include('ringo/webapp/response');
         var req = new Request(env);
         req.charset = config.charset || 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
