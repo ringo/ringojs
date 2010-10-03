@@ -32,7 +32,7 @@ function upload(req) {
 
 function testing(req) {
     if (req.params.runtests) {
-        var test = require("ringo/engine").getRingoHome().getResource("test/all");
+        var test = require("ringo/engine").getRingoHome().getResource("test/most.js");
         var tests = require(test.path);
         var formatter = new (require("./helpers").HtmlTestFormatter)();
         require("test").run(tests, formatter);
