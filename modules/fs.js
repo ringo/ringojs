@@ -1,5 +1,5 @@
 /**
- * @fileoverview <p>This module provides an implementation of "fs" as
+ * @fileoverview <p>This module provides file and path related functionality as
  * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS
  * Filesystem/A</a> proposal.
  *
