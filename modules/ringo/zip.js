@@ -3,7 +3,7 @@
  * @since 0.5
  */
 
-var fs = require('fs-base');
+var fs = require('fs');
 var {Stream} = require('io');
 
 export('ZipFile', 'ZipIterator');
