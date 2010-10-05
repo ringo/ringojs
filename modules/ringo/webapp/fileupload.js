@@ -189,7 +189,7 @@ function BufferFactory(data, encoding) {
 function TempFileFactory(data, encoding) {
     if (data.filename == null) {
         // use in-memory streams for form data
-        return memoryStreamFactory(data, encoding)
+        return BufferFactory(data, encoding)
     }
     data.tempfile = createTempFile("ringo-upload-");
     return open(data.tempfile, {write: true, binary: true});
