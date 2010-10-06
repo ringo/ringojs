@@ -145,7 +145,7 @@ var Exchange = function(url, options, callbacks) {
     Object.defineProperties(this, {
         /**
          * The response status code
-         * @name Exchange.instance.status
+         * @name Exchange.prototype.status
          */
         status: {
             get: function() {
@@ -154,7 +154,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response content type
-         * @name Exchange.instance.contentType
+         * @name Exchange.prototype.contentType
          */
         contentType: {
             get: function() {
@@ -163,7 +163,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response body as String
-         * @name Exchange.instance.content
+         * @name Exchange.prototype.content
          */
         content: {
             get: function() {
@@ -172,7 +172,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response body as ByteString
-         * @name Exchange.instance.contentBytes
+         * @name Exchange.prototype.contentBytes
          */
         contentBytes: {
             get: function() {
@@ -180,7 +180,7 @@ var Exchange = function(url, options, callbacks) {
             }
         },
         /**
-         * @name Exchange.instance.contentChunk
+         * @name Exchange.prototype.contentChunk
          */
         contentChunk: {
             get: function() {
@@ -190,7 +190,7 @@ var Exchange = function(url, options, callbacks) {
         /**
          * The Jetty ContentExchange object
          * @see http://download.eclipse.org/jetty/7.0.2.v20100331/apidocs/org/eclipse/jetty/client/ContentExchange.html
-         * @name Exchange.instance.contentExchange
+         * @name Exchange.prototype.contentExchange
          */
         contentExchange: {
             get: function() {
@@ -199,7 +199,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response headers
-         * @name Exchange.instance.responseHeaders
+         * @name Exchange.prototype.responseHeaders
          */
         responseHeaders: {
             get: function() {
@@ -208,7 +208,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The cookies set by the server
-         * @name Exchange.instance.cookies
+         * @name Exchange.prototype.cookies
          */
         cookies: {
             get: function() {
@@ -223,7 +223,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response encoding
-         * @name Exchange.instance.encoding
+         * @name Exchange.prototype.encoding
          */
         encoding: {
             // NOTE HttpExchange._encoding knows about this but is protected
@@ -233,7 +233,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * True if the request has completed, false otherwise
-         * @name Exchange.instance.done
+         * @name Exchange.prototype.done
          */
         done: {
             get: function() {
@@ -245,7 +245,7 @@ var Exchange = function(url, options, callbacks) {
          * This method returns immediately if the request has already completed.
          * Otherwise, it will block the current thread until completion.
          * @returns the Exchange object
-         * @name Exchange.instance.wait
+         * @name Exchange.prototype.wait
          */
         wait: {
             value: function() {
@@ -505,7 +505,7 @@ var Client = function(timeout, followRedirects) {
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.get = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -516,7 +516,8 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });    
     };
     
@@ -527,7 +528,7 @@ var Client = function(timeout, followRedirects) {
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.post = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -538,7 +539,8 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
     
@@ -549,7 +551,7 @@ var Client = function(timeout, followRedirects) {
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.del = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -560,7 +562,8 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
     
@@ -571,7 +574,7 @@ var Client = function(timeout, followRedirects) {
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.put = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -582,7 +585,8 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
     
@@ -657,7 +661,7 @@ var Client = function(timeout, followRedirects) {
                 callbacks.error(e, exchange);
             }
         }
-        if (opts.async === false) {
+        if (!opts.async) {
             exchange.contentExchange.waitForDone();
         }
         return exchange;
@@ -687,7 +691,7 @@ var defaultClient = defaultClient || new Client();
  * Convenience function to make a generic HTTP request without creating a new client.
  * @param {Object} options
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var request = function() {
     return defaultClient.request.apply(defaultClient, arguments);
@@ -700,7 +704,7 @@ var request = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var post = function() {
     return defaultClient.post.apply(defaultClient, arguments);
@@ -713,7 +717,7 @@ var post = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var get = function() {
     return defaultClient.get.apply(defaultClient, arguments);
@@ -726,7 +730,7 @@ var get = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var del = function() {
     return defaultClient.del.apply(defaultClient, arguments);
@@ -739,7 +743,7 @@ var del = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var put = function() {
     return defaultClient.put.apply(defaultClient, arguments);
