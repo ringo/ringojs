@@ -577,7 +577,8 @@ public class Binary extends ScriptableObject implements Wrapper {
         Collection values = null;
         if (delim instanceof Collection) {
             values = (Collection) delim;
-        } else if (delim instanceof Map) {
+        } else if (delim instanceof Map && delim instanceof NativeArray) {
+            // NativeArray used to implement java.util.Map
             values = ((Map) delim).values();
         }
         if (values != null) {
