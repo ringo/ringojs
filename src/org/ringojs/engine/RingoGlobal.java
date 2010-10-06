@@ -263,7 +263,7 @@ public class RingoGlobal extends Global {
                     public Thread newThread(Runnable runnable) {
                         Thread thread = new Thread(runnable,
                                 "ringo-spawn-" + ids.incrementAndGet());
-                        // thread.setDaemon(true);
+                        thread.setDaemon(true);
                         return thread;
                     }
                 });
