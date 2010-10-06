@@ -15,7 +15,7 @@ var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
     newThread: function(runnable) {
         var thread = new java.lang.Thread(runnable,
                 "ringo-scheduler-" + ids.incrementAndGet());
-        thread.setDaemon(true);
+        // thread.setDaemon(true);
         return thread;
     }
 }));
