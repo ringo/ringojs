@@ -488,7 +488,7 @@ var extractOptionalArguments = function(args) {
 /**
  * A HttpClient which can be used for multiple requests.
  *
- * Use this Client instead of the convinience methods if you do lots
+ * Use this Client instead of the convenience methods if you do lots
  * of requests (especially if they go to the same hosts)
  * or if you want cookies to be preserved between multiple requests.
  
@@ -499,7 +499,9 @@ var extractOptionalArguments = function(args) {
 var Client = function(timeout, followRedirects) {
 
     /**
-     * Make a GET request.
+     * Make a GET request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
@@ -522,7 +524,9 @@ var Client = function(timeout, followRedirects) {
     };
     
     /**
-     * Make a POST request.
+     * Make a POST request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
@@ -545,7 +549,9 @@ var Client = function(timeout, followRedirects) {
     };
     
     /**
-     * Make a DELETE request.
+     * Make a DELETE request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
@@ -568,7 +574,9 @@ var Client = function(timeout, followRedirects) {
     };
     
     /**
-     * Make a PUT request.
+     * Make a PUT request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
@@ -699,6 +707,9 @@ var request = function() {
 
 /**
  * Convenience function to make a POST request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
@@ -712,6 +723,9 @@ var post = function() {
 
 /**
  * Convenience function to make a GET request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
@@ -725,6 +739,9 @@ var get = function() {
 
 /**
  * Convenience function to make a DELETE request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
@@ -738,6 +755,9 @@ var del = function() {
 
 /**
  * Convenience function to make a PUT request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
