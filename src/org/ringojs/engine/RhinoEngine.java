@@ -46,7 +46,7 @@ public class RhinoEngine implements ScopeProvider {
 
     private RingoConfiguration config;
     private List<Repository> repositories;
-    private ScriptableObject globalScope;
+    private RingoGlobal globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
@@ -167,7 +167,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object runScript(Object scriptResource, String... scriptArgs)
-            throws IOException, JavaScriptException {
+            throws IOException, JavaScriptException, InterruptedException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         Resource resource;
@@ -190,6 +190,7 @@ public class RhinoEngine implements ScopeProvider {
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
             retval = evaluateScript(cx, script, mainScope);
+            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -206,7 +207,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object evaluateExpression(String expr)
-            throws IOException, JavaScriptException {
+            throws IOException, JavaScriptException, InterruptedException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         cx.setOptimizationLevel(-1);
@@ -216,6 +217,7 @@ public class RhinoEngine implements ScopeProvider {
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
+            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();

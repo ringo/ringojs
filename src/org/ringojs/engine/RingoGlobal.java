@@ -50,6 +50,7 @@ public class RingoGlobal extends Global {
 
     private static ExecutorService threadPool;
     private static AtomicInteger ids = new AtomicInteger();
+    private int asyncCount = 0;
 
     protected RingoGlobal() {}
 
@@ -86,7 +87,9 @@ public class RingoGlobal extends Global {
             "addToClasspath",
             "privileged",
             "spawn",
-            "trycatch"
+            "trycatch",
+            "increaseAsyncCount",
+            "decreaseAsyncCount"
         };
         defineFunctionProperties(names, RingoGlobal.class,
                                  ScriptableObject.DONTENUM);
@@ -242,6 +245,22 @@ public class RingoGlobal extends Global {
         });
     }
 
+    public synchronized void increaseAsyncCount() {
+        asyncCount += 1;
+    }
+
+    public synchronized void decreaseAsyncCount() {
+        asyncCount -= 1;
+        if (asyncCount == 0) {
+            notifyAll();
+        }
+    }
+
+    synchronized void waitTillDone() throws InterruptedException {
+        while (asyncCount > 0) {
+            wait();
+        }
+    }
 
     public static Object getMain(Scriptable thisObj) {
         try {

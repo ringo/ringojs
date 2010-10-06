@@ -305,21 +305,27 @@ var Exchange = function(url, options, callbacks) {
     var decoder;
     var exchange = new JavaAdapter(ContentExchange, {
         onResponseComplete: function() {
-            this.super$onResponseComplete();
-            var content = opts.binary ? self.contentBytes : self.content;
-            if (typeof(callbacks.complete) === 'function') {
-                callbacks.complete(content, self.status, self.contentType, self);
-            }
-            // This callback will only see a redirect status if the max number
-            // of redirects handled by the RedirectListener are reached or
-            // the client was instantianted with followRedirects = false.
-            if (self.status >= 200 && self.status < 400) {
-                if (typeof(callbacks.success) === 'function') {
-                    callbacks.success(content, self.status, self.contentType, self);
+            try {
+                this.super$onResponseComplete();
+                var content = opts.binary ? self.contentBytes : self.content;
+                if (typeof(callbacks.complete) === 'function') {
+                    callbacks.complete(content, self.status, self.contentType, self);
                 }
-            } else if (typeof(callbacks.error) === 'function') {
-                var message = getStatusMessage(self.status);
-                callbacks.error(message, self.status, self);
+                // This callback will only see a redirect status if the max number
+                // of redirects handled by the RedirectListener are reached or
+                // the client was instantianted with followRedirects = false.
+                if (self.status >= 200 && self.status < 400) {
+                    if (typeof(callbacks.success) === 'function') {
+                        callbacks.success(content, self.status, self.contentType, self);
+                    }
+                } else if (typeof(callbacks.error) === 'function') {
+                    var message = getStatusMessage(self.status);
+                    callbacks.error(message, self.status, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
@@ -350,25 +356,43 @@ var Exchange = function(url, options, callbacks) {
             return;
         },
         onConnectionFailed: function(exception) {
-            this.super$onConnectionFailed(exception);
-            if (typeof(callbacks.error) === 'function') {
-                var message = exception.getMessage() || exception.toString();
-                callbacks.error(message, 0, self);
+            try {
+                this.super$onConnectionFailed(exception);
+                if (typeof(callbacks.error) === 'function') {
+                    var message = exception.getMessage() || exception.toString();
+                    callbacks.error(message, 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
         onException: function(exception) {
-            this.super$onException(exception);
-            if (typeof(callbacks.error) === 'function') {
-                var message = exception.getMessage() || exception.toString();
-                callbacks.error(message, 0, self);
+            try {
+                this.super$onException(exception);
+                if (typeof(callbacks.error) === 'function') {
+                    var message = exception.getMessage() || exception.toString();
+                    callbacks.error(message, 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
         onExpire: function() {
-            this.super$onExpire();
-            if (typeof(callbacks.error) === 'function') {
-                callbacks.error('Request expired', 0, self);
+            try {
+                this.super$onExpire();
+                if (typeof(callbacks.error) === 'function') {
+                    callbacks.error('Request expired', 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
@@ -652,7 +676,8 @@ var Client = function(timeout, followRedirects) {
             username: opts.username,
             password: opts.password,
             contentType: opts.contentType,
-            binary: opts.binary
+            binary: opts.binary,
+            async: opts.async
         }, {
             success: opts.success,
             complete: opts.complete,
@@ -664,13 +689,15 @@ var Client = function(timeout, followRedirects) {
         }
         try {
             client.send(exchange.contentExchange);
+            if (opts.async) {
+                global.increaseAsyncCount();
+            } else {
+                exchange.contentExchange.waitForDone();
+            }
         } catch (e) { // probably java.net.ConnectException
             if (typeof(callbacks.error) === 'function') {
-                callbacks.error(e, exchange);
+                callbacks.error(e, 0, exchange);
             }
-        }
-        if (!opts.async) {
-            exchange.contentExchange.waitForDone();
         }
         return exchange;
     };
