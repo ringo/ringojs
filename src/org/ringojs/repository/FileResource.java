@@ -64,8 +64,8 @@ public class FileResource extends AbstractResource {
     }
 
     public boolean exists() {
-        // resource doesn't exist if it is a directory
-        return file.exists() && !file.isDirectory();
+        // not a resource if it's a directory
+        return file.isFile();
     }
 
     @Override

@@ -88,7 +88,7 @@ public class FileRepository extends AbstractRepository {
      * @return true if the repository exists.
      */
     public boolean exists() {
-        return directory.exists() && directory.isDirectory();
+        return directory.isDirectory();
     }
 
     /**
