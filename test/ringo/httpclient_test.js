@@ -107,30 +107,25 @@ exports.testConvenience = function() {
         }
         return new Response(req.method);
     };
-    var myStatus, myData;
-    var callback = function(data, status) {
-        myData = data;
-        myStatus = status;
-    };
-    post(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('POST', myData);
+    var x = post(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('POST', x.content);
 
-    post(baseUri, {foo: 'bar'}, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('POST with param', myData);
+    x = post(baseUri, {foo: 'bar'});
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('POST with param', x.content);
 
-    get(baseUri, {foo: 'bar'}, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('GET with param', myData);
+    x = get(baseUri, {foo: 'bar'});
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('GET with param', x.content);
 
-    del(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('DELETE', myData);
+    x = del(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('DELETE', x.content);
 
-    put(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('PUT', myData);
+    x = put(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('PUT', x.content);
 };
 
 
