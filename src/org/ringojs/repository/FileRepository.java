@@ -18,6 +18,7 @@ package org.ringojs.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.List;
@@ -99,6 +100,28 @@ public class FileRepository extends AbstractRepository {
     public AbstractRepository createChildRepository(String name) throws IOException {
         File f = new File(directory, name);
         return new FileRepository(f, this);
+    }
+
+    /**
+     * Get this repository's parent repository.
+     */
+    @Override
+    public AbstractRepository getParentRepository() {
+        if (parent == null) {
+            // allow to escape file repository root
+            try {
+                SoftReference<AbstractRepository> ref = repositories.get("..");
+                AbstractRepository repo = ref == null ? null : ref.get();
+                if (repo == null) {
+                    repo = new FileRepository(directory.getParentFile());
+                    repositories.put(name, new SoftReference<AbstractRepository>(repo));
+                }
+                return repo;
+            } catch (IOException iox) {
+                // fall through
+            }
+        }
+        return parent;
     }
 
     /**
