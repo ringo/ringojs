@@ -23,7 +23,6 @@ exports.testStreamForEach = function() {
     var str = "";
     var read = 0;
     io.forEach(function(data) {
-        print("reading", data)
         read += data.length;
         str += data.decodeToString();
     });
