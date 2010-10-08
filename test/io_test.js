@@ -16,3 +16,17 @@ exports.testReadIndefinite = function() {
     assert.strictEqual(bytes.length, resource.length);
     assert.strictEqual(bytes.decodeToString(), resource.content);
 };
+
+exports.testStreamForEach = function() {
+    var resource = getResource('./assert.js');
+    var io = new Stream(resource.inputStream);
+    var str = "";
+    var read = 0;
+    io.forEach(function(data) {
+        print("reading", data)
+        read += data.length;
+        str += data.decodeToString();
+    });
+    assert.strictEqual(read, resource.length);
+    assert.strictEqual(str, resource.content);
+};
