@@ -22,7 +22,7 @@ function jsdocSetup() {
     $("#jsdoc-leftnavsearch").keyup(function() {
         var query = $.trim($(this).val().toLowerCase());
         filterList(query, $('.jsdoc-leftnav'));
-    });
+    }).focus();
 
     var $showMoreLink = $('.jsdoc-showmore');
     $(".jsdoc-fileoverview").each(function(idx, overview) {
