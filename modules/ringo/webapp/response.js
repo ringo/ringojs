@@ -311,17 +311,10 @@ Response.static = function (resource, contentType) {
                     + resource.length.toString(36);
             },
             forEach: function(fn) {
-                var read, bufsize = 8192;
-                var buffer = new ByteArray(bufsize);
                 input = new Stream(resource.getInputStream());
-                while ((read = input.readInto(buffer)) > -1) {
-                    buffer.length = read;
-                    fn(buffer);
-                    buffer.length = bufsize;
-                }
-            },
-            close: function() {
-                if (input) {
+                try {
+                    input.forEach(fn);
+                } finally {
                     input.close();
                 }
             }
