@@ -35,8 +35,8 @@ exports.setUp = function() {
     server = new Server(config);
     server.getDefaultContext().serveApplication(handleRequest);
     server.start();
-    // FIXME without this the test may hang in some configurations
-    java.lang.Thread.currentThread().sleep(1000);
+    // test used to hang without this, but seems no longer the case
+    // java.lang.Thread.currentThread().sleep(1000);
 };
 
 /**
