@@ -144,7 +144,9 @@ public abstract class AbstractRepository implements Repository {
     }
 
     private void getRelativePath(StringBuffer buffer) {
-        if (parent != null) {
+        if (isAbsolute) {
+            buffer.append(path);
+        } else if (parent != null) {
             parent.getRelativePath(buffer);
             buffer.append(name).append('/');
         } 
