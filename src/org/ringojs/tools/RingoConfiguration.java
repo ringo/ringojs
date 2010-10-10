@@ -227,15 +227,8 @@ public class RingoConfiguration {
                     script = getResource(scriptName + ".js");
                 }
                 if (!script.exists()) {
-                    // try to resolve script as module name in current directory
-                    Repository current = new FileRepository(new File(System.getProperty("user.dir")));
-                    script = current.getResource(scriptName + ".js");
-                    if (script == null || !script.exists()) {
-                        // no luck resolving the script name, give up
-                        throw new FileNotFoundException("Can't find file " + scriptName);
-                    }
-                    // found as module name in current directory, so add it to module path
-                    repositories.add(0, current);
+                    // no luck resolving the script name, give up
+                    throw new FileNotFoundException("Can't find file " + scriptName);
                 }
                 // found the script, so set mainModule
                 mainResource = script;
