@@ -37,11 +37,15 @@ public class FileResource extends AbstractResource {
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         file = file.getAbsoluteFile();
 
-        this.file = file;
-        this.repository = repository == null ?
+        repository = repository == null ?
                 new FileRepository(file.getParentFile()) : repository;
+        // Make sure path is canonical for all directories, while acutal file may be a symlink
+        // TODO what we probably want to do here is to just normalize the path
+        file = new File(repository.getPath(), file.getName());
         path = file.getPath();
         name = file.getName();
+        this.file = file;
+        this.repository = repository;
         // base name is short name with extension cut off
         int lastDot = name.lastIndexOf(".");
         baseName = (lastDot == -1) ? name : name.substring(0, lastDot);
