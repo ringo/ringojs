@@ -114,6 +114,7 @@ public class FileRepository extends AbstractRepository {
                 AbstractRepository repo = ref == null ? null : ref.get();
                 if (repo == null) {
                     repo = new FileRepository(directory.getParentFile());
+                    repo.setAbsolute(true);
                     repositories.put(name, new SoftReference<AbstractRepository>(repo));
                 }
                 return repo;
