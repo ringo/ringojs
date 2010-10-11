@@ -5,7 +5,10 @@ import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.annotations.JSFunction;
 import org.mozilla.javascript.annotations.JSGetter;
 import org.ringojs.repository.Repository;
+import org.ringojs.repository.Resource;
 import org.ringojs.repository.Trackable;
+
+import java.io.IOException;
 
 public class ModuleMetaObject extends ScriptableObject {
 
@@ -24,8 +27,15 @@ public class ModuleMetaObject extends ScriptableObject {
     }
 
     @JSFunction
-    public String resolve(String path) {
-        return repository == null ? path : repository.getRelativePath() + path;
+    public String resolve(String path) throws IOException {
+        if (repository == null) {
+            return path;
+        }
+        Resource res = repository.getResource(path);
+        if (res == null) {
+            return path;
+        }
+        return res.getRelativePath();
     }
 
     @JSGetter
