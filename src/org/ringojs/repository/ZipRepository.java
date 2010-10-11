@@ -66,10 +66,13 @@ public final class ZipRepository extends AbstractRepository {
             throws ZipException, IOException {
         // make sure our file has an absolute path,
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-        this.file = file.isAbsolute() ? file : file.getAbsoluteFile();
+        if (!file.isAbsolute()) {
+            file = file.getAbsoluteFile();
+        }
+        this.file = file;
         this.parent = null;
         name = file.getName();
-        path = file.getAbsolutePath() + '/';
+        path = file.getPath() + '/';
         depth = 0;
         entryPath = "";
     }
