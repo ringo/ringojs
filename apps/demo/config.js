@@ -1,9 +1,8 @@
-var {resolve} = require('fs');
 
 exports.urls = [
-    [ '/mount/point', require('./webmodule') ],
-    [ '/storage', resolve(module.path, '../storage/config') ],
-    [ '/', require('./actions') ]
+    [ '/mount/point', './webmodule' ],
+    [ '/storage', module.resolve('../storage/config') ],
+    [ '/', './actions' ]
 ];
 
 exports.middleware = [
