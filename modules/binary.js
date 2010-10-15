@@ -27,7 +27,7 @@ exports.Binary = Binary;
  * Constructs a writable and growable byte array.
  *
  *  If the first argument to this constructor is a number, it specifies
- * the length of the ByteArray in bytes.
+ * the initial length of the ByteArray in bytes.
  *
  * Else, the argument defines the content of the ByteArray. If the argument
  * is a String, the constructor requires a second argument containing the
