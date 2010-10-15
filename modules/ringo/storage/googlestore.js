@@ -1,3 +1,16 @@
+/**
+ * @fileOverview A Ringo store implementation for Google's
+ * [App Engine Datastore].
+ *
+ * To use this module on Google App Engine, you have to include file
+ * **`appengine-api-1.0-sdk-1.x.x.jar`** from  the `lib/user` directory of the
+ * [App Engine SDK for Java] in the `WEB-INF/lib` directory of your application.
+ *
+ * This module is **experimental** and probably has scalability issues in its current form.
+
+ * [App Engine Datastore]: http://code.google.com/intl/de/appengine/docs/java/datastore/
+ * [App Engine SDK for Java]: http://code.google.com/intl/de/appengine/downloads.html
+ */
 
 var strings = require('ringo/utils/strings');
 var {addHostObject} = require('ringo/engine');

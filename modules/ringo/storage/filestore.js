@@ -1,3 +1,11 @@
+/**
+ * @fileOverview A Ringo store implementation that stores entities as JSON files.
+ *
+ * This module is meant for **development** and very small applications only!
+ * Specifically, there is no support for indexing, so all queries will
+ * result in all data being read and scanned. 
+ */
+
 var objects = require('ringo/utils/objects');
 var {Path} = require('fs');
 var files = require('ringo/utils/files');
