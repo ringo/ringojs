@@ -31,7 +31,7 @@ export( "format",
         "daysInMonth",
         "daysInYear",
         "diff",
-        "areOverlapping" );
+        "overlapping" );
 
 /**
  * Format a Date to a string.
@@ -177,7 +177,7 @@ function diff(a, b, unit) {
 }
 
 // By Dominik Gruber, written for Tenez.at
-function areOverlapping(aStart, aEnd, bStart, bEnd) {
+function overlapping(aStart, aEnd, bStart, bEnd) {
     var aStart = aStart.getTime(),
         aEnd   = aEnd.getTime(),
         bStart = bStart.getTime(),
