@@ -20,6 +20,7 @@
  */
 
 export( "format",
+        "add",
         "isLeapYear",
         "before",
         "after",
@@ -64,14 +65,43 @@ function format(date, format, locale, timezone) {
     return sdf.format(date);
 }
 
-function isLeapYear(date) {
-    return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
-}
-
+// Helper
 function createGregorianCalender(date) {
     var cal = new java.util.GregorianCalendar();
     cal.setTimeInMillis(date.getTime());
     return cal;
+}
+
+function add(date, amount, unit) {
+    var cal = createGregorianCalender(date),
+    amount = amount || 0,
+    unit = unit || "day";
+    
+    switch (unit) {
+        case "year":    cal.add(java.util.Calendar.YEAR, amount);
+                        break;
+        case "quater":  cal.add(java.util.Calendar.MONTH, amount * 3);
+                        break;
+        case "month":   cal.add(java.util.Calendar.MONTH, amount);
+                        break;
+        case "week":    cal.add(java.util.Calendar.WEEK_OF_YEAR, amount);
+                        break;
+        case "day":     cal.add(java.util.Calendar.DATE, amount);
+                        break;
+        case "hour":    cal.add(java.util.Calendar.HOUR, amount);
+                        break;
+        case "minute":  cal.add(java.util.Calendar.MINUTE, amount);
+                        break;
+        case "second":  cal.add(java.util.Calendar.SECOND, amount);
+                        break;
+        case "millisecond":
+                        return new Date(date.getTime() + amount);
+    }
+    return new Date(cal.getTimeInMillis());
+}
+
+function isLeapYear(date) {
+    return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
 }
 
 function before(a, b) {
@@ -146,6 +176,7 @@ function diff(a, b, unit) {
     return delta;
 }
 
+// By Dominik Gruber, written for Tenez.at
 function areOverlapping(aStart, aEnd, bStart, bEnd) {
     var aStart = aStart.getTime(),
         aEnd   = aEnd.getTime(),
