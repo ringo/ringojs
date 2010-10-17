@@ -29,7 +29,8 @@ export( "format",
         "quaterOfYear",
         "daysInMonth",
         "daysInYear",
-        "diff" );
+        "diff",
+        "areOverlapping" );
 
 /**
  * Format a Date to a string.
@@ -123,8 +124,7 @@ function diff(a, b, unit) {
     mDiff = Math.abs(a.getTime() - b.getTime()),
     yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
     delta = mDiff;
-    
-    
+       
     switch (unit) {
         case "year":    delta = yDiff; // just return the yDiff
                         break;
@@ -136,12 +136,45 @@ function diff(a, b, unit) {
                         break;
         case "day":     delta /= 24;
         case "hour":    delta /= 60;
-		case "minute":  delta /= 60;
-		case "second":  delta /= 1000;
-		                break;
-		case "millisecond":
-		                break; // delta is by default the diff in millis
+        case "minute":  delta /= 60;
+        case "second":  delta /= 1000;
+                        break;
+        case "millisecond":
+                        break; // delta is by default the diff in millis
     }
     
     return delta;
 }
+
+function areOverlapping(aStart, aEnd, bStart, bEnd) {
+    var aStart = aStart.getTime(),
+        aEnd   = aEnd.getTime(),
+        bStart = bStart.getTime(),
+        bEnd   = bEnd.getTime();
+        
+        // A     |----|
+        // B  |----|
+        if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
+            return true;
+        }
+
+        // A  |----|
+        // B    |----|
+        if(aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
+            return true;
+        }
+
+        // A  |-------|
+        // B    |--|
+        if(aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
+            return true;
+        }
+
+        // A    |--|
+        // B  |-------|
+        if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
+            return true;
+        }
+        
+        return false;
+};
