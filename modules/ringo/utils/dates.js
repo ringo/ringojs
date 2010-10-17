@@ -19,7 +19,17 @@
  * @fileoverview Adds useful functions for working with JavaScript Date objects.
  */
 
-export("format");
+export( "format",
+        "isLeapYear",
+        "before",
+        "after",
+        "firstDayOfWeek",
+        "weekOfMonth",
+        "weekOfYear",
+        "quaterOfYear",
+        "daysInMonth",
+        "daysInYear",
+        "diff" );
 
 /**
  * Format a Date to a string.
@@ -51,4 +61,87 @@ function format(date, format, locale, timezone) {
     if (timezone && timezone != sdf.getTimeZone())
         sdf.setTimeZone(timezone);
     return sdf.format(date);
+}
+
+function isLeapYear(date) {
+    return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
+}
+
+function createGregorianCalender(date) {
+    var cal = new java.util.GregorianCalendar();
+    cal.setTimeInMillis(date.getTime());
+    return cal;
+}
+
+function before(a, b) {
+    var calA = new java.util.GregorianCalendar(),
+    calB = new java.util.GregorianCalendar();
+    
+    calA.setTimeInMillis(a.getTime());
+    calB.setTimeInMillis(b.getTime());
+    
+    return calA.before(calB);
+}
+
+function after(a, b) {
+    var calA = createGregorianCalender(a),
+    calB = createGregorianCalender(b);
+    
+    return calA.after(calB);
+}
+
+function firstDayOfWeek(locale) {
+    if (typeof locale == "string") {
+        locale = new java.util.Locale(locale);
+    }
+    var calendar = locale ? java.util.Calendar.getInstance(locale) : java.util.Calendar.getInstance();
+    return calendar.getFirstDayOfWeek();
+}
+
+function weekOfMonth(date) {
+    return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_MONTH);
+}
+
+function weekOfYear(date) {
+    return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_YEAR);
+}
+
+function daysInMonth(date) {
+    return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+}
+
+function daysInYear(date) {
+    return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_YEAR);
+}
+
+function quaterOfYear(date) {
+    return Math.floor((date.getMonth() / 3) + 1);
+}
+
+function diff(a, b, unit) {
+    var unit = unit || "day",
+    mDiff = Math.abs(a.getTime() - b.getTime()),
+    yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
+    delta = mDiff;
+    
+    
+    switch (unit) {
+        case "year":    delta = yDiff; // just return the yDiff
+                        break;
+        case "quater":  delta = (yDiff * 4) + Math.abs(quaterOfYear(a) - quaterOfYear(b));
+                        break;
+        case "month":   delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
+                        break;
+        case "week":    delta = Math.floor(diff(a, b, "day") / 7);
+                        break;
+        case "day":     delta /= 24;
+        case "hour":    delta /= 60;
+		case "minute":  delta /= 60;
+		case "second":  delta /= 1000;
+		                break;
+		case "millisecond":
+		                break; // delta is by default the diff in millis
+    }
+    
+    return delta;
 }
