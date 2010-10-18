@@ -105,6 +105,34 @@ function add(date, amount, unit) {
     return new Date(cal.getTimeInMillis());
 }
 
+function roll(date, amount, unit) {
+    var cal = createGregorianCalender(date),
+    amount = amount || 0,
+    unit = unit || "day";
+    
+    switch (unit) {
+        case "year":    cal.roll(java.util.Calendar.YEAR, amount);
+                        break;
+        case "quater":  cal.roll(java.util.Calendar.MONTH, amount * 3);
+                        break;
+        case "month":   cal.roll(java.util.Calendar.MONTH, amount);
+                        break;
+        case "week":    cal.roll(java.util.Calendar.WEEK_OF_YEAR, amount);
+                        break;
+        case "day":     cal.roll(java.util.Calendar.DATE, amount);
+                        break;
+        case "hour":    cal.roll(java.util.Calendar.HOUR, amount);
+                        break;
+        case "minute":  cal.roll(java.util.Calendar.MINUTE, amount);
+                        break;
+        case "second":  cal.roll(java.util.Calendar.SECOND, amount);
+                        break;
+        case "millisecond":
+                        return new Date(date.getTime() + amount);
+    }
+    return new Date(cal.getTimeInMillis());
+}
+
 function isLeapYear(date) {
     return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
 }
