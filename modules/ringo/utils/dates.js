@@ -25,13 +25,18 @@ export( "format",
         "before",
         "after",
         "firstDayOfWeek",
+        "secondOfDay",
+        "dayOfYear",
         "weekOfMonth",
         "weekOfYear",
         "quaterOfYear",
+        "yearInCentury",
         "daysInMonth",
         "daysInYear",
         "diff",
-        "overlapping" );
+        "overlapping",
+        "inPeriod",
+        "resetTime" );
 
 /**
  * Format a Date to a string.
@@ -129,12 +134,25 @@ function firstDayOfWeek(locale) {
     return calendar.getFirstDayOfWeek();
 }
 
+function secondOfDay(date) {
+    return (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
+}
+
+function dayOfYear(date) {
+    return createGregorianCalender(date).get(java.util.Calendar.DAY_OF_YEAR);
+}
+
 function weekOfMonth(date) {
     return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_MONTH);
 }
 
 function weekOfYear(date) {
     return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_YEAR);
+}
+
+function yearInCentury(date) {
+    var year = date.getFullYear();
+    return year - (Math.floor(year / 100) * 100);
 }
 
 function daysInMonth(date) {
@@ -208,4 +226,22 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
         }
         
         return false;
-};
+}
+
+function inPeriod(date, periodStart, periodEnd) {
+    var pStart = periodStart.getTime(),
+    pEnd = periodEnd.getTime(),
+    dateMillis = date.getTime();
+    
+    // period  |-------|
+    // date       ^
+    if(pStart <= dateMillis && dateMillis <= pEnd) {
+        return true;
+    }
+    
+    return false;
+}
+
+function resetTime(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
