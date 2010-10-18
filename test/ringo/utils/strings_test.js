@@ -123,7 +123,13 @@ exports.testEndsWith = function () {
 };
 
 exports.testPad = function () { // TODO: validate behaviour resp. rework this.
-    assert.strictEqual(FOO + NUM + NUM, strings.pad(FOO, NUM, 5, 1));
+    assert.strictEqual(strings.pad(FOO, NUM, 6, 1), FOO + NUM);
+    assert.strictEqual(strings.pad(NUM, NUM, 4, 1), NUM + NUM.charAt(0));
+
+    assert.strictEqual(strings.pad(FOO, NUM, 6, 0), NUM.charAt(0) + FOO + NUM.substr(0,2));
+    
+    assert.strictEqual(strings.pad(FOO, NUM, 6, -1), NUM + FOO);
+    assert.strictEqual(strings.pad(NUM, NUM, 4, -1), NUM.charAt(0) + NUM);
 };
 
 exports.testContains = function () {
