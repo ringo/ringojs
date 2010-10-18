@@ -19,11 +19,15 @@
  * @fileoverview Adds useful functions for working with JavaScript Date objects.
  */
 
+var strings = require('ringo/utils/strings');
+
 export( "format",
         "add",
+        "roll",
         "isLeapYear",
         "before",
         "after",
+        "compare",
         "firstDayOfWeek",
         "secondOfDay",
         "dayOfYear",
@@ -37,7 +41,9 @@ export( "format",
         "overlapping",
         "inPeriod",
         "resetTime",
-        "resetDate" );
+        "resetDate",
+        "toISOString",
+        "fromISOString" );
 
 /**
  * Format a Date to a string.
@@ -78,66 +84,102 @@ function createGregorianCalender(date) {
     return cal;
 }
 
-function add(date, amount, unit) {
+/**
+ * Adds delta to the given field or reduces it, if delta is negative. If larger fields are effected,
+ * they will be changed accordingly.
+ *
+ * @param {Date} date base date to add or remove time from.
+ * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
+ * @param {String} unit (optional) field to change. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
+ *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
+ * @returns {Date} date with the calculated date and time
+ * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#add(int,%20int)
+ */
+function add(date, delta, unit) {
     var cal = createGregorianCalender(date),
-    amount = amount || 0,
+    delta = delta || 0,
     unit = unit || "day";
     
     switch (unit) {
-        case "year":    cal.add(java.util.Calendar.YEAR, amount);
+        case "year":    cal.add(java.util.Calendar.YEAR, delta);
                         break;
-        case "quarter": cal.add(java.util.Calendar.MONTH, amount * 3);
+        case "quarter": cal.add(java.util.Calendar.MONTH, delta * 3);
                         break;
-        case "month":   cal.add(java.util.Calendar.MONTH, amount);
+        case "month":   cal.add(java.util.Calendar.MONTH, delta);
                         break;
-        case "week":    cal.add(java.util.Calendar.WEEK_OF_YEAR, amount);
+        case "week":    cal.add(java.util.Calendar.WEEK_OF_YEAR, delta);
                         break;
-        case "day":     cal.add(java.util.Calendar.DATE, amount);
+        case "day":     cal.add(java.util.Calendar.DATE, delta);
                         break;
-        case "hour":    cal.add(java.util.Calendar.HOUR, amount);
+        case "hour":    cal.add(java.util.Calendar.HOUR, delta);
                         break;
-        case "minute":  cal.add(java.util.Calendar.MINUTE, amount);
+        case "minute":  cal.add(java.util.Calendar.MINUTE, delta);
                         break;
-        case "second":  cal.add(java.util.Calendar.SECOND, amount);
+        case "second":  cal.add(java.util.Calendar.SECOND, delta);
                         break;
         case "millisecond":
-                        return new Date(date.getTime() + amount);
+                        return new Date(date.getTime() + delta);
     }
     return new Date(cal.getTimeInMillis());
 }
 
-function roll(date, amount, unit) {
+/**
+ * Adds delta to the given field or reduces it, if delta is negative, without changing other fields.
+ * <em>Example:</em> If you call <tt>roll(new Date(2010, 11, 31), 1)</tt>, it will return Dec 01 2010 00:00:00,
+ * leaving all fields except the day unchanged.
+ *
+ * @param {Date} date base date to add or remove time from.
+ * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
+ * @param {String} unit (optional) field to change. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
+ *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
+ * @returns {Date} date with the calculated date and time
+ * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#roll(int,%20int)
+ */
+function roll(date, delta, unit) {
     var cal = createGregorianCalender(date),
-    amount = amount || 0,
+    delta = delta || 0,
     unit = unit || "day";
     
     switch (unit) {
-        case "year":    cal.roll(java.util.Calendar.YEAR, amount);
+        case "year":    cal.roll(java.util.Calendar.YEAR, delta);
                         break;
-        case "quarter": cal.roll(java.util.Calendar.MONTH, amount * 3);
+        case "quarter": cal.roll(java.util.Calendar.MONTH, delta * 3);
                         break;
-        case "month":   cal.roll(java.util.Calendar.MONTH, amount);
+        case "month":   cal.roll(java.util.Calendar.MONTH, delta);
                         break;
-        case "week":    cal.roll(java.util.Calendar.WEEK_OF_YEAR, amount);
+        case "week":    cal.roll(java.util.Calendar.WEEK_OF_YEAR, delta);
                         break;
-        case "day":     cal.roll(java.util.Calendar.DATE, amount);
+        case "day":     cal.roll(java.util.Calendar.DATE, delta);
                         break;
-        case "hour":    cal.roll(java.util.Calendar.HOUR, amount);
+        case "hour":    cal.roll(java.util.Calendar.HOUR, delta);
                         break;
-        case "minute":  cal.roll(java.util.Calendar.MINUTE, amount);
+        case "minute":  cal.roll(java.util.Calendar.MINUTE, delta);
                         break;
-        case "second":  cal.roll(java.util.Calendar.SECOND, amount);
+        case "second":  cal.roll(java.util.Calendar.SECOND, delta);
                         break;
         case "millisecond":
-                        return new Date(date.getTime() + amount);
+                        return new Date(date.getTime() + delta);
     }
     return new Date(cal.getTimeInMillis());
 }
 
+/**
+ * Checks if the date's year is a leap year.
+ *
+ * @param {Date} date to check year
+ * @returns Boolean true if the year is a leap year, false if not.
+ */
 function isLeapYear(date) {
     return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
 }
 
+/**
+ * Checks if date <tt>a</tt> is before date <tt>b</tt>. This is equals to <tt>compareTo(a, b) &lt; 0</tt>
+ *
+ * @param {Date} a first date
+ * @param {Date} b second date
+ * @returns Boolean true if <tt>a</tt> is before <tt>b</tt>, false if not.
+ */
 function before(a, b) {
     var calA = new java.util.GregorianCalendar(),
     calB = new java.util.GregorianCalendar();
@@ -148,6 +190,13 @@ function before(a, b) {
     return calA.before(calB);
 }
 
+/**
+ * Checks if date <tt>a</tt> is after date <tt>b</tt>. This is equals to <tt>compare(a, b) &gt; 0</tt>
+ *
+ * @param {Date} a first date
+ * @param {Date} b second date
+ * @returns Boolean true if <tt>a</tt> is after <tt>b</tt>, false if not.
+ */
 function after(a, b) {
     var calA = createGregorianCalender(a),
     calB = createGregorianCalender(b);
@@ -155,6 +204,29 @@ function after(a, b) {
     return calA.after(calB);
 }
 
+/**
+ * Compares the time values of <tt>a</tt> and <tt>b</tt>.
+ *
+ * @param {Date} a first date
+ * @param {Date} b second date
+ * @returns Number -1 if <tt>a</tt> is before <tt>b</tt>, 0 if equals and 1 if <tt>a</tt> is after <tt>b</tt>.
+ * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/Calendar.html#compareTo(java.util.Calendar)
+ */
+function compare(a, b) {
+    var calA = createGregorianCalender(a),
+    calB = createGregorianCalender(b);
+    
+    return calA.compareTo(calB);
+}
+
+/**
+ * Gets the first day of the week.
+ *
+ * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
+ *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @returns Number the first day of the week; 1 = Sunday, 2 = Monday.
+ * @see http://download.oracle.com/javase/1.5.0/docs/api/constant-values.html#java.util.Calendar.SUNDAY
+ */
 function firstDayOfWeek(locale) {
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
@@ -163,39 +235,87 @@ function firstDayOfWeek(locale) {
     return calendar.getFirstDayOfWeek();
 }
 
+/**
+ * Gets the second of the day for the given date.
+ * @param {Date} date calculate the second of the day.
+ * @returns Number second of the day
+ */
 function secondOfDay(date) {
     return (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
 }
 
+/**
+ * Gets the day of the year for the given date.
+ * @param {Date} date calculate the day of the year.
+ * @returns Number day of the year
+ */
 function dayOfYear(date) {
     return createGregorianCalender(date).get(java.util.Calendar.DAY_OF_YEAR);
 }
 
+/**
+ * Gets the week of the month for the given date.
+ * @param {Date} date calculate the week of the month.
+ * @returns Number week of the month
+ */
 function weekOfMonth(date) {
     return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_MONTH);
 }
 
+/**
+ * Gets the week of the year for the given date.
+ * @param {Date} date calculate the week of the year.
+ * @returns Number week of the year
+ */
 function weekOfYear(date) {
     return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_YEAR);
 }
 
+/**
+ * Gets the year of the century for the given date. <em>Examples:</em> 1900 returns 0, 2010 returns 10.
+ * @param {Date} date calculate the year of the century.
+ * @returns Number second of the day
+ */
 function yearInCentury(date) {
     var year = date.getFullYear();
     return year - (Math.floor(year / 100) * 100);
 }
 
+/**
+ * Gets the number of the days in the month.
+ * @param {Date} date to find the maximum number of days.
+ * @returns Number days in the month, between 28 and 31.
+ */
 function daysInMonth(date) {
     return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
 }
 
+/**
+ * Gets the number of the days in the year.
+ * @param {Date} date to find the maximum number of days.
+ * @returns Number days in the year, 365 or 366, if it's a leap year.
+ */
 function daysInYear(date) {
     return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_YEAR);
 }
 
+/**
+ * Gets the quarter in the year.
+ * @param {Date} date to calculate the quarter for.
+ * @returns Number quarter of the year, between 1 and 4.
+ */
 function quarterOfYear(date) {
     return Math.floor((date.getMonth() / 3) + 1);
 }
 
+/**
+ * Get the difference between two dates, specified by the unit of time.
+ * @param {Date} a first date
+ * @param {Date} b second date
+ * @param {String} unit (optional) of time to return. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
+ *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
+ * @returns Number difference between the given dates in the specified unit of time.
+ */
 function diff(a, b, unit) {
     var unit = unit || "day",
     mDiff = Math.abs(a.getTime() - b.getTime()),
@@ -224,6 +344,14 @@ function diff(a, b, unit) {
 }
 
 // By Dominik Gruber, written for Tenez.at
+/**
+ * Look if two periods are overlapping each other.
+ * @param {Date} aStart first period's start
+ * @param {Date} aEnd first period's end
+ * @param {Date} bStart second period's start
+ * @param {Date} bEnd second period's end
+ * @returns Boolean true if the periods are overlapping at some point, false if not.
+ */
 function overlapping(aStart, aEnd, bStart, bEnd) {
     var aStart = aStart.getTime(),
         aEnd   = aEnd.getTime(),
@@ -257,6 +385,13 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
         return false;
 }
 
+/**
+ * Look if the date is in the period, using <em>periodStart &lt;= date &lt;= periodEnd</em>.
+ * @param {Date} date to check, if it's in the period
+ * @param {Date} periodStart the period's start
+ * @param {Date} periodEnd the period's end
+ * @returns Boolean true if the date is in the period, false if not.
+ */
 function inPeriod(date, periodStart, periodEnd) {
     var pStart = periodStart.getTime(),
     pEnd = periodEnd.getTime(),
@@ -271,10 +406,110 @@ function inPeriod(date, periodStart, periodEnd) {
     return false;
 }
 
+/**
+ * Resets the time values to 0, keeping only year, month and day.
+ * @param {Date} date to reset
+ * @returns Date date without any time values
+ */
 function resetTime(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+/**
+ * Drops the date values, keeping only hours, minutes, seconds and milliseconds.
+ * @param {Date} date to reset
+ * @returns Date date with the original time values and 1970-01-01 as date.
+ */
 function resetDate(date) {
     return new Date(1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+}
+
+/**
+ * Create a ISO 8601 compatible string from the date.
+ * @param {Date} date to format
+ * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
+ * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is false.
+ * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default false.
+ * @returns String date as ISO 8601 string.
+ */
+function toISOString(date, withTime, withTimeZone, withSeconds) {
+    var withTime = withTime || true,
+    withTimeZone = withTimeZone || false,
+    withSeconds = withSeconds || false,
+    year, month, day, hours, minutes, seconds;
+    
+    // use local time if output is not in UTC
+    if (withTimeZone) {
+        year  = date.getFullYear();
+        month = date.getMonth();
+        day   = date.getDate();
+        hours = date.getHours();
+        minutes = date.getMinutes();
+        seconds = date.getSeconds();
+    } else { // use UTC
+        year  = date.getUTCFullYear();
+        month = date.getUTCMonth();
+        day   = date.getUTCDate();
+        hours = date.getUTCHours();
+        minutes = date.getUTCMinutes();
+        seconds = date.getUTCSeconds();
+    }
+    
+    str = year + "-" + strings.pad((month + 1), "0", 2, -1) + "-" + strings.pad(day, "0", 2, -1);
+    
+    // Append the time
+    if (withTime) {
+        str += "T" + strings.pad(hours, "0", 2, -1) + ":" + strings.pad(minutes, "0", 2, -1);
+        if (withSeconds) {
+            str += ":" + strings.pad(seconds, "0", 2, -1);
+        }
+    }
+    
+    // Append the timezone offset
+    if (withTimeZone) {
+        var offset  = date.getTimezoneOffset(),
+        inHours   = Math.abs(Math.floor(offset / 60)),
+        inMinutes = Math.abs(offset) - (inHours * 60);
+        
+        // Write the time zone offset in hours
+        if (offset < 0) {
+            str += "+";
+        } else {
+            str += "-";
+        }
+        str += strings.pad(inHours, "0", 2, -1) + ":" + strings.pad(inMinutes, "0", 2, -1);
+    } else {
+        str += "Z"; // UTC indicator
+    }
+    
+    return str;
+}
+
+// Ported and enhanced from Kevin A. Burton's parser.
+// http://www.java2s.com/Code/Java/Data-Type/ISO8601dateparsingutility.htm
+/**
+ * Parses an ISO 8601 compatible input string.
+ * @param {String} string to parse
+ * @returns Date date representation of the input.
+ */
+function fromISOString(input) {
+    // FIXME this only covers a small part of possible ISO 8601 dates!!!
+    var df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz");
+    
+    // Fix inputs without a second part
+    if (input.charAt(16) !== ":") {
+        input = input.substr(0, 16) + ":00" + input.substr(16);
+    }
+    
+    // Is input string in UTC?
+    if (strings.endsWith(input, "Z")) {
+        input = input.substring(0, input.length - 1) + "GMT-00:00";
+    } else {
+        // Build Java compatible input with correct timezone
+        var datetimeStr = input.substring(0, input.length - 6);
+        var timezoneStr = input.substring(input.length - 6, input.length);
+        input = datetimeStr + "GMT" + timezoneStr;
+    }
+    
+    return df.parse(input);
 }

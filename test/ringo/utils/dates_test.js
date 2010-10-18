@@ -43,6 +43,20 @@ exports.testAddTimeToDate = function () {
     assert.equal(dates.add(d, 10, 'month').getTime(), 1315642210010); // Sat Sep 10 2011 10:10:10 GMT+0200 (MESZ)
     assert.equal(dates.add(d, 10, 'quarter').getTime(), 1368173410010); // Fri May 10 2013 10:10:10 GMT+0200 (MESZ)
     assert.equal(dates.add(d, 10, 'year').getTime(), 1604999410010); // Tue Nov 10 2020 10:10:10 GMT+0100 (MEZ)
+   
+    // Add nothing
+    assert.equal(dates.add(d, 0, 'millisecond').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'second').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'minute').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'hour').getTime(), 1289380210010);
+    
+    assert.equal(dates.add(d, 0, 'day').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0).getTime(), 1289380210010);
+    
+    assert.equal(dates.add(d, 0, 'week').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'month').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'quarter').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'year').getTime(), 1289380210010);
     
     // Remove 10
     assert.equal(dates.add(d, -10, 'millisecond').getTime(), 1289380210000);
