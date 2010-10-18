@@ -29,14 +29,15 @@ export( "format",
         "dayOfYear",
         "weekOfMonth",
         "weekOfYear",
-        "quaterOfYear",
+        "quarterOfYear",
         "yearInCentury",
         "daysInMonth",
         "daysInYear",
         "diff",
         "overlapping",
         "inPeriod",
-        "resetTime" );
+        "resetTime",
+        "resetDate" );
 
 /**
  * Format a Date to a string.
@@ -85,7 +86,7 @@ function add(date, amount, unit) {
     switch (unit) {
         case "year":    cal.add(java.util.Calendar.YEAR, amount);
                         break;
-        case "quater":  cal.add(java.util.Calendar.MONTH, amount * 3);
+        case "quarter": cal.add(java.util.Calendar.MONTH, amount * 3);
                         break;
         case "month":   cal.add(java.util.Calendar.MONTH, amount);
                         break;
@@ -113,7 +114,7 @@ function roll(date, amount, unit) {
     switch (unit) {
         case "year":    cal.roll(java.util.Calendar.YEAR, amount);
                         break;
-        case "quater":  cal.roll(java.util.Calendar.MONTH, amount * 3);
+        case "quarter": cal.roll(java.util.Calendar.MONTH, amount * 3);
                         break;
         case "month":   cal.roll(java.util.Calendar.MONTH, amount);
                         break;
@@ -191,7 +192,7 @@ function daysInYear(date) {
     return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_YEAR);
 }
 
-function quaterOfYear(date) {
+function quarterOfYear(date) {
     return Math.floor((date.getMonth() / 3) + 1);
 }
 
@@ -204,7 +205,7 @@ function diff(a, b, unit) {
     switch (unit) {
         case "year":    delta = yDiff; // just return the yDiff
                         break;
-        case "quater":  delta = (yDiff * 4) + Math.abs(quaterOfYear(a) - quaterOfYear(b));
+        case "quarter": delta = (yDiff * 4) + Math.abs(quarterOfYear(a) - quarterOfYear(b));
                         break;
         case "month":   delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
                         break;
@@ -272,4 +273,8 @@ function inPeriod(date, periodStart, periodEnd) {
 
 function resetTime(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function resetDate(date) {
+    return new Date(1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
 }
