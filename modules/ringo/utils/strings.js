@@ -362,6 +362,9 @@ function endsWith(string, substring) {
  * @returns String the resulting string
  */
 function pad(string, fill, length, mode) {
+    if (typeof string !== "string") {
+        string = string.toString();
+    }
     if (fill == null || length == null) {
         return string;
     }
