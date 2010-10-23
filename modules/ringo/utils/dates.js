@@ -24,7 +24,6 @@ var log = require('ringo/logging').getLogger(module.id);
 
 export( "format",
         "add",
-        "roll",
         "isLeapYear",
         "before",
         "after",
@@ -82,8 +81,11 @@ function format(date, format, locale, timezone) {
 }
 
 // Helper
-function createGregorianCalender(date) {
-    var cal = new java.util.GregorianCalendar();
+function createGregorianCalender(date, locale) {
+    if (typeof locale == "string") {
+        locale = new java.util.Locale(locale);
+    }
+    var cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
     cal.setTimeInMillis(date.getTime());
     return cal;
 }
@@ -120,46 +122,6 @@ function add(date, delta, unit) {
         case "minute":  cal.add(java.util.Calendar.MINUTE, delta);
                         break;
         case "second":  cal.add(java.util.Calendar.SECOND, delta);
-                        break;
-        case "millisecond":
-                        return new Date(date.getTime() + delta);
-    }
-    return new Date(cal.getTimeInMillis());
-}
-
-/**
- * Adds delta to the given field or reduces it, if delta is negative, without changing other fields.
- * <em>Example:</em> If you call <tt>roll(new Date(2010, 11, 31), 1)</tt>, it will return Dec 01 2010 00:00:00,
- * leaving all fields except the day unchanged.
- *
- * @param {Date} date base date to add or remove time from.
- * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
- * @param {String} unit (optional) field to change. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
- *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
- * @returns {Date} date with the calculated date and time
- * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#roll(int,%20int)
- */
-function roll(date, delta, unit) {
-    var cal = createGregorianCalender(date),
-    delta = delta || 0,
-    unit = unit || "day";
-    
-    switch (unit) {
-        case "year":    cal.roll(java.util.Calendar.YEAR, delta);
-                        break;
-        case "quarter": cal.roll(java.util.Calendar.MONTH, delta * 3);
-                        break;
-        case "month":   cal.roll(java.util.Calendar.MONTH, delta);
-                        break;
-        case "week":    cal.roll(java.util.Calendar.WEEK_OF_YEAR, delta);
-                        break;
-        case "day":     cal.roll(java.util.Calendar.DATE, delta);
-                        break;
-        case "hour":    cal.roll(java.util.Calendar.HOUR, delta);
-                        break;
-        case "minute":  cal.roll(java.util.Calendar.MINUTE, delta);
-                        break;
-        case "second":  cal.roll(java.util.Calendar.SECOND, delta);
                         break;
         case "millisecond":
                         return new Date(date.getTime() + delta);
@@ -255,19 +217,23 @@ function dayOfYear(date) {
 /**
  * Gets the week of the month for the given date.
  * @param {Date} date calculate the week of the month.
+ * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
+ *        lowercase two-letter ISO-639 code (e.g. "en")
  * @returns Number week of the month
  */
-function weekOfMonth(date) {
-    return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_MONTH);
+function weekOfMonth(date, locale) {
+    return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_MONTH);
 }
 
 /**
  * Gets the week of the year for the given date.
  * @param {Date} date calculate the week of the year.
+ * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
+ *        lowercase two-letter ISO-639 code (e.g. "en")
  * @returns Number week of the year
  */
-function weekOfYear(date) {
-    return createGregorianCalender(date).get(java.util.Calendar.WEEK_OF_YEAR);
+function weekOfYear(date, locale) {
+    return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_YEAR);
 }
 
 /**

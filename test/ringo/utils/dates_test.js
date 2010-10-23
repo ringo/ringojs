@@ -3,7 +3,7 @@ var dates = require('ringo/utils/dates');
 var log = require('ringo/logging').getLogger(module.id);
 
 // list of years taken from http://en.wikipedia.org/wiki/List_of_leap_years
-exports.testIsLeapYear = function () {
+exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     var leapYears = [
         1896, 1904, 1908, 1912, 1916, 1920,
         1924, 1928, 1932, 1936, 1940, 1944,
@@ -24,6 +24,7 @@ exports.testIsLeapYear = function () {
         assert.isTrue(dates.isLeapYear(d));
         assert.equal(dates.daysInYear(d), 366);
         assert.equal(dates.daysInFebruary(d), 29);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29);
     });
     
     noLeapYears.forEach(function(year) {
@@ -31,10 +32,11 @@ exports.testIsLeapYear = function () {
         assert.isFalse(dates.isLeapYear(d));
         assert.equal(dates.daysInYear(d), 365);
         assert.equal(dates.daysInFebruary(d), 28);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28);
     });
 };
 
-exports.testAddTimeToDate = function () {
+exports.testAdd = function () {
     var d = new Date(2010, 10, 10, 10, 10, 10, 10);
     assert.equal(d.getTime(), 1289380210010); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
     
@@ -81,7 +83,7 @@ exports.testAddTimeToDate = function () {
     assert.equal(dates.add(d, -10, 'year').getTime(), 973847410010); // Fri Nov 10 2000 10:10:10 GMT+0100 (MEZ)
 };
 
-exports.testBeforeAfterCompareTo = function () {
+exports.testBefore_After_Compare = function () {
     var a = new Date(2010, 0, 2), b = new Date(2010, 0, 1);
     
     assert.isFalse(dates.before(a, b));
@@ -173,7 +175,7 @@ exports.testQuarterInFiscalYear = function() {
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 11, 31), new Date(1970, 0, 1)), 4);
 };
 
-exports.testDiffBetweenDates = function() {
+exports.testDiff = function() {
     var a = new Date(2010, 0, 1),
     b = new Date(2010, 0, 2);
     
@@ -214,47 +216,209 @@ exports.testDiffBetweenDates = function() {
 };
 
 exports.testOverlapping = function() {
-  var aStart = new Date(2010, 0, 1),
-  aEnd = new Date(2010, 0, 10),
-  bStart = new Date(2010, 0, 2),
-  bEnd = new Date(2010, 0, 3);
-  
-  // A  |-------|
-  // B    |--|
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
-  
-  // A    |-------|
-  // B |----|
-  bStart = new Date(2009, 0, 1);
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
-  
-  // A    |-----|
-  // B |-----------|
-  bStart = new Date(2009, 0, 1);
-  bEnd   = new Date(2010, 0, 11);
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
-  
-  // A |-------|
-  // B   |--------|
-  bStart = new Date(2010, 0, 2);
-  bEnd   = new Date(2010, 0, 11);
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+    var aStart = new Date(2010, 0, 1),
+    aEnd = new Date(2010, 0, 10),
+    bStart = new Date(2010, 0, 2),
+    bEnd = new Date(2010, 0, 3);
 
-  // A |----|
-  // B      |----|
-  bStart = new Date(2010, 0, 10);
-  bEnd   = new Date(2010, 0, 13);
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
-  
-  // A       |----|
-  // B  |----|
-  bStart = new Date(2009, 0, 1);
-  bEnd   = new Date(2010, 0, 1);
-  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
-  
-  // A |----|
-  // B        |----|
-  bStart = new Date(2010, 0, 11);
-  bEnd   = new Date(2010, 0, 13);
-  assert.isFalse(dates.overlapping(aStart, aEnd, bStart, bEnd));
+    // A  |-------|
+    // B    |--|
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A    |-------|
+    // B |----|
+    bStart = new Date(2009, 0, 1);
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A    |-----|
+    // B |-----------|
+    bStart = new Date(2009, 0, 1);
+    bEnd   = new Date(2010, 0, 11);
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A |-------|
+    // B   |--------|
+    bStart = new Date(2010, 0, 2);
+    bEnd   = new Date(2010, 0, 11);
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A |----|
+    // B      |----|
+    bStart = new Date(2010, 0, 10);
+    bEnd   = new Date(2010, 0, 13);
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A       |----|
+    // B  |----|
+    bStart = new Date(2009, 0, 1);
+    bEnd   = new Date(2010, 0, 1);
+    assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+    // A |----|
+    // B        |----|
+    bStart = new Date(2010, 0, 11);
+    bEnd   = new Date(2010, 0, 13);
+    assert.isFalse(dates.overlapping(aStart, aEnd, bStart, bEnd));
+};
+
+exports.testInPeriod = function() {
+    var pStart = new Date(2010, 0, 10),
+    pEnd = new Date(2010, 0, 20);
+    
+    //  Period   [--------]
+    //  Date     ^
+    assert.isTrue(dates.inPeriod(new Date(2010, 0, 10), pStart, pEnd, false, false));
+    
+    //  Period   (--------]
+    //  Date     ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 10), pStart, pEnd, true, false));
+    
+    //  Period   [--------]
+    //  Date              ^
+    assert.isTrue(dates.inPeriod(new Date(2010, 0, 20), pStart, pEnd, false, false));
+    
+    //  Period   [--------)
+    //  Date              ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 20), pStart, pEnd, false, true));
+    
+    //  Period   [--------]
+    //  Date         ^
+    assert.isTrue(dates.inPeriod(new Date(2010, 0, 15), pStart, pEnd, false, false));
+    
+    //  Period   (--------)
+    //  Date         ^
+    assert.isTrue(dates.inPeriod(new Date(2010, 0, 15), pStart, pEnd, true, true));
+    
+    //  Period   [--------]
+    //  Date                 ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 22), pStart, pEnd, false, false));
+    
+    //  Period     [--------]
+    //  Date    ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 5), pStart, pEnd, false, false));
+    
+    //  Period   (--------)
+    //  Date                 ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 22), pStart, pEnd, true, true));
+    
+    //  Period     (--------)
+    //  Date    ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 5), pStart, pEnd, true, true));
+    
+    //  Period   (--------]
+    //  Date                 ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 22), pStart, pEnd, true, false));
+    
+    //  Period     [--------)
+    //  Date    ^
+    assert.isFalse(dates.inPeriod(new Date(2010, 0, 5), pStart, pEnd, false, true));
+};
+
+exports.testResetTime = function() {
+    var d = new Date(2010, 0, 1, 20, 20, 20);
+    assert.equal(dates.resetTime(d).getFullYear(), 2010);
+    assert.equal(dates.resetTime(d).getMonth(), 0);
+    assert.equal(dates.resetTime(d).getDate(), 1);
+    assert.equal(dates.resetTime(d).getHours(), 0);
+    assert.equal(dates.resetTime(d).getMinutes(), 0);
+    assert.equal(dates.resetTime(d).getSeconds(), 0);
+};
+
+exports.testResetDate = function() {
+    var d = new Date(2010, 0, 1, 20, 20, 20);
+    assert.equal(dates.resetDate(d).getFullYear(), 1970);
+    assert.equal(dates.resetDate(d).getMonth(), 0);
+    assert.equal(dates.resetDate(d).getDate(), 1);
+    assert.equal(dates.resetDate(d).getHours(), 20);
+    assert.equal(dates.resetDate(d).getMinutes(), 20);
+    assert.equal(dates.resetDate(d).getSeconds(), 20);
+};
+
+exports.testSecondsOfDay = function() {
+    assert.equal(dates.secondOfDay(new Date(1970, 0, 1, 0, 0, 0)), 0);
+    assert.equal(dates.secondOfDay(new Date(1970, 0, 1, 0, 1, 0)), 60);
+    assert.equal(dates.secondOfDay(new Date(1970, 0, 1, 1, 0, 0)), 3600);
+    assert.equal(dates.secondOfDay(new Date(1970, 0, 2, 0, 0, 0)), 0);
+};
+
+exports.testDayOfYear = function() {
+    assert.equal(dates.dayOfYear(new Date(1970, 0, 1, 0, 0, 0)), 1);
+    assert.equal(dates.dayOfYear(new Date(1970, 0, 1, 0, 1, 0)), 1);
+    assert.equal(dates.dayOfYear(new Date(1970, 0, 1, 1, 0, 0)), 1);
+    assert.equal(dates.dayOfYear(new Date(1970, 0, 2, 0, 0, 0)), 2);
+    assert.equal(dates.dayOfYear(new Date(2010, 11, 31, 0, 0, 0)), 365);
+    // leap year
+    assert.equal(dates.dayOfYear(new Date(2000, 1, 29, 0, 0, 0)), 60);
+    assert.equal(dates.dayOfYear(new Date(2000, 11, 31, 0, 0, 0)), 366);
+};
+
+exports.testWeekOfMonth = function() {
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), "de"), 0);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), "de"), 5);
+    assert.equal(dates.weekOfMonth(new Date(2011, 1, 1), "de"), 1);
+    assert.equal(dates.weekOfMonth(new Date(2011, 1, 28), "de"), 5);
+    assert.equal(dates.weekOfMonth(new Date(2010, 4, 31), "de"), 5);
+    
+    // Additional check for different locales
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), "us"), 1);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), "us"), 6);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), java.util.Locale.US), 1);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), java.util.Locale.US), 6);
+};
+
+exports.testWeekOfYear = function() {
+    assert.equal(dates.weekOfYear(new Date(2010, 0, 1), "de"), 53);
+    assert.equal(dates.weekOfYear(new Date(2010, 0, 4), "de"), 1);
+    assert.equal(dates.weekOfYear(new Date(2010, 11, 31), "de"), 52);
+    
+    assert.equal(dates.weekOfYear(new Date(2011, 0, 1), "de"), 52);
+    assert.equal(dates.weekOfYear(new Date(2011, 0, 3), "de"), 1);
+    assert.equal(dates.weekOfYear(new Date(2011, 11, 31), "de"), 52);
+    
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "de"), 52);
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 3), "de"), 1);
+    assert.equal(dates.weekOfYear(new Date(2012, 11, 31), "de"), 1);
+    
+    // Additional check for different locales
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), java.util.Locale.US), 1);
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), java.util.Locale.GERMANY), 52);
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "us"), 1);
+    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "de"), 52);
+};
+
+exports.testYearInCentury = function() {
+    assert.equal(dates.yearInCentury(new Date(1000, 0, 1)), 0);
+    assert.equal(dates.yearInCentury(new Date(1900, 0, 1)), 0);
+    assert.equal(dates.yearInCentury(new Date(2000, 0, 1)), 0);
+    assert.equal(dates.yearInCentury(new Date(2010, 0, 1)), 10);
+    assert.equal(dates.yearInCentury(new Date(2022, 0, 1)), 22);
+};
+
+exports.testDaysInMonth = function() {
+    assert.equal(dates.daysInMonth(new Date(2010, 0, 1)), 31); // Jan
+    assert.equal(dates.daysInMonth(new Date(2010, 1, 1)), 28); // Feb
+    assert.equal(dates.daysInMonth(new Date(2010, 2, 1)), 31); // Mar
+    assert.equal(dates.daysInMonth(new Date(2010, 3, 1)), 30); // Apr
+    assert.equal(dates.daysInMonth(new Date(2010, 4, 1)), 31); // May
+    assert.equal(dates.daysInMonth(new Date(2010, 5, 1)), 30); // Jun
+    assert.equal(dates.daysInMonth(new Date(2010, 6, 1)), 31); // Jul
+    assert.equal(dates.daysInMonth(new Date(2010, 7, 1)), 31); // Aug
+    assert.equal(dates.daysInMonth(new Date(2010, 8, 1)), 30); // Sep
+    assert.equal(dates.daysInMonth(new Date(2010, 9, 1)), 31); // Oct
+    assert.equal(dates.daysInMonth(new Date(2010, 10, 1)), 30); // Nov
+    assert.equal(dates.daysInMonth(new Date(2010, 11, 1)), 31); // Dec
+    
+    // Leap Year
+    assert.equal(dates.daysInMonth(new Date(2008, 1, 1)), 29); // Feb
+};
+
+exports.testFromUTCDate = function() {
+    var d = dates.fromUTCDate(1970, 0, 1, 0, 0, 0);
+    assert.equal(d.getUTCFullYear(), 1970);
+    assert.equal(d.getUTCMonth(), 0);
+    assert.equal(d.getUTCDate(), 1);
+    assert.equal(d.getUTCHours(), 0);
+    assert.equal(d.getUTCMinutes(), 0);
+    assert.equal(d.getUTCSeconds(), 0);
+    assert.equal(d.getTime(), 0);
 };
