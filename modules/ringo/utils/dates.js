@@ -46,7 +46,8 @@ export( "format",
         "resetTime",
         "resetDate",
         "toISOString",
-        "fromISOString" );
+        "fromISOString",
+        "fromUTCDate" );
 
 /**
  * Format a Date to a string.
@@ -185,13 +186,7 @@ function isLeapYear(date) {
  * @returns Boolean true if <tt>a</tt> is before <tt>b</tt>, false if not.
  */
 function before(a, b) {
-    var calA = new java.util.GregorianCalendar(),
-    calB = new java.util.GregorianCalendar();
-    
-    calA.setTimeInMillis(a.getTime());
-    calB.setTimeInMillis(b.getTime());
-    
-    return calA.before(calB);
+    return a.getTime() < b.getTime();
 }
 
 /**
@@ -202,10 +197,7 @@ function before(a, b) {
  * @returns Boolean true if <tt>a</tt> is after <tt>b</tt>, false if not.
  */
 function after(a, b) {
-    var calA = createGregorianCalender(a),
-    calB = createGregorianCalender(b);
-    
-    return calA.after(calB);
+    return a.getTime() > b.getTime();
 }
 
 /**
@@ -217,10 +209,13 @@ function after(a, b) {
  * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/Calendar.html#compareTo(java.util.Calendar)
  */
 function compare(a, b) {
-    var calA = createGregorianCalender(a),
-    calB = createGregorianCalender(b);
-    
-    return calA.compareTo(calB);
+    if (a.getTime() === b.getTime()) {
+        return 0;
+    } else if (a.getTime() < b.getTime()) {
+        return -1;
+    } else {
+        return 1;
+    }
 }
 
 /**
@@ -578,4 +573,11 @@ function fromISOString(input) {
     }
     
     return df.parse(input);
+}
+
+/**
+ * Create new Date from UTC timestamp.
+ */
+function fromUTCDate(year, month, date, hour, minute, second) {
+    return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0));
 }
