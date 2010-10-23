@@ -20,6 +20,7 @@
  */
 
 var strings = require('ringo/utils/strings');
+var log = require('ringo/logging').getLogger(module.id);
 
 export( "format",
         "add",
@@ -33,10 +34,12 @@ export( "format",
         "dayOfYear",
         "weekOfMonth",
         "weekOfYear",
-        "quarterOfYear",
+        "quarterInYear",
+        "quarterInFiscalYear",
         "yearInCentury",
         "daysInMonth",
         "daysInYear",
+        "daysInFebruary",
         "diff",
         "overlapping",
         "inPeriod",
@@ -170,7 +173,8 @@ function roll(date, delta, unit) {
  * @returns Boolean true if the year is a leap year, false if not.
  */
 function isLeapYear(date) {
-    return (new java.util.GregorianCalendar()).isLeapYear(date.getFullYear());
+    var year = date.getFullYear();
+    return year % 4 == 0 && (year % 100 != 0 || (year % 400 == 0));
 }
 
 /**
@@ -296,7 +300,16 @@ function daysInMonth(date) {
  * @returns Number days in the year, 365 or 366, if it's a leap year.
  */
 function daysInYear(date) {
-    return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_YEAR);
+    return isLeapYear(date) ? 366 : 365;
+}
+
+/**
+ * Gets the number of the days in february.
+ * @param {Date} date of year to find the number of days in february.
+ * @returns Number days in the february, 28 or 29, if it's a leap year.
+ */
+function daysInFebruary(date) {
+    return isLeapYear(date) ? 29 : 28;
 }
 
 /**
@@ -304,8 +317,45 @@ function daysInYear(date) {
  * @param {Date} date to calculate the quarter for.
  * @returns Number quarter of the year, between 1 and 4.
  */
-function quarterOfYear(date) {
+function quarterInYear(date) {
     return Math.floor((date.getMonth() / 3) + 1);
+}
+
+/**
+ * Gets the quarter in the fiscal year.
+ * @param {Date} date to calculate the quarter for.
+ * @param {Date} fiscalYearStart first day in the fiscal year, default is the start of the current year
+ * @returns Number quarter of the year, between 1 and 4.
+ */
+function quarterInFiscalYear(date, fiscalYearStart) {
+    var firstDay   = fiscalYearStart.getDate(),
+    firstMonth = fiscalYearStart.getMonth(),
+    year = date.getFullYear();
+    
+    if (firstDay === 29 && firstMonth === 1) {
+        throw "Fiscal year cannot start on 29th february.";
+    }
+    
+    // fiscal year starts in the year before the date
+    if (date.getMonth() < firstMonth || (date.getMonth() == firstMonth && date.getDate() < firstDay)) {
+        year --;
+    }
+    
+    var currentFiscalYear = [
+        new Date(year, firstMonth, firstDay),
+        new Date(year, firstMonth + 3, firstDay),
+        new Date(year, firstMonth + 6, firstDay),
+        new Date(year, firstMonth + 9, firstDay),
+        new Date(year, firstMonth + 12, firstDay)
+    ];
+    
+    for (var i = 1; i <= 4; i++) {
+        if (inPeriod(date, currentFiscalYear[i-1], currentFiscalYear[i], false, true)) {
+            return i;
+        }
+    }
+    
+    throw "Kudos! You found a bug, if you see this message. Report it!";
 }
 
 /**
@@ -390,16 +440,32 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
  * @param {Date} date to check, if it's in the period
  * @param {Date} periodStart the period's start
  * @param {Date} periodEnd the period's end
+ * @param {Boolean} periodStartOpen start point is open - default false.
+ * @param {Boolean} periodEndOpen end point is open - default false.
  * @returns Boolean true if the date is in the period, false if not.
  */
-function inPeriod(date, periodStart, periodEnd) {
+function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) {
     var pStart = periodStart.getTime(),
     pEnd = periodEnd.getTime(),
+    pStartOpen = periodStartOpen || false,
+    pEndOpen   = periodEndOpen || false,
     dateMillis = date.getTime();
     
-    // period  |-------|
-    // date       ^
-    if(pStart <= dateMillis && dateMillis <= pEnd) {
+    if(!pStartOpen && !pEndOpen && pStart <= dateMillis && dateMillis <= pEnd) {
+        // period  |-------|
+        // date       ^
+        return true;
+    } else if(!pStartOpen && pEndOpen && pStart <= dateMillis && dateMillis < pEnd) {
+        // period  |-------)
+        // date       ^
+        return true;
+    } else if(pStartOpen && !pEndOpen && pStart < dateMillis && dateMillis <= pEnd) {
+        // period  (-------|
+        // date       ^
+        return true;
+    } else if(pStartOpen && pEndOpen && pStart < dateMillis && dateMillis < pEnd) {
+        // period  (-------)
+        // date       ^
         return true;
     }
     
