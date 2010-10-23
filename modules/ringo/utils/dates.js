@@ -370,7 +370,7 @@ function diff(a, b, unit) {
     switch (unit) {
         case "year":    delta = yDiff; // just return the yDiff
                         break;
-        case "quarter": delta = (yDiff * 4) + Math.abs(quarterOfYear(a) - quarterOfYear(b));
+        case "quarter": delta = (yDiff * 4) + Math.abs(quarterInYear(a) - quarterInYear(b));
                         break;
         case "month":   delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
                         break;
