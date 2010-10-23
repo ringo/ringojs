@@ -172,3 +172,89 @@ exports.testQuarterInFiscalYear = function() {
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 8, 30), new Date(1970, 0, 1)), 3);
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 11, 31), new Date(1970, 0, 1)), 4);
 };
+
+exports.testDiffBetweenDates = function() {
+    var a = new Date(2010, 0, 1),
+    b = new Date(2010, 0, 2);
+    
+    assert.equal(dates.diff(a, b, "year"), 0);
+    assert.equal(dates.diff(a, b, "quarter"), 0);
+    assert.equal(dates.diff(a, b, "month"), 0);
+    assert.equal(dates.diff(a, b, "week"), 0);
+    assert.equal(dates.diff(a, b, "day"), 1);
+    assert.equal(dates.diff(a, b, "hour"), 24);
+    assert.equal(dates.diff(a, b, "minute"), 1440);
+    assert.equal(dates.diff(a, b, "second"), 86400);
+    assert.equal(dates.diff(a, b, "millisecond"), 86400000);
+    
+    // normal year
+    b = new Date(2009, 0, 1);
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 4);
+    assert.equal(dates.diff(a, b, "month"), 12);
+    assert.equal(dates.diff(a, b, "week"), 52);
+    assert.equal(dates.diff(a, b, "day"), 365);
+    assert.equal(dates.diff(a, b, "hour"), 8760);
+    assert.equal(dates.diff(a, b, "minute"), 525600);
+    assert.equal(dates.diff(a, b, "second"), 31536000);
+    assert.equal(dates.diff(a, b, "millisecond"), 31536000000);
+    
+    // leap year
+    a = new Date(2012, 0, 1)
+    b = new Date(2013, 0, 1);
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 4);
+    assert.equal(dates.diff(a, b, "month"), 12);
+    assert.equal(dates.diff(a, b, "week"), 52);
+    assert.equal(dates.diff(a, b, "day"), 366);
+    assert.equal(dates.diff(a, b, "hour"), 8784);
+    assert.equal(dates.diff(a, b, "minute"), 527040);
+    assert.equal(dates.diff(a, b, "second"), 31622400);
+    assert.equal(dates.diff(a, b, "millisecond"), 31622400000);
+};
+
+exports.testOverlapping = function() {
+  var aStart = new Date(2010, 0, 1),
+  aEnd = new Date(2010, 0, 10),
+  bStart = new Date(2010, 0, 2),
+  bEnd = new Date(2010, 0, 3);
+  
+  // A  |-------|
+  // B    |--|
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+  
+  // A    |-------|
+  // B |----|
+  bStart = new Date(2009, 0, 1);
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+  
+  // A    |-----|
+  // B |-----------|
+  bStart = new Date(2009, 0, 1);
+  bEnd   = new Date(2010, 0, 11);
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+  
+  // A |-------|
+  // B   |--------|
+  bStart = new Date(2010, 0, 2);
+  bEnd   = new Date(2010, 0, 11);
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+
+  // A |----|
+  // B      |----|
+  bStart = new Date(2010, 0, 10);
+  bEnd   = new Date(2010, 0, 13);
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+  
+  // A       |----|
+  // B  |----|
+  bStart = new Date(2009, 0, 1);
+  bEnd   = new Date(2010, 0, 1);
+  assert.isTrue(dates.overlapping(aStart, aEnd, bStart, bEnd));
+  
+  // A |----|
+  // B        |----|
+  bStart = new Date(2010, 0, 11);
+  bEnd   = new Date(2010, 0, 13);
+  assert.isFalse(dates.overlapping(aStart, aEnd, bStart, bEnd));
+};
