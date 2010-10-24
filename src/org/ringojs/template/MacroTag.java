@@ -200,7 +200,7 @@ public class MacroTag extends ScriptableObject {
         try {
             MacroTag macro = (MacroTag) thisObj;
             Object value = macro.lookupParameter(args);
-            Scriptable scope = ScriptableObject.getTopLevelScope(thisObj); 
+            Scriptable scope = ScriptableObject.getTopLevelScope(thisObj);
             if (value instanceof List) {
                 return new ScriptableList(scope, (List) value);
             } else if (value instanceof MacroTag) {

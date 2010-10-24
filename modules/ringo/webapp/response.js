@@ -210,7 +210,7 @@ function Response() {
      * @param {String} value the cookie value
      * @param {Number} days optional the number of days to keep the cookie.
      *     If this is undefined or -1, the cookie is set for the current session.
-     *     If this is 0, the cookie will be deleted immediately. 
+     *     If this is 0, the cookie will be deleted immediately.
      * @param {Object} options optional options argument which may contain the following properties:
      *     <ul><li>path - the path on which to set the cookie (defaults to /)</li>
      *     <li>domain -  the domain on which to set the cookie (defaults to current domain)</li>
@@ -307,7 +307,7 @@ Response.static = function (resource, contentType) {
         },
         body: {
             digest: function() {
-                return resource.lastModified().toString(36) 
+                return resource.lastModified().toString(36)
                     + resource.length.toString(36);
             },
             forEach: function(fn) {

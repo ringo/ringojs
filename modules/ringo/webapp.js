@@ -194,7 +194,7 @@ function shiftPath(req, remainingPath) {
     var path = req.pathInfo;
     // add matching pattern to script-name
     req.scriptName += path.substring(0, path.length - remainingPath.length);
-    // ... and remove it from path-info    
+    // ... and remove it from path-info
     req.pathInfo = remainingPath;
 }
 

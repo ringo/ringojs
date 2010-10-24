@@ -149,7 +149,7 @@ public abstract class AbstractRepository implements Repository {
         } else if (parent != null) {
             parent.getRelativePath(buffer);
             buffer.append(name).append('/');
-        } 
+        }
     }
 
     /**

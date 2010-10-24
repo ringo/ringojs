@@ -24,7 +24,7 @@ var interceptors = new java.lang.ThreadLocal();
 
 /**
  * Logger class. This constructor is not exported, use this module's
- * {@link getLogger} to get a logger instance. 
+ * {@link getLogger} to get a logger instance.
  * @param name the Logger name
  * @param impl the logger implementation
  * @constructor
@@ -107,7 +107,7 @@ function Logger(name, impl) {
  *
  * @param {Resource} resource the configuration resource in XML or properties format
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
- * repeatedly checks the resource for updates.  
+ * repeatedly checks the resource for updates.
  */
 var setConfig = exports.setConfig = function(resource, watchForUpdates) {
     var {path, url} = resource;
@@ -193,7 +193,7 @@ function formatMessage(args) {
  * @param name the logger name
  */
 function JdkLogger(name) {
-    
+
     var log = java.util.logging.Logger.getLogger(name);
     var Level = java.util.logging.Level;
 

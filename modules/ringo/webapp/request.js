@@ -243,7 +243,7 @@ function Request(request) {
 function Session(request) {
 
     var data;
-    var servletRequest = request instanceof javax.servlet.ServletRequest ? 
+    var servletRequest = request instanceof javax.servlet.ServletRequest ?
             request : request.env.servletRequest;
 
     function getSession() {

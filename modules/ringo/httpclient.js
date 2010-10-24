@@ -19,7 +19,7 @@ export('request', 'post', 'get', 'del', 'put', 'Client');
  * Wrapper around jetty.http.HttpCookie.
  */
 var Cookie = function(cookieStr) {
-    
+
     Object.defineProperties(this, {
         /**
          * @returns {String} the cookie's name
@@ -54,7 +54,7 @@ var Cookie = function(cookieStr) {
             }
         }
     });
-    
+
     /**
      * Parses the cookie string passed as argument
      * @param {String} cookieStr The cookie string as received from the remote server
@@ -95,13 +95,13 @@ var Cookie = function(cookieStr) {
                     cookieData.name,
                     cookieData.value,
                     cookieData.domain
-                );            
+                );
             }
         } else {
             cookie = new org.eclipse.jetty.http.HttpCookie(cookieData.name, cookieData.value);
         }
     }
-    
+
     return this;
 };
 
@@ -141,7 +141,7 @@ var Exchange = function(url, options, callbacks) {
     this.toString = function() {
         return "[ringo.httpclient.Exchange] " + url;
     };
-    
+
     Object.defineProperties(this, {
         /**
          * The response status code
@@ -397,25 +397,25 @@ var Exchange = function(url, options, callbacks) {
             return;
         },
     });
-    
+
     exchange.setMethod(opts.method);
-    
+
     if (opts.username && opts.password) {
         var authKey = base64.encode(opts.username + ':' + opts.password);
         var authHeaderValue = "Basic " + authKey;
         exchange.addRequestHeader("Authorization", authHeaderValue);
     }
-    
+
     for (var headerKey in opts.headers) {
         exchange.addRequestHeader(headerKey, opts.headers[headerKey]);
     }
-    
+
     // set content
     var content = opts.data;
     if (opts.data instanceof Object) {
         content = encodeContent(opts.data);
     }
-    
+
     if (opts.method === 'POST' || opts.method === 'PUT') {
         if (typeof(content) === 'string') {
             exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content, "utf-8"));
@@ -430,7 +430,7 @@ var Exchange = function(url, options, callbacks) {
     }
     exchange.setURL(url);
     // FIXME we could add a RedirectListener right here to auto-handle redirects
-    
+
     return this;
 };
 
@@ -466,7 +466,7 @@ var extractOptionalArguments = function(args) {
     for each (var arg in args) {
         types.push(typeof(arg));
     }
-    
+
     if (types[0] != 'string') {
         throw new Error('first argument (url) must be string');
     }
@@ -515,7 +515,7 @@ var extractOptionalArguments = function(args) {
  * Use this Client instead of the convenience methods if you do lots
  * of requests (especially if they go to the same hosts)
  * or if you want cookies to be preserved between multiple requests.
- 
+
  * @param {Number} timeout The connection timeout
  * @param {Boolean} followRedirects If true then redirects (301, 302) are followed
  * @constructor
@@ -544,9 +544,9 @@ var Client = function(timeout, followRedirects) {
             success: success,
             error: error,
             async: typeof success === 'function'
-        });    
+        });
     };
-    
+
     /**
      * Make a POST request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -571,7 +571,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a DELETE request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -596,7 +596,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a PUT request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -621,7 +621,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a generic request.
      *
@@ -663,7 +663,7 @@ var Client = function(timeout, followRedirects) {
      *     during request processing or an HTTP error message
      *  2. `status`: the HTTP status code. This is `0` if no response was received
      *  3. `exchange`: the exchange object
-     *  
+     *
      * @param {Object} options
      * @returns {Exchange} exchange object
      */
@@ -706,7 +706,7 @@ var Client = function(timeout, followRedirects) {
     if (typeof timeout == "number") {
         client.setTimeout(timeout);
     }
-    
+
     if (followRedirects !== false) {
         client.registerListener('org.eclipse.jetty.client.RedirectListener');
     }

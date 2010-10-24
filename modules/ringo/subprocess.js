@@ -186,7 +186,7 @@ function dummyStream() {
         seekable: function() false,
         write: function() this,
         flush: function() this,
-        close: function() this        
+        close: function() this
     }
 }
 

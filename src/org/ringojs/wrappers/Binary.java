@@ -406,7 +406,7 @@ public class Binary extends ScriptableObject implements Wrapper {
         String cs = toCharset(charset);
         try {
             return cs == null ?
-                    new String(bytes, 0, length) : 
+                    new String(bytes, 0, length) :
                     new String(bytes, 0, length, cs);
         } catch (UnsupportedEncodingException uee) {
             throw ScriptRuntime.typeError("Unsupported encoding: " + charset);

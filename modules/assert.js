@@ -195,13 +195,13 @@ function AssertionError(options) {
             return options.actual;
         }
     });
-    
+
     Object.defineProperty(this, "expected", {
         get: function() {
             return options.expected;
         }
     });
-    
+
     Object.defineProperty(this, "stackTrace", {
         get: function() {
             return stackTrace;

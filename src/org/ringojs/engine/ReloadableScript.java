@@ -176,7 +176,7 @@ public class ReloadableScript {
         final List<Script> scripts = new ArrayList<Script>();
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
-        String charset = engine.getCharset();        
+        String charset = engine.getCharset();
         try {
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {

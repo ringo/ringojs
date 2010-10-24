@@ -45,7 +45,7 @@ function Server(options) {
 
     /**
      * Get the server's default context. The default context is the
-     * context that is created when the server is created. 
+     * context that is created when the server is created.
      * @since: 0.6
      * @returns the default context
      */

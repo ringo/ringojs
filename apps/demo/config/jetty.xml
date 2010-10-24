@@ -43,7 +43,7 @@
     <!-- Use this connector for many frequently idle connections
          and for threadless continuations.
     -->
-    
+
     <Call name="addConnector">
       <Arg>
           <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
@@ -58,7 +58,7 @@
           </New>
       </Arg>
     </Call>
-    
+
     <!-- Use this connector if NIO is not available.
     <Call name="addConnector">
       <Arg>
@@ -77,7 +77,7 @@
     <!-- see jetty-ssl.xml to add an ssl connector. use                  -->
     <!-- java -jar start.jar etc/jetty.xml etc/jetty-ssl.xml             -->
     <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-    
+
     <!-- =========================================================== -->
     <!-- Set up global session ID manager                            -->
     <!-- =========================================================== -->
@@ -88,7 +88,7 @@
     </Set>
 
     <!-- =========================================================== -->
-    <!-- Set handler Collection Structure                            --> 
+    <!-- Set handler Collection Structure                            -->
     <!-- =========================================================== -->
     <Set name="handler">
       <New id="Handlers" class="org.eclipse.jetty.server.handler.HandlerCollection">

@@ -96,13 +96,13 @@ function defer() {
                 errback: errback
             };
             if (state === NEW) {
-                listeners.push(listener); 
+                listeners.push(listener);
             } else {
                 notify(listener);
             }
             return tail.promise;
         }, lock),
-        
+
         /**
          * Wait for the promise to be resolved.
          * @name Promise.prototype.wait

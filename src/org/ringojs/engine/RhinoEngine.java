@@ -787,7 +787,7 @@ public class RhinoEngine implements ScopeProvider {
                 protected Object resolveObject(Object obj) throws IOException {
                     if (obj instanceof SerializedScopeProxy) {
                         return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
-                    } 
+                    }
                     return super.resolveObject(obj);
                 }
             };

@@ -26,7 +26,7 @@ function jsDump(value, lvl) {
     if (!lvl) {
         lvl = 0;
     }
-    
+
     switch (getType(value)) {
         case "string":
             return jsDump.quote(value);

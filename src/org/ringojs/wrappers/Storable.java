@@ -142,7 +142,7 @@ public class Storable extends ScriptableObject {
                 entity = invokeStoreMethod("getEntity", type, properties != null ? properties : key);
             }
             if (transaction == Undefined.instance) {
-                invokeStoreMethod("save", properties, entity);                
+                invokeStoreMethod("save", properties, entity);
             } else {
                 invokeStoreMethod("save", properties, entity, transaction);
             }

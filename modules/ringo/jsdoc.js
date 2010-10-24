@@ -80,7 +80,7 @@ exports.parseResource = function(resource) {
     var exported = [];
     var jsdocs = [];
     var seen = {};
-    
+
     var checkAssignment = function(node, root, exported) {
         if (node.type == Token.ASSIGN) {
             if (node.left.type == Token.GETPROP) {
@@ -207,7 +207,7 @@ exports.parseResource = function(resource) {
                 }
             }
         }
-        
+
         // check for Object.defineProperties(foo, {bar: {}})
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
@@ -235,11 +235,11 @@ exports.parseResource = function(resource) {
                         jsdoc = left.jsDoc;
                         addDocItem(target.join('.'), jsdoc, value);
                         target.pop();
-                    }       
+                    }
                 }
             }
         }
-        
+
         // check for __define[GS]etter__
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
@@ -270,7 +270,7 @@ exports.parseResource = function(resource) {
             for each (var n in ScriptableList(node.variables)) {
                 if (n.target.type == Token.NAME && arrays.contains(exported, n.target.string)) {
                     if (n.initializer && n.initializer.type == Token.FUNCTION) {
-                        // Note: We might still miss something like 
+                        // Note: We might still miss something like
                         // var foo = XXX.foo = function()...
                         exportedFunction = n.initializer;
                         exportedName = n.target.string;

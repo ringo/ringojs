@@ -191,7 +191,7 @@ function Store(path) {
         }
         var [type, id] = key.$ref.split(":");
         var file = new Path(base, type, id);
-        txn.deleteResource({ file: file });        
+        txn.deleteResource({ file: file });
     }
 
     function generateId(type) {

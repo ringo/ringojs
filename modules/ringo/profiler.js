@@ -171,7 +171,7 @@ function Profiler() {
                 }, 0
             );
         };
-        
+
         this.getRuntime = function() {
             return finishedTimers.reduce(
                 function(prev, e) {

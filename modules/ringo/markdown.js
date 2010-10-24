@@ -16,7 +16,7 @@
  *  - **openTag(tagname, buffer)** called when a HTML tag is opened. `tagname` is
  *     an HTML tag such as `pre` or `div`, buffer is a java.lang.StringBuffer to append to.
  *     The function can be used to create HTML tags with additional attributes.
- *  
+ *
  * @param {Object} extension optional object with methods overriding default
  * behaviour in org.ringojs.util.MarkdownProcessor class
  */

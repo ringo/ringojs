@@ -26,7 +26,7 @@ exports.setUp = function() {
         req.pathInfo = decodeURI(req.pathInfo);
         return getResponse(req, env);
     };
-   
+
     var config = {
        host: host,
        port: port
@@ -241,7 +241,7 @@ exports.testCallbacks = function() {
 exports.testCookie = function() {
     var COOKIE_NAME = 'testcookie'
     var COOKIE_VALUE = 'cookie value with s p   a c es';
-    
+
     getResponse = function(req) {
         // set cookie
         var res = new Response('cookie set');
@@ -275,7 +275,7 @@ exports.testCookie = function() {
  * send stream and get the same stream back
  */
 exports.testStreamRequest = function() {
-    
+
     getResponse = function(req, env) {
         if (req.isPost) {
             var input;
@@ -302,7 +302,7 @@ exports.testStreamRequest = function() {
                         }
                     }
                 };
-            
+
         }
     };
 
