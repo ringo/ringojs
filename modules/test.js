@@ -388,8 +388,10 @@ if (require.main == module.id) {
         term.writeln("Usage: bin/ringo test test/file1 test/file2");
     } else {
         var writer = new TermWriter();
+        var failures = 0;
         for (var i=1; i<system.args.length; i+=1) {
-            this.run(system.args[i], writer);
+            failures += this.run(system.args[i], writer);
         }
+        system.exit(failures);
     }
 }

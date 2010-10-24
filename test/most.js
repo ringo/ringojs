@@ -20,5 +20,5 @@ exports.testModules = require('./modules/all');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
-    require('test').run(exports);
+    system.exit(require('test').run(exports));
 }
