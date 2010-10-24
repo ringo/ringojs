@@ -152,7 +152,7 @@ function run(modulePathOrScope, writer) {
     executeTestScope(scope, summary, writer, []);
     scope = null;
     writer.writeSummary(summary);
-    return;
+    return summary.failures;
 };
 
 /**
