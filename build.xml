@@ -79,7 +79,7 @@
     <!-- Runs the JUnit and RingoJS test cases                               -->
     <!-- =================================================================== -->
     <target name="test" depends="jar">
-        <java jar="run.jar" fork="true">
+        <java jar="run.jar" fork="true" failonerror="yes">
             <arg value="test/all.js"/>
         </java>
         <junit haltonfailure="true">
