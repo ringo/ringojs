@@ -176,7 +176,8 @@ var Exchange = function(url, options, callbacks) {
          */
         contentBytes: {
             get: function() {
-                return ByteString.wrap(exchange.getResponseContentBytes());
+                var bytes = exchange.getResponseContentBytes();
+                return bytes ? ByteString.wrap(bytes) : new ByteString();
             }
         },
         /**
