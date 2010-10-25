@@ -1,7 +1,7 @@
-include('ringo/webapp/response');
+var {Response} = require('ringo/webapp/response');
 
 exports.index = function (req) {
-    return skinResponse('skins/index.html', {
-        content: "It's working!"
+    return Response.skin(module.resolve('skins/index.html'), {
+        title: "It's working!"
     });
 };

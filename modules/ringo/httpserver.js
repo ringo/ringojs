@@ -1,5 +1,5 @@
 /**
- * Module for starting and stopping the jetty http server.
+ * @fileOverview A wrapper for the Jetty HTTP server.
  */
 
 export('Server');
@@ -45,7 +45,7 @@ function Server(options) {
 
     /**
      * Get the server's default context. The default context is the
-     * context that is created when the server is created. 
+     * context that is created when the server is created.
      * @since: 0.6
      * @returns the default context
      */
@@ -213,9 +213,9 @@ function Server(options) {
 
     // Allow definition of app/static mappings in server config for convenience
     if (options.staticDir) {
-        var fileutils = require('ringo/fileutils');
+        var files = require('ringo/utils/files');
         var staticContext = this.getContext(options.staticMountpoint || '/static', options.virtualHost);
-        staticContext.serveStatic(fileutils.resolveId(options.config, options.staticDir));
+        staticContext.serveStatic(files.resolveId(options.config, options.staticDir));
     }
 
     // Start listeners. This allows us to run on priviledged port 80 under jsvc

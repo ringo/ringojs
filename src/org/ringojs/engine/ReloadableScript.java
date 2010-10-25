@@ -48,7 +48,7 @@ public class ReloadableScript {
     // the script was last compiled
     long checksum = -1;
     // true if module scope is shared
-    Shared shared;
+    Shared shared = Shared.UNKNOWN;
     // the compiled script
     ScriptReference scriptref;
     // any exception that may have been thrown during compilation.
@@ -78,7 +78,7 @@ public class ReloadableScript {
     public ReloadableScript(Trackable source, RhinoEngine engine) {
         this.source = source;
         this.engine = engine;
-        reloading = engine.getConfiguration().isReloading();
+        reloading = engine.getConfig().isReloading();
         moduleName = source.getModuleName();
     }
 
@@ -176,7 +176,7 @@ public class ReloadableScript {
         final List<Script> scripts = new ArrayList<Script>();
         ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
-        String charset = engine.getCharset();        
+        String charset = engine.getCharset();
         try {
             for (Resource res: resources) {
                 if (res.getName().endsWith(".js")) {

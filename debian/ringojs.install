@@ -3,4 +3,4 @@ lib/ /usr/share/ringojs/
 modules/ /usr/share/ringojs/
 apps/ /usr/share/ringojs/
 test/ /usr/share/ringojs/
-debian/usr/bin/ringo /usr/bin/
+debian/usr/bin/ringo* /usr/bin/

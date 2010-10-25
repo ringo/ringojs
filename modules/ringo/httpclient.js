@@ -19,7 +19,7 @@ export('request', 'post', 'get', 'del', 'put', 'Client');
  * Wrapper around jetty.http.HttpCookie.
  */
 var Cookie = function(cookieStr) {
-    
+
     Object.defineProperties(this, {
         /**
          * @returns {String} the cookie's name
@@ -54,7 +54,7 @@ var Cookie = function(cookieStr) {
             }
         }
     });
-    
+
     /**
      * Parses the cookie string passed as argument
      * @param {String} cookieStr The cookie string as received from the remote server
@@ -95,13 +95,13 @@ var Cookie = function(cookieStr) {
                     cookieData.name,
                     cookieData.value,
                     cookieData.domain
-                );            
+                );
             }
         } else {
             cookie = new org.eclipse.jetty.http.HttpCookie(cookieData.name, cookieData.value);
         }
     }
-    
+
     return this;
 };
 
@@ -141,11 +141,11 @@ var Exchange = function(url, options, callbacks) {
     this.toString = function() {
         return "[ringo.httpclient.Exchange] " + url;
     };
-    
+
     Object.defineProperties(this, {
         /**
          * The response status code
-         * @name Exchange.instance.status
+         * @name Exchange.prototype.status
          */
         status: {
             get: function() {
@@ -154,7 +154,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response content type
-         * @name Exchange.instance.contentType
+         * @name Exchange.prototype.contentType
          */
         contentType: {
             get: function() {
@@ -163,7 +163,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response body as String
-         * @name Exchange.instance.content
+         * @name Exchange.prototype.content
          */
         content: {
             get: function() {
@@ -172,7 +172,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response body as ByteString
-         * @name Exchange.instance.contentBytes
+         * @name Exchange.prototype.contentBytes
          */
         contentBytes: {
             get: function() {
@@ -180,7 +180,7 @@ var Exchange = function(url, options, callbacks) {
             }
         },
         /**
-         * @name Exchange.instance.contentChunk
+         * @name Exchange.prototype.contentChunk
          */
         contentChunk: {
             get: function() {
@@ -190,7 +190,7 @@ var Exchange = function(url, options, callbacks) {
         /**
          * The Jetty ContentExchange object
          * @see http://download.eclipse.org/jetty/7.0.2.v20100331/apidocs/org/eclipse/jetty/client/ContentExchange.html
-         * @name Exchange.instance.contentExchange
+         * @name Exchange.prototype.contentExchange
          */
         contentExchange: {
             get: function() {
@@ -199,7 +199,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response headers
-         * @name Exchange.instance.responseHeaders
+         * @name Exchange.prototype.responseHeaders
          */
         responseHeaders: {
             get: function() {
@@ -208,7 +208,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The cookies set by the server
-         * @name Exchange.instance.cookies
+         * @name Exchange.prototype.cookies
          */
         cookies: {
             get: function() {
@@ -223,7 +223,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response encoding
-         * @name Exchange.instance.encoding
+         * @name Exchange.prototype.encoding
          */
         encoding: {
             // NOTE HttpExchange._encoding knows about this but is protected
@@ -233,7 +233,7 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * True if the request has completed, false otherwise
-         * @name Exchange.instance.done
+         * @name Exchange.prototype.done
          */
         done: {
             get: function() {
@@ -245,7 +245,7 @@ var Exchange = function(url, options, callbacks) {
          * This method returns immediately if the request has already completed.
          * Otherwise, it will block the current thread until completion.
          * @returns the Exchange object
-         * @name Exchange.instance.wait
+         * @name Exchange.prototype.wait
          */
         wait: {
             value: function() {
@@ -305,21 +305,27 @@ var Exchange = function(url, options, callbacks) {
     var decoder;
     var exchange = new JavaAdapter(ContentExchange, {
         onResponseComplete: function() {
-            this.super$onResponseComplete();
-            var content = opts.binary ? self.contentBytes : self.content;
-            if (typeof(callbacks.complete) === 'function') {
-                callbacks.complete(content, self.status, self.contentType, self);
-            }
-            // This callback will only see a redirect status if the max number
-            // of redirects handled by the RedirectListener are reached or
-            // the client was instantianted with followRedirects = false.
-            if (self.status >= 200 && self.status < 400) {
-                if (typeof(callbacks.success) === 'function') {
-                    callbacks.success(content, self.status, self.contentType, self);
+            try {
+                this.super$onResponseComplete();
+                var content = opts.binary ? self.contentBytes : self.content;
+                if (typeof(callbacks.complete) === 'function') {
+                    callbacks.complete(content, self.status, self.contentType, self);
                 }
-            } else if (typeof(callbacks.error) === 'function') {
-                var message = getStatusMessage(self.status);
-                callbacks.error(message, self.status, self);
+                // This callback will only see a redirect status if the max number
+                // of redirects handled by the RedirectListener are reached or
+                // the client was instantianted with followRedirects = false.
+                if (self.status >= 200 && self.status < 400) {
+                    if (typeof(callbacks.success) === 'function') {
+                        callbacks.success(content, self.status, self.contentType, self);
+                    }
+                } else if (typeof(callbacks.error) === 'function') {
+                    var message = getStatusMessage(self.status);
+                    callbacks.error(message, self.status, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
@@ -350,49 +356,66 @@ var Exchange = function(url, options, callbacks) {
             return;
         },
         onConnectionFailed: function(exception) {
-            this.super$onConnectionFailed(exception);
-            if (typeof(callbacks.error) === 'function') {
-                var message = exception.getMessage() || exception.toString();
-                callbacks.error(message, 0, self);
+            try {
+                this.super$onConnectionFailed(exception);
+                if (typeof(callbacks.error) === 'function') {
+                    var message = exception.getMessage() || exception.toString();
+                    callbacks.error(message, 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
         onException: function(exception) {
-            this.super$onException(exception);
-            if (typeof(callbacks.error) === 'function') {
-                var message = exception.getMessage() || exception.toString();
-                callbacks.error(message, 0, self);
+            try {
+                this.super$onException(exception);
+                if (typeof(callbacks.error) === 'function') {
+                    var message = exception.getMessage() || exception.toString();
+                    callbacks.error(message, 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
         onExpire: function() {
-            this.super$onExpire();
-            if (typeof(callbacks.error) === 'function') {
-                callbacks.error('Request expired', 0, self);
+            try {
+                this.super$onExpire();
+                if (typeof(callbacks.error) === 'function') {
+                    callbacks.error('Request expired', 0, self);
+                }
+            } finally {
+                if (options.async) {
+                    global.decreaseAsyncCount();
+                }
             }
             return;
         },
     });
-    
-    exchange.setRequestContentType(opts.contentType);
+
     exchange.setMethod(opts.method);
-    
+
     if (opts.username && opts.password) {
         var authKey = base64.encode(opts.username + ':' + opts.password);
         var authHeaderValue = "Basic " + authKey;
         exchange.addRequestHeader("Authorization", authHeaderValue);
     }
-    
+
     for (var headerKey in opts.headers) {
         exchange.addRequestHeader(headerKey, opts.headers[headerKey]);
     }
-    
+
     // set content
     var content = opts.data;
     if (opts.data instanceof Object) {
         content = encodeContent(opts.data);
     }
-    
+
     if (opts.method === 'POST' || opts.method === 'PUT') {
         if (typeof(content) === 'string') {
             exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content, "utf-8"));
@@ -401,12 +424,13 @@ var Exchange = function(url, options, callbacks) {
         } else if (typeof(content) !== 'undefined') {
             exchange.setRequestContentSource(content);
         }
+        exchange.setRequestContentType(opts.contentType);
     } else if (typeof(content) === 'string' && content.length) {
         url += "?" + content;
     }
     exchange.setURL(url);
     // FIXME we could add a RedirectListener right here to auto-handle redirects
-    
+
     return this;
 };
 
@@ -442,7 +466,7 @@ var extractOptionalArguments = function(args) {
     for each (var arg in args) {
         types.push(typeof(arg));
     }
-    
+
     if (types[0] != 'string') {
         throw new Error('first argument (url) must be string');
     }
@@ -488,10 +512,10 @@ var extractOptionalArguments = function(args) {
 /**
  * A HttpClient which can be used for multiple requests.
  *
- * Use this Client instead of the convinience methods if you do lots
+ * Use this Client instead of the convenience methods if you do lots
  * of requests (especially if they go to the same hosts)
  * or if you want cookies to be preserved between multiple requests.
- 
+
  * @param {Number} timeout The connection timeout
  * @param {Boolean} followRedirects If true then redirects (301, 302) are followed
  * @constructor
@@ -499,13 +523,15 @@ var extractOptionalArguments = function(args) {
 var Client = function(timeout, followRedirects) {
 
     /**
-     * Make a GET request.
+     * Make a GET request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.get = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -516,18 +542,21 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
-        });    
+            error: error,
+            async: typeof success === 'function'
+        });
     };
-    
+
     /**
-     * Make a POST request.
+     * Make a POST request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.post = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -538,18 +567,21 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
-    
+
     /**
-     * Make a DELETE request.
+     * Make a DELETE request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.del = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -560,18 +592,21 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
-    
+
     /**
-     * Make a PUT request.
+     * Make a PUT request. If a success callback is provided, the request is executed
+     * asynchronously and the function returns immediately. Otherwise, the function
+     * blocks until the request terminates.
      * @param {String} url the url to request
      * @param {Object|String|Binary|Stream} data request data, optional
      * @param {Function} success callback in case of successful status code, optional
      * @param {Function} error callback in case of any error - transmission or response, optional
      * @returns {Exchange} exchange object
-     * @see Client.instance.request
+     * @see Client.prototype.request
      */
     this.put = function(url, data, success, error) {
         if (arguments.length < 4) {
@@ -582,10 +617,11 @@ var Client = function(timeout, followRedirects) {
             url: url,
             data: data,
             success: success,
-            error: error
+            error: error,
+            async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a generic request.
      *
@@ -627,7 +663,7 @@ var Client = function(timeout, followRedirects) {
      *     during request processing or an HTTP error message
      *  2. `status`: the HTTP status code. This is `0` if no response was received
      *  3. `exchange`: the exchange object
-     *  
+     *
      * @param {Object} options
      * @returns {Exchange} exchange object
      */
@@ -640,7 +676,8 @@ var Client = function(timeout, followRedirects) {
             username: opts.username,
             password: opts.password,
             contentType: opts.contentType,
-            binary: opts.binary
+            binary: opts.binary,
+            async: opts.async
         }, {
             success: opts.success,
             complete: opts.complete,
@@ -652,13 +689,15 @@ var Client = function(timeout, followRedirects) {
         }
         try {
             client.send(exchange.contentExchange);
+            if (opts.async) {
+                global.increaseAsyncCount();
+            } else {
+                exchange.contentExchange.waitForDone();
+            }
         } catch (e) { // probably java.net.ConnectException
             if (typeof(callbacks.error) === 'function') {
-                callbacks.error(e, exchange);
+                callbacks.error(e, 0, exchange);
             }
-        }
-        if (opts.async === false) {
-            exchange.contentExchange.waitForDone();
         }
         return exchange;
     };
@@ -667,7 +706,7 @@ var Client = function(timeout, followRedirects) {
     if (typeof timeout == "number") {
         client.setTimeout(timeout);
     }
-    
+
     if (followRedirects !== false) {
         client.registerListener('org.eclipse.jetty.client.RedirectListener');
     }
@@ -687,7 +726,7 @@ var defaultClient = defaultClient || new Client();
  * Convenience function to make a generic HTTP request without creating a new client.
  * @param {Object} options
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var request = function() {
     return defaultClient.request.apply(defaultClient, arguments);
@@ -695,12 +734,15 @@ var request = function() {
 
 /**
  * Convenience function to make a POST request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var post = function() {
     return defaultClient.post.apply(defaultClient, arguments);
@@ -708,12 +750,15 @@ var post = function() {
 
 /**
  * Convenience function to make a GET request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var get = function() {
     return defaultClient.get.apply(defaultClient, arguments);
@@ -721,12 +766,15 @@ var get = function() {
 
 /**
  * Convenience function to make a DELETE request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var del = function() {
     return defaultClient.del.apply(defaultClient, arguments);
@@ -734,12 +782,15 @@ var del = function() {
 
 /**
  * Convenience function to make a PUT request without creating a new client.
+ * If a success callback is provided, the request is executed asynchronously and the
+ * function returns immediately. Otherwise, the function blocks until the request
+ * terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.instance.request
+ * @see Client.prototype.request
  */
 var put = function() {
     return defaultClient.put.apply(defaultClient, arguments);

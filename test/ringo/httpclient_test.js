@@ -1,36 +1,32 @@
 var assert = require("assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
-var Server = require('ringo/httpserver').Server;
+var {Server} = require('ringo/httpserver');
+var {Request} = require('ringo/webapp/request');
+var {Response} = require('ringo/webapp/response');
 
 var server;
 var host = "127.0.0.1";
 var port = "8282";
 var baseUri = "http://" + host + ":" + port + "/";
 
+require('ringo/logging').setConfig(getResource('./httpclient_log4j.properties'));
+
 /**
  * tests overwrite getResponse() to control the response they expect back
  */
-var getResponse = function(req) {
-   return new Response("<h1> This is a basic Response</h1>");
-};
+var getResponse;
 
 /**
  * setUp pre every test
  */
 exports.setUp = function() {
     var handleRequest = function(env) {
-        include('ringo/webapp/request');
-        include('ringo/webapp/response');
         var req = new Request(env);
         req.charset = config.charset || 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
-        var res = getResponse(req, env);
-        if (res instanceof Response) {
-           return res.close();
-        }
-        return res;
+        return getResponse(req, env);
     };
-   
+
     var config = {
        host: host,
        port: port
@@ -39,8 +35,8 @@ exports.setUp = function() {
     server = new Server(config);
     server.getDefaultContext().serveApplication(handleRequest);
     server.start();
-    // FIXME without this the test may hang in some configurations
-    java.lang.Thread.currentThread().sleep(1000);
+    // test used to hang without this, but seems no longer the case
+    // java.lang.Thread.currentThread().sleep(1000);
 };
 
 /**
@@ -111,30 +107,25 @@ exports.testConvenience = function() {
         }
         return new Response(req.method);
     };
-    var myStatus, myData;
-    var callback = function(data, status) {
-        myData = data;
-        myStatus = status;
-    };
-    post(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('POST', myData);
+    var x = post(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('POST', x.content);
 
-    post(baseUri, {foo: 'bar'}, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('POST with param', myData);
+    x = post(baseUri, {foo: 'bar'});
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('POST with param', x.content);
 
-    get(baseUri, {foo: 'bar'}, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('GET with param', myData);
+    x = get(baseUri, {foo: 'bar'});
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('GET with param', x.content);
 
-    del(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('DELETE', myData);
+    x = del(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('DELETE', x.content);
 
-    put(baseUri, callback);
-    assert.strictEqual(200, myStatus);
-    assert.strictEqual('PUT', myData);
+    x = put(baseUri);
+    assert.strictEqual(200, x.status);
+    assert.strictEqual('PUT', x.content);
 };
 
 
@@ -176,7 +167,7 @@ exports.testParams = function() {
 exports.testCallbacks = function() {
     getResponse = function(req) {
         if (req.pathInfo == '/notfound') {
-            return notFoundResponse('error');
+            return Response.notFound('error');
         } else if (req.pathInfo == '/success') {
             var res = new Response('success');
             res.contentType = 'text/json';
@@ -250,16 +241,15 @@ exports.testCallbacks = function() {
 exports.testCookie = function() {
     var COOKIE_NAME = 'testcookie'
     var COOKIE_VALUE = 'cookie value with s p   a c es';
-    
-    getResponse = function(req) {
 
+    getResponse = function(req) {
+        // set cookie
         var res = new Response('cookie set');
         res.setCookie(COOKIE_NAME, req.params.cookievalue, 5);
-        // set cookie
         return res;
     };
 
-    // recieve cookie
+    // receive cookie
     var myStatus, myExchange, errorCalled;
     request({
         url: baseUri,
@@ -285,7 +275,7 @@ exports.testCookie = function() {
  * send stream and get the same stream back
  */
 exports.testStreamRequest = function() {
-    
+
     getResponse = function(req, env) {
         if (req.isPost) {
             var input;
@@ -312,7 +302,7 @@ exports.testStreamRequest = function() {
                         }
                     }
                 };
-            
+
         }
     };
 

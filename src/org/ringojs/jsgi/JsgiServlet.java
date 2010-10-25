@@ -18,6 +18,8 @@ package org.ringojs.jsgi;
 
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
+import org.ringojs.engine.SyntaxError;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
@@ -33,7 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.File;
+import java.io.InputStream;
+import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
 
@@ -125,15 +128,61 @@ public class JsgiServlet extends HttpServlet {
         try {
             JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope());
             engine.invoke("ringo/jsgi", "handleRequest", module, function, req);
-        } catch (NoSuchMethodException x) {
-            RingoRunner.reportError(x, System.err, false);
-            throw new ServletException(x);
         } catch (Exception x) {
-            RingoRunner.reportError(x, System.err, false);
-            throw new ServletException(x);
+            try {
+                renderError(x, response);
+                RingoRunner.reportError(x, System.err, engine.getConfig().isVerbose());
+            } catch (Exception failed) {
+                // custom error reporting failed, rethrow original exception for default handling
+                RingoRunner.reportError(x, System.err, false);
+                throw new ServletException(x);
+            }
         } finally {
             Context.exit();
         }
+    }
+
+    protected void renderError(Throwable t, HttpServletResponse response)
+            throws IOException {
+        response.reset();
+        InputStream stream = JsgiServlet.class.getResourceAsStream("error.html");
+        byte[] buffer = new byte[1024];
+        int read = 0;
+        while (true) {
+            int r = stream.read(buffer, read, buffer.length - read);
+            if (r == -1) {
+                break;
+            }
+            read += r;
+            if (read == buffer.length) {
+                byte[] b = new byte[buffer.length * 2];
+                System.arraycopy(buffer, 0, b, 0, buffer.length);
+                buffer = b;
+            }
+        }
+        String template = new String(buffer, 0, read);
+        String title = t.getMessage();
+        StringBuffer body = new StringBuffer();
+        if (t instanceof RhinoException) {
+            RhinoException rx = (RhinoException) t;
+            body.append("<p>In file <b>")
+                    .append(rx.sourceName())
+                    .append("</b> at line <b>")
+                    .append(rx.lineNumber())
+                    .append("</b></p>");
+            List<SyntaxError> errors = RhinoEngine.errors.get();
+            for (SyntaxError error : errors) {
+                body.append(error.toHtml());
+            }
+            body.append("<h3>Script Stack</h3><pre>")
+                    .append(rx.getScriptStackTrace())
+                    .append("</pre>");
+        }
+        template = template.replaceAll("<% title %>", title);
+        template = template.replaceAll("<% body %>", body.toString());
+        response.setStatus(500);
+        response.setContentType("text/html");
+        response.getWriter().write(template);
     }
 
     protected String getStringParameter(ServletConfig config, String name, String defaultValue) {

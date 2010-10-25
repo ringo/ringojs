@@ -1,9 +1,10 @@
 
+var arrays = require('ringo/utils/arrays');
 var strings = require('ringo/utils/strings');
 var {ByteArray, ByteString} = require('binary');
 var {getMimeParameter} = require('./util');
 var {mergeParameter} = require('./parameters');
-var {createTempFile} = require('ringo/fileutils');
+var {createTempFile} = require('ringo/utils/files');
 var {open} = require('fs');
 var {MemoryStream} = require('io');
 
@@ -107,7 +108,7 @@ function parseFileUpload(request, params, encoding, streamFactory) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
                 if ((strings.startsWith(line, " ") || strings.startsWith(line, "\t")) && headers.length) {
-                    headers.peek() += line;
+                    arrays.peek(headers) += line;
                 } else {
                     headers.push(line);
                 }
@@ -188,7 +189,7 @@ function BufferFactory(data, encoding) {
 function TempFileFactory(data, encoding) {
     if (data.filename == null) {
         // use in-memory streams for form data
-        return memoryStreamFactory(data, encoding)
+        return BufferFactory(data, encoding)
     }
     data.tempfile = createTempFile("ringo-upload-");
     return open(data.tempfile, {write: true, binary: true});

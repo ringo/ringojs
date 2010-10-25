@@ -32,10 +32,15 @@ exports.setTimeout = function(callback, delay) {
     var args = Array.slice(arguments, 2);
     var runnable = new Callable({
         call: function() {
-            return callback.apply(global, args);
+            try {
+                return callback.apply(global, args);
+            } finally {
+                global.decreaseAsyncCount();
+            }
         }
     });
     delay = parseInt(delay, 10) || 0;
+    global.increaseAsyncCount();
     return delay == 0 ?
             executor.submit(runnable) :
             scheduler.schedule(runnable, delay, MILLISECONDS);
@@ -48,7 +53,9 @@ exports.setTimeout = function(callback, delay) {
  */
 exports.clearTimeout = function(id) {
     try {
-        id.cancel(false);
+        if (id.cancel(false)) {
+            global.decreaseAsyncCount();
+        }
     } catch (e) {
         // ignore
     }
@@ -74,6 +81,7 @@ exports.setInterval = function(callback, delay) {
         }
     });
     delay = Math.max(parseInt(delay, 10) || 0, 1);
+    global.increaseAsyncCount();
     return scheduler.scheduleAtFixedRate(runnable, delay, delay, MILLISECONDS);
 };
 
@@ -84,7 +92,9 @@ exports.setInterval = function(callback, delay) {
  */
 exports.clearInterval = function(future) {
     try {
-        future.cancel(false);
+        if (future.cancel(false)) {
+            global.decreaseAsyncCount();
+        }
     } catch (e) {
         // ignore
     }

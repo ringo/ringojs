@@ -1,23 +1,23 @@
 <% extends skins/base.html %>
 
+<% subskin menu %>
+<div>
+    <a class="repositoryname" href="<% rootPath %><% if <% isStaticRenderer %> echo index.html %>"><% repositoryName %> </a>
+</div>
+<input id="jsdoc-leftnavsearch" type="text">
+<ul class="jsdoc-leftnav leftnav">
+    <% for module in <% modules %> render "moduleItem" %>
+</ul>
+
+<% subskin moduleItem %>
+    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id %></a> </li>
+
 <% subskin head %>
+<link rel="stylesheet" href="<% rootPath %>static/jsdoc.css" />
+<script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
+<script type="text/javascript" src="<% rootPath %>static/jsdoc.js"></script>
 <script>
-$(document).ready(function() {
-    var $showMoreLink = $('.jsdoc-showmore');
-    $(".jsdoc-fileoverview").each(function(idx, overview) {
-        var $overview = $(overview);
-        //console.log($(":first", $overview));
-        var $allButFirstElement = $overview.children().not(":first-child");
-        if ($allButFirstElement.length) {
-            $allButFirstElement.hide();
-            $overview.append($showMoreLink.clone());
-        }
-        return;
-    });
-    $(".jsdoc-showmore").click(function() {
-        $(this).hide().siblings().show();
-    });
-});
+$(document).ready(jsdocSetup);
 </script>
 
 <% subskin content %>
@@ -39,7 +39,7 @@ $(document).ready(function() {
 <% subskin moduleItemLong %>
 <li >
 
-<h2><a href="<% rootPath %><% module.id %>/index.html"> <% module.id | replace "/" "." %> </a></h2>
+<h2><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"> <% module.id %> </a></h2>
 <div class="jsdoc-fileoverview">
     <% module.fileoverview | markdown %>
 </div>

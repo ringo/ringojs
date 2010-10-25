@@ -7,11 +7,11 @@
  */
 
 // stdlib
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 var {makeTree, write, copyTree, join, Path} = require('fs');
 var {render} = require('ringo/skin');
 var {Parser} = require('ringo/args');
-var {isFile, isDirectory} = require('fs-base');
+var {isFile, isDirectory} = require('fs');
 var {ScriptRepository} = require('ringo/jsdoc');
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
@@ -20,14 +20,40 @@ var objects = require('ringo/utils/objects');
 var {repositoryList, moduleDoc, moduleList, structureModuleDoc, getRepositoryName} = require('./jsdocserializer');
 var config = require('./config.js');
 
-// need apps/jsdoc on path for skin extend to work
-require.paths.unshift(module.directory);
-
 // need config.macros in context for skin rendering
 var defaultContext = {};
-config.macros.forEach(function(moduleId) {
-    defaultContext = objects.merge(defaultContext ,require(fileutils.resolveId(module.directory, moduleId)));
-});
+
+// let skins now we are in static mode
+defaultContext.isStaticRenderer = true;
+
+/**
+ * @param {Object} repostitory
+ * @param {String} exportDirectory
+ * @param {Boolean} quiet
+ */
+var renderRepository = exports.renderRepository = function (repository, exportDirectory, quiet) {
+    // need apps/jsdoc on path for skin extend to work
+    if (require.paths.indexOf(module.directory) == -1) {
+        require.paths.push(module.directory);
+    }
+    config.macros.forEach(function(moduleId) {
+        defaultContext = objects.merge(defaultContext,
+            require(files.resolveId(module.directory, moduleId))
+        );
+    });
+
+    if (!quiet) print ('Writing to ' + exportDirectory + '...');
+    copyStaticFiles(exportDirectory);
+    if (!quiet) print(repository.path);
+    writeModuleList(exportDirectory, repository);
+    moduleList(repository.path).forEach(function(module) {
+        if (!quiet) print('\t' + module.id);
+        writeModuleDoc(exportDirectory, repository, module.id);
+    });
+
+    if (!quiet) print('Finished writing to ' + exportDirectory);
+    return;
+}
 
 /**
  * Copy static files of this webapp to target directory
@@ -47,7 +73,7 @@ function copyStaticFiles(target) {
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
-    var repositoryHtml = render('./skins/repository.html',
+    var repositoryHtml = render('skins/repository.html',
         objects.merge(defaultContext, {
             repositoryName: repository.name,
             modules: moduleList(repository.path, true),
@@ -80,13 +106,13 @@ function writeModuleDoc(target, repository, moduleId){
     var slashCount = strings.count(moduleId, '/');
     var relativeRoot = '../' + strings.repeat('../', slashCount);
 
-    var moduleHtml = render('./skins/module.html',
+    var moduleHtml = render('skins/module.html',
         objects.merge(defaultContext, {
             rootPath: relativeRoot,
             repositoryName: repository.name,
             moduleId: moduleId,
             modules: modules,
-            module: structureModuleDoc(docs),
+            item: structureModuleDoc(docs),
         })
     );
 
@@ -94,7 +120,6 @@ function writeModuleDoc(target, repository, moduleId){
     write(moduleFile, moduleHtml);
     return;
 };
-
 
 /**
  * Create static documentation for a Repository.
@@ -160,17 +185,7 @@ function main(args) {
         return;
     }
 
-    if (!quiet) print ('Writing to ' + exportDirectory + '...');
-
-    copyStaticFiles(exportDirectory);
-    if (!quiet) print(repository.path);
-    writeModuleList(exportDirectory, repository);
-    moduleList(repository.path).forEach(function(module) {
-        if (!quiet) print('\t' + module.id);
-        writeModuleDoc(exportDirectory, repository, module.id);
-    });
-
-    if (!quiet) print('Finished writing to ' + exportDirectory);
+    renderRepository(repository, exportDirectory, quiet);
     return;
 };
 

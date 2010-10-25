@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Middleware for on-the-fly GZip compression of response bodies.
+ */
 var {Binary, ByteArray, ByteString} = require('binary');
 var {ResponseFilter, Headers} = require('ringo/webapp/util');
 

@@ -1,7 +1,7 @@
 var {Markdown} = require('ringo/markdown');
 var {Buffer} = require('ringo/buffer');
 var {render} = require('ringo/skin');
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 
 exports.markdown_filter = function(content) {
     var markdown = new Markdown({
@@ -31,7 +31,7 @@ exports.href_macro = function(tag) {
     var config = require('./config');
     var path = tag.parameters[0] || '';
     return config.rootPath
-        + fileutils.resolveUri('/', config.appPath, path).slice(1);
+        + files.resolveUri('/', config.appPath, path).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {

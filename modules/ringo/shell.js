@@ -1,14 +1,15 @@
-// This module is evaluated on shell scopes,
-// so to extend the ringo shell just add stuff here.
+/**
+ * @fileOverview provides functions to work with the Ringo shell.
+ */
+
+var system = require('system');
 
 export('write', 'writeln', 'read', 'readln', 'start', 'quit');
 
-var output = java.lang.System.out;
-var input;
 try {
-    input = new Packages.jline.ConsoleReader();
+    var input = new Packages.jline.ConsoleReader();
 } catch (x) {
-    output.println("No input: " + x);
+    // fall back to plain standard input
 }
 
 /**
@@ -16,10 +17,11 @@ try {
  */
 function write() {
     var length = arguments.length;
+    var out = system.stdout;
     for (var i = 0; i < length; i++) {
-        output.print(String(arguments[i]));
+        out.write(String(arguments[i]));
         if (i < length - 1)
-            output.print(' ');
+            out.write(' ');
     }
 }
 
@@ -28,13 +30,16 @@ function write() {
  */
 function writeln() {
     write.apply(this, arguments);
-    output.println();
+    system.stdout.writeLine('');
 }
 
 /**
  * Read a single character from the standard input.
  */
 function read() {
+    if (!input) {
+        throw new Error('jline not installed');
+    }
     return String.fromCharCode(input.readVirtualKey());
 }
 
@@ -46,13 +51,18 @@ function read() {
  */
 function readln(prompt, echoChar) {
     prompt = prompt || '';
-    if (typeof echoChar == 'string') {
-        var echo = echoChar == '' ?
-               new java.lang.Character(0) :
-               new java.lang.Character(echoChar.charCodeAt(0));
-        return input.readLine(prompt, echo);
+    if (input) {
+        if (typeof echoChar == 'string') {
+            var echo = echoChar == '' ?
+                   new java.lang.Character(0) :
+                   new java.lang.Character(echoChar.charCodeAt(0));
+            return input.readLine(prompt, echo);
+        }
+        return input.readLine(prompt);
+    } else {
+        system.stdout.write(prompt);
+        return system.stdin.readLine().trim();
     }
-    return input.readLine(prompt);
 }
 
 /**
@@ -61,8 +71,8 @@ function readln(prompt, echoChar) {
  * Terminating the shell will exit the program.
  * @since 0.5
  */
-function start() {
-    var engine = require('ringo/engine').getRhinoEngine();
+function start(engine) {
+    engine = engine || require('ringo/engine').getRhinoEngine();
     new org.ringojs.tools.RingoShell(engine).run();
 }
 

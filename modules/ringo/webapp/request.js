@@ -7,7 +7,7 @@ var objects = require('ringo/utils/objects');
 var {isUrlEncoded, parseParameters} = require('./parameters');
 var {isFileUpload, parseFileUpload} = require('./fileupload');
 
-var {Context, Scriptable} = org.mozilla.javascript;
+var {Context, NativeObject} = org.mozilla.javascript;
 
 export('Request', 'Session');
 
@@ -243,7 +243,7 @@ function Request(request) {
 function Session(request) {
 
     var data;
-    var servletRequest = request instanceof javax.servlet.ServletRequest ? 
+    var servletRequest = request instanceof javax.servlet.ServletRequest ?
             request : request.env.servletRequest;
 
     function getSession() {
@@ -258,12 +258,12 @@ function Session(request) {
             if (!data) {
                 // session.data is a JavaAdapter that directly proxies property access
                 // to the attributes in the servlet session object.
-                data = new JavaAdapter(Scriptable, {
+                data = new JavaAdapter(NativeObject, {
                     put: function(name, start, value) {
-                        getSession().setAttribute(name, Context.jsToJava(value, java.lang.Object));
+                        getSession().setAttribute(name, value);
                     },
                     get: function(name, start) {
-                        return Context.javaToJS(getSession().getAttribute(name), global);
+                        return getSession().getAttribute(name);
                     }
                 });
             }
@@ -278,7 +278,7 @@ function Session(request) {
      */
     Object.defineProperty(this, "isNew", {
         get: function() {
-            getSession().isNew();
+            return getSession().isNew();
         }
     })
 

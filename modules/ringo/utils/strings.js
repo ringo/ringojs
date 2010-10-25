@@ -62,7 +62,8 @@ export('isDateFormat',
        'Sorter',
        'compose',
        'random',
-       'join');
+       'join',
+       'format');
 
 /**
  * checks if a date format pattern is correct
@@ -550,11 +551,48 @@ function random(len, mode) {
  * @returns String the resulting string
  */
 function join(str1, str2, glue) {
-        if (glue == null)
-            glue = '';
-        if (str1 && str2)
-            return str1 + glue + str2;
-        else if (str2)
-            return str2;
-        return str1;
+    if (glue == null)
+        glue = '';
+    if (str1 && str2)
+        return str1 + glue + str2;
+    else if (str2)
+        return str2;
+    return str1;
+}
+
+
+/**
+ * A simple string formatter. If the first argument is a format string
+ * containing a number of curly bracket pairs {} as placeholders,
+ * the same number of following arguments will be used to replace the curly
+ * bracket pairs in the format string. If the first argument is not a string
+ * or does not contain any curly brackets, the arguments are simply concatenated
+ * to a string and returned.
+ *
+ * @param {String} format string, followed by a variable number of values
+ * @return {String} the formatted string
+ */
+function format() {
+    if (arguments.length == 0) {
+        return "";
     }
+    var format = arguments[0];
+    var index = 1;
+    // Replace placehoder with argument as long as possible
+    if (typeof format === "string") {
+        if (contains(format, "{}") && arguments.length > 1) {
+            var args = arguments;
+            format = format.replace(/{}/g, function(m) {
+                return index < args.length ? args[index++] : m;
+            });
+        }
+    } else {
+        format = String(format);
+    }
+    // append remaining arguments separated by " "
+    if (index < arguments.length) {
+        return [format].concat(Array.slice(arguments, index).map(String)).join(" ");
+    } else {
+        return format;
+    }
+}

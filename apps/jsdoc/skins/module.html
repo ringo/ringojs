@@ -1,31 +1,55 @@
 <% extends skins/base.html %>
 
+<% subskin head %>
+<link rel="stylesheet" href="<% rootPath %>static/jsdoc.css" />
+<script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
+<script type="text/javascript" src="<% rootPath %>static/jsdoc.js"></script>
+<script>
+$(document).ready(jsdocSetup);
+</script>
+
+
+<% subskin menu %>
+<div>
+    <a class="repositoryname" href="<% rootPath %><% if <% isStaticRenderer %> echo index.html %>"><% repositoryName %> </a>
+</div>
+<input id="jsdoc-leftnavsearch" type="text">
+<ul class="jsdoc-leftnav leftnav">
+    <% for module in <% modules %> render "moduleItem" %>
+</ul>
+
+<% subskin moduleItem %>
+    <li><a href="<% rootPath %><% module.id %>/<% if <% isStaticRenderer %> echo index.html %>"><% module.id %></a> </li>
+
 <% subskin content %>
     <div >
         <div class="moduleheader">
             <h1 class="modulename"> Module <% moduleId %> </h1>
             <div class="fileoverview">
-                <% module.fileoverview | markdown %>
+                <% item.fileoverview | markdown %>
             </div>
 
+            <% if <% item.example %> render exampleSection %>
+            <% if <% item.sees.length %> render seesSection %>
+
             <div class="moduleoverview">
-                <% if <% module.danglingFunctions.length %> or <% module.danglingProperties.length %> render danglingOverview %>
+                <% if <% item.danglingFunctions.length %> or <% item.danglingProperties.length %> render danglingOverview %>
 
                 <div class="classes">
-                    <% for class in <% module.classes %> render classOverview %>
+                    <% for class in <% item.classes %> render classOverview %>
                 </div>
             </div>
         </div>
         <hr/>
         <div class="details">
-            <% for item in <% module.items %> render docItem %>
+            <% for item in <% item.items %> render docItem %>
         </div>
     </div>
 
 <% subskin danglingOverview %>
 <div class="classoverview">
-    <% if <% module.danglingFunctions.length %> render moduleFunctionsOverview %>
-    <% if <% module.danglingProperties.length %> render modulePropertiesOverview %>
+    <% if <% item.danglingFunctions.length %> render moduleFunctionsOverview %>
+    <% if <% item.danglingProperties.length %> render modulePropertiesOverview %>
 </div>
 
 
@@ -33,7 +57,7 @@
 <div>
     <h3>Functions</h3>
     <ul class="propertyoverview">
-        <% for item in <% module.danglingFunctions %> render propertyOverview %>
+        <% for item in <% item.danglingFunctions %> render propertyOverview %>
     </ul>
 </div>
 
@@ -41,7 +65,7 @@
 <div>
     <h3>Properties</h3>
     <ul class="propertyoverview">
-        <% for item in <% module.danglingProperties %> render propertyOverview %>
+        <% for item in <% item.danglingProperties %> render propertyOverview %>
     </ul>
 </div>
 
@@ -100,7 +124,7 @@
 <% subskin docItem %>
 <!-- tpl-docitem -->
 <div>
-    <div class="docitem">
+    <div class="docitem" docitem="<% item.name %>">
         <h3>
            <% render namePrefix %><a id="<% item.name %>" href="#<% item.name %>" class="itemtitle"><% item.shortName %>
 
@@ -110,7 +134,8 @@
         <div>
             <% item.desc | markdown %>
         </div>
-
+        <% if <% item.example %> render exampleSection %>
+        
         <% if <% item.parameters.length %> and <% item.parameters | haveDescOrType %>
             render parametersSection %>
 
@@ -166,3 +191,9 @@
     <td class="paramname"><% param.name %></td>
     <td><% param.desc %></td>
 </tr>
+
+<% subskin exampleSection %>
+<div>
+    <h4> Example </h4>
+    <pre class="sh_javascript sh_sourceCode"><% item.example %></pre>
+</div>

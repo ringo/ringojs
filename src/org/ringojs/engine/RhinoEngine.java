@@ -46,7 +46,7 @@ public class RhinoEngine implements ScopeProvider {
 
     private RingoConfiguration config;
     private List<Repository> repositories;
-    private ScriptableObject globalScope;
+    private RingoGlobal globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
@@ -57,7 +57,7 @@ public class RhinoEngine implements ScopeProvider {
     private ModuleScope mainScope = null;
 
     public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 5));
+    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 6));
 
     public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
     static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
@@ -106,6 +106,7 @@ public class RhinoEngine implements ScopeProvider {
             ScriptableList.init(globalScope);
             ScriptableMap.init(globalScope);
             ScriptableObject.defineClass(globalScope, ScriptableWrapper.class);
+            ScriptableObject.defineClass(globalScope, ModuleMetaObject.class);
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
                     ScriptableObject.defineProperty(globalScope, entry.getKey(),
@@ -166,7 +167,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object runScript(Object scriptResource, String... scriptArgs)
-            throws IOException, JavaScriptException {
+            throws IOException, JavaScriptException, InterruptedException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         Resource resource;
@@ -189,6 +190,7 @@ public class RhinoEngine implements ScopeProvider {
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
             retval = evaluateScript(cx, script, mainScope);
+            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -205,7 +207,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object evaluateExpression(String expr)
-            throws IOException, JavaScriptException {
+            throws IOException, JavaScriptException, InterruptedException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         cx.setOptimizationLevel(-1);
@@ -215,6 +217,7 @@ public class RhinoEngine implements ScopeProvider {
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
+            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -321,7 +324,7 @@ public class RhinoEngine implements ScopeProvider {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         try {
-            Repository repository = repositories.get(0);
+            Repository repository = new FileRepository("");
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
             try {
@@ -784,7 +787,7 @@ public class RhinoEngine implements ScopeProvider {
                 protected Object resolveObject(Object obj) throws IOException {
                     if (obj instanceof SerializedScopeProxy) {
                         return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
-                    } 
+                    }
                     return super.resolveObject(obj);
                 }
             };
@@ -823,7 +826,7 @@ public class RhinoEngine implements ScopeProvider {
         return loader;
     }
 
-    public RingoConfiguration getConfiguration() {
+    public RingoConfiguration getConfig() {
         return config;
     }
 
@@ -857,7 +860,7 @@ public class RhinoEngine implements ScopeProvider {
 
     /**
      * Get the engine's WrapFactory.
-     * @return
+     * @return the engine's WrapFactory instance
      */
     public WrapFactory getWrapFactory() {
         return wrapFactory;

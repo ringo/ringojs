@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * ScriptableList is a wrapper for java.util.List instances that allows developers 
+ * ScriptableList is a wrapper for java.util.List instances that allows developers
  * to interact with them like it was a native JavaScript array.
  */
 public class ScriptableList extends NativeJavaObject {

@@ -1,18 +1,14 @@
-var {resolve} = require('fs');
-
-exports.httpConfig = {
-    staticDir: './static'
-};
 
 exports.urls = [
-    [ '/mount/point', require('./webmodule') ],
-    [ '/storage', resolve(module.path, '../storage/config') ],
-    [ '/', require('./actions') ]
+    [ '/mount/point', './webmodule' ],
+    [ '/storage', module.resolve('../storage/config') ],
+    [ '/', './actions' ]
 ];
 
 exports.middleware = [
     require('ringo/middleware/gzip').middleware,
     require('ringo/middleware/etag').middleware,
+    require('ringo/middleware/static').middleware(module.resolve("public")),
     require('ringo/middleware/responselog').middleware,
     require('ringo/middleware/error').middleware,
     require('ringo/middleware/notfound').middleware

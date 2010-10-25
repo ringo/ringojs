@@ -39,7 +39,7 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
 var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
     var repository = new ScriptRepository(repositoryPath);
     var modules = repository.getScriptResources(true).filter(function(r) {
-        return !r.moduleName.match(/^ringo\/?global$/) &&  !strings.startsWith(r.moduleName, 'test');
+        return !r.moduleName.match(/^ringo\/?global$/);
     }).map(function(mod) {
         var fileoverview = undefined;
         if (moduleFileOverview == true) {
@@ -87,6 +87,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
         doc.example = docItems.fileoverview.getTag('example');
         doc.since = docItems.fileoverview.getTag('since');
         doc.deprecated = docItems.fileoverview.getTag('deprecated');
+        doc.sees = getSees(docItems.fileoverview);
     }
     // tags for all items in this module
     var items = [];
@@ -96,8 +97,11 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
         // unify instance & prototype
         var name = docItem.name;
         var nameParts = docItem.name.split('.');
+        // normalize instance/prototype -> prototype
         if (nameParts.length > 2) {
-            nameParts[1] = 'prototype';
+            if (nameParts[1] === 'instance') {
+                nameParts[1] = 'prototype';
+            }
             name = nameParts.join('.');
         }
         var shortName = docItem.name.split('.').splice(-1)[0];
@@ -250,10 +254,13 @@ function getRelatedClass(item) {
     // FIXME there's a jsdoc tag for that too, right?
     var relatedClass = null;
     var nameParts = item.name.split('.');
-    if (nameParts.length > 1) {
-        relatedClass = nameParts[0];
-    }
-    return relatedClass;
+    return nameParts.filter(function(namePart, idx, array) {
+        if (array.length-1 == idx || namePart == 'prototype' || namePart == 'instance') {
+            return false;
+        } else {
+            return true;
+        };
+    }).join('.');
 }
 
 function getSees(item) {

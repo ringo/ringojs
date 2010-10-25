@@ -32,8 +32,8 @@ exports.testAssertTrue = function() {
 };
 
 exports.testArrayIndexOf = function() {
-   
-   // test with empty array   
+
+   // test with empty array
    assert.strictEqual( empty.indexOf(string3), -1 );
    assert.strictEqual( empty.indexOf(null), -1 );
    assert.strictEqual( empty.indexOf(undefined), -1 );
@@ -47,7 +47,7 @@ exports.testArrayIndexOf = function() {
    assert.notStrictEqual( arrayWithTwoStrings.indexOf(string3), 2 );
    assert.strictEqual( arrayWithTwoStrings.indexOf(string3), -1 );
    assert.strictEqual( arrayWithFiveStrings.indexOf(string3), 2 );
-   
+
    // test with objects
    assert.strictEqual( arrayWithOneObject.indexOf(obj1), 0 );
    assert.strictEqual( arrayWithTwoObjects.indexOf(obj1), 0 );
@@ -61,7 +61,7 @@ exports.testArrayIndexOf = function() {
 
 
 exports.testArrayLastIndexOf = function() {
-   
+
    // test with empty array
    assert.strictEqual( empty.lastIndexOf(string3), -1 );
    assert.strictEqual( empty.lastIndexOf(null), -1 );
@@ -71,13 +71,13 @@ exports.testArrayLastIndexOf = function() {
    assert.strictEqual( arrayWithOneString.lastIndexOf(string1), 0 );
    assert.strictEqual( arrayWithTwoStrings.lastIndexOf(string1), 0 );
    assert.strictEqual( arrayWithFiveStrings.lastIndexOf(string1), 0 );
-   assert.strictEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );      
+   assert.strictEqual( arrayWithFiveOneStrings.lastIndexOf(string1), 4 );
 
 
    assert.notStrictEqual( arrayWithTwoStrings.lastIndexOf(string3), 2 );
    assert.strictEqual( arrayWithTwoStrings.lastIndexOf(string3), -1 );
    assert.strictEqual( arrayWithFiveStrings.lastIndexOf(string3), 2 );
-   
+
    // test with objects
    assert.strictEqual( arrayWithOneObject.lastIndexOf(obj1), 0 );
    assert.strictEqual( arrayWithTwoObjects.lastIndexOf(obj1), 0 );
@@ -94,8 +94,8 @@ exports.testArrayLastIndexOf = function() {
 exports.testArrayContains = function() {
 
    // Array.prototype.contains = Array.prototype.include;
-   
-   // test with empty array   
+
+   // test with empty array
    assert.isFalse( arrays.contains(empty, string3) );
    assert.isFalse( arrays.contains(empty, null) );
    assert.isFalse( arrays.contains(empty, undefined) );
@@ -108,7 +108,7 @@ exports.testArrayContains = function() {
 
    assert.isFalse( arrays.contains(arrayWithTwoStrings, string3) );
    assert.isTrue( arrays.contains(arrayWithFiveStrings, string3) );
-   
+
    // test with objects
    assert.isTrue( arrays.contains(arrayWithOneObject, obj1) );
    assert.isTrue( arrays.contains(arrayWithTwoObjects, obj1) );
@@ -132,7 +132,7 @@ exports.testArrayUnion = function() {
       arrays.union(empty, arrayWithTwoStrings),
       ["one", "two"]
    );
-   
+
    // test with strings
    assert.deepEqual(
       arrays.union(arrayWithOneString, arrayWithOneString),
@@ -170,7 +170,7 @@ exports.testArrayUnion = function() {
       arrays.union(arrayWithTwoThreeStrings, arrayWithTwoStrings),
       ["two", "three", "one"]
    );
-   
+
    // test with objects
    assert.deepEqual(
       arrays.union(arrayWithOneObject, arrayWithOneObject),
@@ -201,7 +201,7 @@ exports.testArrayIntersection = function() {
       arrays.intersection(empty, arrayWithTwoStrings),
       []
    );
-   
+
    // test with strings
    assert.deepEqual(
       arrays.intersection(arrayWithOneString, arrayWithOneString),
@@ -239,7 +239,7 @@ exports.testArrayIntersection = function() {
       arrays.intersection(arrayWithTwoThreeStrings, arrayWithTwoStrings),
       ["two"]
    );
-   
+
    // test with objects
    assert.deepEqual(
       arrays.intersection(arrayWithOneObject, arrayWithOneObject),
@@ -256,10 +256,10 @@ exports.testArrayIntersection = function() {
    );
 
    assert.deepEqual(
-      arrays.intersection(arrayWithFiveObjects, empty), 
+      arrays.intersection(arrayWithFiveObjects, empty),
       []
    );
-   
+
    return;
 };
 

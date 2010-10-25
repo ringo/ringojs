@@ -10,8 +10,9 @@ import org.ringojs.util.ScriptUtils;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.lang.reflect.Method;
 
 /**
@@ -405,7 +406,7 @@ public class Binary extends ScriptableObject implements Wrapper {
         String cs = toCharset(charset);
         try {
             return cs == null ?
-                    new String(bytes, 0, length) : 
+                    new String(bytes, 0, length) :
                     new String(bytes, 0, length, cs);
         } catch (UnsupportedEncodingException uee) {
             throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
@@ -573,8 +574,14 @@ public class Binary extends ScriptableObject implements Wrapper {
 
     private byte[][] getSplitDelimiters(Object delim) {
         List<byte[]> list = new ArrayList<byte[]>();
-        if (delim instanceof NativeArray) {
-            Collection values = ((NativeArray) delim).values();
+        Collection values = null;
+        if (delim instanceof Collection) {
+            values = (Collection) delim;
+        } else if (delim instanceof Map && delim instanceof NativeArray) {
+            // NativeArray used to implement java.util.Map
+            values = ((Map) delim).values();
+        }
+        if (values != null) {
             for (Object value : values) {
                 list.add(getBytesArgument(value));
             }

@@ -5,6 +5,6 @@
 ### Remove book
 
 <form action="<% action %>" method="post">
-    <div>Do you really want to remove book "<% book.title %>"?</div>
+    <div>Do you really want to remove book "<% book.title | escapeHtml %>"?</div>
     <p><input type="submit" name="remove" value="Remove"/> <a href="../">Cancel</a></p>
 </form>

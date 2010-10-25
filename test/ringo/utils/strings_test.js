@@ -181,3 +181,43 @@ exports.testJoin = function () {
     assert.strictEqual(FOO + NUM, strings.join(FOO, NUM));
     assert.strictEqual(FOO + NUM + FOO, strings.join(FOO, FOO, NUM));
 };
+
+const TEMPLATE = 'Here\'s {} and {}.';
+const BAR = 'bar';
+const SPACE = ' ';
+const NULL = 'null';
+const UNDEFINED = 'undefined';
+const FOO_BAR = FOO + SPACE + BAR;
+const RESULT_1 = 'Here\'s ' + FOO + ' and ' + BAR + '.';
+const RESULT_2 = 'Here\'s ' + SPACE + ' and ' + NUM + '.';
+const RESULT_3 = 'Here\'s ' + NULL + ' and ' + UNDEFINED + '.';
+const RESULT_4 = RESULT_1 + SPACE + FOO + SPACE + BAR;
+const RESULT_5 = RESULT_2 + SPACE + SPACE + SPACE + NUM;
+const RESULT_6 = RESULT_3 + SPACE + NULL + SPACE + UNDEFINED;
+
+exports.testFormat = function () {
+    // format string replacement
+    assert.strictEqual(RESULT_1, strings.format(TEMPLATE, FOO, BAR));
+    assert.strictEqual(RESULT_2, strings.format(TEMPLATE, SPACE, NUM));
+    assert.strictEqual(RESULT_3, strings.format(TEMPLATE, NULL, UNDEFINED));
+    // format string replacement with additional args
+    assert.strictEqual(RESULT_4, strings.format(TEMPLATE, FOO, BAR, FOO, BAR));
+    assert.strictEqual(RESULT_5, strings.format(TEMPLATE, SPACE, NUM, SPACE, NUM));
+    assert.strictEqual(RESULT_6, strings.format(TEMPLATE, NULL, UNDEFINED, NULL, UNDEFINED));
+    // no format string
+    assert.strictEqual(RESULT_4, strings.format(RESULT_1, FOO, BAR));
+    assert.strictEqual(RESULT_5, strings.format(RESULT_2, SPACE, NUM));
+    assert.strictEqual(RESULT_6, strings.format(RESULT_3, NULL, UNDEFINED));
+    // null/undefined/number as first argument
+    assert.strictEqual(NULL + SPACE + FOO_BAR, strings.format(null, FOO, BAR));
+    assert.strictEqual(UNDEFINED + SPACE + FOO_BAR, strings.format(undefined, FOO, BAR));
+    assert.strictEqual(NUM + SPACE + FOO_BAR, strings.format(NUM, FOO, BAR));
+    // null/undefined/number as last argument
+    assert.strictEqual(FOO_BAR + SPACE + NULL, strings.format(FOO, BAR, null));
+    assert.strictEqual(FOO_BAR + SPACE + UNDEFINED, strings.format(FOO, BAR, undefined));
+    assert.strictEqual(FOO_BAR + SPACE + NUM, strings.format(FOO, BAR, NUM));
+    //  null/undefined/no argument
+    assert.strictEqual(NULL, strings.format(null));
+    assert.strictEqual(UNDEFINED, strings.format(undefined));
+    assert.strictEqual('', strings.format());
+};

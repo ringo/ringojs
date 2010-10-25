@@ -1,6 +1,10 @@
+/**
+ * @fileOverview Low level support for parsing JSDoc-style comments from JavaScript files.
+ */
+
 var strings = require('ringo/utils/strings');
 var arrays = require('ringo/utils/arrays');
-var {visitScriptResource} = require('ringo/parser');
+var {Parser, Token, getTypeName} = require('ringo/parser');
 var {Buffer} = require('ringo/buffer');
 
 importPackage(org.mozilla.javascript);
@@ -76,7 +80,7 @@ exports.parseResource = function(resource) {
     var exported = [];
     var jsdocs = [];
     var seen = {};
-    
+
     var checkAssignment = function(node, root, exported) {
         if (node.type == Token.ASSIGN) {
             if (node.left.type == Token.GETPROP) {
@@ -153,7 +157,7 @@ exports.parseResource = function(resource) {
         }
     };
 
-    visitScriptResource(resource, function(node) {
+    new Parser({parseComments: true}).visit(resource, function(node) {
         // loop through all comments looking for dangling jsdocs
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
@@ -203,7 +207,7 @@ exports.parseResource = function(resource) {
                 }
             }
         }
-        
+
         // check for Object.defineProperties(foo, {bar: {}})
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
@@ -231,11 +235,11 @@ exports.parseResource = function(resource) {
                         jsdoc = left.jsDoc;
                         addDocItem(target.join('.'), jsdoc, value);
                         target.pop();
-                    }       
+                    }
                 }
             }
         }
-        
+
         // check for __define[GS]etter__
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
@@ -266,7 +270,7 @@ exports.parseResource = function(resource) {
             for each (var n in ScriptableList(node.variables)) {
                 if (n.target.type == Token.NAME && arrays.contains(exported, n.target.string)) {
                     if (n.initializer && n.initializer.type == Token.FUNCTION) {
-                        // Note: We might still miss something like 
+                        // Note: We might still miss something like
                         // var foo = XXX.foo = function()...
                         exportedFunction = n.initializer;
                         exportedName = n.target.string;
@@ -379,30 +383,6 @@ var docProto = {
     }
 };
 
-/**
- * Utility function to test whether a node is a Name node
- * (a node of type org.mozilla.javascript.ast.Name)
- * @param {Object} node an AST node
- * @returns {Boolean} true if node is a name node
- */
-function isName(node) {
-    return node instanceof org.mozilla.javascript.ast.Name;
-}
-
-/**
- * Utility function to get the name value of a node, or the empty
- * string if it is not a name node.
- * @param {AstNode} node an AST node
- * @returns {String} the name value of the node
- */
-function getName(node) {
-    return exports.isName(node) ? node.getString() : "";
-}
-
-function getTypeName(node) {
-    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
-}
-
 var nodeToString = function(node) {
     if (node.type == Token.GETPROP) {
         return [nodeToString(node.target), node.property.string].join('.');
@@ -416,10 +396,3 @@ var nodeToString = function(node) {
         return getTypeName(node);
     }
 };
-
-/**
- * Export org.mozilla.javascript.Token to allow for easy type checking on AST nodes:
- *
- *     node.type == Token.NAME
- */
-var Token = org.mozilla.javascript.Token;

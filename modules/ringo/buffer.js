@@ -1,17 +1,22 @@
+/**
+ * @fileOverview A Buffer class for composing strings.
+ */
+
 var {ByteString} = require('binary');
 
 export('Buffer');
 
 /**
- * A utility class for composing strings. This is implemented
+ * A Buffer class for composing strings. This is implemented
  * as a simple wrapper around a JavaScript array.
- * @param parts... initial parts to write to the buffer
+ * @param ... initial parts to write to the buffer
  */
-function Buffer(parts) {
+function Buffer() {
     var content = [];
 
     /**
      * Reset the buffer discarding all its content.
+     * @returns this buffer object
      */
     this.reset = function() {
         content = [];
@@ -20,9 +25,10 @@ function Buffer(parts) {
 
     /**
      * Append all arguments to this buffer.
-     * @param parts... the parts to write to the buffer
+     * @param ... variable arguments to append to the buffer
+     * @returns this buffer object
      */
-    this.write = function(parts) {
+    this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
             content[content.length] = String(arguments[i]);
         }
@@ -31,9 +37,10 @@ function Buffer(parts) {
 
     /**
      * Append all arguments to this buffer terminated by a carriage return/newline sequence.
-     * @param parts... the parts to write to the buffer
+     * @param ... variable arguments to append to the buffer
+     * @returns this buffer object
      */
-    this.writeln = function(parts) {
+    this.writeln = function() {
         this.write.apply(this, arguments);
         content[content.length] = "\r\n";
         return this;

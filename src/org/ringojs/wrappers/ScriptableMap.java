@@ -207,7 +207,7 @@ public class ScriptableMap extends NativeJavaObject {
     public Object getDefaultValue(Class typeHint) {
         return toString();
     }
-    
+
     public Object unwrap() {
         return map;
     }

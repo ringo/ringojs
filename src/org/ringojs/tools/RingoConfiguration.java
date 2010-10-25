@@ -209,7 +209,7 @@ public class RingoConfiguration {
                 for (Repository repo : repositories) {
                     if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
                         // found a repository that contains main script - use it as base for module name
-                        // reparent to make sure script resource is relative to parent                        
+                        // reparent to make sure script resource is relative to parent
                         mainResource = repo.getResource(scriptPath.substring(repo.getPath().length()));
                         return;
                     }
@@ -227,15 +227,8 @@ public class RingoConfiguration {
                     script = getResource(scriptName + ".js");
                 }
                 if (!script.exists()) {
-                    // try to resolve script as module name in current directory
-                    Repository current = new FileRepository(new File(System.getProperty("user.dir")));
-                    script = current.getResource(scriptName + ".js");
-                    if (script == null || !script.exists()) {
-                        // no luck resolving the script name, give up
-                        throw new FileNotFoundException("Can't find file " + scriptName);
-                    }
-                    // found as module name in current directory, so add it to module path
-                    repositories.add(0, current);
+                    // no luck resolving the script name, give up
+                    throw new FileNotFoundException("Can't find file " + scriptName);
                 }
                 // found the script, so set mainModule
                 mainResource = script;

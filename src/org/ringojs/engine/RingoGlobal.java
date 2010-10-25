@@ -29,6 +29,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
 import org.mozilla.javascript.Wrapper;
+import org.mozilla.javascript.tools.shell.Environment;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
 import org.ringojs.util.ScriptUtils;
@@ -50,6 +51,7 @@ public class RingoGlobal extends Global {
 
     private static ExecutorService threadPool;
     private static AtomicInteger ids = new AtomicInteger();
+    private int asyncCount = 0;
 
     protected RingoGlobal() {}
 
@@ -86,7 +88,9 @@ public class RingoGlobal extends Global {
             "addToClasspath",
             "privileged",
             "spawn",
-            "trycatch"
+            "trycatch",
+            "increaseAsyncCount",
+            "decreaseAsyncCount"
         };
         defineFunctionProperties(names, RingoGlobal.class,
                                  ScriptableObject.DONTENUM);
@@ -100,6 +104,13 @@ public class RingoGlobal extends Global {
         require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
                 DONTENUM | PERMANENT | READONLY);
         defineProperty("arguments", cx.newArray(this, engine.getArguments()), DONTENUM);
+        // Set up "environment" in the global scope to provide access to the
+        // System environment variables. http://github.com/ringo/ringojs/issues/#issue/88
+        Environment.defineClass(this);
+        Environment environment = new Environment(this);
+        defineProperty("environment", environment,
+                       ScriptableObject.DONTENUM);
+        
     }
 
     public static void defineClass(final Context cx, Scriptable thisObj,
@@ -242,6 +253,22 @@ public class RingoGlobal extends Global {
         });
     }
 
+    public synchronized void increaseAsyncCount() {
+        asyncCount += 1;
+    }
+
+    public synchronized void decreaseAsyncCount() {
+        asyncCount -= 1;
+        if (asyncCount == 0) {
+            notifyAll();
+        }
+    }
+
+    synchronized void waitTillDone() throws InterruptedException {
+        while (asyncCount > 0) {
+            wait();
+        }
+    }
 
     public static Object getMain(Scriptable thisObj) {
         try {

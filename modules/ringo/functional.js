@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Function utilities.
+ */
 
 export('bindArguments', 'bindThisObject');
 

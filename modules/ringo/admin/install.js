@@ -5,7 +5,7 @@
 var system = require("system");
 var shell = require("ringo/shell");
 var fs = require("fs");
-var futils = require("ringo/fileutils");
+var files = require("ringo/utils/files");
 var {ZipFile} = require("ringo/zip");
 var {Parser} = require("ringo/args");
 var strings = require('ringo/utils/strings');
@@ -28,7 +28,7 @@ function installPackage(url, options) {
         url = "http://github.com/" + url + "/zipball/master";
     }
     url = new java.net.URL(url);
-    var temp = futils.createTempFile("ringo-install", ".zip");
+    var temp = files.createTempFile("ringo-install", ".zip");
     try {
         print("Downloading " + url);
         var out = fs.openRaw(temp, {write: true});

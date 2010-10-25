@@ -223,7 +223,7 @@ public class Stream extends ScriptableObject implements Wrapper {
     @JSGetter
     public Object getOutputStream() {
         return output == null ? null : new NativeJavaObject(getParentScope(), output, null);
-    }    
+    }
 
     /**
      * Unwrap the object by returning the wrapped value.

@@ -13,17 +13,18 @@
  */
 
 var strings = require('ringo/utils/strings');
-var utils = require('ringo/utils');
+var debug = require('ringo/utils/debug');
 
 var configured = false;
 // interval id for configuration watcher
 var configurationWatcher;
+var verbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
 
 var interceptors = new java.lang.ThreadLocal();
 
 /**
  * Logger class. This constructor is not exported, use this module's
- * {@link getLogger} to get a logger instance. 
+ * {@link getLogger} to get a logger instance.
  * @param name the Logger name
  * @param impl the logger implementation
  * @constructor
@@ -106,7 +107,7 @@ function Logger(name, impl) {
  *
  * @param {Resource} resource the configuration resource in XML or properties format
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
- * repeatedly checks the resource for updates.  
+ * repeatedly checks the resource for updates.
  */
 var setConfig = exports.setConfig = function(resource, watchForUpdates) {
     var {path, url} = resource;
@@ -174,13 +175,13 @@ function intercept(level, name, message) {
 }
 
 function formatMessage(args) {
-    var message = utils.format.apply(null, args);
+    var message = strings.format.apply(null, args);
     for each (var arg in args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                utils.getScriptStack(arg, "\nScript stack:\n"),
-                utils.getJavaStack(arg, "Java stack:\n")
+                debug.getScriptStack(arg, "\nScript stack:\n"),
+                verbose ? debug.getJavaStack(arg, "Java stack:\n") : null
             ].join('');
         }
     }
@@ -192,7 +193,7 @@ function formatMessage(args) {
  * @param name the logger name
  */
 function JdkLogger(name) {
-    
+
     var log = java.util.logging.Logger.getLogger(name);
     var Level = java.util.logging.Level;
 

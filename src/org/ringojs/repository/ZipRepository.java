@@ -214,7 +214,7 @@ public final class ZipRepository extends AbstractRepository {
     public long lastModified() {
         return file.lastModified();
     }
-    
+
     public long getChecksum() {
         return file.lastModified();
     }

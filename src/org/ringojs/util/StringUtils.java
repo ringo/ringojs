@@ -74,6 +74,18 @@ public class StringUtils {
     }
 
     /**
+     * Escape the string to make it safe for use within an HTML document.
+     * @param str the string to escape
+     * @return  the escaped string
+     */
+    public static String escapeHtml(String str) {
+        return str.replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\"", "&quot;");
+    }
+
+    /**
      * Split a string and try to convert to an array of classes.
      * @param str a string containint class names
      * @param delim the delimiter
@@ -107,7 +119,7 @@ public class StringUtils {
     /**
      * Scan for a newline sequence in the given CharBuffer, starting at
      * position from until buffer.position(). A newline sequence is one of
-     * "r\n", "\r", or "\n". Returns the index of the 
+     * "r\n", "\r", or "\n". Returns the index of the
      * first newline sequence, or -1 if none was found.
      *
      * @param buffer the character buffer

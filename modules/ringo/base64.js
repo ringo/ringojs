@@ -13,7 +13,7 @@
 // -- hannesw Hannes Wallnoefer
 
 /**
- * Provides Base64 encoding and decoding for binary data and strings.
+ * @fileOverview Base64 encoding and decoding for binary data and strings.
  */
 
 var encodeChars = [
@@ -86,7 +86,7 @@ exports.encode = function(str, encoding) {
  * @param {String} str the Base64 encoded string
  * @param {String} encoding the encoding to use for the return value.
  *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
- * @returns the decoded string or ByteArray 
+ * @returns the decoded string or ByteArray
  */
 exports.decode = function (str, encoding) {
     var c1, c2, c3, c4;
@@ -120,7 +120,7 @@ exports.decode = function (str, encoding) {
         do {
             c3 = input[i++];
             if(c3 == padding) {
-                break outer;                
+                break outer;
             }
             c3 = decodeChars[c3];
         } while(i < length && c3 == -1);

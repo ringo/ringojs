@@ -4,7 +4,7 @@
  */
 
 var objects = require('ringo/utils/objects');
-var fileutils = require('ringo/fileutils');
+var files = require('ringo/utils/files');
 
 var current = current || new java.lang.ThreadLocal();
 
@@ -84,7 +84,7 @@ exports.loadMacros = function(context) {
 
 function loadModule(moduleId, parent) {
     if (typeof moduleId == "string") {
-        return require(fileutils.resolveId(parent, moduleId));
+        return require(files.resolveId(parent, moduleId));
     } else {
         return moduleId;
     }

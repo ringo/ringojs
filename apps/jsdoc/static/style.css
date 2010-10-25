@@ -14,18 +14,6 @@ h1 {
     padding: 10px 0;
 }
 
-a {
-    color: blue;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-a:active {
-    color: #ff8c00;
-}
-
 #wrap {
     margin: 0 auto;
     width: 800px;
