@@ -26,6 +26,7 @@ export("format");
  * For details on the format pattern, see
  * http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
  *
+ * @param {Date} the Date to format
  * @param {String} format the format pattern
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
