@@ -1,19 +1,24 @@
-include('binary');
-include('io');
-include('ringo/buffer');
-include('./util');
-include('./mime');
-require('core/date');
+/**
+ * @fileOverview This module provides a Response helper classes for composing JSGI response objects.
+ * The Response class also features a number of static methods for composing special-purpose
+ * response objects.
+ */
 
-export('Response',
-       'skinResponse',
-       'jsonResponse',
-       'xmlResponse',
-       'staticResponse',
-       'redirectResponse',
-       'notFoundResponse',
-       'errorResponse');
+var {ByteArray} = require('binary');
+var {Stream} = require('io');
+var {Buffer} = require('ringo/buffer');
+var {Headers, getMimeParameter} = require('./util');
+var {mimeType} = require('./mime');
+var dates = require('ringo/utils/dates');
+var webenv = require('ringo/webapp/env');
 
+export('Response');
+
+/**
+ * A Response helper class for composing text-based HTTP responses.
+ * This class also provides a number of static helper methods for
+ * composing special-purpose response objects.
+ */
 function Response() {
 
     // missing new security belt
@@ -23,31 +28,39 @@ function Response() {
         return response;
     }
 
-    var config = require('ringo/webapp/env').config;
+    var config = webenv.getConfig();
     var status = 200;
     var charset = config && config.charset || 'utf-8';
     var contentType = config && config.contentType || 'text/html';
-    var headers = new Headers();
-    var buffer = new Buffer();
+    var headers = new Headers({
+        'Content-Type' : contentType + "; charset=" + charset
+    });
+    var body = new Buffer();
 
+    /**
+     * Append one or more arguments to the response body.
+     */
     this.write = function write() {
         var length = arguments.length;
         for (var i = 0; i < length; i++) {
-            buffer.write(String(arguments[i]));
+            body.write(String(arguments[i]));
             if (i < length - 1)
-                buffer.write(' ');
+                body.write(' ');
         }
         return this;
     };
 
     this.write.apply(this, arguments);
 
+    /**
+     * Append one or more arguments to the response body,
+     * followed by a `'\r\n'` sequence.
+     */
     this.writeln = function writeln() {
         this.write.apply(this, arguments);
-        buffer.write('\r\n');
+        body.write('\r\n');
         return this;
     };
-
 
     /**
      * Render a skin to the response's buffer
@@ -56,73 +69,101 @@ function Response() {
      */
     this.render = function render(skin, context) {
         var render = require('ringo/skin').render;
-        buffer.write(render(skin, context));
+        body.write(render(skin, context));
     };
 
     /**
-     * Print a debug message to the rendered page.
+     * The character encoding of the response.
      */
-    this.debug =  function debug() {
-        var buffer = this.debugBuffer || new Buffer();
-        buffer.write("<div class=\"ringo-debug-line\" style=\"background: yellow;");
-        buffer.write("color: black; border-top: 1px solid black;\">");
-        var length = arguments.length;
-        for (var i = 0; i < length; i++) {
-            buffer.write(arguments[i]);
-            if (i < length - 1) {
-                buffer.write(" ");
-            }
-        }
-        buffer.writeln("</div>");
-        this.debugBuffer = buffer;
-        return null;
-    };
-
-    /**
-     * Write the debug buffer to the response's main buffer.
-     */
-    this.flushDebug = function() {
-        if (this.debugBuffer != null) {
-            this.write(this.debugBuffer);
-            this.debugBuffer.reset();
-        }
-        return null;
-    };
-
-    this.redirect = function(location) {
-        status = 303;
-        headers.set('Location', String(location));
-    };
-
     Object.defineProperty(this, 'charset', {
         get: function() {
             return charset;
         },
         set: function(c) {
             charset = c;
+            updateContentType();
         }
     });
 
+    /**
+     * The Content-Type of the response.
+     */
     Object.defineProperty(this, 'contentType', {
         get: function() {
             return contentType;
         },
         set: function(c) {
             contentType = c;
+            updateContentType();
         }
     });
 
+    function updateContentType() {
+        if (contentType) {
+            if (charset) {
+                headers.set("Content-Type", contentType + "; charset=" + charset);
+            } else {
+                headers.set("Content-Type", contentType);
+            }
+        } else {
+            headers.unset("Content-Type");
+        }
+    }
+
+    /**
+     * The HTTP status code of the response.
+     */
     Object.defineProperty(this, 'status', {
         get: function() {
             return status;
         },
         set: function(s) {
+            if (isNaN(s)) {
+                throw new Error("HTTP status code must be numeric");
+            }
             status = s;
-        }
+        },
+        enumerable: true
     });
 
+    /**
+     * Property to get or set the response headers.
+     */
+    Object.defineProperty(this, 'headers', {
+        get: function() {
+            return headers;
+        },
+        set: function(h) {
+            headers = Headers(h);
+        },
+        enumerable: true
+    });
+
+    /**
+     * Property to get or set the response body. While this property can
+     * be set to any valid JSGI response body, the `write` and `writeln`
+     * methods of this response will only work if the response has a `write`
+     * method taking one or more string arguments.
+     */
+    Object.defineProperty(this, 'body', {
+        get: function() {
+            return body;
+        },
+        set: function(b) {
+            // Note: if this is set to anything else than a buffer object it will
+            // break our write methods
+            body = b;
+        },
+        enumerable: true
+    });
+
+    /**
+     * Get the response header value for a given key.
+     * @param key {String} the header name
+     * @returns {String} the header value
+     */
     this.getHeader = function(key) {
-        headers.get(String(key));
+        return headers.get(String(key));
     };
 
     /**
@@ -135,10 +176,10 @@ function Response() {
     this.setHeader = function(key, value) {
         key = String(key);
         if (key.toLowerCase() == "content-type") {
-            contentType = String(value);
-            charset = getMimeParameter(contentType, "charset") || charset;
+            this.contentType = String(value);
+        } else {
+            headers.set(key, String(value));
         }
-        headers.set(key, String(value));
         return this;
     };
 
@@ -169,7 +210,7 @@ function Response() {
      * @param {String} value the cookie value
      * @param {Number} days optional the number of days to keep the cookie.
      *     If this is undefined or -1, the cookie is set for the current session.
-     *     If this is 0, the cookie will be deleted immediately. 
+     *     If this is 0, the cookie will be deleted immediately.
      * @param {Object} options optional options argument which may contain the following properties:
      *     <ul><li>path - the path on which to set the cookie (defaults to /)</li>
      *     <li>domain -  the domain on which to set the cookie (defaults to current domain)</li>
@@ -189,7 +230,7 @@ function Response() {
                 new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
             var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
             buffer.write("; expires=");
-            buffer.write(expires.format(cookieDateFormat, "en", "GMT"));
+            buffer.write(dates.format(expires, cookieDateFormat, "en", "GMT"));
         }
         options = options || {};
         var path = options.path || "/";
@@ -207,62 +248,40 @@ function Response() {
         return this;
     };
 
-    /**
-     * Close and convert this response into a JSGI response object.
-     * @returns a JSGI 0.2 response object
-     */
-    this.close = function() {
-        this.flushDebug();
-        if (contentType && !headers.contains('content-type')) {
-            if (charset) {
-                contentType += "; charset=" + charset;
-            }
-            headers.set("Content-Type", contentType);
-        }
-        return {
-            status: status,
-            headers: headers,
-            body: buffer
-        };
-    };
-
 }
 
 /**
  * A response object rendered from a skin.
- * @param {Resource|String} skin the skin resource or path.
+ * @param {Resource|String} skin the skin resource or path
  * @param {Object} context the skin context object
  */
-function skinResponse(skin, context) {
+Response.skin = function (skin, context) {
     if (!(skin instanceof org.ringojs.repository.Resource)) {
-        // try locating resource relative to implicit this object
-        // which may be the calling module
-        skin = typeof this.getResource === "function" ?
-                this.getResource(skin) : getResource(skin);
+        skin = getResource(skin);
     }
     var render = require('ringo/skin').render;
     return new Response(render(skin, context));
-}
+};
 
 /**
  * Create a response object containing the JSON representation of an object.
  * @param {Object} object the object whose JSON representation to return
  */
-function jsonResponse(object) {
+Response.json = function (object) {
     var res = new Response(JSON.stringify(object));
     res.contentType = 'application/json';
     return res;
-}
+};
 
 /**
  * Create a response containing the given XML document
  * @param {XML|String} xml an XML document
  */
-function xmlResponse(xml) {
+Response.xml = function (xml) {
     var res = new Response(typeof xml === 'xml' ? xml.toXMLString() : xml);
     res.contentType = 'application/xml';
     return res;
-}
+};
 
 /**
  * A response representing a static resource.
@@ -270,15 +289,15 @@ function xmlResponse(xml) {
  * @param {String} contentType optional MIME type. If not defined,
  *         the MIME type is detected from the file name extension.
  */
-function staticResponse(resource, contentType) {
+Response.static = function (resource, contentType) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
     }
     if (!(resource instanceof org.ringojs.repository.Resource)) {
-        throw Error("Wrong argument for staticResponse: " + typeof(resource));
+        throw Error("Wrong argument for static response: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return notFoundResponse(String(resource));
+        return Response.notFound(String(resource));
     }
     var input;
     return {
@@ -288,45 +307,38 @@ function staticResponse(resource, contentType) {
         },
         body: {
             digest: function() {
-                return resource.lastModified().toString(36) 
+                return resource.lastModified().toString(36)
                     + resource.length.toString(36);
             },
             forEach: function(fn) {
-                var read, bufsize = 8192;
-                var buffer = new ByteArray(bufsize);
                 input = new Stream(resource.getInputStream());
-                while ((read = input.readInto(buffer)) > -1) {
-                    buffer.length = read;
-                    fn(buffer);
-                    buffer.length = bufsize;
-                }
-            },
-            close: function() {
-                if (input) {
+                try {
+                    input.forEach(fn);
+                } finally {
                     input.close();
                 }
             }
         }
     };
-}
+};
 
 /**
  * Create a response that redirects the client to a different URL.
  * @param {String} location the new location
  */
-function redirectResponse(location) {
+Response.redirect = function (location) {
     return {
         status: 303,
         headers: {Location: location},
         body: ["See other: " + location]
     };
-}
+};
 
 /**
  * Create a 404 not-found response.
  * @param {String} location the location that couldn't be found
  */
-function notFoundResponse(location) {
+Response.notFound = function (location) {
     var msg = 'Not Found';
     return {
         status: 404,
@@ -338,17 +350,18 @@ function notFoundResponse(location) {
                 '<p>The requested URL ', String(location), ' was not found on the server.</p>',
                 '</body></html>']
     };
-}
+};
 
 /**
  * Create a 500 error response.
  * @param {String} msg the message of response body
  */
-function errorResponse(msg) {
+Response.error = function (msg) {
     return {
         status: 500,
         headers: {'Content-Type': 'text/plain'},
         body: [typeof msg === 'undefined' ? 'Something went wrong.' :
                 String(msg)]
     };
-}
+};
+

@@ -18,8 +18,8 @@
  * @fileoverview Implements some useful macro filters.
  */
 
-require('core/string');
-require('core/date');
+var strings = require('ringo/utils/strings');
+var dates = require('ringo/utils/dates');
 
 export('capitalize_filter',
         'dateFormat_filter',
@@ -67,7 +67,7 @@ function uppercase_filter(input) {
  * @see String.prototype.capitalize
  */
 function capitalize_filter(input) {
-   return String(input || "").capitalize();
+   return strings.capitalize(String(input || ""));
 }
 
 
@@ -78,7 +78,7 @@ function capitalize_filter(input) {
  * @see String.prototype.titleize
  */
 function titleize_filter(input) {
-   return String(input || "").titleize();
+   return strings.titleize(String(input || ""));
 }
 
 
@@ -115,7 +115,7 @@ function trim_filter(input) {
  * @see String.prototype.stripTags
  */
 function stripTags_filter(input) {
-   return String(input || "").stripTags();
+   return strings.stripTags(String(input || ""));
 };
 
 
@@ -133,11 +133,11 @@ function escapeXml_filter(input) {
  * @see String.prototype.escapeHtml
  */
 function escapeHtml_filter(input) {
-    return String(input || "").escapeHtml();
+    return strings.escapeHtml(String(input || ""));
 }
 
 /**
- * Escapes the characters in a String to be suitable 
+ * Escapes the characters in a String to be suitable
  * to use as an HTTP parameter value.
  *
  * @see http://www.google.com/codesearch?q=escapeUrl
@@ -216,54 +216,52 @@ function dateFormat_filter(input, tag) {
         return;
     }
     if (typeof input === "number") {
-        return new Date(input).format(format);
+        return dates.format(new Date(input), format);
     }
     if (input instanceof Date) {
-        return input.format(format);
+        return dates.format(input, format);
     }
 }
 
-(function() {
-    var isVisible = function(str) {
-        return str !== undefined && str != null && str != '';
-    }
+function isVisible(str) {
+    return str !== undefined && str != null && str != '';
+}
 
-    /**
-     * Returns a default string if the given string was empty, undefined
-     * or null.
-     */
-    this.default_filter = function(input, filter) {
-        return isVisible(input) ?
-                input :
-                filter.getParameter(0);
-    }
+/**
+ * Returns a default string if the given string was empty, undefined
+ * or null.
+ */
+function default_filter(input, filter) {
+    return isVisible(input) ?
+            input :
+            filter.getParameter(0);
+}
 
-    /**
-     * Prepends a prefix if the given string is not empty, undefined or null.
-     */
-    this.prefix_filter = function(input, filter) {
-        return isVisible(input) ?
-                (filter.getParameter(0) || '') + input :
-                input;
-    }
+/**
+ * Prepends a prefix if the given string is not empty, undefined or null.
+ */
+function prefix_filter(input, filter) {
+    return isVisible(input) ?
+            (filter.getParameter(0) || '') + input :
+            input;
+}
 
-    /**
-     * Appends a suffix if the given string is not empty, undefined or null.
-     */
-    this.suffix_filter = function(input, filter) {
-        return isVisible(input) ?
-                input + (filter.getParameter(0) || '') :
-                input;
-    }
+/**
+ * Appends a suffix if the given string is not empty, undefined or null.
+ */
+function suffix_filter(input, filter) {
+    return isVisible(input) ?
+            input + (filter.getParameter(0) || '') :
+            input;
+}
 
-    /**
-     * Wraps a non-empty string with a prefix and suffix string.
-     */
-    this.wrap_filter = function(input, filter) {
-        return isVisible(input) ?
-                (filter.getParameter(0) || '')
-                        + input
-                        + (filter.getParameter(1) || '') :
-                input;
-    }
-})();
+/**
+ * Wraps a non-empty string with a prefix and suffix string.
+ */
+function wrap_filter(input, filter) {
+    return isVisible(input) ?
+            (filter.getParameter(0) || '')
+                    + input
+                    + (filter.getParameter(1) || '') :
+            input;
+}

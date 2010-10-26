@@ -1,24 +1,34 @@
-
-var Response = require('ringo/webapp/response').Response;
+/**
+ * @fileOverview Middleware for simple Not-Found pages.
+ */
+var {Response} = require('ringo/webapp/response');
 
 /**
- * Standard 404 page
+ * Middleware for simple 404-Not-Found pages.
  */
-exports.middleware = function(app) {
+exports.middleware = function(app, skin) {
+    if (arguments.length == 1) {
+        if (typeof app === 'string') {
+            skin = app;
+            return function(app) {
+                return exports.middleware(app, skin);
+            };
+        } else {
+            skin = module.resolve('notfound.html');
+        }
+    }
     return function(request) {
         try {
             return app(request);
         } catch (e if e.notfound) {
-            var res = new Response();
-            var msg = 'Not Found';
+            var res = Response.skin(skin, {
+                title: "Not Found",
+                body: "<p>The requested URL <b>" + request.scriptName
+                        + request.pathInfo + "</b> was not found on the server.</p>"
+            });
             res.status = 404;
             res.contentType = 'text/html';
-            res.writeln('<html><title>', msg, '</title>');
-            res.writeln('<body><h2>', msg, '</h2>');
-            var path = request.scriptName + request.pathInfo;
-            res.writeln('<p>The requested URL', path, 'was not found on the server.</p>');
-            res.writeln('</body></html>');
-            return res.close();
+            return res;
         }
     };
 };

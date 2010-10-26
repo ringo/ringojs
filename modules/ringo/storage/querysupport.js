@@ -2,6 +2,8 @@
  * Simple and brute force query implementation for databases that do not support querying or indexing.
  */
 
+var objects = require('ringo/utils/objects');
+
 export('BaseQuery');
 
 var EQUAL = function(a, b) a === b || a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
@@ -69,5 +71,5 @@ BaseQuery.prototype.lessEquals = function(property, value) {
     return new OperatorQuery(this, LESS_THAN_OR_EQUAL, property, value);
 };
 
-BaseQuery.prototype.clone(OperatorQuery.prototype);
+objects.clone(BaseQuery.prototype, OperatorQuery.prototype);
 

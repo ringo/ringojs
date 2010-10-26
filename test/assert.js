@@ -133,29 +133,29 @@ exports.testDeepEqual = function() {
     assert.deepEqual(arr1, arr2);
     arr2.name = "other";
     assert.throws(getFunction(assert.deepEqual, arr1, arr2), assert.AssertionError);
-    
+
     // same prototype
     var Base = function() {
         this.type = "Base";
         return this;
     };
-    
+
     var Foo = function(name) {
         this.name = name;
         return this;
     };
     Foo.prototype = new Base();
-    
+
     var Bar = function(name) {
         this.name = name;
         return this;
     }
     Bar.prototype = new Base();
-    
+
     assert.deepEqual(new Foo("test"), new Foo("test"));
     assert.throws(getFunction(assert.deepEqual, new Foo("test"), new Bar("test")),
             assert.AssertionError);
-    
+
     return;
 };
 

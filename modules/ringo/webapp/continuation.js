@@ -2,9 +2,8 @@
  * Continuation support for RingoJS
  */
 
-require('core/string');
+var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
-importClass(java.util.HashMap);
 
 export('ContinuationSession');
 
@@ -20,7 +19,7 @@ function ContinuationSession(req, id, step) {
         pages.push(name);
         callbacks.push(callback);
         length = pages.length;
-    }
+    };
 
     this.run = function() {
         if (!this.isActive()) {
@@ -37,11 +36,11 @@ function ContinuationSession(req, id, step) {
 
     this.isActive = function() {
         return id != null;
-    }
+    };
 
     Object.defineProperty(this, "data", {
         get: function() {
-            data = data || new HashMap();
+            data = data || new java.util.HashMap();
             return new ScriptableMap(data)
         }
     });
@@ -53,19 +52,19 @@ function ContinuationSession(req, id, step) {
     Object.defineProperty(this, "step", {
         get: function() step,
         set: function(s) { step = s; }
-    })
+    });
 
     this.first = function() {
         return getContinuationUrl(0);
-    }
+    };
 
     this.last = function() {
         return getContinuationUrl(length - 1);
-    }
+    };
 
     this.current = function() {
         return getContinuationUrl(step);
-    }
+    };
 
     this.previous = function() {
         return step > 0 ? getContinuationUrl(step - 1) : null;
@@ -83,7 +82,7 @@ function ContinuationSession(req, id, step) {
     function generateId() {
         var id;
         do {
-            id = String.random(5);
+            id = strings.random(5);
         } while (getData(req, id))
         return id;
     }

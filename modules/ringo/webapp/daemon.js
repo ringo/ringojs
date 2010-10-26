@@ -3,9 +3,10 @@
  * the Apache Commons Daemon jsvc tool.
  */
 
+var objects = require('ringo/utils/objects');
 var Parser = require('ringo/args').Parser;
 var Server = require('ringo/httpserver').Server;
-var {resolveId} = require('ringo/fileutils');
+var {resolveId} = require('ringo/utils/files');
 var system = require('system');
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -68,7 +69,7 @@ function init() {
     }
     // pick up extra http-config from config module
     if (config.httpConfig) {
-        options = Object.merge(options, config.httpConfig);
+        options = objects.merge(options, config.httpConfig);
     }
     server = new Server(options);
 }

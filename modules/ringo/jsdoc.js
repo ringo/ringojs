@@ -1,6 +1,10 @@
-require('core/string');
-require('core/array');
-var {visitScriptResource} = require('ringo/parser');
+/**
+ * @fileOverview Low level support for parsing JSDoc-style comments from JavaScript files.
+ */
+
+var strings = require('ringo/utils/strings');
+var arrays = require('ringo/utils/arrays');
+var {Parser, Token, getTypeName} = require('ringo/parser');
 var {Buffer} = require('ringo/buffer');
 
 importPackage(org.mozilla.javascript);
@@ -33,7 +37,7 @@ function ScriptRepository(path) {
      */
     this.getScriptResources = function(nested) {
         var list = repo.getResources(Boolean(nested));
-        return list.filter(function(r) {return r.name.endsWith('.js');});
+        return list.filter(function(r) {return strings.endsWith(r.name, '.js');});
     };
 
     /**
@@ -76,14 +80,14 @@ exports.parseResource = function(resource) {
     var exported = [];
     var jsdocs = [];
     var seen = {};
-    
+
     var checkAssignment = function(node, root, exported) {
         if (node.type == Token.ASSIGN) {
             if (node.left.type == Token.GETPROP) {
                 var target = node.left.target;
                 var name = node.left.property.string;
                 var propname = nodeToString(node.left);
-                if (propname.startsWith('exports.') && !exported.contains(name)) {
+                if (strings.startsWith(propname, 'exports.') && !arrays.contains(exported, name)) {
 
                     addDocItem(name, root.jsDoc, node.right);
                     exported.push(name);
@@ -99,12 +103,12 @@ exports.parseResource = function(resource) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
                          } */
-                    } else if (exported.contains(name)) {
+                    } else if (arrays.contains(exported, name)) {
                         addDocItem(name, root.jsDoc, node.right);
                     }
                 } else {
                     var chain = propname.split(".");
-                    if (exported.contains(chain[0])) {
+                    if (arrays.contains(exported, chain[0])) {
                         // Foo.bar or Foo.prototype.bar assignment where Foo is exported
                         addDocItem(propname, root.jsDoc, node.right);
                     }
@@ -153,7 +157,7 @@ exports.parseResource = function(resource) {
         }
     };
 
-    visitScriptResource(resource, function(node) {
+    new Parser({parseComments: true}).visit(resource, function(node) {
         // loop through all comments looking for dangling jsdocs
         if (node.type == Token.SCRIPT && node.comments) {
             for each (var comment in node.comments.toArray()) {
@@ -193,7 +197,7 @@ exports.parseResource = function(resource) {
                         value = args[2].elements.get(0).right;
                     }
                 }
-                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                if (arrays.contains(exported, target[0]) || arrays.contains(standardObjects, target[0])) {
                     target.push(nodeToString(args[1]));
                     addDocItem(target.join('.'), jsdoc, value);
                 } else if (target[0] == 'this' && exportedFunction != null) {
@@ -203,7 +207,7 @@ exports.parseResource = function(resource) {
                 }
             }
         }
-        
+
         // check for Object.defineProperties(foo, {bar: {}})
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
@@ -214,7 +218,7 @@ exports.parseResource = function(resource) {
                 var jsdoc, value;
 
                 var isExported = false;
-                if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+                if (arrays.contains(exported, target[0]) || arrays.contains(standardObjects, target[0])) {
                     isExported = true;
                 } else if (target[0] == 'this' && exportedFunction != null) {
                     target[0] = exportedName;
@@ -231,21 +235,21 @@ exports.parseResource = function(resource) {
                         jsdoc = left.jsDoc;
                         addDocItem(target.join('.'), jsdoc, value);
                         target.pop();
-                    }       
+                    }
                 }
             }
         }
-        
+
         // check for __define[GS]etter__
         if (node.type == Token.CALL && node.target.type == Token.GETPROP) {
             var getprop = node.target;
-            if (["__defineGetter__", "__defineSetter__"].contains(getprop.property.string)) {
+            if (arrays.contains(["__defineGetter__", "__defineSetter__"], getprop.property.string)) {
                var args = ScriptableList(node.arguments);
                var target = nodeToString(node.target).split('.');
                var jsdoc = args[1].jsDoc;
                var name = nodeToString(args[0]);
                // prototype.__defineGetter__
-               if (exported.contains(target[0]) || standardObjects.contains(target[0])) {
+               if (arrays.contains(exported, target[0]) || arrays.contains(standardObjects, target[0])) {
                   target.pop();
                   target.push(name);
                   addDocItem(target.join('.'), jsdoc);
@@ -256,7 +260,7 @@ exports.parseResource = function(resource) {
             }
         }
         // exported function
-        if (node.type == Token.FUNCTION && (exported.contains(node.name) || /@name\s/.test(node.jsDoc))) {
+        if (node.type == Token.FUNCTION && (arrays.contains(exported, node.name) || /@name\s/.test(node.jsDoc))) {
             addDocItem(node.name, node.jsDoc, node);
             exportedFunction = node;
             exportedName = node.name;
@@ -264,9 +268,9 @@ exports.parseResource = function(resource) {
         // var foo = exports.foo = bar
         if (node.type == Token.VAR || node.type == Token.LET) {
             for each (var n in ScriptableList(node.variables)) {
-                if (n.target.type == Token.NAME && exported.contains(n.target.string)) {
+                if (n.target.type == Token.NAME && arrays.contains(exported, n.target.string)) {
                     if (n.initializer && n.initializer.type == Token.FUNCTION) {
-                        // Note: We might still miss something like 
+                        // Note: We might still miss something like
                         // var foo = XXX.foo = function()...
                         exportedFunction = n.initializer;
                         exportedName = n.target.string;
@@ -307,13 +311,13 @@ function unwrapComment(/**String*/comment) {
 function extractTags(/**String*/comment) {
     if (!comment) {
         comment = "";
-    } else if (comment.startsWith("/**")) {
+    } else if (strings.startsWith(comment, "/**")) {
         comment = unwrapComment(comment).trim();
     }
     var tags = comment.split(/(^|[\r\n])\s*@/)
             .filter(function($){ return $.match(/\S/); });
     tags = tags.map(function(tag, idx) {
-        if (idx == 0 && !comment.startsWith('@')) {
+        if (idx == 0 && !strings.startsWith(comment, '@')) {
             return ['desc', tag.trim()];
         } else {
             var space = tag.search(/\s/);
@@ -379,30 +383,6 @@ var docProto = {
     }
 };
 
-/**
- * Utility function to test whether a node is a Name node
- * (a node of type org.mozilla.javascript.ast.Name)
- * @param {Object} node an AST node
- * @returns {Boolean} true if node is a name node
- */
-function isName(node) {
-    return node instanceof org.mozilla.javascript.ast.Name;
-}
-
-/**
- * Utility function to get the name value of a node, or the empty
- * string if it is not a name node.
- * @param {AstNode} node an AST node
- * @returns {String} the name value of the node
- */
-function getName(node) {
-    return exports.isName(node) ? node.getString() : "";
-}
-
-function getTypeName(node) {
-    return node ? org.mozilla.javascript.Token.typeToName(node.getType()) : "" ;
-}
-
 var nodeToString = function(node) {
     if (node.type == Token.GETPROP) {
         return [nodeToString(node.target), node.property.string].join('.');
@@ -416,10 +396,3 @@ var nodeToString = function(node) {
         return getTypeName(node);
     }
 };
-
-/**
- * Export org.mozilla.javascript.Token to allow for easy type checking on AST nodes:
- *
- *     node.type == Token.NAME
- */
-var Token = org.mozilla.javascript.Token;

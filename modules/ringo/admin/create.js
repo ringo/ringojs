@@ -2,7 +2,6 @@
  * @fileoverview Script to create a new RingoJS web application.
  */
 
-require('core/string');
 var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base} = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
@@ -82,7 +81,7 @@ function copyTree(home, from, to, symlink) {
 
 function fixAppEngineDirs(dest) {
     var webinf = join(dest, "WEB-INF");
-    makeDirectory(join(webinf, "classes"));
+    makeDirectory(join(webinf, "lib"));
     makeDirectory(join(webinf, "packages"));
     var staticDir = join(webinf, "app", "static");
     if (exists(staticDir)) {
@@ -94,9 +93,8 @@ function copyJars(home, dest, symlink) {
     var jars = [
         "ringo.jar",
         "js.jar",
-        "slf4j/slf4j-api-1.5.10.jar",
         "jnr-posix/jaffl-0.5.jar",
-        "jnr-posix/jnr-posix-1.1.3.jar",
+        "jnr-posix/jnr-posix-1.1.3.jar"
     ];
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");

@@ -96,7 +96,7 @@ exports.testIterator = Test(function (path) {
     assert.throws(function () {
         iterator.next();
     });
-    iterator.close();    
+    iterator.close();
 });
 
 if (require.main === module.id) {

@@ -59,7 +59,7 @@ public class Stream extends ScriptableObject implements Wrapper {
         } else if (arg instanceof OutputStream) {
             output = (OutputStream) arg;
         } else if (arg != Undefined.instance && arg != null) {
-            throw ScriptRuntime.typeError("Unsupported argument: " + arg);
+            throw ScriptRuntime.constructError("Error", "Unsupported argument: " + arg);
         }
     }
 
@@ -81,7 +81,7 @@ public class Stream extends ScriptableObject implements Wrapper {
     @JSFunction
     public Object read(Object limit) {
         if (input == null) {
-            throw ScriptRuntime.typeError("no input stream");
+            throw ScriptRuntime.constructError("Error", "no input stream");
         }
         int max = limit == Undefined.instance ? -1 : ScriptRuntime.toInt32(limit);
         Scriptable scope = ScriptableObject.getTopLevelScope(this);
@@ -111,7 +111,7 @@ public class Stream extends ScriptableObject implements Wrapper {
                         new Binary(scope, Binary.Type.ByteString, buffer, 0, count) :
                         new Binary(scope, Binary.Type.ByteString, 0);
             } catch (IOException iox) {
-                throw ScriptRuntime.typeError("Error reading from input stream: " + iox);
+                throw ScriptRuntime.constructError("Error", "Error reading from input stream: " + iox);
             }
         }
     }
@@ -119,11 +119,11 @@ public class Stream extends ScriptableObject implements Wrapper {
     @JSFunction
     public int readInto(Binary bytes, Object start, Object end) {
         if (input == null) {
-            throw ScriptRuntime.typeError("no input stream");
+            throw ScriptRuntime.constructError("Error", "no input stream");
         } else if (bytes == Undefined.instance || bytes == null) {
-            throw ScriptRuntime.typeError("readInto called without Binary argument");
+            throw ScriptRuntime.constructError("Error", "readInto called without Binary argument");
         } else if (bytes.getType() != Binary.Type.ByteArray) {
-            throw ScriptRuntime.typeError("argument to readInto must be ByteArray");
+            throw ScriptRuntime.constructError("Error", "argument to readInto must be ByteArray");
         }
         int from = ScriptUtils.toInt(start, 0);
         int to = ScriptUtils.toInt(end, bytes.getLength());
@@ -153,7 +153,7 @@ public class Stream extends ScriptableObject implements Wrapper {
             throw Context.reportRuntimeError("write called with illegal argument: " + arg);
         }
         if (output == null) {
-            throw ScriptRuntime.typeError("no output stream");
+            throw ScriptRuntime.constructError("Error", "no output stream");
         }
         int from = start == Undefined.instance ? 0 : ScriptRuntime.toInt32(start);
         int to = end == Undefined.instance ? bytes.length : ScriptRuntime.toInt32(end);
@@ -167,7 +167,7 @@ public class Stream extends ScriptableObject implements Wrapper {
     @JSFunction
     public void flush() {
         if (output == null) {
-            throw ScriptRuntime.typeError("no output stream");
+            throw ScriptRuntime.constructError("Error", "no output stream");
         }
         try {
             output.flush();
@@ -223,7 +223,7 @@ public class Stream extends ScriptableObject implements Wrapper {
     @JSGetter
     public Object getOutputStream() {
         return output == null ? null : new NativeJavaObject(getParentScope(), output, null);
-    }    
+    }
 
     /**
      * Unwrap the object by returning the wrapped value.

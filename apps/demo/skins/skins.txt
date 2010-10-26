@@ -11,7 +11,7 @@ At its simplest, creating and rendering a skin looks like this:
     Hello World!
 
 The part wrapped in `\<% %>` is called macro tag in RingoJS. Macros are replaced at render time
-by looking for corresponding properties or functions in the context argument passed to `Skin.render()`. 
+by looking for corresponding properties or functions in the context argument passed to `Skin.render()`.
 RingoJS also provides a number of built-in macros which are described below.
 
 ### Subskins
@@ -27,7 +27,7 @@ Use the built-in `\<% render %>` macro to render a subskin with the current cont
 
     \<% render hello %>
 
-Provided the `skin.render()` method is called with context argument    
+Provided the `skin.render()` method is called with context argument
 `{name: 'Luisa'}` the output will be:
 
 <p style="background-color: pink;"><% render hello %></p>

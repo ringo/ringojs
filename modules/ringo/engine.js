@@ -1,8 +1,6 @@
 /**
- * A module to access and manipulate the rhino engine running this application
+ * @fileOverview Provides access to the Rhino JavaScript engine.
  */
-
-require('core/object');
 
 export( 'properties',
         'addHostObject',

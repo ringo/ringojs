@@ -1,5 +1,5 @@
 
-require('core/string');
+var strings = require('ringo/utils/strings');
 var {Buffer} = require('ringo/buffer');
 
 export('ResponseFilter', 'Headers', 'getMimeParameter');
@@ -178,9 +178,9 @@ function getMimeParameter(headerValue, paramName) {
             var name = headerValue.slice(start, eq);
             if (name.toLowerCase().trim() == paramName) {
                 var value = headerValue.slice(eq + 1, end).trim();
-                if (value.startsWith('"') && value.endsWith('"')) {
+                if (strings.startsWith(value, '"') && strings.endsWith(value, '"')) {
                     return value.slice(1, -1).replace('\\\\', '\\').replace('\\"', '"');
-                } else if (value.startsWith('<') && value.endsWith('>')) {
+                } else if (strings.startsWith(value, '<') && strings.endsWith(value, '>')) {
                     return value.slice(1, -1);
                 }
 

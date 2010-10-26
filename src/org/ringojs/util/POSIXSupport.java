@@ -35,7 +35,7 @@ public class POSIXSupport {
 
         public boolean isVerbose() {
             RhinoEngine engine = RhinoEngine.getEngine();
-            return engine != null && engine.getConfiguration().isVerbose();
+            return engine != null && engine.getConfig().isVerbose();
         }
 
         public File getCurrentWorkingDirectory() {

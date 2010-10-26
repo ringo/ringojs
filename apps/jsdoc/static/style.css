@@ -4,7 +4,7 @@ body, html {
 }
 
 body {
-    min-width: 830px;
+    min-width: 850px;
     font-family: sans-serif;
     font-size: 80%;
     line-height: 170%;
@@ -12,18 +12,6 @@ body {
 
 h1 {
     padding: 10px 0;
-}
-
-a {
-    color: blue;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-a:active {
-    color: #ff8c00;
 }
 
 #wrap {
@@ -60,7 +48,6 @@ a:active {
 
 #menu {
     float: right;
-    width: 200px;
     padding-top: 8em;
 }
 
@@ -71,3 +58,9 @@ a:active {
     font-size: 80%;
     clear:both;
 }
+
+.hidden {
+    visibility:none;
+    display:none;
+}
+

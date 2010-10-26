@@ -29,8 +29,8 @@ public abstract class SkinParser {
     LineNumberReader reader;
     StringBuffer buffer = new StringBuffer();
 
-    public void parse(Resource res) throws IOException, UnbalancedTagException {
-        parse(new InputStreamReader(res.getInputStream()));
+    public void parse(Resource res, String charset) throws IOException, UnbalancedTagException {
+        parse(new InputStreamReader(res.getInputStream(), charset));
     }
 
     public void parse(String str) throws IOException, UnbalancedTagException {

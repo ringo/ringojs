@@ -25,21 +25,29 @@ exports.Binary = Binary;
 
 /**
  * Constructs a writable and growable byte array.
- * @param {Binary|Array|String} content the content of the ByteArray. If the
- *        first argument is a String, the constructor requires a second
- *        argument containing the name of the String's encoding. If called
- *        without arguments, an empty ByteString is returned.
- * @param {String} charset the encoding name if the first argument is a String.
+ *
+ *  If the first argument to this constructor is a number, it specifies
+ * the initial length of the ByteArray in bytes.
+ *
+ * Else, the argument defines the content of the ByteArray. If the argument
+ * is a String, the constructor requires a second argument containing the
+ * name of the String's encoding. If called without arguments, an empty ByteArray
+ * is returned.
+ * 
+ * @param {Binary|Array|String|Number} contentOrLength content or length of the ByteArray.
+ * @param {String} [charset] the encoding name if the first argument is a String.
  * @constructor
  */
 exports.ByteArray = ByteArray;
 
 /**
  * Constructs an immutable byte string.
- * @param {Binary|Array|String} content the content of the ByteString. If the
- *        first argument is a String, the constructor requires a second
- *        argument containing the name of the String's encoding. If called
- *        without arguments, an empty ByteString is returned.
+ *
+ * If the first argument is a String, the constructor requires a second
+ * argument containing the name of the String's encoding. If called
+ * without arguments, an empty ByteString is returned.
+ *
+ * @param {Binary|Array|String} content the content of the ByteString.
  * @param {String} charset the encoding name if the first argument is a String.
  * @constructor
  */

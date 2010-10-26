@@ -1,6 +1,11 @@
-require('core/string');
-require('core/object');
+/**
+ * @fileOverview This module provides a flexible templating system.
+ */
+
+var strings = require('ringo/utils/strings');
+var objects = require('ringo/utils/objects');
 var engine = require('ringo/engine');
+var webenv = require('ringo/webapp/env');
 
 export('render', 'createSkin', 'Skin');
 
@@ -43,7 +48,7 @@ function render(skinOrResource, context) {
 function resolveSkin(base, skinPath) {
     var skinResource;
     var parentRepo = base.parentRepository;
-    if (parentRepo && skinPath.startsWith(".")) {
+    if (parentRepo && strings.startsWith(skinPath, ".")) {
         skinResource = parentRepo.getResource(skinPath);
     }
     if (!skinResource || !skinResource.exists()) {
@@ -67,6 +72,7 @@ function createSkin(resourceOrString) {
     var currentSkin = mainSkin;
     var parentSkin = null;
     var eng = engine.getRhinoEngine();
+
     var parser = new org.ringojs.template.SkinParser({
         renderText: function(text) {
             currentSkin[currentSkin.length] = text;
@@ -87,7 +93,13 @@ function createSkin(resourceOrString) {
             }
         }
     });
-    parser.parse(resourceOrString);
+    if (resourceOrString instanceof org.ringojs.repository.Resource) {
+        var config = webenv.getConfig(),
+            charset = config && config.charset || 'utf8';
+        parser.parse(resourceOrString, charset);
+    } else {
+        parser.parse(resourceOrString);
+    }
     // normalization: cut trailing whitespace so it's
     // easier to tell if main skin should be inherited
     var lastPart = mainSkin[mainSkin.length - 1];
@@ -113,7 +125,6 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     this.render = function render(context) {
         // extend context by globally provided macros and filters.
         // user-provided context overrides globally defined stuff
-        var webenv = require('ringo/webapp/env');
         context = webenv.loadMacros(context);
         if (mainSkin.length === 0 && parentSkin) {
             return renderInternal(parentSkin.getSkinParts(), context);
@@ -285,7 +296,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
                 return "[Error in for-in macro: expected in]";
             var name = macro.parameters[0];
             var list = macro.parameters[2];
-            var subContext = (context || {}).clone();
+            var subContext = objects.clone(context || {});
             var subMacro = macro.getSubMacro(3);
             if (subMacro.name == "and") {
                 subMacro.name = "for";
@@ -337,7 +348,7 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
             if (macro.parameters.length < 2)
                 return "[Error in set macro: not enough parameters]";
             var map = macro.parameters[0];
-            var subContext = (context || {}).clone();
+            var subContext = objects.clone(context || {});
             var subMacro = macro.getSubMacro(1);
             for (var [key, value] in map) {
                 subContext[key] = value;

@@ -1,10 +1,10 @@
 
-require('core/string');
-require('core/array');
-include('binary');
-include('./util');
-include('./parameters');
-var {createTempFile} = require('ringo/fileutils');
+var arrays = require('ringo/utils/arrays');
+var strings = require('ringo/utils/strings');
+var {ByteArray, ByteString} = require('binary');
+var {getMimeParameter} = require('./util');
+var {mergeParameter} = require('./parameters');
+var {createTempFile} = require('ringo/utils/files');
 var {open} = require('fs');
 var {MemoryStream} = require('io');
 
@@ -23,8 +23,8 @@ var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
  * @return true if the content type can be parsed as form data by this module
  */
 function isFileUpload(contentType) {
-    return contentType && String(contentType)
-            .toLowerCase().startsWith("multipart/form-data");
+    return contentType && strings.startsWith(
+            String(contentType).toLowerCase(), "multipart/form-data");
 }
 
 
@@ -107,17 +107,17 @@ function parseFileUpload(request, params, encoding, streamFactory) {
             buffer.slice(position, b).split(CRLF).forEach(function(line) {
                 line = line.decodeToString(encoding);
                 // unfold multiline headers
-                if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
-                    headers.peek() += line;
+                if ((strings.startsWith(line, " ") || strings.startsWith(line, "\t")) && headers.length) {
+                    arrays.peek(headers) += line;
                 } else {
                     headers.push(line);
                 }
             });
             for each (var header in headers) {
-                if (header.toLowerCase().startsWith("content-disposition:")) {
+                if (strings.startsWith(header.toLowerCase(), "content-disposition:")) {
                     data.name = getMimeParameter(header, "name");
                     data.filename = getMimeParameter(header, "filename");
-                } else if (header.toLowerCase().startsWith("content-type:")) {
+                } else if (strings.startsWith(header.toLowerCase(), "content-type:")) {
                     data.contentType = header.substring(13).trim();
                 }
             }
@@ -189,7 +189,7 @@ function BufferFactory(data, encoding) {
 function TempFileFactory(data, encoding) {
     if (data.filename == null) {
         // use in-memory streams for form data
-        return memoryStreamFactory(data, encoding)
+        return BufferFactory(data, encoding)
     }
     data.tempfile = createTempFile("ringo-upload-");
     return open(data.tempfile, {write: true, binary: true});

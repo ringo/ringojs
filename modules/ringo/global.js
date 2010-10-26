@@ -9,30 +9,6 @@ Object.defineProperty(this, "global", { value: this });
 (function() {
 
     /**
-     * Import a module and set the module scope in the calling scope, using the
-     * module's name as property name or path.
-     * @param {String} moduleName the module name
-     * @param {String} propertyName optional property name to use for setting the
-     *        module in the calling scope
-     */
-    Object.defineProperty(this, "import", {
-        value: function(moduleName, propertyName) {
-            var module = this.require(moduleName);
-            propertyName = propertyName || moduleName;
-            var path = propertyName.split("/");
-            var elem = this;
-            for (var i = 0; i < path.length - 1; i++) {
-                var child = elem[path[i]];
-                if (!child) {
-                    child = elem[path[i]] = {};
-                }
-                elem = child;
-            }
-            elem[path[path.length - 1]] = module;
-        }
-    });
-
-    /**
      * Load a module and include all its properties in the calling scope.
      * @param {String} moduleName the module name such as 'core.object'
      */
@@ -110,6 +86,6 @@ Object.defineProperty(this, "global", { value: this });
     };
 
     // whatever
-    require('core/regexp');
+    require('ringo/utils/regexp');
 
 })(global);

@@ -20,8 +20,6 @@ import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
 import org.mozilla.javascript.*;
 
-import java.net.URL;
-
 /**
  * A scriptable object that keeps track of the resource it has been loaded from
  * so requests to load other stuff can look for local resources.
@@ -48,18 +46,12 @@ public class ModuleScope extends ImporterTopLevel {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
-        metaObject = new MetaObject();
-        int attr = READONLY | PERMANENT;
-        ScriptableObject.defineProperty(metaObject, "id", moduleName, attr);
-        ScriptableObject.defineProperty(metaObject, "path", source.getPath(), attr);
-        ScriptableObject.defineProperty(metaObject, "directory", repository.getPath(), attr);
-        try {
-            URL url = source.getUrl();
-            ScriptableObject.defineProperty(metaObject, "uri", url.toString(), attr);
-        } catch (Exception nourl) {
-            // uri property not available
-        }
+        metaObject = new ModuleMetaObject(this);
         defineProperty("module", metaObject, DONTENUM);
+    }
+
+    public Trackable getSource() {
+        return source;
     }
 
     public Repository getRepository() {
@@ -114,22 +106,6 @@ public class ModuleScope extends ImporterTopLevel {
 
         public String getModuleName() {
             return name;
-        }
-    }
-
-    class MetaObject extends NativeObject {
-
-        MetaObject() {
-            setParentScope(ModuleScope.this);
-            setPrototype(getObjectPrototype(ModuleScope.this));
-        }
-
-        @Override
-        protected Object equivalentValues(Object value) {
-            if (value instanceof String) {
-                return name.equals(value) ? Boolean.TRUE : Boolean.FALSE;
-            }
-            return NOT_FOUND;
         }
     }
 }

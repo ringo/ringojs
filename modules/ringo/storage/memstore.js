@@ -1,9 +1,9 @@
-require('core/object');
-require('core/array');
-include('ringo/engine');
-include('ringo/functional');
-include('./storeutils');
-include('./querysupport');
+var objects = require('ringo/utils/objects');
+var {addHostObject} = require('ringo/engine');
+var {bindArguments} = require('ringo/functional');
+var {equalKeys, updateEntity, getProperties, getKey, getId, isEntity, isKey, createKey, BaseTransaction}
+                = require('./storeutils');
+var {BaseQuery} = require('./querysupport');
 
 export("Store");
 
@@ -86,7 +86,7 @@ function Store() {
         } else if (isEntity(arg)) {
             return arg;
         } else if (arg instanceof Object) {
-            var entity = arg.clone();
+            var entity = objects.clone(arg);
             Object.defineProperty(entity, "_key", {
                 value: createKey(type, generateId(type))
             });

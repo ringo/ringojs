@@ -1,22 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html >
+
+<html lang="de" dir="ltr">
 <head>
 <title><% title %></title>
-<link rel="stylesheet" href="/static/style.css" />
+<link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
+<link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="<% rootPath %>static/style.css" />
+<script type="text/javascript" src="<% rootPath %>static/jquery.js"></script>
+
 <% render head %>
 </head>
 
-<body onload="sh_highlightDocument();">
+<body>
 <div id="wrap">
-<div id="main">
-<h1><% title %></h1>
-<% render content %>
-</div>
+    <div id="main">
+    <% render content %>
+    </div>
 
-<div id="menu">
-<% render menu %>
-</div>
+    <div id="menu">
+
+    <% render menu %>
+
+    </div>
 </div>
 </body>
 </html>

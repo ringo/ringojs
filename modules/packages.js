@@ -1,6 +1,5 @@
 /**
- * @fileoverview <p>Package loading utility module. In the top-level namespace
- * for Tusk compatibility.</p>
+ * @fileoverview This module provides support for loading CommonJS and Narwhal packages.
  */
 
 var system = require('system');
@@ -8,8 +7,14 @@ var engine = require('ringo/engine');
 
 export('load', 'loadPackages', 'loadPackage', 'normalize', 'catalog');
 
+/**
+ * @ignore
+ */
 var catalog;
 
+/**
+ * Load packages from the default `packages` directory.
+ */
 function load() {
     // Check if we're either already set up or running in secure sandbox mode.
     if (catalog || !require.paths) {
@@ -94,6 +99,9 @@ function loadPackage(repository) {
     }
 }
 
+/**
+ * @ignore
+ */
 function normalize(catalog) {
     // TODO
 }

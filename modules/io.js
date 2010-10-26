@@ -15,30 +15,42 @@ defineClass(org.ringojs.wrappers.Stream);
  */
 exports.Stream = Stream;
 
-/** @ignore Narwhal compatibility */
+/** @ignore provides Narwhal compatibility */
 exports.IO = Stream;
 
-var InputStreamReader = java.io.InputStreamReader,
-    BufferedReader = java.io.BufferedReader,
-    OutputStreamWriter = java.io.OutputStreamWriter,
-    BufferedWriter = java.io.BufferedWriter;
+var {InputStreamReader, BufferedReader, OutputStreamWriter, BufferedWriter} = java.io;
 
 /**
- * Reads from all data available from this stream and writes the result to the
- * given output stream, flushing afterwards.
+ * Reads all data available from this stream and writes the result to the
+ * given output stream, flushing afterwards. Note that this function does
+ * not close this stream or the output stream after copying.
  * @param {Stream} output The target Stream to be written to.
  */
 Stream.prototype.copy = function(output) {
-    var length = 8192;
+    var read, length = 8192;
     var buffer = new ByteArray(length);
-    while (true) {
-        var read = this.readInto(buffer, 0, length);
-        if (read < 0)
-            break;
+    while ((read = this.readInto(buffer, 0, length)) > -1) {
         output.write(buffer, 0, read);
     }
     output.flush();
     return this;
+};
+
+/**
+ * Read all data from this stream and invoke function `fn` for each chunk of data read.
+ * The callback function is called with a ByteArray as single argument. Note that 
+ * the stream is not closed after reading.
+ * @param {Function} fn the callback function
+ * @param {Object} [thisObj] optional this-object to use for callback
+ */
+Stream.prototype.forEach = function(fn, thisObj) {
+    var read, length = 8192;
+    var buffer = new ByteArray(length);
+    while ((read = this.readInto(buffer, 0, length)) > -1) {
+        buffer.length = read;
+        fn.call(thisObj, buffer);
+        buffer.length = length;
+    }
 };
 
 /**
@@ -410,7 +422,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * This is a non-standard extension, not part of CommonJS IO/A.
      */
     this.writeLines = function (lines) {
-        lines.forEach(this.writeLine);
+        lines.forEach(this.writeLine, this);
         return this;
     };
 

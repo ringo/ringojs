@@ -1,15 +1,15 @@
 /**
- * @fileoverview <p>This module provides an implementation of "fs" as
+ * @fileoverview <p>This module provides file and path related functionality as
  * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS
  * Filesystem/A</a> proposal.
  *
  * The "fs" module provides a file system API for the manipulation of paths,
- * directories, files, links, and the construction of file streams in addition
- * to the functions exported by [fs-base](./fs-base).
+ * directories, files, links, and the construction of file streams.
  */
 
-var fsBase = require('fs-base');
+var arrays = require('ringo/utils/arrays');
 include('io');
+include('binary');
 
 var File = java.io.File,
     FileInputStream = java.io.FileInputStream,
@@ -20,9 +20,11 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
-// copy exports from fs-base
-for each (var key in Object.keys(fsBase)) {
-    exports[key] = fsBase[key];
+var POSIX;
+
+function getPOSIX() {
+    POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
+    return POSIX;
 }
 
 export('absolute',
@@ -46,8 +48,39 @@ export('absolute',
        'removeTree',
        'resolve',
        'write',
-       'split');
-
+       'split',
+       // previously in fs-base
+       'canonical',
+       'changeWorkingDirectory',
+       'workingDirectory',
+       'exists',
+       'isDirectory',
+       'isFile',
+       'isReadable',
+       'isWritable',
+       'list',
+       'makeDirectory',
+       'move',
+       'lastModified',
+       'openRaw',
+       'remove',
+       'removeDirectory',
+       'size',
+       'touch',
+       'symbolicLink',
+       'hardLink',
+       'readLink',
+       'isLink',
+       'same',
+       'sameFilesystem',
+       'iterate',
+       'Permissions',
+       'owner',
+       'group',
+       'changePermissions',
+       'changeOwner',
+       'changeGroup',
+       'permissions');
 
 /**
  * Open an IO stream for reading/writing to the file corresponding to the given
@@ -70,6 +103,22 @@ function open(path, options) {
         throw new Error("update not yet implemented");
     }
 }
+
+function openRaw(path, mode, permissions) {
+    // TODO many things missing here
+    var file = resolveFile(path);
+    mode = mode || {};
+    var {read, write, append, create, exclusive, truncate} = mode;
+    if (!read && !write && !append) {
+        read = true;
+    }
+    if (read) {
+        return new Stream(new FileInputStream(file));
+    } else {
+        return new Stream(FileOutputStream(file, Boolean(append)));
+    }
+}
+
 
 /**
  * Open, read, and close a file, returning the file's contents.
@@ -158,10 +207,10 @@ function makeTree(path) {
 function listDirectoryTree(path) {
     path = path === '' ? '.' : String(path);
     var result = [''];
-    fsBase.list(path).forEach(function (child) {
+    list(path).forEach(function (child) {
         var childPath = join(path, child);
-        if (fsBase.isDirectory(childPath)) {
-            if (!fsBase.isLink(childPath)) {
+        if (isDirectory(childPath)) {
+            if (!isLink(childPath)) {
                 result.push.apply(result,
                         listDirectoryTree(childPath).map(function (p) join(child, p)));
             } else { // Don't follow symlinks.
@@ -181,10 +230,10 @@ function listDirectoryTree(path) {
 function listTree(path) {
     path = path === '' ? '.' : String(path);
     var result = [''];
-    fsBase.list(path).forEach(function (child) {
+    list(path).forEach(function (child) {
         var childPath = join(path, child);
         // Don't follow directory symlinks, but include them
-        if (fsBase.isDirectory(childPath) && !fsBase.isLink(childPath)) {
+        if (isDirectory(childPath) && !isLink(childPath)) {
             result.push.apply(result,
                     listTree(childPath).map(function (p) join(child, p)));
         } else {
@@ -202,7 +251,7 @@ function listTree(path) {
 function removeTree(path) {
     var file = resolveFile(path);
     // do not follow symlinks
-    if (file.isDirectory() && !fsBase.isLink(file.getPath())) {
+    if (file.isDirectory() && !isLink(file.getPath())) {
         for each (var child in file.list()) {
             removeTree(join(file, child));
         }
@@ -235,7 +284,7 @@ function isRelative(path) {
  * directory.
  */
 function absolute(path) {
-    return resolve(fsBase.workingDirectory(), path);
+    return resolve(workingDirectory(), path);
 }
 
 /**
@@ -244,7 +293,7 @@ function absolute(path) {
  * extension.
  */
 function base(path, ext) {
-    var name = split(path).peek();
+    var name = arrays.peek(split(path));
     if (ext && name) {
         var diff = name.length - ext.length;
         if (diff > -1 && name.lastIndexOf(ext) == diff) {
@@ -278,11 +327,15 @@ function extension(path) {
 }
 
 /**
- * Join a list of paths using the local file system's path separator and
- * normalize the result.
+ * Join a list of paths using the local file system's path separator.
+ * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
+ * @see http://wiki.commonjs.org/wiki/Filesystem/Join
+ *
  */
 function join() {
-    return normal(Array.join(arguments, SEPARATOR));
+    // filter out empty strings to avoid join("", "foo") -> "/foo"
+    var args = Array.filter(arguments, function(p) p != "")
+    return args.join(SEPARATOR);
 }
 
 /**
@@ -333,7 +386,7 @@ function resolve() {
         for (var j = 0; j < parts.length; j++) {
             var part = parts[j];
             if (part == '..') {
-                if (elements.length > 0 && elements.peek() != '..') {
+                if (elements.length > 0 && arrays.peek(elements) != '..') {
                     elements.pop();
                 } else if (!root) {
                     elements.push(part);
@@ -360,7 +413,7 @@ function resolve() {
 function relative(source, target) {
     if (!target) {
         target = source;
-        source = fsBase.workingDirectory();
+        source = workingDirectory();
     }
     source = absolute(source);
     target = absolute(target);
@@ -379,6 +432,248 @@ function relative(source, target) {
         target.unshift("..");
     }
     return target.join(SEPARATOR);
+}
+
+function move(from, to) {
+    var source = resolveFile(from);
+    var target = resolveFile(to);
+    if (!source.renameTo(target)) {
+        throw new Error("failed to move file from " + from + " to " + to);
+    }
+}
+
+function remove(path) {
+    var file = resolveFile(path);
+    if (!file['delete']()) {
+        throw new Error("failed to remove file " + path);
+    }
+}
+
+function exists(path) {
+    var file = resolveFile(path);
+    return file.exists();
+}
+
+function workingDirectory() {
+    return java.lang.System.getProperty('user.dir') + SEPARATOR;
+}
+
+function changeWorkingDirectory(path) {
+    path = new File(path).getCanonicalPath();
+    java.lang.System.setProperty('user.dir', path);
+}
+
+function removeDirectory(path) {
+    var file = resolveFile(path);
+    if (!file['delete']()) {
+        throw new Error("failed to remove directory " + path);
+    }
+}
+
+function list(path) {
+    var file = resolveFile(path);
+    var list = file.list();
+    if (list == null) {
+        throw new Error("failed to list directory " + path);
+    }
+    var result = [];
+    for (var i = 0; i < list.length; i++) {
+        result[i] = list[i];
+    }
+    return result;
+}
+
+function size(path) {
+    var file = resolveFile(path);
+    return file.length();
+}
+
+function lastModified(path) {
+    var file = resolveFile(path);
+    return new Date(file.lastModified());
+}
+
+function makeDirectory(path, permissions) {
+    permissions = permissions != null ?
+            new Permissions(permissions) : Permissions["default"];
+    var POSIX = getPOSIX();
+    if (POSIX.mkdir(path, permissions.toNumber()) != 0) {
+        throw new Error("failed to make directory " + path);
+    }
+}
+
+function isReadable(path) {
+    return resolveFile(path).canRead();
+}
+
+function isWritable(path) {
+    return resolveFile(path).canWrite();
+}
+
+function isFile(path) {
+    return resolveFile(path).isFile();
+}
+
+function isDirectory(path) {
+    return resolveFile(path).isDirectory();
+}
+
+function isLink(target) {
+    var POSIX = getPOSIX();
+    var stat = POSIX.lstat(target);
+    return stat.isSymlink();
+}
+
+function same(pathA, pathB) {
+    var POSIX = getPOSIX();
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.isIdentical(stat2);
+}
+
+function sameFilesystem(pathA, pathB) {
+    var POSIX = getPOSIX();
+    var stat1 = POSIX.stat(pathA);
+    var stat2 = POSIX.stat(pathB);
+    return stat1.dev() == stat2.dev();
+}
+
+function canonical(path) {
+    return resolveFile(path).getCanonicalPath();
+}
+
+function touch(path, mtime) {
+    mtime = mtime || Date.now();
+    return resolveFile(path).setLastModified(mtime);
+}
+
+function symbolicLink(source, target) {
+    var POSIX = getPOSIX();
+    return POSIX.symlink(source, target);
+}
+
+function hardLink(source, target) {
+    var POSIX = getPOSIX();
+    return POSIX.link(source, target);
+}
+
+function readLink(path) {
+    var POSIX = getPOSIX();
+    return POSIX.readlink(path);
+}
+
+function iterate(path) {
+    var iter = function() {
+        for each (var item in list(path)) {
+            yield item;
+        }
+        throw StopIteration;
+    }();
+    // spec requires iterator(), native iterators/generators only have __iterator__().
+    iter.iterator = iter.__iterator__;
+    return iter;
+}
+
+function Permissions(permissions, constructor) {
+    if (!(this instanceof Permissions)) {
+        return new Permissions(permissions, constructor);
+    }
+    this.update(Permissions['default']);
+    this.update(permissions);
+    /** @ignore */
+    this.constructor = constructor;
+}
+
+Permissions.prototype.update = function(permissions) {
+    var fromNumber = typeof permissions == 'number';
+    if (!fromNumber && !(permissions instanceof Object)) {
+        return;
+    }
+    for each (var user in ['owner', 'group', 'other']) {
+        this[user] = this[user] || {};
+        for each (var perm in ['read', 'write', 'execute']) {
+            this[user][perm] = fromNumber ?
+                Boolean((permissions <<= 1) & 512) :
+                Boolean(permissions[user] && permissions[user][perm]);
+        }
+    }
+};
+
+Permissions.prototype.toNumber = function() {
+    var result = 0;
+    for each (var user in ['owner', 'group', 'other']) {
+        for each (var perm in ['read', 'write', 'execute']) {
+            result <<= 1;
+            result |= +this[user][perm];
+        }
+    }
+    return result;
+};
+
+if (!Permissions['default']) {
+    try {
+        var POSIX = getPOSIX();
+        // FIXME: no way to get umask without setting it?
+        var umask = POSIX.umask(0022);
+        if (umask != 0022) {
+            POSIX.umask(umask);
+        }
+        Permissions['default'] = new Permissions(~umask & 0777);
+    } catch (error) {
+        Permissions['default'] = new Permissions(0755);
+    }
+}
+
+function permissions(path) {
+    var POSIX = getPOSIX();
+    var stat = POSIX.stat(path);
+    return new Permissions(stat.mode() & 0777);
+}
+
+function owner(path) {
+    try {
+        var POSIX = getPOSIX();
+        var uid = POSIX.stat(path).uid();
+        var owner = POSIX.getpwuid(uid);
+        return owner ? owner.pw_name : uid;
+    } catch (error) {
+        return null;
+    }
+}
+
+function group(path) {
+    try {
+        var POSIX = getPOSIX();
+        var gid = POSIX.stat(path).gid();
+        var group = POSIX.getgrgid(gid);
+        return group ? group.gr_name : gid;
+    } catch (error) {
+        return null;
+    }
+}
+
+function changePermissions(path, permissions) {
+    permissions = new Permissions(permissions);
+    var POSIX = getPOSIX();
+    var stat = POSIX.stat(path);
+    // do not overwrite set-UID bits etc
+    var preservedBits = stat.mode() & 07000;
+    var newBits = permissions.toNumber();
+    POSIX.chmod(path, preservedBits | newBits);
+}
+
+// Supports user name string as well as uid int input.
+function changeOwner(path, user) {
+    var POSIX = getPOSIX();
+    return POSIX.chown(path, typeof user === 'string' ?
+            POSIX.getpwnam(user).pw_uid : user, -1);
+}
+
+// Supports group name string as well as gid int input.
+function changeGroup(path, group) {
+    var POSIX = getPOSIX();
+    return POSIX.chown(path, -1, typeof group === 'string' ?
+            POSIX.getgrnam(group).gr_gid : group);
 }
 
 var optionsMask = {
@@ -558,7 +853,7 @@ for (var i = 0; i < pathed.length; i++) {
         return function () {
             return new Path(exports[name].apply(
                 this,
-                [this.toString()].concat(Array.prototype.slice.call(arguments))
+                [this.toString()].concat(Array.slice(arguments))
             ));
         };
     })(name);

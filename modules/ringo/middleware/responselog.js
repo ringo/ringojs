@@ -1,13 +1,19 @@
-require('core/number');
+/**
+ * Middleware for appending log messages to response applying some HTML formatting.
+ */
+
+var numbers = require('ringo/utils/numbers');
+var strings = require('ringo/utils/strings');
 var Buffer = require('ringo/buffer').Buffer;
 var logging = require('ringo/logging');
-var utils = require('ringo/utils');
 var {Headers, ResponseFilter} = require('ringo/webapp/util');
 
 var responseLogEnabled = true;
 
 /**
- * Render log4j messages to response buffer in the style of helma 1 res.debug().
+ * Middleware for appending log messages to response body. This middleware catches all log
+ * messages issued during the execution of the request and, if the response is HTML,
+ * appends them to the response body using some HTML formatting.
  */
 exports.middleware = function(app) {
     return function(request) {
@@ -29,7 +35,7 @@ exports.middleware = function(app) {
 
         // only do this for ordinary HTML responses
         var contentType = Headers(headers).get("content-type");
-        if (status != 200 && status < 400 || !contentType || !contentType.startsWith("text/html")) {
+        if (status != 200 && status < 400 || !contentType || !strings.startsWith(contentType, "text/html")) {
             return res;
         }
 
@@ -61,8 +67,8 @@ function appendMessage(buffer, item, start) {
     var bgcolor = colors[level] || '#fff';
     buffer.write("<div class='ringo-debug-line' style='background:", bgcolor,
                  "; color: black; border-top: 1px solid black; clear: both;'>");
-    var timePassed = (time - start).format("00000");
-    var formatted = utils.format("{} [{}] {}: {}", timePassed, level, name, message);
+    var timePassed = numbers.format(time - start, "00000");
+    var formatted = strings.format("{} [{}] {}: {}", timePassed, level, name, message);
     if (multiline) {
         buffer.write("<pre>", formatted, "</pre>");
     } else {

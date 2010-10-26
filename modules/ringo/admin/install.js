@@ -5,10 +5,10 @@
 var system = require("system");
 var shell = require("ringo/shell");
 var fs = require("fs");
-var futils = require("ringo/fileutils");
+var files = require("ringo/utils/files");
 var {ZipFile} = require("ringo/zip");
 var {Parser} = require("ringo/args");
-require("core/string");
+var strings = require('ringo/utils/strings');
 
 export('installPackage', 'main', 'description');
 
@@ -28,7 +28,7 @@ function installPackage(url, options) {
         url = "http://github.com/" + url + "/zipball/master";
     }
     url = new java.net.URL(url);
-    var temp = futils.createTempFile("ringo-install", ".zip");
+    var temp = files.createTempFile("ringo-install", ".zip");
     try {
         print("Downloading " + url);
         var out = fs.openRaw(temp, {write: true});
@@ -37,7 +37,7 @@ function installPackage(url, options) {
         var zip = new ZipFile(temp);
         // get common prefix shared by all items in zip file
         var prefix = zip.entries.reduce(function(prev, current) {
-            return prev.getCommonPrefix(current);
+            return strings.getCommonPrefix(prev, current);
         });
         // we assume package.json to be in prefix/package.json
         var json = prefix + "package.json";

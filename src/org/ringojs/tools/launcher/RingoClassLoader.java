@@ -28,7 +28,7 @@ import java.io.File;
  *
  * FIXME: class lookups are cached, so adding a jar file after a class has
  * already been looked up won't make the classes available. Maybe we should
- * go with disposable classloaders and create a new one for each added URL. 
+ * go with disposable classloaders and create a new one for each added URL.
  */
 public class RingoClassLoader extends URLClassLoader {
 

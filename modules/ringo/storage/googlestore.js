@@ -1,5 +1,18 @@
+/**
+ * @fileOverview A Ringo store implementation for Google's
+ * [App Engine Datastore].
+ *
+ * To use this module on Google App Engine, you have to include file
+ * **`appengine-api-1.0-sdk-1.x.x.jar`** from  the `lib/user` directory of the
+ * [App Engine SDK for Java] in the `WEB-INF/lib` directory of your application.
+ *
+ * This module is **experimental** and probably has scalability issues in its current form.
 
-require('core/string');
+ * [App Engine Datastore]: http://code.google.com/intl/de/appengine/docs/java/datastore/
+ * [App Engine SDK for Java]: http://code.google.com/intl/de/appengine/downloads.html
+ */
+
+var strings = require('ringo/utils/strings');
 var {addHostObject} = require('ringo/engine');
 var {bindArguments} = require('ringo/functional');
 
@@ -204,7 +217,7 @@ function getEntity(type, arg) {
         // need them before to resolve references in pre-store
         var id, idlength = 10;
         do {
-            id = "k" + String.random(idlength++);
+            id = "k" + strings.random(idlength++);
             var entity = new Entity(type, id, rootKey);
             try {
                 datastore.get(getTransaction(), entity.getKey()) != null

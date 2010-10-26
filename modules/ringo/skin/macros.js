@@ -1,15 +1,15 @@
-include('ringo/markdown');
-require('core/string');
-var fileutils = require('../fileutils');
+var {Markdown} = require('ringo/markdown');
+var files = require('ringo/utils/files');
+var webenv = require('ringo/webapp/env');
 
 exports.href_macro = function(tag) {
-    var req = require('ringo/webapp/env').getRequest();
+    var req = webenv.getRequest();
     var path = tag.parameters[0] || '';
-    return req.rootPath + fileutils.resolveUri('/', req.appPath, path).slice(1);
+    return req.rootPath + files.resolveUri('/', req.appPath, path).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {
-    var req = require('ringo/webapp/env').getRequest();
+    var req = webenv.getRequest();
     var path = tag.parameters[0];
     if (req && ('/' + req.appPath).match(path)) {
         return tag.parameters[1] || "match";

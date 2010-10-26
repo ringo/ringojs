@@ -4,7 +4,7 @@
  * to require().
  */
 
-var fs = require('fs-base');
+var fs = require('fs');
 
 exports.Sandbox = function(options) {
     return require;

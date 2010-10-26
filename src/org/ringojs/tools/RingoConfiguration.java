@@ -17,8 +17,6 @@
 package org.ringojs.tools;
 
 import org.ringojs.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
 
@@ -33,6 +31,7 @@ import java.util.List;
 import java.util.Collections;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 
 /**
  * This class describes the configuration for a RingoJS application or shell session.
@@ -106,7 +105,7 @@ public class RingoConfiguration {
                 System.setProperty("log4j.configuration", "file:" + log4jConfig.getPath());
             }
         }
-        getLogger().debug("Parsed repository list: " + repositories);
+        getLogger().fine("Parsed repository list: " + repositories);
     }
 
     public void addModuleRepository(Repository repository) throws IOException {
@@ -210,7 +209,7 @@ public class RingoConfiguration {
                 for (Repository repo : repositories) {
                     if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
                         // found a repository that contains main script - use it as base for module name
-                        // reparent to make sure script resource is relative to parent                        
+                        // reparent to make sure script resource is relative to parent
                         mainResource = repo.getResource(scriptPath.substring(repo.getPath().length()));
                         return;
                     }
@@ -228,15 +227,8 @@ public class RingoConfiguration {
                     script = getResource(scriptName + ".js");
                 }
                 if (!script.exists()) {
-                    // try to resolve script as module name in current directory
-                    Repository current = new FileRepository(new File(System.getProperty("user.dir")));
-                    script = current.getResource(scriptName + ".js");
-                    if (!script.exists()) {
-                        // no luck resolving the script name, give up
-                        throw new FileNotFoundException("Can't find file " + scriptName);
-                    }
-                    // found as module name in current directory, so add it to module path
-                    repositories.add(0, current);
+                    // no luck resolving the script name, give up
+                    throw new FileNotFoundException("Can't find file " + scriptName);
                 }
                 // found the script, so set mainModule
                 mainResource = script;
@@ -469,7 +461,7 @@ public class RingoConfiguration {
     }
 
     private Logger getLogger() {
-        return LoggerFactory.getLogger("org.ringojs.tools");
+        return Logger.getLogger("org.ringojs.tools");
     }
 }
 

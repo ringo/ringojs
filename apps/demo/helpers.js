@@ -1,8 +1,7 @@
-require('core/string');
-include('ringo/markdown');
-include('ringo/buffer');
-include('ringo/skin');
-var fileutils = require('ringo/fileutils');
+var {Markdown} = require('ringo/markdown');
+var {Buffer} = require('ringo/buffer');
+var {render} = require('ringo/skin');
+var files = require('ringo/utils/files');
 
 exports.markdown_filter = function(content) {
     var markdown = new Markdown({
@@ -32,7 +31,7 @@ exports.href_macro = function(tag) {
     var config = require('./config');
     var path = tag.parameters[0] || '';
     return config.rootPath
-        + fileutils.resolveUri('/', config.appPath, path).slice(1);
+        + files.resolveUri('/', config.appPath, path).slice(1);
 };
 
 exports.matchPath_macro = function(tag) {
@@ -76,11 +75,11 @@ exports.HtmlTestFormatter = function() {
         buffer.write(" <div style='float: right; background: red; color: white; padding: 2px;'>FAILED</div> ");
         buffer.write("<pre style='font-weight: bold;'>");
         exception.message.split(/\n/).forEach(function(line) {
-            buffer.writeln(" ".repeat(2), line);
+            buffer.writeln("  ", line);
         });
         if (exception.stackTrace != null) {
             exception.stackTrace.forEach(function(line) {
-                buffer.writeln(" ".repeat(2), line);
+                buffer.writeln("  ", line);
             });
         }
         buffer.write("</pre></div>");

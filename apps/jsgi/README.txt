@@ -1,4 +1,4 @@
-This is a minimal hello-world JSGI application. To start it run the 
+This is a minimal hello-world JSGI application. To start it run the
 following command:
 
   bin/ringo apps/jsgi/main.js

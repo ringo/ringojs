@@ -14,7 +14,7 @@ public class RingoSecurityManager extends RhinoSecurityManager {
     /**
      * The default security manager does not provide a way to keep code from starting
      * threads. We overide this method to be able to do so by checking the
-     * modifyThreadGroup permission on all thread groups, not just the root group. 
+     * modifyThreadGroup permission on all thread groups, not just the root group.
      * @param g the threadgroup
      */
     @Override

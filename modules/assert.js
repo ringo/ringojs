@@ -1,3 +1,9 @@
+/**
+ * @fileOverview Assertion library covering the
+ * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0) specification
+ * and a few additional convenience methods. 
+ */
+
 export(
    "AssertionError",
    "ArgumentsError",
@@ -189,13 +195,13 @@ function AssertionError(options) {
             return options.actual;
         }
     });
-    
+
     Object.defineProperty(this, "expected", {
         get: function() {
             return options.expected;
         }
     });
-    
+
     Object.defineProperty(this, "stackTrace", {
         get: function() {
             return stackTrace;

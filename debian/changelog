@@ -1,3 +1,9 @@
+ringojs (0.6-1) unstable; urgency=low
+
+  * Bump version to 0.6
+
+ -- Hannes Wallnoefer <hannes@helma.at>  Thu, 26 Aug 2010 17:42:38 +0200
+
 ringojs (0.5-1) unstable; urgency=low
 
   * Update to RingoJS 0.5 release.

@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Low-level support for character encoding and decoding.
+ */
 
 export("Encoder", "Decoder");
 
@@ -129,26 +132,37 @@ function Decoder(charset, strict, capacity) {
             }
         }
         output.flip();
+        // get the raw underlying char[] output buffer
+        var array = output.array();
         var result;
         if (newline > -1) {
-            var pos = output.charAt(newline) == '\r' && output.charAt(newline + 1) == '\n' ?
-                    newline + 2 : newline + 1;
-            result = String(output.subSequence(mark, includeNewline ? pos : newline));
-            mark = pos;
+            var isCrlf = array[newline] == 13 && array[newline + 1] == 10;
+            if (isCrlf && includeNewline) {
+                // We want to add a single newline to the return value. To save us
+                // from allocating a new buffer we temporarily mod the existing one.
+                array[newline] = 10;
+                result = JavaString.valueOf(array, mark, newline + 1 - mark);
+                array[newline] = 13;
+                mark = newline + 2;
+            } else {
+                var count = includeNewline ? newline + 1 - mark : newline - mark;
+                result = JavaString.valueOf(array, mark, count);
+                mark = isCrlf ? newline + 2 : newline + 1;
+            }
             output.position(output.limit());
             output.limit(output.capacity());
         } else if (eof) {
             result =  mark == output.limit() ?
-                    null : String(output.subSequence(mark, output.limit()));
+                    null : JavaString.valueOf(array, mark, output.limit() - mark);
             this.clear();
         }
-        decoded = null; // invalidate
+        decoded = null; // invalidate cached decoded representation
         return result;
     };
 
     this.toString = function() {
         if (decoded == null) {
-            decoded = String(JavaString(output.array(), mark, output.position() - mark));
+            decoded = JavaString.valueOf(output.array(), mark, output.position() - mark);
         }
         return decoded;
     };
