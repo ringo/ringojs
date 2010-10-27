@@ -9,7 +9,7 @@ var objects = require('ringo/utils/objects');
 var {ByteString, Binary} = require('binary');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
-var {getMimeParameter} = require('ringo/webapp/util');
+var {getMimeParameter, Headers} = require('ringo/webapp/util');
 var base64 = require('ringo/base64');
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -158,7 +158,7 @@ var Exchange = function(url, options, callbacks) {
          */
         contentType: {
             get: function() {
-                return responseFields.getStringField('Content-Type');
+                return responseHeaders.get('Content-Type');
             }
         },
         /**
@@ -200,11 +200,11 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response headers
-         * @name Exchange.prototype.responseHeaders
+         * @name Exchange.prototype.headers
          */
-        responseHeaders: {
+        headers: {
             get: function() {
-                return responseFields;
+                return responseHeaders;
             }
         },
         /**
@@ -214,9 +214,10 @@ var Exchange = function(url, options, callbacks) {
         cookies: {
             get: function() {
                 var cookies = {};
-                var cookieHeaders = responseFields.getValues("Set-Cookie");
-                while (cookieHeaders.hasMoreElements()) {
-                    var cookie = new Cookie(cookieHeaders.nextElement());
+                var cookieHeaders = responseHeaders.get("Set-Cookie");
+                cookieHeaders = cookieHeaders ? cookieHeaders.split("\n") : [];
+                for each (var header in cookieHeaders) {
+                    var cookie = new Cookie(header);
                     cookies[cookie.name] = cookie;
                 }
                 return cookies;
@@ -302,7 +303,7 @@ var Exchange = function(url, options, callbacks) {
     */
 
     var self = this;
-    var responseFields = new org.eclipse.jetty.http.HttpFields();
+    var responseHeaders = new Headers();
     var decoder;
     var exchange = new JavaAdapter(ContentExchange, {
         onResponseComplete: function() {
@@ -353,7 +354,7 @@ var Exchange = function(url, options, callbacks) {
         },
         onResponseHeader: function(key, value) {
             this.super$onResponseHeader(key, value);
-            responseFields.add(key, value);
+            responseHeaders.add(String(key), String(value));
             return;
         },
         onConnectionFailed: function(exception) {
