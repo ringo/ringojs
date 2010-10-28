@@ -17,6 +17,7 @@ exports.testBinary = require('./binary/all');
 exports.testRepository = require('./repository/all');
 exports.testIo = require('./io_test');
 exports.testModules = require('./modules/all');
+exports.testMiddleware = require('./ringo/middleware/all');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
