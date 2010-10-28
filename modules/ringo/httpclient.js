@@ -440,19 +440,24 @@ var Exchange = function(url, options, callbacks) {
  * Defaults for options passable to to request()
  */
 var defaultOptions = function(options) {
-    return objects.merge(options || {}, {
+    var defaultValues = {
         // exchange
         data: {},
         headers: {},
         method: 'GET',
-        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
         username: undefined,
         password: undefined,
         // client
         async: false,
         cache: true,
         binary: false
-    });
+    };
+    var opts = options ? objects.merge(options, defaultValues) : defaultValues;
+    Headers(opts.headers);
+    opts.contentType = opts.contentType
+            || opts.headers.get('Content-Type')
+            || 'application/x-www-form-urlencoded;charset=utf-8';
+    return opts;
 };
 
 /**
