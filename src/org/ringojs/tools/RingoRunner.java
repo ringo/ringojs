@@ -48,6 +48,7 @@ public class RingoRunner {
     String[] scriptArgs = new String[0];
     String expr = null;
     File history = null;
+    Repository packages = null;
     String charset;
     boolean runShell = false;
     boolean debug = false;
@@ -68,6 +69,7 @@ public class RingoRunner {
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
+        {"",  "packages", "Set the packages directory", "DIR"},            
         {"p", "production", "Disable module reloading and warnings", ""},
         {"P", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -125,6 +127,9 @@ public class RingoRunner {
             config.setReloading(!productionMode);
             if (charset != null) {
                 config.setCharset(charset);
+            }
+            if (packages != null) {
+                config.setPackageRepository(packages);
             }
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
@@ -223,7 +228,7 @@ public class RingoRunner {
         }
     }
 
-    private int parseOptions(String[] args) {
+    private int parseOptions(String[] args) throws IOException {
         int i;
         for (i = 0; i < args.length; i++) {
             String option = args[i];
@@ -246,13 +251,13 @@ public class RingoRunner {
         return i;
     }
 
-    private int parseShortOption(String opt, String nextArg) {
+    private int parseShortOption(String opt, String nextArg) throws IOException {
         int length = opt.length();
         for (int i = 0; i < length; i++) {
             String[] def = null;
             char c = opt.charAt(i);
             for (String[] d : options) {
-                if (d[0].charAt(0) == c) {
+                if (d[0].length() == 1 && d[0].charAt(0) == c) {
                     def = d;
                     break;
                 }
@@ -285,7 +290,7 @@ public class RingoRunner {
         return 0;
     }
 
-    private int parseLongOption(String opt, String nextArg) {
+    private int parseLongOption(String opt, String nextArg) throws IOException {
         String[] def = null;
         for (String[] d : options) {
             if (opt.equals(d[1]) || (opt.startsWith(d[1])
@@ -318,7 +323,7 @@ public class RingoRunner {
         return consumedNext;
     }
 
-    private void processOption(String option, String arg) {
+    private void processOption(String option, String arg) throws IOException {
         if ("help".equals(option)) {
             printUsage();
             System.exit(0);
@@ -337,6 +342,8 @@ public class RingoRunner {
             }
         } else if ("history".equals(option)) {
             history = new File(arg);
+        } else if ("packages".equals(option)) {
+            packages = new FileRepository(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RingoSecurityManager());
@@ -414,7 +421,8 @@ public class RingoRunner {
         out.println("Options:");
         Formatter formatter = new Formatter(out);
         for (String[] opt : options) {
-            String def = new Formatter().format("-%1$s --%2$s %4$s", (Object[]) opt).toString();
+            String format = opt[0].length() == 0 ? "   --%2$s %4$s" : "-%1$s --%2$s %4$s";
+            String def = new Formatter().format(format, (Object[]) opt).toString();
             formatter.format("  %1$-23s %2$s%n", def, opt[2]);
         }
     }

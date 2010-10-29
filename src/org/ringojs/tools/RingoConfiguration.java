@@ -56,6 +56,7 @@ public class RingoConfiguration {
     private boolean policyEnabled = false;
     private boolean reloading = true;
     private String charset = "UTF-8";
+    private Repository packages = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -434,6 +435,17 @@ public class RingoConfiguration {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
+    }
+
+    public Repository getPackageRepository() throws IOException {
+        if (packages == null) {
+            packages = home.getChildRepository("packages");
+        }
+        return packages;
+    }
+
+    public void setPackageRepository(Repository packages) {
+        this.packages = packages;
     }
 
     public boolean isPolicyEnabled() {

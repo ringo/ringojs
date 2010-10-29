@@ -21,7 +21,7 @@ function load() {
         return;
     }
     catalog = {};
-    loadPackages(engine.getRingoHome().getChildRepository("packages"));
+    loadPackages(engine.getPackageRepository());
 }
 
 /**

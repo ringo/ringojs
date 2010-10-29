@@ -14,6 +14,7 @@ export( 'properties',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
+        'getPackageRepository',
         'getOptimizationLevel',
         'setOptimizationLevel',
         'serialize',
@@ -163,6 +164,13 @@ function evaluate(moduleName, scope) {
             .getScript(moduleName)
             .evaluate(scope, getRhinoContext());
     return scope;
+}
+
+/**
+ * Get the repository containing installed packages
+ */
+function getPackageRepository() {
+    return getRhinoEngine().getPackageRepository();
 }
 
 /**
