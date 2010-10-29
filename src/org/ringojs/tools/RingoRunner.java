@@ -69,7 +69,7 @@ public class RingoRunner {
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
-        {"",  "packages", "Set the packages directory", "DIR"},            
+        {"",  "packages", "Set the packages directory", "DIR"},
         {"p", "production", "Disable module reloading and warnings", ""},
         {"P", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
