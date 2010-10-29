@@ -431,15 +431,15 @@ exports.testFromISOString = function() {
     // Time zones
     assert.equal((dates.fromISOString("2010-10-26T00:00")).getTime(), 1288044000000);
     assert.equal((dates.fromISOString("2010-10-26T00:00+02:00")).getTime(), 1288044000000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00+02:00")).getTime(), 1288044000000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.0+02:00")).getTime(), 1288044000000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.00+02:00")).getTime(), 1288044000000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.000+02:00")).getTime(), 1288044000000);
-	
-	// UTC
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00+02:00")).getTime(), 1288044000000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.0+02:00")).getTime(), 1288044000000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.00+02:00")).getTime(), 1288044000000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.000+02:00")).getTime(), 1288044000000);
+    
+    // UTC
     assert.equal((dates.fromISOString("2010-10-26T00:00Z")).getTime(), 1288051200000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00Z")).getTime(), 1288051200000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.0Z")).getTime(), 1288051200000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
-	assert.equal((dates.fromISOString("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00Z")).getTime(), 1288051200000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.0Z")).getTime(), 1288051200000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
 }
