@@ -452,17 +452,19 @@ function resetDate(date) {
 }
 
 /**
- * Create a ISO 8601 compatible string from the date.
+ * Create a ISO 8601 compatible string from the date. Note: This is quite similar to <tt>Date.toISOString()</tt>, which only returns
+ * an UTC-based string without the local timezone. If you don't need timezones, <tt>Date.toISOString()</tt> will be the better choice.
+ *
  * @param {Date} date to format
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
- * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is false.
- * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default false.
+ * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
+ * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
  * @returns String date as ISO 8601 string.
  */
 function toISOString(date, withTime, withTimeZone, withSeconds) {
     var withTime = withTime || true,
-    withTimeZone = withTimeZone || false,
-    withSeconds = withSeconds || false,
+    withTimeZone = withTimeZone || true,
+    withSeconds = withSeconds || true,
     year, month, day, hours, minutes, seconds;
     
     // use local time if output is not in UTC
