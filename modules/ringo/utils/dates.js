@@ -512,33 +512,84 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
     return str;
 }
 
-// Ported and enhanced from Kevin A. Burton's parser.
-// http://www.java2s.com/Code/Java/Data-Type/ISO8601dateparsingutility.htm
 /**
- * Parses an ISO 8601 compatible input string.
+ * Parses an ISO 8601 compatible input string. If a date is specified by 'YYYY-MM-DD', the string will be treated in local time.
  * @param {String} string to parse
  * @returns Date date representation of the input.
  */
 function fromISOString(input) {
-    // FIXME this only covers a small part of possible ISO 8601 dates!!!
-    var df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz");
-    
-    // Fix inputs without a second part
-    if (input.charAt(16) !== ":") {
-        input = input.substr(0, 16) + ":00" + input.substr(16);
+    if (!input) {
+        throw "Invalid Date";
     }
     
-    // Is input string in UTC?
-    if (strings.endsWith(input, "Z")) {
-        input = input.substring(0, input.length - 1) + "GMT-00:00";
+    // YYYY-MM-DD
+    if (input.length == 10) {
+        return new Date(parseInt(input.substr(0, 4), 10), parseInt(input.substr(5, 2), 10) - 1, parseInt(input.substr(8, 2), 10));
+    }
+        
+    // Possible time zone offsets: +hh:mm, +hhmm, or +hh, -hh:mm, -hhmm or -hh.
+    // This is a workaround for ECMA's UTC-only pattern for ISO 8601 input strings
+    var offsetMinutes = 0;
+    var dateString = "";
+    
+    // Calculate timezone offset
+    if (input[input.length - 1].toUpperCase() === "Z") {
+        // Remove UTC indicator, offset is 0
+        dateString = input.substr(0, input.length - 1);
+    } else if (input[input.length - 3] === "+") {
+        // +hh
+        offsetMinutes = -60 * parseInt(input.substr(input.length - 2, 2), 10);
+        dateString = input.substr(0, input.length - 3);
+    } else if (input[input.length - 3] === "-") {
+        // -hh
+        offsetMinutes = 60 * parseInt(input.substr(input.length - 2, 2), 10);
+        dateString = input.substr(0, input.length - 3);
+    } else if (input[input.length - 5] === "+") {
+        // +hhmm
+        offsetMinutes = -60 * parseInt(input.substr(input.length - 4, 2), 10);
+        offsetMinutes -= parseInt(input.substr(input.length - 2), 10);
+        dateString = input.substr(0, input.length - 5);
+    } else if (input[input.length - 5] === "-") {
+        // -hhmm
+        offsetMinutes = 60 * parseInt(input.substr(input.length - 4, 4), 10);
+        offsetMinutes += parseInt(input.substr(input.length - 2), 10);
+        dateString = input.substr(0, input.length - 5);
+    } else if (input[input.length - 6] === "+") { 
+        // +hh:mm
+        offsetMinutes = -60 * parseInt(input.substr(input.length - 5, 2), 10);
+        offsetMinutes -= parseInt(input.substr(input.length - 2), 10);
+        dateString = input.substr(0, input.length - 6);
+    } else if (input[input.length - 6] === "-") {
+        // -hh:mm
+        offsetMinutes = 60 * parseInt(input.substr(input.length - 5, 2), 10);
+        offsetMinutes += parseInt(input.substr(input.length - 2), 10);
+        dateString = input.substr(0, input.length - 6);
     } else {
-        // Build Java compatible input with correct timezone
-        var datetimeStr = input.substring(0, input.length - 6);
-        var timezoneStr = input.substring(input.length - 6, input.length);
-        input = datetimeStr + "GMT" + timezoneStr;
+        // use local time
+        offsetMinutes = new Date().getTimezoneOffset();
+        dateString = input;
+    }
+
+    // Add seconds, if not defined
+    if (dateString.length === 16 && dateString[10] !== ":") {
+        dateString += ":00";
     }
     
-    return df.parse(input);
+    // Add milliseconds to the string if not specified
+    if (dateString[dateString.length - 2] === ".") {
+        // fill up missing zeros to get 3-digit millisecond part
+        dateString += "00";
+    } else if (dateString[dateString.length - 3] === ".") {
+        // fill up missing zeros to get 3-digit millisecond part
+        dateString += "0";
+    } else if (dateString[dateString.length - 4] !== ".") {
+        dateString += ".000";
+    }
+    
+    // Add UTC indicator
+    dateString += "Z";
+    
+    return this.add(new Date(dateString), offsetMinutes, "minute");
 }
 
 /**

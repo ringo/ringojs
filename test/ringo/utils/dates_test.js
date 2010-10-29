@@ -422,3 +422,24 @@ exports.testFromUTCDate = function() {
     assert.equal(d.getUTCSeconds(), 0);
     assert.equal(d.getTime(), 0);
 };
+
+// More info at http://www.w3.org/TR/NOTE-datetime
+exports.testFromISOString = function() {
+    // Only date
+    assert.equal((dates.fromISOString("2010-10-26")).getTime(), (new Date(2010, 9, 26)).getTime());
+    
+    // Time zones
+    assert.equal((dates.fromISOString("2010-10-26T00:00")).getTime(), 1288044000000);
+    assert.equal((dates.fromISOString("2010-10-26T00:00+02:00")).getTime(), 1288044000000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00+02:00")).getTime(), 1288044000000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.0+02:00")).getTime(), 1288044000000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.00+02:00")).getTime(), 1288044000000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.000+02:00")).getTime(), 1288044000000);
+	
+	// UTC
+    assert.equal((dates.fromISOString("2010-10-26T00:00Z")).getTime(), 1288051200000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00Z")).getTime(), 1288051200000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.0Z")).getTime(), 1288051200000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
+	assert.equal((dates.fromISOString("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
+}
