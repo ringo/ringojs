@@ -2,7 +2,7 @@
  * @fileOverview Middleware for on-the-fly GZip compression of response bodies.
  */
 var {Binary, ByteArray, ByteString} = require('binary');
-var {ResponseFilter, Headers} = require('ringo/webapp/util');
+var {ResponseFilter, Headers} = require('ringo/utils/http');
 
 var {ByteArrayOutputStream} = java.io;
 var {GZIPOutputStream} = java.util.zip;

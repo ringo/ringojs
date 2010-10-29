@@ -3,7 +3,7 @@
  */
 
 var strings = require('ringo/utils/strings');
-var {Headers} = require('ringo/webapp/util');
+var {Headers} = require('ringo/utils/http');
 
 export('middleware');
 
