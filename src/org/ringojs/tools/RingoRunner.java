@@ -56,6 +56,7 @@ public class RingoRunner {
     boolean silent = false;
     boolean legacyMode = false;
     boolean productionMode = false;
+    boolean disablePackages = false;
     List<String> bootScripts = new ArrayList<String>();
 
     static final String[][] options = {
@@ -69,6 +70,7 @@ public class RingoRunner {
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
+        {"n", "no-packages", "Run with packages disabled", ""},
         {"",  "packages", "Set the packages directory", "DIR"},
         {"p", "production", "Disable module reloading and warnings", ""},
         {"P", "policy", "Set java policy file and enable security manager", "URL"},
@@ -125,10 +127,11 @@ public class RingoRunner {
             config.setParentProtoProperties(legacyMode);
             config.setStrictVars(!legacyMode && !productionMode);
             config.setReloading(!productionMode);
+            config.setPackagesDisabled(disablePackages);
             if (charset != null) {
                 config.setCharset(charset);
             }
-            if (packages != null) {
+            if (packages != null && !disablePackages) {
                 config.setPackageRepository(packages);
             }
             engine = new RhinoEngine(config, null);
@@ -366,6 +369,8 @@ public class RingoRunner {
             verbose = true;
         } else if ("legacy-mode".equals(option)) {
             legacyMode = true;
+        } else if ("no-packages".equals(option)) {
+            disablePackages = true;
         } else if ("version".equals(option)) {
             printVersion();
             System.exit(0);

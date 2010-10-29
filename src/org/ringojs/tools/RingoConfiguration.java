@@ -55,6 +55,7 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
+    private boolean packagesDisabled = false;
     private String charset = "UTF-8";
     private Repository packages = null;
 
@@ -438,6 +439,9 @@ public class RingoConfiguration {
     }
 
     public Repository getPackageRepository() throws IOException {
+        if (packagesDisabled) {
+            return null;
+        }
         if (packages == null) {
             packages = home.getChildRepository("packages");
         }
@@ -446,6 +450,14 @@ public class RingoConfiguration {
 
     public void setPackageRepository(Repository packages) {
         this.packages = packages;
+    }
+
+    public boolean isPackagesDisabled() {
+        return packagesDisabled;
+    }
+
+    public void setPackagesDisabled(boolean packagesDisabled) {
+        this.packagesDisabled = packagesDisabled;
     }
 
     public boolean isPolicyEnabled() {

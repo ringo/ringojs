@@ -32,7 +32,7 @@ function loadPackages(repository) {
     if (typeof repository === "string") {
         repository = getRepository(repository);
     }
-    if (repository.exists()) {
+    if (repository && repository.exists()) {
         repository.getRepositories().forEach(loadPackage);
     }
 }
