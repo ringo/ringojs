@@ -23,6 +23,7 @@ var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
 
 export( "format",
+        "checkDate",
         "add",
         "isLeapYear",
         "before",
@@ -88,6 +89,23 @@ function createGregorianCalender(date, locale) {
     var cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
     cal.setTimeInMillis(date.getTime());
     return cal;
+}
+
+/**
+ * Checks if the date is a valid date. Example: 2007 is no leap year, so <tt>checkDate(2007, 1, 29)</tt> returns false.
+ *
+ * @param {Number} fullYear
+ * @param {Number} month, starting with 0
+ * @param {Number} day
+ * @returns {Boolean} true, if the date is valid, false if not.
+ */
+function checkDate(fullYear, month, day) {
+    if (fullYear == null || month == null || day == null) {
+        return false;
+    }
+    
+    var d = new Date(fullYear, month, day);
+    return d.getFullYear() === fullYear && d.getMonth() === month && d.getDate() === day;
 }
 
 /**

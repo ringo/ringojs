@@ -25,6 +25,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
         assert.equal(dates.daysInYear(d), 366);
         assert.equal(dates.daysInFebruary(d), 29);
         assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29);
+        assert.isTrue(dates.checkDate(year, 1, 29));
     });
     
     noLeapYears.forEach(function(year) {
@@ -33,6 +34,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
         assert.equal(dates.daysInYear(d), 365);
         assert.equal(dates.daysInFebruary(d), 28);
         assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28);
+        assert.isFalse(dates.checkDate(year, 1, 29));
     });
 };
 
@@ -443,3 +445,27 @@ exports.testFromISOString = function() {
     assert.equal((dates.fromISOString("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
     assert.equal((dates.fromISOString("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
 }
+
+exports.testCheckDate = function() {
+    assert.isTrue(dates.checkDate(2008, 1, 28));
+    assert.isTrue(dates.checkDate(2008, 1, 29));
+    
+    assert.isTrue(dates.checkDate(2010, 0, 31));
+    assert.isTrue(dates.checkDate(2010, 1, 28));
+    assert.isTrue(dates.checkDate(2010, 2, 31));
+    assert.isTrue(dates.checkDate(2010, 3, 30));
+    assert.isTrue(dates.checkDate(2010, 4, 31));
+    assert.isTrue(dates.checkDate(2010, 5, 30));
+    assert.isTrue(dates.checkDate(2010, 6, 31));
+    assert.isTrue(dates.checkDate(2010, 7, 31));
+    assert.isTrue(dates.checkDate(2010, 8, 30));
+    assert.isTrue(dates.checkDate(2010, 9, 31));
+    assert.isTrue(dates.checkDate(2010, 10, 30));
+    assert.isTrue(dates.checkDate(2010, 11, 31));
+    
+    assert.isFalse(dates.checkDate(2010, 1, 29));
+    assert.isFalse(dates.checkDate("a", "b", "c"));
+    assert.isFalse(dates.checkDate(2010, "b", "c"));
+    assert.isFalse(dates.checkDate("a", 2, "c"));
+    assert.isFalse(dates.checkDate("a", "b", 2));
+};
