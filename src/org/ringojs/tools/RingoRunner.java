@@ -164,6 +164,9 @@ public class RingoRunner {
                     }
                 }
                 new RingoShell(engine, history, silent).run();
+            } else {
+                // wait for daemon or scheduler threads to terminate
+                engine.waitTillDone();
             }
         } catch (Exception x) {
             reportError(x, err, true);
