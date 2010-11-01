@@ -296,7 +296,8 @@ public class RingoConfiguration {
      * @return int value between -1 and 9
      */
     public int getOptLevel() {
-        return optimizationLevel;
+        // always use optimization level -1  if running debugger
+        return debug ? -1 : optimizationLevel;
     }
 
     /**
@@ -313,9 +314,6 @@ public class RingoConfiguration {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
-        if (debug) {
-            setOptLevel(-1);
-        }
     }
 
     public boolean isVerbose() {
