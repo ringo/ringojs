@@ -136,7 +136,7 @@ public class RingoRunner {
             }
             engine = new RhinoEngine(config, null);
         } catch (Exception x) {
-            reportError(x, err, true);
+            reportError(x, err, verbose);
         }
     }
 
@@ -169,7 +169,7 @@ public class RingoRunner {
                 engine.waitTillDone();
             }
         } catch (Exception x) {
-            reportError(x, err, true);
+            reportError(x, err, verbose);
             System.exit(-1);
         }
     }
@@ -189,7 +189,7 @@ public class RingoRunner {
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, err, true);
+            reportError(x, err, verbose);
             System.exit(-1);
         }
     }
@@ -201,7 +201,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, true);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
@@ -215,7 +215,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, true);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
@@ -228,7 +228,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, true);
+                reportError(x, err, verbose);
                 System.exit(-1);
             }
         }
