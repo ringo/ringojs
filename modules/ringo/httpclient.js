@@ -7,9 +7,10 @@ importPackage(org.eclipse.jetty.client);
 
 var objects = require('ringo/utils/objects');
 var {ByteString, Binary} = require('binary');
+var {Stream, TextStream} = require('io');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
-var {getMimeParameter, Headers} = require('ringo/webapp/util');
+var {getMimeParameter, Headers} = require('ringo/utils/http');
 var base64 = require('ringo/base64');
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -128,15 +129,6 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
  */
 var Exchange = function(url, options, callbacks) {
     if (!url) throw new Error('missing url argument');
-
-    var opts = objects.merge(options, {
-        data: {},
-        headers: {},
-        method: 'GET',
-        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-        username: undefined,
-        password: undefined
-    });
 
     this.toString = function() {
         return "[ringo.httpclient.Exchange] " + url;
@@ -309,7 +301,7 @@ var Exchange = function(url, options, callbacks) {
         onResponseComplete: function() {
             try {
                 this.super$onResponseComplete();
-                var content = opts.binary ? self.contentBytes : self.content;
+                var content = options.binary ? self.contentBytes : self.content;
                 if (typeof(callbacks.complete) === 'function') {
                     callbacks.complete(content, self.status, self.contentType, self);
                 }
@@ -333,7 +325,7 @@ var Exchange = function(url, options, callbacks) {
         },
         onResponseContent: function(content) {
             if (typeof(callbacks.part) === 'function') {
-                if (opts.binary) {
+                if (options.binary) {
                     var bytes = ByteString.wrap(content.asArray());
                     callbacks.part(bytes, self.status, self.contentType, self);
                 } else {
@@ -400,35 +392,49 @@ var Exchange = function(url, options, callbacks) {
         },
     });
 
-    exchange.setMethod(opts.method);
+    exchange.setMethod(options.method);
 
-    if (opts.username && opts.password) {
-        var authKey = base64.encode(opts.username + ':' + opts.password);
+    if (typeof(options.username) === 'string' && typeof(options.password) === 'string') {
+        var authKey = base64.encode(options.username + ':' + options.password);
         var authHeaderValue = "Basic " + authKey;
         exchange.addRequestHeader("Authorization", authHeaderValue);
     }
 
-    for (var headerKey in opts.headers) {
-        exchange.addRequestHeader(headerKey, opts.headers[headerKey]);
+    for (var headerKey in options.headers) {
+        exchange.addRequestHeader(headerKey, options.headers[headerKey]);
     }
 
     // set content
-    var content = opts.data;
-    if (opts.data instanceof Object) {
-        content = encodeContent(opts.data);
-    }
+    var content = options.data;
 
-    if (opts.method === 'POST' || opts.method === 'PUT') {
-        if (typeof(content) === 'string') {
-            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content, "utf-8"));
-        } else if (content instanceof Binary) {
-            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content));
-        } else if (typeof(content) !== 'undefined') {
-            exchange.setRequestContentSource(content);
+    if (options.method === 'POST' || options.method === 'PUT') {
+        var {ByteArrayBuffer} = org.eclipse.jetty.io;
+        if (content instanceof Binary) {
+            exchange.setRequestContent(new ByteArrayBuffer(content));
+        } else {
+            if (content instanceof Stream || content instanceof java.io.InputStream) {
+                exchange.setRequestContentSource(content);
+            } else {
+                if (content instanceof TextStream) {
+                    // FIXME this relies on TextStream not being instanceof Stream
+                    content = content.read();
+                } else if (content instanceof Object) {
+                    content = encodeContent(content);
+                }
+                if (typeof(content) === 'string') {
+                    var charset = getMimeParameter(options.contentType, 'charset') || 'utf-8';
+                    exchange.setRequestContent(new ByteArrayBuffer(content, charset));
+                }
+            }
         }
-        exchange.setRequestContentType(opts.contentType);
-    } else if (typeof(content) === 'string' && content.length) {
-        url += "?" + content;
+        exchange.setRequestContentType(options.contentType);
+    } else {
+        if (content instanceof Object) {
+            content = encodeContent(content);
+        }
+        if (typeof(content) === 'string' && content.length) {
+            url += "?" + content;
+        }
     }
     exchange.setURL(url);
     // FIXME we could add a RedirectListener right here to auto-handle redirects
@@ -440,19 +446,24 @@ var Exchange = function(url, options, callbacks) {
  * Defaults for options passable to to request()
  */
 var defaultOptions = function(options) {
-    return objects.merge(options || {}, {
+    var defaultValues = {
         // exchange
         data: {},
         headers: {},
         method: 'GET',
-        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
         username: undefined,
         password: undefined,
         // client
         async: false,
         cache: true,
         binary: false
-    });
+    };
+    var opts = options ? objects.merge(options, defaultValues) : defaultValues;
+    Headers(opts.headers);
+    opts.contentType = opts.contentType
+            || opts.headers.get('Content-Type')
+            || 'application/x-www-form-urlencoded;charset=utf-8';
+    return opts;
 };
 
 /**

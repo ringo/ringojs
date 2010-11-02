@@ -148,9 +148,13 @@ public class Main {
 
         if (ringoHome == null) {
 
-            URLClassLoader loader = (URLClassLoader)
-                                       ClassLoader.getSystemClassLoader();
-            URL launcherUrl = loader.findResource("org/ringojs/tools/launcher/Main.class");
+            URL launcherUrl = findUrl(Main.class.getClassLoader());
+            if (launcherUrl == null) {
+                launcherUrl = findUrl(Thread.currentThread().getContextClassLoader());
+            }
+            if (launcherUrl == null) {
+                launcherUrl = findUrl(ClassLoader.getSystemClassLoader());
+            }
 
             // this is a  JAR URL of the form
             //    jar:<url>!/{entry}
@@ -185,6 +189,13 @@ public class Main {
         // set System property
         System.setProperty("ringo.home", home.getPath());
         return home;
+    }
+
+    private static URL findUrl(ClassLoader loader) {
+        if (loader instanceof URLClassLoader) {
+            return((URLClassLoader) loader).findResource("org/ringojs/tools/launcher/Main.class");
+        }
+        return null;
     }
 
 }

@@ -55,7 +55,9 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
+    private boolean packagesDisabled = false;
     private String charset = "UTF-8";
+    private Repository packages = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -294,7 +296,8 @@ public class RingoConfiguration {
      * @return int value between -1 and 9
      */
     public int getOptLevel() {
-        return optimizationLevel;
+        // always use optimization level -1  if running debugger
+        return debug ? -1 : optimizationLevel;
     }
 
     /**
@@ -311,9 +314,6 @@ public class RingoConfiguration {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
-        if (debug) {
-            setOptLevel(-1);
-        }
     }
 
     public boolean isVerbose() {
@@ -434,6 +434,28 @@ public class RingoConfiguration {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
+    }
+
+    public Repository getPackageRepository() throws IOException {
+        if (packagesDisabled) {
+            return null;
+        }
+        if (packages == null) {
+            packages = home.getChildRepository("packages");
+        }
+        return packages;
+    }
+
+    public void setPackageRepository(Repository packages) {
+        this.packages = packages;
+    }
+
+    public boolean isPackagesDisabled() {
+        return packagesDisabled;
+    }
+
+    public void setPackagesDisabled(boolean packagesDisabled) {
+        this.packagesDisabled = packagesDisabled;
     }
 
     public boolean isPolicyEnabled() {

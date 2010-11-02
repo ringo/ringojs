@@ -76,7 +76,10 @@ public class JsgiRequest extends ScriptableObject {
             headers.put(name, headers, value);
         }
         put("scriptName", this, checkString(request.getContextPath() + request.getServletPath()));
-        put("pathInfo", this, checkString(request.getPathInfo()));
+        String pathInfo = request.getPathInfo();
+        String uri = request.getRequestURI();
+        // Workaround for Tomcat returning "/" for pathInfo even if URI doesn't end with "/"
+        put("pathInfo", this, "/".equals(pathInfo) && !uri.endsWith("/") ? "" : checkString(pathInfo));
         put("method", this, checkString(request.getMethod()));
         Scriptable env = cx.newObject(scope);
         ScriptableObject.defineProperty(this, "env", env, PERMANENT);

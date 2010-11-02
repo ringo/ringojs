@@ -67,7 +67,8 @@
             destdir="${classes}"
             debug="${debug}"
             deprecation="${deprecation}"
-            optimize="${optimize}">
+            optimize="${optimize}"
+            includeAntRuntime="false">
                 <!-- compilerarg value="-Xlint"/ -->
                 <classpath refid="classpath"/>
                 <!-- fix for openjdk rhino bootclasspath bug -->

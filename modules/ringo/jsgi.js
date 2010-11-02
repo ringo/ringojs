@@ -2,7 +2,7 @@
  * @fileOverview Low level JSGI adapter implementation.
  */
 
-var {Headers, getMimeParameter} = require('ringo/webapp/util');
+var {Headers, getMimeParameter} = require('ringo/utils/http');
 var {Stream} = require('io');
 var {Binary, ByteString} = require('binary');
 var system = require('system')
