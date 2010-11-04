@@ -758,7 +758,7 @@ function resolveFile(path) {
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
-    var file = file instanceof File ? file : new File(String(path));
+    var file = path instanceof File ? path : new File(String(path));
     return file.isAbsolute() ? file : file.getAbsoluteFile();
 }
 
