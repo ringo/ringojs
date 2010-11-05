@@ -8,22 +8,23 @@ var {mimeType} = require("ringo/webapp/mime");
 /**
  * Middleware for serving static resources.
  *
- * #### Configuration options
+ * #### Configuration properties
  *
- *  The `options` object may contain the following properties:
- *
+ *  The `config` object may contain the following properties:
+ *  - `base`: the base resource directory (required)
  *  - `index`: the name of a file to serve if the path matches a directory (e.g.
  *    "index.html")
  *
- * @param resourceBase the base resource directory
- * @param options optional configuration properties
+ * @param {Object} config configuration properties
+ * @returns {Function} a function that can be used to wrap a JSGI app
  */
-exports.middleware = function(resourceBase, options) {
-    if (typeof resourceBase == "string") {
+exports.middleware = function(config) {
+    var resourceBase = config.base || config;
+    if (typeof resourceBase === "string") {
         resourceBase = getRepository(resourceBase);
     }
     resourceBase.setRoot();
-    var index = options && options.index;
+    var index = config.index;
     return function(app) {
         return function(request) {
             var path = request.pathInfo;

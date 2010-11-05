@@ -28,9 +28,9 @@ exports.testDefault = function() {
     
 };
 
-exports.testIndexOption = function() {
+exports.testIndexConfig = function() {
 
-    var app = middleware(module.directory, {index: thisName})(notFound);
+    var app = middleware({base: module.directory, index: thisName})(notFound);
     var resp;
     
     // request something that doesn't exist
