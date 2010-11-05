@@ -16,15 +16,11 @@ var {Buffer} = require('ringo/buffer');
  */
 exports.middleware = function(skin) {
     var app;  // backwards compatibility
-    if (arguments.length === 2) {
-        // old (app, skin) form
-        app = skin;
-        skin = arguments[1];
-    } else if (typeof skin === 'function') {
-        // old (app) form
+    if (typeof skin === 'function') {
+        // old non-customizable (app) form
         app = skin;
         skin = undefined;
-    } 
+    }
     if (!skin) {
         skin = module.resolve('error.html');
     }
@@ -35,7 +31,7 @@ exports.middleware = function(skin) {
             } catch (error if !error.retry && !error.notfound) {
                 return handleError(request, error, skin);
             }
-        }        
+        }
     }
     return app ? wrap(app) : wrap;
 };

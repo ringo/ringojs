@@ -12,12 +12,8 @@ var {Response} = require('ringo/webapp/response');
  */
 exports.middleware = function(skin) {
     var app; // backwards compatibility
-    if (arguments.length === 2) {
-        // old (app, skin) form
-        app = skin;
-        skin = arguments[1];
-    } else if (typeof skin === 'function') {
-        // old (app) form
+    if (typeof skin === 'function') {
+        // old non-customizable (app) form
         app = skin;
         skin = undefined;
     }

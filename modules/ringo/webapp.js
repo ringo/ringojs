@@ -16,6 +16,7 @@ export('getConfig',
        'main');
 
 var log = require('ringo/logging').getLogger(module.id);
+var started; // protect against restarting on reload
 
 /**
  * Handler function called by the JSGI servlet.
@@ -218,6 +219,8 @@ function getConfig(configModuleName) {
  * @param {String} path optional path to the web application directory or config module.
  */
 function main(path) {
+    // protect against module reloading
+    if (started) return;
     // parse command line options
     var cmd = system.args.shift();
     try {
@@ -261,10 +264,9 @@ function main(path) {
 
     daemon.init();
     daemon.start();
+    started = true;
 }
 
-var started; // protect against restarting on reload
-if (require.main == module && !started) {
+if (require.main == module) {
     main();
-    started = true;
 }
