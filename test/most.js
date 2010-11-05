@@ -5,6 +5,7 @@ exports.testBase64 = require('./ringo/base64_test');
 exports.testArgs = require('./ringo/args_test');
 exports.testBuffer = require('./ringo/buffer_test');
 exports.testEncoding = require('./ringo/encoding_test');
+exports.testEvents = require('./ringo/events_test');
 exports.testSkin = require('./ringo/skin_test');
 exports.testArrays = require('./ringo/utils/arrays_test');
 exports.testFiles = require('./ringo/utils/files_test');
