@@ -19,12 +19,17 @@ var {mimeType} = require("ringo/webapp/mime");
  * @returns {Function} a function that can be used to wrap a JSGI app
  */
 exports.middleware = function(config) {
-    var resourceBase = config.base || config;
-    if (typeof resourceBase === "string") {
-        resourceBase = getRepository(resourceBase);
+    var index, base;
+    if (typeof config === "string" || config instanceof org.ringojs.repository.Repository) {
+        base = config;
+    } else {
+        base = config.base;
+        index = config.index;
     }
-    resourceBase.setRoot();
-    var index = config.index;
+    if (typeof base === "string") {
+        base = getRepository(base);
+    }
+    base.setRoot();
     return function(app) {
         return function(request) {
             var path = request.pathInfo;
@@ -32,7 +37,7 @@ exports.middleware = function(config) {
                 path += index;
             }
             if (path.length > 1) {
-                var resource = resourceBase.getResource(path);
+                var resource = base.getResource(path);
                 if (resource && resource.exists()) {
                     return Response.static(resource, mimeType(path, "text/plain"));
                 }
