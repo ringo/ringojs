@@ -208,20 +208,26 @@ function handleAsyncResponse(request, response, result) {
  * Convenience function that resolves a module id or object to a
  * JSGI middleware or application function. This assumes the function is
  * exported as "middleware" or "handleRequest".
- * @param module a function, module object, or moudule id
+ * @param app a function, module object, module id, or an array of
+ *            any of these
+ * @returns the resolved middleware function
  */
-function resolve(module) {
-    if (typeof module == 'string') {
-        module = require(module);
+function resolve(app) {
+    if (typeof app == 'string') {
+        var module = require(app);
         return module.middleware || module.handleRequest;
+    } else if (Array.isArray(app)) {
+        // allow an app or middleware item to be itself a list of middlewares
+        return app.reduceRight(middlewareWrapper);
     }
-    return module;
+    return app;
 }
 
 /**
  * Helper function for wrapping middleware stacks
  * @param inner an app or middleware module or function wrapped by outer
  * @param outer a middleware module or function wrapping inner
+ * @returns the wrapped middleware function
  */
 function middlewareWrapper(inner, outer) {
     return resolve(outer)(inner);
