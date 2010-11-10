@@ -10,6 +10,7 @@ exports.testSkin = require('./ringo/skin_test');
 exports.testArrays = require('./ringo/utils/arrays_test');
 exports.testFiles = require('./ringo/utils/files_test');
 exports.testObjects = require('./ringo/utils/objects_test');
+exports.testRegexp = require('./ringo/utils/regexp_test');
 exports.testStrings = require('./ringo/utils/strings_test');
 exports.testFilestore = require('./ringo/storage/filestore_test');
 exports.testMemstore = require('./ringo/storage/memstore_test');
@@ -18,6 +19,7 @@ exports.testBinary = require('./binary/all');
 exports.testRepository = require('./repository/all');
 exports.testIo = require('./io_test');
 exports.testModules = require('./modules/all');
+exports.testMiddleware = require('./ringo/middleware/all');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {

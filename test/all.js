@@ -10,6 +10,7 @@ exports.testHttpclient = require('./ringo/httpclient_test');
 exports.testArrays = require('./ringo/utils/arrays_test');
 exports.testFiles = require('./ringo/utils/files_test');
 exports.testObjects = require('./ringo/utils/objects_test');
+exports.testRegexp = require('./ringo/utils/regexp_test');
 exports.testStrings = require('./ringo/utils/strings_test');
 exports.testFilestore = require('./ringo/storage/filestore_test');
 exports.testMemstore = require('./ringo/storage/memstore_test');
