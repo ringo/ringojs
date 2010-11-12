@@ -171,9 +171,9 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
 
     function renderInternal(parts, context) {
         var renderedParts = [];
-	for(var i=0,l=parts.length;i<l;i++){
-		renderedParts.push(renderPart(parts[i],context));
-	}
+        for(var i=0,l=parts.length;i<l;i++){
+                renderedParts.push(renderPart(parts[i],context));
+        }
         var value = renderedParts.join('');
         if (parts && parts.subskinFilter) {
             return evaluateFilter(value, parts.subskinFilter, context);
