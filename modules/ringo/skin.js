@@ -170,7 +170,8 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     };
 
     function renderInternal(parts, context) {
-        var value = [renderPart(part, context) for each (part in parts)].join('');
+        var value = parts ?
+                parts.map(function(part) renderPart(part, context)).join('') : '';
         if (parts && parts.subskinFilter) {
             return evaluateFilter(value, parts.subskinFilter, context);
         }
