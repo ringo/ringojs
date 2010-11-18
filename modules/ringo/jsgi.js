@@ -21,7 +21,7 @@ var log = require('ringo/logging').getLogger(module.id);
 function handleRequest(moduleId, functionObj, request) {
     initRequest(request);
     var app;
-    if (typeof(functionObj) == 'function') {
+    if (typeof(functionObj) === 'function') {
         app = functionObj;
     } else {
         var module = require(moduleId);
@@ -30,7 +30,12 @@ function handleRequest(moduleId, functionObj, request) {
         request.env.ringo_config = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
-    if (!(typeof(app) == 'function')) {
+    // if RINGO_ENV environment variable is set and application supports
+    // modular JSGI environment feature use the proper environment
+    if (app && system.env.RINGO_ENV && typeof(app.env) === 'function') {
+        app = app.env(system.env.RINGO_ENV);
+    }
+    if (typeof(app) !== 'function') {
         throw new Error('No valid JSGI app: ' + app);
     }
     var result = app(request);
