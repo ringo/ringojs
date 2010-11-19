@@ -87,7 +87,7 @@ public class RingoRunner {
         runner.run(args);
     }
 
-    public void parseArgs(String[] args) throws IOException {
+    public void parseArgs(String[] args) throws Exception {
 
         if (args != null && args.length > 0) {
             int i = parseOptions(args);
@@ -113,39 +113,32 @@ public class RingoRunner {
             modulePath = System.getenv("RINGO_MODULE_PATH");
         }
 
-        try {
-            String[] paths = modulePath == null ?
-                    new String[0] : StringUtils.split(modulePath, File.pathSeparator);
-            config = new RingoConfiguration(home, paths, "modules");
-            config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
-            config.setMainScript(scriptName);
-            config.setArguments(scriptArgs);
-            config.setOptLevel(optlevel);
-            config.setBootstrapScripts(bootScripts);
-            config.setDebug(debug);
-            config.setVerbose(verbose);
-            config.setParentProtoProperties(legacyMode);
-            config.setStrictVars(!legacyMode && !productionMode);
-            config.setReloading(!productionMode);
-            config.setPackagesDisabled(disablePackages);
-            if (charset != null) {
-                config.setCharset(charset);
-            }
-            if (packages != null && !disablePackages) {
-                config.setPackageRepository(packages);
-            }
-            engine = new RhinoEngine(config, null);
-        } catch (Exception x) {
-            reportError(x, err, verbose);
+        String[] paths = modulePath == null ?
+                new String[0] : StringUtils.split(modulePath, File.pathSeparator);
+        config = new RingoConfiguration(home, paths, "modules");
+        config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
+        config.setMainScript(scriptName);
+        config.setArguments(scriptArgs);
+        config.setOptLevel(optlevel);
+        config.setBootstrapScripts(bootScripts);
+        config.setDebug(debug);
+        config.setVerbose(verbose);
+        config.setParentProtoProperties(legacyMode);
+        config.setStrictVars(!legacyMode && !productionMode);
+        config.setReloading(!productionMode);
+        config.setPackagesDisabled(disablePackages);
+        if (charset != null) {
+            config.setCharset(charset);
         }
+        if (packages != null && !disablePackages) {
+            config.setPackageRepository(packages);
+        }
+        engine = new RhinoEngine(config, null);
     }
 
     public void run(String[] args) {
         try {
             parseArgs(args);
-            if (engine == null) {
-                return;
-            }
             if (expr != null) {
                 engine.evaluateExpression(expr);
             }
@@ -177,9 +170,6 @@ public class RingoRunner {
     public void init(String[] args) {
         try {
             parseArgs(args);
-            if (engine == null) {
-                return;
-            }
             if (scriptName == null) {
                 throw new RuntimeException("daemon interface requires a script argument");
             }

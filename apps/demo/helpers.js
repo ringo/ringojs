@@ -42,6 +42,12 @@ exports.matchPath_macro = function(tag) {
     }
 };
 
+// ringojs.org uses `headline` for in page <h1> element
+exports.headline_macro = function(tag, cx) {
+    return cx.title;
+}
+
+
 /**
  * A test output formatter for displaying ringo/unittest results in a web page
  */

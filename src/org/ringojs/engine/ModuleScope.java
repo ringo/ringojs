@@ -28,12 +28,12 @@ public class ModuleScope extends ImporterTopLevel {
 
     private Trackable source;
     private Repository repository;
-    private String name;
+    private String id;
     private long checksum;
     private Scriptable exportsObject, metaObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(String moduleName, Trackable source, Scriptable prototype, Context cx) {
+    public ModuleScope(String moduleId, Trackable source, Scriptable prototype, Context cx) {
         setParentScope(null);
         setPrototype(prototype);
         // for activating the ImporterTopLevel import* functions
@@ -41,7 +41,7 @@ public class ModuleScope extends ImporterTopLevel {
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
-        this.name = moduleName;
+        this.id = moduleId;
         // create and define exports object
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
@@ -73,7 +73,7 @@ public class ModuleScope extends ImporterTopLevel {
     }
 
     public String getModuleName() {
-        return name;
+        return id;
     }
 
     public Scriptable getExports() {
@@ -105,7 +105,7 @@ public class ModuleScope extends ImporterTopLevel {
         }
 
         public String getModuleName() {
-            return name;
+            return id;
         }
     }
 }
