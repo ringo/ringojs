@@ -373,9 +373,14 @@ function resolve() {
             continue;
         }
         var parts = path.split(SEPARATOR_RE);
-        if (isAbsolute(path)) {
-            // path is absolute, throw away everyting we have so far
-            root = parts.shift() + SEPARATOR;
+        // Checking for absolute paths is not enough here as Windows has
+        // something like quasi-absolute paths where a path starts with a
+        // path separator instead of a drive character, e.g. \home\projects.
+        if (isAbsolute(path) || SEPARATOR_RE.test(path[0])) {
+            // path is absolute, throw away everyting we have so far.
+            // We still need to explicitly make absolute for the quasi-absolute
+            // Windows paths mentioned above.
+            root = new File(parts.shift() + SEPARATOR).getAbsolutePath();
             elements = [];
         }
         leaf = parts.pop();
