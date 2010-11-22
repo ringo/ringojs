@@ -16,6 +16,7 @@
 
 package org.ringojs.tools;
 
+import org.mozilla.javascript.Scriptable;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
@@ -49,7 +50,7 @@ public class RingoConfiguration {
     private boolean verbose = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
-    private Class<?>[] hostClasses = null;
+    private Class<Scriptable>[] hostClasses = null;
     private ClassShutter classShutter = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
@@ -279,7 +280,7 @@ public class RingoConfiguration {
      * Set the host classes to be added to the Rhino engine.
      * @param classes a list of Rhino host classes
      */
-    public void setHostClasses(Class<?>[] classes) {
+    public void setHostClasses(Class<Scriptable>[] classes) {
         this.hostClasses = classes;
     }
 
@@ -287,7 +288,7 @@ public class RingoConfiguration {
      * Get the host classes to be added to the Rhino engine.
      * @return a list of Rhino host classes
      */
-    public Class<?>[] getHostClasses() {
+    public Class<Scriptable>[] getHostClasses() {
         return hostClasses;
     }
 

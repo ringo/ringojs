@@ -113,6 +113,7 @@ public class RingoGlobal extends Global {
         
     }
 
+    @SuppressWarnings("unchecked")
     public static void defineClass(final Context cx, Scriptable thisObj,
                                      Object[] args, Function funObj)
             throws IllegalAccessException, InstantiationException, InvocationTargetException {
@@ -196,6 +197,7 @@ public class RingoGlobal extends Global {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static Object privileged(final Context cx, Scriptable thisObj, Object[] args,
                                     Function funObj) {
         if (args.length != 1 || !(args[0] instanceof Function)) {
@@ -259,7 +261,7 @@ public class RingoGlobal extends Global {
 
     public synchronized void decreaseAsyncCount() {
         asyncCount -= 1;
-        if (asyncCount == 0) {
+        if (asyncCount <= 0) {
             notifyAll();
         }
     }

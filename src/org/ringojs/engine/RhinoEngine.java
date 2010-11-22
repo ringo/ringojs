@@ -97,9 +97,9 @@ public class RhinoEngine implements ScopeProvider {
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
-            Class[] classes = config.getHostClasses();
+            Class<Scriptable>[] classes = config.getHostClasses();
             if (classes != null) {
-                for (Class clazz: classes) {
+                for (Class<Scriptable> clazz: classes) {
                     defineHostClass(clazz);
                 }
             }
@@ -618,6 +618,7 @@ public class RhinoEngine implements ScopeProvider {
         return retval;
     }
 
+    @SuppressWarnings("unchecked")
     private void resetThreadLocals(Object[] objs) {
         if (objs != null) {
             engines.set((RhinoEngine) objs[0]);

@@ -54,6 +54,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         gui.setVisible(true);
     }
 
+    @SuppressWarnings("unchecked")
     void createTreeNode(String sourceName, Dim.SourceInfo sourceInfo) {
         // String[] path = StringUtils.split(sourceInfo.sourceName(), ":/\\");
         String[] path = StringUtils.split(sourceName, ":/\\");
@@ -257,6 +258,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
             super.showFileWindow(sourceName, lineNumber);
         }
 
+        @SuppressWarnings("unchecked")
         private void updateFunctionList(String sourceName) {
             // display functions for opened script file
             currentSourceUrl = sourceName;

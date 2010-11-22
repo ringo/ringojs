@@ -69,7 +69,7 @@
             deprecation="${deprecation}"
             optimize="${optimize}"
             includeAntRuntime="false">
-                <!-- compilerarg value="-Xlint"/ -->
+                <compilerarg value="-Xlint:unchecked"/>
                 <classpath refid="classpath"/>
                 <!-- fix for openjdk rhino bootclasspath bug -->
                 <compilerarg value="-Xbootclasspath/p:${lib}/js.jar"/>

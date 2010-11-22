@@ -195,6 +195,7 @@ public class MacroTag extends ScriptableObject {
      * @return Object The first parameter that matches one of the arguments.
      */
     @JSFunction
+    @SuppressWarnings("unchecked")
     public static Object getParameter(Context cx, Scriptable thisObj,
                                       Object[] args, Function funObj) {
         try {

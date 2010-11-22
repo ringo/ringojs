@@ -35,6 +35,7 @@ public class ScriptUtils {
      * @param scope the scope
      * @return the wrapped/masked java object
      */
+    @SuppressWarnings("unchecked")
     public static Object javaToJS(Object obj, Scriptable scope) {
         if (obj instanceof Scriptable) {
             if (obj instanceof ScriptableObject
