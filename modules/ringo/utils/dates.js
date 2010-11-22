@@ -71,7 +71,7 @@ function parse(str) {
     if (!isNaN(elapsed)) {
         date = new Date(elapsed);
     } else {
-        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2}):(\d{2}(?:\.\d+)?)(Z|(?:[+-]\d{1,2}(?::(\d{2}))?)))?$/);
+        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?)))?$/);
         var date;
         if (match && (match[1] || match[7])) { // must have at least year or time
             var year = parseInt(match[1], 10) || 0;
@@ -83,7 +83,7 @@ function parse(str) {
             if (type) {
                 var hours = parseInt(match[4], 10);
                 var minutes = parseInt(match[5], 10);
-                var secFrac = parseFloat(match[6]);
+                var secFrac = parseFloat(match[6]) || 0;
                 var seconds = secFrac | 0;
                 var milliseconds = Math.round(1000 * (secFrac - seconds));
                 date.setUTCHours(hours, minutes, seconds, milliseconds);
