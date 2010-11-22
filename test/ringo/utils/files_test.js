@@ -27,7 +27,7 @@ exports.testResolveId = function () {
 exports.testCreateTempFile = function () {
     var tempFile = files.createTempFile('ringo');
     assert.isNotNull(tempFile); // Creation w/ prefix only.
-    assert.isTrue(/^.*\/ringo.*$/.test(tempFile));
+    assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
     fs.remove(tempFile);
     tempFile = files.createTempFile('ringo', '.js');
     assert.isNotNull(tempFile); // Creation incl. suffix.
