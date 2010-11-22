@@ -259,7 +259,7 @@ public class RingoGlobal extends Global {
 
     public synchronized void decreaseAsyncCount() {
         asyncCount -= 1;
-        if (asyncCount == 0) {
+        if (asyncCount <= 0) {
             notifyAll();
         }
     }
