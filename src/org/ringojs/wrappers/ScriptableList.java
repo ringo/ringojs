@@ -58,6 +58,7 @@ public class ScriptableList extends NativeJavaObject {
      * @param scope the scope
      * @param obj the list, possibly wrapped
      */
+    @SuppressWarnings("unchecked")
     private ScriptableList(Scriptable scope, Object obj) {
         this.parent = scope;
         if (obj instanceof Wrapper) {
