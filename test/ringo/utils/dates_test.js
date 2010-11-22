@@ -46,6 +46,14 @@ exports.testParse = function() {
             seconds: 15,
             milliseconds: 911
         },
+        "2010-01-01T00:00:00+01:00": { // zero hour
+            year: 2009,
+            month: 11,
+            date: 31,
+            hour: 23,
+            minutes: 0,
+            seconds: 0
+        },
         "2010-08-06T15:21:25-06": { // MDT
             year: 2010,
             month: 7,
