@@ -31,7 +31,7 @@ exports.testCreateTempFile = function () {
     fs.remove(tempFile);
     tempFile = files.createTempFile('ringo', '.js');
     assert.isNotNull(tempFile); // Creation incl. suffix.
-    assert.isTrue(/^.*\/ringo.*\.js$/.test(tempFile));
+    assert.isTrue(/[\/\\]ringo\w*\.js$/.test(tempFile));
     fs.remove(tempFile);
     assert.throws(function () files.createTempFile('ri'), java.lang.
             IllegalArgumentException); // Prefix must be at least 3 chars long.
