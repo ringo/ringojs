@@ -125,21 +125,28 @@ function getStackTrace(trace) {
 };
 
 /**
- * The main runner method
- * @param {String|Object} modulePathOrScope Either the path to a module containing unit
+ * The main runner method. This method can be called with one, two or three
+ * arguments: <code>run(scope)</code>, <code>run(scope, nameOfTest)</code>,
+ * <code>run(scope, writer)</code> or <code>run(scope, nameOfTest, writer)</code>
+ * @param {String|Object} scope Either the path to a module containing unit
  * tests to execute, or an object containing the exported test methods or nested scopes.
+ * @param {String} name Optional name of a test method to execute
  * @param {Object} writer Optional writer to use for displaying the test results. Defaults
  * to TermWriter.
  */
-function run(modulePathOrScope, writer) {
-    var scope;
-    if (typeof(modulePathOrScope) === "string") {
-        scope = require(fs.resolve(fs.workingDirectory(), modulePathOrScope));
-    } else {
-        scope = modulePathOrScope;
-    }
-    if (!writer) {
+function run(scope, name, writer) {
+    if (arguments.length === 2) {
+        if (typeof(arguments[1]) === "object") {
+            writer = name;
+            name = undefined;
+        } else {
+            writer = new TermWriter();
+        }
+    } else if (arguments.length === 1) {
         writer = new TermWriter();
+    }
+    if (typeof(scope) === "string") {
+        scope = require(fs.resolve(fs.workingDirectory(), scope));
     }
     var summary = {
         "testsRun": 0,
@@ -148,12 +155,16 @@ function run(modulePathOrScope, writer) {
         "failures": 0,
         "time": 0
     };
-    writer.writeHeader(modulePathOrScope);
-    executeTestScope(scope, summary, writer, []);
+    writer.writeHeader();
+    if (name != undefined) {
+        executeTest(scope, name, summary, writer, []);
+    } else {
+        executeTestScope(scope, summary, writer, []);
+    }
     scope = null;
     writer.writeSummary(summary);
     return summary.failures;
-};
+}
 
 /**
  * Loops over all properties of a test scope and executes all methods whose
@@ -170,47 +181,62 @@ function executeTestScope(scope, summary, writer, path) {
         if (name === "test" || !strings.startsWith(name, "test")) {
             continue;
         }
-        if (value instanceof Function) {
-            writer.writeTestStart(name);
-            var start = null;
-            var time = 0;
-            try {
-                // execute setUp, if defined
-                if (typeof(scope.setUp) === "function") {
-                    scope.setUp();
-                }
-                // execute test function
-                start = new Date();
-                value();
-                time = (new Date()).getTime() - start.getTime();
-                writer.writeTestPassed(time);
-                summary.passed += 1;
-            } catch (e) {
-                if (!(e instanceof AssertionError) && !(e instanceof ArgumentsError)) {
-                    e = new EvaluationError(e);
-                }
-                writer.writeTestFailed(e);
-                if (e instanceof AssertionError) {
-                    summary.failures += 1;
-                } else {
-                    summary.errors += 1;
-                }
-            } finally {
-                // execute tearDown, if defined
-                if (typeof(scope.tearDown) === "function") {
-                    scope.tearDown();
-                }
-                summary.testsRun += 1;
-                summary.time += time;
-            }
-        } else if (value.constructor === Object) {
-            writer.enterScope(name);
-            executeTestScope(value, summary, writer, path.concat([name]));
-            writer.exitScope(name);
-        }
+        executeTest(scope, name, summary, writer, path);
     }
     return;
 };
+
+/**
+ * Executes a single test, which can be either a single test method
+ * or a test submodule.
+ * @param {Object} scope The scope object containing the test
+ * @param {String} name The name of the test to execute
+ * @param {Object} summary An object containing summary information
+ * @param {Object} writer A writer instance for displaying test results
+ * @param {Array} path An array containing property path segments
+ */
+function executeTest(scope, name, summary, writer, path) {
+    var value = scope[name];
+    if (value instanceof Function) {
+        writer.writeTestStart(name);
+        var start = null;
+        var time = 0;
+        try {
+            // execute setUp, if defined
+            if (typeof(scope.setUp) === "function") {
+                scope.setUp();
+            }
+            // execute test function
+            start = new Date();
+            value();
+            time = (new Date()).getTime() - start.getTime();
+            writer.writeTestPassed(time);
+            summary.passed += 1;
+        } catch (e) {
+            if (!(e instanceof AssertionError) && !(e instanceof ArgumentsError)) {
+                e = new EvaluationError(e);
+            }
+            writer.writeTestFailed(e);
+            if (e instanceof AssertionError) {
+                summary.failures += 1;
+            } else {
+                summary.errors += 1;
+            }
+        } finally {
+            // execute tearDown, if defined
+            if (typeof(scope.tearDown) === "function") {
+                scope.tearDown();
+            }
+            summary.testsRun += 1;
+            summary.time += time;
+        }
+    } else if (value.constructor === Object) {
+        writer.enterScope(name);
+        executeTestScope(value, summary, writer, path.concat([name]));
+        writer.exitScope(name);
+    }
+    return;
+}
 
 
 
