@@ -47,7 +47,8 @@ export( "format",
         "resetDate",
         "toISOString",
         "fromISOString",
-        "fromUTCDate" );
+        "fromUTCDate",
+        "parse" );
 
 /**
  * Format a Date to a string.
@@ -125,24 +126,32 @@ function add(date, delta, unit) {
     unit = unit || "day";
     
     switch (unit) {
-        case "year":    cal.add(java.util.Calendar.YEAR, delta);
-                        break;
-        case "quarter": cal.add(java.util.Calendar.MONTH, delta * 3);
-                        break;
-        case "month":   cal.add(java.util.Calendar.MONTH, delta);
-                        break;
-        case "week":    cal.add(java.util.Calendar.WEEK_OF_YEAR, delta);
-                        break;
-        case "day":     cal.add(java.util.Calendar.DATE, delta);
-                        break;
-        case "hour":    cal.add(java.util.Calendar.HOUR, delta);
-                        break;
-        case "minute":  cal.add(java.util.Calendar.MINUTE, delta);
-                        break;
-        case "second":  cal.add(java.util.Calendar.SECOND, delta);
-                        break;
+        case "year":
+            cal.add(java.util.Calendar.YEAR, delta);
+            break;
+        case "quarter":
+            cal.add(java.util.Calendar.MONTH, delta * 3);
+            break;
+        case "month":
+            cal.add(java.util.Calendar.MONTH, delta);
+            break;
+        case "week":
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, delta);
+            break;
+        case "day":
+            cal.add(java.util.Calendar.DATE, delta);
+            break;
+        case "hour":
+            cal.add(java.util.Calendar.HOUR, delta);
+            break;
+        case "minute":
+            cal.add(java.util.Calendar.MINUTE, delta);
+            break;
+        case "second":
+            cal.add(java.util.Calendar.SECOND, delta);
+            break;
         case "millisecond":
-                        return new Date(date.getTime() + delta);
+            return new Date(date.getTime() + delta);
     }
     return new Date(cal.getTimeInMillis());
 }
@@ -343,33 +352,37 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * @param {Date} b second date
  * @param {String} unit (optional) of time to return. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
  *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
+ * @param {Boolean} fullDecimal (optional) if true, diff will keep decimal places. If false (default), the difference will be rounded off.
  * @returns Number difference between the given dates in the specified unit of time.
  */
-function diff(a, b, unit) {
+function diff(a, b, unit, fullDecimal) {
     var unit = unit || "day",
     mDiff = Math.abs(a.getTime() - b.getTime()),
     yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
     delta = mDiff;
        
     switch (unit) {
-        case "year":    delta = yDiff; // just return the yDiff
-                        break;
-        case "quarter": delta = (yDiff * 4) + Math.abs(quarterInYear(a) - quarterInYear(b));
-                        break;
-        case "month":   delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
-                        break;
-        case "week":    delta = Math.floor(diff(a, b, "day") / 7);
-                        break;
+        case "year":
+            delta = yDiff; // just return the yDiff
+            break;
+        case "quarter":
+            delta = (yDiff * 4) + Math.abs(quarterInYear(a) - quarterInYear(b));
+            break;
+        case "month":
+            delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
+            break;
+        case "week":
+            delta = Math.floor(diff(a, b, "day") / 7);
+            break;
         case "day":     delta /= 24;
         case "hour":    delta /= 60;
         case "minute":  delta /= 60;
         case "second":  delta /= 1000;
                         break;
-        case "millisecond":
-                        break; // delta is by default the diff in millis
+        case "millisecond": break; // delta is by default the diff in millis
     }
     
-    return delta;
+    return (fullDecimal === true ? delta : Math.floor(delta));
 }
 
 // By Dominik Gruber, written for Tenez.at
@@ -533,88 +546,56 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
 }
 
 /**
- * Parses an ISO 8601 compatible input string. If a date is specified by 'YYYY-MM-DD', the string will be treated in local time.
- * @param {String} string to parse
- * @returns Date date representation of the input.
- */
-function fromISOString(input) {
-    if (!input) {
-        throw "Invalid Date";
-    }
-    
-    // YYYY-MM-DD
-    if (input.length == 10) {
-        return new Date(parseInt(input.substr(0, 4), 10), parseInt(input.substr(5, 2), 10) - 1, parseInt(input.substr(8, 2), 10));
-    }
-        
-    // Possible time zone offsets: +hh:mm, +hhmm, or +hh, -hh:mm, -hhmm or -hh.
-    // This is a workaround for ECMA's UTC-only pattern for ISO 8601 input strings
-    var offsetMinutes = 0;
-    var dateString = "";
-    
-    // Calculate timezone offset
-    if (input[input.length - 1].toUpperCase() === "Z") {
-        // Remove UTC indicator, offset is 0
-        dateString = input.substr(0, input.length - 1);
-    } else if (input[input.length - 3] === "+") {
-        // +hh
-        offsetMinutes = -60 * parseInt(input.substr(input.length - 2, 2), 10);
-        dateString = input.substr(0, input.length - 3);
-    } else if (input[input.length - 3] === "-") {
-        // -hh
-        offsetMinutes = 60 * parseInt(input.substr(input.length - 2, 2), 10);
-        dateString = input.substr(0, input.length - 3);
-    } else if (input[input.length - 5] === "+") {
-        // +hhmm
-        offsetMinutes = -60 * parseInt(input.substr(input.length - 4, 2), 10);
-        offsetMinutes -= parseInt(input.substr(input.length - 2), 10);
-        dateString = input.substr(0, input.length - 5);
-    } else if (input[input.length - 5] === "-") {
-        // -hhmm
-        offsetMinutes = 60 * parseInt(input.substr(input.length - 4, 4), 10);
-        offsetMinutes += parseInt(input.substr(input.length - 2), 10);
-        dateString = input.substr(0, input.length - 5);
-    } else if (input[input.length - 6] === "+") { 
-        // +hh:mm
-        offsetMinutes = -60 * parseInt(input.substr(input.length - 5, 2), 10);
-        offsetMinutes -= parseInt(input.substr(input.length - 2), 10);
-        dateString = input.substr(0, input.length - 6);
-    } else if (input[input.length - 6] === "-") {
-        // -hh:mm
-        offsetMinutes = 60 * parseInt(input.substr(input.length - 5, 2), 10);
-        offsetMinutes += parseInt(input.substr(input.length - 2), 10);
-        dateString = input.substr(0, input.length - 6);
-    } else {
-        // use local time
-        offsetMinutes = new Date().getTimezoneOffset();
-        dateString = input;
-    }
-
-    // Add seconds, if not defined
-    if (dateString.length === 16 && dateString[10] !== ":") {
-        dateString += ":00";
-    }
-    
-    // Add milliseconds to the string if not specified
-    if (dateString[dateString.length - 2] === ".") {
-        // fill up missing zeros to get 3-digit millisecond part
-        dateString += "00";
-    } else if (dateString[dateString.length - 3] === ".") {
-        // fill up missing zeros to get 3-digit millisecond part
-        dateString += "0";
-    } else if (dateString[dateString.length - 4] !== ".") {
-        dateString += ".000";
-    }
-    
-    // Add UTC indicator
-    dateString += "Z";
-    
-    return this.add(new Date(dateString), offsetMinutes, "minute");
-}
-
-/**
  * Create new Date from UTC timestamp.
  */
 function fromUTCDate(year, month, date, hour, minute, second) {
     return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0));
+}
+
+/**
+ * Parse a string representing a date.
+ * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
+ * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
+ * 
+ * @param {String} str The date string.  This follows the format specified for timestamps
+ *        on the internet described in RFC 3339.  
+ * @returns {Date} a date representing the given string
+ * @see http://tools.ietf.org/html/rfc3339
+ */
+function parse(str) {
+    var date;
+    // first check if the native parse method can parse it
+    var elapsed = Date.parse(str);
+    if (!isNaN(elapsed)) {
+        date = new Date(elapsed);
+    } else {
+        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?)))?$/);
+        var date;
+        if (match && (match[1] || match[7])) { // must have at least year or time
+            var year = parseInt(match[1], 10) || 0;
+            var month = (parseInt(match[2], 10) - 1) || 0;
+            var day = parseInt(match[3], 10) || 1;
+            date = new Date(Date.UTC(year, month, day));
+            // optional time
+            var type = match[7];
+            if (type) {
+                var hours = parseInt(match[4], 10);
+                var minutes = parseInt(match[5], 10);
+                var secFrac = parseFloat(match[6]) || 0;
+                var seconds = secFrac | 0;
+                var milliseconds = Math.round(1000 * (secFrac - seconds));
+                date.setUTCHours(hours, minutes, seconds, milliseconds);
+                // check offset
+                if (type !== "Z") {
+                    var hoursOffset = parseInt(type, 10);
+                    var minutesOffset = parseInt(match[8]) || 0;
+                    var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
+                    date = new Date(date.getTime() + offset);
+                }
+            }
+        } else {
+            date = new Date("invalid");
+        }
+    }
+    return date;
 }
