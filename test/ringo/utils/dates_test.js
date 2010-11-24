@@ -504,6 +504,8 @@ exports.testParse = function() {
     assert.isNaN(dates.parse("2010-01-99"));
     assert.isNaN(dates.parse("2010-01-01T24:59Z"));
     assert.isNaN(dates.parse("2010-01-01T25:00Z"));
+    assert.isNaN(dates.parse("2010-01-01TT25:00Z"));
+    assert.isNaN(dates.parse("2010-01-01T23:00-25:00"));
     
     // Check for not NaN
     // FIXME no exact checks because of local time...

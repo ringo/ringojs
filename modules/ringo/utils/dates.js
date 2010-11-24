@@ -618,7 +618,11 @@ function parse(str) {
                         var hoursOffset = parseInt(type, 10);
                         var minutesOffset = parseInt(match[8]) || 0;
                         var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
-
+                        
+                        // check maximal timezone offset (24 hours)
+                        if (Math.abs(offset) >= 86400000) {
+                            return new Date("invalid");
+                        }
                         date = new Date(date.getTime() + offset);
                     }
                 } else {
