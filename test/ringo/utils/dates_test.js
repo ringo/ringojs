@@ -477,27 +477,39 @@ exports.testCheckDate = function() {
     assert.isFalse(dates.checkDate("a", "b", 2));
 };
 
-// More info at http://www.w3.org/TR/NOTE-datetime
 exports.testParse = function() {
-    // Check for same time
-    // http://www.w3.org/TR/NOTE-datetime
-    assert.equal(dates.parse("1994-11-05T08:15:30-05:00").getTime(), dates.parse("1994-11-05T13:15:30Z").getTime());
+    // Check for same time: http://www.w3.org/TR/NOTE-datetime
+    assert.strictEqual(dates.parse("1994-11-05T08:15:30-05:00").getTime(), dates.parse("1994-11-05T13:15:30Z").getTime());
     
-    assert.equal((dates.parse("2009-02-13T23:31:30Z")).getTime(), 1234567890000); // GMT: Fri, 13 Feb 2009 23:31:30 GMT
-    assert.equal((dates.parse("2009-02-13T23:31:30+00:00")).getTime(), 1234567890000); // GMT: Fri, 13 Feb 2009 23:31:30 GMT
-    assert.equal((dates.parse("2010-01-01T00:00+01:00")).getTime(), 1262300400000);
-    assert.equal((dates.parse("2010-10-26T00:00+02:00")).getTime(), 1288044000000);
-    assert.equal((dates.parse("2010-10-26T00:00:00+02:00")).getTime(), 1288044000000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.0+02:00")).getTime(), 1288044000000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.00+02:00")).getTime(), 1288044000000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.000+02:00")).getTime(), 1288044000000);
+    assert.strictEqual((dates.parse("2009-02-13T23:31:30Z")).getTime(), 1234567890000); // GMT: Fri, 13 Feb 2009 23:31:30 GMT
+    assert.strictEqual((dates.parse("2009-02-13T23:31:30+00:00")).getTime(), 1234567890000); // GMT: Fri, 13 Feb 2009 23:31:30 GMT
+    assert.strictEqual((dates.parse("2010-01-01T00:00+01:00")).getTime(), 1262300400000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00+02:00")).getTime(), 1288044000000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00+02:00")).getTime(), 1288044000000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.0+02:00")).getTime(), 1288044000000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.00+02:00")).getTime(), 1288044000000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.000+02:00")).getTime(), 1288044000000);
     
     // UTC
-    assert.equal((dates.parse("2010-10-26T00:00Z")).getTime(), 1288051200000);
-    assert.equal((dates.parse("2010-10-26T00:00:00Z")).getTime(), 1288051200000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.0Z")).getTime(), 1288051200000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
-    assert.equal((dates.parse("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00Z")).getTime(), 1288051200000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00Z")).getTime(), 1288051200000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.0Z")).getTime(), 1288051200000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
+    assert.strictEqual((dates.parse("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
+
+    // NaN
+    assert.isNaN(dates.parse("asdf"));
+    assert.isNaN(dates.parse("2010-"));
+    assert.isNaN(dates.parse("2010-99"));
+    assert.isNaN(dates.parse("2010-01-99"));
+    assert.isNaN(dates.parse("2010-01-01T24:59Z"));
+    assert.isNaN(dates.parse("2010-01-01T25:00Z"));
+    
+    // Check for not NaN
+    // FIXME no exact checks because of local time...
+    assert.isNotNaN(dates.parse("2010-01-01T01:01").getTime());
+    assert.isNotNaN(dates.parse("2010-01-01T01:01:01").getTime());
+    assert.isNotNaN(dates.parse("2010-01-01T01:01:01.001").getTime());
 
     // cases map datestrings to objects with corresponding UTC date properties
     var cases = {
@@ -547,6 +559,14 @@ exports.testParse = function() {
             month: 11,
             date: 31,
             hour: 23,
+            minutes: 0,
+            seconds: 0
+        },
+        "2010-01-01T24:00Z": { // 24:00
+            year: 2010,
+            month: 0,
+            date: 2,
+            hour: 0,
             minutes: 0,
             seconds: 0
         },

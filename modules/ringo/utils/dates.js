@@ -569,28 +569,65 @@ function parse(str) {
     if (!isNaN(elapsed)) {
         date = new Date(elapsed);
     } else {
-        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?)))?$/);
+        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?))?)?$/);
         var date;
         if (match && (match[1] || match[7])) { // must have at least year or time
             var year = parseInt(match[1], 10) || 0;
             var month = (parseInt(match[2], 10) - 1) || 0;
             var day = parseInt(match[3], 10) || 1;
+            
             date = new Date(Date.UTC(year, month, day));
+            
+            // Check if the given date is valid
+            if (date.getUTCMonth() != month || date.getUTCDate() != day) {
+                return new Date("invalid");
+            }
+            
             // optional time
-            var type = match[7];
-            if (type) {
+            if (match[4] !== undefined) {
+                var type = match[7];
                 var hours = parseInt(match[4], 10);
                 var minutes = parseInt(match[5], 10);
                 var secFrac = parseFloat(match[6]) || 0;
                 var seconds = secFrac | 0;
                 var milliseconds = Math.round(1000 * (secFrac - seconds));
-                date.setUTCHours(hours, minutes, seconds, milliseconds);
-                // check offset
-                if (type !== "Z") {
-                    var hoursOffset = parseInt(type, 10);
-                    var minutesOffset = parseInt(match[8]) || 0;
-                    var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
-                    date = new Date(date.getTime() + offset);
+                
+                // Checks if the time string is a valid time.
+                var validTimeValues = function(hours, minutes, seconds) {
+                    if (hours === 24) {
+                        if (minutes !== 0 || seconds !== 0 || milliseconds !== 0) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                    return true;
+                };
+                
+                // Use UTC or local time
+                if (type !== undefined) {
+                    date.setUTCHours(hours, minutes, seconds, milliseconds);
+                    if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
+                        if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
+                            return new Date("invalid");
+                        }
+                    }
+                    
+                    // Check offset
+                    if (type !== "Z") {
+                        var hoursOffset = parseInt(type, 10);
+                        var minutesOffset = parseInt(match[8]) || 0;
+                        var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
+
+                        date = new Date(date.getTime() + offset);
+                    }
+                } else {
+                    date.setHours(hours, minutes, seconds, milliseconds);
+                    if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
+                        if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
+                            return new Date("invalid");
+                        }
+                    }
                 }
             }
         } else {
