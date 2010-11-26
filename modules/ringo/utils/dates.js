@@ -20,7 +20,6 @@
  */
 
 var strings = require('ringo/utils/strings');
-var log = require('ringo/logging').getLogger(module.id);
 
 export( "format",
         "checkDate",

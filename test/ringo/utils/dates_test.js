@@ -217,7 +217,7 @@ exports.testDiff = function() {
     });
     
     // leap year
-    a = new Date(2012, 0, 1)
+    a = new Date(2012, 0, 1);
     b = new Date(2013, 0, 1);
     assert.equal(dates.diff(a, b, "year"), 1);
     assert.equal(dates.diff(a, b, "quarter"), 4);
@@ -237,7 +237,7 @@ exports.testDiff = function() {
     });
     
     // one minute
-    a = new Date(2012, 0, 1, 0, 1)
+    a = new Date(2012, 0, 1, 0, 1);
     b = new Date(2012, 0, 1, 0, 2);
     assert.equal(dates.diff(a, b, "year"), 0);
     assert.equal(dates.diff(a, b, "quarter"), 0);
@@ -257,7 +257,7 @@ exports.testDiff = function() {
     });
     
     // one millisecond
-    a = new Date(1234567890)
+    a = new Date(1234567890);
     b = new Date(1234567891);
     assert.equal(dates.diff(a, b, "year"), 0);
     assert.equal(dates.diff(a, b, "quarter"), 0);
@@ -274,6 +274,45 @@ exports.testDiff = function() {
         "minutes": 0,
         "seconds": 0,
         "milliseconds": 1
+    });
+    
+    // more tests (Einstein's life)
+    a = new Date(1879, 2, 14);
+    b = new Date(1955, 3, 18);
+    assert.equal(dates.diff(a, b, "year"), 76);
+    assert.equal(dates.diff(a, b, "quarter"), 305);
+    assert.equal(dates.diff(a, b, "month"), 913);
+    assert.equal(dates.diff(a, b, "week"), 3970);
+    assert.equal(dates.diff(a, b, "day"), 27793);
+    assert.equal(dates.diff(a, b, "hour"), 667032);
+    assert.equal(dates.diff(a, b, "minute"), 40021920);
+    assert.equal(dates.diff(a, b, "second"),  2401315200);
+    assert.equal(dates.diff(a, b, "millisecond"), 2401315200000);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 27793,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 0
+    });
+    
+    // again Einstein, now with time diff
+    b = new Date(1955, 3, 18, 20, 39, 10, 53);
+    assert.equal(dates.diff(a, b, "year"), 76);
+    assert.equal(dates.diff(a, b, "quarter"), 305);
+    assert.equal(dates.diff(a, b, "month"), 913);
+    assert.equal(dates.diff(a, b, "week"), 3970);
+    assert.equal(dates.diff(a, b, "day"), 27793);
+    assert.equal(dates.diff(a, b, "hour"), 667052);
+    assert.equal(dates.diff(a, b, "minute"), 40023159);
+    assert.equal(dates.diff(a, b, "second"),  2401389550);
+    assert.equal(dates.diff(a, b, "millisecond"), 2401389550053);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 27793,
+        "hours": 20,
+        "minutes": 39,
+        "seconds": 10,
+        "milliseconds": 53
     });
 };
 
