@@ -96,8 +96,8 @@ function createGregorianCalender(date, locale) {
  * Checks if the date is a valid date. Example: 2007 is no leap year, so <tt>checkDate(2007, 1, 29)</tt> returns false.
  *
  * @param {Number} fullYear
- * @param {Number} month, starting with 0
- * @param {Number} day
+ * @param {Number} month between 0 and 11
+ * @param {Number} day between 1 and 31
  * @returns {Boolean} true, if the date is valid, false if not.
  */
 function checkDate(fullYear, month, day) {
@@ -351,17 +351,26 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * @param {Date} a first date
  * @param {Date} b second date
  * @param {String} unit (optional) of time to return. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
- *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
- * @param {Boolean} fullDecimal (optional) if true, diff will keep decimal places. If false (default), the difference will be rounded off.
- * @returns Number difference between the given dates in the specified unit of time.
+ *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt> and
+ *        <tt>mixed</tt> (returns an object)
+ * @returns Number|Object<{days, hours, minutes, seconds, milliseconds}>
+ *          difference between the given dates in the specified unit of time.
  */
-function diff(a, b, unit, fullDecimal) {
+function diff(a, b, unit) {
     var unit = unit || "day",
     mDiff = Math.abs(a.getTime() - b.getTime()),
     yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
     delta = mDiff;
        
     switch (unit) {
+        case "mixed":
+            return {
+                "days":           Math.floor(delta / 86400000),
+                "hours":          Math.floor((delta % 86400000) / 3600000),
+                "minutes":        Math.floor(((delta % 86400000) % 3600000) / 60000),
+                "seconds":        Math.floor((((delta % 86400000) % 3600000) % 60000) / 1000),
+                "milliseconds":   Math.floor((((delta % 86400000) % 3600000) % 60000) % 1000)
+            };
         case "year":
             delta = yDiff; // just return the yDiff
             break;
@@ -382,7 +391,7 @@ function diff(a, b, unit, fullDecimal) {
         case "millisecond": break; // delta is by default the diff in millis
     }
     
-    return (fullDecimal === true ? delta : Math.floor(delta));
+    return Math.floor(delta);
 }
 
 // By Dominik Gruber, written for Tenez.at
@@ -561,6 +570,7 @@ function fromUTCDate(year, month, date, hour, minute, second) {
  *        on the internet described in RFC 3339.  
  * @returns {Date} a date representing the given string
  * @see http://tools.ietf.org/html/rfc3339
+ * @see http://www.w3.org/TR/NOTE-datetime
  */
 function parse(str) {
     var date;

@@ -189,6 +189,13 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "minute"), 1440);
     assert.equal(dates.diff(a, b, "second"), 86400);
     assert.equal(dates.diff(a, b, "millisecond"), 86400000);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 1,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 0
+    });
     
     // normal year
     b = new Date(2009, 0, 1);
@@ -201,6 +208,13 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "minute"), 525600);
     assert.equal(dates.diff(a, b, "second"), 31536000);
     assert.equal(dates.diff(a, b, "millisecond"), 31536000000);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 365,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 0
+    });
     
     // leap year
     a = new Date(2012, 0, 1)
@@ -214,6 +228,13 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "minute"), 527040);
     assert.equal(dates.diff(a, b, "second"), 31622400);
     assert.equal(dates.diff(a, b, "millisecond"), 31622400000);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 366,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 0
+    });
     
     // one minute
     a = new Date(2012, 0, 1, 0, 1)
@@ -224,11 +245,16 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "week"), 0);
     assert.equal(dates.diff(a, b, "day"), 0);
     assert.equal(dates.diff(a, b, "hour"), 0);
-    assert.equal(dates.diff(a, b, "day", true), 0.0006944444444444445);
-    assert.equal(dates.diff(a, b, "hour", true), 0.016666666666666666);
     assert.equal(dates.diff(a, b, "minute"), 1);
     assert.equal(dates.diff(a, b, "second"), 60);
     assert.equal(dates.diff(a, b, "millisecond"), 60000);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 0,
+        "hours": 0,
+        "minutes": 1,
+        "seconds": 0,
+        "milliseconds": 0
+    });
     
     // one millisecond
     a = new Date(1234567890)
@@ -241,8 +267,14 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "hour"), 0);
     assert.equal(dates.diff(a, b, "minute"), 0);
     assert.equal(dates.diff(a, b, "second"), 0);
-    assert.equal(dates.diff(a, b, "second", true), 0.001);
     assert.equal(dates.diff(a, b, "millisecond"), 1);
+    assert.deepEqual(dates.diff(a, b, "mixed"), {
+        "days": 0,
+        "hours": 0,
+        "minutes": 0,
+        "seconds": 0,
+        "milliseconds": 1
+    });
 };
 
 exports.testOverlapping = function() {
