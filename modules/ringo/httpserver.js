@@ -149,6 +149,8 @@ function Server(options) {
      */
     this.start = function() {
         jetty.start();
+        log.info('Server on http://' + (props.get('host') || 'localhost') +
+                ':' + props.get('port') + ' started.');
     };
 
     /**
