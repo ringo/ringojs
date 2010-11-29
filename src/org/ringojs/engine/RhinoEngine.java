@@ -441,16 +441,9 @@ public class RhinoEngine implements ScopeProvider {
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
         Trackable source;
-        boolean isWildcard = moduleName.endsWith(".*");
-        if (isWildcard) {
-            String repositoryName = moduleName
-                    .substring(0, moduleName.length() - 2);
-            source = findRepository(repositoryName, localPath);
-        } else {
-            source = findResource(moduleName + ".js", localPath);
-            if (!source.exists()) {
-                source = findResource(moduleName, localPath);
-            }
+        source = findResource(moduleName + ".js", localPath);
+        if (!source.exists()) {
+            source = findResource(moduleName, localPath);
         }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
