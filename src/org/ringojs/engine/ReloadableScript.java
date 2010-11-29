@@ -340,6 +340,7 @@ public class ReloadableScript {
         long cs = source.getChecksum();
         if (shared == Shared.TRUE) {
             Set<ReloadableScript> set = new HashSet<ReloadableScript>();
+            set.add(this);
             for (ReloadableScript script: dependencies) {
                 cs += script.getNestedChecksum(set);
             }
