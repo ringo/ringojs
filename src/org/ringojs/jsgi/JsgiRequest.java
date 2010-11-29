@@ -59,7 +59,7 @@ public class JsgiRequest extends ScriptableObject {
      * Instance constructor
      */
     public JsgiRequest(Context cx, HttpServletRequest request, HttpServletResponse response,
-                   JsgiRequest prototype, Scriptable scope) {
+                   JsgiRequest prototype, Scriptable scope, JsgiServlet servlet) {
         this.request = request;
         this.response = response;
         setPrototype(prototype);
@@ -83,6 +83,7 @@ public class JsgiRequest extends ScriptableObject {
         put("method", this, checkString(request.getMethod()));
         Scriptable env = cx.newObject(scope);
         ScriptableObject.defineProperty(this, "env", env, PERMANENT);
+        ScriptableObject.defineProperty(env, "servlet", Context.javaToJS(servlet, this), PERMANENT);
         ScriptableObject.defineProperty(env, "servletRequest", Context.javaToJS(request, this), PERMANENT);
         ScriptableObject.defineProperty(env, "servletResponse", Context.javaToJS(response, this), PERMANENT);
         // JSGI spec and Jack's lint require env.constructor to be Object
