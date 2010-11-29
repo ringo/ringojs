@@ -97,6 +97,34 @@ exports.testBasic = function() {
    assert.strictEqual(myData, '<h1>This is the Response Text</h1>');
 };
 
+
+/**
+ * test servlet on request env (this is not httpclient specific, but uses same setUp tearDown)
+ */
+exports.testServlet = function() {
+    
+    var servlet;
+    getResponse = function(req) {
+        servlet = req.env.servlet;
+        return new Response("servlet set");
+    };
+
+    var errorCalled, myData;
+    var exchange = request({
+        url: baseUri,
+        success: function(data, status, contentType, exchange) {
+            myData = data;
+        },
+        error: function() {
+            errorCalled = true;
+        }
+    });
+    assert.isUndefined(errorCalled);
+    assert.strictEqual(myData, "servlet set");
+    assert.ok(servlet instanceof javax.servlet.http.HttpServlet, "servlet instance");
+};
+
+
 /**
  * convinience wrappers
  */
@@ -333,3 +361,8 @@ exports.testStreamRequest = function() {
     assert.deepEqual (inputByteArray.toArray(), myExchange.contentBytes.toArray());
     assert.strictEqual('image/png', myContentType);
 };
+
+// start the test runner if we're called directly from command line
+if (require.main == module.id) {
+    system.exit(require("test").run(exports));
+}
