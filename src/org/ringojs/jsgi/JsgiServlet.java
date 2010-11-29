@@ -126,7 +126,7 @@ public class JsgiServlet extends HttpServlet {
         }
         Context cx = engine.getContextFactory().enterContext();
         try {
-            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope());
+            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope(), this);
             engine.invoke("ringo/jsgi", "handleRequest", module, function, req);
         } catch (Exception x) {
             try {
