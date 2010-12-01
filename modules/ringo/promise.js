@@ -2,7 +2,7 @@
  * @fileOverview Allows to work with deferred values that will be resolved in the future.
  */
 
-export("defer");
+export("defer", "promiseList");
 
 var NEW = 0;
 var FULFILLED = 1;
@@ -131,6 +131,42 @@ function defer() {
         resolve: resolve,
         promise: promise
     };
+}
+
+/**
+ * Combine several promises passed as argumentsinto one. The promise
+ * returned by this function resolves to an array of objects,
+ * each containing a `value` or `error` property with the value
+ * or error of the corresponding promise. The returned promise
+ * always resolves successfully, provided all input promises are resolved.
+ * @param {promise} promise... any number of promises
+ * @returns {promise} a promise resolving to an array of the argument
+ *     promises' values
+ */
+function promiseList() {
+    var promises = Array.slice(arguments);
+    var count = promises.length;
+    var results = [];
+    var i = 0;
+    var deferred = defer();
+    promises.forEach(function(promise) {
+        if (typeof promise.then !== "function" && promise.promise) {
+            promise = promise.promise;
+        }
+        var index = i++;
+        promise.then(function(value) {
+            results[index] = {value: value};
+            if (--count == 0) {
+                deferred.resolve(results);
+            }
+        }, function(error) {
+            results[index] = {error: error};
+            if (--count == 0) {
+                deferred.resolve(results);
+            }
+        });
+    });
+    return deferred.promise;
 }
 
 /** 
