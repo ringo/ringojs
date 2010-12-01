@@ -823,7 +823,11 @@ public class RhinoEngine implements ScopeProvider {
             if (isExports) {
                 return engine.loadModule(cx, moduleName, null).getExports();
             }
-            return moduleName == null ? engine.globalScope : engine.loadModule(cx, moduleName, null);
+            return moduleName == null ?
+                    engine.globalScope :
+                    "<shell>".equals(moduleName) ?
+                            engine.getShellScope() :
+                            engine.loadModule(cx, moduleName, null);
         }
     }
 
