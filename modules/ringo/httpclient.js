@@ -12,6 +12,7 @@ var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
 var {getMimeParameter, Headers} = require('ringo/utils/http');
 var base64 = require('ringo/base64');
+var {defer} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('request', 'post', 'get', 'del', 'put', 'Client');
@@ -654,6 +655,8 @@ var Client = function(timeout, followRedirects) {
      *     until the request is completed
      *  - `binary`: if true if content should be delivered as binary,
      *     else it will be decoded to string
+     *  - `promise`: if true a promise that resolves to the request's Exchange
+     *     object is returned instead of the Exchange object itself
      *
      *  #### Callbacks
      *
@@ -682,6 +685,12 @@ var Client = function(timeout, followRedirects) {
      */
     this.request = function(options) {
         var opts = defaultOptions(options);
+        if (opts.promise) {
+            var deferred = defer();
+            opts.success = function() {deferred.resolve(arguments[3])};
+            opts.error = function() {deferred.resolve(arguments[2], true)};
+            opts.async = true;
+        }
         var exchange = new Exchange(opts.url, {
             method: opts.method,
             data: opts.data,
@@ -712,7 +721,7 @@ var Client = function(timeout, followRedirects) {
                 callbacks.error(e, 0, exchange);
             }
         }
-        return exchange;
+        return opts.promise ? deferred.promise : exchange;
     };
 
     var client = new HttpClient();
