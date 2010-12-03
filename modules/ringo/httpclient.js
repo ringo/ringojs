@@ -10,7 +10,7 @@ var {ByteString, Binary} = require('binary');
 var {Stream, TextStream} = require('io');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
-var {getMimeParameter, Headers} = require('ringo/utils/http');
+var {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
 var base64 = require('ringo/base64');
 var {defer} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
@@ -250,36 +250,6 @@ var Exchange = function(url, options, callbacks) {
         }
     });
 
-    /**
-    * encode an object's properties into an uri encoded string
-    */
-    var encodeContent = function(content) {
-        var buf = new Buffer();
-        var value;
-        for (var key in content) {
-            value = content[key];
-            if (value instanceof Array) {
-                if (key.substring(key.length - 6) == "_array") {
-                    key = key.substring(0,key.length - 6);
-                }
-                for (var i = 0; i < value.length; i++) {
-                    buf.write(encodeURIComponent(key));
-                    buf.write("=");
-                    buf.write(encodeURIComponent(value[i]));
-                    buf.write("&");
-                }
-            } else {
-                buf.write(encodeURIComponent(key));
-                buf.write("=");
-                buf.write(encodeURIComponent(value));
-                buf.write("&");
-            }
-        }
-        var encodedContent = buf.toString();
-        encodedContent = encodedContent.substring(0, encodedContent.length-1);
-        return encodedContent;
-    };
-
     var getStatusMessage = function(status) {
         var message;
         try {
@@ -420,7 +390,7 @@ var Exchange = function(url, options, callbacks) {
                     // FIXME this relies on TextStream not being instanceof Stream
                     content = content.read();
                 } else if (content instanceof Object) {
-                    content = encodeContent(content);
+                    content = urlEncode(content);
                 }
                 if (typeof(content) === 'string') {
                     var charset = getMimeParameter(options.contentType, 'charset') || 'utf-8';
@@ -431,7 +401,7 @@ var Exchange = function(url, options, callbacks) {
         exchange.setRequestContentType(options.contentType);
     } else {
         if (content instanceof Object) {
-            content = encodeContent(content);
+            content = urlEncode(content);
         }
         if (typeof(content) === 'string' && content.length) {
             url += "?" + content;
