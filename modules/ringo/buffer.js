@@ -12,7 +12,9 @@ export('Buffer');
  * @param ... initial parts to write to the buffer
  */
 function Buffer() {
-    var content = [];
+
+    var content = [],
+        length = 0;
 
     /**
      * Reset the buffer discarding all its content.
@@ -20,6 +22,7 @@ function Buffer() {
      */
     this.reset = function() {
         content = [];
+        length = 0;
         return this;
     };
 
@@ -30,7 +33,9 @@ function Buffer() {
      */
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
-            content[content.length] = String(arguments[i]);
+            var str = String(arguments[i]);
+            content[content.length] = str;
+            length += str.length;
         }
         return this;
     };
@@ -43,6 +48,7 @@ function Buffer() {
     this.writeln = function() {
         this.write.apply(this, arguments);
         content[content.length] = "\r\n";
+        length += 2;
         return this;
     };
 
@@ -61,6 +67,14 @@ function Buffer() {
         content.forEach(fn);
     };
 
+    /**
+     * A read-only property containing the number of characters currently
+     * contained by this buffer.
+     */
+    Object.defineProperty(this, "length", {
+        get: function() { return length; }
+    });
+    
     /**
      * Get a message digest on the content of this buffer.
      * @param algorithm the algorithm to use, defaults to MD5
