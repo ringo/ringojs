@@ -45,7 +45,6 @@ export( "format",
         "resetTime",
         "resetDate",
         "toISOString",
-        "fromISOString",
         "fromUTCDate",
         "parse" );
 
