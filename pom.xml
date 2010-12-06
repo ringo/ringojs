@@ -16,7 +16,7 @@
 
     <groupId>org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -239,9 +239,38 @@
         <plugins>
 
             <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <!--<version>2.4.3</version>-->
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/modules</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>modules</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.0-beta-9</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>false</addClasspath>
+                            <mainClass>org.ringojs.tools.launcher.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -269,6 +298,19 @@
                         </configuration>
                         <goals>
                             <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
