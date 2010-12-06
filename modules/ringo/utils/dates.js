@@ -19,7 +19,7 @@
  * @fileoverview Adds useful functions for working with JavaScript Date objects.
  */
 
-export("format");
+export("format", "parse");
 
 /**
  * Format a Date to a string.
@@ -52,4 +52,52 @@ function format(date, format, locale, timezone) {
     if (timezone && timezone != sdf.getTimeZone())
         sdf.setTimeZone(timezone);
     return sdf.format(date);
+}
+
+/**
+ * Parse a string representing a date.
+ * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
+ * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
+ * 
+ * @param {String} str The date string.  This follows the format specified for timestamps
+ *        on the internet described in RFC 3339.  
+ * @returns {Date} a date representing the given string
+ * @see http://tools.ietf.org/html/rfc3339
+ */
+function parse(str) {
+    var date;
+    // first check if the native parse method can parse it
+    var elapsed = Date.parse(str);
+    if (!isNaN(elapsed)) {
+        date = new Date(elapsed);
+    } else {
+        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?)))?$/);
+        var date;
+        if (match && (match[1] || match[7])) { // must have at least year or time
+            var year = parseInt(match[1], 10) || 0;
+            var month = (parseInt(match[2], 10) - 1) || 0;
+            var day = parseInt(match[3], 10) || 1;
+            date = new Date(Date.UTC(year, month, day));
+            // optional time
+            var type = match[7];
+            if (type) {
+                var hours = parseInt(match[4], 10);
+                var minutes = parseInt(match[5], 10);
+                var secFrac = parseFloat(match[6]) || 0;
+                var seconds = secFrac | 0;
+                var milliseconds = Math.round(1000 * (secFrac - seconds));
+                date.setUTCHours(hours, minutes, seconds, milliseconds);
+                // check offset
+                if (type !== "Z") {
+                    var hoursOffset = parseInt(type, 10);
+                    var minutesOffset = parseInt(match[8]) || 0;
+                    var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
+                    date = new Date(date.getTime() + offset);
+                }
+            }
+        } else {
+            date = new Date("invalid");
+        }
+    }
+    return date;
 }
