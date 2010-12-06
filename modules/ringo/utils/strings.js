@@ -384,6 +384,9 @@ function endsWith(string, substring) {
  * @returns String the resulting string
  */
 function pad(string, fill, length, mode) {
+    if (typeof string !== "string") {
+        string = string.toString();
+    }
     if (fill == null || length == null) {
         return string;
     }
@@ -402,11 +405,11 @@ function pad(string, fill, length, mode) {
     }
     var list = [];
     for (var i = 0; i < left; i++) {
-        list[i] = fill;
+        list[i] = fill[i % fill.length];
     }
     list.push(string);
     for (i = 0; i < right; i++) {
-        list.push(fill);
+        list.push(fill[i % fill.length]);
     }
     return list.join('');
 }
