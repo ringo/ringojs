@@ -696,6 +696,10 @@ var Client = function(timeout, followRedirects) {
 
     var client = new HttpClient();
     if (typeof timeout == "number") {
+        if (timeout <= 0) {
+            // Disable timeout if zero or negative
+            timeout = java.lang.Long.MAX_VALUE;
+        }
         client.setTimeout(timeout);
     }
 
