@@ -165,7 +165,7 @@ public abstract class AbstractRepository implements Repository {
      * @param absolute whether to return an absolute path that can be used without this repository
      * @return a List containing the path elements resolved relative to this repository
      */
-    public String[] resolve(String path, boolean absolute) {
+    protected String[] resolve(String path, boolean absolute) {
         String[] elements = path.split(SEPARATOR);
         Deque<String> list = new LinkedList<String>();
         if (absolute) {

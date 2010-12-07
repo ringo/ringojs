@@ -92,12 +92,4 @@ public interface Repository extends Trackable {
      */
     public String getRelativePath();
 
-    /**
-     * Resolve path relative to this repository.
-     * @param path a path string
-     * @param absolute whether to return an absolute path that can be used without this repository
-     * @return a List containing the path elements resolved relative to this repository
-     */
-    public String[] resolve(String path, boolean absolute);
-
 }

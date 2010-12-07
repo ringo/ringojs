@@ -6,6 +6,7 @@ import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.annotations.JSFunction;
 import org.mozilla.javascript.annotations.JSGetter;
 import org.ringojs.repository.Repository;
+import org.ringojs.repository.Resource;
 import org.ringojs.repository.Trackable;
 
 import java.io.IOException;
@@ -33,15 +34,8 @@ public class ModuleObject extends ScriptableObject {
         if (repository == null) {
             return _path;
         }
-        String[] list = repository.resolve(_path, true);
-        int length = list.length;
-        String last = length == 0 ? null : list[length - 1];
-        StringBuilder sb = new StringBuilder();
-        for (String e : list) {
-            sb.append(e);
-            if (e != last) sb.append("/");
-        }
-        return sb.toString();
+        Resource res = repository.getResource(_path);
+        return  (res == null) ? _path : res.getRelativePath();
     }
 
     @JSGetter
