@@ -46,7 +46,7 @@ public class ModuleScope extends ImporterTopLevel {
         this.exportsObject = new ExportsObject();
         defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
-        metaObject = new ModuleMetaObject(this);
+        metaObject = new ModuleObject(this);
         defineProperty("module", metaObject, DONTENUM);
     }
 

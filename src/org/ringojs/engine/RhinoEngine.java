@@ -106,7 +106,7 @@ public class RhinoEngine implements ScopeProvider {
             ScriptableList.init(globalScope);
             ScriptableMap.init(globalScope);
             ScriptableObject.defineClass(globalScope, ScriptableWrapper.class);
-            ScriptableObject.defineClass(globalScope, ModuleMetaObject.class);
+            ScriptableObject.defineClass(globalScope, ModuleObject.class);
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
                     ScriptableObject.defineProperty(globalScope, entry.getKey(),

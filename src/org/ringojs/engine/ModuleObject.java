@@ -10,17 +10,17 @@ import org.ringojs.repository.Trackable;
 
 import java.io.IOException;
 
-public class ModuleMetaObject extends ScriptableObject {
+public class ModuleObject extends ScriptableObject {
 
     String id;
     Trackable source;
     Repository repository;
 
-    public ModuleMetaObject() {}
+    public ModuleObject() {}
 
-    ModuleMetaObject(ModuleScope moduleScope) {
+    ModuleObject(ModuleScope moduleScope) {
         setParentScope(moduleScope);
-        setPrototype(ScriptableObject.getClassPrototype(moduleScope, "ModuleMetaObject"));
+        setPrototype(ScriptableObject.getClassPrototype(moduleScope, "ModuleObject"));
         this.id = moduleScope.getModuleName();
         this.source = moduleScope.getSource();
         this.repository = moduleScope.getRepository();
@@ -72,6 +72,6 @@ public class ModuleMetaObject extends ScriptableObject {
 
     @Override
     public String getClassName() {
-        return "ModuleMetaObject";
+        return "ModuleObject";
     }
 }
