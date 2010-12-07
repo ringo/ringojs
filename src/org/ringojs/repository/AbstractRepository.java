@@ -16,8 +16,6 @@
 
 package org.ringojs.repository;
 
-import org.ringojs.util.StringUtils;
-
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.*;
@@ -162,25 +160,53 @@ public abstract class AbstractRepository implements Repository {
     }
 
     /**
+     * Resolve path relative to this repository.
+     * @param path a path string
+     * @param absolute whether to return an absolute path that can be used without this repository
+     * @return a List containing the path elements resolved relative to this repository
+     */
+    public String[] resolve(String path, boolean absolute) {
+        String[] elements = path.split(SEPARATOR);
+        Deque<String> list = new LinkedList<String>();
+        if (absolute) {
+            list.addAll(Arrays.asList(this.path.split(SEPARATOR)));
+        }
+        for (String e : elements) {
+            if ("..".equals(e)) {
+                String last = list.isEmpty() ? null : list.getLast();
+                if (last == null || "..".equals(last)) {
+                    list.add(e);
+                } else if (!isAbsolute || list.size() > 1) {
+                    list.removeLast();
+                }
+            } else if (!".".equals(e) && !"".equals(e)) {
+                list.add(e);
+            }
+        }
+        return list.toArray(new String[list.size()]);
+    }
+
+    /**
      * Get a resource contained in this repository identified by the given local name.
      * If the name can't be resolved to a resource, a resource object is returned
      * for which {@link Resource exists()} returns <code>false<code>.
      */
     public synchronized Resource getResource(String subpath) throws IOException {
-        int separator = findSeparator(subpath, 0);
-        if (separator < 0) {
-            return lookupResource(subpath);
-        }
-        // FIXME this part is virtually identical to the one in getChildRepository()
+        String[] list = resolve(subpath, false);
         AbstractRepository repo = this;
-        int last = 0;
-        while (separator > -1 && repo != null) {
-            String id = subpath.substring(last, separator);
-            repo = repo.lookupRepository(id);
-            last = separator + 1;
-            separator = findSeparator(subpath, last);
+        if (list.length == 0) {
+            repo = getParentRepository();
+            return repo == null ? null : repo.getResource(name);
+        } else {
+            String last = list[list.length - 1];
+            for (String e : list) {
+                if (repo == null || e == last) {
+                    break;
+                }
+                repo = repo.lookupRepository(e);
+            }
+            return repo == null ? null : repo.lookupResource(last);
         }
-        return repo == null ? null : repo.lookupResource(subpath.substring(last));
     }
 
     /**
@@ -189,20 +215,15 @@ public abstract class AbstractRepository implements Repository {
      * @return the child repository
      */
     public AbstractRepository getChildRepository(String subpath) throws IOException {
-        int separator = findSeparator(subpath, 0);
-        if (separator < 0) {
-            return lookupRepository(subpath);
-        }
-        // FIXME this part is virtually identical to the one in getResource()
+        String[] list = resolve(subpath, false);
         AbstractRepository repo = this;
-        int last = 0;
-        while (separator > -1 && repo != null) {
-            String id = subpath.substring(last, separator);
-            repo = repo.lookupRepository(id);
-            last = separator + 1;
-            separator = findSeparator(subpath, last);
+        for (String e : list) {
+            if (repo == null) {
+                return null;
+            }
+            repo = repo.lookupRepository(e);
         }
-        return repo == null ? null : repo.lookupRepository(subpath.substring(last));
+        return repo;
     }
 
     protected AbstractRepository lookupRepository(String name) throws IOException {
