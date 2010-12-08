@@ -72,13 +72,9 @@ public class FileRepository extends AbstractRepository {
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
         directory = dir.getCanonicalFile();
 
-        if (parent == null) {
-            path = name = directory.getAbsolutePath();
-        } else {
-            this.parent = parent;
-            name = directory.getName();
-            path = directory.getAbsolutePath();
-        }
+        this.parent = parent;
+        name = directory.getName();
+        path = directory.getPath();
         if (!path.endsWith(File.separator)) {
             path += File.separator;
         }
@@ -115,7 +111,7 @@ public class FileRepository extends AbstractRepository {
                 if (repo == null) {
                     repo = new FileRepository(directory.getParentFile());
                     repo.setAbsolute(true);
-                    repositories.put(name, new SoftReference<AbstractRepository>(repo));
+                    repositories.put("..", new SoftReference<AbstractRepository>(repo));
                 }
                 return repo;
             } catch (IOException iox) {
