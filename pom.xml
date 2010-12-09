@@ -282,17 +282,18 @@
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <phase>test</phase>
                         <configuration>
-                            <tasks>
+                            <target unless="maven.test.skip">
                                 <java classname="org.ringojs.tools.launcher.Main" fork="true"
                                       failonerror="yes">
                                     <arg value="test/all.js"/>
                                     <classpath refid="maven.test.classpath"/>
                                 </java>
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
