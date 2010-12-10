@@ -47,8 +47,9 @@ grant codeBase "file:${ringo.home}/packages/-" {
 };
 
 // example sandbox setup
-grant codeBase "file:${ringo.sandbox}/-" {
-        permission java.io.FilePermission "${ringo.sandbox}/-", "read";
+grant codeBase "file:${ringo.home}/sandbox/-" {
+        permission java.io.FilePermission "${ringo.home}/modules/-", "read";
+        permission java.io.FilePermission "${ringo.home}/sandbox/-", "read";
         permission java.util.PropertyPermission "*", "read";
         permission java.lang.RuntimePermission "getenv.*";
         permission java.lang.RuntimePermission "accessDeclaredMembers";
