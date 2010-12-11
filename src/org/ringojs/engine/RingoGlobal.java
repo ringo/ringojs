@@ -215,7 +215,7 @@ public class RingoGlobal extends Global {
                 }
         );
         // PrivilegedAction action = (PrivilegedAction) InterfaceAdapter.create(cx, PrivilegedAction.class, (Callable) args[0]);
-        return AccessController.doPrivileged(action);
+        return cx.getWrapFactory().wrap(cx, scope, AccessController.doPrivileged(action), null);
     }
 
     public static Object trycatch(final Context cx, Scriptable thisObj, Object[] args,
