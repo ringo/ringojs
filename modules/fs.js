@@ -180,7 +180,13 @@ function copyTree(from, to) {
         makeTree(target);
         var files = source.list();
         for each (var file in files) {
-            copyTree(join(source, file), join(target, file));
+            var s = join(source, file);
+            var t = join(target, file);
+            if (isLink(s)) {
+                symbolicLink(readLink(s), t);
+            } else {
+                copyTree(s, t);
+            }
         }
     } else {
         copy(source, target);
