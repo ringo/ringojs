@@ -529,10 +529,24 @@ function isDirectory(path) {
     return resolveFile(path).isDirectory();
 }
 
+/**
+ * Return true if target file is a symbolic link, false otherwise.
+ * @param target
+ */
 function isLink(target) {
-    var POSIX = getPOSIX();
-    var stat = POSIX.lstat(target);
-    return stat.isSymlink();
+    try {
+        var POSIX = getPOSIX();
+        var stat = POSIX.lstat(target);
+        return stat.isSymlink();
+    } catch (error) {
+        // fallback if POSIX is no available
+        target = resolveFile(target);
+        var parent = target.getParentFile();
+        if (!parent) return false;
+        parent = parent.getCanonicalFile();
+        target = new File(parent, target.getName());
+        return !target.equals(target.getCanonicalFile())
+    }
 }
 
 function same(pathA, pathB) {
