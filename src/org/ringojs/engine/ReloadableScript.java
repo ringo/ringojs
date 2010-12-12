@@ -16,9 +16,7 @@
 
 package org.ringojs.engine;
 
-import org.ringojs.repository.Repository;
 import org.ringojs.repository.Resource;
-import org.ringojs.repository.Trackable;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
@@ -39,7 +37,7 @@ import java.util.logging.Logger;
  */
 public class ReloadableScript {
 
-    final Trackable source;
+    final Resource source;
     final RhinoEngine engine;
     final String moduleName;
     // true if we should reload modified source files
@@ -75,7 +73,7 @@ public class ReloadableScript {
      * @param source the JavaScript resource or repository containing the script.
      * @param engine the rhino engine
      */
-    public ReloadableScript(Trackable source, RhinoEngine engine) {
+    public ReloadableScript(Resource source, RhinoEngine engine) {
         this.source = source;
         this.engine = engine;
         reloading = engine.getConfig().isReloading();
@@ -112,11 +110,7 @@ public class ReloadableScript {
             }
             exception = null;
             errors = null;
-            if (source instanceof Repository) {
-                script = getComposedScript(cx);
-            } else {
-                script = getSimpleScript(cx);
-            }
+            script = compileScript(cx);
             scriptref = cache.createReference(source, script, this);
             if (optlevel > -1) {
                 cache.put(source, scriptref);
@@ -139,7 +133,7 @@ public class ReloadableScript {
      * @throws IOException if an error occurred reading the script file
      * @return the compiled and up-to-date script
      */
-    protected synchronized Script getSimpleScript(Context cx)
+    protected synchronized Script compileScript(final Context cx)
             throws JavaScriptException, IOException {
         Resource resource = (Resource) source;
         ErrorReporter errorReporter = cx.getErrorReporter();
@@ -160,49 +154,6 @@ public class ReloadableScript {
     }
 
     /**
-     * Get the a script composed out of multiple scripts. This is a bit of a hack
-     * we have in order to support helma 1 like one-directory-per-prototype like
-     * compilation mode.
-     *
-     * @param cx the current Context
-     * @throws JavaScriptException if an error occurred compiling the script code
-     * @throws IOException if an error occurred reading the script file
-     * @return the compiled and up-to-date script
-     */
-    protected synchronized Script getComposedScript(Context cx)
-            throws JavaScriptException, IOException {
-        Repository repository = (Repository) source;
-        Resource[] resources = repository.getResources(false);
-        final List<Script> scripts = new ArrayList<Script>();
-        ErrorReporter errorReporter = cx.getErrorReporter();
-        cx.setErrorReporter(new ErrorCollector());
-        String charset = engine.getCharset();
-        try {
-            for (Resource res: resources) {
-                if (res.getName().endsWith(".js")) {
-                    CodeSource source = engine.isPolicyEnabled() ?
-                            new CodeSource(res.getUrl(), (CodeSigner[]) null) : null;
-                    scripts.add(cx.compileReader(res.getReader(charset), res.getRelativePath(), 1, source));
-                }
-           }
-        } catch (Exception x) {
-            exception = x;
-        } finally {
-            cx.setErrorReporter(errorReporter);
-            checksum = repository.getChecksum();
-        }
-        return new Script() {
-            public Object exec(Context cx, Scriptable scope) {
-                for (Script script: scripts) {
-                    script.exec(cx, scope);
-                }
-                return null;
-            }
-        };
-    }
-
-
-    /**
      * Evaluate the script on a module scope and return the result
      *
      * @param scope the scope to evaluate the script on
@@ -214,7 +165,7 @@ public class ReloadableScript {
     public Object evaluate(Scriptable scope, Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Trackable,ModuleScope> modules = RhinoEngine.modules.get();
+        Map<Resource,ModuleScope> modules = RhinoEngine.modules.get();
         ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
@@ -239,7 +190,7 @@ public class ReloadableScript {
     protected ModuleScope load(Scriptable prototype, Context cx)
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
-        Map<Trackable, ModuleScope> modules = RhinoEngine.modules.get();
+        Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
         if (modules.containsKey(source)) {
             return modules.get(source);
         }
@@ -262,13 +213,13 @@ public class ReloadableScript {
 
     private synchronized ModuleScope execSync(Context cx, Script script,
                                               ModuleScope module, Scriptable prototype,
-                                              Map<Trackable, ModuleScope> modules)
+                                              Map<Resource, ModuleScope> modules)
             throws IOException {
         return exec(cx, script, module, prototype, modules);
     }
 
     private ModuleScope exec(Context cx, Script script, ModuleScope module,
-                             Scriptable prototype, Map<Trackable, ModuleScope> modules)
+                             Scriptable prototype, Map<Resource, ModuleScope> modules)
             throws IOException {
         if (module == null) {
             module = new ModuleScope(moduleName, source, prototype, cx);
@@ -443,13 +394,13 @@ public class ReloadableScript {
     }
 
     static class ScriptReference extends SoftReference<Script> {
-        Trackable source;
+        Resource source;
         long checksum;
         List<SyntaxError> errors;
         Exception exception;
 
 
-        ScriptReference(Trackable source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
+        ScriptReference(Resource source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
                 throws IOException {
             super(script, queue);
             this.source = source;
@@ -460,21 +411,21 @@ public class ReloadableScript {
     }
 
     static class ScriptCache {
-        ConcurrentHashMap<Trackable, ScriptReference> map;
+        ConcurrentHashMap<Resource, ScriptReference> map;
         ReferenceQueue<Script> queue;
 
         ScriptCache() {
-            map = new ConcurrentHashMap<Trackable, ScriptReference>();
+            map = new ConcurrentHashMap<Resource, ScriptReference>();
             queue = new ReferenceQueue<Script>();
         }
 
-        ScriptReference createReference(Trackable source, Script script,
+        ScriptReference createReference(Resource source, Script script,
                                         ReloadableScript rescript)
                 throws IOException {
             return new ScriptReference(source, script, rescript, queue);
         }
 
-        ScriptReference get(Trackable source) {
+        ScriptReference get(Resource source) {
             ScriptReference ref;
             while((ref = (ScriptReference) queue.poll()) != null) {
                 map.remove(ref.source);
@@ -482,7 +433,7 @@ public class ReloadableScript {
             return map.get(source);
         }
 
-        void put(Trackable source, ScriptReference ref)
+        void put(Resource source, ScriptReference ref)
                 throws IOException {
             map.put(source, ref);
         }

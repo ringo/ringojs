@@ -61,7 +61,7 @@ public class RhinoEngine implements ScopeProvider {
 
     public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
     static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
-    static final ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
+    static final ThreadLocal<Map<Resource, ModuleScope>>modules = new ThreadLocal<Map<Resource, ModuleScope>>();
     static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
 
     private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
@@ -440,7 +440,7 @@ public class RhinoEngine implements ScopeProvider {
         Context cx = Context.getCurrentContext();
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
-        Trackable source;
+        Resource source;
         source = findResource(moduleName + ".js", localPath);
         if (!source.exists()) {
             source = findResource(moduleName, localPath);
@@ -607,7 +607,7 @@ public class RhinoEngine implements ScopeProvider {
             modules.get()
         };
         engines.set(this);
-        modules.set(new HashMap<Trackable, ModuleScope>());
+        modules.set(new HashMap<Resource, ModuleScope>());
         return retval;
     }
 
@@ -615,7 +615,7 @@ public class RhinoEngine implements ScopeProvider {
     private void resetThreadLocals(Object[] objs) {
         if (objs != null) {
             engines.set((RhinoEngine) objs[0]);
-            modules.set((Map<Trackable, ModuleScope>) objs[1]);
+            modules.set((Map<Resource, ModuleScope>) objs[1]);
         }
     }
 

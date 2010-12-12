@@ -12,7 +12,7 @@ package org.ringojs.engine;
 
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
-import org.ringojs.repository.Trackable;
+import org.ringojs.repository.Resource;
 import org.ringojs.tools.RingoConfiguration;
 
 import java.util.HashMap;
@@ -72,7 +72,7 @@ public class RingoContextFactory extends ContextFactory {
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
         RhinoEngine.engines.set(engine);
-        RhinoEngine.modules.set(new HashMap<Trackable, ModuleScope>());
+        RhinoEngine.modules.set(new HashMap<Resource, ModuleScope>());
         Thread.currentThread().setContextClassLoader(engine.getClassLoader());
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
