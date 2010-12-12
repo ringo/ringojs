@@ -21,8 +21,11 @@ import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 import java.security.CodeSource;
 import java.security.CodeSigner;
@@ -37,7 +40,7 @@ import java.util.logging.Logger;
  */
 public class ReloadableScript {
 
-    final Resource source;
+    final Resource resource;
     final RhinoEngine engine;
     final String moduleName;
     // true if we should reload modified source files
@@ -74,7 +77,7 @@ public class ReloadableScript {
      * @param engine the rhino engine
      */
     public ReloadableScript(Resource source, RhinoEngine engine) {
-        this.source = source;
+        this.resource = source;
         this.engine = engine;
         reloading = engine.getConfig().isReloading();
         moduleName = source.getModuleName();
@@ -93,7 +96,7 @@ public class ReloadableScript {
         // only use shared code cache if optlevel >= 0
         int optlevel = cx.getOptimizationLevel();
         if (scriptref == null && optlevel > -1) {
-            scriptref = cache.get(source);
+            scriptref = cache.get(resource);
         }
         Script script = null;
         if (scriptref != null) {
@@ -103,17 +106,17 @@ public class ReloadableScript {
             exception = scriptref.exception;
         }
         // recompile if neither script or exception are available, or if source has been updated
-        if ((script == null && exception == null) || (reloading && checksum != source.getChecksum())) {
+        if ((script == null && exception == null) || (reloading && checksum != resource.getChecksum())) {
             shared = Shared.UNKNOWN;
-            if (!source.exists()) {
-                throw new IOException(source + " not found or not readable");
+            if (!resource.exists()) {
+                throw new IOException(resource + " not found or not readable");
             }
             exception = null;
             errors = null;
             script = compileScript(cx);
-            scriptref = cache.createReference(source, script, this);
+            scriptref = cache.createReference(resource, script, this);
             if (optlevel > -1) {
-                cache.put(source, scriptref);
+                cache.put(resource, scriptref);
             }
         }
         if (errors != null && !errors.isEmpty()) {
@@ -135,15 +138,25 @@ public class ReloadableScript {
      */
     protected synchronized Script compileScript(final Context cx)
             throws JavaScriptException, IOException {
-        Resource resource = (Resource) source;
-        ErrorReporter errorReporter = cx.getErrorReporter();
+        final String path = resource.getRelativePath();
+        final ErrorReporter errorReporter = cx.getErrorReporter();
         cx.setErrorReporter(new ErrorCollector());
         Script script = null;
         String charset = engine.getCharset();
         try {
-            CodeSource source = engine.isPolicyEnabled() ?
+            final CodeSource source = engine.isPolicyEnabled() ?
                     new CodeSource(resource.getUrl(), (CodeSigner[]) null) : null;
-            script = cx.compileReader(resource.getReader(charset), resource.getRelativePath(), 1, source);
+            final Reader reader = resource.getReader(charset);
+            script = AccessController.doPrivileged(new PrivilegedAction<Script>() {
+                public Script run() {
+                    try {
+                        return cx.compileReader(reader, path, 1, source);
+                    } catch (Exception x) {
+                        exception = x;
+                    }
+                    return null;
+                }
+            });
         } catch (Exception x) {
             exception = x;
         } finally {
@@ -169,7 +182,7 @@ public class ReloadableScript {
         ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
-            modules.put(source, module);
+            modules.put(resource, module);
         }
         Object value = script.exec(cx, scope);
         if (scope instanceof ModuleScope) {
@@ -191,15 +204,15 @@ public class ReloadableScript {
             throws JavaScriptException, IOException {
         // check if we already came across the module in the current context/request
         Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
-        if (modules.containsKey(source)) {
-            return modules.get(source);
+        if (modules.containsKey(resource)) {
+            return modules.get(resource);
         }
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
                 && module != null
                 && (!reloading || module.getChecksum() == getChecksum())) {
             // Reuse cached scope for shared modules.
-            modules.put(source, module);
+            modules.put(resource, module);
             return module;
         }
 
@@ -222,14 +235,14 @@ public class ReloadableScript {
                              Scriptable prototype, Map<Resource, ModuleScope> modules)
             throws IOException {
         if (module == null) {
-            module = new ModuleScope(moduleName, source, prototype, cx);
+            module = new ModuleScope(moduleName, resource, prototype, cx);
         } else {
             module.reset();
         }
         if (log.isLoggable(Level.FINE)) {
             log.fine("Loading module: " + moduleName);
         }
-        modules.put(source, module);
+        modules.put(resource, module);
         // warnings are disabled in shell - enable warnings for module loading
         ErrorReporter er = cx.getErrorReporter();
         ToolErrorReporter reporter = er instanceof ToolErrorReporter ?
@@ -271,10 +284,10 @@ public class ReloadableScript {
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
             module.setChecksum(getChecksum());
-            engine.registerSharedScript(source, this);
+            engine.registerSharedScript(resource, this);
             moduleScope = module;
         } else {
-            engine.removeSharedScript(source);
+            engine.removeSharedScript(resource);
             moduleScope = null;
         }
     }
@@ -288,7 +301,7 @@ public class ReloadableScript {
      * @throws IOException source could not be checked because of an I/O error
      */
     protected long getChecksum() throws IOException {
-        long cs = source.getChecksum();
+        long cs = resource.getChecksum();
         if (shared == Shared.TRUE) {
             Set<ReloadableScript> set = new HashSet<ReloadableScript>();
             set.add(this);
@@ -312,7 +325,7 @@ public class ReloadableScript {
             return 0;
         }
         set.add(this);
-        long cs = source.getChecksum();
+        long cs = resource.getChecksum();
         for (ReloadableScript script: dependencies) {
             cs += script.getNestedChecksum(set);
         }
@@ -344,7 +357,7 @@ public class ReloadableScript {
      */
     @Override
     public int hashCode() {
-        return source.hashCode();
+        return resource.hashCode();
     }
 
     /**
@@ -355,7 +368,7 @@ public class ReloadableScript {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ReloadableScript
-                && source.equals(((ReloadableScript) obj).source);
+                && resource.equals(((ReloadableScript) obj).resource);
     }
 
     /**
