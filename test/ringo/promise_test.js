@@ -1,9 +1,9 @@
 var assert = require("assert");
-var {defer, promiseList} = require("ringo/promise");
+var {defer, promises} = require("ringo/promise");
 
 exports.testPromiseList = function() {
     var d1 = defer(), d2 = defer(), d3 = defer();
-    var l = promiseList(d1.promise, d2.promise, d3); // promiseList should convert d3 to promise
+    var l = promises(d1.promise, d2.promise, d3); // promiseList should convert d3 to promise
     l.then(function(result) {
         assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
     }, function(error) {
