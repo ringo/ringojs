@@ -21,6 +21,7 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
 var POSIX;
+var security = java.lang.System.getSecurityManager();
 
 function getPOSIX() {
     POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
@@ -505,6 +506,7 @@ function lastModified(path) {
 }
 
 function makeDirectory(path, permissions) {
+    if (security) security.checkWrite(path);
     permissions = permissions != null ?
             new Permissions(permissions) : Permissions["default"];
     var POSIX = getPOSIX();
@@ -534,6 +536,7 @@ function isDirectory(path) {
  * @param target
  */
 function isLink(target) {
+    if (security) security.checkRead(target);
     try {
         var POSIX = getPOSIX();
         var stat = POSIX.lstat(target);
@@ -550,6 +553,10 @@ function isLink(target) {
 }
 
 function same(pathA, pathB) {
+    if (security) {
+        security.checkRead(pathA);
+        security.checkRead(pathB);
+    }
     var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
@@ -557,6 +564,10 @@ function same(pathA, pathB) {
 }
 
 function sameFilesystem(pathA, pathB) {
+    if (security) {
+        security.checkRead(pathA);
+        security.checkRead(pathB);
+    }
     var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
@@ -573,16 +584,25 @@ function touch(path, mtime) {
 }
 
 function symbolicLink(source, target) {
+    if (security) {
+        security.checkRead(source);
+        security.checkWrite(target);
+    }
     var POSIX = getPOSIX();
     return POSIX.symlink(source, target);
 }
 
 function hardLink(source, target) {
+    if (security) {
+        security.checkRead(source);
+        security.checkWrite(target);
+    }
     var POSIX = getPOSIX();
     return POSIX.link(source, target);
 }
 
 function readLink(path) {
+    if (security) security.checkRead(path);
     var POSIX = getPOSIX();
     return POSIX.readlink(path);
 }
@@ -650,12 +670,14 @@ if (!Permissions['default']) {
 }
 
 function permissions(path) {
+    if (security) security.checkRead(path);
     var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
     return new Permissions(stat.mode() & 0777);
 }
 
 function owner(path) {
+    if (security) security.checkRead(path);
     try {
         var POSIX = getPOSIX();
         var uid = POSIX.stat(path).uid();
@@ -667,6 +689,7 @@ function owner(path) {
 }
 
 function group(path) {
+    if (security) security.checkRead(path);
     try {
         var POSIX = getPOSIX();
         var gid = POSIX.stat(path).gid();
@@ -678,6 +701,7 @@ function group(path) {
 }
 
 function changePermissions(path, permissions) {
+    if (security) security.checkWrite(path);
     permissions = new Permissions(permissions);
     var POSIX = getPOSIX();
     var stat = POSIX.stat(path);
@@ -689,6 +713,7 @@ function changePermissions(path, permissions) {
 
 // Supports user name string as well as uid int input.
 function changeOwner(path, user) {
+    if (security) security.checkWrite(path);
     var POSIX = getPOSIX();
     return POSIX.chown(path, typeof user === 'string' ?
             POSIX.getpwnam(user).pw_uid : user, -1);
@@ -696,6 +721,7 @@ function changeOwner(path, user) {
 
 // Supports group name string as well as gid int input.
 function changeGroup(path, group) {
+    if (security) security.checkWrite(path);
     var POSIX = getPOSIX();
     return POSIX.chown(path, -1, typeof group === 'string' ?
             POSIX.getgrnam(group).gr_gid : group);
