@@ -12,7 +12,7 @@ exports.testPromiseList = function() {
     d2.resolve(1);
     d3.resolve("error", true);
     d1.resolve("ok");
-    // make sure promises resovle via wait()
+    // make sure promises resolve via wait()
     var result = l.wait();
     assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
     // make sure promises resolve via callback

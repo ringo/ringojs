@@ -145,28 +145,29 @@ function defer() {
  */
 function promises() {
     var promises = Array.slice(arguments);
-    var count = promises.length;
+    var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
     var results = [];
     var i = 0;
     var deferred = defer();
+
     promises.forEach(function(promise) {
         if (typeof promise.then !== "function" && promise.promise) {
             promise = promise.promise;
         }
         var index = i++;
         promise.then(
-            function(value) {
+            sync(function(value) {
                 results[index] = {value: value};
-                if (--count == 0) {
+                if (count.decrementAndGet() == 0) {
                     deferred.resolve(results);
                 }
-            },
-            function(error) {
+            }, count),
+            sync(function(error) {
                 results[index] = {error: error};
-                if (--count == 0) {
+                if (count.decrementAndGet() == 0) {
                     deferred.resolve(results);
                 }
-            }
+            }, count)
         );
     });
     return deferred.promise;
