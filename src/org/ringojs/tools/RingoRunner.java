@@ -19,10 +19,13 @@ package org.ringojs.tools;
 import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.ModuleScope;
+import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.engine.SyntaxError;
 import org.ringojs.repository.FileRepository;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.ZipRepository;
+import org.ringojs.security.RingoSecurityManager;
+import org.ringojs.security.SecureWrapFactory;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
@@ -116,7 +119,9 @@ public class RingoRunner {
         String[] paths = modulePath == null ?
                 new String[0] : StringUtils.split(modulePath, File.pathSeparator);
         config = new RingoConfiguration(home, paths, "modules");
-        config.setPolicyEnabled(System.getProperty("java.security.policy") != null);
+        boolean hasPolicy = System.getProperty("java.security.policy") != null;
+        config.setPolicyEnabled(hasPolicy);
+        config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());
         config.setMainScript(scriptName);
         config.setArguments(scriptArgs);
         config.setOptLevel(optlevel);

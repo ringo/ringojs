@@ -15,6 +15,8 @@ import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.ringojs.repository.Resource;
 import org.ringojs.tools.RingoConfiguration;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -73,7 +75,12 @@ public class RingoContextFactory extends ContextFactory {
         super.onContextCreated(cx);
         RhinoEngine.engines.set(engine);
         RhinoEngine.modules.set(new HashMap<Resource, ModuleScope>());
-        Thread.currentThread().setContextClassLoader(engine.getClassLoader());
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                Thread.currentThread().setContextClassLoader(engine.getClassLoader());
+                return null;
+            }
+        });
         cx.setApplicationClassLoader(engine.getClassLoader());
         cx.setWrapFactory(engine.getWrapFactory());
         cx.setLanguageVersion(languageVersion);

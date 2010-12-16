@@ -17,6 +17,7 @@
 package org.ringojs.tools;
 
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.WrapFactory;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
@@ -52,6 +53,7 @@ public class RingoConfiguration {
     private boolean parentProtoProperties = false;
     private Class<Scriptable>[] hostClasses = null;
     private ClassShutter classShutter = null;
+    private WrapFactory wrapFactory = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
@@ -419,6 +421,14 @@ public class RingoConfiguration {
 
     public void setClassShutter(ClassShutter classShutter) {
         this.classShutter = classShutter;
+    }
+
+    public WrapFactory getWrapFactory() {
+        return wrapFactory;
+    }
+
+    public void setWrapFactory(WrapFactory wrapFactory) {
+        this.wrapFactory = wrapFactory;
     }
 
     public boolean isSealed() {

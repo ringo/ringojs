@@ -20,7 +20,6 @@ import org.ringojs.repository.*;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
-import org.ringojs.util.*;
 import org.ringojs.wrappers.*;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
@@ -50,7 +49,7 @@ public class RhinoEngine implements ScopeProvider {
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
-    private RingoWrapFactory wrapFactory = new RingoWrapFactory();
+    private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
 
     private RingoContextFactory contextFactory = null;
@@ -67,10 +66,11 @@ public class RhinoEngine implements ScopeProvider {
     private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
 
     /**
-     * Create a RhinoEngine which loads scripts from directory <code>dir</code>
-     * and defines the given classes as native host objects.
+     * Create a RhinoEngine with the given configuration. If <code>globals</code>
+     * is not null, its contents are added as properties on the global object.
+     *
      * @param config the configuration used to initialize the engine.
-     * @param globals an optional map of predefined global properties
+     * @param globals an optional map of global properties
      * @throws Exception if the engine can't be created
      */
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
@@ -84,6 +84,7 @@ public class RhinoEngine implements ScopeProvider {
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
+        this.wrapFactory = config.getWrapFactory();
         RingoDebugger debugger = null;
         if (config.getDebug()) {
             debugger = new RingoDebugger(config);
@@ -870,33 +871,6 @@ public class RhinoEngine implements ScopeProvider {
         return wrapFactory;
     }
 
-    class RingoWrapFactory extends WrapFactory {
-
-        public RingoWrapFactory() {
-            // disable java primitive wrapping, it's just annoying.
-            setJavaPrimitiveWrap(false);
-        }
-
-        /**
-         * Override to wrap maps as scriptables.
-         *
-         * @param cx         the current Context for this thread
-         * @param scope      the scope of the executing script
-         * @param obj        the object to be wrapped. Note it can be null.
-         * @param staticType type hint. If security restrictions prevent to wrap
-         *                   object based on its class, staticType will be used instead.
-         * @return the wrapped value.
-         */
-        @Override
-        public Object wrap(Context cx, Scriptable scope, Object obj, Class staticType) {
-            if (obj instanceof CaseInsensitiveMap) {
-                return new ScriptableMap(scope, (CaseInsensitiveMap) obj);
-            }
-            return super.wrap(cx, scope, obj, staticType);
-        }
-
-    }
-
     public static class RetryException extends RuntimeException {
         public final String retry;
 
@@ -916,7 +890,7 @@ class AppClassLoader extends RingoClassLoader {
     }
 
     /**
-     * Overrides addURL to make it accessable to GlobalFunctions.importJar()
+     * Overrides addURL to make it accessable to RingoGlobal.addToClasspath()
      * @param url the url to add to the classpath
      */
     protected synchronized void addURL(URL url) {

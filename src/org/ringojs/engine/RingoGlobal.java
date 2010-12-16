@@ -32,12 +32,14 @@ import org.mozilla.javascript.Wrapper;
 import org.mozilla.javascript.tools.shell.Environment;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
+import org.ringojs.security.RingoSecurityManager;
 import org.ringojs.util.ScriptUtils;
 import org.mozilla.javascript.tools.shell.Global;
 import org.ringojs.wrappers.ModulePath;
 import org.ringojs.repository.Resource;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.io.IOException;
@@ -49,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RingoGlobal extends Global {
 
+    private final static SecurityManager securityManager = System.getSecurityManager();
     private static ExecutorService threadPool;
     private static AtomicInteger ids = new AtomicInteger();
     private int asyncCount = 0;
@@ -110,7 +113,12 @@ public class RingoGlobal extends Global {
         Environment environment = new Environment(this);
         defineProperty("environment", environment,
                        ScriptableObject.DONTENUM);
-        
+        try {
+            Method getter = RingoGlobal.class.getMethod("getAsyncCount", Scriptable.class);
+            defineProperty("asyncCount", this, getter, null, DONTENUM | PERMANENT | READONLY);
+        } catch (NoSuchMethodException nsm) {
+            throw new RuntimeException(nsm);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -174,6 +182,9 @@ public class RingoGlobal extends Global {
 
     public static Object addToClasspath(final Context cx, Scriptable thisObj, Object[] args,
                                         Function funObj) {
+        if (securityManager != null) {
+            securityManager.checkPermission(RingoSecurityManager.GET_CLASSLOADER);
+        }
         if (args.length != 1) {
             throw Context.reportRuntimeError("addToClasspath() requires an argument");
         }
@@ -232,6 +243,9 @@ public class RingoGlobal extends Global {
     }
 
     public static Object spawn(final Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+        if (securityManager != null) {
+            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
+        }
         if (args.length < 1  || !(args[0] instanceof Function)) {
             throw Context.reportRuntimeError("spawn() requires a function argument");
         }
@@ -255,11 +269,21 @@ public class RingoGlobal extends Global {
         });
     }
 
+    public synchronized int getAsyncCount(Scriptable obj) {
+        return asyncCount;
+    }
+
     public synchronized void increaseAsyncCount() {
+        if (securityManager != null) {
+            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
+        }
         asyncCount += 1;
     }
 
     public synchronized void decreaseAsyncCount() {
+        if (securityManager != null) {
+            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
+        }
         asyncCount -= 1;
         if (asyncCount <= 0) {
             notifyAll();

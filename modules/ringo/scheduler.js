@@ -20,6 +20,8 @@ var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
     }
 }));
 
+var security = java.lang.System.getSecurityManager();
+var spawnPermission = org.ringojs.security.RingoSecurityManager.SPAWN_THREAD;
 /**
  * Executes a function after specified delay.
  * @param {function} callback a function
@@ -29,6 +31,7 @@ var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
  * invocation
  */
 exports.setTimeout = function(callback, delay) {
+    if (security) security.checkPermission(spawnPermission);
     var args = Array.slice(arguments, 2);
     var runnable = new Callable({
         call: function() {
@@ -52,6 +55,7 @@ exports.setTimeout = function(callback, delay) {
  * @see setTimeout
  */
 exports.clearTimeout = function(id) {
+    if (security) security.checkPermission(spawnPermission);
     try {
         if (id.cancel(false)) {
             global.decreaseAsyncCount();
@@ -70,6 +74,7 @@ exports.clearTimeout = function(id) {
  * @returns {object} an id object useful for cancelling the scheduled invocation
  */
 exports.setInterval = function(callback, delay) {
+    if (security) security.checkPermission(spawnPermission);
     var args = Array.slice(arguments, 2);
     var runnable = new java.lang.Runnable({
         run: function() {
@@ -90,9 +95,10 @@ exports.setInterval = function(callback, delay) {
  * @param {object} id the id object returned by setInterval()
  * @see setInterval
  */
-exports.clearInterval = function(future) {
+exports.clearInterval = function(id) {
+    if (security) security.checkPermission(spawnPermission);
     try {
-        if (future.cancel(false)) {
+        if (id.cancel(false)) {
             global.decreaseAsyncCount();
         }
     } catch (e) {
