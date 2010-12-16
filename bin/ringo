@@ -40,7 +40,7 @@ if [ -z "$RINGO_HOME" ]; then
 fi
 
 if [ "$OSTYPE" == 'cygwin' ]; then
-    RINGO_HOME=`cygpath -u $RINGO_HOME`
+    RINGO_HOME=`cygpath -w $RINGO_HOME`
 fi
 
 if [ -z "$JAVA_HOME" ] ; then
