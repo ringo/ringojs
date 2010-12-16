@@ -556,24 +556,15 @@ public class RhinoEngine implements ScopeProvider {
     /**
      * Create a sandboxed scripting engine with the same install directory as this and the
      * given module paths, global properties, class shutter and sealing
-     * @param modulePath the comma separated module search path
+     * @param config the sandbox configuration
      * @param globals a map of predefined global properties, may be null
-     * @param shutter a Rhino class shutter, may be null
-     * @param sealed if the global object should be sealed, defaults to false
      * @return a sandboxed RhinoEngine instance
      * @throws FileNotFoundException if any part of the module paths does not exist
-     * TODO clean up signature (esp. includeSystemModules)
      */
-    public RhinoEngine createSandbox(String[] modulePath, Map<String,Object> globals,
-                                     boolean includeSystemModules, ClassShutter shutter,
-                                     boolean sealed)
+    public RhinoEngine createSandbox(RingoConfiguration config, Map<String,Object> globals)
             throws Exception {
-        String systemModules = includeSystemModules ? "modules" : null;
-        RingoConfiguration sandbox = new RingoConfiguration(getRingoHome(), modulePath, systemModules);
-        sandbox.setClassShutter(shutter);
-        sandbox.setSealed(sealed);
-        sandbox.setPolicyEnabled(config.isPolicyEnabled());
-        return new RhinoEngine(sandbox, globals);
+        config.setPolicyEnabled(this.config.isPolicyEnabled());
+        return new RhinoEngine(config, globals);
     }
 
     protected boolean isPolicyEnabled() {
