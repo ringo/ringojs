@@ -18,6 +18,7 @@ package org.ringojs.tools;
 
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrapFactory;
+import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
@@ -424,6 +425,9 @@ public class RingoConfiguration {
     }
 
     public WrapFactory getWrapFactory() {
+        if (wrapFactory == null) {
+            wrapFactory = new RingoWrapFactory();
+        }
         return wrapFactory;
     }
 
