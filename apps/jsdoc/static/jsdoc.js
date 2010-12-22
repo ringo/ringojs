@@ -1,5 +1,6 @@
 function jsdocSetup() {
 
+    // filter given ul $list by text query
     var filterList = function(query, $list) {
         if (!query) {
             $('li', $list).show();
@@ -19,15 +20,19 @@ function jsdocSetup() {
     };
 
     // search module list
-    $("#jsdoc-leftnavsearch").keyup(function() {
+    function doFilter() {
         var query = $.trim($(this).val().toLowerCase());
-        filterList(query, $('.jsdoc-leftnav'));
-    }).focus();
+        if (sessionStorage) {
+            sessionStorage.jsdocQuery = query;
+        }
+        filterList(query, $('.jsdoc-leftnav'));    
+    }
+    $("#jsdoc-leftnavsearch").change(doFilter).keyup(doFilter).click(doFilter).focus();
 
+    // hide all but first paragraph from module fileoverview
     var $showMoreLink = $('.jsdoc-showmore');
     $(".jsdoc-fileoverview").each(function(idx, overview) {
         var $overview = $(overview);
-        //console.log($(":first", $overview));
         var $allButFirstElement = $overview.children().not(":first-child");
         if ($allButFirstElement.length) {
             $allButFirstElement.hide();
@@ -38,4 +43,11 @@ function jsdocSetup() {
     $(".jsdoc-showmore").click(function() {
         $(this).hide().siblings().show();
     });
+    
+    // load query string from storage if any
+    var query = sessionStorage && sessionStorage.jsdocQuery;
+    if (query) {
+        $("#jsdoc-leftnavsearch").val(query).trigger('keyup');
+        
+    }
 }

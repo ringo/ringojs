@@ -23,9 +23,6 @@ var config = require('./config.js');
 // need config.macros in context for skin rendering
 var defaultContext = {};
 
-// let skins now we are in static mode
-defaultContext.isStaticRenderer = true;
-
 /**
  * @param {Object} repostitory
  * @param {String} exportDirectory
@@ -153,6 +150,7 @@ function main(args) {
     parser.addOption('d', 'directory', 'directory', 'Directory for output files (default: "out")');
     parser.addOption('n', 'name', 'name', 'Name of the Repository (default: auto generated from path)');
     parser.addOption('q', 'quiet', null, 'Do not output any messages.');
+    parser.addOption(null, 'file-urls', null, 'Add "index.html" to all URLs for file:// serving.');
     parser.addOption('h', 'help', null, 'Print help message and exit');
     var opts = parser.parse(args);
     if (opts.help) {
@@ -169,6 +167,7 @@ function main(args) {
         name: opts.name || getRepositoryName(opts.source)
     };
     var quiet = opts.quiet || false;
+    defaultContext.indexHtmlHref = (opts['file-urls'] === true);
 
     // check if export dir exists & is empty
     var dest = new Path(exportDirectory);
