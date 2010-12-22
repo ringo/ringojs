@@ -11,7 +11,7 @@ import java.security.PrivilegedAction;
  */
 public class POSIX {
 
-    public static Object getPOSIX() throws ClassNotFoundException {
+    public static Object getPOSIX() {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 try {
@@ -20,7 +20,7 @@ public class POSIX {
                     posix.getuid();
                     return posix;
                 } catch (Throwable t) {
-                    return null;
+                    throw new RuntimeException(t);
                 }
             }
         });
