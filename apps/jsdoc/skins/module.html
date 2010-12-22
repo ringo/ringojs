@@ -13,7 +13,7 @@ $(document).ready(jsdocSetup);
 <div>
     <a class="repositoryname" href="<% rootPath %><% if <% isStaticRenderer %> echo index.html %>"><% repositoryName %> </a>
 </div>
-<input id="jsdoc-leftnavsearch" type="text">
+<input id="jsdoc-leftnavsearch" type="search">
 <ul class="jsdoc-leftnav leftnav">
     <% for module in <% modules %> render "moduleItem" %>
 </ul>
@@ -73,7 +73,6 @@ $(document).ready(jsdocSetup);
 <% subskin propertyOverview %>
 <li>
     <a href="#<% item.name %>" class="jsdoc-title"> <% item.shortName %></a><% if <% item.isFunction %> render parameterLine %>
-    </a>
 </li>
 
 <% subskin parameterLine %>
