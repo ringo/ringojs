@@ -48,7 +48,12 @@ exports.Parser = function() {
     this.help = function() {
         var lines = [];
         for each (var opt in options) {
-            var flags = " -" + opt.shortName;
+            var flags;
+            if (opt.shortName !== undefined && opt.shortName !== null) {
+                flags = " -" + opt.shortName;
+            } else {
+                flags = "   ";
+            }
             if (opt.longName) {
                 flags += " --" + opt.longName;
             }
