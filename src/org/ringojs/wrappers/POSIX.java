@@ -19,8 +19,8 @@ public class POSIX {
                     // call some method to make sure native library gets loaded
                     posix.getuid();
                     return posix;
-                } catch (NoClassDefFoundError noclass) {
-                    throw new RuntimeException(noclass);
+                } catch (Throwable t) {
+                    return null;
                 }
             }
         });
