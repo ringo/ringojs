@@ -44,10 +44,10 @@ public class RingoClassLoader extends URLClassLoader {
             throws MalformedURLException {
         this(new URL[0]);
         for (String item: classpath) {
-            if (item.endsWith("/**")) {
+            if (item.endsWith("/**") || item.endsWith("\\**")) {
                 File dir = getAbsoluteFile(home, item.substring(0, item.length() - 2));
                 addClasspathWildcard(dir, true);
-            } else if (item.endsWith("/*")) {
+            } else if (item.endsWith("/*") || item.endsWith("\\*")) {
                 File dir = getAbsoluteFile(home, item.substring(0, item.length() - 1));
                 addClasspathWildcard(dir, false);
             } else {
