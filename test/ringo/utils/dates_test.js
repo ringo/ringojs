@@ -505,7 +505,6 @@ exports.testParse = function() {
     assert.isNaN(dates.parse("2010-01-01T24:59Z"));
     assert.isNaN(dates.parse("2010-01-01T25:00Z"));
     assert.isNaN(dates.parse("2010-01-01TT25:00Z"));
-    assert.isNaN(dates.parse("2010-01-01T23:00-24:00"));
     assert.isNaN(dates.parse("2010-01-01T23:00-25:00"));
     
     // Check for not NaN
@@ -626,15 +625,6 @@ exports.testParse = function() {
             minutes: 51,
             seconds: 25,
             milliseconds: 123
-        },
-        "2010-01-01T23:59+23:59": { // maximum timezone offset
-            year: 2010,
-            month: 0,
-            date: 0,
-            hour: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
         }
     };
 
