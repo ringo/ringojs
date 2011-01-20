@@ -8,9 +8,11 @@ var STRING2 = 'bar';
 var STRING3 = 'baz';
 var EOL = '\r\n';
 
-exports.setUp = function () buffer.reset();
-exports.testWrite = function () {
+exports.setUp = function () {
+    buffer.reset();
+};
 
+exports.testWrite = function () {
     buffer.write(STRING1, STRING2);
     assert.strictEqual(STRING1 + STRING2, buffer.toString());
     buffer.write(STRING3);
@@ -35,3 +37,15 @@ exports.testDigest = function () {
     buffer.write(STRING1);
     assert.strictEqual(digest(STRING1), buffer.digest());
 };
+
+exports.testLength = function() {
+    var expectedLength = 0;
+    assert.strictEqual(expectedLength, buffer.length);
+    buffer.write(STRING1, STRING2);
+    expectedLength = STRING1.length + STRING2.length;
+    assert.strictEqual(expectedLength, buffer.length);
+    buffer.writeln(STRING3);
+    expectedLength += STRING3.length + EOL.length;
+    assert.strictEqual(expectedLength, buffer.length);
+    assert.strictEqual(expectedLength, buffer.toString().length);
+}

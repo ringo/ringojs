@@ -75,7 +75,7 @@ public class Binary extends ScriptableObject implements Wrapper {
         Scriptable scope = ctorObj.getParentScope();
         Type type = Type.valueOf((String) ctorObj.get("name", ctorObj));
         if (type == Type.Binary) {
-            throw ScriptRuntime.typeError("cannot instantiate Binary base class");
+            throw ScriptRuntime.constructError("Error", "cannot instantiate Binary base class");
         }
         if (args.length == 0) {
             return new Binary(scope, type, 0);
@@ -86,14 +86,14 @@ public class Binary extends ScriptableObject implements Wrapper {
         }
         if (args.length == 2) {
             if (!(arg instanceof String)) {
-                throw ScriptRuntime.typeError("Expected string as first argument");
+                throw ScriptRuntime.constructError("Error", "Expected string as first argument");
             } else if (!(args[1] instanceof String)) {
-                throw ScriptRuntime.typeError("Expected string as second argument");
+                throw ScriptRuntime.constructError("Error", "Expected string as second argument");
             }
             try {
                 return new Binary(scope, type, ((String) arg).getBytes((String) args[1]));
             } catch (UnsupportedEncodingException uee) {
-                throw ScriptRuntime.typeError("Unsupported encoding: " + args[1]);
+                throw ScriptRuntime.constructError("Error", "Unsupported encoding: " + args[1]);
             }
         } else if (arg instanceof Number && type == Type.ByteArray) {
             return new Binary(scope, type, ((Number) arg).intValue());
@@ -118,7 +118,7 @@ public class Binary extends ScriptableObject implements Wrapper {
         } else if (arg == Undefined.instance) {
             return new Binary(scope, type, 0);
         } else {
-            throw ScriptRuntime.typeError("Unsupported argument: " + arg);
+            throw ScriptRuntime.constructError("Error", "Unsupported argument: " + arg);
         }
     }
 
@@ -169,10 +169,10 @@ public class Binary extends ScriptableObject implements Wrapper {
 
     private void putInternal(int index, Object value) {
         if (index < 0) {
-            throw ScriptRuntime.typeError("Negative ByteArray index");
+            throw ScriptRuntime.constructError("Error", "Negative ByteArray index");
         }
         if (!(value instanceof Number)) {
-            throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
+            throw ScriptRuntime.constructError("Error", "Non-numeric ByteArray member: " + value);
         }
         if (index >= length) {
             setLength(index + 1);
@@ -190,7 +190,7 @@ public class Binary extends ScriptableObject implements Wrapper {
     public synchronized void setLength(Object length) {
         int l = ScriptUtils.toInt(length, -1);
         if (l < 0) {
-            throw ScriptRuntime.typeError("Inappropriate ByteArray length");
+            throw ScriptRuntime.constructError("Error", "Inappropriate ByteArray length");
         }
         setLength(l);
     }
@@ -282,15 +282,15 @@ public class Binary extends ScriptableObject implements Wrapper {
     @JSFunction
     public void copy(int srcStartIndex, int srcEndIndex, Binary target, Object targetIndex) {
         if (target.type != Type.ByteArray) {
-            throw ScriptRuntime.typeError("Target object is not writable");
+            throw ScriptRuntime.constructError("Error", "Target object is not writable");
         } else if (srcStartIndex < 0 || srcStartIndex >= length) {
-            throw ScriptRuntime.typeError("Invalid start index: " + srcStartIndex);
+            throw ScriptRuntime.constructError("Error", "Invalid start index: " + srcStartIndex);
         } else if (srcEndIndex < srcStartIndex || srcEndIndex > length) {
-            throw ScriptRuntime.typeError("Invalid end index: " + srcEndIndex);
+            throw ScriptRuntime.constructError("Error", "Invalid end index: " + srcEndIndex);
         }
         int targetIdx = ScriptUtils.toInt(targetIndex, 0);
         if (targetIdx < 0) {
-            throw ScriptRuntime.typeError("Invalid target index: " + targetIndex);
+            throw ScriptRuntime.constructError("Error", "Invalid target index: " + targetIndex);
         }
         int size = srcEndIndex - srcStartIndex;
         target.copyFrom(bytes, srcStartIndex, size, targetIdx);
@@ -377,7 +377,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 for (int i = 0; i < length; i++) {
                     Object value = ScriptableObject.getProperty(object, i);
                     if (!(value instanceof Number)) {
-                        throw ScriptRuntime.typeError("Non-numeric ByteArray member: " + value);
+                        throw ScriptRuntime.constructError("Error", "Non-numeric ByteArray member: " + value);
                     }
                     int n = ((Number) value).intValue();
                     bytes[i] = (byte) (0xff & n);
@@ -385,7 +385,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 arglength += bytes.length;
                 arglist.add(bytes);
             } else {
-                throw ScriptRuntime.typeError("Unsupported argument: " + arg);
+                throw ScriptRuntime.constructError("Error", "Unsupported argument: " + arg);
             }
         }
         Binary thisByteArray = (Binary) thisObj;
@@ -406,10 +406,10 @@ public class Binary extends ScriptableObject implements Wrapper {
         String cs = toCharset(charset);
         try {
             return cs == null ?
-                    new String(bytes, 0, length) : 
+                    new String(bytes, 0, length) :
                     new String(bytes, 0, length, cs);
         } catch (UnsupportedEncodingException uee) {
-            throw ScriptRuntime.typeError("Unsupported encoding: " + charset);
+            throw ScriptRuntime.constructError("Error", "Unsupported encoding: " + charset);
         }
     }
 
@@ -513,7 +513,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 arg = ((Wrapper) arg).unwrap();
             }
             if (!(arg instanceof byte[])) {
-                throw ScriptRuntime.typeError("wrap() requires an argument of type byte[]");
+                throw ScriptRuntime.constructError("Error", "wrap() requires an argument of type byte[]");
             }
             byte[] bytes = (byte[]) arg;
             Binary wrapper = new Binary(type);
@@ -593,7 +593,7 @@ public class Binary extends ScriptableObject implements Wrapper {
 
     private String toCharset(Object charset) {
         if (charset != Undefined.instance && !(charset instanceof String)) {
-            throw ScriptRuntime.typeError("Unsupported charset: " + charset);
+            throw ScriptRuntime.constructError("Error", "Unsupported charset: " + charset);
         }
         return charset instanceof String ? (String) charset : null;
     }

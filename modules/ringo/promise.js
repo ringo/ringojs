@@ -2,7 +2,7 @@
  * @fileOverview Allows to work with deferred values that will be resolved in the future.
  */
 
-export("defer");
+export("defer", "promises");
 
 var NEW = 0;
 var FULFILLED = 1;
@@ -96,13 +96,13 @@ function defer() {
                 errback: errback
             };
             if (state === NEW) {
-                listeners.push(listener); 
+                listeners.push(listener);
             } else {
                 notify(listener);
             }
             return tail.promise;
         }, lock),
-        
+
         /**
          * Wait for the promise to be resolved.
          * @name Promise.prototype.wait
@@ -131,6 +131,46 @@ function defer() {
         resolve: resolve,
         promise: promise
     };
+}
+
+/**
+ * Combine several promises passed as arguments into one. The promise
+ * returned by this function resolves to an array of objects,
+ * each containing a `value` or `error` property with the value
+ * or error of the corresponding promise. The returned promise
+ * always resolves successfully, provided all input promises are resolved.
+ * @param {promise} promise... any number of promises
+ * @returns {promise} a promise resolving to an array of the argument
+ *     promises' values
+ */
+function promises() {
+    var promises = Array.slice(arguments);
+    var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
+    var results = [];
+    var i = 0;
+    var deferred = defer();
+
+    promises.forEach(function(promise) {
+        if (typeof promise.then !== "function" && promise.promise) {
+            promise = promise.promise;
+        }
+        var index = i++;
+        promise.then(
+            sync(function(value) {
+                results[index] = {value: value};
+                if (count.decrementAndGet() == 0) {
+                    deferred.resolve(results);
+                }
+            }, count),
+            sync(function(error) {
+                results[index] = {error: error};
+                if (count.decrementAndGet() == 0) {
+                    deferred.resolve(results);
+                }
+            }, count)
+        );
+    });
+    return deferred.promise;
 }
 
 /** 

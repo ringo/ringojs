@@ -6,7 +6,7 @@ var numbers = require('ringo/utils/numbers');
 var strings = require('ringo/utils/strings');
 var Buffer = require('ringo/buffer').Buffer;
 var logging = require('ringo/logging');
-var {Headers, ResponseFilter} = require('ringo/webapp/util');
+var {Headers, ResponseFilter} = require('ringo/utils/http');
 
 var responseLogEnabled = true;
 

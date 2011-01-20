@@ -16,6 +16,9 @@
 
 package org.ringojs.tools;
 
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.WrapFactory;
+import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
@@ -49,13 +52,16 @@ public class RingoConfiguration {
     private boolean verbose = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
-    private Class<?>[] hostClasses = null;
+    private Class<Scriptable>[] hostClasses = null;
     private ClassShutter classShutter = null;
+    private WrapFactory wrapFactory = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
+    private boolean packagesDisabled = false;
     private String charset = "UTF-8";
+    private Repository packages = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -209,7 +215,7 @@ public class RingoConfiguration {
                 for (Repository repo : repositories) {
                     if (repo instanceof FileRepository && scriptPath.indexOf(repo.getPath()) == 0) {
                         // found a repository that contains main script - use it as base for module name
-                        // reparent to make sure script resource is relative to parent                        
+                        // reparent to make sure script resource is relative to parent
                         mainResource = repo.getResource(scriptPath.substring(repo.getPath().length()));
                         return;
                     }
@@ -277,7 +283,7 @@ public class RingoConfiguration {
      * Set the host classes to be added to the Rhino engine.
      * @param classes a list of Rhino host classes
      */
-    public void setHostClasses(Class<?>[] classes) {
+    public void setHostClasses(Class<Scriptable>[] classes) {
         this.hostClasses = classes;
     }
 
@@ -285,7 +291,7 @@ public class RingoConfiguration {
      * Get the host classes to be added to the Rhino engine.
      * @return a list of Rhino host classes
      */
-    public Class<?>[] getHostClasses() {
+    public Class<Scriptable>[] getHostClasses() {
         return hostClasses;
     }
 
@@ -294,7 +300,8 @@ public class RingoConfiguration {
      * @return int value between -1 and 9
      */
     public int getOptLevel() {
-        return optimizationLevel;
+        // always use optimization level -1  if running debugger
+        return debug ? -1 : optimizationLevel;
     }
 
     /**
@@ -311,9 +318,6 @@ public class RingoConfiguration {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
-        if (debug) {
-            setOptLevel(-1);
-        }
     }
 
     public boolean isVerbose() {
@@ -420,6 +424,17 @@ public class RingoConfiguration {
         this.classShutter = classShutter;
     }
 
+    public WrapFactory getWrapFactory() {
+        if (wrapFactory == null) {
+            wrapFactory = new RingoWrapFactory();
+        }
+        return wrapFactory;
+    }
+
+    public void setWrapFactory(WrapFactory wrapFactory) {
+        this.wrapFactory = wrapFactory;
+    }
+
     public boolean isSealed() {
         return sealed;
     }
@@ -434,6 +449,28 @@ public class RingoConfiguration {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
+    }
+
+    public Repository getPackageRepository() throws IOException {
+        if (packagesDisabled) {
+            return null;
+        }
+        if (packages == null) {
+            packages = home.getChildRepository("packages");
+        }
+        return packages;
+    }
+
+    public void setPackageRepository(Repository packages) {
+        this.packages = packages;
+    }
+
+    public boolean isPackagesDisabled() {
+        return packagesDisabled;
+    }
+
+    public void setPackagesDisabled(boolean packagesDisabled) {
+        this.packagesDisabled = packagesDisabled;
     }
 
     public boolean isPolicyEnabled() {

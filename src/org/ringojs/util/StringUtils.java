@@ -119,7 +119,7 @@ public class StringUtils {
     /**
      * Scan for a newline sequence in the given CharBuffer, starting at
      * position from until buffer.position(). A newline sequence is one of
-     * "r\n", "\r", or "\n". Returns the index of the 
+     * "r\n", "\r", or "\n". Returns the index of the
      * first newline sequence, or -1 if none was found.
      *
      * @param buffer the character buffer

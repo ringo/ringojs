@@ -35,6 +35,7 @@ public class ScriptUtils {
      * @param scope the scope
      * @return the wrapped/masked java object
      */
+    @SuppressWarnings("unchecked")
     public static Object javaToJS(Object obj, Scriptable scope) {
         if (obj instanceof Scriptable) {
             if (obj instanceof ScriptableObject
@@ -105,11 +106,11 @@ public class ScriptUtils {
             throws IllegalArgumentException {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
             if (allowNull) return null;
-            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+            throw ScriptRuntime.constructError("Error", "Argument " + (pos + 1) + " must not be null");
         } if (args[pos] instanceof ScriptableObject) {
             return (ScriptableObject) args[pos];
         }
-        throw new IllegalArgumentException("Can't convert to ScriptableObject: " + args[pos]);
+        throw ScriptRuntime.constructError("Error", "Can't convert to ScriptableObject: " + args[pos]);
     }
 
     /**
@@ -121,7 +122,7 @@ public class ScriptUtils {
     public static String getStringArgument(Object[] args, int pos, boolean allowNull) {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
             if (allowNull) return null;
-            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+            throw ScriptRuntime.constructError("Error", "Argument " + (pos + 1) + " must not be null");
         }
         return ScriptRuntime.toString(args[pos].toString());
     }
@@ -137,11 +138,11 @@ public class ScriptUtils {
             throws IllegalArgumentException {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
             if (allowNull) return null;
-            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+            throw ScriptRuntime.constructError("Error", "Argument " + (pos + 1) + " must not be null");
         } if (args[pos] instanceof Map) {
             return (Map) args[pos];
         }
-        throw new IllegalArgumentException("Can't convert to java.util.Map: " + args[pos]);
+        throw ScriptRuntime.constructError("Error", "Can't convert to java.util.Map: " + args[pos]);
     }
 
     /**
@@ -153,7 +154,7 @@ public class ScriptUtils {
     public static Object getObjectArgument(Object[] args, int pos, boolean allowNull) {
         if (pos >= args.length || args[pos] == null || args[pos] == Undefined.instance) {
             if (allowNull) return null;
-            throw new IllegalArgumentException("Argument " + (pos + 1) + " must not be null");
+            throw ScriptRuntime.constructError("Error", "Argument " + (pos + 1) + " must not be null");
         }
         return args[pos];
     }

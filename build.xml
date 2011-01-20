@@ -67,8 +67,9 @@
             destdir="${classes}"
             debug="${debug}"
             deprecation="${deprecation}"
-            optimize="${optimize}">
-                <!-- compilerarg value="-Xlint"/ -->
+            optimize="${optimize}"
+            includeAntRuntime="false">
+                <compilerarg value="-Xlint:unchecked"/>
                 <classpath refid="classpath"/>
                 <!-- fix for openjdk rhino bootclasspath bug -->
                 <compilerarg value="-Xbootclasspath/p:${lib}/js.jar"/>
@@ -79,7 +80,7 @@
     <!-- Runs the JUnit and RingoJS test cases                               -->
     <!-- =================================================================== -->
     <target name="test" depends="jar">
-        <java jar="run.jar" fork="true">
+        <java jar="run.jar" fork="true" failonerror="yes">
             <arg value="test/all.js"/>
         </java>
         <junit haltonfailure="true">

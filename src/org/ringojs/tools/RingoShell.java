@@ -183,6 +183,7 @@ public class RingoShell {
         Pattern keywords = Pattern.compile(
                 "(^|\\s)([\\w]+)$");
 
+        @SuppressWarnings("unchecked")
         public int complete(String s, int i, List list) {
             int start = i;
             try {
@@ -233,6 +234,7 @@ public class RingoShell {
             return start;
         }
 
+        @SuppressWarnings("unchecked")
         private void collectIds(Object[] ids, Scriptable obj, String word, String lastpart, List list) {
             for(Object id: ids) {
                 if (!(id instanceof String)) {

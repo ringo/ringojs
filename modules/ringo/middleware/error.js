@@ -8,26 +8,32 @@ var log = require('ringo/logging').getLogger(module.id);
 var {Buffer} = require('ringo/buffer');
 
 /**
- * JSGI middleware to display error messages and stack traces.
+ * Create JSGI middleware to display error messages and stack traces.
+ * @example
+ * <pre>var app = middleware("templates/error.html")(app);</pre>
+ * @param {String} skin the path to a template for rendering error pages (defaults to 'error.html')
+ * @returns {Function} a function that can be used to wrap a JSGI app
  */
-exports.middleware = function(app, skin) {
-    if (arguments.length == 1) {
-        if (typeof app === 'string') {
-            skin = app;
-            return function(app) {
-                return exports.middleware(app, skin);
-            };
-        } else {
-            skin = module.resolve('error.html');
+exports.middleware = function(skin) {
+    var app;  // backwards compatibility
+    if (typeof skin === 'function') {
+        // old non-customizable (app) form
+        app = skin;
+        skin = undefined;
+    }
+    if (!skin) {
+        skin = module.resolve('error.html');
+    }
+    function wrap(app) {
+        return function(request) {
+            try {
+                return app(request);
+            } catch (error if !error.retry && !error.notfound) {
+                return handleError(request, error, skin);
+            }
         }
     }
-    return function(request) {
-        try {
-            return app(request);
-        } catch (error if !error.retry && !error.notfound) {
-            return handleError(request, error, skin);
-        }
-    }
+    return app ? wrap(app) : wrap;
 };
 
 function handleError(request, error, skin) {

@@ -60,6 +60,7 @@ public class Main {
 
     }
 
+    @SuppressWarnings("unchecked")
     private void run(String[] args) {
         try {
             runnerClass.getMethod("run", args.getClass()).invoke(runnerInstance, (Object) args);
@@ -70,6 +71,7 @@ public class Main {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void init(String[] args) {
         try {
             runnerClass.getMethod("init", args.getClass()).invoke(runnerInstance, (Object) args);
@@ -80,6 +82,7 @@ public class Main {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void start() {
         try {
             runnerClass.getMethod("start").invoke(runnerInstance);
@@ -90,6 +93,7 @@ public class Main {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void stop() {
         try {
             runnerClass.getMethod("stop").invoke(runnerInstance);
@@ -100,6 +104,7 @@ public class Main {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void destroy() {
         try {
             runnerClass.getMethod("destroy").invoke(runnerInstance);
@@ -117,7 +122,7 @@ public class Main {
      *
      * @param home the ringo install directory
      * @return the main classloader we'll be using
-     * @throws java.net.MalformedURLException
+     * @throws MalformedURLException
      */
     public static ClassLoader createClassLoader(File home)
             throws MalformedURLException {
@@ -148,9 +153,13 @@ public class Main {
 
         if (ringoHome == null) {
 
-            URLClassLoader loader = (URLClassLoader)
-                                       ClassLoader.getSystemClassLoader();
-            URL launcherUrl = loader.findResource("org/ringojs/tools/launcher/Main.class");
+            URL launcherUrl = findUrl(Main.class.getClassLoader());
+            if (launcherUrl == null) {
+                launcherUrl = findUrl(Thread.currentThread().getContextClassLoader());
+            }
+            if (launcherUrl == null) {
+                launcherUrl = findUrl(ClassLoader.getSystemClassLoader());
+            }
 
             // this is a  JAR URL of the form
             //    jar:<url>!/{entry}
@@ -185,6 +194,13 @@ public class Main {
         // set System property
         System.setProperty("ringo.home", home.getPath());
         return home;
+    }
+
+    private static URL findUrl(ClassLoader loader) {
+        if (loader instanceof URLClassLoader) {
+            return((URLClassLoader) loader).findResource("org/ringojs/tools/launcher/Main.class");
+        }
+        return null;
     }
 
 }

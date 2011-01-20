@@ -1,5 +1,6 @@
 package org.ringojs.engine;
 
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.annotations.JSFunction;
@@ -10,32 +11,31 @@ import org.ringojs.repository.Trackable;
 
 import java.io.IOException;
 
-public class ModuleMetaObject extends ScriptableObject {
+public class ModuleObject extends ScriptableObject {
 
     String id;
     Trackable source;
     Repository repository;
 
-    public ModuleMetaObject() {}
+    public ModuleObject() {}
 
-    ModuleMetaObject(ModuleScope moduleScope) {
+    ModuleObject(ModuleScope moduleScope) {
         setParentScope(moduleScope);
-        setPrototype(ScriptableObject.getClassPrototype(moduleScope, "ModuleMetaObject"));
+        setPrototype(ScriptableObject.getClassPrototype(moduleScope, "ModuleObject"));
         this.id = moduleScope.getModuleName();
         this.source = moduleScope.getSource();
         this.repository = moduleScope.getRepository();
     }
 
     @JSFunction
-    public String resolve(String path) throws IOException {
+    public String resolve(Object path) throws IOException {
+        String _path =  (path == null || path == Undefined.instance) ?
+                "" : ScriptRuntime.toString(path);
         if (repository == null) {
-            return path;
+            return _path;
         }
-        Resource res = repository.getResource(path);
-        if (res == null) {
-            return path;
-        }
-        return res.getRelativePath();
+        Resource res = repository.getResource(_path);
+        return  (res == null) ? _path : res.getRelativePath();
     }
 
     @JSGetter
@@ -72,6 +72,6 @@ public class ModuleMetaObject extends ScriptableObject {
 
     @Override
     public String getClassName() {
-        return "ModuleMetaObject";
+        return "ModuleObject";
     }
 }

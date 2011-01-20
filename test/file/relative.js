@@ -1,5 +1,6 @@
 var assert = require("assert");
 var fs = require('fs');
+var {separator} = require('ringo/utils/files');
 
 var tests = [
     ['', '', ''],
@@ -20,7 +21,8 @@ tests.forEach(function ([source, target, expected]) {
     var name = '"' + source + '" -> "' + target + '" = "' + expected + '"';
     exports['test ' + name] = function () {
         var actual = fs.relative(source, target);
-        assert.strictEqual(expected, actual);
+        // expect returned paths to use system-dependent file separator
+        assert.strictEqual(expected.replace(/\//g, separator), actual);
     };
 });
 

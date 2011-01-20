@@ -24,6 +24,7 @@ exports.Parser = function() {
      * @param {String} longName the long option name (without leading hyphens)
      * @param {String} argument the name of the argument if the option requires one, or null
      * @param {String} helpText the help text to display for the option
+     * @returns {Object} this parser for chained invocation
      */
     this.addOption = function(shortName, longName, argument, helpText) {
         if (shortName && shortName.length != 1) {
@@ -37,6 +38,7 @@ exports.Parser = function() {
             argument: argument,
             helpText: helpText
         });
+        return this;
     };
 
     /**
@@ -46,7 +48,12 @@ exports.Parser = function() {
     this.help = function() {
         var lines = [];
         for each (var opt in options) {
-            var flags = " -" + opt.shortName;
+            var flags;
+            if (opt.shortName !== undefined && opt.shortName !== null) {
+                flags = " -" + opt.shortName;
+            } else {
+                flags = "   ";
+            }
             if (opt.longName) {
                 flags += " --" + opt.longName;
             }

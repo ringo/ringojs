@@ -20,7 +20,6 @@ import org.ringojs.repository.*;
 import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
-import org.ringojs.util.*;
 import org.ringojs.wrappers.*;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
@@ -50,7 +49,7 @@ public class RhinoEngine implements ScopeProvider {
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
     private AppClassLoader loader = new AppClassLoader();
-    private RingoWrapFactory wrapFactory = new RingoWrapFactory();
+    private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
 
     private RingoContextFactory contextFactory = null;
@@ -61,16 +60,17 @@ public class RhinoEngine implements ScopeProvider {
 
     public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
     static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
-    static final ThreadLocal<Map<Trackable, ModuleScope>>modules = new ThreadLocal<Map<Trackable, ModuleScope>>();
+    static final ThreadLocal<Map<Resource, ModuleScope>>modules = new ThreadLocal<Map<Resource, ModuleScope>>();
     static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
 
     private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
 
     /**
-     * Create a RhinoEngine which loads scripts from directory <code>dir</code>
-     * and defines the given classes as native host objects.
+     * Create a RhinoEngine with the given configuration. If <code>globals</code>
+     * is not null, its contents are added as properties on the global object.
+     *
      * @param config the configuration used to initialize the engine.
-     * @param globals an optional map of predefined global properties
+     * @param globals an optional map of global properties
      * @throws Exception if the engine can't be created
      */
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
@@ -84,6 +84,7 @@ public class RhinoEngine implements ScopeProvider {
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
+        this.wrapFactory = config.getWrapFactory();
         RingoDebugger debugger = null;
         if (config.getDebug()) {
             debugger = new RingoDebugger(config);
@@ -97,16 +98,16 @@ public class RhinoEngine implements ScopeProvider {
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
-            Class[] classes = config.getHostClasses();
+            Class<Scriptable>[] classes = config.getHostClasses();
             if (classes != null) {
-                for (Class clazz: classes) {
+                for (Class<Scriptable> clazz: classes) {
                     defineHostClass(clazz);
                 }
             }
             ScriptableList.init(globalScope);
             ScriptableMap.init(globalScope);
             ScriptableObject.defineClass(globalScope, ScriptableWrapper.class);
-            ScriptableObject.defineClass(globalScope, ModuleMetaObject.class);
+            ScriptableObject.defineClass(globalScope, ModuleObject.class);
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
                     ScriptableObject.defineProperty(globalScope, entry.getKey(),
@@ -167,7 +168,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object runScript(Object scriptResource, String... scriptArgs)
-            throws IOException, JavaScriptException, InterruptedException {
+            throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         Resource resource;
@@ -190,7 +191,6 @@ public class RhinoEngine implements ScopeProvider {
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
             retval = evaluateScript(cx, script, mainScope);
-            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -207,7 +207,7 @@ public class RhinoEngine implements ScopeProvider {
      *         compilation or execution
      */
     public Object evaluateExpression(String expr)
-            throws IOException, JavaScriptException, InterruptedException {
+            throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
         Object[] threadLocals = checkThreadLocals();
         cx.setOptimizationLevel(-1);
@@ -217,7 +217,6 @@ public class RhinoEngine implements ScopeProvider {
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
-            globalScope.waitTillDone();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -383,6 +382,14 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
+     * Wait until all daemon threads running in this engine have terminated.
+     * @throws InterruptedException if the current thread has been interrupted
+     */
+    public void waitTillDone() throws InterruptedException {
+        globalScope.waitTillDone();
+    }
+
+    /**
      * Get the current Rhino optimization level
      * @return the current optimization level
      */
@@ -434,17 +441,10 @@ public class RhinoEngine implements ScopeProvider {
         Context cx = Context.getCurrentContext();
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
-        Trackable source;
-        boolean isWildcard = moduleName.endsWith(".*");
-        if (isWildcard) {
-            String repositoryName = moduleName
-                    .substring(0, moduleName.length() - 2);
-            source = findRepository(repositoryName, localPath);
-        } else {
-            source = findResource(moduleName + ".js", localPath);
-            if (!source.exists()) {
-                source = findResource(moduleName, localPath);
-            }
+        Resource source;
+        source = findResource(moduleName + ".js", localPath);
+        if (!source.exists()) {
+            source = findResource(moduleName, localPath);
         }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
@@ -557,24 +557,15 @@ public class RhinoEngine implements ScopeProvider {
     /**
      * Create a sandboxed scripting engine with the same install directory as this and the
      * given module paths, global properties, class shutter and sealing
-     * @param modulePath the comma separated module search path
+     * @param config the sandbox configuration
      * @param globals a map of predefined global properties, may be null
-     * @param shutter a Rhino class shutter, may be null
-     * @param sealed if the global object should be sealed, defaults to false
      * @return a sandboxed RhinoEngine instance
      * @throws FileNotFoundException if any part of the module paths does not exist
-     * TODO clean up signature (esp. includeSystemModules)
      */
-    public RhinoEngine createSandbox(String[] modulePath, Map<String,Object> globals,
-                                     boolean includeSystemModules, ClassShutter shutter,
-                                     boolean sealed)
+    public RhinoEngine createSandbox(RingoConfiguration config, Map<String,Object> globals)
             throws Exception {
-        String systemModules = includeSystemModules ? "modules" : null;
-        RingoConfiguration sandbox = new RingoConfiguration(getRingoHome(), modulePath, systemModules);
-        sandbox.setClassShutter(shutter);
-        sandbox.setSealed(sealed);
-        sandbox.setPolicyEnabled(config.isPolicyEnabled());
-        return new RhinoEngine(sandbox, globals);
+        config.setPolicyEnabled(this.config.isPolicyEnabled());
+        return new RhinoEngine(config, globals);
     }
 
     protected boolean isPolicyEnabled() {
@@ -608,14 +599,15 @@ public class RhinoEngine implements ScopeProvider {
             modules.get()
         };
         engines.set(this);
-        modules.set(new HashMap<Trackable, ModuleScope>());
+        modules.set(new HashMap<Resource, ModuleScope>());
         return retval;
     }
 
+    @SuppressWarnings("unchecked")
     private void resetThreadLocals(Object[] objs) {
         if (objs != null) {
             engines.set((RhinoEngine) objs[0]);
-            modules.set((Map<Trackable, ModuleScope>) objs[1]);
+            modules.set((Map<Resource, ModuleScope>) objs[1]);
         }
     }
 
@@ -644,6 +636,15 @@ public class RhinoEngine implements ScopeProvider {
      */
     public Repository getRingoHome() {
         return config.getRingoHome();
+    }
+
+    /**
+     * Get the repository containing installed packages
+     * @return the packages repository
+     * @throws IOException if an I/O error occurred
+     */
+    public Repository getPackageRepository() throws IOException {
+        return config.getPackageRepository();
     }
 
     /**
@@ -787,7 +788,7 @@ public class RhinoEngine implements ScopeProvider {
                 protected Object resolveObject(Object obj) throws IOException {
                     if (obj instanceof SerializedScopeProxy) {
                         return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
-                    } 
+                    }
                     return super.resolveObject(obj);
                 }
             };
@@ -814,7 +815,11 @@ public class RhinoEngine implements ScopeProvider {
             if (isExports) {
                 return engine.loadModule(cx, moduleName, null).getExports();
             }
-            return moduleName == null ? engine.globalScope : engine.loadModule(cx, moduleName, null);
+            return moduleName == null ?
+                    engine.globalScope :
+                    "<shell>".equals(moduleName) ?
+                            engine.getShellScope() :
+                            engine.loadModule(cx, moduleName, null);
         }
     }
 
@@ -866,33 +871,6 @@ public class RhinoEngine implements ScopeProvider {
         return wrapFactory;
     }
 
-    class RingoWrapFactory extends WrapFactory {
-
-        public RingoWrapFactory() {
-            // disable java primitive wrapping, it's just annoying.
-            setJavaPrimitiveWrap(false);
-        }
-
-        /**
-         * Override to wrap maps as scriptables.
-         *
-         * @param cx         the current Context for this thread
-         * @param scope      the scope of the executing script
-         * @param obj        the object to be wrapped. Note it can be null.
-         * @param staticType type hint. If security restrictions prevent to wrap
-         *                   object based on its class, staticType will be used instead.
-         * @return the wrapped value.
-         */
-        @Override
-        public Object wrap(Context cx, Scriptable scope, Object obj, Class staticType) {
-            if (obj instanceof CaseInsensitiveMap) {
-                return new ScriptableMap(scope, (CaseInsensitiveMap) obj);
-            }
-            return super.wrap(cx, scope, obj, staticType);
-        }
-
-    }
-
     public static class RetryException extends RuntimeException {
         public final String retry;
 
@@ -912,7 +890,7 @@ class AppClassLoader extends RingoClassLoader {
     }
 
     /**
-     * Overrides addURL to make it accessable to GlobalFunctions.importJar()
+     * Overrides addURL to make it accessable to RingoGlobal.addToClasspath()
      * @param url the url to add to the classpath
      */
     protected synchronized void addURL(URL url) {

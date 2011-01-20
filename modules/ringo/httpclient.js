@@ -7,10 +7,12 @@ importPackage(org.eclipse.jetty.client);
 
 var objects = require('ringo/utils/objects');
 var {ByteString, Binary} = require('binary');
+var {Stream, TextStream} = require('io');
 var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
-var {getMimeParameter} = require('ringo/webapp/util');
+var {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
 var base64 = require('ringo/base64');
+var {defer} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('request', 'post', 'get', 'del', 'put', 'Client');
@@ -19,7 +21,7 @@ export('request', 'post', 'get', 'del', 'put', 'Client');
  * Wrapper around jetty.http.HttpCookie.
  */
 var Cookie = function(cookieStr) {
-    
+
     Object.defineProperties(this, {
         /**
          * @returns {String} the cookie's name
@@ -54,7 +56,7 @@ var Cookie = function(cookieStr) {
             }
         }
     });
-    
+
     /**
      * Parses the cookie string passed as argument
      * @param {String} cookieStr The cookie string as received from the remote server
@@ -95,13 +97,13 @@ var Cookie = function(cookieStr) {
                     cookieData.name,
                     cookieData.value,
                     cookieData.domain
-                );            
+                );
             }
         } else {
             cookie = new org.eclipse.jetty.http.HttpCookie(cookieData.name, cookieData.value);
         }
     }
-    
+
     return this;
 };
 
@@ -129,19 +131,10 @@ Cookie.PATTERN = /([^=;]+)=?([^;]*)(?:;\s*|$)/g;
 var Exchange = function(url, options, callbacks) {
     if (!url) throw new Error('missing url argument');
 
-    var opts = objects.merge(options, {
-        data: {},
-        headers: {},
-        method: 'GET',
-        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-        username: undefined,
-        password: undefined
-    });
-
     this.toString = function() {
         return "[ringo.httpclient.Exchange] " + url;
     };
-    
+
     Object.defineProperties(this, {
         /**
          * The response status code
@@ -158,7 +151,7 @@ var Exchange = function(url, options, callbacks) {
          */
         contentType: {
             get: function() {
-                return responseFields.getStringField('Content-Type');
+                return responseHeaders.get('Content-Type');
             }
         },
         /**
@@ -176,7 +169,8 @@ var Exchange = function(url, options, callbacks) {
          */
         contentBytes: {
             get: function() {
-                return ByteString.wrap(exchange.getResponseContentBytes());
+                var bytes = exchange.getResponseContentBytes();
+                return bytes ? ByteString.wrap(bytes) : new ByteString();
             }
         },
         /**
@@ -199,11 +193,11 @@ var Exchange = function(url, options, callbacks) {
         },
         /**
          * The response headers
-         * @name Exchange.prototype.responseHeaders
+         * @name Exchange.prototype.headers
          */
-        responseHeaders: {
+        headers: {
             get: function() {
-                return responseFields;
+                return responseHeaders;
             }
         },
         /**
@@ -213,9 +207,10 @@ var Exchange = function(url, options, callbacks) {
         cookies: {
             get: function() {
                 var cookies = {};
-                var cookieHeaders = responseFields.getValues("Set-Cookie");
-                while (cookieHeaders.hasMoreElements()) {
-                    var cookie = new Cookie(cookieHeaders.nextElement());
+                var cookieHeaders = responseHeaders.get("Set-Cookie");
+                cookieHeaders = cookieHeaders ? cookieHeaders.split("\n") : [];
+                for each (var header in cookieHeaders) {
+                    var cookie = new Cookie(header);
                     cookies[cookie.name] = cookie;
                 }
                 return cookies;
@@ -255,36 +250,6 @@ var Exchange = function(url, options, callbacks) {
         }
     });
 
-    /**
-    * encode an object's properties into an uri encoded string
-    */
-    var encodeContent = function(content) {
-        var buf = new Buffer();
-        var value;
-        for (var key in content) {
-            value = content[key];
-            if (value instanceof Array) {
-                if (key.substring(key.length - 6) == "_array") {
-                    key = key.substring(0,key.length - 6);
-                }
-                for (var i = 0; i < value.length; i++) {
-                    buf.write(encodeURIComponent(key));
-                    buf.write("=");
-                    buf.write(encodeURIComponent(value[i]));
-                    buf.write("&");
-                }
-            } else {
-                buf.write(encodeURIComponent(key));
-                buf.write("=");
-                buf.write(encodeURIComponent(value));
-                buf.write("&");
-            }
-        }
-        var encodedContent = buf.toString();
-        encodedContent = encodedContent.substring(0, encodedContent.length-1);
-        return encodedContent;
-    };
-
     var getStatusMessage = function(status) {
         var message;
         try {
@@ -301,13 +266,13 @@ var Exchange = function(url, options, callbacks) {
     */
 
     var self = this;
-    var responseFields = new org.eclipse.jetty.http.HttpFields();
+    var responseHeaders = new Headers();
     var decoder;
     var exchange = new JavaAdapter(ContentExchange, {
         onResponseComplete: function() {
             try {
                 this.super$onResponseComplete();
-                var content = opts.binary ? self.contentBytes : self.content;
+                var content = options.binary ? self.contentBytes : self.content;
                 if (typeof(callbacks.complete) === 'function') {
                     callbacks.complete(content, self.status, self.contentType, self);
                 }
@@ -331,7 +296,7 @@ var Exchange = function(url, options, callbacks) {
         },
         onResponseContent: function(content) {
             if (typeof(callbacks.part) === 'function') {
-                if (opts.binary) {
+                if (options.binary) {
                     var bytes = ByteString.wrap(content.asArray());
                     callbacks.part(bytes, self.status, self.contentType, self);
                 } else {
@@ -352,7 +317,7 @@ var Exchange = function(url, options, callbacks) {
         },
         onResponseHeader: function(key, value) {
             this.super$onResponseHeader(key, value);
-            responseFields.add(key, value);
+            responseHeaders.add(String(key), String(value));
             return;
         },
         onConnectionFailed: function(exception) {
@@ -397,40 +362,54 @@ var Exchange = function(url, options, callbacks) {
             return;
         },
     });
-    
-    exchange.setMethod(opts.method);
-    
-    if (opts.username && opts.password) {
-        var authKey = base64.encode(opts.username + ':' + opts.password);
+
+    exchange.setMethod(options.method);
+
+    if (typeof(options.username) === 'string' && typeof(options.password) === 'string') {
+        var authKey = base64.encode(options.username + ':' + options.password);
         var authHeaderValue = "Basic " + authKey;
         exchange.addRequestHeader("Authorization", authHeaderValue);
     }
-    
-    for (var headerKey in opts.headers) {
-        exchange.addRequestHeader(headerKey, opts.headers[headerKey]);
+
+    for (var headerKey in options.headers) {
+        exchange.addRequestHeader(headerKey, options.headers[headerKey]);
     }
-    
+
     // set content
-    var content = opts.data;
-    if (opts.data instanceof Object) {
-        content = encodeContent(opts.data);
-    }
-    
-    if (opts.method === 'POST' || opts.method === 'PUT') {
-        if (typeof(content) === 'string') {
-            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content, "utf-8"));
-        } else if (content instanceof Binary) {
-            exchange.setRequestContent(new org.eclipse.jetty.io.ByteArrayBuffer(content));
-        } else if (typeof(content) !== 'undefined') {
-            exchange.setRequestContentSource(content);
+    var content = options.data;
+
+    if (options.method === 'POST' || options.method === 'PUT') {
+        var {ByteArrayBuffer} = org.eclipse.jetty.io;
+        if (content instanceof Binary) {
+            exchange.setRequestContent(new ByteArrayBuffer(content));
+        } else {
+            if (content instanceof Stream || content instanceof java.io.InputStream) {
+                exchange.setRequestContentSource(content);
+            } else {
+                if (content instanceof TextStream) {
+                    // FIXME this relies on TextStream not being instanceof Stream
+                    content = content.read();
+                } else if (content instanceof Object) {
+                    content = urlEncode(content);
+                }
+                if (typeof(content) === 'string') {
+                    var charset = getMimeParameter(options.contentType, 'charset') || 'utf-8';
+                    exchange.setRequestContent(new ByteArrayBuffer(content, charset));
+                }
+            }
         }
-        exchange.setRequestContentType(opts.contentType);
-    } else if (typeof(content) === 'string' && content.length) {
-        url += "?" + content;
+        exchange.setRequestContentType(options.contentType);
+    } else {
+        if (content instanceof Object) {
+            content = urlEncode(content);
+        }
+        if (typeof(content) === 'string' && content.length) {
+            url += "?" + content;
+        }
     }
     exchange.setURL(url);
     // FIXME we could add a RedirectListener right here to auto-handle redirects
-    
+
     return this;
 };
 
@@ -438,19 +417,24 @@ var Exchange = function(url, options, callbacks) {
  * Defaults for options passable to to request()
  */
 var defaultOptions = function(options) {
-    return objects.merge(options || {}, {
+    var defaultValues = {
         // exchange
         data: {},
         headers: {},
         method: 'GET',
-        contentType: 'application/x-www-form-urlencoded;charset=utf-8',
         username: undefined,
         password: undefined,
         // client
         async: false,
         cache: true,
         binary: false
-    });
+    };
+    var opts = options ? objects.merge(options, defaultValues) : defaultValues;
+    Headers(opts.headers);
+    opts.contentType = opts.contentType
+            || opts.headers.get('Content-Type')
+            || 'application/x-www-form-urlencoded;charset=utf-8';
+    return opts;
 };
 
 /**
@@ -466,7 +450,7 @@ var extractOptionalArguments = function(args) {
     for each (var arg in args) {
         types.push(typeof(arg));
     }
-    
+
     if (types[0] != 'string') {
         throw new Error('first argument (url) must be string');
     }
@@ -515,7 +499,7 @@ var extractOptionalArguments = function(args) {
  * Use this Client instead of the convenience methods if you do lots
  * of requests (especially if they go to the same hosts)
  * or if you want cookies to be preserved between multiple requests.
- 
+
  * @param {Number} timeout The connection timeout
  * @param {Boolean} followRedirects If true then redirects (301, 302) are followed
  * @constructor
@@ -544,9 +528,9 @@ var Client = function(timeout, followRedirects) {
             success: success,
             error: error,
             async: typeof success === 'function'
-        });    
+        });
     };
-    
+
     /**
      * Make a POST request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -571,7 +555,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a DELETE request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -596,7 +580,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a PUT request. If a success callback is provided, the request is executed
      * asynchronously and the function returns immediately. Otherwise, the function
@@ -621,7 +605,7 @@ var Client = function(timeout, followRedirects) {
             async: typeof success === 'function'
         });
     };
-    
+
     /**
      * Make a generic request.
      *
@@ -641,6 +625,8 @@ var Client = function(timeout, followRedirects) {
      *     until the request is completed
      *  - `binary`: if true if content should be delivered as binary,
      *     else it will be decoded to string
+     *  - `promise`: if true a promise that resolves to the request's Exchange
+     *     object is returned instead of the Exchange object itself
      *
      *  #### Callbacks
      *
@@ -663,12 +649,18 @@ var Client = function(timeout, followRedirects) {
      *     during request processing or an HTTP error message
      *  2. `status`: the HTTP status code. This is `0` if no response was received
      *  3. `exchange`: the exchange object
-     *  
+     *
      * @param {Object} options
      * @returns {Exchange} exchange object
      */
     this.request = function(options) {
         var opts = defaultOptions(options);
+        if (opts.promise) {
+            var deferred = defer();
+            opts.success = function() {deferred.resolve(arguments[3])};
+            opts.error = function() {deferred.resolve(arguments[2], true)};
+            opts.async = true;
+        }
         var exchange = new Exchange(opts.url, {
             method: opts.method,
             data: opts.data,
@@ -699,14 +691,18 @@ var Client = function(timeout, followRedirects) {
                 callbacks.error(e, 0, exchange);
             }
         }
-        return exchange;
+        return opts.promise ? deferred.promise : exchange;
     };
 
     var client = new HttpClient();
     if (typeof timeout == "number") {
+        if (timeout <= 0) {
+            // Disable timeout if zero or negative
+            timeout = java.lang.Long.MAX_VALUE;
+        }
         client.setTimeout(timeout);
     }
-    
+
     if (followRedirects !== false) {
         client.registerListener('org.eclipse.jetty.client.RedirectListener');
     }

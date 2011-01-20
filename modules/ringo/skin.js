@@ -30,7 +30,9 @@ function render(skinOrResource, context) {
         if (skinOrResource.indexOf('#') > -1) {
             [skinOrResource, subskin] = skinOrResource.split('#');
         }
-        var resource = this.getResource(skinOrResource);
+        // using this.getResource() if available allows as to get relative resources
+        var resource = typeof this.getResource === "function" ?
+                this.getResource(skinOrResource) : getResource(skinOrResource);
         skin = createSkin(resource);
         if (subskin) {
             skin = skin.getSubskin(subskin);
@@ -170,7 +172,8 @@ function Skin(mainSkin, subSkins, parentSkin, resourceOrString) {
     };
 
     function renderInternal(parts, context) {
-        var value = [renderPart(part, context) for each (part in parts)].join('');
+        var value = parts ?
+                parts.map(function(part) renderPart(part, context)).join('') : '';
         if (parts && parts.subskinFilter) {
             return evaluateFilter(value, parts.subskinFilter, context);
         }

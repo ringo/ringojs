@@ -14,6 +14,7 @@ export( 'properties',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
+        'getPackageRepository',
         'getOptimizationLevel',
         'setOptimizationLevel',
         'serialize',
@@ -54,17 +55,16 @@ function addHostObject(javaClass) {
  */
 function createSandbox(modulePath, globals, options) {
     options = options || {};
-    var shutter = options.classShutter;
-    if (shutter) {
-        if (!(shutter instanceof rhino.ClassShutter)) {
-            shutter = new rhino.ClassShutter(shutter);
-        }
-    } else {
-        shutter = null;
+    var systemModules = options.includeSystemModules ? "modules" : null;
+    var config = new org.ringojs.tools.RingoConfiguration(
+            getRingoHome(), modulePath, systemModules);
+    if (options.classShutter) {
+        var shutter = options.shutter;
+        config.setClassShutter(shutter instanceof rhino.ClassShutter ?
+                shutter : new rhino.ClassShutter(shutter));
     }
-    var systemModules = Boolean(options.includeSystemModules);
-    var sealed = Boolean(options.sealed);
-    return getRhinoEngine().createSandbox(modulePath, globals, systemModules, shutter, sealed);
+    config.setSealed(Boolean(options.sealed));
+    return getRhinoEngine().createSandbox(config, globals);
 }
 
 /**
@@ -163,6 +163,13 @@ function evaluate(moduleName, scope) {
             .getScript(moduleName)
             .evaluate(scope, getRhinoContext());
     return scope;
+}
+
+/**
+ * Get the repository containing installed packages
+ */
+function getPackageRepository() {
+    return getRhinoEngine().getPackageRepository();
 }
 
 /**

@@ -4,6 +4,7 @@
  */
 
 var objects = require('ringo/utils/objects');
+var strings = require('ringo/utils/strings');
 var {isUrlEncoded, parseParameters} = require('./parameters');
 var {isFileUpload, parseFileUpload} = require('./fileupload');
 
@@ -169,7 +170,10 @@ function Request(request) {
     request.reset = function() {
         request.scriptName = servletRequest.getContextPath()
                            + servletRequest.getServletPath();
-        request.pathInfo = servletRequest.getPathInfo();
+        // workaround for Tomcat returning "/" as pathInfo even if URI doesn't end with "/"
+        var uri = servletRequest.getRequestURI();
+        var pathInfo = servletRequest.getPathInfo();
+        request.pathInfo = pathInfo == "/" && !strings.endsWith(uri, "/") ? "" : pathInfo || "";
     };
 
     /**
@@ -243,7 +247,7 @@ function Request(request) {
 function Session(request) {
 
     var data;
-    var servletRequest = request instanceof javax.servlet.ServletRequest ? 
+    var servletRequest = request instanceof javax.servlet.ServletRequest ?
             request : request.env.servletRequest;
 
     function getSession() {

@@ -137,7 +137,7 @@ function escapeHtml_filter(input) {
 }
 
 /**
- * Escapes the characters in a String to be suitable 
+ * Escapes the characters in a String to be suitable
  * to use as an HTTP parameter value.
  *
  * @see http://www.google.com/codesearch?q=escapeUrl

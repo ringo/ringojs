@@ -2,7 +2,7 @@
  * @fileoverview A module for printing ANSI terminal escape sequences.
  * This module provides a number of useful color and style constants,
  * and a replacement for the print function optimized for styled output.
- * 
+ *
  * @example
  * <code>include('ringo/term')
  * writeln(YELLOW, "foo", MAGENTA, "bar");

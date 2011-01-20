@@ -55,6 +55,7 @@ public class ScriptableMap extends NativeJavaObject {
                 ScriptableObject.DONTENUM | ScriptableObject.READONLY);
     }
 
+    @SuppressWarnings("unchecked")
     private ScriptableMap(Scriptable scope, Object obj, boolean reflect) {
         this.parent = scope;
         this.reflect = reflect;
@@ -158,6 +159,7 @@ public class ScriptableMap extends NativeJavaObject {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void putInternal(Object key, Object value) {
         try {
             map.put(key, ScriptUtils.jsToJava(value));
@@ -207,7 +209,7 @@ public class ScriptableMap extends NativeJavaObject {
     public Object getDefaultValue(Class typeHint) {
         return toString();
     }
-    
+
     public Object unwrap() {
         return map;
     }

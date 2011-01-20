@@ -195,12 +195,13 @@ public class MacroTag extends ScriptableObject {
      * @return Object The first parameter that matches one of the arguments.
      */
     @JSFunction
+    @SuppressWarnings("unchecked")
     public static Object getParameter(Context cx, Scriptable thisObj,
                                       Object[] args, Function funObj) {
         try {
             MacroTag macro = (MacroTag) thisObj;
             Object value = macro.lookupParameter(args);
-            Scriptable scope = ScriptableObject.getTopLevelScope(thisObj); 
+            Scriptable scope = ScriptableObject.getTopLevelScope(thisObj);
             if (value instanceof List) {
                 return new ScriptableList(scope, (List) value);
             } else if (value instanceof MacroTag) {

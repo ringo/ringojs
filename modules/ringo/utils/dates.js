@@ -50,9 +50,10 @@ export( "format",
 
 /**
  * Format a Date to a string.
- * For details on the format pattern, see 
+ * For details on the format pattern, see
  * http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
- * 
+ *
+ * @param {Date} the Date to format
  * @param {String} format the format pattern
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
@@ -583,7 +584,7 @@ function parse(str) {
             var year = parseInt(match[1], 10) || 0;
             var month = (parseInt(match[2], 10) - 1) || 0;
             var day = parseInt(match[3], 10) || 1;
-            
+
             date = new Date(Date.UTC(year, month, day));
             
             // Check if the given date is valid
@@ -599,7 +600,7 @@ function parse(str) {
                 var secFrac = parseFloat(match[6]) || 0;
                 var seconds = secFrac | 0;
                 var milliseconds = Math.round(1000 * (secFrac - seconds));
-                
+
                 // Checks if the time string is a valid time.
                 var validTimeValues = function(hours, minutes, seconds) {
                     if (hours === 24) {

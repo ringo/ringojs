@@ -32,7 +32,8 @@ function installPackage(url, options) {
     try {
         print("Downloading " + url);
         var out = fs.openRaw(temp, {write: true});
-        new Stream(url.openStream()).copy(out).close();
+        var stream = getUrlStream(url);
+        new Stream(stream).copy(out).close();
         out.close();
         var zip = new ZipFile(temp);
         // get common prefix shared by all items in zip file
@@ -92,6 +93,30 @@ function installPackage(url, options) {
 
 function fail(message) {
     throw message;
+}
+
+function getUrlStream(url) {
+    var conn = url.openConnection();
+    var status = conn.getResponseCode();
+    // java.net.URLConnection won't follow redirects across different protocols (such as https -> http)
+    // so we have to do that manually here
+    // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4620571
+    while (conn && status >= 301 && status <= 303) {
+        // loop through headers to find location field. welcome to the middle ages
+        for (var i = 1; ; i++) {
+            var key = conn.getHeaderFieldKey(i);
+            if (key == null || i == 50) {
+                throw new Error("Failed to follow redirect: Location header not found");
+            }
+            if (key.toLowerCase() == "location") {
+                url = new java.net.URL(conn.getHeaderField(i));
+                conn = url.openConnection();
+                status = conn.getResponseCode();
+                break;
+            }
+        }
+    }
+    return new Stream(conn.getInputStream());
 }
 
 /**

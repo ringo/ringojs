@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.io.IOException;
 
 /**
- * Parent interface for both Repository and Resource interfaces. 
+ * Parent interface for both Repository and Resource interfaces.
  * Describes an entity defined by a file-system like path.
  */
 public interface Trackable extends Serializable {
@@ -80,7 +80,7 @@ public interface Trackable extends Serializable {
     public String getRelativePath();
 
     /**
-     * Set this Trackable to absolute mode. This will cause all its 
+     * Set this Trackable to absolute mode. This will cause all its
      * relative path operations to use absolute paths instead.
      * @param absolute true to operate in absolute mode
      */

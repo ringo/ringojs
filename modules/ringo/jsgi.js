@@ -2,7 +2,7 @@
  * @fileOverview Low level JSGI adapter implementation.
  */
 
-var {Headers, getMimeParameter} = require('ringo/webapp/util');
+var {Headers, getMimeParameter} = require('ringo/utils/http');
 var {Stream} = require('io');
 var {Binary, ByteString} = require('binary');
 var system = require('system')
@@ -21,7 +21,7 @@ var log = require('ringo/logging').getLogger(module.id);
 function handleRequest(moduleId, functionObj, request) {
     initRequest(request);
     var app;
-    if (typeof(functionObj) == 'function') {
+    if (typeof(functionObj) === 'function') {
         app = functionObj;
     } else {
         var module = require(moduleId);
@@ -30,7 +30,12 @@ function handleRequest(moduleId, functionObj, request) {
         request.env.ringo_config = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
-    if (!(typeof(app) == 'function')) {
+    // if RINGO_ENV environment variable is set and application supports
+    // modular JSGI environment feature use the proper environment
+    if (app && system.env.RINGO_ENV && typeof(app.env) === 'function') {
+        app = app.env(system.env.RINGO_ENV);
+    }
+    if (typeof(app) !== 'function') {
         throw new Error('No valid JSGI app: ' + app);
     }
     var result = app(request);
@@ -208,20 +213,26 @@ function handleAsyncResponse(request, response, result) {
  * Convenience function that resolves a module id or object to a
  * JSGI middleware or application function. This assumes the function is
  * exported as "middleware" or "handleRequest".
- * @param module a function, module object, or moudule id
+ * @param app a function, module object, module id, or an array of
+ *            any of these
+ * @returns the resolved middleware function
  */
-function resolve(module) {
-    if (typeof module == 'string') {
-        module = require(module);
+function resolve(app) {
+    if (typeof app == 'string') {
+        var module = require(app);
         return module.middleware || module.handleRequest;
+    } else if (Array.isArray(app)) {
+        // allow an app or middleware item to be itself a list of middlewares
+        return app.reduceRight(middlewareWrapper);
     }
-    return module;
+    return app;
 }
 
 /**
  * Helper function for wrapping middleware stacks
  * @param inner an app or middleware module or function wrapped by outer
  * @param outer a middleware module or function wrapping inner
+ * @returns the wrapped middleware function
  */
 function middlewareWrapper(inner, outer) {
     return resolve(outer)(inner);

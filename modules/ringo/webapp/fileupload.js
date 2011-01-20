@@ -2,7 +2,7 @@
 var arrays = require('ringo/utils/arrays');
 var strings = require('ringo/utils/strings');
 var {ByteArray, ByteString} = require('binary');
-var {getMimeParameter} = require('./util');
+var {getMimeParameter} = require('ringo/utils/http');
 var {mergeParameter} = require('./parameters');
 var {createTempFile} = require('ringo/utils/files');
 var {open} = require('fs');

@@ -105,7 +105,7 @@ function ZipIterator(resource) {
         while (entry) {
             stream.name = entry.getName();
             stream.isDirectory = entry.isDirectory();
-            stream.isFile = !stream.isDirectory;            
+            stream.isFile = !stream.isDirectory;
             stream.size = entry.getSize();
             stream.time = entry.getTime();
             yield stream;

@@ -82,6 +82,14 @@ exports.testToCamelCase = function() {
     assert.strictEqual('fooBar123Baz', strings.toCamelCase('foo-bar-123-BAZ'));
 };
 
+exports.testToDashes = function() {
+    assert.strictEqual('foo-bar-baz', strings.toDashes('fooBarBaz'));
+};
+
+exports.testToUnderscores = function() {
+    assert.strictEqual('foo_bar_baz', strings.toUnderscores('fooBarBaz'));
+};
+
 exports.testCapitalize = function () {
     assert.strictEqual('Capitalize me.', strings.capitalize('capitalize me.'));
 };

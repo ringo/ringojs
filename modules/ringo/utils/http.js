@@ -2,7 +2,7 @@
 var strings = require('ringo/utils/strings');
 var {Buffer} = require('ringo/buffer');
 
-export('ResponseFilter', 'Headers', 'getMimeParameter');
+export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode');
 
 /**
  * A utility class for implementing JSGI response filters. Each part of the
@@ -189,4 +189,27 @@ function getMimeParameter(headerValue, paramName) {
         }
     }
     return null;
+}
+
+/**
+ * Encode an object's properties into an URL encoded string.
+ * @param {Object} object an object
+ * @returns {String} a string containing the URL encoded properties of the object
+ */
+function urlEncode(object) {
+    var buf = new Buffer();
+    var key, value;
+    for (key in object) {
+        value = object[key];
+        if (value instanceof Array) {
+            for (var i = 0; i < value.length; i++) {
+                if (buf.length) buf.write("&");
+                buf.write(encodeURIComponent(key), "=", encodeURIComponent(value[i]));
+            }
+        } else {
+            if (buf.length) buf.write("&");
+            buf.write(encodeURIComponent(key), "=", encodeURIComponent(value));
+        }
+    }
+    return buf.toString();
 }

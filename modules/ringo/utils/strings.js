@@ -41,6 +41,8 @@ export('isDateFormat',
        'isAlpha',
        'isNumeric',
        'toCamelCase',
+       'toDashes',
+       'toUnderscores',
        'capitalize',
        'titleize',
        'entitize',
@@ -199,7 +201,7 @@ function isNumeric(string) {
 }
 
 /**
- * Transforms string to camel-case.
+ * Transforms string from space, dash, or underscore notation to camel-case.
  * @param {String} string a string
  * @returns {String} the resulting string
  * @since 0.5
@@ -212,6 +214,26 @@ function toCamelCase(string) {
         // foo-bar -> fooBar
         return l.toUpperCase();
     });
+}
+
+/**
+ * Transforms string from camel-case to dash notation.
+ * @param {String} string a string
+ * @returns {String} the resulting string
+ * @since 0.7
+ */
+function toDashes(string) {
+    return string.replace(/([A-Z])/g, function($1){return "-"+$1.toLowerCase();});
+}
+
+/**
+ * Transforms string from camel-case to underscore notation.
+ * @param {String} string a string
+ * @returns {String} the resulting string
+ * @since 0.7
+ */
+function toUnderscores(string) {
+    return string.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
 }
 
 /**
