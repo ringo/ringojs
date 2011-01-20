@@ -24,7 +24,7 @@ function load() {
     }
     catalog = {};
     loadPackages(engine.getPackageRepository());
-	discoverClasspathModules();
+    discoverClasspathModules();
 }
 
 /**
@@ -125,47 +125,45 @@ function handleResource(res, callback) {
  * classpath containing a package.json resource in the root folder.
  * (@see http://wiki.commonjs.org/wiki/Packages/1.0)
  *
- * Note: Discovering packages that are not in an archive does not currently work. I create a
+ * todo: Discovering packages that are not in an archive may not currently work. I create a
  * FileRepository object passing in the directory which holds the package.json, however when the
  * FileRpository attempts to access the package.json it says the file cannot be found. Perhaps this
- * is do to some encoded characters in my file paths? todo: Investigate
- * java.io.FileNotFoundException: /Users/jcook/Projects/Tracermedia/PPKC1001%20Web%20Site/Development/trunk/toplevel/target/classes/package.json (No such file or directory)
+ * is do to some encoded characters in my file paths?
+ * java.io.FileNotFoundException: /path/to/project/filename%20with%20encodedspaces/target/classes/package.json (No such file or directory)
  */
 function discoverClasspathModules() {
 
-	var loader = java.lang.Thread.currentThread().getContextClassLoader();
+    var loader = java.lang.Thread.currentThread().getContextClassLoader();
 
-	log.debug('Seeking for Common-JS packages on the classpath');
+    log.debug('Seeking for Common-JS packages on the classpath');
 
-	var resources = loader.getResources('package.json');
+    var resources = loader.getResources('package.json');
 
-	while (resources.hasMoreElements()) {
-		var url = resources.nextElement();
-		var path = url.getPath();
+    while (resources.hasMoreElements()) {
+        var url = resources.nextElement();
+        var path = url.getPath();
 
-		var repoRoot = null;
+        var repoRoot = null;
 
-		// If the package.json file is found in a jar/zip file, we need to strip the url
-		// down to resolve the root.
-		if (/^file:/.test(path)) {
-			path = path.substring(5);
-			repoRoot = path.split('!')[0];
-		}
+        // If the package.json file is found in a jar/zip file, we need to strip the url
+        // down to resolve the root.
+        if (/^file:/.test(path)) {
+            path = path.substring(5);
+            repoRoot = path.split('!')[0];
+        } else {
+            // If the package.json file is found on the classpath, the path will represent the absolute
+            // path to the resource which will end with '/package.json'.
+            repoRoot = path.substring(0, path.lastIndexOf('/'));
+        }
 
-		// If the package.json file is found on the classpath, the path will represent the absolute
-		// path to the resource which will end with '/package.json'.
-		else {
-			repoRoot = path.substring(0, path.lastIndexOf('/'));
-		}
+        if (repoRoot) {
+            var repo = /\.zip$|\.jar$/.test(repoRoot)
+                    ? new org.ringojs.repository.ZipRepository(repoRoot)
+                    : new org.ringojs.repository.FileRepository(repoRoot);
 
-		if (repoRoot) {
-			var repo = /\.zip$|\.jar$/.test(repoRoot)
-				? new org.ringojs.repository.ZipRepository(repoRoot)
-				: new org.ringojs.repository.FileRepository(repoRoot);
+            log.info('Found package.json in url: ' + url.getPath() + ', repository: ' + repo);
 
-			log.info('Found package.json in url: ' + url.getPath() + ', repository: ' + repo);
-
-			loadPackage(repo);
-		}
-	}
+            loadPackage(repo);
+        }
+    }
 }
