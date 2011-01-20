@@ -4,6 +4,8 @@
 
 var system = require('system');
 var engine = require('ringo/engine');
+var log = require('ringo/logging').getLogger(module.id);
+
 
 export('load', 'loadPackages', 'loadPackage', 'normalize', 'catalog');
 
@@ -22,6 +24,7 @@ function load() {
     }
     catalog = {};
     loadPackages(engine.getPackageRepository());
+	discoverClasspathModules();
 }
 
 /**
@@ -113,4 +116,34 @@ function handleResource(res, callback) {
     } else if (res) {
         callback(res);
     }
+}
+
+
+/**
+ * Scour the current classpath looking for Common-JS packages to be added to the repository
+ * list for package resolution. A Common-JS package is identified as an archive on the Java
+ * classpath containing a package.json resource in the root folder.
+ * (@see http://wiki.commonjs.org/wiki/Packages/1.0)
+ */
+function discoverClasspathModules() {
+
+	var loader = java.lang.Thread.currentThread().getContextClassLoader();
+
+	log.debug('Seeking for Common-JS packages on the classpath');
+
+	var resources = loader.getResources('package.json');
+
+	while (resources.hasMoreElements()) {
+		var url = resources.nextElement();
+		var path = url.getPath();
+
+		// If the package.json file is found in a jar/zip file, we need to strip the url
+		// down to resolve the root.
+		if (/^file:/.test(path)) path = path.substring(5);
+		var paths = path.split('!');
+
+		log.info('Found package.json at ' + paths[0] + ' in url: ' + url.getPath());
+		
+		loadPackage(new org.ringojs.repository.ZipRepository(paths[0]));
+	}
 }
