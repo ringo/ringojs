@@ -22,13 +22,11 @@ import java.net.MalformedURLException;
 import java.io.File;
 
 /**
- * Classloader used for application class loading. The main purpose of
- * this class is to make protected addURL visible to the org.ringojs.javascript
- * package.
+ * A <code>ClassLoader</code> used for application class loading. This class
+ * provides constructors and methods to add jar directories to the classpath.
  *
- * FIXME: class lookups are cached, so adding a jar file after a class has
- * already been looked up won't make the classes available. Maybe we should
- * go with disposable classloaders and create a new one for each added URL.
+ * <p>Note that class lookups are cached, so adding a jar file after a class has
+ * already been looked up won't make the classes available.
  */
 public class RingoClassLoader extends URLClassLoader {
 
@@ -44,10 +42,10 @@ public class RingoClassLoader extends URLClassLoader {
             throws MalformedURLException {
         this(new URL[0]);
         for (String item: classpath) {
-            if (item.endsWith("/**")) {
+            if (item.endsWith(File.separator + "**") || item.endsWith("/**")) {
                 File dir = getAbsoluteFile(home, item.substring(0, item.length() - 2));
                 addClasspathWildcard(dir, true);
-            } else if (item.endsWith("/*")) {
+            } else if (item.endsWith(File.separator + "*") || item.endsWith("/*")) {
                 File dir = getAbsoluteFile(home, item.substring(0, item.length() - 1));
                 addClasspathWildcard(dir, false);
             } else {
@@ -59,10 +57,6 @@ public class RingoClassLoader extends URLClassLoader {
 
     public RingoClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
-    }
-
-    protected void addURL(URL url) {
-        super.addURL(url);
     }
 
     protected void addClasspathWildcard(File dir, boolean recursive)
@@ -85,7 +79,7 @@ public class RingoClassLoader extends URLClassLoader {
         }
     }
 
-    protected File getAbsoluteFile(File home, String path) {
+    static File getAbsoluteFile(File home, String path) {
         File file = new File(path);
         if (file.isAbsolute()) {
             return file;
