@@ -7,7 +7,7 @@
   from the RingoJS root folder:
 
       mvn install:install-file -Dfile=lib/js.jar -DgroupId=org.ringojs \
-       -DartifactId=rhino-js -Dversion=1.7R4-SNAPSHOT -Dpackaging=jar
+       -DartifactId=rhino-js -Dversion=1.7R3-SNAPSHOT -Dpackaging=jar
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -119,12 +119,12 @@
         <jetty-version>7.1.6.v20100715</jetty-version>
         <slf4j-version>1.6.1</slf4j-version>
         <log4j-version>1.2.16</log4j-version>
-        <rhino-version>1.7R4-SNAPSHOT</rhino-version>
+        <rhino-version>1.7R3-SNAPSHOT</rhino-version>
         <junit-version>3.8.2</junit-version>
         <jnr-posix-version>1.1.5</jnr-posix-version>
 		<constantine-version>0.7</constantine-version>
-		<jffi-version>1.0.4</jffi-version>
-		<jaffl-version>0.5.6</jaffl-version>
+		<jffi-version>1.0.5</jffi-version>
+		<jaffl-version>0.5.7</jaffl-version>
 		<jline-version>0.9.94</jline-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -172,15 +172,7 @@
             <artifactId>jffi</artifactId>
             <version>${jffi-version}</version>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.jruby.extras</groupId>
-            <artifactId>jffi-Darwin</artifactId>
-            <version>${jffi-version}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/jnr-posix/jffi-Darwin.jar</systemPath>
-        </dependency>
--->
+
         <dependency>
             <groupId>org.jruby.extras</groupId>
             <artifactId>jaffl</artifactId>
