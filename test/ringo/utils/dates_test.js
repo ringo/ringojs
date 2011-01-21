@@ -15,73 +15,89 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     noLeapYears = [
         1700, 1800, 1900, 2001, 2002, 2003,
         2005, 2006, 2007, 2100, 2200, 2300,
-        2301, 2500, 2600, 2700, 2900, 3000
+        2301, 2500, 2600, 2700, 2900, 3000,
+        4003, 4005, 4007, 4009, 4011, 4317
     ];
     
     leapYears.forEach(function(year) {
-        var d = new Date(year, 0, 1);
-        assert.isTrue(dates.isLeapYear(d));
-        assert.equal(dates.daysInYear(d), 366);
-        assert.equal(dates.daysInFebruary(d), 29);
-        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29);
-        assert.isTrue(dates.checkDate(year, 1, 29));
+        var d = new Date(year, 1, 1);
+        assert.isTrue(dates.isLeapYear(d), "Leap Year " + year);
+        assert.equal(dates.daysInYear(d), 366, "Leap Year " + year);
+        assert.equal(dates.daysInFebruary(d), 29, "Leap Year " + year);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29, "Leap Year " + year);
+        assert.isTrue(dates.checkDate(year, 1, 29), "Leap Year " + year);
     });
     
     noLeapYears.forEach(function(year) {
         var d = new Date(year, 0, 1);
-        assert.isFalse(dates.isLeapYear(d));
-        assert.equal(dates.daysInYear(d), 365);
-        assert.equal(dates.daysInFebruary(d), 28);
-        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28);
-        assert.isFalse(dates.checkDate(year, 1, 29));
+        assert.isFalse(dates.isLeapYear(d), "No Leap Year " + year);
+        assert.equal(dates.daysInYear(d), 365, "No Leap Year " + year);
+        assert.equal(dates.daysInFebruary(d), 28, "No Leap Year " + year);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28, "No Leap Year " + year);
+        assert.isFalse(dates.checkDate(year, 1, 29), "No Leap Year " + year);
     });
 };
 
 exports.testAdd = function () {
-    var d = new Date(2010, 10, 10, 10, 10, 10, 10);
-    assert.equal(d.getTime(), 1289380210010); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
+    var d = new Date(Date.UTC(2010, 10, 10, 10, 10, 10, 10)); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
     
-    // Add 10
-    assert.equal(dates.add(d, 10, 'millisecond').getTime(), 1289380210020);
-    assert.equal(dates.add(d, 10, 'second').getTime(), 1289380220010); // Wed Nov 10 2010 10:10:20 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, 10, 'minute').getTime(), 1289380810010); // Wed Nov 10 2010 10:20:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, 10, 'hour').getTime(), 1289416210010); // Wed Nov 10 2010 20:10:10 GMT+0100 (MEZ)
+    assert.equal(d.getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     
-    assert.equal(dates.add(d, 10, 'day').getTime(), 1290244210010); // Sat Nov 20 2010 10:10:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, 10).getTime(), 1290244210010); // Sat Nov 20 2010 10:10:10 GMT+0100 (MEZ)
+    var addOne = {
+        "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 11),
+        "second":       Date.UTC(2010, 10, 10, 10, 10, 11, 10),
+        "minute":       Date.UTC(2010, 10, 10, 10, 11, 10, 10),
+        "hour":         Date.UTC(2010, 10, 10, 11, 10, 10, 10),
+        "day":          Date.UTC(2010, 10, 11, 10, 10, 10, 10),
+        "year":         Date.UTC(2011, 10, 10, 10, 10, 10, 10)
+    };
     
-    assert.equal(dates.add(d, 10, 'week').getTime(), 1295428210010); // Wed Jan 19 2011 10:10:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, 10, 'month').getTime(), 1315642210010); // Sat Sep 10 2011 10:10:10 GMT+0200 (MESZ)
-    assert.equal(dates.add(d, 10, 'quarter').getTime(), 1368173410010); // Fri May 10 2013 10:10:10 GMT+0200 (MESZ)
-    assert.equal(dates.add(d, 10, 'year').getTime(), 1604999410010); // Tue Nov 10 2020 10:10:10 GMT+0100 (MEZ)
-   
+    for (var tUnit in addOne) {
+        assert.equal((dates.add(d, 1, tUnit)).getTime(), new Date(addOne[tUnit]).getTime(), tUnit);
+    }
+    
+    // To avoid time zone and daylight saving time problems, month and quarter are tested with full circles
+    assert.equal((dates.add(d, 12, "month")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
+    assert.equal((dates.add(d, 4, "quarter")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
+    
     // Add nothing
-    assert.equal(dates.add(d, 0, 'millisecond').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'second').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'minute').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'hour').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'millisecond').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'second').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'minute').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'hour').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     
-    assert.equal(dates.add(d, 0, 'day').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0).getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'day').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0).getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     
-    assert.equal(dates.add(d, 0, 'week').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'month').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'quarter').getTime(), 1289380210010);
-    assert.equal(dates.add(d, 0, 'year').getTime(), 1289380210010);
+    assert.equal(dates.add(d, 0, 'week').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'month').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'quarter').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'year').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     
     // Remove 10
-    assert.equal(dates.add(d, -10, 'millisecond').getTime(), 1289380210000);
-    assert.equal(dates.add(d, -10, 'second').getTime(), 1289380200010); // Wed Nov 10 2010 10:10:00 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, -10, 'minute').getTime(), 1289379610010); // Wed Nov 10 2010 10:00:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, -10, 'hour').getTime(), 1289344210010); // Wed Nov 10 2010 00:10:10 GMT+0100 (MEZ)
+    var removeOne = {
+        "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 9),
+        "second":       Date.UTC(2010, 10, 10, 10, 10, 9, 10),
+        "minute":       Date.UTC(2010, 10, 10, 10, 9, 10, 10),
+        "hour":         Date.UTC(2010, 10, 10, 9, 10, 10, 10),
+        "day":          Date.UTC(2010, 10, 9, 10, 10, 10, 10),
+        "year":         Date.UTC(2009, 10, 10, 10, 10, 10, 10)
+    };
     
-    assert.equal(dates.add(d, -10, 'day').getTime(), 1288516210010); // Sun Oct 31 2010 10:10:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, -10).getTime(), 1288516210010);
+    for (var tUnit in removeOne) {
+        assert.equal((dates.add(d, -1, tUnit)).getTime(), new Date(removeOne[tUnit]).getTime(), tUnit);
+    }
     
-    assert.equal(dates.add(d, -10, 'week').getTime(), 1283328610010); // Wed Sep 01 2010 10:10:10 GMT+0200 (MESZ) 
-    assert.equal(dates.add(d, -10, 'month').getTime(), 1263114610010); // Sun Jan 10 2010 10:10:10 GMT+0100 (MEZ)
-    assert.equal(dates.add(d, -10, 'quarter').getTime(), 1210407010010); // Sat May 10 2008 10:10:10 GMT+0200 (MESZ)
-    assert.equal(dates.add(d, -10, 'year').getTime(), 973847410010); // Fri Nov 10 2000 10:10:10 GMT+0100 (MEZ)
+    // To avoid time zone and daylight saving time problems, month and quarter are tested with full circles
+    assert.equal((dates.add(d, -12, "month")).getTime(), new Date(Date.UTC(2009, 10, 10, 10, 10, 10, 10)).getTime());
+    assert.equal((dates.add(d, -4, "quarter")).getTime(), new Date(Date.UTC(2009, 10, 10, 10, 10, 10, 10)).getTime());
+    
+    // Use time zone and daylight saving time "save" calculations for week
+    d = new Date(Date.UTC(2010, 11, 31, 0, 0, 0, 0))
+    assert.equal((dates.add(d, -1, "week")).getTime(), new Date(Date.UTC(2010, 11, 24, 0, 0, 0, 0)).getTime());
+    
+    d = new Date(Date.UTC(2010, 11, 24, 0, 0, 0, 0))
+    assert.equal((dates.add(d, 1, "week")).getTime(), new Date(Date.UTC(2010, 11, 31, 0, 0, 0, 0)).getTime());
 };
 
 exports.testBefore_After_Compare = function () {
@@ -284,17 +300,6 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "month"), 913);
     assert.equal(dates.diff(a, b, "week"), 3970);
     assert.equal(dates.diff(a, b, "day"), 27793);
-    assert.equal(dates.diff(a, b, "hour"), 667032);
-    assert.equal(dates.diff(a, b, "minute"), 40021920);
-    assert.equal(dates.diff(a, b, "second"),  2401315200);
-    assert.equal(dates.diff(a, b, "millisecond"), 2401315200000);
-    assert.deepEqual(dates.diff(a, b, "mixed"), {
-        "days": 27793,
-        "hours": 0,
-        "minutes": 0,
-        "seconds": 0,
-        "milliseconds": 0
-    });
     
     // again Einstein, now with time diff
     b = new Date(1955, 3, 18, 20, 39, 10, 53);
@@ -303,17 +308,6 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "month"), 913);
     assert.equal(dates.diff(a, b, "week"), 3970);
     assert.equal(dates.diff(a, b, "day"), 27793);
-    assert.equal(dates.diff(a, b, "hour"), 667052);
-    assert.equal(dates.diff(a, b, "minute"), 40023159);
-    assert.equal(dates.diff(a, b, "second"),  2401389550);
-    assert.equal(dates.diff(a, b, "millisecond"), 2401389550053);
-    assert.deepEqual(dates.diff(a, b, "mixed"), {
-        "days": 27793,
-        "hours": 20,
-        "minutes": 39,
-        "seconds": 10,
-        "milliseconds": 53
-    });
 };
 
 exports.testOverlapping = function() {
@@ -576,7 +570,6 @@ exports.testParse = function() {
     assert.isNaN(dates.parse("2010-01-01T24:59Z"));
     assert.isNaN(dates.parse("2010-01-01T25:00Z"));
     assert.isNaN(dates.parse("2010-01-01TT25:00Z"));
-    assert.isNaN(dates.parse("2010-01-01T23:00-24:00"));
     assert.isNaN(dates.parse("2010-01-01T23:00-25:00"));
     
     // Check for not NaN
@@ -697,15 +690,6 @@ exports.testParse = function() {
             minutes: 51,
             seconds: 25,
             milliseconds: 123
-        },
-        "2010-01-01T23:59+23:59": { // maximum timezone offset
-            year: 2010,
-            month: 0,
-            date: 0,
-            hour: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
         }
     };
 
