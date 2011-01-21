@@ -15,25 +15,26 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     noLeapYears = [
         1700, 1800, 1900, 2001, 2002, 2003,
         2005, 2006, 2007, 2100, 2200, 2300,
-        2301, 2500, 2600, 2700, 2900, 3000
+        2301, 2500, 2600, 2700, 2900, 3000,
+        4003, 4005, 4007, 4009, 4011, 4317
     ];
     
     leapYears.forEach(function(year) {
         var d = new Date(year, 1, 1);
-        assert.isTrue(dates.isLeapYear(d), "Year " + year);
-        assert.equal(dates.daysInYear(d), 366, "Year " + year);
-        assert.equal(dates.daysInFebruary(d), 29, "Year " + year);
-        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29, "Year " + year);
-        assert.isTrue(dates.checkDate(year, 1, 29), "Year " + year);
+        assert.isTrue(dates.isLeapYear(d), "Leap Year " + year);
+        assert.equal(dates.daysInYear(d), 366, "Leap Year " + year);
+        assert.equal(dates.daysInFebruary(d), 29, "Leap Year " + year);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 29, "Leap Year " + year);
+        assert.isTrue(dates.checkDate(year, 1, 29), "Leap Year " + year);
     });
     
     noLeapYears.forEach(function(year) {
         var d = new Date(year, 0, 1);
-        assert.isFalse(dates.isLeapYear(d), "Year " + year);
-        assert.equal(dates.daysInYear(d), 365, "Year " + year);
-        assert.equal(dates.daysInFebruary(d), 28, "Year " + year);
-        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28, "Year " + year);
-        assert.isFalse(dates.checkDate(year, 1, 29), "Year " + year);
+        assert.isFalse(dates.isLeapYear(d), "No Leap Year " + year);
+        assert.equal(dates.daysInYear(d), 365, "No Leap Year " + year);
+        assert.equal(dates.daysInFebruary(d), 28, "No Leap Year " + year);
+        assert.equal(dates.daysInMonth(new Date(year, 1, 1)), 28, "No Leap Year " + year);
+        assert.isFalse(dates.checkDate(year, 1, 29), "No Leap Year " + year);
     });
 };
 

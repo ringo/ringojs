@@ -86,8 +86,11 @@ function createGregorianCalender(date, locale) {
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
     }
+    
     var cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
-    cal.setTimeInMillis(date.getTime());
+    cal.set(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
+    cal.set(java.util.Calendar.MILLISECOND, date.getMilliseconds());
+    
     return cal;
 }
 
