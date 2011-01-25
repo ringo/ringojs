@@ -122,10 +122,10 @@
         <rhino-version>1.7R3-SNAPSHOT</rhino-version>
         <junit-version>3.8.2</junit-version>
         <jnr-posix-version>1.1.5</jnr-posix-version>
-		<constantine-version>0.7</constantine-version>
-		<jffi-version>1.0.5</jffi-version>
-		<jaffl-version>0.5.7</jaffl-version>
-		<jline-version>0.9.94</jline-version>
+        <constantine-version>0.7</constantine-version>
+        <jffi-version>1.0.5</jffi-version>
+        <jaffl-version>0.5.7</jaffl-version>
+        <jline-version>0.9.94</jline-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
