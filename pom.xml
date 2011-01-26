@@ -106,7 +106,7 @@
             <id>pnewhook</id>
             <name>Peter Newhook</name>
             <url>http://github.com/ringo/ringojs/commits/master?author=pnewhook</url>
-        </developer>
+        </developer>                                 
     </developers>
 
     <issueManagement>
