@@ -16,7 +16,7 @@
 
     <groupId>org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1-TRACER</version>
 
     <packaging>jar</packaging>
 
