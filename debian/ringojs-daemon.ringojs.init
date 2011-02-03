@@ -55,7 +55,7 @@ fi
 RINGO_USER=ringojs
 
 # Run this application
-RINGO_APPLICATION=modules/ringo/webapp/daemon.js
+RINGO_APPLICATION=modules/ringo/daemon.js
 
 # Arguments to pass to RingoJS runtime
 RINGO_OPTS=""
