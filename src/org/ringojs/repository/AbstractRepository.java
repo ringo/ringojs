@@ -167,7 +167,7 @@ public abstract class AbstractRepository implements Repository {
      */
     protected String[] resolve(String path, boolean absolute) {
         String[] elements = path.split(SEPARATOR);
-        Deque<String> list = new LinkedList<String>();
+        LinkedList<String> list = new LinkedList<String>();
         if (absolute) {
             list.addAll(Arrays.asList(this.path.split(SEPARATOR)));
         }

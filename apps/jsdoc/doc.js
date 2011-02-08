@@ -167,7 +167,7 @@ function main(args) {
         name: opts.name || getRepositoryName(opts.source)
     };
     var quiet = opts.quiet || false;
-    defaultContext.indexHtmlHref = (opts['file-urls'] === true);
+    defaultContext.indexHtmlHref = (opts['fileUrls'] === true);
 
     // check if export dir exists & is empty
     var dest = new Path(exportDirectory);

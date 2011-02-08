@@ -16,7 +16,7 @@
 
     <groupId>org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.6.2-SNAPSHOT</version>
+    <version>0.7.0</version>
 
     <packaging>jar</packaging>
 
@@ -121,7 +121,11 @@
         <log4j-version>1.2.16</log4j-version>
         <rhino-version>1.7R3-SNAPSHOT</rhino-version>
         <junit-version>3.8.2</junit-version>
-        <jnr-posix-version>1.1.4</jnr-posix-version>
+        <jnr-posix-version>1.1.5</jnr-posix-version>
+        <constantine-version>0.7</constantine-version>
+        <jffi-version>1.0.5</jffi-version>
+        <jaffl-version>0.5.7</jaffl-version>
+        <jline-version>0.9.94</jline-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -160,13 +164,19 @@
         <dependency>
             <groupId>org.jruby.extras</groupId>
             <artifactId>constantine</artifactId>
-            <version>0.7</version>
+            <version>${constantine-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jruby.extras</groupId>
+            <artifactId>jffi</artifactId>
+            <version>${jffi-version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.jruby.extras</groupId>
             <artifactId>jaffl</artifactId>
-            <version>0.5.5</version>
+            <version>${jaffl-version}</version>
         </dependency>
 
         <dependency>
@@ -223,7 +233,7 @@
         <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
-            <version>0.9.94</version>
+            <version>${jline-version}</version>
             <scope>provided</scope>
         </dependency>
 
