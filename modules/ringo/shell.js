@@ -78,7 +78,8 @@ function start(engine) {
 
 /**
  * Quit the shell and exit the JVM.
+ * @param status {Number} optional exit status (default is 0)
  */
-function quit() {
-   java.lang.System.exit(0);
+function quit(status) {
+   java.lang.System.exit(status | 0);
 }
