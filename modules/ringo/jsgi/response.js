@@ -8,9 +8,9 @@ var {ByteArray} = require('binary');
 var {Stream} = require('io');
 var {Buffer} = require('ringo/buffer');
 var {Headers, getMimeParameter} = require('ringo/utils/http');
-var {mimeType} = require('./mime');
+var {mimeType} = require('ringo/mime');
 var dates = require('ringo/utils/dates');
-var webenv = require('ringo/webapp/env');
+// var webenv = require('ringo/webapp/env');
 
 export('Response');
 
