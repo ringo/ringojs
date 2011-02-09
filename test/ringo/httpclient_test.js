@@ -97,6 +97,32 @@ exports.testBasic = function() {
    assert.strictEqual(myData, '<h1>This is the Response Text</h1>');
 };
 
+/**
+ * test user info in url
+ */
+exports.testUserInfo = function() {
+    
+    var log;
+    getResponse = function(req) {
+        log.push(req.getHeaders("Authorization"));
+        return new Response("response text");
+    };
+
+    // username and password in url
+    log = [];
+    request({url: "http://user:pass@" + host + ":" + port + "/"});
+    assert.equal(log.length, 1, "user:pass - one request");
+    assert.equal(log[0].length, 1, "user:pass - one Authorization header");
+    assert.equal(log[0][0].slice(0, 5), "Basic", "user:pass - Basic auth header");
+    
+    // username only in url, password in options
+    log = [];
+    request({url: "http://user@" + host + ":" + port + "/", password: "pass"});
+    assert.equal(log.length, 1, "user - one request");
+    assert.equal(log[0].length, 1, "user - one Authorization header");
+    assert.equal(log[0][0].slice(0, 5), "Basic", "user - Basic auth header");
+    
+}
 
 /**
  * test servlet on request env (this is not httpclient specific, but uses same setUp tearDown)
