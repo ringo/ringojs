@@ -3,5 +3,6 @@
 // main script to start application
 
 if (require.main == module) {
-    require("ringo/webapp").main(module.directory);
+    var app = require("./config").app
+    require("ringo/httpserver").Server({ app: app }).start()
 }

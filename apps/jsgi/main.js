@@ -1,4 +1,5 @@
-// start the web application
-if (module == require.main) {
-    require('ringo/webapp').main(module.directory);
+// Start the HTTP server on default port
+if (require.main === module) {
+    var app = require("./config").app
+    require("ringo/httpserver").Server({ app: app }).start()
 }
