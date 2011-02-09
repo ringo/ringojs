@@ -365,6 +365,16 @@ var Exchange = function(url, options, callbacks) {
 
     exchange.setMethod(options.method);
 
+    // deal with username:password in url
+    var urlObj = new java.net.URL(url);
+    var userInfo = urlObj.getUserInfo();
+    if (userInfo) {
+        // exchange.setURL does not take username:password in URL
+        url = url.replace(userInfo + "@", "");
+        var [options.username, password] = userInfo.split(":");
+        options.password = options.password || password;
+    }    
+
     if (typeof(options.username) === 'string' && typeof(options.password) === 'string') {
         var authKey = base64.encode(options.username + ':' + options.password);
         var authHeaderValue = "Basic " + authKey;
