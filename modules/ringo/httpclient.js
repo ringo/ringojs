@@ -371,7 +371,8 @@ var Exchange = function(url, options, callbacks) {
     if (userInfo) {
         // exchange.setURL does not take username:password in URL
         url = url.replace(userInfo + "@", "");
-        var [options.username, password] = userInfo.split(":");
+        var [username, password] = userInfo.split(":");
+        options.username = options.username || username;
         options.password = options.password || password;
     }    
 

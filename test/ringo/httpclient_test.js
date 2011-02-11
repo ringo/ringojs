@@ -5,6 +5,7 @@ var {htmlResponse, jsonResponse, notFoundResponse} = require('ringo/jsgi/respons
 var {parseParameters} = require('ringo/jsgi/parameters');
 var {setCookie} = require('ringo/jsgi/cookies');
 var {ByteArray} = require('binary');
+var base64 = require('ringo/base64');
 
 var server;
 var host = "127.0.0.1";
@@ -102,34 +103,41 @@ exports.testBasic = function() {
  * test user info in url
  */
 exports.testUserInfo = function() {
-    
+
     var log;
     getResponse = function(req) {
-        log.push(req.getHeaders("Authorization"));
-        return new Response("response text");
+        log.push(req.headers["authorization"]);
+        return htmlResponse("response text");
     };
 
     // username and password in url
     log = [];
     request({url: "http://user:pass@" + host + ":" + port + "/"});
     assert.equal(log.length, 1, "user:pass - one request");
-    assert.equal(log[0].length, 1, "user:pass - one Authorization header");
-    assert.equal(log[0][0].slice(0, 5), "Basic", "user:pass - Basic auth header");
-    
+    assert.equal(typeof log[0], "string", "user:pass - one Authorization header");
+    assert.equal(log[0].slice(0, 5), "Basic", "user:pass - Basic auth header");
+
     // username only in url, password in options
     log = [];
     request({url: "http://user@" + host + ":" + port + "/", password: "pass"});
     assert.equal(log.length, 1, "user - one request");
-    assert.equal(log[0].length, 1, "user - one Authorization header");
-    assert.equal(log[0][0].slice(0, 5), "Basic", "user - Basic auth header");
-    
+    assert.equal(typeof log[0], "string", "user - one Authorization header");
+    assert.equal(log[0].slice(0, 5), "Basic", "user - Basic auth header");
+
+    // username and password in url, options take precedence
+    log = [];
+    request({url: "http://user:pass@" + host + ":" + port + "/", username: "realuser", password: "realpass"});
+    assert.equal(log.length, 1, "precedence - one request");
+    assert.equal(typeof log[0], "string", "precedence - one Authorization header");
+    assert.equal(log[0], "Basic " + base64.encode("realuser:realpass"), "precedence - Basic auth header");
+
 }
 
 /**
  * test servlet on request env (this is not httpclient specific, but uses same setUp tearDown)
  */
 exports.testServlet = function() {
-    
+
     var servlet;
     getResponse = function(req) {
         servlet = req.env.servlet;
