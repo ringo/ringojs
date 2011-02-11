@@ -3,6 +3,7 @@ var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var {Server} = require('ringo/httpserver');
 var {Request} = require('ringo/webapp/request');
 var {Response} = require('ringo/webapp/response');
+var base64 = require('ringo/base64');
 
 var server;
 var host = "127.0.0.1";
@@ -121,7 +122,14 @@ exports.testUserInfo = function() {
     assert.equal(log.length, 1, "user - one request");
     assert.equal(log[0].length, 1, "user - one Authorization header");
     assert.equal(log[0][0].slice(0, 5), "Basic", "user - Basic auth header");
-    
+
+    // username and password in url, options take precedence
+    log = [];
+    request({url: "http://user:pass@" + host + ":" + port + "/", username: "realuser", password: "realpass"});
+    assert.equal(log.length, 1, "precedence - one request");
+    assert.equal(log[0].length, 1, "precedence - one Authorization header");
+    assert.equal(log[0][0], "Basic " + base64.encode("realuser:realpass"), "precedence - Basic auth header");
+
 }
 
 /**
