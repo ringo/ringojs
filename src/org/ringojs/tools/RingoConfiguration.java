@@ -140,12 +140,20 @@ public class RingoConfiguration {
             }
             // Try to resolve path as classpath resource
             URL url = RingoConfiguration.class.getResource("/" + path);
-            if (url != null && "jar".equals(url.getProtocol())) {
+            if (url != null && ("jar".equals(url.getProtocol()) || "zip".equals(url.getProtocol()))) {
                 String jar = url.getPath();
                 int excl = jar.indexOf("!");
 
                 if (excl > -1) {
-                    url = new URL(jar.substring(0, excl));
+                    jar = jar.substring(0, excl);
+                    try {
+                        url = new URL(jar);
+                    } 
+                    catch (MalformedURLException e) {
+                        // try with the file prefix
+                        url = new URL("file://" + jar);
+                    }
+                    
                     if ("file".equals(url.getProtocol())) {
                         jar = url.getPath();
                         try {
