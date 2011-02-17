@@ -269,7 +269,7 @@ function Session(request) {
                     get: function(name, start) {
                         return getSession().getAttribute(name);
                     },
-                    "delete": function(name,) {
+                    "delete": function(name) {
                         return getSession().removeAttribute(name);
                     }
                 });
