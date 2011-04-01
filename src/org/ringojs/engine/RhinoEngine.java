@@ -189,8 +189,9 @@ public class RhinoEngine implements ScopeProvider {
             resource.setStripShebang(true);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
+            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope);
             retval = evaluateScript(cx, script, mainScope);
+            mainScope.updateExports();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -215,7 +216,7 @@ public class RhinoEngine implements ScopeProvider {
             Object retval;
             Repository repository = repositories.get(0);
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
+            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
@@ -325,12 +326,13 @@ public class RhinoEngine implements ScopeProvider {
         try {
             Repository repository = new FileRepository("");
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
+            ModuleScope scope = new ModuleScope("<shell>", repository, parentScope);
             try {
                 evaluateScript(cx, getScript("ringo/shell"), scope);
             } catch (Exception x) {
                 log.log(Level.SEVERE, "Warning: couldn't load module 'ringo/shell'", x);
             }
+            scope.updateExports();
             return scope;
         } finally {
             Context.exit();

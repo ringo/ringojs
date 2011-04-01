@@ -185,7 +185,8 @@ public class ReloadableScript {
             modules.put(resource, module);
         }
         Object value = script.exec(cx, scope);
-        if (scope instanceof ModuleScope) {
+        if (module != null) {
+            module.updateExports();
             checkShared(module);
         }
         return value;
@@ -235,7 +236,7 @@ public class ReloadableScript {
                              Scriptable prototype, Map<Resource, ModuleScope> modules)
             throws IOException {
         if (module == null) {
-            module = new ModuleScope(moduleName, resource, prototype, cx);
+            module = new ModuleScope(moduleName, resource, prototype);
         } else {
             module.reset();
         }
@@ -257,6 +258,7 @@ public class ReloadableScript {
         } else {
             script.exec(cx, module);
         }
+        module.updateExports();
         checkShared(module);
         return module;
     }
@@ -276,7 +278,7 @@ public class ReloadableScript {
      * @throws IOException source could not be checked because of an I/O error
      */
     protected void checkShared(ModuleScope module) throws IOException {
-        Scriptable meta = module.getMetaObject();
+        Scriptable meta = module.getModuleObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
         boolean isShared = meta.get("shared", meta) != Boolean.FALSE

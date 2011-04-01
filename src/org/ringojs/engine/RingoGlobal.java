@@ -300,7 +300,7 @@ public class RingoGlobal extends Global {
         try {
             RhinoEngine engine = RhinoEngine.engines.get();
             ModuleScope main = engine.getMainModuleScope();
-            return main != null ? main.getMetaObject() : Undefined.instance;
+            return main != null ? main.getModuleObject() : Undefined.instance;
         } catch (Exception x) {
             return Undefined.instance;
         }
