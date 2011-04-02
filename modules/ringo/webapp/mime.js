@@ -79,6 +79,7 @@ exports.MIME_TYPES = {
     ".m3u"     : "audio/x-mpegurl",
     ".m4v"     : "video/mp4",
     ".man"     : "text/troff",
+    ".manifest": "text/cache-manifest",
     ".mathml"  : "application/mathml+xml",
     ".mbox"    : "application/mbox",
     ".mdoc"    : "text/troff",

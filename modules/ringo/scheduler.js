@@ -5,20 +5,20 @@
 
 var {newScheduledThreadPool, newCachedThreadPool} =
         java.util.concurrent.Executors;
-var {Callable, ThreadFactory} = java.util.concurrent;
+var {Callable} = java.util.concurrent;
 var {MILLISECONDS} = java.util.concurrent.TimeUnit;
 
 var ids = new java.util.concurrent.atomic.AtomicInteger();
 
-var executor = executor || newCachedThreadPool();
-var scheduler = scheduler || newScheduledThreadPool(4, new ThreadFactory({
-    newThread: function(runnable) {
-        var thread = new java.lang.Thread(runnable,
+function newThread(runnable) {
+    var thread = new java.lang.Thread(runnable,
                 "ringo-scheduler-" + ids.incrementAndGet());
-        thread.setDaemon(true);
-        return thread;
-    }
-}));
+    thread.setDaemon(true);
+    return thread;
+}
+
+var executor = executor || newCachedThreadPool(newThread);
+var scheduler = scheduler || newScheduledThreadPool(4, newThread);
 
 var security = java.lang.System.getSecurityManager();
 var spawnPermission = org.ringojs.security.RingoSecurityManager.SPAWN_THREAD;
