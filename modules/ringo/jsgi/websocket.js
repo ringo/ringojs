@@ -2,7 +2,6 @@
  * @fileOverview adds support for Websockets to Ringo webapps.
  */
 
-var {Session} = require("./request");
 var log = require("ringo/logging").getLogger(module.id);
 var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
 
@@ -24,7 +23,7 @@ exports.addWebSocket = function(context, path, onconnect) {
             return new WebSocket({
                 onConnect: function(outbound) {
                     log.debug("onconnect");
-                    var session;
+
                     /**
                      * The WebSocket object passed as argument to the `connect` callback.
                      * Assign callbacks to its [onmessage](#WebSocket.prototype.onmessage)
@@ -57,15 +56,6 @@ exports.addWebSocket = function(context, path, onconnect) {
                          */
                         isOpen: function() {
                             return outbound.isOpen();
-                        },
-                        /**
-                         * Get the HTTP Session object associated with this WebSocket.
-                         * @name WebSocket.instance.getSession
-                         * @function
-                         */
-                        getSession: function() {
-                            session = session || new Session(request);
-                            return session;
                         },
                         /**
                          * Callback slot for receiving messages on this WebSocket. To receive
