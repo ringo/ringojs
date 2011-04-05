@@ -194,7 +194,7 @@ public class RingoGlobal extends Global {
             Object arg = args[0] instanceof Wrapper ?
                     ((Wrapper) args[0]).unwrap() : args[0];
             if (arg instanceof String) {
-                path = engine.findPath((String) arg,
+                path = engine.resolve((String) arg,
                         engine.getParentRepository(thisObj));
             } else if (arg instanceof Trackable) {
                 path = (Trackable) arg;
