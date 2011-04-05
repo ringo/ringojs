@@ -88,7 +88,7 @@ case "$(basename $0)" in
     ringo-admin)
         app_args=("ringo/admin/main" "${app_args[@]}") ;;
     ringo-web)
-        app_args=("ringo/webapp" "${app_args[@]}") ;;
+        app_args=("ringo/httpserver" "${app_args[@]}") ;;
     ringo-doc)
         app_args=("$RINGO_HOME/apps/jsdoc/doc.js" "${app_args[@]}") ;;
     narwhal)
