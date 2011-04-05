@@ -36,6 +36,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
@@ -70,6 +71,7 @@ public class JsgiServlet extends HttpServlet {
         if (engine == null) {
             String ringoHome = getStringParameter(config, "ringo-home", "/WEB-INF");
             String modulePath = getStringParameter(config, "module-path", "app");
+            String bootScripts = getStringParameter(config, "bootscript", null);
             int optlevel = getIntParameter(config, "optlevel", 0);
             boolean debug = getBooleanParameter(config, "debug", false);
             boolean production = getBooleanParameter(config, "production", false);
@@ -92,6 +94,10 @@ public class JsgiServlet extends HttpServlet {
                 ringoConfig.setStrictVars(!legacyMode && !production);
                 ringoConfig.setReloading(!production);
                 ringoConfig.setOptLevel(optlevel);
+                if (bootScripts != null) {
+                    ringoConfig.setBootstrapScripts(Arrays.asList(
+                            StringUtils.split(bootScripts, ",")));
+                }
                 engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
