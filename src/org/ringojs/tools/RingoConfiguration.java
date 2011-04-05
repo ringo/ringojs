@@ -389,7 +389,7 @@ public class RingoConfiguration {
                 return repository;
             }
         }
-        return new FileRepository(path);
+        return new NotFound(path);
     }
 
     /**
@@ -502,7 +502,12 @@ public class RingoConfiguration {
     }
 }
 
-class NotFound extends AbstractResource {
+/**
+ * This is used as return value in {@link RingoConfiguration#getResource(String)}
+ * and {@link RingoConfiguration#getRepository(String)} when the given path
+ * could not be resolved.
+ */
+class NotFound extends AbstractResource implements Repository {
 
     NotFound(String path) {
         this.path = path;
@@ -527,8 +532,34 @@ class NotFound extends AbstractResource {
         return false;
     }
 
+    public Repository getChildRepository(String path) throws IOException {
+        return this;
+    }
+
+    public Resource getResource(String resourceName) throws IOException {
+        return this;
+    }
+
+    public Resource[] getResources() throws IOException {
+        return new Resource[0];
+    }
+
+    public Resource[] getResources(boolean recursive) throws IOException {
+        return new Resource[0];
+    }
+
+    public Resource[] getResources(String resourcePath, boolean recursive) throws IOException {
+        return new Resource[0];
+    }
+
+    public Repository[] getRepositories() throws IOException {
+        return new Repository[0];
+    }
+
+    public void setRoot() {}
+
     public URL getUrl() throws UnsupportedOperationException, MalformedURLException {
-        throw new MalformedURLException("Unable to resolve \"" + path + "\"");
+        throw new UnsupportedOperationException("Unable to resolve \"" + path + "\"");
     }
 
     public String toString() {
