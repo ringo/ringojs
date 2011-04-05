@@ -1,8 +1,10 @@
 var assert = require("assert");
 var {Client, request, post, get, put, del} = require('ringo/httpclient');
 var {Server} = require('ringo/httpserver');
-var {Request} = require('ringo/webapp/request');
-var {Response} = require('ringo/webapp/response');
+var {htmlResponse, jsonResponse, notFoundResponse} = require('ringo/jsgi/response');
+var {parseParameters} = require('ringo/jsgi/parameters');
+var {setCookie} = require('ringo/jsgi/cookies');
+var {ByteArray} = require('binary');
 
 var server;
 var host = "127.0.0.1";
@@ -20,11 +22,10 @@ var getResponse;
  * setUp pre every test
  */
 exports.setUp = function() {
-    var handleRequest = function(env) {
-        var req = new Request(env);
-        req.charset = config.charset || 'utf8';
+    var handleRequest = function(req) {
+        req.charset = 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
-        return getResponse(req, env);
+        return getResponse(req);
     };
 
     var config = {
@@ -54,7 +55,7 @@ exports.tearDown = function() {
  */
 exports.testCallbacksGetCalled = function() {
    getResponse = function(req) {
-      return new Response('');
+      return htmlResponse('');
    };
 
    var successCalled, completeCalled, errorCalled;
@@ -80,7 +81,7 @@ exports.testCallbacksGetCalled = function() {
  */
 exports.testBasic = function() {
    getResponse = function(req) {
-      return new Response('<h1>This is the Response Text</h1>');
+      return htmlResponse('<h1>This is the Response Text</h1>');
    };
 
    var errorCalled, myData;
@@ -106,7 +107,7 @@ exports.testServlet = function() {
     var servlet;
     getResponse = function(req) {
         servlet = req.env.servlet;
-        return new Response("servlet set");
+        return htmlResponse("servlet set");
     };
 
     var errorCalled, myData;
@@ -126,14 +127,17 @@ exports.testServlet = function() {
 
 
 /**
- * convinience wrappers
+ * convenience wrappers
  */
 exports.testConvenience = function() {
     getResponse = function(req) {
-        if (req.params.foo) {
-            return new Response (req.method + ' with param');
+        var params = {};
+        var input = req.method == "POST" ? req.input.read() : req.queryString;
+        parseParameters(input, params);
+        if (params.foo) {
+            return htmlResponse(req.method + ' with param');
         }
-        return new Response(req.method);
+        return htmlResponse(req.method);
     };
     var x = post(baseUri);
     assert.strictEqual(200, x.status);
@@ -162,7 +166,10 @@ exports.testConvenience = function() {
  */
 exports.testParams = function() {
     getResponse = function(req) {
-        return new Response(JSON.stringify(req.params));
+        var params = {};
+        var input = req.method == "POST" ? req.input.read() : req.queryString;
+        parseParameters(input, params);
+        return jsonResponse(params);
     };
     var data = {
         a: "fääßß",
@@ -195,11 +202,9 @@ exports.testParams = function() {
 exports.testCallbacks = function() {
     getResponse = function(req) {
         if (req.pathInfo == '/notfound') {
-            return Response.notFound('error');
+            return notFoundResponse('error');
         } else if (req.pathInfo == '/success') {
-            var res = new Response('success');
-            res.contentType = 'text/json';
-            return res;
+            return jsonResponse('success');
         } else if (req.pathInfo == '/redirect') {
             return {
                 status: 302,
@@ -207,7 +212,7 @@ exports.testCallbacks = function() {
                 body: ["Found: " + '/redirectlocation']
             };
         } else if (req.pathInfo == '/redirectlocation') {
-            return new Response('redirect success');
+            return htmlResponse('redirect success');
         }
     };
     var myStatus, successCalled, errorCalled, myMessage, myContentType, myData;
@@ -243,7 +248,7 @@ exports.testCallbacks = function() {
             errorCalled = true;
         }
     });
-    assert.strictEqual('text/json; charset=utf-8', myContentType);
+    assert.strictEqual('application/json; charset=utf-8', myContentType);
     assert.strictEqual(200, myStatus);
     assert.isUndefined(errorCalled);
 
@@ -271,9 +276,11 @@ exports.testCookie = function() {
     var COOKIE_VALUE = 'cookie value with s p   a c es';
 
     getResponse = function(req) {
+        var params = {};
+        parseParameters(req.queryString, params);
         // set cookie
-        var res = new Response('cookie set');
-        res.setCookie(COOKIE_NAME, req.params.cookievalue, 5);
+        var res = htmlResponse('cookie set');
+        res.headers['Set-Cookie'] = setCookie(COOKIE_NAME, params.cookievalue, 5);
         return res;
     };
 
@@ -304,8 +311,8 @@ exports.testCookie = function() {
  */
 exports.testStreamRequest = function() {
 
-    getResponse = function(req, env) {
-        if (req.isPost) {
+    getResponse = function(req) {
+        if (req.method == "POST") {
             var input;
             return {
                     status: 200,
@@ -316,7 +323,7 @@ exports.testStreamRequest = function() {
                         forEach: function(fn) {
                             var read, bufsize = 8192;
                             var buffer = new ByteArray(bufsize);
-                            input = env.input;
+                            input = req.input;
                             while ((read = input.readInto(buffer)) > -1) {
                                 buffer.length = read;
                                 fn(buffer);
