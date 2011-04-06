@@ -15,7 +15,7 @@ var base64 = require('ringo/base64');
 var {defer} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
 
-export('request', 'post', 'get', 'del', 'put', 'Client');
+export('request', 'post', 'get', 'del', 'put');
 
 /**
  * Wrapper around jetty.http.HttpCookie.
@@ -143,7 +143,7 @@ var Exchange = function(url, options, callbacks) {
         status: {
             get: function() {
                 return exchange.getResponseStatus();
-            }
+            }, enumerable: true
         },
         /**
          * The response content type
@@ -152,7 +152,7 @@ var Exchange = function(url, options, callbacks) {
         contentType: {
             get: function() {
                 return responseHeaders.get('Content-Type');
-            }
+            }, enumerable: true
         },
         /**
          * The response body as String
@@ -161,7 +161,7 @@ var Exchange = function(url, options, callbacks) {
         content: {
             get: function() {
                 return exchange.getResponseContent();
-            }
+            }, enumerable: true
         },
         /**
          * The response body as ByteString
@@ -171,7 +171,7 @@ var Exchange = function(url, options, callbacks) {
             get: function() {
                 var bytes = exchange.getResponseContentBytes();
                 return bytes ? ByteString.wrap(bytes) : new ByteString();
-            }
+            }, enumerable: true
         },
         /**
          * @name Exchange.prototype.contentChunk
@@ -179,7 +179,7 @@ var Exchange = function(url, options, callbacks) {
         contentChunk: {
             get: function() {
                 return exchange.getRequestContentChunk();
-            }
+            }, enumerable: true
         },
         /**
          * The Jetty ContentExchange object
@@ -189,7 +189,7 @@ var Exchange = function(url, options, callbacks) {
         contentExchange: {
             get: function() {
                 return exchange;
-            }
+            }, enumerable: true
         },
         /**
          * The response headers
@@ -198,7 +198,7 @@ var Exchange = function(url, options, callbacks) {
         headers: {
             get: function() {
                 return responseHeaders;
-            }
+            }, enumerable: true
         },
         /**
          * The cookies set by the server
@@ -214,7 +214,7 @@ var Exchange = function(url, options, callbacks) {
                     cookies[cookie.name] = cookie;
                 }
                 return cookies;
-            }
+            }, enumerable: true
         },
         /**
          * The response encoding
@@ -224,7 +224,7 @@ var Exchange = function(url, options, callbacks) {
             // NOTE HttpExchange._encoding knows about this but is protected
             get: function() {
                 return getMimeParameter(this.contentType, "charset") || 'utf-8';
-            }
+            }, enumerable: true
         },
         /**
          * True if the request has completed, false otherwise
@@ -233,7 +233,7 @@ var Exchange = function(url, options, callbacks) {
         done: {
             get: function() {
                 return exchange.isDone();
-            }
+            }, enumerable: true
         },
         /**
          * Waits for the request to complete and returns the Exchange object itself.
@@ -246,7 +246,7 @@ var Exchange = function(url, options, callbacks) {
             value: function() {
                 exchange.waitForDone();
                 return this;
-            }
+            }, enumerable: true
         }
     });
 
@@ -716,7 +716,12 @@ var Client = function(timeout, followRedirects) {
 };
 
 // avoid reinstantiating default client if module is reevaluated.
-var defaultClient = defaultClient || new Client();
+var defaultClient;
+
+function getClient() {
+    defaultClient = defaultClient || new Client();
+    return defaultClient;
+}
 
 /**
  * Convenience function to make a generic HTTP request without creating a new client.
@@ -725,7 +730,8 @@ var defaultClient = defaultClient || new Client();
  * @see Client.prototype.request
  */
 var request = function() {
-    return defaultClient.request.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.request.apply(client, arguments);
 };
 
 /**
@@ -741,7 +747,8 @@ var request = function() {
  * @see Client.prototype.request
  */
 var post = function() {
-    return defaultClient.post.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.post.apply(client, arguments);
 };
 
 /**
@@ -757,7 +764,8 @@ var post = function() {
  * @see Client.prototype.request
  */
 var get = function() {
-    return defaultClient.get.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.get.apply(client, arguments);
 };
 
 /**
@@ -773,7 +781,8 @@ var get = function() {
  * @see Client.prototype.request
  */
 var del = function() {
-    return defaultClient.del.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.del.apply(client, arguments);
 };
 
 /**
@@ -789,7 +798,8 @@ var del = function() {
  * @see Client.prototype.request
  */
 var put = function() {
-    return defaultClient.put.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.put.apply(client, arguments);
 };
 
 
