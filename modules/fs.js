@@ -175,8 +175,13 @@ function copy(from, to) {
  * path, symbolic links to directories are copied but not traversed into.
  */
 function copyTree(from, to) {
-    var source = resolveFile(from);
-    var target = resolveFile(to);
+    var source = resolveFile(from).getCanonicalFile();
+    var target = resolveFile(to).getCanonicalFile();
+    if (String(target) == String(source)) {
+        throw new Error("Source and target files are equal in copyTree.");
+    } else if (String(target).indexOf(source) == 0) {
+        throw new Error("Target is a child of source in copyTree");
+    }
     if (source.isDirectory()) {
         makeTree(target);
         var files = source.list();
