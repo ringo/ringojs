@@ -67,7 +67,7 @@ function parseParameters(bytes, params, encoding) {
  */
 function mergeParameter(params, name, value) {
     // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
-    if (name.match(/^\w+(?:\[[^\]]*\]\s*)+$/)) {
+    if (name.match(/^[\w_\-\.]+(?:\[[^\]]*\]\s*)+$/)) {
         var names = name.split(/\]\s*\[|\[|\]/).map(function(s) s.trim()).slice(0, -1);
         mergeParameterInternal(params, names, value);
     } else {
