@@ -161,6 +161,10 @@ function handleAsyncResponse(request, response, result) {
 
     var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
     var continuation = ContinuationSupport.getContinuation(request);
+    if (!continuation) {
+        throw new Error("Jetty continuation support required for asynchronous "
+                      + "response is not available");
+    }
     var handled = false;
 
     var onFinish = sync(function(value) {
