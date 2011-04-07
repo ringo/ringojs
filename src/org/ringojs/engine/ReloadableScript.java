@@ -106,7 +106,8 @@ public class ReloadableScript {
             exception = scriptref.exception;
         }
         // recompile if neither script or exception are available, or if source has been updated
-        if ((script == null && exception == null) || (reloading && checksum != resource.getChecksum())) {
+        if ((script == null && exception == null)
+                || (reloading && checksum != resource.getChecksum())) {
             shared = Shared.UNKNOWN;
             if (!resource.exists()) {
                 throw new IOException(resource + " not found or not readable");
@@ -382,7 +383,8 @@ public class ReloadableScript {
 
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            System.err.println("Warning: " + new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            System.err.println("Warning: " + new SyntaxError(message, sourceName,
+                    line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
@@ -403,8 +405,10 @@ public class ReloadableScript {
         }
 
         public EvaluatorException runtimeError(String message, String sourceName,
-                                               int line, String lineSource, int lineOffset) {
-            return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
+                                               int line, String lineSource,
+                                               int lineOffset) {
+            return new EvaluatorException(message, sourceName, line,
+                    lineSource, lineOffset);
         }
     }
 
@@ -415,7 +419,8 @@ public class ReloadableScript {
         Exception exception;
 
 
-        ScriptReference(Resource source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
+        ScriptReference(Resource source, Script script,
+                        ReloadableScript rescript, ReferenceQueue<Script> queue)
                 throws IOException {
             super(script, queue);
             this.source = source;
