@@ -40,11 +40,11 @@ public class ModuleScope extends ImporterTopLevel {
         activatePrototypeMap(3);
         // prototype properties include constructor property which we don't need
         delete("constructor");
-        /* try {
+        try {
             cacheBuiltins();
         } catch (NoSuchMethodError e) {
             // allows us to run with older versions of Rhino
-        } */
+        }
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
