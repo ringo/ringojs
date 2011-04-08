@@ -680,15 +680,6 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the repository containing installed packages
-     * @return the packages repository
-     * @throws IOException if an I/O error occurred
-     */
-    public Repository getPackageRepository() throws IOException {
-        return config.getPackageRepository();
-    }
-
-    /**
      * Get the repository associated with the scope or one of its prototypes
      *
      * @param scope the scope to get the repository from

@@ -59,20 +59,18 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
-    private boolean packagesDisabled = false;
     private String charset = "UTF-8";
-    private Repository packages = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
-     * @param modulePath the module search path as comma separated string
+     * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, String[] modulePath, String systemModules)
-            throws IOException {
+    public RingoConfiguration(Repository ringoHome, List<String> userModules,
+                              String systemModules) throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
         home.setAbsolute(true);
@@ -90,16 +88,17 @@ public class RingoConfiguration {
             parentProtoProperties = Integer.parseInt(parentProto) != 0;
         }
 
-        if (modulePath != null) {
-            for (String aModulePath : modulePath) {
-                String path = aModulePath.trim();
-                addModuleRepository(resolveRootRepository(path));
-            }
-        }
-
         // append system modules path relative to ringo home
+        // TODO this probably shouldn't be on require.paths
         if (systemModules != null) {
             addModuleRepository(resolveRootRepository(systemModules));
+        }
+
+        if (userModules != null) {
+            for (String pathElem : userModules) {
+                String path = pathElem.trim();
+                addModuleRepository(resolveRootRepository(path));
+            }
         }
 
         // now that repositories are set up try to set default log4j configuration file
@@ -447,28 +446,6 @@ public class RingoConfiguration {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
-    }
-
-    public Repository getPackageRepository() throws IOException {
-        if (packagesDisabled) {
-            return null;
-        }
-        if (packages == null) {
-            packages = home.getChildRepository("packages");
-        }
-        return packages;
-    }
-
-    public void setPackageRepository(Repository packages) {
-        this.packages = packages;
-    }
-
-    public boolean isPackagesDisabled() {
-        return packagesDisabled;
-    }
-
-    public void setPackagesDisabled(boolean packagesDisabled) {
-        this.packagesDisabled = packagesDisabled;
     }
 
     public boolean isPolicyEnabled() {

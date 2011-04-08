@@ -36,6 +36,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
@@ -84,8 +85,10 @@ public class JsgiServlet extends HttpServlet {
                             + "reverting to file repository " + home);
                 }
                 // Use ',' as platform agnostic path separator
-                String[] paths = StringUtils.split(modulePath, ",");
-                RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
+                List<String> paths = Arrays.asList(
+                        StringUtils.split(modulePath, ","));
+                RingoConfiguration ringoConfig =
+                        new RingoConfiguration(home, paths, "modules");
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);
