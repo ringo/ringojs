@@ -140,20 +140,12 @@ public class RingoConfiguration {
             }
             // Try to resolve path as classpath resource
             URL url = RingoConfiguration.class.getResource("/" + path);
-            if (url != null && "jar".equals(url.getProtocol())) {
-                String jar = url.getPath();
-                int excl = jar.indexOf("!");
-
-                if (excl > -1) {
-                    url = new URL(jar.substring(0, excl));
-                    if ("file".equals(url.getProtocol())) {
-                        jar = url.getPath();
-                        try {
-                            jar = URLDecoder.decode(jar, System.getProperty("file.encoding"));
-                        } catch (UnsupportedEncodingException x) {
-                            System.err.println("Unable to decode jar URL: " + x);
-                        }
-                        repository = new ZipRepository(jar).getChildRepository(path);
+            if (url != null) {
+                String protocol = url.getProtocol();
+                if (("jar".equals(protocol) || "zip".equals(protocol))) {
+                    Repository jar = toZipRepository(url);
+                    if (jar != null) {
+                        repository = jar.getChildRepository(path);
                         if (repository.exists()) {
                             repository.setRoot();
                             return repository;
@@ -367,11 +359,16 @@ public class RingoConfiguration {
      * @throws IOException an I/O error occurred
      */
     public Resource getResource(String path) throws IOException {
+        Resource res;
         for (Repository repo: repositories) {
-            Resource res = repo.getResource(path);
+            res = repo.getResource(path);
             if (res != null && res.exists()) {
                 return res;
             }
+        }
+        res = resourceFromClasspath(path);
+        if (res != null && res.exists()) {
+            return res;
         }
         return new NotFound(path);
     }
@@ -383,11 +380,16 @@ public class RingoConfiguration {
      * @throws IOException an I/O error occurred
      */
     public Repository getRepository(String path) throws IOException {
-        for (Repository repo: repositories) {
-            Repository repository = repo.getChildRepository(path);
-            if (repository != null && repository.exists()) {
-                return repository;
+        Repository repo;
+        for (Repository parent: repositories) {
+            repo = parent.getChildRepository(path);
+            if (repo != null && repo.exists()) {
+                return repo;
             }
+        }
+        repo = repositoryFromClasspath(path);
+        if (repo != null && repo.exists()) {
+            return repo;
         }
         return new NotFound(path);
     }
@@ -497,8 +499,74 @@ public class RingoConfiguration {
         this.bootstrapScripts = bootstrapScripts;
     }
 
-    private Logger getLogger() {
+    private static Logger getLogger() {
         return Logger.getLogger("org.ringojs.tools");
+    }
+
+    private static Repository toZipRepository(URL url) throws IOException {
+        String nested = url.getPath();
+        int excl = nested.indexOf("!");
+
+        if (excl > -1) {
+            nested = nested.substring(0, excl);
+            try {
+                url = new URL(nested);
+            } catch (MalformedURLException e) {
+                // try with the file prefix
+                url = new URL("file://" + nested);
+            }
+
+            if ("file".equals(url.getProtocol())) {
+                String path = url.getPath();
+                try {
+                    path = URLDecoder.decode(path, System.getProperty("file.encoding"));
+                } catch (UnsupportedEncodingException x) {
+                    System.err.println("Unable to decode jar URL: " + x);
+                }
+                return new ZipRepository(path);
+            }
+        }
+        return null;
+    }
+
+    private static Resource resourceFromClasspath(String path)
+            throws IOException {
+        URL url = urlFromClasspath(path.endsWith("/") ?
+                path.substring(0, path.length() - 1) : path);
+        if (url != null) {
+            String protocol = url.getProtocol();
+            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+                Repository repo = toZipRepository(url);
+                return repo.getResource(path);
+            } else if ("file".equals(protocol)) {
+                return new FileResource(url.getPath());
+            }
+        }
+        return null;
+
+    }
+
+    private static Repository repositoryFromClasspath(String path)
+            throws IOException {
+        URL url = urlFromClasspath(path.endsWith("/") ? path : path + "/");
+        if (url != null) {
+            String protocol = url.getProtocol();
+            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+                Repository repo = toZipRepository(url);
+                return repo.getChildRepository(path);
+            } else if ("file".equals(protocol)) {
+                return new FileRepository(url.getPath());
+            }
+        }
+        return null;
+    }
+
+    private static URL urlFromClasspath(String path) {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if (loader == null) {
+            return null;
+        }
+        return loader.getResource(path);
     }
 }
 
