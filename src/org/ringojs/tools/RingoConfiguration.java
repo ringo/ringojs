@@ -231,10 +231,6 @@ public class RingoConfiguration {
                 // found the script, so set mainModule
                 mainResource = script;
             }
-        } else {
-            // no script file, add current directory to module path
-            File currentDir = new File(System.getProperty("user.dir"));
-            repositories.add(0, new FileRepository(currentDir));
         }
     }
 
