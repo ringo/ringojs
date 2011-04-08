@@ -88,17 +88,17 @@ public class RingoConfiguration {
             parentProtoProperties = Integer.parseInt(parentProto) != 0;
         }
 
-        // append system modules path relative to ringo home
-        // TODO this probably shouldn't be on require.paths
-        if (systemModules != null) {
-            addModuleRepository(resolveRootRepository(systemModules));
-        }
-
         if (userModules != null) {
             for (String pathElem : userModules) {
                 String path = pathElem.trim();
                 addModuleRepository(resolveRootRepository(path));
             }
+        }
+
+        // append system modules path relative to ringo home
+        // TODO this probably shouldn't be on require.paths
+        if (systemModules != null) {
+            addModuleRepository(resolveRootRepository(systemModules));
         }
 
         // now that repositories are set up try to set default log4j configuration file
