@@ -326,6 +326,7 @@ public class RhinoEngine implements ScopeProvider {
         Object[] threadLocals = checkThreadLocals();
         try {
             Repository repository = new FileRepository("");
+            repository.setAbsolute(true);
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
             ModuleScope scope = new ModuleScope("<shell>", repository, parentScope);
             try {
