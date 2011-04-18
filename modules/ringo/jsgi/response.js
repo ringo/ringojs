@@ -7,6 +7,15 @@ var {mimeType} = require('ringo/mime');
 
 var charset = "utf-8";
 
+/**
+ * Get or set the character encoding used for text responses.
+ *
+ * If this function is called without argument, it returns the name of the
+ * currently used character encoding. If called with an argument, it sets the
+ * character encoding to the given charset.
+ * @param {string} charset the encoding to use.
+ * @returns {string} the current character encoding.
+ */
 exports.charset = function() {
     if (arguments.length) {
         charset = String(arguments[0]);

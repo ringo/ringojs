@@ -13,8 +13,8 @@ export('bindArguments', 'bindThisObject');
  *
  * This is a simple reimplementation of Mochikit partial()
  *
- * @param fn {function} a function
- * @param args
+ * @param {function} fn a function
+ * @param args... one or more arguments to bind
  * @returns {function} a function with bound arguments
  */
 function bindArguments(fn /*, arg, ... */) {
@@ -32,9 +32,9 @@ function bindArguments(fn /*, arg, ... */) {
  * the this-object even if it is called as global function or on
  * another this-object.
  *
- * @param fn {function} a function
- * @param obj {Object} the object to bind to the "this" object
- * @returns a function with bound this object
+ * @param {function} fn a function
+ * @param {Object} obj the object to bind to the this-object
+ * @returns {function} a function with bound this object
  */
 function bindThisObject(fn, obj) {
     if (typeof(fn) != "function")

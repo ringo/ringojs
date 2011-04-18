@@ -61,7 +61,7 @@ function resolveUri() {
 
 /**
  * Resolve path fragment child relative to parent but only
- * if child is a a relative path according to the Securable Modules
+ * if child is a a relative path according to the CommonJS Modules
  * spec, i.e. starts with "." or "..". Otherwise, the child path
  * is returned unchanged.
  *
