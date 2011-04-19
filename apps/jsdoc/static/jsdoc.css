@@ -9,7 +9,7 @@ pre.code {
 
 table td {
     vertical-align: top;
-    padding: 0 6px;
+    padding: 0 10px;
 }
 
 h4 {
@@ -27,9 +27,13 @@ h4 {
     font-weight:bold;
 }
 
+.extrainfo {
+    padding:0 12px;
+}
+
 .leftnav, .repositorylist, .propertyoverview {
     list-style-type: none;
-    padding: 5px;
+    padding: 2px;
 }
 
 .docitem {
@@ -42,6 +46,9 @@ h4 {
     text-decoration:none;
 }
 
+.light {
+    font-weight: normal;
+}
 
 .docitem.highlight {
     border-left: 4px solid green;
@@ -50,6 +57,8 @@ h4 {
 
 ul.modulelist {
     list-style-type:none;
+    margin: 0;
+    padding-left: 10px;
 }
 
 .repositoryname {
@@ -70,6 +79,13 @@ h3 {
 
 ul {
     margin: 5px;
+}
+
+hr {
+    border: 0;
+    color: #999;
+    background-color: #999;
+    height: 1px;
 }
 
 .classoverview, .modulecontainer {
