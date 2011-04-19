@@ -6,7 +6,7 @@ var log = require('ringo/logging').getLogger(module.id);
 var Parser = require('ringo/args').Parser;
 var system = require('system');
 
-export('Server');
+export('Server', 'main');
 
 var options,
     server,
@@ -263,9 +263,9 @@ function parseOptions(arguments, defaults) {
 }
 
 /**
-* Main webapp startup function.
-* @param {String} path optional path to the web application directory or config module.
-*/
+ * Main webapp startup function.
+ * @param {String} path optional path to the web application directory or config module.
+ */
 function main(path) {
     // protect against module reloading
     if (started) return;
