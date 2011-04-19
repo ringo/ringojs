@@ -1,4 +1,3 @@
-# ignore everything except .gitignore, skeleton package
+# ignore everything in here except ourself
 /*
 !/.gitignore
-!/namespace-skeleton/

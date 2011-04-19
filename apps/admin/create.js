@@ -33,13 +33,13 @@ function createApplication(path, options) {
 
     if (options.appengine) {
         var symlink = Boolean(options.symlink);
-        copyTree(home, "apps/appengine", dest);
-        copyTree(home, "apps/skeleton", join(dest, "WEB-INF", "app"));
+        copyTree(home, "apps/admin/skeletons/appengine", dest);
+        copyTree(home, "apps/admin/skeletons/app", join(dest, "WEB-INF", "app"));
         copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
         fixAppEngineDirs(dest);
         copyJars(home, dest, symlink);
     } else {
-        copyTree(home, "apps/skeleton", dest);
+        copyTree(home, "apps/admin/skeletons/app", dest);
     }
 }
 
@@ -61,7 +61,7 @@ function createPackage(path, options) {
         throw new Error("Directory " + dest + " exists but is not empty");
     }
 
-    copyTree(home, "packages/namespace-skeleton", dest);
+    copyTree(home, "apps/admin/skeletons/package", dest);
 }
 
 function copyTree(home, from, to, symlink) {
