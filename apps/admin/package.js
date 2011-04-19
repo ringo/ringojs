@@ -2,7 +2,7 @@
  * @fileoverview Script to package up an existing RingoJS application as a WAR.
  */
 
-require('core/string');
+var strings = require('ringo/utils/strings');
 var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base, removeTree} = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
@@ -102,7 +102,8 @@ function createApplication(path, options) {
     
     if(!isDir) {
       zip(dest, war);
-      removeTree(dest);
+      // removeTree(dest);
+      print("***** " + dest);
     }
 }
 
