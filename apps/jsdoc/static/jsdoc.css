@@ -37,8 +37,6 @@ h4 {
 }
 
 .docitem {
-    margin: 0 0 0 5px;
-    padding: 0 0 0 10px;
 }
 
 .docitem .itemtitle {
@@ -88,9 +86,9 @@ hr {
     height: 1px;
 }
 
-.classoverview, .modulecontainer {
-    background-color: #f1ffcc; /*#f7ffe5; */
-    padding: 5px;
+.classoverview {
+    background-color: #f0ffc0; /*#f7ffe5; */
+    padding: 5px 10px;
     margin: 15px 0;
 }
 
