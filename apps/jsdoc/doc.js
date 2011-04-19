@@ -127,12 +127,6 @@ function writeModuleDoc(target, repository, moduleId){
             },
             withNewline: function(value) {
                 return value && value.length ? value.join("<br />") : "";
-            },
-            renderFunctionsAndProperties: function() {
-                return function(text, render) {
-                    return (this.functions.length || this.properties.length) ?
-                        render(text) : "";
-                }
             }
         })
     );

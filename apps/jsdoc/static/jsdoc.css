@@ -91,7 +91,7 @@ hr {
 .classoverview, .modulecontainer {
     background-color: #f1ffcc; /*#f7ffe5; */
     padding: 5px;
-    margin: 5px;
+    margin: 15px 0;
 }
 
 .modulename {
