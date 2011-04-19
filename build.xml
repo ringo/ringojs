@@ -128,7 +128,7 @@
            <arg  value="--file-urls"/>
            <arg  value="--source=${home}/modules"/>
            <arg  value="--directory=${jsdocs}"/>
-           <arg  value="--name=RingoJS Module API"/>
+           <arg  value="--name=Ringo Modules"/>
        </java>
     </target>
 
