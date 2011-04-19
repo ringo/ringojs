@@ -96,8 +96,7 @@ exports.parseResource = function(resource) {
                         exportedName = name;
                     }
                 } else if (target.type == Token.THIS) {
-                    if (root.parent && root.parent.parent && root.parent.parent.parent
-                            &&  root.parent.parent.parent == exportedFunction) {
+                    if (isGreatGrandMa(exportedFunction, root)) {
                         addDocItem(exportedName + ".instance." + name, root.jsDoc, node.right);
                         /* if (node.right.type == Token.FUNCTION) {
                          exportedFunction = node.right;
@@ -200,7 +199,7 @@ exports.parseResource = function(resource) {
                 if (arrays.contains(exported, target[0]) || arrays.contains(standardObjects, target[0])) {
                     target.push(nodeToString(args[1]));
                     addDocItem(target.join('.'), jsdoc, value);
-                } else if (target[0] == 'this' && exportedFunction != null) {
+                } else if (target[0] == 'this' && isGreatGrandMa(exportedFunction, node)) {
                     target[0] = exportedName;
                     target.push('instance', nodeToString(args[1]));
                     addDocItem(target.join('.'), jsdoc, value);
@@ -269,13 +268,15 @@ exports.parseResource = function(resource) {
         if (node.type == Token.VAR || node.type == Token.LET) {
             for each (var n in ScriptableList(node.variables)) {
                 if (n.target.type == Token.NAME && arrays.contains(exported, n.target.string)) {
-                    if (n.initializer && n.initializer.type == Token.FUNCTION) {
-                        // Note: We might still miss something like
-                        // var foo = XXX.foo = function()...
-                        exportedFunction = n.initializer;
-                        exportedName = n.target.string;
+                    if (getNestingLevel(node) == 1) {
+                        if (n.initializer && n.initializer.type == Token.FUNCTION) {
+                            // Note: We might still miss something like
+                            // var foo = XXX.foo = function()...
+                            exportedFunction = n.initializer;
+                            exportedName = n.target.string;
+                        }
+                        addDocItem(n.target.string,  node.jsDoc, n.initializer);
                     }
-                    addDocItem(n.target.string,  node.jsDoc, n.initializer);
                 } else if (n.initializer && n.initializer.type == Token.ASSIGN) {
                     checkAssignment(n.initializer, node, exported);
                 }
@@ -396,3 +397,19 @@ var nodeToString = function(node) {
         return getTypeName(node);
     }
 };
+
+function isGreatGrandMa(parent, child) {
+    return parent && child.parent
+            && child.parent.parent
+            && child.parent.parent.parent == parent;
+}
+
+function getNestingLevel(node) {
+    var count = 0;
+    while (node.parent) {
+        count++;
+        node = node.parent;
+    }
+    return count;
+
+}
