@@ -24,6 +24,15 @@
 			<param-name>app</param-name>
 			<param-value>app</param-value>
 		</init-param>
+        <!--
+            Setting optlevel to -1 will improve startup time and memory usage.
+            Remove this or set it to 0 if you have reserved instances or
+            performance is more important than startup time.
+        -->
+		<init-param>
+			<param-name>optlevel</param-name>
+			<param-value>-1</param-value>
+		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
