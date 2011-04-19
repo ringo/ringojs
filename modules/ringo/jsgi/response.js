@@ -85,7 +85,7 @@ exports.staticResponse = function (resource, contentType) {
         throw Error("Wrong argument for static response: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return Response.notFound(String(resource));
+        return exports.notFoundResponse(String(resource));
     }
     var input;
     return {
@@ -128,11 +128,13 @@ exports.redirectResponse = function (location) {
  * @param {String} location the location that couldn't be found
  */
 exports.notFoundResponse = function (location) {
+    var contentType = "text/html"
+    if (charset) contentType += "; charset=" + charset;
     var header = 'Not Found';
     var message = 'The requested URL ' + location + ' was not found on the server.';
     return {
         status: 404,
-        headers: {'Content-Type': 'text/html'},
+        headers: {'Content-Type': contentType},
         body: [ '<html><head><title>', header, '</title></head>',
                 '<body><h1>', header, '</h1>',
                 '<p>', message, '</p>',
@@ -145,11 +147,13 @@ exports.notFoundResponse = function (location) {
  * @param {String} message the message of response body
  */
 exports.errorResponse = function (message) {
+    var contentType = "text/html"
+    if (charset) contentType += "; charset=" + charset;
     var header = "Server Error";
     message = message ? String(message) : "";
     return {
         status: 500,
-        headers: {'Content-Type': 'text/html'},
+        headers: {'Content-Type': contentType},
         body: [ '<html><head><title>', header, '</title></head>',
                 '<body><h1>', header, '</h1>',
                 '<p>', message, '</p>',
