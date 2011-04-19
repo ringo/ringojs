@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Provides functions for parsing multipart HTTP requests.
+ */
 
 var arrays = require('ringo/utils/arrays');
 var strings = require('ringo/utils/strings');

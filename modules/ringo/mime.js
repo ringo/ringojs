@@ -1,12 +1,27 @@
+/**
+ * @fileOverview This module provides functionality for determining the MIME type for a
+ * given file extension.
+ */
+
 // Stolen from Jack with slight adaptions
 
-// returns MIME type for extension, or fallback, or octet-steam
+/**
+ * Determines the MIME type for the given file extension. If the file extension
+ * is unknown, the fallback argument is returned. If that is undefined, the
+ * function returns "application/octet-stream".
+ * @param {string} fileName a file name
+ * @param {string} fallback MIME type to return if file extension is unknown
+ * @returns {string} the MIME type for the file name
+ */
 exports.mimeType = function(fileName, fallback) {
     var ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
     return exports.MIME_TYPES[ext] || fallback || 'application/octet-stream';
 };
 
-// List of most common mime-types, stolen from Rack.
+/**
+ * A list of common MIME types, keyed by file extension.
+ * @type Object
+ */
 exports.MIME_TYPES = {
     ".3gp"     : "video/3gpp",
     ".a"       : "application/octet-stream",

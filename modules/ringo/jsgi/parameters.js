@@ -1,3 +1,6 @@
+/**
+ * @fileOverview Provides functions for parsing URL-encoded form data.
+ */
 
 var strings = require('ringo/utils/strings');
 var {Binary, ByteArray, ByteString} = require('binary');
