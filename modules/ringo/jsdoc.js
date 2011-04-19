@@ -102,7 +102,8 @@ exports.parseResource = function(resource) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
                          } */
-                    } else if (arrays.contains(exported, name)) {
+                    } else if (arrays.contains(exported, name)
+                                    && getNestingLevel(node) === 2) {
                         addDocItem(name, root.jsDoc, node.right);
                     }
                 } else {
