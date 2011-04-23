@@ -51,6 +51,9 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
             fileoverview: fileoverview,
         }
     }).sort(function(a, b) {
+        // sort modules by namespace depth first, then lexographically
+        var level = strings.count(a.id, '/') - strings.count(b.id, '/');
+        if (level != 0) return level;
         return a.id > b.id ? 1 : -1;
     });
 
@@ -104,7 +107,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
             name = nameParts.join('.');
         }
         var shortName = docItem.name.split('.').splice(-1)[0];
-        var prefix = name.slice(0, -shortName.length)
+        var prefix = name.slice(0, -shortName.length);
         return {
             name: name,
             shortName: shortName,
