@@ -5,12 +5,16 @@ var mustache = require('../shared/mustache-commonjs');
 
 var log = require('ringo/logging').getLogger(module.id);
 
-export('index', 'upload', 'testing', 'logging');
+export('index', 'modules', 'upload', 'testing', 'logging');
 
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
     return responseHelper('templates/welcome.txt', {title: 'Demo'});
+}
+
+function modules(req) {
+    return responseHelper('templates/modules.txt', {title: 'Modules'});
 }
 
 function upload(req) {
