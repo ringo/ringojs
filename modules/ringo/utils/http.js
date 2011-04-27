@@ -3,6 +3,9 @@ var dates = require('ringo/utils/dates');
 var strings = require('ringo/utils/strings');
 var {Buffer} = require('ringo/buffer');
 var {Binary, ByteArray, ByteString} = require('binary');
+var {open} = require('fs');
+var {MemoryStream} = require('io');
+var {createTempFile} = require('ringo/utils/files');
 
 export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
         'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
@@ -317,21 +320,25 @@ function isFileUpload(contentType) {
 
 
 /**
- * Parse a byte array representing a query string or post data into an
- * JavaScript object structure using the specified encoding.
- * @param bytes a Binary object
- * @param params a parameter object to parse into
- * @param encoding a valid encoding name, defaults to UTF-8
+ * Parse a string or binary object representing a query string or post data into
+ * a JavaScript object structure using the specified encoding.
+ * @param {Binary|String} input a Binary object or string containing the
+ *        URL-encoded parameters
+ * @param {Object} params optional parameter object to parse into. If undefined
+ *        a new object is created and returned.
+ * @param {String} encoding a valid encoding name, defaults to UTF-8
+ * @returns the parsed parameter object
  */
-function parseParameters(bytes, params, encoding) {
-    if (!bytes) {
-        return;
-    } else if (typeof bytes == "string" || bytes instanceof ByteString) {
+function parseParameters(input, params, encoding) {
+    if (!input) {
+        return params || {};
+    } else if (typeof input === "string" || input instanceof ByteString) {
         // stream.read() should really return ByteArray in the first place...
-        bytes = bytes.toByteArray();
+        input = input.toByteArray();
     }
+    params = params || {};
     encoding = encoding || "UTF-8";
-    for each (var param in bytes.split(AMPERSAND)) {
+    for each (var param in input.split(AMPERSAND)) {
         var [name, value] = param.split(EQUALS);
         if (name && value) {
             name = decodeToString(name, encoding);
@@ -339,6 +346,7 @@ function parseParameters(bytes, params, encoding) {
             mergeParameter(params, name.trim(), value);
         }
     }
+    return params;
 }
 
 /**
@@ -422,17 +430,21 @@ function convertHexDigit(byte) {
 /**
  * Parses a multipart MIME input stream.
  * Parses a multipart MIME input stream.
-* @param request the JSGI request object
-* @param params the parameter object to parse into
-* @param encoding the encoding to apply to non-file parameters
-* @param streamFactory factory function to create streams for mime parts
-*/
+ * @param {Object} request the JSGI request object
+ * @param {Object} params the parameter object to parse into. If not defined
+ *        a new object is created and returned.
+ * @param {string} encoding optional encoding to apply to non-file parameters.
+ *        Defaults to "UTF-8".
+ * @param {function} streamFactory factory function to create streams for mime parts
+ * @returns {Object} the parsed parameter object
+ */
 function parseFileUpload(request, params, encoding, streamFactory) {
+    params = params || {};
     encoding = encoding || "UTF-8";
     streamFactory = streamFactory || BufferFactory;
     var boundary = getMimeParameter(request.headers["content-type"], "boundary");
     if (!boundary) {
-        return;
+        return params;
     }
     boundary = new ByteArray("--" + boundary, "ASCII");
     var input = request.input;
@@ -543,6 +555,7 @@ function parseFileUpload(request, params, encoding, streamFactory) {
             data = stream = null;
         }
     }
+    return params;
 }
 
 /**
