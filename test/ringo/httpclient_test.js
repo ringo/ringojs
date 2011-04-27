@@ -1,9 +1,8 @@
 var assert = require("assert");
-var {Client, request, post, get, put, del} = require('ringo/httpclient');
+var {request, post, get, put, del} = require('ringo/httpclient');
 var {Server} = require('ringo/httpserver');
 var {htmlResponse, jsonResponse, notFoundResponse} = require('ringo/jsgi/response');
-var {parseParameters} = require('ringo/jsgi/parameters');
-var {setCookie} = require('ringo/jsgi/cookies');
+var {parseParameters, setCookie} = require('ringo/utils/http');
 var {ByteArray} = require('binary');
 var base64 = require('ringo/base64');
 
