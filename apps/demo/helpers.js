@@ -1,6 +1,5 @@
 var {Markdown} = require('ringo/markdown');
 var {Buffer} = require('ringo/buffer');
-var {render} = require('ringo/skin');
 var files = require('ringo/utils/files');
 
 exports.markdown_filter = function(content) {
@@ -103,5 +102,9 @@ exports.HtmlTestFormatter = function() {
 
     this.toString = function() {
         return result  + buffer.toString();
+    }
+
+    this.toByteString = function(charset) {
+        return this.toString().toByteString(charset);
     }
 };

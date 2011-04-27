@@ -1,6 +1,3 @@
-<% extends 'skins/base.html' %>
-
-<% subskin 'content' | markdown %>
 
 RingoJS implements the [Modules 1.1 specification][1] defined by the
 [CommonJS group][2]. On top of this, RingoJS uses per-module top-level

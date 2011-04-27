@@ -1,142 +1,79 @@
-var {Response} = require('ringo/webapp/response');
-var {ContinuationSession} = require('ringo/webapp/continuation');
+var {parseParameters, parseFileUpload} = require("ringo/utils/http");
+var {htmlResponse} = require('ringo/jsgi/response');
+var {Markdown} = require('ringo/markdown');
+var mustache = require('../shared/mustache-commonjs');
 
 var log = require('ringo/logging').getLogger(module.id);
 
-export('index', 'extra_path', 'upload', 'testing', 'skins', 'logging', 'continuation');
+export('index', 'upload', 'testing', 'logging');
 
 
 // the main action is invoked for http://localhost:8080/
 function index(req) {
-    return Response.skin(module.resolve('skins/welcome.txt'), {title: 'Demo'});
-}
-
-// additional path elements are passed to the action as arguments,
-// e.g. /extra.path/2008/09
-function extra_path(req, year, month) {
-    return new Response("Extra arguments:", year, month);
+    return responseHelper('templates/welcome.txt', {title: 'Demo'});
 }
 
 function upload(req) {
-    if (req.isPost && req.params.file) {
+    var params = parseFileUpload(req);
+    if (req.method === "POST" && params.file) {
         return {
             status: 200,
-            headers: {"Content-Type": req.params.file.contentType || "text/plain"},
-            body: [req.params.file.value]
+            headers: {"Content-Type": params.file.contentType || "text/plain"},
+            body: [params.file.value]
         };
     }
-    return Response.skin(module.resolve('skins/upload.txt'), {
+    return responseHelper('templates/upload.txt', {
         title: "File Upload"
     });
 }
 
 function testing(req) {
-    if (req.params.runtests) {
+    var params = parseParameters(req.queryString);
+    if (params.runtests) {
         var test = require("ringo/engine").getRingoHome().getResource("test/most.js");
         var tests = require(test.path);
         var formatter = new (require("./helpers").HtmlTestFormatter)();
         require("test").run(tests, formatter);
-        return new Response(formatter);
+        return htmlResponse(formatter);
     }
-    return Response.skin(module.resolve('skins/testing.txt'), {
+    return responseHelper('templates/testing.txt', {
         title: "Unit Testing"
-    });
-}
-
-exports.params = function(req) {
-   // if (req.isPost) {
-        return new Response(JSON.stringify(req.params));
-   // }
-    return Response.skin(module.resolve('skins/form.html'));
-}
-
-// demo for skins, macros, filters
-function skins(req) {
-    return Response.skin(module.resolve('skins/skins.txt'), {
-        title: 'Skins',
-        name: 'Luisa',
-        names: ['Benni', 'Emma', 'Luca', 'Selma']
     });
 }
 
 // demo for log4j logging
 function logging(req) {
-    if (req.params.info) {
+    var params = parseParameters(req.queryString);
+    if (params.info) {
         log.info("Hello world!");
-    } else if (req.params.error) {
+    } else if (params.error) {
         try {
             throw new Error("something went wrong");
         } catch (e) {
             log.error(e);
         }
-    } else if (req.params.profile) {
+    } else if (params.profile) {
         // build and run a small profiler middleware stack
         var profiler = require('ringo/middleware/profiler');
         return profiler.middleware(function() {
-            return Response.skin(module.resolve('skins/logging.txt'), {
-                title: "Logging &amp; Profiling"
+            return responseHelper('templates/logging.txt', {
+                title: "Logging & Profiling"
             });
         })(req);
     }
-    return Response.skin(module.resolve('skins/logging.txt'), {
-        title: "Logging &amp; Profiling"
+    return responseHelper('templates/logging.txt', {
+        title: "Logging & Profiling"
     });
 }
 
-// demo for continuation support
-function continuation(req, cont_id, cont_step) {
-
-    var session = new ContinuationSession(req, cont_id, cont_step);
-
-    if (!session.isActive()) {
-        // render welcome page
-        return Response.skin(module.resolve('skins/continuation.txt'), {
-            session: session,
-            page: "welcome",
-            title: "Continuations"
-        });
+function responseHelper(template, context) {
+    var page = getResource('./templates/page.html').content;
+    var content = getResource(module.resolve(template)).content;
+    context.markdown = function(text) {
+        return new Markdown().process(text);
     }
-
-    session.addPage("ask_name", function(req) {
-        return Response.skin(module.resolve('skins/continuation.txt'), {
-            session: session,
-            page: session.page,
-            title: "Question 1"
-        });
-    });
-
-    session.addPage("ask_food", function(req) {
-        if (req.isPost) {
-            session.data.name = req.params.name;
-        }
-        return Response.skin(module.resolve('skins/continuation.txt'), {
-            session: session,
-            page: session.page,
-            title: "Question 2"
-        });
-    });
-
-    session.addPage("ask_animal", function(req) {
-        if (req.isPost) {
-            session.data.food = req.params.food;
-        }
-        return Response.skin(module.resolve('skins/continuation.txt'), {
-            session: session,
-            page: session.page,
-            title: "Question 3"
-        });
-    });
-
-    session.addPage("result", function(req) {
-        if (req.isPost) {
-            session.data.animal = req.params.animal;
-        }
-        return Response.skin(module.resolve('skins/continuation.txt'), {
-            session: session,
-            page: session.page,
-            title: "Thank you!"
-        });
-    });
-
-    return session.run();
+    context.content = mustache.to_html(content, context);
+    return htmlResponse(mustache.to_html(page, context))
 }
+
+

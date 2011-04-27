@@ -1,7 +1,3 @@
-<% extends 'skins/base.html' %>
-
-<% subskin 'content' | markdown %>
-
 RingoJS implements form and multipart/file upload parsing based on
 [CommonJS proposals](http://wiki.commonjs.org/wiki/CommonJS) for I/O and
 binary data support. Use the form below to upload a file and view it in

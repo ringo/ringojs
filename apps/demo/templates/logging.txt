@@ -1,6 +1,3 @@
-<% extends 'skins/base.html' %>
-
-<% subskin 'content' | markdown %>
 RingoJS uses [Simple Logging Facade for Java (SLF4J)](http://www.slf4j.org/) as logging interface,
 which allows to plug in any other logging framework including java.util.logging and
 [Apache log4j](http://logging.apache.org/log4j/1.2/index.html).
