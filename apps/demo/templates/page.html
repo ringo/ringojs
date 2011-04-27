@@ -39,5 +39,15 @@
     </div>
     <div id="footer">{{footer}}</div>
 </div>
+<script type=text/javascript>
+    (function() {
+        var path = location.pathname;
+        var links = document.getElementById("menu").getElementsByTagName("a");
+        for (var i = 0; i < links.length; i++) {
+            var link = links[i];
+            link.className = link.getAttribute("href") == path ? "highlight" : "";
+        }
+    })()
+</script>
 </body>
 </html>
