@@ -22,10 +22,10 @@ function jsdocSetup() {
     // search module list
     function doFilter() {
         var query = $.trim($(this).val().toLowerCase());
-        if (sessionStorage) {
+        /* if (sessionStorage) {
             sessionStorage.jsdocQuery = query;
-        }
-        filterList(query, $('.jsdoc-leftnav'));    
+        } */
+        filterList(query, $('.jsdoc-leftnav'));
     }
     $("#jsdoc-leftnavsearch").change(doFilter).keyup(doFilter).click(doFilter).focus();
 
@@ -45,9 +45,8 @@ function jsdocSetup() {
     });
     
     // load query string from storage if any
-    var query = sessionStorage && sessionStorage.jsdocQuery;
+    /* var query = sessionStorage && sessionStorage.jsdocQuery;
     if (query) {
         $("#jsdoc-leftnavsearch").val(query).trigger('keyup');
-        
-    }
+    } */
 }

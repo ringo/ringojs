@@ -5,8 +5,8 @@
 export("format", "times");
 
 /**
- * Format a number using java.text.DecimalFormat.
- * @param {Number} the number
+ * Format `number` using java.text.DecimalFormat.
+ * @param {Number} number the number
  * @param {String} fmt the format to apply
  * @param {String} locale optional locale
  * @returns {String} the number formatted as string
@@ -23,8 +23,8 @@ function format(number, fmt, locale) {
 }
 
 /**
- * Invoke a function this times, passing 0 .. this - 1 as argument.
- * @param {Number} the number
+ * Invoke a function `num` times, passing 0 .. (this - 1) as argument.
+ * @param {Number} num the number
  * @param {Function} fun the function to call
  */
 function times(num, fun) {

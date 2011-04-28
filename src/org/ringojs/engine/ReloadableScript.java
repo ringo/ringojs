@@ -106,7 +106,8 @@ public class ReloadableScript {
             exception = scriptref.exception;
         }
         // recompile if neither script or exception are available, or if source has been updated
-        if ((script == null && exception == null) || (reloading && checksum != resource.getChecksum())) {
+        if ((script == null && exception == null)
+                || (reloading && checksum != resource.getChecksum())) {
             shared = Shared.UNKNOWN;
             if (!resource.exists()) {
                 throw new IOException(resource + " not found or not readable");
@@ -185,7 +186,8 @@ public class ReloadableScript {
             modules.put(resource, module);
         }
         Object value = script.exec(cx, scope);
-        if (scope instanceof ModuleScope) {
+        if (module != null) {
+            module.updateExports();
             checkShared(module);
         }
         return value;
@@ -235,7 +237,7 @@ public class ReloadableScript {
                              Scriptable prototype, Map<Resource, ModuleScope> modules)
             throws IOException {
         if (module == null) {
-            module = new ModuleScope(moduleName, resource, prototype, cx);
+            module = new ModuleScope(moduleName, resource, prototype);
         } else {
             module.reset();
         }
@@ -257,6 +259,7 @@ public class ReloadableScript {
         } else {
             script.exec(cx, module);
         }
+        module.updateExports();
         checkShared(module);
         return module;
     }
@@ -276,7 +279,7 @@ public class ReloadableScript {
      * @throws IOException source could not be checked because of an I/O error
      */
     protected void checkShared(ModuleScope module) throws IOException {
-        Scriptable meta = module.getMetaObject();
+        Scriptable meta = module.getModuleObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
         boolean isShared = meta.get("shared", meta) != Boolean.FALSE
@@ -380,7 +383,8 @@ public class ReloadableScript {
 
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            System.err.println("Warning: " + new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            System.err.println("Warning: " + new SyntaxError(message, sourceName,
+                    line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
@@ -401,8 +405,10 @@ public class ReloadableScript {
         }
 
         public EvaluatorException runtimeError(String message, String sourceName,
-                                               int line, String lineSource, int lineOffset) {
-            return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
+                                               int line, String lineSource,
+                                               int lineOffset) {
+            return new EvaluatorException(message, sourceName, line,
+                    lineSource, lineOffset);
         }
     }
 
@@ -413,7 +419,8 @@ public class ReloadableScript {
         Exception exception;
 
 
-        ScriptReference(Resource source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
+        ScriptReference(Resource source, Script script,
+                        ReloadableScript rescript, ReferenceQueue<Script> queue)
                 throws IOException {
             super(script, queue);
             this.source = source;

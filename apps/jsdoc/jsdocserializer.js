@@ -51,6 +51,9 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
             fileoverview: fileoverview,
         }
     }).sort(function(a, b) {
+        // sort modules by namespace depth first, then lexographically
+        var level = strings.count(a.id, '/') - strings.count(b.id, '/');
+        if (level != 0) return level;
         return a.id > b.id ? 1 : -1;
     });
 
@@ -92,7 +95,6 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
     // tags for all items in this module
     var items = [];
     doc.items = docItems.map(function(docItem, i) {
-        var [returns, type] = getReturns(docItem);
         var next = docItems[i+1];
         // unify instance & prototype
         var name = docItem.name;
@@ -105,9 +107,11 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
             name = nameParts.join('.');
         }
         var shortName = docItem.name.split('.').splice(-1)[0];
+        var prefix = name.slice(0, -shortName.length);
         return {
             name: name,
             shortName: shortName,
+            namePrefix: prefix,
             relatedClass: getRelatedClass(docItem),
             desc: docItem.getTag('desc') || '',
             isClass: isClass(docItem, next),
@@ -116,10 +120,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
             parameters: getParameters(docItem),
             throws: getThrows(docItem),
             sees: getSees(docItem),
-            returns: {
-                name: returns,
-                type: type
-            },
+            returns: getReturns(docItem),
             // standard
             example:  docItem.getTag('example'),
             since: docItem.getTag('since'),
@@ -134,8 +135,8 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
  * all other properties (`items`, `fileoverview`,..) attached.
  *
  *  {
- *      danglingFunctions: [],
- *      danglingProperties: [],
+ *      functions: [],
+ *      properties: [],
  *      classes: [{
  *          methods: [],
  *          properties: [],
@@ -178,7 +179,7 @@ exports.structureModuleDoc = function(data) {
             if (!classForName || !classForName.length) {
                 classes.push({
                     isClass: true,
-                    name: item.relatedClass,
+                    name: item.relatedClass
                 });
             }
         }
@@ -189,23 +190,23 @@ exports.structureModuleDoc = function(data) {
         return a.name < b.name ? -1 : 1;
     });
 
-    data.danglingFunctions = functions.filter(function(item) {
-        return !item.relatedClass && !item.isClass;
+    data.functions = functions.filter(function(item) {
+            return !item.relatedClass && !item.isClass;
     });
 
-    data.danglingProperties = properties.filter(function(item) {
-        return !item.relatedClass;
+    data.properties = properties.filter(function(item) {
+            return !item.relatedClass;
     });
 
     classes.forEach(function(class, i) {
         function isStatic(item) {
             return item.relatedClass === class.name && item.isStatic;
-        };
+        }
         function isNotStatic(item) {
             return item.relatedClass === class.name && !item.isStatic;
         }
 
-        class.methods = functions.filter(isNotStatic);;
+        class.methods = functions.filter(isNotStatic);
         class.properties = properties.filter(isNotStatic);
 
         class.staticProperties = properties.filter(isStatic);
@@ -220,7 +221,7 @@ exports.structureModuleDoc = function(data) {
  */
 function isStatic(item, next) {
     return !isClass(isClass, next) && ['instance', 'prototype'].indexOf(item.name.split('.')[1]) < 0
-};
+}
 
 /**
  * @returns {Boolean} true if them is a class (constructor).
@@ -229,7 +230,7 @@ function isClass(item, next) {
     var name = item.name;
     return item.isClass ||
                 (isClassName(name) && isClassMember(name, next && next.name));
-};
+}
 
 /**
  * @returns {Array} errors the item might throw
@@ -238,28 +239,26 @@ function getThrows(item) {
     return item.getTags('throws').map(function(error) {
         return error;
     });
-};
+}
 
 function getParameters(item) {
     return item.getParameterList().map(function(param) {
         return {
             name: param.name,
             type: param.type,
-            desc: param.desc,
+            desc: param.desc
         };
     });
-};
+}
 
 function getRelatedClass(item) {
     // FIXME there's a jsdoc tag for that too, right?
     var relatedClass = null;
     var nameParts = item.name.split('.');
     return nameParts.filter(function(namePart, idx, array) {
-        if (array.length-1 == idx || namePart == 'prototype' || namePart == 'instance') {
-            return false;
-        } else {
-            return true;
-        };
+        return array.length-1 != idx
+                && namePart != 'prototype'
+                && namePart != 'instance';
     }).join('.');
 }
 
@@ -275,7 +274,7 @@ function getSees(item) {
         }
         return link;
     });
-};
+}
 
 function getReturns(item) {
     var returns = item.getTag('returns') || item.getTag('return');
@@ -288,15 +287,16 @@ function getReturns(item) {
                 type = type[1];
             }
         }
+        return {name: returns, type: type};
     }
-    return [returns, type];
-};
+    return null;
+}
 
 function isClassName(name) {
     return name && name[0] == name[0].toUpperCase();
-};
+}
 
 function isClassMember(name, childName) {
     // check if child name is a property of name
     return childName && strings.startsWith(childName, name + ".");
-};
+}

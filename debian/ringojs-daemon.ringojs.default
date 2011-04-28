@@ -4,7 +4,7 @@
 
 # Set the main script to execute. This should implement functions called
 # init(), start(), stop(), and destroy() to support the daemon life cycle.
-#RINGO_APPLICATION=modules/ringo/webapp/daemon.js
+#RINGO_APPLICATION=modules/ringo/daemon.js
 
 # Set the module path environment variable. This is a list of directories
 # where RingoJS will look for modules.

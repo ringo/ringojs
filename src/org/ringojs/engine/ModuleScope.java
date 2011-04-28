@@ -30,24 +30,34 @@ public class ModuleScope extends ImporterTopLevel {
     private Repository repository;
     private String id;
     private long checksum;
-    private Scriptable exportsObject, metaObject;
+    private Scriptable exportsObject, moduleObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(String moduleId, Trackable source, Scriptable prototype, Context cx) {
+    public ModuleScope(String moduleId, Trackable source, Scriptable prototype) {
         setParentScope(null);
         setPrototype(prototype);
         // for activating the ImporterTopLevel import* functions
         activatePrototypeMap(3);
+        // prototype properties include constructor property which we don't need
+        delete("constructor");
+        try {
+            cacheBuiltins();
+        } catch (NoSuchMethodError e) {
+            // allows us to run with older versions of Rhino
+        }
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
         this.id = moduleId;
-        // create and define exports object
-        this.exportsObject = new ExportsObject();
-        defineProperty("exports", exportsObject,  DONTENUM);
         // create and define module meta-object
-        metaObject = new ModuleObject(this);
-        defineProperty("module", metaObject, DONTENUM);
+        moduleObject = new ModuleObject(this);
+        defineProperty("module", moduleObject, DONTENUM);
+        // create and define exports object
+        exportsObject = new ExportsObject();
+        defineProperty("exports", exportsObject,  DONTENUM);
+        // define non-standard module.exports object to allow
+        // modules to redefine their exports.
+        moduleObject.put("exports", moduleObject, exportsObject);
     }
 
     public Trackable getSource() {
@@ -59,9 +69,10 @@ public class ModuleScope extends ImporterTopLevel {
     }
 
     public void reset() {
-        this.exportsObject = new ExportsObject();
-        defineProperty("exports", exportsObject,  DONTENUM);
-        metaObject.delete("shared");
+        Scriptable exports = new ExportsObject();
+        defineProperty("exports", exports,  DONTENUM);
+        moduleObject.put("exports", moduleObject, exports);
+        moduleObject.delete("shared");
     }
 
     public long getChecksum() {
@@ -76,13 +87,17 @@ public class ModuleScope extends ImporterTopLevel {
         return id;
     }
 
+    protected void updateExports() {
+        exportsObject = ScriptRuntime.toObject(
+                this, ScriptableObject.getProperty(moduleObject, "exports"));
+    }
+
     public Scriptable getExports() {
-        exportsObject = (Scriptable) get("exports", this);
         return exportsObject;
     }
 
-    public Scriptable getMetaObject() {
-        return metaObject;
+    public Scriptable getModuleObject() {
+        return moduleObject;
     }
 
     @Override

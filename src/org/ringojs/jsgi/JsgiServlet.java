@@ -86,8 +86,10 @@ public class JsgiServlet extends HttpServlet {
                             + "reverting to file repository " + home);
                 }
                 // Use ',' as platform agnostic path separator
-                String[] paths = StringUtils.split(modulePath, ",");
-                RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
+                List<String> paths = Arrays.asList(
+                        StringUtils.split(modulePath, ","));
+                RingoConfiguration ringoConfig =
+                        new RingoConfiguration(home, paths, "modules");
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);
@@ -132,8 +134,9 @@ public class JsgiServlet extends HttpServlet {
         }
         Context cx = engine.getContextFactory().enterContext();
         try {
-            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope(), this);
-            engine.invoke("ringo/jsgi", "handleRequest", module, function, req);
+            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto,
+                    engine.getScope(), this);
+            engine.invoke("ringo/jsgi/connector", "handleRequest", module, function, req);
         } catch (Exception x) {
             try {
                 renderError(x, response);

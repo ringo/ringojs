@@ -11,34 +11,15 @@ body {
 }
 
 h1 {
-    padding: 10px 0;
+    padding: 14px 0;
 }
 
-#wrap {
+div.wrap {
     margin: 0 auto;
     width: 800px;
 }
 
-#header {
-    height: 80px;
-}
-
-#header h1 {
-    float: left;
-    color: #c00;
-    margin: 20px 10px;
-    padding: 15px 5px;
-}
-
-#logo {
-    text-align:center;
-    float: right;
-    width: 130px;
-    margin: 10px;
-    padding: 5px;
-}
-
-#main {
+div.main {
     clear: both;
     float: left;
     width: 530px;
@@ -46,21 +27,13 @@ h1 {
     padding: 5px;
 }
 
-#menu {
+div.menu {
     float: right;
-    padding-top: 8em;
-}
-
-#footer {
-    margin-top: 3em;
-    text-align: center;
-    color: #666;
-    font-size: 80%;
-    clear:both;
+    padding-top: 6em;
 }
 
 .hidden {
-    visibility:none;
+    visibility:hidden;
     display:none;
 }
 

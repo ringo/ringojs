@@ -1,0 +1,214 @@
+<!DOCTYPE html >
+
+<html lang="de" dir="ltr">
+<head>
+    <title>{{moduleId}} - API Documentation</title>
+    <link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="{{rootPath}}static/style.css" />
+    <link rel="stylesheet" href="{{rootPath}}static/jsdoc.css" />
+    <script type="text/javascript" src="{{rootPath}}static/jquery.js"></script>
+    <script type="text/javascript" src="{{rootPath}}static/jsdoc.js"></script>
+    <script>
+    $(document).ready(jsdocSetup);
+    </script>
+</head>
+
+<body>
+<div class="wrap">
+    <div class="main">
+        <div class="content">
+        {{#item}}
+            <h1 class="modulename">Module {{moduleId}}</h1>
+            <div class="fileoverview">
+                {{{fileoverview markdown}}}
+            </div>
+
+            {{#example}}
+            <div>
+                <h4> Example </h4>
+                <pre class="sh_javascript sh_sourceCode">{{{example}}}</pre>
+            </div>
+            {{/example}}
+
+            {{#sees iterate}}
+            <div>
+                <h4>See</h4>
+                <div>
+                    {{{each withNewline}}}
+                </div>
+            </div>
+            {{/sees iterate}}
+
+            <div class="classoverview">
+
+                {{#functions iterate}}
+                <div>
+                    <h3>Functions</h3>
+                    <ul class="propertyoverview">
+                        {{#each}}
+                        <li>
+                            <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>({{paramList}})
+                        </li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/functions iterate}}
+
+                {{#properties iterate}}
+                <div>
+                    <h3>Properties</h3>
+                    <ul class="propertyoverview">
+                        {{#each}}
+                        <li>
+                            <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>
+                        </li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/properties iterate}}
+
+                <div class="classes">
+                    {{#classes}}
+                    <h2>Class <a href="#{{name}}" class="jsdoc-title">{{name}}</a></h2>
+                    {{#methods iterate}}
+                    <div>
+                        <h3>Instance Methods</h3>
+                        <ul class="propertyoverview">
+                            {{#each}}
+                            <li>
+                                <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>({{paramList}})
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    {{/methods iterate}}
+                    {{#properties iterate}}
+                    <div>
+                        <h3>Instance Properties</h3>
+                        <ul class="propertyoverview">
+                            {{#each}}
+                            <li>
+                                <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    {{/properties iterate}}
+                    {{#staticMethods iterate}}
+                    <div>
+                        <h3>Static Methods</h3>
+                        <ul class="propertyoverview">
+                            {{#each}}
+                            <li>
+                                <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>({{paramList}})
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    {{/staticMethods iterate}}
+                    {{#staticProperties iterate}}
+                    <div>
+                        <h3>Static Properties</h3>
+                        <ul class="propertyoverview">
+                            {{#each}}
+                            <li>
+                                <a href="#{{name}}" class="jsdoc-title"> {{shortName}}</a>
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    {{/staticProperties iterate}}
+                    {{/classes}}
+                </div>
+            </div>
+                <hr/>
+                <div class="details">
+                    {{#items}}
+                    <!-- tpl-docitem -->
+                    <div>
+                        <div class="docitem" docitem="{{name}}">
+                            <h3>
+                                <span class="itemtitle">{{namePrefix}}<a id="{{name}}" href="#{{name}}" class="itemtitle itemname">{{shortName}}</a></span>
+                                {{#isFunction}}<span class="itemtitle light">({{paramList}})</span>{{/isFunction}}
+                            </h3>
+                            <div>
+                                {{{desc markdown}}}
+                            </div>
+                            {{#example}}
+                            <div>
+                                <h4> Example </h4>
+                                <pre class="sh_javascript sh_sourceCode">{{{example}}}</pre>
+                            </div>
+                            {{/example}}
+
+                            {{#parameters iterate}}
+                            <div>
+                                <h4>Parameters</h4>
+                                <table>
+                                    {{#each}}
+                                    <tr>
+                                        <td>{{type}}</td>
+                                        <td class="paramname">{{name}}</td>
+                                        <td>{{{desc}}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </table>
+                            </div>
+                            {{/parameters iterate}}
+
+                            {{#returns}}
+                            <div>
+                                <h4>Returns</h4>
+                                <table>
+                                    <tr>
+                                        <td>{{type}}</td>
+                                        <td>{{{name}}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            {{/returns}}
+
+                            {{#throws iterate}}
+                            <div>
+                                <h4>Throws</h4>
+                                <div class="extrainfo">
+                                    {{each withComma}}
+                                </div>
+                            </div>
+                            {{/throws iterate}}
+
+                            {{#sees iterate}}
+                            <div>
+                                <h4>See</h4>
+                                <div class="extrainfo">
+                                    {{{each withNewline}}}
+                                </div>
+                            </div>
+                            {{/sees iterate}}
+                        </div>
+                        <hr/>
+                    </div>
+
+                    {{/items}}
+                </div>
+            </div>
+        {{/item}}
+        </div>
+
+        <div class="menu">
+            <div>
+                <a class="repositoryname" href="{{rootPath}}{{indexhtml}}">{{repositoryName}} </a>
+            </div>
+            <input id="jsdoc-leftnavsearch" type="search">
+            <ul class="jsdoc-leftnav leftnav">
+                {{#modules}}
+                <li><a href="{{rootPath}}{{id}}/{{indexhtml}}"> {{id}} </a></li>
+                {{/modules}}
+            </ul>
+
+        </div>
+    </div>
+</body>
+</html>
+

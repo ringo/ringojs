@@ -34,6 +34,7 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Formatter;
 import java.io.IOException;
@@ -51,7 +52,6 @@ public class RingoRunner {
     String[] scriptArgs = new String[0];
     String expr = null;
     File history = null;
-    Repository packages = null;
     String charset;
     boolean runShell = false;
     boolean debug = false;
@@ -59,8 +59,8 @@ public class RingoRunner {
     boolean silent = false;
     boolean legacyMode = false;
     boolean productionMode = false;
-    boolean disablePackages = false;
-    List<String> bootScripts = new ArrayList<String>();
+    List<String> bootScripts;
+    List<String> modulePath = new ArrayList<String>();
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
@@ -72,9 +72,8 @@ public class RingoRunner {
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
+        {"m",  "modules", "Add a directory to the module search path", "DIR"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
-        {"n", "no-packages", "Run with packages disabled", ""},
-        {"",  "packages", "Set the packages directory", "DIR"},
         {"p", "production", "Disable module reloading and warnings", ""},
         {"P", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
@@ -111,14 +110,17 @@ public class RingoRunner {
         File file = new File(ringoHome);
         Repository home = file.isFile() && StringUtils.isZipOrJarFile(ringoHome) ?
                 new ZipRepository(file) : new FileRepository(file);
-        String modulePath = System.getProperty("ringo.modulepath");
-        if (modulePath == null) {
-            modulePath = System.getenv("RINGO_MODULE_PATH");
+        String extraPath = System.getProperty("ringo.modulepath");
+        if (extraPath == null) {
+            extraPath = System.getenv("RINGO_MODULE_PATH");
         }
 
-        String[] paths = modulePath == null ?
-                new String[0] : StringUtils.split(modulePath, File.pathSeparator);
-        config = new RingoConfiguration(home, paths, "modules");
+        if (extraPath != null) {
+            Collections.addAll(modulePath,
+                    StringUtils.split(extraPath, File.pathSeparator));
+        }
+
+        config = new RingoConfiguration(home, modulePath, "modules");
         boolean hasPolicy = System.getProperty("java.security.policy") != null;
         config.setPolicyEnabled(hasPolicy);
         config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());
@@ -131,12 +133,8 @@ public class RingoRunner {
         config.setParentProtoProperties(legacyMode);
         config.setStrictVars(!legacyMode && !productionMode);
         config.setReloading(!productionMode);
-        config.setPackagesDisabled(disablePackages);
         if (charset != null) {
             config.setCharset(charset);
-        }
-        if (packages != null && !disablePackages) {
-            config.setPackageRepository(packages);
         }
         engine = new RhinoEngine(config, null);
     }
@@ -162,6 +160,7 @@ public class RingoRunner {
                     }
                 }
                 new RingoShell(engine, history, silent).run();
+                // engine.invoke("ringo/shell", "start");
             } else {
                 // wait for daemon or scheduler threads to terminate
                 engine.waitTillDone();
@@ -343,8 +342,8 @@ public class RingoRunner {
             }
         } else if ("history".equals(option)) {
             history = new File(arg);
-        } else if ("packages".equals(option)) {
-            packages = new FileRepository(arg);
+        } else if ("modules".equals(option)) {
+            modulePath.add(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RingoSecurityManager());
@@ -354,6 +353,9 @@ public class RingoRunner {
                 System.setProperty(property[0], property[1]);
             }
         } else if ("bootscript".equals(option)) {
+            if (bootScripts == null) {
+                bootScripts = new ArrayList<String>();
+            }
             bootScripts.add(arg);
         } else if ("charset".equals(option)) {
             charset = arg;
@@ -367,8 +369,6 @@ public class RingoRunner {
             verbose = true;
         } else if ("legacy-mode".equals(option)) {
             legacyMode = true;
-        } else if ("no-packages".equals(option)) {
-            disablePackages = true;
         } else if ("version".equals(option)) {
             printVersion();
             System.exit(0);

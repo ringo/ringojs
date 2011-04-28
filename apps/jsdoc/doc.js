@@ -9,18 +9,17 @@
 // stdlib
 var files = require('ringo/utils/files');
 var {makeTree, write, copyTree, join, Path} = require('fs');
-var {render} = require('ringo/skin');
 var {Parser} = require('ringo/args');
 var {isFile, isDirectory} = require('fs');
 var {ScriptRepository} = require('ringo/jsdoc');
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
+var {Markdown} = require('ringo/markdown');
 
 // custom
-var {repositoryList, moduleDoc, moduleList, structureModuleDoc, getRepositoryName} = require('./jsdocserializer');
-var config = require('./config.js');
-
-// need config.macros in context for skin rendering
+var mustache = require("../shared/mustache-commonjs");
+var {repositoryList, moduleDoc, moduleList, structureModuleDoc, getRepositoryName}
+        = require('./jsdocserializer');
 var defaultContext = {};
 
 /**
@@ -33,11 +32,6 @@ var renderRepository = exports.renderRepository = function (repository, exportDi
     if (require.paths.indexOf(module.directory) == -1) {
         require.paths.push(module.directory);
     }
-    config.macros.forEach(function(moduleId) {
-        defaultContext = objects.merge(defaultContext,
-            require(files.resolveId(module.directory, moduleId))
-        );
-    });
 
     if (!quiet) print ('Writing to ' + exportDirectory + '...');
     copyStaticFiles(exportDirectory);
@@ -61,7 +55,7 @@ function copyStaticFiles(target) {
     makeTree(join(target, 'static'));
     copyTree(join(module.directory, 'static'), join(target, 'static'));
     return;
-};
+}
 
 /**
  * Write the module list to directory. Corresponds to actions:repository
@@ -70,15 +64,19 @@ function copyStaticFiles(target) {
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
-    var repositoryHtml = render('skins/repository.html',
+    var res = getResource("./templates/repository.html");
+    var repositoryHtml = mustache.to_html(res.content,
         objects.merge(defaultContext, {
             repositoryName: repository.name,
             modules: moduleList(repository.path, true),
             rootPath: './',
+            markdown: function(text) {
+                return new Markdown({}).process(text);
+            }
         })
     );
     write(join(target, 'index.html'), repositoryHtml);
-};
+}
 
 /**
  * Write documentation page for a module to directory. corresponds to actions:module
@@ -103,20 +101,40 @@ function writeModuleDoc(target, repository, moduleId){
     var slashCount = strings.count(moduleId, '/');
     var relativeRoot = '../' + strings.repeat('../', slashCount);
 
-    var moduleHtml = render('skins/module.html',
+    var res = getResource("./templates/module.html");
+    var moduleHtml = mustache.to_html(res.content,
         objects.merge(defaultContext, {
             rootPath: relativeRoot,
             repositoryName: repository.name,
             moduleId: moduleId,
             modules: modules,
             item: structureModuleDoc(docs),
+            paramList: function() {
+                return this.parameters.map(function(p) p.name).join(", ")
+            },
+            markdown: function(text) {
+                return new Markdown({}).process(text);
+            },
+            iterate: function(value) {
+                return value && value.length ? {each: value} : null;
+            },
+            debug: function(value) {
+                print(value.toSource());
+                return null;
+            },
+            withComma: function(value) {
+                return value && value.length ? value.join(", ") : "";
+            },
+            withNewline: function(value) {
+                return value && value.length ? value.join("<br />") : "";
+            }
         })
     );
 
     var moduleFile = join(moduleDirectory, 'index.html');
     write(moduleFile, moduleHtml);
     return;
-};
+}
 
 /**
  * Create static documentation for a Repository.
@@ -167,7 +185,7 @@ function main(args) {
         name: opts.name || getRepositoryName(opts.source)
     };
     var quiet = opts.quiet || false;
-    defaultContext.indexHtmlHref = (opts['fileUrls'] === true);
+    defaultContext.indexhtml = opts['fileUrls'] ? "index.html" : "";
 
     // check if export dir exists & is empty
     var dest = new Path(exportDirectory);
@@ -186,7 +204,7 @@ function main(args) {
 
     renderRepository(repository, exportDirectory, quiet);
     return;
-};
+}
 
 if (require.main == module) {
     try {

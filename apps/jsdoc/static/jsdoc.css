@@ -9,11 +9,11 @@ pre.code {
 
 table td {
     vertical-align: top;
-    padding: 0 6px;
+    padding: 0 10px;
 }
 
 h4 {
-    margin: 5px;
+    margin: 5px 0;
     color: green;
     font-weight: bold;
 }
@@ -27,14 +27,16 @@ h4 {
     font-weight:bold;
 }
 
+.extrainfo {
+    padding:0 12px;
+}
+
 .leftnav, .repositorylist, .propertyoverview {
     list-style-type: none;
-    padding: 5px;
+    padding: 2px;
 }
 
 .docitem {
-    margin: 0 0 0 5px;
-    padding: 0 0 0 10px;
 }
 
 .docitem .itemtitle {
@@ -42,6 +44,9 @@ h4 {
     text-decoration:none;
 }
 
+.light {
+    font-weight: normal;
+}
 
 .docitem.highlight {
     border-left: 4px solid green;
@@ -50,6 +55,8 @@ h4 {
 
 ul.modulelist {
     list-style-type:none;
+    margin: 0;
+    padding-left: 10px;
 }
 
 .repositoryname {
@@ -72,10 +79,17 @@ ul {
     margin: 5px;
 }
 
-.classoverview, .modulecontainer {
-    background-color: #f1ffcc; /*#f7ffe5; */
-    padding: 5px;
-    margin: 5px;
+hr {
+    border: 0;
+    color: #999;
+    background-color: #999;
+    height: 1px;
+}
+
+.classoverview {
+    background-color: #f0ffc0; /*#f7ffe5; */
+    padding: 5px 10px;
+    margin: 15px 0;
 }
 
 .modulename {

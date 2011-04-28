@@ -59,20 +59,18 @@ public class RingoConfiguration {
     private boolean sealed = false;
     private boolean policyEnabled = false;
     private boolean reloading = true;
-    private boolean packagesDisabled = false;
     private String charset = "UTF-8";
-    private Repository packages = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
-     * @param modulePath the module search path as comma separated string
+     * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, String[] modulePath, String systemModules)
-            throws IOException {
+    public RingoConfiguration(Repository ringoHome, List<String> userModules,
+                              String systemModules) throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
         home.setAbsolute(true);
@@ -90,14 +88,15 @@ public class RingoConfiguration {
             parentProtoProperties = Integer.parseInt(parentProto) != 0;
         }
 
-        if (modulePath != null) {
-            for (String aModulePath : modulePath) {
-                String path = aModulePath.trim();
+        if (userModules != null) {
+            for (String pathElem : userModules) {
+                String path = pathElem.trim();
                 addModuleRepository(resolveRootRepository(path));
             }
         }
 
         // append system modules path relative to ringo home
+        // TODO this probably shouldn't be on require.paths
         if (systemModules != null) {
             addModuleRepository(resolveRootRepository(systemModules));
         }
@@ -140,28 +139,12 @@ public class RingoConfiguration {
             }
             // Try to resolve path as classpath resource
             URL url = RingoConfiguration.class.getResource("/" + path);
-            if (url != null && ("jar".equals(url.getProtocol()) || "zip".equals(url.getProtocol()))) {
-                String jar = url.getPath();
-                int excl = jar.indexOf("!");
-
-                if (excl > -1) {
-                    jar = jar.substring(0, excl);
-                    try {
-                        url = new URL(jar);
-                    } 
-                    catch (MalformedURLException e) {
-                        // try with the file prefix
-                        url = new URL("file://" + jar);
-                    }
-                    
-                    if ("file".equals(url.getProtocol())) {
-                        jar = url.getPath();
-                        try {
-                            jar = URLDecoder.decode(jar, System.getProperty("file.encoding"));
-                        } catch (UnsupportedEncodingException x) {
-                            System.err.println("Unable to decode jar URL: " + x);
-                        }
-                        repository = new ZipRepository(jar).getChildRepository(path);
+            if (url != null) {
+                String protocol = url.getProtocol();
+                if (("jar".equals(protocol) || "zip".equals(protocol))) {
+                    Repository jar = toZipRepository(url);
+                    if (jar != null) {
+                        repository = jar.getChildRepository(path);
                         if (repository.exists()) {
                             repository.setRoot();
                             return repository;
@@ -247,10 +230,6 @@ public class RingoConfiguration {
                 // found the script, so set mainModule
                 mainResource = script;
             }
-        } else {
-            // no script file, add current directory to module path
-            File currentDir = new File(System.getProperty("user.dir"));
-            repositories.add(0, new FileRepository(currentDir));
         }
     }
 
@@ -375,11 +354,16 @@ public class RingoConfiguration {
      * @throws IOException an I/O error occurred
      */
     public Resource getResource(String path) throws IOException {
+        Resource res;
         for (Repository repo: repositories) {
-            Resource res = repo.getResource(path);
+            res = repo.getResource(path);
             if (res != null && res.exists()) {
                 return res;
             }
+        }
+        res = resourceFromClasspath(path);
+        if (res != null && res.exists()) {
+            return res;
         }
         return new NotFound(path);
     }
@@ -391,13 +375,18 @@ public class RingoConfiguration {
      * @throws IOException an I/O error occurred
      */
     public Repository getRepository(String path) throws IOException {
-        for (Repository repo: repositories) {
-            Repository repository = repo.getChildRepository(path);
-            if (repository != null && repository.exists()) {
-                return repository;
+        Repository repo;
+        for (Repository parent: repositories) {
+            repo = parent.getChildRepository(path);
+            if (repo != null && repo.exists()) {
+                return repo;
             }
         }
-        return new FileRepository(path);
+        repo = repositoryFromClasspath(path);
+        if (repo != null && repo.exists()) {
+            return repo;
+        }
+        return new NotFound(path);
     }
 
     /**
@@ -459,28 +448,6 @@ public class RingoConfiguration {
         this.reloading = reloading;
     }
 
-    public Repository getPackageRepository() throws IOException {
-        if (packagesDisabled) {
-            return null;
-        }
-        if (packages == null) {
-            packages = home.getChildRepository("packages");
-        }
-        return packages;
-    }
-
-    public void setPackageRepository(Repository packages) {
-        this.packages = packages;
-    }
-
-    public boolean isPackagesDisabled() {
-        return packagesDisabled;
-    }
-
-    public void setPackagesDisabled(boolean packagesDisabled) {
-        this.packagesDisabled = packagesDisabled;
-    }
-
     public boolean isPolicyEnabled() {
         return policyEnabled;
     }
@@ -505,12 +472,83 @@ public class RingoConfiguration {
         this.bootstrapScripts = bootstrapScripts;
     }
 
-    private Logger getLogger() {
+    private static Logger getLogger() {
         return Logger.getLogger("org.ringojs.tools");
+    }
+
+    private static Repository toZipRepository(URL url) throws IOException {
+        String nested = url.getPath();
+        int excl = nested.indexOf("!");
+
+        if (excl > -1) {
+            nested = nested.substring(0, excl);
+            try {
+                url = new URL(nested);
+            } catch (MalformedURLException e) {
+                // try with the file prefix
+                url = new URL("file://" + nested);
+            }
+
+            if ("file".equals(url.getProtocol())) {
+                String path = url.getPath();
+                try {
+                    path = URLDecoder.decode(path, System.getProperty("file.encoding"));
+                } catch (UnsupportedEncodingException x) {
+                    System.err.println("Unable to decode jar URL: " + x);
+                }
+                return new ZipRepository(path);
+            }
+        }
+        return null;
+    }
+
+    private static Resource resourceFromClasspath(String path)
+            throws IOException {
+        URL url = urlFromClasspath(path.endsWith("/") ?
+                path.substring(0, path.length() - 1) : path);
+        if (url != null) {
+            String protocol = url.getProtocol();
+            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+                Repository repo = toZipRepository(url);
+                return repo.getResource(path);
+            } else if ("file".equals(protocol)) {
+                return new FileResource(url.getPath());
+            }
+        }
+        return null;
+
+    }
+
+    private static Repository repositoryFromClasspath(String path)
+            throws IOException {
+        URL url = urlFromClasspath(path.endsWith("/") ? path : path + "/");
+        if (url != null) {
+            String protocol = url.getProtocol();
+            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+                Repository repo = toZipRepository(url);
+                return repo.getChildRepository(path);
+            } else if ("file".equals(protocol)) {
+                return new FileRepository(url.getPath());
+            }
+        }
+        return null;
+    }
+
+    private static URL urlFromClasspath(String path) {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if (loader == null) {
+            return null;
+        }
+        return loader.getResource(path);
     }
 }
 
-class NotFound extends AbstractResource {
+/**
+ * This is used as return value in {@link RingoConfiguration#getResource(String)}
+ * and {@link RingoConfiguration#getRepository(String)} when the given path
+ * could not be resolved.
+ */
+class NotFound extends AbstractResource implements Repository {
 
     NotFound(String path) {
         this.path = path;
@@ -535,8 +573,34 @@ class NotFound extends AbstractResource {
         return false;
     }
 
+    public Repository getChildRepository(String path) throws IOException {
+        return this;
+    }
+
+    public Resource getResource(String resourceName) throws IOException {
+        return this;
+    }
+
+    public Resource[] getResources() throws IOException {
+        return new Resource[0];
+    }
+
+    public Resource[] getResources(boolean recursive) throws IOException {
+        return new Resource[0];
+    }
+
+    public Resource[] getResources(String resourcePath, boolean recursive) throws IOException {
+        return new Resource[0];
+    }
+
+    public Repository[] getRepositories() throws IOException {
+        return new Repository[0];
+    }
+
+    public void setRoot() {}
+
     public URL getUrl() throws UnsupportedOperationException, MalformedURLException {
-        throw new MalformedURLException("Unable to resolve \"" + path + "\"");
+        throw new UnsupportedOperationException("Unable to resolve \"" + path + "\"");
     }
 
     public String toString() {

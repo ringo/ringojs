@@ -2,10 +2,17 @@
  * @fileOverview A wrapper for the Jetty HTTP server.
  */
 
-export('Server');
-
 var log = require('ringo/logging').getLogger(module.id);
+var Parser = require('ringo/args').Parser;
+var system = require('system');
+var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
 
+export('Server', 'main');
+
+var options,
+    server,
+    parser,
+    started = false;
 
 /**
  * Create a Jetty HTTP server with the given options. The options may
@@ -140,6 +147,97 @@ function Server(options) {
                     servletHolder.setInitParameter(p, initParams[p])
                 }
                 cx.addServlet(servletHolder, servletPath);
+            },
+            /**
+             * Start accepting WebSocket connections in this context context.
+             *
+             * @param path The URL path on which to accept WebSocket connections
+             * @param onconnect a function called for each new WebSocket connection
+             *        with the WebSocket object as argument.
+             * @since 0.8
+             * @see WebSocket
+             * @name Context.instance.addWebSocket
+             */
+            addWebSocket: function(path, onconnect) {
+                log.info("Starting websocket support");
+                this.addServlet(path, new WebSocketServlet({
+                    doWebSocketConnect : function(request, protocol) {
+                        log.debug("new websocket");
+                        var socket;
+
+                        return new WebSocket({
+                            onConnect: function(outbound) {
+                                log.debug("onconnect");
+
+                                /**
+                                 * The WebSocket object passed as argument to the `connect` callback.
+                                 * Assign callbacks to its [onmessage](#WebSocket.prototype.onmessage)
+                                 * and [onclose](#WebSocket.prototype.onclose) properties.
+                                 * @name WebSocket
+                                 * @class
+                                 */
+                                socket = {
+                                    /**
+                                     * Closes the WebSocket connection.
+                                     * @name WebSocket.instance.close
+                                     * @function
+                                     */
+                                    close: function() {
+                                        outbound.disconnect();
+                                    },
+                                    /**
+                                     * Send a string over the WebSocket.
+                                     * @param msg a string
+                                     * @name WebSocket.instance.send
+                                     * @function
+                                     */
+                                    send: function(msg) {
+                                        outbound.sendMessage(msg);
+                                    },
+                                    /**
+                                     * Check whether the WebSocket is open.
+                                     * @name WebSocket.instance.isOpen
+                                     * @function
+                                     */
+                                    isOpen: function() {
+                                        return outbound.isOpen();
+                                    },
+                                    /**
+                                     * Callback slot for receiving messages on this WebSocket. To receive
+                                     * messages on this WebSocket, assign a function to this property.
+                                     * The function is called with a single argument containing the message string.
+                                     * @name WebSocket.instance.onmessage
+                                     */
+                                    onmessage: null,
+                                    /**
+                                     * Callback slot for getting notified when the WebSocket is closed.
+                                     * To get called when the WebSocket is closed assign a function to this
+                                     * property. The function is called without arguments.
+                                     * @name WebSocket.instance.onclose
+                                     */
+                                    onclose: null
+                                };
+                                if (typeof onconnect === "function") {
+                                    onconnect(socket)
+                                }
+                            },
+
+                            onMessage: function(frame, data) {
+                                log.debug("onmessage");
+                                if (typeof socket.onmessage === "function") {
+                                    socket.onmessage(data);
+                                }
+                            },
+
+                            onDisconnect: function() {
+                                log.debug("ondisconnect");
+                                if (typeof socket.onclose === "function") {
+                                    socket.onclose();
+                                }
+                            }
+                        });
+                    }
+                }));
             }
         };
     };
@@ -158,6 +256,7 @@ function Server(options) {
      */
     this.stop = function() {
         jetty.stop();
+        contextMap = {};
     };
 
     /**
@@ -220,7 +319,7 @@ function Server(options) {
         staticContext.serveStatic(files.resolveId(options.config, options.staticDir));
     }
 
-    // Start listeners. This allows us to run on priviledged port 80 under jsvc
+    // Start listeners. This allows us to run on privileged port 80 under jsvc
     // even as non-root user if the constructor is called with root privileges
     // while start() is called with the user we will actually run as
     var connectors = jetty.getConnectors();
@@ -230,4 +329,89 @@ function Server(options) {
 
 }
 
+
+function parseOptions(arguments, defaults) {
+    // parse command line options
+    parser = new Parser();
+    parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
+    parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
+    parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
+    parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
+    parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
+    parser.addOption("p", "port", "PORT", "The TCP port to listen on (default: 80)");
+    parser.addOption("s", "static-dir", "DIR", "A directory with static resources to serve");
+    parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
+    parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
+    parser.addOption("h", "help", null, "Print help message to stdout");
+    options = parser.parse(arguments, defaults);
+    if (options.port && !isFinite(options.port)) {
+        var port = parseInt(options.port, 10);
+        if (isNaN(port) || port < 1) {
+            throw "Invalid value for port: " + options.port;
+        }
+        options.port = port;
+    }
+    return options;
+}
+
+/**
+ * Main webapp startup function.
+ * @param {String} path optional path to the web application directory or config module.
+ */
+function main(path) {
+    // protect against module reloading
+    if (started) {
+        return server;
+    }
+    // parse command line options
+    var cmd = system.args.shift();
+    try {
+        options = parseOptions(system.args, {
+            app: "app",
+            config: "config"
+        });
+    } catch (error) {
+        print(error);
+        system.exit(1);
+    }
+
+    if (options.help) {
+        print("Usage:");
+        print("", cmd, "[OPTIONS]", "[PATH]");
+        print("Options:");
+        print(parser.help());
+        system.exit(0);
+    }
+
+    // if no explicit path is given use first command line argument
+    path = path || system.args[0];
+    var fs = require("fs");
+    if (path && fs.exists(path)) {
+        if (fs.isFile(path)) {
+            // if argument is a file use it as config module
+            options.config = fs.base(path);
+            path = fs.directory(path);
+        }
+    } else {
+        path = ".";
+    }
+    // prepend the web app's directory to the module search path
+    require.paths.unshift(path);
+
+    // logging module is already loaded and configured, check if webapp provides
+    // its own log4j configuration file and apply it if so.
+    if (fs.isFile(fs.join(path, "config", "log4j.properties"))) {
+        require("./logging").setConfig(getResource('config/log4j.properties'));
+    }
+
+    server = new Server(options);
+    server.start();
+    started = true;
+    // return the server instance
+    return server;
+}
+
+if (require.main == module) {
+    main();
+}
 

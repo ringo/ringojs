@@ -137,7 +137,8 @@ public class RingoGlobal extends Global {
     public static Object require(final Context cx, Scriptable thisObj,
                                  Object[] args, Function funObj) {
         if (args.length != 1 || !(args[0] instanceof String)) {
-            throw Context.reportRuntimeError("require() requires a string argument");
+            throw Context.reportRuntimeError(
+                    "require() expects a single string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
@@ -146,29 +147,32 @@ public class RingoGlobal extends Global {
             ModuleScope module = engine.loadModule(cx, (String) args[0], moduleScope);
             return module.getExports();
         } catch (IOException iox) {
-            throw new WrappedException(iox);
+            throw Context.reportRuntimeError("Cannot find module '" + args[0] + "'");
         }
     }
 
-    public static Object getResource(final Context cx, Scriptable thisObj, Object[] args,
-                                     Function funObj) {
+    public static Object getResource(final Context cx, Scriptable thisObj,
+                                     Object[] args, Function funObj) {
         if (args.length != 1 || !(args[0] instanceof String)) {
-            throw Context.reportRuntimeError("getResource() requires a string argument");
+            throw Context.reportRuntimeError(
+                    "getResource() requires a string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
         try {
             Resource res = engine.findResource((String) args[0],
                     engine.getParentRepository(thisObj));
-            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), res, null);
+            return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(),
+                    res, null);
         } catch (IOException iox) {
-            throw new WrappedException(iox);
+            throw Context.reportRuntimeError("Cannot find resource " + args[0] + "'");
         }
     }
 
-    public static Object getRepository(final Context cx, Scriptable thisObj, Object[] args,
-                                     Function funObj) {
+    public static Object getRepository(final Context cx, Scriptable thisObj,
+                                       Object[] args, Function funObj) {
         if (args.length != 1 || !(args[0] instanceof String)) {
-            throw Context.reportRuntimeError("getResource() requires a string argument");
+            throw Context.reportRuntimeError(
+                    "getRepository() requires a string argument");
         }
         RhinoEngine engine = RhinoEngine.engines.get();
         try {
@@ -176,17 +180,18 @@ public class RingoGlobal extends Global {
                     engine.getParentRepository(thisObj));
             return cx.getWrapFactory().wrapAsJavaObject(cx, engine.getScope(), repo, null);
         } catch (IOException iox) {
-            throw new WrappedException(iox);
+            throw Context.reportRuntimeError("Cannot find repository " + args[0] + "'");
         }
     }
 
-    public static Object addToClasspath(final Context cx, Scriptable thisObj, Object[] args,
-                                        Function funObj) {
+    public static Object addToClasspath(final Context cx, Scriptable thisObj,
+                                        Object[] args, Function funObj) {
         if (securityManager != null) {
             securityManager.checkPermission(RingoSecurityManager.GET_CLASSLOADER);
         }
         if (args.length != 1) {
-            throw Context.reportRuntimeError("addToClasspath() requires an argument");
+            throw Context.reportRuntimeError(
+                    "addToClasspath() requires one argument");
         }
         try {
             Trackable path;
@@ -194,12 +199,13 @@ public class RingoGlobal extends Global {
             Object arg = args[0] instanceof Wrapper ?
                     ((Wrapper) args[0]).unwrap() : args[0];
             if (arg instanceof String) {
-                path = engine.findPath((String) arg,
+                path = engine.resolve((String) arg,
                         engine.getParentRepository(thisObj));
             } else if (arg instanceof Trackable) {
                 path = (Trackable) arg;
             } else {
-                throw Context.reportRuntimeError("addToClasspath() requires a path argument");
+                throw Context.reportRuntimeError(
+                        "addToClasspath() requires a path argument");
             }
             engine.addToClasspath(path);
             return path.exists() ? Boolean.TRUE : Boolean.FALSE;
@@ -209,10 +215,11 @@ public class RingoGlobal extends Global {
     }
 
     @SuppressWarnings("unchecked")
-    public static Object privileged(final Context cx, Scriptable thisObj, Object[] args,
-                                    Function funObj) {
+    public static Object privileged(final Context cx, Scriptable thisObj,
+                                    Object[] args, Function funObj) {
         if (args.length != 1 || !(args[0] instanceof Function)) {
-            throw Context.reportRuntimeError("privileged() requires a function argument");
+            throw Context.reportRuntimeError(
+                    "privileged() requires a function argument");
         }
         final Scriptable scope = getTopLevelScope(thisObj);
         Scriptable s = cx.newObject(scope);
@@ -221,12 +228,14 @@ public class RingoGlobal extends Global {
         PrivilegedAction action = AccessController.doPrivileged(
                 new PrivilegedAction<PrivilegedAction>() {
                     public PrivilegedAction run() {
-                        return (PrivilegedAction) ((Wrapper) cx.newObject(scope, "JavaAdapter", jargs)).unwrap();
+                        return (PrivilegedAction) ((Wrapper) cx.newObject(scope,
+                                "JavaAdapter", jargs)).unwrap();
                     }
                 }
         );
         // PrivilegedAction action = (PrivilegedAction) InterfaceAdapter.create(cx, PrivilegedAction.class, (Callable) args[0]);
-        return cx.getWrapFactory().wrap(cx, scope, AccessController.doPrivileged(action), null);
+        return cx.getWrapFactory().wrap(cx, scope,
+                AccessController.doPrivileged(action), null);
     }
 
     public static Object trycatch(final Context cx, Scriptable thisObj, Object[] args,
@@ -242,7 +251,8 @@ public class RingoGlobal extends Global {
         }
     }
 
-    public static Object spawn(final Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    public static Object spawn(final Context cx, Scriptable thisObj,
+                               Object[] args, Function funObj) {
         if (securityManager != null) {
             securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
         }
@@ -300,7 +310,7 @@ public class RingoGlobal extends Global {
         try {
             RhinoEngine engine = RhinoEngine.engines.get();
             ModuleScope main = engine.getMainModuleScope();
-            return main != null ? main.getMetaObject() : Undefined.instance;
+            return main != null ? main.getModuleObject() : Undefined.instance;
         } catch (Exception x) {
             return Undefined.instance;
         }
