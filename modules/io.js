@@ -276,9 +276,12 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
  * wraps a raw Stream and exposes a similar interface.
  * @param {Stream} io The raw Stream to be wrapped.
  * @param {Object} options the options object. Supports the following properties:
- *        - charset: string containing the name of the encoding to use
- *        - newline: string containing the newline character sequence to use
- *        - delimiter: string containing the delimiter to use in print()
+ *        <ul><li>charset: string containing the name of the encoding to use.
+ *            Defaults to "utf8".</li>
+ *        <li>newline: string containing the newline character sequence to use.
+ *            Defaults to "\n".</li>
+ *        <li>delimiter: string containing the delimiter to use in print().
+ *            Defaults to " ".</li></ul>
  * @param {number} buflen optional buffer size. Defaults to 8192.
  * @constructor
  */
