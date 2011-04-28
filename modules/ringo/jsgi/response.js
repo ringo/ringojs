@@ -35,7 +35,7 @@ exports.htmlResponse = function() {
     return {
         status: 200,
         headers: {"Content-Type": contentType},
-        body: Array.slice(arguments)
+        body: Array.slice(arguments).map(String)
     }
 };
 
@@ -67,7 +67,7 @@ exports.xmlResponse = function(xml) {
     return {
         status: 200,
         headers: {"Content-Type": contentType},
-        body: [typeof xml === 'xml' ? xml.toXMLString() : xml]
+        body: [typeof xml === 'xml' ? xml.toXMLString() : String(xml)]
     };
 };
 
