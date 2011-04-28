@@ -169,7 +169,7 @@ function run(scope, name, writer) {
     }
     scope = null;
     writer.writeSummary(summary);
-    return summary.failures;
+    return summary;
 }
 
 /**

@@ -14,5 +14,6 @@ exports.testHttpclient = require('./ringo/httpclient_test');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
-    system.exit(require('test').run(exports));
+	var summary = require('test').run(exports)
+    system.exit(summary.failures + summary.errors);
 }
