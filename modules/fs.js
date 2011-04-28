@@ -99,7 +99,7 @@ function open(path, options) {
     if (binary) {
         return stream;
     } else if (read || write || append) {
-        return new TextStream(stream, charset);
+        return new TextStream(stream, {charset: charset});
     } else if (update) {
         throw new Error("update not yet implemented");
     }

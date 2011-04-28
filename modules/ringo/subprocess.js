@@ -46,9 +46,9 @@ var createProcess = exports.createProcess = function(args) {
     var stdout = new Stream(process.getInputStream());
     var stderr = new Stream(process.getErrorStream());
     if (!binary) {
-        stdin = new TextStream(stdin, encoding);
-        stdout = new TextStream(stdout, encoding);
-        stderr = new TextStream(stderr, encoding);
+        stdin = new TextStream(stdin, {charset: encoding});
+        stdout = new TextStream(stdout, {charset: encoding});
+        stderr = new TextStream(stderr, {charset: encoding});
     }
     /**
      * The Process object can be used to control and obtain information about a subprocess
@@ -129,8 +129,8 @@ exports.command = function() {
     var output= new MemoryStream(),
         errput = new MemoryStream();
     if (!args.binary) {
-        output = new TextStream(output, args.encoding);
-        errput = new TextStream(errput, args.encoding);
+        output = new TextStream(output, {charset: args.encoding});
+        errput = new TextStream(errput, {charset: args.encoding});
     }
     process.connect(null, output, errput);
     var status = process.wait();
