@@ -383,25 +383,37 @@ function main(path) {
         system.exit(0);
     }
 
+    var appDir = "";
     // if no explicit path is given use first command line argument
     path = path || system.args[0];
     var fs = require("fs");
-    if (path && fs.exists(path)) {
-        if (fs.isFile(path)) {
-            // if argument is a file use it as config module
-            options.config = fs.base(path);
-            path = fs.directory(path);
+    if (path) {
+        try {
+            // check if argument can be resolved as module id
+            require(path);
+            options.config = path;
+        } catch (error) {
+            path = fs.absolute(path);
+            if (fs.isDirectory(path)) {
+                // if argument is a directory assume app in config.js
+                options.config = fs.join(path, "config");
+                appDir = path;
+            } else {
+                // if argument is a file use it as config module
+                options.config = path;
+                appDir = fs.directory(path);
+            }
         }
     } else {
-        path = ".";
+        appDir = fs.workingDirectory();
+        options.config = fs.join(appDir, "config");
     }
-    // prepend the web app's directory to the module search path
-    require.paths.unshift(path);
 
     // logging module is already loaded and configured, check if webapp provides
     // its own log4j configuration file and apply it if so.
-    if (fs.isFile(fs.join(path, "config", "log4j.properties"))) {
-        require("./logging").setConfig(getResource('config/log4j.properties'));
+    var logConfig = getResource(fs.join(appDir, "config/log4j.properties"));
+    if (logConfig.exists()) {
+        require("./logging").setConfig(logConfig);
     }
 
     server = new Server(options);
