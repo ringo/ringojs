@@ -133,16 +133,24 @@ public class RingoShell {
     }
 
     protected void printResult(Object result, PrintStream out) {
-        // Avoid printing out undefined or function definitions.
-        if (result != Context.getUndefinedValue()) {
-            out.println(Context.toString(result));
+        try {
+            engine.invoke("ringo/shell", "printResult", result);
+        } catch (Exception x) {
+            // Avoid printing out undefined or function definitions.
+            if (result != Context.getUndefinedValue()) {
+                out.println(Context.toString(result));
+            }
+            out.flush();
         }
-        out.flush();
     }
 
     protected void printError(Exception ex, PrintStream out, boolean verbose) {
-        // default implementation forwards to RingoRunner.reportError()
-        RingoRunner.reportError(ex, out, verbose);
+        try {
+            engine.invoke("ringo/shell", "printError", ex, verbose);
+        } catch (Exception x) {
+            // fall back to RingoRunner.reportError()
+            RingoRunner.reportError(ex, out, verbose);
+        }
     }
 
     private void runSilently() throws IOException {

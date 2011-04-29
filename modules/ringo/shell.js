@@ -3,8 +3,10 @@
  */
 
 var system = require('system');
+var term = require('ringo/term');
 
-export('write', 'writeln', 'read', 'readln', 'start', 'quit');
+export('write', 'writeln', 'read', 'readln', 'start', 'quit',
+       'printResult', 'printError');
 
 try {
     var input = new Packages.jline.ConsoleReader();
@@ -82,4 +84,169 @@ function start(engine) {
  */
 function quit(status) {
    java.lang.System.exit(status || 0);
+}
+
+var styles = {
+    'number': term.BLUE,
+    'string': term.GREEN,
+    'function': term.CYAN,
+    'boolean': term.YELLOW,
+    'null': term.BOLD,
+    'date': term.MAGENTA,
+    'java': term.MAGENTA
+}
+
+function convert(value, nesting, visited) {
+    var type = typeof value;
+    var retval = {type: type};
+    switch (type) {
+        case 'number':
+            retval.string = String(value);
+            break;
+        case 'string':
+            retval.string  = "'" + value.replace(/'/g, "\\'") + "'";
+            break;
+        case 'function':
+            retval.string = "[Function]";
+            break;
+        case 'boolean':
+            retval.string =  String(value);
+            break;
+        case 'object':
+            if (value === null) {
+                retval.type = retval.string = 'null';
+                break;
+            }
+            if (visited.indexOf(value) > -1) {
+                retval.type = "cyclic";
+                retval.string = "[CyclicRef]";
+                break;
+            }
+            visited.push(value);
+            if (value instanceof java.lang.Object && typeof value.getClass === "function") {
+                retval.type = "java";
+                retval.string = "[JavaObject " + value.getClass() + "]";
+            } else if (value instanceof Date) {
+                retval.type = "date";
+                retval.string = String(value);
+            } else if (Array.isArray(value)) {
+                if (nesting > 1) {
+                    retval.string = "[...]";
+                } else {
+                    retval.type = "array";
+                    retval.items = [];
+                    var count = 0;
+                    for (var i = 0; i < value.length; i++) {
+                        var part = convert(value[i], nesting + 1, visited);
+                        count += (part.string && part.string.length || part.count || 0) + 2;
+                        retval.items.push(part);
+                    }
+                    retval.count = count;
+                }
+            } else {
+                if (nesting > 1) {
+                    retval.string = "{...}";
+                } else {
+                    retval.items = [];
+                    var keys = Object.keys(value);
+                    count = 0;
+                    for (i = 0; i < keys.length; i++) {
+                        part = convert(value[keys[i]], nesting + 1, visited);
+                        count += String(keys[i]).length + 4;
+                        count += part.string && part.string.length || part.count || 0;
+                        retval.items.push({
+                            key: keys[i] + ": ",
+                            value: part
+                        });
+                    }
+                    retval.count = count;
+                }
+            }
+            break;
+        case 'undefined':
+            retval = {};
+            break;
+        default:
+            retval.string = String(value);
+            break;
+    }
+    return retval;
+}
+
+function printResult(value) {
+    if (typeof value !== "undefined") {
+        printValue(convert(value, 0, []), 0);
+        term.writeln();
+    }
+}
+
+function printValue(value, nesting) {
+    if (value.string) {
+        var style = styles[value.type] || "";
+        term.write(style + value.string + term.RESET);
+    } else if (value && value.items) {
+        var multiline = value.count > 60;
+        var isArray = value.type === "array";
+        var length = value.items.length;
+        if (length === 0) {
+            term.write(isArray ? "[]" : "{}");
+            return;
+        }
+        if (isArray) {
+            term.write("[ ");
+            for (var i = 0; i < length; i++) {
+                printValue(value.items[i], nesting + 1);
+                if (i < length - 1) {
+                    if (multiline) {
+                        term.write(",\n  ");
+                        for (var j = 0; j < nesting; j++)
+                            term.write("  ");
+                    } else {
+                        term.write(", ");
+                    }
+                }
+            }
+            term.write(term.RESET + " ]");
+        } else {
+            term.write("{ ");
+            for (i = 0; i < length; i++) {
+                term.write(value.items[i].key);
+                printValue(value.items[i].value, nesting + 1);
+                if (i < length - 1) {
+                    if (multiline) {
+                        term.write(",\n  ");
+                        for (j = 0; j < nesting; j++)
+                            term.write("  ");
+                    } else {
+                        term.write(", ");
+                    }
+                }
+            }
+            term.write(term.RESET + " }");
+        }
+    }
+}
+
+function printError(xcept, verbose) {
+    if (xcept instanceof org.mozilla.javascript.RhinoException) {
+        term.writeln(term.BOLD, term.RED, xcept.getMessage());
+    } else {
+        term.writeln(term.BOLD, term.RED, xcept.toString());
+    }
+    var errors = org.ringojs.engine.RhinoEngine.errors.get();
+    if (errors != null && !errors.isEmpty()) {
+        for (var error in errors) {
+            term.writeln(term.GREEN, error);
+        }
+    }
+    if (typeof xcept.getScriptStackTrace === "function") {
+        term.write(xcept.getScriptStackTrace());
+    }
+    if (verbose) {
+        if (typeof xcept.getWrappedException === "function") {
+            xcept = xcept.getWrappedException();
+        }
+        term.writeln(term.BOLD, "Java Exception:")
+        xcept.printStackTrace(system.stdout.raw || System.out);
+    }
 }
