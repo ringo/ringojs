@@ -125,7 +125,7 @@ function convert(value, nesting, visited) {
             visited.push(value);
             if (value instanceof java.lang.Object && typeof value.getClass === "function") {
                 retval.type = "java";
-                retval.string = "[JavaObject " + value.getClass() + "]";
+                retval.string = "[JavaObject " + value.getClass().getName() + "]";
             } else if (value instanceof Date) {
                 retval.type = "date";
                 retval.string = String(value);
