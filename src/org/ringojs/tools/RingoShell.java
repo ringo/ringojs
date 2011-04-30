@@ -74,6 +74,7 @@ public class RingoShell {
             runSilently();
             return;
         }
+        preloadShellModule();
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
         // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
@@ -182,6 +183,25 @@ public class RingoShell {
             }
         }
         System.exit(0);
+    }
+
+    // preload ringo/shell in separate thread
+    private void preloadShellModule() {
+        Thread t = new Thread() {
+            public void run() {
+                Context cx = engine.getContextFactory().enterContext();
+                try {
+                    engine.loadModule(cx, "ringo/shell", null);
+                } catch (Exception ignore) {
+                    // ignore
+                } finally {
+                    Context.exit();
+                }
+            }
+        };
+        t.setPriority(Thread.MIN_PRIORITY);
+        t.setDaemon(true);
+        t.start();
     }
 
     class JSCompletor implements Completor {
