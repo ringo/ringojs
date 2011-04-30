@@ -159,7 +159,6 @@ public class RingoShell {
         outer: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
-            cx.setOptimizationLevel(-1);
             String source = "";
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
@@ -177,7 +176,7 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                printError(ex, System.err, config.isVerbose());
+                RingoRunner.reportError(ex, System.err, config.isVerbose());
             } finally {
                 Context.exit();
             }
