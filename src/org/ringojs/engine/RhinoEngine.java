@@ -281,41 +281,6 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
-    // TODO is this still used or needed?
-    public Object invoke(Callable callable, Object... args)
-            throws IOException, NoSuchMethodException {
-        Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
-        try {
-            initArguments(args);
-            Object retval;
-            while (true) {
-                try {
-                    retval = callable.call(cx, globalScope, null, args);
-                    break;
-                } catch (JavaScriptException jsx) {
-                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
-                            (Scriptable) jsx.getValue() : null;
-                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
-                        modules.get().clear();
-                    } else {
-                        throw jsx;
-                    }
-                } catch (RetryException retry) {
-                    // request to try again
-                    modules.get().clear();
-                }
-            }
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
-            }
-            return retval;
-        } finally {
-            Context.exit();
-            resetThreadLocals(threadLocals);
-        }
-    }
-
     /**
      * Return a shell scope for interactive evaluation
      * @return a shell scope
