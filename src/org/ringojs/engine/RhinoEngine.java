@@ -322,24 +322,10 @@ public class RhinoEngine implements ScopeProvider {
      * @throws IOException an I/O related exception occurred
      */
     public Scriptable getShellScope() throws IOException {
-        Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
-        try {
-            Repository repository = new FileRepository("");
-            repository.setAbsolute(true);
-            Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<shell>", repository, parentScope);
-            try {
-                evaluateScript(cx, getScript("ringo/shell"), scope);
-            } catch (Exception x) {
-                log.log(Level.SEVERE, "Warning: couldn't load module 'ringo/shell'", x);
-            }
-            scope.updateExports();
-            return scope;
-        } finally {
-            Context.exit();
-            resetThreadLocals(threadLocals);
-        }
+        Repository repository = new FileRepository("");
+        repository.setAbsolute(true);
+        Scriptable parentScope = mainScope != null ? mainScope : globalScope;
+        return new ModuleScope("<shell>", repository, parentScope);
     }
 
     /**
