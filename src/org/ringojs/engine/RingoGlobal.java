@@ -30,6 +30,7 @@ import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.WrappedException;
 import org.mozilla.javascript.Wrapper;
 import org.mozilla.javascript.tools.shell.Environment;
+import org.mozilla.javascript.tools.shell.QuitAction;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
 import org.ringojs.security.RingoSecurityManager;
@@ -66,6 +67,11 @@ public class RingoGlobal extends Global {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
         initStandardObjects(cx, sealed);
+        initQuitAction(new QuitAction() {
+            public void quit(Context cx, int exitCode) {
+                System.exit(exitCode);
+            }
+        });
         String[] names = {
             "doctest",
             "gc",
