@@ -192,8 +192,15 @@ function printValue(value, nesting) {
             term.write(isArray ? "[]" : "{}");
             return;
         }
+        var opener = isArray ? "[" : "{";
+        if (multiline && nesting > 0) {
+            term.write(opener + "\n  ");
+            for (j = 0; j < nesting; j++)
+                term.write("  ");
+        } else {
+            term.write(opener + " ");
+        }
         if (isArray) {
-            term.write("[ ");
             for (var i = 0; i < length; i++) {
                 printValue(value.items[i], nesting + 1);
                 if (i < length - 1) {
@@ -208,7 +215,6 @@ function printValue(value, nesting) {
             }
             term.write(term.RESET + " ]");
         } else {
-            term.write("{ ");
             for (i = 0; i < length; i++) {
                 term.write(value.items[i].key);
                 printValue(value.items[i].value, nesting + 1);
