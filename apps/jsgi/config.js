@@ -2,7 +2,7 @@
 exports.app = function(request) {
     return {
         status: 200,
-        headers: {},
+        headers: {"Content-Type": "text/plain"},
         body: ["hello world"]
     }
 }
