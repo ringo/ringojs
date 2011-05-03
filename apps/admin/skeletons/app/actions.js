@@ -1,6 +1,6 @@
-var {htmlResponse} = require('ringo/jsgi/response');
+var response = require('ringo/jsgi/response');
 
 exports.index = function (req) {
-    var response = getResource("./templates/index.html");
-    return htmlResponse(response.content);
+    var resource = getResource("./templates/index.html");
+    return response.html(resource.content);
 };

@@ -1,5 +1,5 @@
 var actions = require("./actions");
-var {htmlResponse, notFoundResponse, staticResponse} = require("ringo/jsgi/response");
+var response = require("ringo/jsgi/response");
 
 // Minimalistic request dispatcher - you're probably better off with a proper framework
 exports.app = function(request) {
@@ -11,8 +11,8 @@ exports.app = function(request) {
     // 2. resolve against public folder
     var resource = getResource("./public/" + path);
     if (resource.exists()) {
-        return staticResponse(resource);
+        return response.static(resource);
     }
     // 3 return 404 response
-    return notFoundResponse(request.pathInfo);
+    return response.notFound(request.pathInfo);
 }

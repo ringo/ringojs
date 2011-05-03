@@ -29,7 +29,7 @@ exports.charset = function() {
  * @param {string} string... a variable number of strings to send as response body
  * @returns a JSGI response object of type text/html
  */
-exports.htmlResponse = function() {
+exports.html = function() {
     var contentType = "text/html"
     if (charset) contentType += "; charset=" + charset;
     return {
@@ -45,7 +45,7 @@ exports.htmlResponse = function() {
  * @param {object} object the object whose JSON representation to return
  * @returns a JSGI response object of type application/json
  */
-exports.jsonResponse = function(object) {
+exports.json = function(object) {
     var contentType = "application/json"
     if (charset) contentType += "; charset=" + charset;
     return {
@@ -61,7 +61,7 @@ exports.jsonResponse = function(object) {
  * @param {xml|string} xml an XML document
  * @returns a JSGI response object of type application/xml
  */
-exports.xmlResponse = function(xml) {
+exports.xml = function(xml) {
     var contentType = "application/xml"
     if (charset) contentType += "; charset=" + charset;
     return {
@@ -77,7 +77,7 @@ exports.xmlResponse = function(xml) {
  * @param {String} contentType optional MIME type. If not defined,
  *         the MIME type is detected from the file name extension.
  */
-exports.staticResponse = function (resource, contentType) {
+exports.static = function (resource, contentType) {
     if (typeof resource == 'string') {
         resource = getResource(resource);
     }
@@ -85,7 +85,7 @@ exports.staticResponse = function (resource, contentType) {
         throw Error("Wrong argument for static response: " + typeof(resource));
     }
     if (!resource.exists()) {
-        return exports.notFoundResponse(String(resource));
+        return exports.notFound(String(resource));
     }
     var input;
     return {
@@ -115,7 +115,7 @@ exports.staticResponse = function (resource, contentType) {
  * to a new location.
  * @param {String} location the new location
  */
-exports.redirectResponse = function (location) {
+exports.redirect = function (location) {
     return {
         status: 303,
         headers: {Location: location},
@@ -127,7 +127,7 @@ exports.redirectResponse = function (location) {
  * Create a not-found response with HTTP status code 404.
  * @param {String} location the location that couldn't be found
  */
-exports.notFoundResponse = function (location) {
+exports.notFound = function (location) {
     var contentType = "text/html"
     if (charset) contentType += "; charset=" + charset;
     var header = 'Not Found';
@@ -146,7 +146,7 @@ exports.notFoundResponse = function (location) {
  * Create a error response with HTTP status code 500.
  * @param {String} message the message of response body
  */
-exports.errorResponse = function (message) {
+exports.error = function (message) {
     var contentType = "text/html"
     if (charset) contentType += "; charset=" + charset;
     var header = "Server Error";

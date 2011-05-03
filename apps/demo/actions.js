@@ -1,6 +1,6 @@
-var {parseParameters, parseFileUpload} = require("ringo/utils/http");
-var {htmlResponse} = require('ringo/jsgi/response');
-var {Markdown} = require('ringo/markdown');
+var http = require("ringo/utils/http");
+var response = require('ringo/jsgi/response');
+var markdown = require('ringo/markdown');
 var mustache = require('../shared/mustache-commonjs');
 
 var log = require('ringo/logging').getLogger(module.id);
@@ -18,7 +18,7 @@ function modules(req) {
 }
 
 function upload(req) {
-    var params = parseFileUpload(req);
+    var params = http.parseFileUpload(req);
     if (req.method === "POST" && params.file) {
         return {
             status: 200,
@@ -32,13 +32,13 @@ function upload(req) {
 }
 
 function testing(req) {
-    var params = parseParameters(req.queryString);
+    var params = http.parseParameters(req.queryString);
     if (params.runtests) {
         var test = require("ringo/engine").getRingoHome().getResource("test/most.js");
         var tests = require(test.path);
         var formatter = new (require("./helpers").HtmlTestFormatter)();
         require("test").run(tests, formatter);
-        return htmlResponse(formatter);
+        return response.html(formatter);
     }
     return responseHelper('templates/testing.txt', {
         title: "Unit Testing"
@@ -47,7 +47,7 @@ function testing(req) {
 
 // demo for log4j logging
 function logging(req) {
-    var params = parseParameters(req.queryString);
+    var params = http.parseParameters(req.queryString);
     if (params.info) {
         log.info("Hello world!");
     } else if (params.error) {
@@ -74,10 +74,10 @@ function responseHelper(template, context) {
     var page = getResource('./templates/page.html').content;
     var content = getResource(module.resolve(template)).content;
     context.markdown = function(text) {
-        return new Markdown().process(text);
+        return markdown.Markdown().process(text);
     }
     context.content = mustache.to_html(content, context);
-    return htmlResponse(mustache.to_html(page, context))
+    return response.html(mustache.to_html(page, context));
 }
 
 
