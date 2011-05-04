@@ -396,13 +396,12 @@ public class RhinoEngine implements ScopeProvider {
         Context cx = Context.getCurrentContext();
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
-        Resource source;
-        source = findResource(moduleName + ".js", localPath);
+        Resource source = findResource(moduleName + ".js", localPath);
         if (!source.exists()) {
-            Trackable path = resolve(moduleName, localPath);
-            source = (path instanceof Resource)
-                ? (Resource) path
-                : loadPackage((Repository)path);
+            source = findResource(moduleName, localPath);
+            if (!source.exists()) {
+                source = loadPackage(moduleName, localPath);
+            }
         }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
@@ -420,13 +419,15 @@ public class RhinoEngine implements ScopeProvider {
     /**
      * Implement Node-like package loading.
      * @link http://nodejs.org/docs/v0.4.4/api/modules.html#folders_as_Modules
-     * @param path path to a potential package repository
+     * @param moduleName the name of the package to load
+     * @param localPath the path of the resource issuing this call
      * @return the location of the package's main module
      * @throws IOException an unrecoverable I/O exception occurred while
      * reading the package
      */
-    protected Resource loadPackage(Repository path) throws IOException {
-        Resource json = path.getResource("package.json");
+    protected Resource loadPackage(String moduleName, Repository localPath)
+            throws IOException {
+        Resource json = findResource(moduleName + "/package.json", localPath);
         if (json != null && json.exists()) {
             JsonParser parser = new JsonParser(
                     Context.getCurrentContext(), globalScope);
@@ -439,9 +440,10 @@ public class RhinoEngine implements ScopeProvider {
                 Object main = ScriptableObject.getProperty((Scriptable) obj, "main");
                 if (main != null && main != ScriptableObject.NOT_FOUND) {
                     String mainId = (String) Context.jsToJava(main, String.class);
-                    Resource mainRes = path.getResource(mainId);
+                    Repository parent = json.getParentRepository();
+                    Resource mainRes = parent.getResource(mainId);
                     if (mainRes == null || !mainRes.exists()) {
-                        mainRes = path.getResource(mainId + ".js");
+                        mainRes = parent.getResource(mainId + ".js");
                     }
                     return mainRes;
                 }
@@ -449,7 +451,7 @@ public class RhinoEngine implements ScopeProvider {
                 throw new RuntimeException(px);
             }
         }
-        return path.getResource("index.js");
+        return findResource(moduleName + "/index.js", localPath);
     }
 
     /**
