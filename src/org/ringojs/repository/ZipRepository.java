@@ -95,7 +95,8 @@ public final class ZipRepository extends AbstractRepository {
         }
         this.file = file;
         this.parent = parent;
-        // make sure entryPath ends with slash
+        // Make sure entryPath ends with slash. This is the only way we
+        // can be sure the zip entry isn't actually a file.
         this.entryPath = entryPath.endsWith("/") ? entryPath : entryPath + "/";
         String[] pathArray = StringUtils.split(entryPath, SEPARATOR);
         depth = pathArray.length;
