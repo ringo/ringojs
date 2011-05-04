@@ -1,7 +1,7 @@
 var assert = require("assert");
 var {request, post, get, put, del} = require('ringo/httpclient');
 var {Server} = require('ringo/httpserver');
-var {htmlResponse, jsonResponse, notFoundResponse} = require('ringo/jsgi/response');
+var {html, json, notFound} = require('ringo/jsgi/response');
 var {parseParameters, setCookie} = require('ringo/utils/http');
 var {ByteArray} = require('binary');
 var base64 = require('ringo/base64');
@@ -55,7 +55,7 @@ exports.tearDown = function() {
  */
 exports.testCallbacksGetCalled = function() {
    getResponse = function(req) {
-      return htmlResponse('');
+      return html('');
    };
 
    var successCalled, completeCalled, errorCalled;
@@ -81,7 +81,7 @@ exports.testCallbacksGetCalled = function() {
  */
 exports.testBasic = function() {
    getResponse = function(req) {
-      return htmlResponse('<h1>This is the Response Text</h1>');
+      return html('<h1>This is the Response Text</h1>');
    };
 
    var errorCalled, myData;
@@ -106,7 +106,7 @@ exports.testUserInfo = function() {
     var log;
     getResponse = function(req) {
         log.push(req.headers["authorization"]);
-        return htmlResponse("response text");
+        return html("response text");
     };
 
     // username and password in url
@@ -140,7 +140,7 @@ exports.testServlet = function() {
     var servlet;
     getResponse = function(req) {
         servlet = req.env.servlet;
-        return htmlResponse("servlet set");
+        return html("servlet set");
     };
 
     var errorCalled, myData;
@@ -168,9 +168,9 @@ exports.testConvenience = function() {
         var input = req.method == "POST" ? req.input.read() : req.queryString;
         parseParameters(input, params);
         if (params.foo) {
-            return htmlResponse(req.method + ' with param');
+            return html(req.method + ' with param');
         }
-        return htmlResponse(req.method);
+        return html(req.method);
     };
     var x = post(baseUri);
     assert.strictEqual(200, x.status);
@@ -202,7 +202,7 @@ exports.testParams = function() {
         var params = {};
         var input = req.method == "POST" ? req.input.read() : req.queryString;
         parseParameters(input, params);
-        return jsonResponse(params);
+        return json(params);
     };
     var data = {
         a: "fääßß",
@@ -235,9 +235,9 @@ exports.testParams = function() {
 exports.testCallbacks = function() {
     getResponse = function(req) {
         if (req.pathInfo == '/notfound') {
-            return notFoundResponse('error');
+            return notFound('error');
         } else if (req.pathInfo == '/success') {
-            return jsonResponse('success');
+            return json('success');
         } else if (req.pathInfo == '/redirect') {
             return {
                 status: 302,
@@ -245,7 +245,7 @@ exports.testCallbacks = function() {
                 body: ["Found: " + '/redirectlocation']
             };
         } else if (req.pathInfo == '/redirectlocation') {
-            return htmlResponse('redirect success');
+            return html('redirect success');
         }
     };
     var myStatus, successCalled, errorCalled, myMessage, myContentType, myData;
@@ -312,7 +312,7 @@ exports.testCookie = function() {
         var params = {};
         parseParameters(req.queryString, params);
         // set cookie
-        var res = htmlResponse('cookie set');
+        var res = html('cookie set');
         res.headers['Set-Cookie'] = setCookie(COOKIE_NAME, params.cookievalue, 5);
         return res;
     };
