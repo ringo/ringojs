@@ -214,7 +214,7 @@ public final class ZipRepository extends AbstractRepository {
         } else {
             String baseUrl = "jar:file:" + file + "!/";
             return entryPath.length() == 0 ?
-                    new URL(baseUrl) : new URL(baseUrl + entryPath + "/");
+                    new URL(baseUrl) : new URL(baseUrl + entryPath);
         }
     }
 
