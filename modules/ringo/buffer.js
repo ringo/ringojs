@@ -1,5 +1,5 @@
 /**
- * @fileOverview A Buffer class for composing strings.
+ * @fileOverview A simple text Buffer class for composing strings.
  */
 
 var {ByteString} = require('binary');
