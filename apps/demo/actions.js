@@ -1,7 +1,7 @@
 var http = require("ringo/utils/http");
 var response = require('ringo/jsgi/response');
 var markdown = require('ringo/markdown');
-var mustache = require('../shared/mustache-commonjs');
+var mustache = require('ringo/mustache');
 
 var log = require('ringo/logging').getLogger(module.id);
 

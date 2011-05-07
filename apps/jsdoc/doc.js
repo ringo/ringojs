@@ -14,10 +14,9 @@ var {isFile, isDirectory} = require('fs');
 var {ScriptRepository} = require('ringo/jsdoc');
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
-var {Markdown} = require('ringo/markdown');
+var markdown = require('ringo/markdown');
+var mustache = require("ringo/mustache");
 
-// custom
-var mustache = require("../shared/mustache-commonjs");
 var {repositoryList, moduleDoc, moduleList, structureModuleDoc, getRepositoryName}
         = require('./jsdocserializer');
 var defaultContext = {};
@@ -71,7 +70,7 @@ function writeModuleList(target, repository) {
             modules: moduleList(repository.path, true),
             rootPath: './',
             markdown: function(text) {
-                return new Markdown({}).process(text);
+                return markdown.process(text);
             }
         })
     );
@@ -113,7 +112,7 @@ function writeModuleDoc(target, repository, moduleId){
                 return this.parameters.map(function(p) p.name).join(", ")
             },
             markdown: function(text) {
-                return new Markdown({}).process(text);
+                return markdown.process(text);
             },
             iterate: function(value) {
                 return value && value.length ? {each: value} : null;
@@ -122,10 +121,10 @@ function writeModuleDoc(target, repository, moduleId){
                 print(value.toSource());
                 return null;
             },
-            withComma: function(value) {
+            commaList: function(value) {
                 return value && value.length ? value.join(", ") : "";
             },
-            withNewline: function(value) {
+            newlineList: function(value) {
                 return value && value.length ? value.join("<br />") : "";
             }
         })

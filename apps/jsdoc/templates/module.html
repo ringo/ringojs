@@ -21,7 +21,7 @@
         {{#item}}
             <h1 class="modulename">Module {{moduleId}}</h1>
             <div class="fileoverview">
-                {{{fileoverview markdown}}}
+                {{{markdown fileoverview}}}
             </div>
 
             {{#example}}
@@ -31,18 +31,18 @@
             </div>
             {{/example}}
 
-            {{#sees iterate}}
+            {{#iterate sees}}
             <div>
                 <h4>See</h4>
                 <div>
-                    {{{each withNewline}}}
+                    {{{newlineList each}}}
                 </div>
             </div>
-            {{/sees iterate}}
+            {{/iterate sees}}
 
             <div class="classoverview">
 
-                {{#functions iterate}}
+                {{#iterate functions}}
                 <div>
                     <h3>Functions</h3>
                     <ul class="propertyoverview">
@@ -53,9 +53,9 @@
                         {{/each}}
                     </ul>
                 </div>
-                {{/functions iterate}}
+                {{/iterate functions}}
 
-                {{#properties iterate}}
+                {{#iterate properties}}
                 <div>
                     <h3>Properties</h3>
                     <ul class="propertyoverview">
@@ -66,12 +66,12 @@
                         {{/each}}
                     </ul>
                 </div>
-                {{/properties iterate}}
+                {{/iterate properties}}
 
                 <div class="classes">
                     {{#classes}}
                     <h2>Class <a href="#{{name}}" class="jsdoc-title">{{name}}</a></h2>
-                    {{#methods iterate}}
+                    {{#iterate methods}}
                     <div>
                         <h3>Instance Methods</h3>
                         <ul class="propertyoverview">
@@ -82,8 +82,8 @@
                             {{/each}}
                         </ul>
                     </div>
-                    {{/methods iterate}}
-                    {{#properties iterate}}
+                    {{/iterate methods}}
+                    {{#iterate properties}}
                     <div>
                         <h3>Instance Properties</h3>
                         <ul class="propertyoverview">
@@ -94,8 +94,8 @@
                             {{/each}}
                         </ul>
                     </div>
-                    {{/properties iterate}}
-                    {{#staticMethods iterate}}
+                    {{/iterate properties}}
+                    {{#iterate staticMethods}}
                     <div>
                         <h3>Static Methods</h3>
                         <ul class="propertyoverview">
@@ -106,8 +106,8 @@
                             {{/each}}
                         </ul>
                     </div>
-                    {{/staticMethods iterate}}
-                    {{#staticProperties iterate}}
+                    {{/iterate staticMethods}}
+                    {{#iterate staticProperties}}
                     <div>
                         <h3>Static Properties</h3>
                         <ul class="propertyoverview">
@@ -118,7 +118,7 @@
                             {{/each}}
                         </ul>
                     </div>
-                    {{/staticProperties iterate}}
+                    {{/iterate staticProperties}}
                     {{/classes}}
                 </div>
             </div>
@@ -133,7 +133,7 @@
                                 {{#isFunction}}<span class="itemtitle light">({{paramList}})</span>{{/isFunction}}
                             </h3>
                             <div>
-                                {{{desc markdown}}}
+                                {{{markdown desc}}}
                             </div>
                             {{#example}}
                             <div>
@@ -142,7 +142,7 @@
                             </div>
                             {{/example}}
 
-                            {{#parameters iterate}}
+                            {{#iterate parameters}}
                             <div>
                                 <h4>Parameters</h4>
                                 <table>
@@ -155,7 +155,7 @@
                                     {{/each}}
                                 </table>
                             </div>
-                            {{/parameters iterate}}
+                            {{/iterate parameters}}
 
                             {{#returns}}
                             <div>
@@ -169,23 +169,23 @@
                             </div>
                             {{/returns}}
 
-                            {{#throws iterate}}
+                            {{#iterate throws}}
                             <div>
                                 <h4>Throws</h4>
                                 <div class="extrainfo">
-                                    {{each withComma}}
+                                    {{commaList each}}
                                 </div>
                             </div>
-                            {{/throws iterate}}
+                            {{/iterate throws}}
 
-                            {{#sees iterate}}
+                            {{#iterate sees}}
                             <div>
                                 <h4>See</h4>
                                 <div class="extrainfo">
-                                    {{{each withNewline}}}
+                                    {{{newlineList each}}}
                                 </div>
                             </div>
-                            {{/sees iterate}}
+                            {{/iterate sees}}
                         </div>
                         <hr/>
                     </div>
