@@ -48,7 +48,7 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
         }
         return {
             id: mod.moduleName.replace(/\./g,'/'),
-            fileoverview: fileoverview,
+            fileoverview: fileoverview
         }
     }).sort(function(a, b) {
         // sort modules by namespace depth first, then lexographically
@@ -124,7 +124,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
             // standard
             example:  docItem.getTag('example'),
             since: docItem.getTag('since'),
-            deprecated: docItem.getTag('deprecated'),
+            deprecated: docItem.getTag('deprecated')
         };
     });
     return doc;
