@@ -24,7 +24,7 @@ Object.defineProperty(exports, "stdin", {
     },
     set: function(value) {
         stdin = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**
@@ -41,7 +41,7 @@ Object.defineProperty(exports, "stdout", {
     },
     set: function(value) {
         stdout = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**
@@ -58,7 +58,7 @@ Object.defineProperty(exports, "stderr", {
     },
     set: function(value) {
         stderr = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**
