@@ -17,18 +17,7 @@ var description = "Create a new RingoJS web application or package";
  * @param path the path where to create the application
  */
 function createApplication(path, options) {
-    if (!path) {
-        throw new Error("No destination path given");
-    }
-
-    var dest = new Path(path);
-
-    if (dest.exists() && !dest.isDirectory()) {
-        throw dest + " exists but is not a directory.";
-    } else if (dest.isDirectory() && dest.list().length > 0) {
-        throw new Error("Directory " + dest + " exists but is not empty");
-    }
-
+    var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
 
     if (options.appengine) {
@@ -48,18 +37,8 @@ function createApplication(path, options) {
  * @param path the path where to create the package
  */
 function createPackage(path, options) {
-    if (!path) {
-        throw new Error("No destination path given");
-    }
-
+    var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
-    var dest = new Path(home, "packages", path);
-
-    if (dest.exists() && !dest.isDirectory()) {
-        throw dest + " exists but is not a directory.";
-    } else if (dest.isDirectory() && dest.list().length > 0) {
-        throw new Error("Directory " + dest + " exists but is not empty");
-    }
 
     copyTree(home, "apps/admin/skeletons/package", dest);
 }
@@ -108,6 +87,22 @@ function copyJars(home, dest, symlink) {
         }
     }
     shell.writeln("done");
+}
+
+function getTargetDir(path) {
+    if (!path) {
+        throw new Error("No destination path given");
+    }
+
+    var dest = new Path(path);
+
+    if (dest.exists() && !dest.isDirectory()) {
+        throw dest + " exists but is not a directory.";
+    } else if (dest.isDirectory() && dest.list().length > 0) {
+        throw new Error("Directory " + dest + " exists but is not empty");
+    }
+
+    return dest;
 }
 
 /**
