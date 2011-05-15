@@ -91,14 +91,13 @@ public class RingoConfiguration {
         if (userModules != null) {
             for (String pathElem : userModules) {
                 String path = pathElem.trim();
-                addModuleRepository(resolveRootRepository(path));
+                addModuleRepository(resolveRepository(path, false));
             }
         }
 
         // append system modules path relative to ringo home
-        // TODO this probably shouldn't be on require.paths
         if (systemModules != null) {
-            addModuleRepository(resolveRootRepository(systemModules));
+            addModuleRepository(resolveRepository(systemModules, true));
         }
 
         // now that repositories are set up try to set default log4j configuration file
@@ -125,32 +124,18 @@ public class RingoConfiguration {
     /**
      * Resolve a module repository path.
      * @param path the path
+     * @param system whether repository should be resolved as system repository
      * @return a repository
      * @throws FileNotFoundException if the path couldn't be resolved
      */
-    public Repository resolveRootRepository(String path) throws IOException {
+    public Repository resolveRepository(String path, boolean system)
+            throws IOException {
         File file = new File(path);
         if (!file.isAbsolute()) {
-            // Try to resolve as installation repository child first
-            Repository repository = home.getChildRepository(path);
-            if (repository != null && repository.exists()) {
-                repository.setRoot();
-                return repository;
-            }
-            // Try to resolve path as classpath resource
-            URL url = RingoConfiguration.class.getResource("/" + path);
-            if (url != null) {
-                String protocol = url.getProtocol();
-                if (("jar".equals(protocol) || "zip".equals(protocol))) {
-                    Repository jar = toZipRepository(url);
-                    if (jar != null) {
-                        repository = jar.getChildRepository(path);
-                        if (repository.exists()) {
-                            repository.setRoot();
-                            return repository;
-                        }
-                    }
-                }
+            // If this is a system repo resolve in ringo home and ringo.jar
+            if (system) {
+                Repository repo = resolveSystemRepository(path);
+                if (repo != null) return repo;
             }
             // then try to resolve against current directory
             file = file.getAbsoluteFile();
@@ -163,6 +148,32 @@ public class RingoConfiguration {
         } else {
             return new FileRepository(file);
         }
+    }
+
+    private Repository resolveSystemRepository(String path)
+            throws IOException {
+        // Try to resolve as installation repository child first
+        Repository repository = home.getChildRepository(path);
+        if (repository != null && repository.exists()) {
+            repository.setRoot();
+            return repository;
+        }
+        // Try to resolve path as classpath resource
+        URL url = RingoConfiguration.class.getResource("/" + path);
+        if (url != null) {
+            String protocol = url.getProtocol();
+            if (("jar".equals(protocol) || "zip".equals(protocol))) {
+                Repository jar = toZipRepository(url);
+                if (jar != null) {
+                    repository = jar.getChildRepository(path);
+                    if (repository.exists()) {
+                        repository.setRoot();
+                        return repository;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
