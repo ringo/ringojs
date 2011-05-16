@@ -1,1 +1,1 @@
-@java -jar "%~dp0\..\run.jar" "%~dp0\..\apps\admin\main.js" %*
+@java -jar "%~dp0\..\run.jar" "%~dp0\..\tools\admin\main.js" %*

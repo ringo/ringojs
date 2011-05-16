@@ -1,8 +1,0 @@
-
-RingoJS implements the [Modules 1.1 specification][1] defined by the
-[CommonJS group][2]. On top of this, RingoJS uses per-module top-level
-scopes to provide [full namespace isolation](http://ringojs.org/wiki/Modules_and_Scopes/)
-and implements automatic reloading of updated modules.
-
-  [1]: http://wiki.commonjs.org/wiki/Modules/1.1
-  [2]: http://wiki.commonjs.org/wiki/CommonJS
