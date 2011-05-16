@@ -132,7 +132,7 @@ var Mustache = function() {
       // for each {{#foo}}{{/foo}} section do...
       return template.replace(regex, function(match, type, name, content) {
         var names = name.split(/\s+/);
-        var value = context;
+        var value;
         // loop through names in reverse order: {{foo bar}} -> foo(bar)
         for (var i = names.length - 1; i >= 0; i--) {
           value = that.find(names[i], context, value);
@@ -192,7 +192,7 @@ var Mustache = function() {
           return that.render_partial(name, context, partials);
         default:
           var names = name.split(/\s+/);
-          var value = context;
+          var value;
           // loop through names in reverse order: {{foo bar}} -> foo(bar)
           for (var i = names.length - 1; i >= 0; i--) {
               value = that.find(names[i], context, value);
@@ -254,7 +254,8 @@ var Mustache = function() {
       }
 
       if(typeof value === "function") {
-        return value.call(context, previousValue);
+        return previousValue === undefined ?
+            value.call(context) : value.call(context, previousValue);
       }
       if(value !== undefined) {
         return value;
