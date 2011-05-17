@@ -33,8 +33,6 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -57,14 +55,17 @@ public class RhinoEngine implements ScopeProvider {
     private ModuleScope mainScope = null;
 
     public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 7));
+    public static final List<Integer> VERSION =
+            Collections.unmodifiableList(Arrays.asList(0, 8));
 
-    public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
-    static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
-    static final ThreadLocal<Map<Resource, ModuleScope>>modules = new ThreadLocal<Map<Resource, ModuleScope>>();
-    static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
-
-    private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
+    public static final ThreadLocal<List<SyntaxError>> errors =
+            new ThreadLocal<List<SyntaxError>>();
+    static final ThreadLocal<RhinoEngine> engines =
+            new ThreadLocal<RhinoEngine>();
+    static final ThreadLocal<Map<Resource, ModuleScope>>modules =
+            new ThreadLocal<Map<Resource, ModuleScope>>();
+    static final ThreadLocal<ReloadableScript>currentScripts =
+            new ThreadLocal<ReloadableScript>();
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
@@ -393,8 +394,6 @@ public class RhinoEngine implements ScopeProvider {
      */
     public ReloadableScript getScript(String moduleName, Repository localPath)
             throws JavaScriptException, IOException {
-        Context cx = Context.getCurrentContext();
-        Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         ReloadableScript script;
         Resource source = findResource(moduleName + ".js", localPath);
         if (!source.exists()) {
@@ -403,6 +402,8 @@ public class RhinoEngine implements ScopeProvider {
                 source = loadPackage(moduleName, localPath);
             }
         }
+        Context cx = Context.getCurrentContext();
+        Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
         } else if (sharedScripts.containsKey(source)) {
@@ -485,24 +486,32 @@ public class RhinoEngine implements ScopeProvider {
      * @param cx the current context
      * @param moduleName the module name
      * @param loadingScope the scope requesting the module
-     * @return the loaded module scope
+     * @return the loaded module's exports object
      * @throws IOException indicates that in input/output related error occurred
      */
-    public ModuleScope loadModule(Context cx, String moduleName, Scriptable loadingScope)
+    public ModuleScope loadModule(Context cx, String moduleName,
+                                  Scriptable loadingScope)
             throws IOException {
         Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
+
         ModuleScope module;
         ReloadableScript parent = currentScripts.get();
         try {
+            // check if we already came across the module in the current context/request
+            Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
+            if (modules.containsKey(script.resource)) {
+                return modules.get(script.resource);
+            }
             currentScripts.set(script);
-            module = script.load(globalScope, cx);
+            module = script.load(globalScope, cx, modules);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
             }
             currentScripts.set(parent);
         }
+
         return module;
     }
 

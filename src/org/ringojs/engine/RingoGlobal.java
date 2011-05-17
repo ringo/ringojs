@@ -150,7 +150,7 @@ public class RingoGlobal extends Global {
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            ModuleScope module = engine.loadModule(cx, (String) args[0], moduleScope);
+            ModuleScope module = engine.loadModule(cx, (String)args[0], moduleScope);
             return module.getExports();
         } catch (IOException iox) {
             throw Context.reportRuntimeError("Cannot find module '" + args[0] + "'");
