@@ -206,6 +206,7 @@ public class ReloadableScript {
      *
      * @param prototype the prototype for the module, usually the shared top level scope
      * @param cx the rhino context
+     * @param modules thread-local map for registering the module scope
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file

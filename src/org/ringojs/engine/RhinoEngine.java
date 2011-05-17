@@ -486,7 +486,7 @@ public class RhinoEngine implements ScopeProvider {
      * @param cx the current context
      * @param moduleName the module name
      * @param loadingScope the scope requesting the module
-     * @return the loaded module's exports object
+     * @return the loaded module's scope
      * @throws IOException indicates that in input/output related error occurred
      */
     public ModuleScope loadModule(Context cx, String moduleName,
