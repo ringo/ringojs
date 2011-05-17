@@ -70,7 +70,7 @@ public class RingoConfiguration {
      * @throws FileNotFoundException if a moudule path item does not exist
      */
     public RingoConfiguration(Repository ringoHome, List<String> userModules,
-                              String systemModules) throws IOException {
+                              List<String> systemModules) throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
         home.setAbsolute(true);
@@ -97,7 +97,10 @@ public class RingoConfiguration {
 
         // append system modules path relative to ringo home
         if (systemModules != null) {
-            addModuleRepository(resolveRepository(systemModules, true));
+            for (String pathElem : systemModules) {
+                String path = pathElem.trim();
+                addModuleRepository(resolveRepository(path, true));
+            }
         }
 
         // now that repositories are set up try to set default log4j configuration file

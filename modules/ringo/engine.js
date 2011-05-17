@@ -47,7 +47,8 @@ function addHostObject(javaClass) {
  * @param {Array} modulePath the comma separated module search path
  * @param {Object} globals a map of predefined global properties (may be undefined)
  * @param {Object} options an options object (may be undefined). The following options are supported:
- *  - includeSystemModules whether to include the system modules in the module search path
+ *  - systemModules array of system module directories to add to the module search path
+ *                  (may be relative to the ringo install dir)
  *  - classShutter a Rhino class shutter, may be null
  *  - sealed if the global object should be sealed, defaults to false
  * @returns {RhinoEngine} a sandboxed RhinoEngine instance
@@ -55,7 +56,7 @@ function addHostObject(javaClass) {
  */
 function createSandbox(modulePath, globals, options) {
     options = options || {};
-    var systemModules = options.includeSystemModules ? "modules" : null;
+    var systemModules = options.systemModules || null;
     var config = new org.ringojs.tools.RingoConfiguration(
             getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {

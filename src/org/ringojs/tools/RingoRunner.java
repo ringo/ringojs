@@ -60,7 +60,7 @@ public class RingoRunner {
     boolean legacyMode = false;
     boolean productionMode = false;
     List<String> bootScripts;
-    List<String> modulePath = new ArrayList<String>();
+    List<String> userModulePath = new ArrayList<String>();
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
@@ -114,13 +114,15 @@ public class RingoRunner {
         if (extraPath == null) {
             extraPath = System.getenv("RINGO_MODULE_PATH");
         }
-
         if (extraPath != null) {
-            Collections.addAll(modulePath,
+            Collections.addAll(userModulePath,
                     StringUtils.split(extraPath, File.pathSeparator));
         }
+        List<String> systemModulePath = new ArrayList<String>();
+        systemModulePath.add("modules");
+        systemModulePath.add("packages");
 
-        config = new RingoConfiguration(home, modulePath, "modules");
+        config = new RingoConfiguration(home, userModulePath, systemModulePath);
         boolean hasPolicy = System.getProperty("java.security.policy") != null;
         config.setPolicyEnabled(hasPolicy);
         config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());
@@ -344,7 +346,7 @@ public class RingoRunner {
         } else if ("history".equals(option)) {
             history = new File(arg);
         } else if ("modules".equals(option)) {
-            modulePath.add(arg);
+            userModulePath.add(arg);
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RingoSecurityManager());

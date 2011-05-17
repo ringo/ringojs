@@ -36,6 +36,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -88,8 +89,11 @@ public class JsgiServlet extends HttpServlet {
                 // Use ',' as platform agnostic path separator
                 List<String> paths = Arrays.asList(
                         StringUtils.split(modulePath, ","));
+                List<String> systemPaths = new ArrayList<String>();
+                systemPaths.add("modules");
+                systemPaths.add("packages");
                 RingoConfiguration ringoConfig =
-                        new RingoConfiguration(home, paths, "modules");
+                        new RingoConfiguration(home, paths, systemPaths);
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);
