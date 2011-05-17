@@ -16,9 +16,9 @@
 
 package org.ringojs.tools;
 
+import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.RhinoEngine;
-import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.engine.SyntaxError;
 import org.ringojs.repository.FileRepository;
@@ -46,7 +46,7 @@ public class RingoRunner {
     RingoConfiguration config;
     RhinoEngine engine;
     Context cx;
-    ModuleScope module;
+    Scriptable module;
     int optlevel;
     String scriptName = null;
     String[] scriptArgs = new String[0];
@@ -178,7 +178,8 @@ public class RingoRunner {
                 throw new RuntimeException("daemon interface requires a script argument");
             }
             cx = engine.getContextFactory().enterContext();
-            module = engine.loadModule(cx, config.getMainResource().getModuleName(), null);
+            String moduleId = config.getMainResource().getModuleName();
+            module = engine.loadModule(cx, moduleId, null).getExports();
             engine.invoke(module, "init");
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
