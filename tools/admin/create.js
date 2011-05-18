@@ -19,16 +19,17 @@ var description = "Create a new RingoJS web application or package";
 function createApplication(path, options) {
     var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
-
+    var skeletons = "tools/admin/skeletons/";
+    
     if (options.appengine) {
         var symlink = Boolean(options.symlink);
-        copyTree(home, "apps/admin/skeletons/appengine", dest);
-        copyTree(home, "apps/admin/skeletons/app", join(dest, "WEB-INF", "app"));
+        copyTree(home, skeletons + "appengine", dest);
+        copyTree(home, skeletons + "app", join(dest, "WEB-INF", "app"));
         copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
         fixAppEngineDirs(dest);
         copyJars(home, dest, symlink);
     } else {
-        copyTree(home, "apps/admin/skeletons/app", dest);
+        copyTree(home, skeletons + "app", dest);
     }
 }
 
@@ -40,7 +41,7 @@ function createPackage(path, options) {
     var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
 
-    copyTree(home, "apps/admin/skeletons/package", dest);
+    copyTree(home, "tools/admin/skeletons/package", dest);
 }
 
 function copyTree(home, from, to, symlink) {
