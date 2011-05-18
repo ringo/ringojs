@@ -354,6 +354,12 @@ function parseOptions(arguments, defaults) {
     return options;
 }
 
+/**
+ * Function invoked by `ringo/daemon`. Creates a new Server.
+ * @param path {string} optional path to the application. If undefined,
+ *     the path will be taken from `system.args`.
+ * @returns {Server} the Server instance.
+ */
 function init(path) {
     // protect against module reloading
     if (started) {
@@ -416,21 +422,38 @@ function init(path) {
     return server;
 }
 
+/**
+ * Function invoked by `ringo/daemon`. Starts the Server created by `init()`.
+ * @returns {Server} the Server instance.
+ */
 function start() {
     server.start();
     started = true;
     return server;
 }
 
+/**
+ * Function invoked by `ringo/daemon`. Stops the Server started by `start()`.
+ * @returns {Server} the Server instance.
+ */
 function stop() {
     server.stop();
     started = false;
     return server;
 }
 
+/**
+ * Function invoked by `ringo/daemon`. Frees any resources occupied by the
+ * Server instance.
+ * @returns {Server} the Server instance.
+ */
 function destroy() {
     server.destroy();
-    return server;
+    try {
+        return server;
+    } finally {
+        server = null;
+    }
 }
 
 /**
