@@ -23,7 +23,7 @@ function init() {
     // Remove our own script name from args
     system.args.shift();
     if (system.args.length) {
-        appId = system.args.shift();
+        appId = system.args[0];
         try {
             app = require(appId);
         } catch (error) {
