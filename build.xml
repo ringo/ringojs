@@ -124,7 +124,7 @@
        </javadoc>
        <delete dir="${jsdocs}"/>
        <java jar="run.jar" fork="true">
-           <arg value="${home}/apps/jsdoc/doc.js"/>
+           <arg value="${home}/tools/jsdoc/doc.js"/>
            <arg  value="--file-urls"/>
            <arg  value="--source=${home}/modules"/>
            <arg  value="--directory=${jsdocs}"/>
