@@ -6,9 +6,12 @@
 # init(), start(), stop(), and destroy() to support the daemon life cycle.
 #RINGO_APPLICATION=modules/ringo/daemon.js
 
+# Arguments to pass to the application script.
+#APPLICATION_OPTS="ringo/httpserver /usr/share/ringojs/tools/admin/skeletons/app/"
+
 # Set the module path environment variable. This is a list of directories
 # where RingoJS will look for modules.
-#RINGO_MODULE_PATH=apps/demo
+#RINGO_MODULE_PATH=
 
 # The home directory of the Java development kit (JDK). You need at least
 # JDK version 1.5. If JAVA_HOME is not set, some common directories for
@@ -24,7 +27,4 @@
 
 # Arguments to pass to RingoJS runtime
 #RINGO_OPTS=""
-
-# Arguments to pass to the application script
-#APPLICATION_OPTS=""
 
