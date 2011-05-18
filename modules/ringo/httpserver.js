@@ -7,7 +7,7 @@ var Parser = require('ringo/args').Parser;
 var system = require('system');
 var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
 
-export('Server', 'main');
+export('Server', 'main', 'init', 'start', 'stop', 'destroy');
 
 var options,
     server,
@@ -354,11 +354,7 @@ function parseOptions(arguments, defaults) {
     return options;
 }
 
-/**
- * Main webapp startup function.
- * @param {String} path optional path to the web application directory or config module.
- */
-function main(path) {
+function init(path) {
     // protect against module reloading
     if (started) {
         return server;
@@ -417,8 +413,33 @@ function main(path) {
     }
 
     server = new Server(options);
+    return server;
+}
+
+function start() {
     server.start();
     started = true;
+    return server;
+}
+
+function stop() {
+    server.stop();
+    started = false;
+    return server;
+}
+
+function destroy() {
+    server.destroy();
+    return server;
+}
+
+/**
+ * Main webapp startup function.
+ * @param {String} path optional path to the web application directory or config module.
+ */
+function main(path) {
+    init(path);
+    start();
     // return the server instance
     return server;
 }
