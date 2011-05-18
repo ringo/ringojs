@@ -15,11 +15,18 @@ var {ScriptRepository} = require('ringo/jsdoc');
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
 var markdown = require('ringo/markdown');
-var mustache = require("ringo/mustache");
+var mustache = require('ringo/mustache');
 
 var {repositoryList, moduleDoc, moduleList, structureModuleDoc, getRepositoryName}
         = require('./jsdocserializer');
 var defaultContext = {};
+var templates = {
+        module: getResource('./templates/module.html').content,
+        repository: getResource('./templates/repository.html').content,
+        menu: getResource('./templates/menu.html').content,
+        head: getResource('./templates/head.html').content,
+        page: getResource('./templates/page.html').content
+    };
 
 /**
  * @param {Object} repostitory
@@ -63,17 +70,20 @@ function copyStaticFiles(target) {
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
-    var res = getResource("./templates/repository.html");
-    var repositoryHtml = mustache.to_html(res.content,
-        objects.merge(defaultContext, {
-            repositoryName: repository.name,
-            modules: moduleList(repository.path, true),
-            rootPath: './',
-            markdown: function(text) {
-                return markdown.process(text);
-            }
-        })
-    );
+    var context = objects.merge(defaultContext, {
+        repositoryName: repository.name,
+        title: 'Module overview - ' + repository.name,
+        modules: moduleList(repository.path, true),
+        rootPath: './',
+        markdown: function(text) {
+            return markdown.process(text);
+        }
+    });
+
+    context.head = mustache.to_html(templates.head, context);
+    context.menu = mustache.to_html(templates.menu, context);
+    context.content = mustache.to_html(templates.repository, context);
+    var repositoryHtml = mustache.to_html(templates.page, context);
     write(join(target, 'index.html'), repositoryHtml);
 }
 
@@ -100,39 +110,39 @@ function writeModuleDoc(target, repository, moduleId){
     var slashCount = strings.count(moduleId, '/');
     var relativeRoot = '../' + strings.repeat('../', slashCount);
 
-    var res = getResource("./templates/module.html");
-    var moduleHtml = mustache.to_html(res.content,
-        objects.merge(defaultContext, {
-            rootPath: relativeRoot,
-            repositoryName: repository.name,
-            moduleId: moduleId,
-            modules: modules,
-            item: structureModuleDoc(docs),
-            paramList: function() {
-                return this.parameters.map(function(p) p.name).join(", ")
-            },
-            markdown: function(text) {
-                return markdown.process(text);
-            },
-            iterate: function(value) {
-                return value && value.length ? {each: value} : null;
-            },
-            debug: function(value) {
-                print(value.toSource());
-                return null;
-            },
-            commaList: function(value) {
-                return value && value.length ? value.join(", ") : "";
-            },
-            newlineList: function(value) {
-                return value && value.length ? value.join("<br />") : "";
-            }
-        })
-    );
-
+    var context = objects.merge(defaultContext, {
+        rootPath: relativeRoot,
+        repositoryName: repository.name,
+        title: moduleId + ' - ' + repository.name,
+        moduleId: moduleId,
+        modules: modules,
+        item: structureModuleDoc(docs),
+        paramList: function() {
+            return this.parameters.map(function(p) p.name).join(', ')
+        },
+        markdown: function(text) {
+            return markdown.process(text);
+        },
+        iterate: function(value) {
+            return value && value.length ? {each: value} : null;
+        },
+        debug: function(value) {
+            print(value.toSource());
+            return null;
+        },
+        commaList: function(value) {
+            return value && value.length ? value.join(', ') : '';
+        },
+        newlineList: function(value) {
+            return value && value.length ? value.join('<br />') : '';
+        }
+    });
+    context.head = mustache.to_html(templates.head, context);
+    context.menu = mustache.to_html(templates.menu, context);
+    context.content = mustache.to_html(templates.module, context);
+    var moduleHtml = mustache.to_html(templates.page, context);
     var moduleFile = join(moduleDirectory, 'index.html');
     write(moduleFile, moduleHtml);
-    return;
 }
 
 /**
@@ -165,10 +175,12 @@ function main(args) {
     var parser = new Parser();
     parser.addOption('s', 'source', 'repository', 'Path to repository');
     parser.addOption('d', 'directory', 'directory', 'Directory for output files (default: "out")');
+    parser.addOption('t', 'template', 'file', 'Master template to use');
     parser.addOption('n', 'name', 'name', 'Name of the Repository (default: auto generated from path)');
     parser.addOption('q', 'quiet', null, 'Do not output any messages.');
     parser.addOption(null, 'file-urls', null, 'Add "index.html" to all URLs for file:// serving.');
     parser.addOption('h', 'help', null, 'Print help message and exit');
+
     var opts = parser.parse(args);
     if (opts.help) {
         help();
@@ -177,6 +189,13 @@ function main(args) {
     if (!opts.source) {
         throw new Error('No source specified.');
     }
+    if (opts.template) {
+        var t = getResource(opts.template);
+        if (!t.exists()) {
+            throw new Error('Template "' + opts.template + '" not found.');
+        }
+        templates.page = t.content;
+    }
 
     var exportDirectory = join(opts.directory || './out/');
     var repository = {
@@ -184,7 +203,7 @@ function main(args) {
         name: opts.name || getRepositoryName(opts.source)
     };
     var quiet = opts.quiet || false;
-    defaultContext.indexhtml = opts['fileUrls'] ? "index.html" : "";
+    defaultContext.indexhtml = opts['fileUrls'] ? 'index.html' : '';
 
     // check if export dir exists & is empty
     var dest = new Path(exportDirectory);

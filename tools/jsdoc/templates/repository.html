@@ -1,21 +1,4 @@
-<!DOCTYPE html >
 
-<html lang="de" dir="ltr">
-<head>
-    <title>{{repositoryName}} - API Overview</title>
-    <link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
-    <link rel="icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="{{rootPath}}static/style.css" />
-    <link rel="stylesheet" href="{{rootPath}}static/jsdoc.css" />
-    <script type="text/javascript" src="{{rootPath}}static/jquery.js"></script>
-    <script type="text/javascript" src="{{rootPath}}static/jsdoc.js"></script>
-    <script>
-    $(document).ready(jsdocSetup);
-    </script>
-</head>
-
-<body>
-<div class="wrap">
     <div class="main">
         <div class="content">
             <h1>{{repositoryName}}</h1>
@@ -41,22 +24,6 @@
         </div>
     </div>
 
-    <div class="menu">
-
-        <div>
-            <a class="repositoryname" href="{{rootPath}}{{indexhtml}}">{{repositoryName}} </a>
-        </div>
-        <input id="jsdoc-leftnavsearch" type="search">
-        <ul class="jsdoc-leftnav leftnav">
-            {{#modules}}
-                <li><a href="{{rootPath}}{{id}}/{{indexhtml}}"> {{id}} </a></li>
-            {{/modules}}
-        </ul>
-
-    </div>
-</div>
-</body>
-</html>
 
 
 
