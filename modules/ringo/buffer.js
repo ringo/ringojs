@@ -34,7 +34,7 @@ function Buffer() {
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
             var str = String(arguments[i]);
-            content[content.length] = str;
+            content.push(str);
             length += str.length;
         }
         return this;
@@ -47,7 +47,7 @@ function Buffer() {
      */
     this.writeln = function() {
         this.write.apply(this, arguments);
-        content[content.length] = "\r\n";
+        content.push("\r\n");
         length += 2;
         return this;
     };
