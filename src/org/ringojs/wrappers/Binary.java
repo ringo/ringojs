@@ -255,17 +255,25 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public synchronized Object toByteArray(Object sourceCharset, Object targetCharset)
+    public Object toByteArray(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
         return makeCopy(Type.ByteArray, sourceCharset, targetCharset);
     }
+
     @JSFunction
-    public synchronized Object toByteString(Object sourceCharset, Object targetCharset)
+    public Object toByteString(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
+        // no need to make a copy of an unmodifiable ByteString
+        if (type == Type.ByteString &&
+                sourceCharset == Undefined.instance &&
+                targetCharset == Undefined.instance) {
+            return this;
+        }
         return makeCopy(Type.ByteString, sourceCharset, targetCharset);
     }
 
-    private Binary makeCopy(Type targetType, Object sourceCharset, Object targetCharset)
+    private synchronized Binary makeCopy(Type targetType, Object sourceCharset,
+                                         Object targetCharset)
             throws UnsupportedEncodingException {
         String source = toCharset(sourceCharset);
         String target = toCharset(targetCharset);
