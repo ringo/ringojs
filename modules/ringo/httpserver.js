@@ -358,7 +358,7 @@ function parseOptions(arguments, defaults) {
 /**
  * Function invoked by `ringo/daemon`. Creates a new Server with the application
  * at `path`. If the application exports a function called `init`, it will be
- * invoked with the server as argument.
+ * invoked with the new server as argument.
  *
  * @param path {string} optional path to the application. If undefined,
  *     the path will be taken from `system.args`.
@@ -433,24 +433,25 @@ function init(path) {
 /**
  * Function invoked by `ringo/daemon`. Starts the Server created by `init()`.
  * If the application exports a function called `start`, it will be
- * invoked with the server as argument.
+ * invoked with the server as argument immediately after it has started.
  *
  * @returns {Server} the Server instance.
  */
 function start() {
+    server.start();
+    started = true;
     var app = require(options.config);
     if (typeof app.start === "function") {
         app.start(server);
     }
-    server.start();
-    started = true;
     return server;
 }
 
 /**
  * Function invoked by `ringo/daemon`. Stops the Server started by `start()`.
  * @returns {Server} the Server instance. If the application exports a function
- * called `stop`, it will be invoked with the server as argument.
+ * called `stop`, it will be invoked with the server as argument immediately
+ * before it is stopped.
  *
  * @returns {Server} the Server instance.
  */
