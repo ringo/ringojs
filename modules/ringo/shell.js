@@ -93,7 +93,8 @@ var styles = {
     'boolean': term.YELLOW,
     'null': term.BOLD,
     'date': term.MAGENTA,
-    'java': term.MAGENTA
+    'java': term.MAGENTA,
+    'custom': term.RED
 }
 
 function convert(value, nesting, visited) {
@@ -143,6 +144,11 @@ function convert(value, nesting, visited) {
                     }
                     retval.count = count;
                 }
+            } else if (value.toString !== Object.prototype.toString) {
+                // if object provides its own toString we assume it wants to use it
+                retval.type = "custom";
+                retval.string = value.toString();
+                break;
             } else {
                 if (nesting > 1) {
                     retval.string = "{...}";
