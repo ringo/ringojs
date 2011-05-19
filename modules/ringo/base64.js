@@ -48,7 +48,7 @@ var {Binary, ByteString, ByteArray} = require('binary');
 exports.encode = function(str, encoding) {
     var c1, c2, c3;
     encoding = encoding || 'utf8';
-    var input = str instanceof Binary ? str : new ByteString(String(str), encoding);
+    var input = str instanceof Binary ? str : String(str).toByteString(encoding);
     var length = input.length;
     var output = new ByteArray(4 * (length + (3 - length % 3) % 3) / 3);
 
@@ -90,7 +90,7 @@ exports.encode = function(str, encoding) {
  */
 exports.decode = function (str, encoding) {
     var c1, c2, c3, c4;
-    var input = str instanceof Binary ? str : new ByteString(String(str), 'ascii');
+    var input = str instanceof Binary ? str : String(str).toByteString('ascii');
     var length = input.length;
     var output = new ByteArray(length * 3 / 4);
     var i = 0, j = 0;
