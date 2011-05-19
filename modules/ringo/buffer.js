@@ -3,6 +3,7 @@
  */
 
 var {ByteString} = require('binary');
+var base16 = require('./base16');
 
 export('Buffer');
 
@@ -85,16 +86,7 @@ function Buffer() {
             md.update(String(part).toByteString());
         });
         var b = ByteString.wrap(md.digest());
-        var buf = [];
-
-        for (var i = 0; i < b.length; i++) {
-            var j = b[i];
-            if (j < 16) {
-                buf[buf.length] = "0";
-            }
-            buf[buf.length] = j.toString(16);
-        }
-        return buf.join("");
+        return base16.encode(b);
     };
 
     if (arguments.length > 0) {

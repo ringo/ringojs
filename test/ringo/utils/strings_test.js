@@ -112,7 +112,7 @@ exports.testUnwrap = function () {
 };
 
 exports.testDigest = function () {
-    assert.strictEqual('acbd18db4cc2f85cedef654fccc4a4d8', strings.digest(FOO));
+    assert.strictEqual('ACBD18DB4CC2F85CEDEF654FCCC4A4D8', strings.digest(FOO));
 };
 
 exports.testRepeat = function () {
