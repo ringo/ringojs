@@ -293,6 +293,7 @@ function Server(options) {
     var JsgiServlet = org.ringojs.jsgi.JsgiServlet;
     jetty = new org.eclipse.jetty.server.Server();
     xmlconfig = new XmlConfiguration(jettyConfig.inputStream);
+
     // port config is done via properties
     var props = xmlconfig.getProperties();
     props.put('port', (options.port || 8080).toString());
@@ -355,7 +356,10 @@ function parseOptions(arguments, defaults) {
 }
 
 /**
- * Function invoked by `ringo/daemon`. Creates a new Server.
+ * Function invoked by `ringo/daemon`. Creates a new Server with the application
+ * at `path`. If the application exports a function called `init`, it will be
+ * invoked with the server as argument.
+ *
  * @param path {string} optional path to the application. If undefined,
  *     the path will be taken from `system.args`.
  * @returns {Server} the Server instance.
@@ -419,14 +423,25 @@ function init(path) {
     }
 
     server = new Server(options);
+    var app = require(options.config);
+    if (typeof app.init === "function") {
+        app.init(server);
+    }
     return server;
 }
 
 /**
  * Function invoked by `ringo/daemon`. Starts the Server created by `init()`.
+ * If the application exports a function called `start`, it will be
+ * invoked with the server as argument.
+ *
  * @returns {Server} the Server instance.
  */
 function start() {
+    var app = require(options.config);
+    if (typeof app.start === "function") {
+        app.start(server);
+    }
     server.start();
     started = true;
     return server;
@@ -434,9 +449,16 @@ function start() {
 
 /**
  * Function invoked by `ringo/daemon`. Stops the Server started by `start()`.
+ * @returns {Server} the Server instance. If the application exports a function
+ * called `stop`, it will be invoked with the server as argument.
+ *
  * @returns {Server} the Server instance.
  */
 function stop() {
+    var app = require(options.config);
+    if (typeof app.stop === "function") {
+        app.stop(server);
+    }
     server.stop();
     started = false;
     return server;
@@ -444,10 +466,16 @@ function stop() {
 
 /**
  * Function invoked by `ringo/daemon`. Frees any resources occupied by the
- * Server instance.
+ * Server instance.  If the application exports a function called `destroy`,
+ * it will be invoked with the server as argument.
+ *
  * @returns {Server} the Server instance.
  */
 function destroy() {
+    var app = require(options.config);
+    if (typeof app.destroy === "function") {
+        app.destroy(server);
+    }
     server.destroy();
     try {
         return server;
@@ -459,6 +487,7 @@ function destroy() {
 /**
  * Main webapp startup function.
  * @param {String} path optional path to the web application directory or config module.
+ * @returns {Server} the Server instance.
  */
 function main(path) {
     init(path);
