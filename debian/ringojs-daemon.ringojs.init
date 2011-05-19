@@ -55,13 +55,13 @@ fi
 RINGO_USER=ringojs
 
 # Run this application
-RINGO_APPLICATION=modules/ringo/daemon.js
+RINGO_APPLICATION=modules/ringo/httpserver.js
 
 # Arguments to pass to RingoJS runtime
 RINGO_OPTS=""
 
 # Arguments to pass to the application script
-APPLICATION_OPTS="ringo/httpserver /usr/share/ringojs/tools/admin/skeletons/app/"
+APPLICATION_OPTS="-p 8080 /usr/share/ringojs/tools/admin/skeletons/app/"
 
 # Set the RingoJS module search path
 RINGO_MODULE_PATH=""

@@ -2,7 +2,11 @@
  * @fileoverview The daemon control script invoked by the init script.
  *
  * This module interprets the first command line argument as module ID, load
- * the module and try to invoke the lifecycle functions on it.
+ * the module and try to invoke the life cycle functions on it.
+ *
+ * For HTTP servers it is generally more convenient to directly use
+ * `ringo/httpserver` which will create a new server instance and pass it to
+ * as argument to the application life cycle functions.
  */
 
 var system = require('system');
