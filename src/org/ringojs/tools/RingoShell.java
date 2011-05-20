@@ -117,7 +117,7 @@ public class RingoShell {
                 }
             } catch (Exception ex) {
                 // TODO: shouldn't this print to System.err?
-                printError(ex, System.out, config.isVerbose());
+                printError(ex, out, config.isVerbose());
             } finally {
                 Context.exit();
             }

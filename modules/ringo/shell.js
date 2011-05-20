@@ -179,62 +179,63 @@ function convert(value, nesting, visited) {
     return retval;
 }
 
-function printResult(value) {
+function printResult(value, writer) {
     if (typeof value !== "undefined") {
-        printValue(convert(value, 0, []), 0);
-        term.writeln();
+        writer = writer || term;
+        printValue(convert(value, 0, []), writer, 0);
+        writer.writeln();
     }
 }
 
-function printValue(value, nesting) {
+function printValue(value, writer, nesting) {
     if (value.string) {
         var style = styles[value.type] || "";
-        term.write(style + value.string + term.RESET);
+        writer.write(style + value.string + term.RESET);
     } else if (value && value.items) {
         var multiline = value.count > 60;
         var isArray = value.type === "array";
         var length = value.items.length;
         if (length === 0) {
-            term.write(isArray ? "[]" : "{}");
+            writer.write(isArray ? "[]" : "{}");
             return;
         }
         var opener = isArray ? "[" : "{";
         if (multiline && nesting > 0) {
-            term.write(opener + "\n  ");
+            writer.write(opener + "\n  ");
             for (j = 0; j < nesting; j++)
-                term.write("  ");
+                writer.write("  ");
         } else {
-            term.write(opener + " ");
+            writer.write(opener + " ");
         }
         if (isArray) {
             for (var i = 0; i < length; i++) {
-                printValue(value.items[i], nesting + 1);
+                printValue(value.items[i], writer, nesting + 1);
                 if (i < length - 1) {
                     if (multiline) {
-                        term.write(",\n  ");
+                        writer.write(",\n  ");
                         for (var j = 0; j < nesting; j++)
-                            term.write("  ");
+                            writer.write("  ");
                     } else {
-                        term.write(", ");
+                        writer.write(", ");
                     }
                 }
             }
-            term.write(term.RESET + " ]");
+            writer.write(term.RESET + " ]");
         } else {
             for (i = 0; i < length; i++) {
-                term.write(value.items[i].key);
-                printValue(value.items[i].value, nesting + 1);
+                writer.write(value.items[i].key);
+                printValue(value.items[i].value, writer, nesting + 1);
                 if (i < length - 1) {
                     if (multiline) {
-                        term.write(",\n  ");
+                        writer.write(",\n  ");
                         for (j = 0; j < nesting; j++)
-                            term.write("  ");
+                            writer.write("  ");
                     } else {
-                        term.write(", ");
+                        writer.write(", ");
                     }
                 }
             }
-            term.write(term.RESET + " }");
+            writer.write(term.RESET + " }");
         }
     }
 }
