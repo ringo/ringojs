@@ -242,7 +242,7 @@ public class RingoShell {
                         // System.err.println(word + " -- " + obj);
                         Object[] ids = obj.getIds();
                         collectIds(ids, obj, word, lastpart, list);
-                        if (list.isEmpty() && obj instanceof ScriptableObject) {
+                        if (list.size() <= 3 && obj instanceof ScriptableObject) {
                             ids = ((ScriptableObject) obj).getAllIds();
                             collectIds(ids, obj, word, lastpart, list);
                         }
