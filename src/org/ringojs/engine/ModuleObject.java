@@ -1,5 +1,7 @@
 package org.ringojs.engine;
 
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -36,6 +38,21 @@ public class ModuleObject extends ScriptableObject {
         }
         Resource res = repository.getResource(_path);
         return  (res == null) ? _path : res.getRelativePath();
+    }
+
+    @JSFunction
+    public Object singleton(Object id, Object factory) {
+        if (id == null || id == Undefined.instance) {
+            throw ScriptRuntime.constructError("Error",
+                    "singleton() requires a string id as first argument");
+        }
+        if (!(factory instanceof Function)) {
+            throw ScriptRuntime.constructError("Error",
+                    "singleton() requires a function as second argument");
+        }
+        String key = source.getPath() + ":" + ScriptRuntime.toString(id);
+        RhinoEngine engine = RhinoEngine.getEngine();
+        return engine.getSingleton(key, (Function) factory, this);
     }
 
     @JSGetter

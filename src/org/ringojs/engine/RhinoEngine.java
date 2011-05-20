@@ -24,8 +24,6 @@ import org.ringojs.tools.launcher.RingoClassLoader;
 import org.ringojs.wrappers.*;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
-import org.mozilla.javascript.serialize.ScriptableOutputStream;
-import org.mozilla.javascript.serialize.ScriptableInputStream;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -47,6 +45,7 @@ public class RhinoEngine implements ScopeProvider {
     private RingoGlobal globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
+    private final Map<String, Object> singletons;
     private AppClassLoader loader = new AppClassLoader();
     private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
@@ -78,11 +77,12 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        this.compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.contextFactory = new RingoContextFactory(this, config);
-        this.repositories = config.getRepositories();
+        compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        singletons = Collections.synchronizedMap(new HashMap<String, Object>());
+        contextFactory = new RingoContextFactory(this, config);
+        repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
@@ -745,6 +745,17 @@ public class RhinoEngine implements ScopeProvider {
 
     public RingoConfiguration getConfig() {
         return config;
+    }
+
+    protected synchronized Object getSingleton(String key, Function factory,
+                                               Scriptable thisObj) {
+        if (singletons.containsKey(key)) {
+            return singletons.get(key);
+        }
+        Context cx = Context.getCurrentContext();
+        Object value = factory.call(cx, globalScope, thisObj, ScriptRuntime.emptyArgs);
+        singletons.put(key, value);
+        return value;
     }
 
     /**
