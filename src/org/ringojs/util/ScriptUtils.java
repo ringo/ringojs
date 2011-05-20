@@ -22,6 +22,8 @@ import org.ringojs.wrappers.ScriptableList;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A collection of Rhino utility methods.
@@ -171,6 +173,51 @@ public class ScriptUtils {
             return defaultValue;
         }
         return (int) d;
+    }
+
+
+    /**
+     * Get a snapshot of the current JavaScript evaluation state by creating
+     * an Error object and invoke the function on it passing along any arguments.
+     * Used to invoke console.trace() and friends because implementing this
+     * in JavaScript would mess with the evaluation state.
+     * @param function the function to call
+     * @param args optional arguments to pass to the function.
+     */
+    public static void traceHelper(Function function, Object... args) {
+        Context cx = Context.getCurrentContext();
+        Scriptable scope = ScriptableObject.getTopLevelScope(function);
+        EcmaError error = ScriptRuntime.constructError("Trace", "");
+        Scriptable thisObj = cx.getWrapFactory().wrapAsJavaObject(
+                cx, scope, error, null);
+        function.call(cx, scope, thisObj, args);
+    }
+
+    /**
+     * Helper for console.assert(). Implemented in Java in order not to
+     * modify the JavaScript stack.
+     * @param condition the condition to test
+     * @param args one or more message parts
+     */
+    public static void assertHelper(Object condition, Object... args) {
+        if (ScriptRuntime.toBoolean(condition)) {
+            return;
+        }
+        // assertion failed
+        String msg = "";
+        if (args.length > 0) {
+            msg = ScriptRuntime.toString(args[0]);
+            Pattern pattern = Pattern.compile("%[sdifo]");
+            for (int i = 1; i < args.length; i++) {
+                Matcher matcher = pattern.matcher(msg);
+                if (matcher.find()) {
+                    msg = matcher.replaceFirst(ScriptRuntime.toString(args[i]));
+                } else {
+                    msg = msg + " " + ScriptRuntime.toString(args[i]);
+                }
+            }
+        }
+        throw ScriptRuntime.constructError("AssertionError", msg);
     }
 
 }
