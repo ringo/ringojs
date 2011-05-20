@@ -118,7 +118,7 @@ var TermWriter = exports.TermWriter = function(out) {
                 arg = arg.replace(cleaner, '');
             }
             out.write(arg);
-            if (!matcher.test(arg) && i < arguments.length - 1) {
+            if (arg && !matcher.test(arg) && i < arguments.length - 1) {
                 out.write(" ");
             }
         }
