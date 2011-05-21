@@ -14,7 +14,7 @@
 		</init-param>
 		<init-param>
 			<param-name>module-path</param-name>
-			<param-value>app</param-value>
+			<param-value>WEB-INF/app</param-value>
 		</init-param>
 		<init-param>
 			<param-name>config</param-name>
