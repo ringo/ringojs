@@ -3,7 +3,6 @@
 
 exports.testAssert         = require('./assert');
 exports.testAssertCommonJs = require('./assert_commonjs');
-exports.testBase16         = require('./ringo/base16_test');
 exports.testBase64         = require('./ringo/base64_test');
 exports.testArgs           = require('./ringo/args_test');
 exports.testBuffer         = require('./ringo/buffer_test');

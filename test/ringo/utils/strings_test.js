@@ -9,6 +9,14 @@ const FOO = 'foo';
 const NUM = '123';
 const FOO_BASE64 = 'Zm9v';
 const NUM_BASE64 = 'MTIz';
+const BASE16 = [
+    ["pleasure", "706C656173757265"],
+    ["leasure", "6C656173757265"],
+    ["easure", "656173757265"],
+    ["asure", "6173757265"],
+    ["sure", "73757265"],
+    ["\u2665", "E299A5"]
+];
 
 exports.testIsDateFormat = function () {
     assert.isTrue(strings.isDateFormat(DATE_FORMAT));
@@ -167,6 +175,16 @@ exports.testEnbase64 = function () {
 exports.testDebase64 = function () {
     assert.strictEqual(FOO, strings.debase64(FOO_BASE64));
     assert.strictEqual(FOO + NUM, strings.debase64(FOO_BASE64 + NUM_BASE64));
+};
+
+exports.testEnbaseDebase16 = function() {
+    for each (var test in BASE16) {
+        assert.strictEqual(strings.enbase16(test[0]), test[1]);
+        assert.strictEqual(strings.debase16(strings.enbase16(test[0])), test[0]);
+        assert.deepEqual(strings.debase16(
+                strings.enbase16(test[0]), 'raw').toArray(),
+                new ByteString(test[0], 'utf8').toArray());
+    }
 };
 
 exports.testStripTags = function () {

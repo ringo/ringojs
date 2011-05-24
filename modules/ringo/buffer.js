@@ -3,7 +3,7 @@
  */
 
 var {ByteString} = require('binary');
-var base16 = require('./base16');
+var strings = require('ringo/utils/strings');
 
 export('Buffer');
 
@@ -86,7 +86,7 @@ function Buffer() {
             md.update(String(part).toByteString());
         });
         var b = ByteString.wrap(md.digest());
-        return base16.encode(b);
+        return strings.enbase16(b);
     };
 
     if (arguments.length > 0) {
