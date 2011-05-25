@@ -167,22 +167,22 @@ exports.testCount = function () {
     assert.strictEqual(3, strings.count(FOO + FOO + NUM + FOO, FOO));
 };
 
-exports.testEnbase64 = function () {
-    assert.strictEqual(FOO_BASE64, strings.enbase64(FOO));
-    assert.strictEqual(FOO_BASE64 + NUM_BASE64, strings.enbase64(FOO + NUM));
+exports.testB64Encode = function () {
+    assert.strictEqual(FOO_BASE64, strings.b64encode(FOO));
+    assert.strictEqual(FOO_BASE64 + NUM_BASE64, strings.b64encode(FOO + NUM));
 };
 
-exports.testDebase64 = function () {
-    assert.strictEqual(FOO, strings.debase64(FOO_BASE64));
-    assert.strictEqual(FOO + NUM, strings.debase64(FOO_BASE64 + NUM_BASE64));
+exports.testB64Decode = function () {
+    assert.strictEqual(FOO, strings.b64decode(FOO_BASE64));
+    assert.strictEqual(FOO + NUM, strings.b64decode(FOO_BASE64 + NUM_BASE64));
 };
 
-exports.testEnbaseDebase16 = function() {
+exports.testB64EncodeDecode = function() {
     for each (var test in BASE16) {
-        assert.strictEqual(strings.enbase16(test[0]), test[1]);
-        assert.strictEqual(strings.debase16(strings.enbase16(test[0])), test[0]);
-        assert.deepEqual(strings.debase16(
-                strings.enbase16(test[0]), 'raw').toArray(),
+        assert.strictEqual(strings.b16encode(test[0]), test[1]);
+        assert.strictEqual(strings.b16decode(strings.b16encode(test[0])), test[0]);
+        assert.deepEqual(strings.b16decode(
+                strings.b16encode(test[0]), 'raw').toArray(),
                 new ByteString(test[0], 'utf8').toArray());
     }
 };

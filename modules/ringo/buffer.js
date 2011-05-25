@@ -86,7 +86,7 @@ function Buffer() {
             md.update(String(part).toByteString());
         });
         var b = ByteString.wrap(md.digest());
-        return strings.enbase16(b);
+        return strings.b16encode(b);
     };
 
     if (arguments.length > 0) {

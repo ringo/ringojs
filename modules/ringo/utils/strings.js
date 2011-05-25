@@ -25,6 +25,7 @@ var EMAILPATTERN = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF
 var URLPATTERN = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
 
 var {Binary, ByteArray, ByteString} = require('binary');
+var base64;
 
 /**
  * @fileoverview Adds useful methods to the JavaScript String type.
@@ -58,10 +59,10 @@ export('isDateFormat',
        'getCommonPrefix',
        'isEmail',
        'count',
-       'enbase16',
-       'debase16',
-       'enbase64',
-       'debase64',
+       'b16encode',
+       'b16decode',
+       'b64encode',
+       'b64decode',
        'stripTags',
        'escapeHtml',
        'Sorter',
@@ -328,7 +329,7 @@ function unwrap(string, removeTags, replacement) {
 function digest(string, algorithm) {
     var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
     var b = ByteString.wrap(md.digest(string.toByteString()));
-    return enbase16(b);
+    return b16encode(b);
 }
 
 /**
@@ -471,8 +472,9 @@ function count(string, pattern) {
  *     first argument is a string. Defaults to 'utf8'.
  * @returns the Base64 encoded string
  */
-function enbase64(string, encoding) {
-    return require('ringo/base64').encode(string, encoding);
+function b64encode(string, encoding) {
+    if (!base64) base64 = require('ringo/base64');
+    return base64.encode(string, encoding);
 }
 
 /**
@@ -482,8 +484,9 @@ function enbase64(string, encoding) {
  *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
  * @returns the decoded string or ByteArray
  */
-function debase64(string, encoding) {
-    return require('ringo/base64').decode(string, encoding);
+function b64decode(string, encoding) {
+    if (!base64) base64 = require('ringo/base64');
+    return base64.decode(string, encoding);
 }
 
 /**
@@ -493,7 +496,7 @@ function debase64(string, encoding) {
  *     first argument is a string. Defaults to 'utf8'.
  * @returns the Base16 encoded string
  */
-function enbase16(str, encoding) {
+function b16encode(str, encoding) {
     encoding = encoding || 'utf8';
     var input = str instanceof Binary ? str : String(str).toByteString(encoding);
     var length = input.length;
@@ -515,7 +518,7 @@ function enbase16(str, encoding) {
  *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
  * @returns the decoded string or ByteArray
  */
-function debase16(str, encoding) {
+function b16decode(str, encoding) {
     var input = str instanceof Binary ? str : String(str).toByteString('ascii');
     var length = input.length / 2;
     var output = new ByteArray(length);
