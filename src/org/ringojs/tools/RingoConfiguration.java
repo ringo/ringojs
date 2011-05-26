@@ -114,10 +114,12 @@ public class RingoConfiguration {
         // now that repositories are set up try to set default log4j configuration file
         if (System.getProperty("log4j.configuration") == null) {
             Resource log4jConfig = getResource("config/log4j.properties");
-            try {
-                System.setProperty("log4j.configuration", log4jConfig.getUrl().toString());
-            } catch (MalformedURLException x) {
-                System.setProperty("log4j.configuration", "file:" + log4jConfig.getPath());
+            if (log4jConfig != null && log4jConfig.exists()) {
+                try {
+                    System.setProperty("log4j.configuration", log4jConfig.getUrl().toString());
+                } catch (MalformedURLException x) {
+                    System.setProperty("log4j.configuration", "file:" + log4jConfig.getPath());
+                }
             }
         }
         getLogger().fine("Parsed repository list: " + repositories);
