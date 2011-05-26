@@ -50,7 +50,7 @@
             <Set name="host"><Property name="host"/></Set>
             <Set name="port"><Property name="port" default="8080"/></Set>
             <Set name="maxIdleTime">300000</Set>
-            <Set name="Acceptors">8</Set>
+            <Set name="Acceptors">4</Set>
             <Set name="statsOn">false</Set>
             <Set name="confidentialPort">8443</Set>
             <Set name="lowResourcesConnections">20000</Set>
