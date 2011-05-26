@@ -2,7 +2,8 @@
  * @fileoverview Script to create a new RingoJS web application.
  */
 
-var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base} = require('fs');
+var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base, absolute}
+        = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
 var Parser = require('ringo/args').Parser;
@@ -19,17 +20,21 @@ var description = "Create a new RingoJS web application or package";
 function createApplication(path, options) {
     var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
-    var skeletons = "tools/admin/skeletons/";
-    
-    if (options.appengine) {
+    var skeletons = join(home, "tools", "admin", "skeletons");
+    var appTemplate = options.googleAppengine ? "appengine"
+                    : options.javaWebapp ? "webapp" : null;
+    var appSource = absolute(options.appSource) || join(skeletons, "app")
+
+    if (appTemplate) {
         var symlink = Boolean(options.symlink);
-        copyTree(home, skeletons + "appengine", dest);
-        copyTree(home, skeletons + "app", join(dest, "WEB-INF", "app"));
-        copyTree(home, "modules", join(dest, "WEB-INF", "modules"), symlink);
+        copyTree(join(skeletons, appTemplate), dest);
+        // symlink app source if requested unless it's the skeleton app
+        copyTree(appSource, join(dest, "WEB-INF", "app"), symlink && options.appSource);
+        copyTree(join(home, "modules"), join(dest, "WEB-INF", "modules"), symlink);
         fixAppEngineDirs(dest);
         copyJars(home, dest, symlink);
     } else {
-        copyTree(home, skeletons + "app", dest);
+        copyTree(appSource, dest);
     }
 }
 
@@ -40,12 +45,12 @@ function createApplication(path, options) {
 function createPackage(path, options) {
     var dest = getTargetDir(path);
     var home = engine.properties["ringo.home"];
-
-    copyTree(home, "tools/admin/skeletons/package", dest);
+    var source = join(home, "tools/admin/skeletons/package");
+    copyTree(source, dest);
 }
 
-function copyTree(home, from, to, symlink) {
-    var source = new Path(home, from);
+function copyTree(from, to, symlink) {
+    var source = new Path(from);
     if (!source.exists() || !source.isDirectory()) {
         throw new Error("Can't find directory " + source);
     }
@@ -113,37 +118,53 @@ function getTargetDir(path) {
 function main(args) {
     var script = args.shift();
     var parser = new Parser();
-    parser.addOption("a", "appengine", null, "Create a new Google App Engine application");
+    parser.addOption("a", "app-source", "[DIR]", "Copy application from [DIR] instead of skeleton");
+    parser.addOption("g", "google-appengine", null, "Create a new Google App Engine application");
+    parser.addOption("p", "ringo-package", null, "Create a new Ringo package");
     parser.addOption("s", "symlink", null, "Create symbolic links for jar and module files");
-    parser.addOption("p", "package", null, "Create a new package");
+    parser.addOption("w", "java-webapp", null, "Create a new Java Web application (WAR)");
     parser.addOption("h", "help", null, "Print help message and exit");
     var opts = parser.parse(args);
     if (opts.help) {
-        print("Creates a new RingoJS application or package");
+        print("Creates a Ringo application or package.");
         print("Usage:");
-        print("  ringo " + script + " [path]");
+        print("  ringo-admin " + script + " [options] [path]");
         print("Options:");
         print(parser.help());
         return;
     }
 
+    // undefined > boolean > number conversion FTW
+    if (!!opts.googleAppengine + !!opts.ringoPackage + !!opts.javaWebapp > 1) {
+        throw new Error("Options are mutually exclusive.");
+    }
+
+    var type;
+    if (opts.googleAppengine) {
+        type = "Google App Engine app";
+    } else if (opts.ringoPackage) {
+        type =  "Ringo package";
+    } else if (opts.javaWebapp) {
+        type = "Java web application";
+    } else {
+        type = "Ringo web application";
+    }
+
     var path = args[0]
-            || shell.readln("Please enter the path for your application/package: ");
+            || shell.readln("Path for new " + type + ": ");
 
     if (!path) {
         print("No path, exiting.");
-    } else if (opts.package) {
-        createPackage(path, opts);
     } else {
-        createApplication(path, opts);
+        print("Creating " + type + " in " + path);
+        if (opts.package) {
+            createPackage(path, opts);
+        } else {
+            createApplication(path, opts);
+        }
     }
 }
 
-if (require.main == module.id) {
-    try {
-        main(system.args);
-    } catch (error) {
-        print(error);
-        print("Use -h or --help to get a list of available options.");
-    }
+if (require.main == module) {
+    main(system.args);
 }

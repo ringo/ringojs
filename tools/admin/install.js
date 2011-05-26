@@ -126,24 +126,24 @@ function getUrlStream(url) {
 function main(args) {
     var script = args.shift();
     var parser = new Parser();
+    parser.addOption("f", "force", null, "Force install, even if package already exists");
     parser.addOption("p", "packages", "DIR", "Packages directory to install into");
     parser.addOption("h", "help", null, "Print help message and exit");
-    parser.addOption("f", "force", null, "Force install, even if package already exists");
     var opts = parser.parse(args);
     if (opts.help) {
-        print("Creates a new RingoJS application");
+        print("Installs a Ringo package from a zip URL.");
         print("Usage:");
-        print("  ringo " + script + " [url]");
+        print("  ringo-admin " + script + " [url]");
         print("Options:");
         print(parser.help());
         return;
     }
 
     var url = args[0]
-            || shell.readln("Please enter the URL of the zip file to install: ");
+            || shell.readln("URL of the zip file to install: ");
 
     if (!url) {
-        print("No url, exiting.");
+        print("No URL, exiting.");
     } else {
         installPackage(url, opts);
     }

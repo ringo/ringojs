@@ -27,9 +27,5 @@ function printUsage() {
 }
 
 if (require.main == module.id) {
-    try {
-        main(system.args);
-    } catch (error) {
-        print(error);
-    }
+    main(system.args);
 }
