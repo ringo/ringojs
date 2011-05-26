@@ -179,7 +179,7 @@ function copyTree(from, to) {
     var target = resolveFile(to).getCanonicalFile();
     if (String(target) == String(source)) {
         throw new Error("Source and target files are equal in copyTree.");
-    } else if (String(target).indexOf(source) == 0) {
+    } else if (String(target).indexOf(String(source) + SEPARATOR) == 0) {
         throw new Error("Target is a child of source in copyTree");
     }
     if (source.isDirectory()) {
