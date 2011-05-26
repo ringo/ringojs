@@ -122,7 +122,7 @@ public class RingoRunner {
         systemModulePath.add("modules");
         systemModulePath.add("packages");
 
-        config = new RingoConfiguration(home, userModulePath, systemModulePath);
+        config = new RingoConfiguration(home, null, userModulePath, systemModulePath);
         boolean hasPolicy = System.getProperty("java.security.policy") != null;
         config.setPolicyEnabled(hasPolicy);
         config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());

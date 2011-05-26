@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 public class RingoConfiguration {
 
     private Repository home;
+    private Repository base;
     private List<Repository> repositories;
     private Resource mainResource;
     private String[] arguments;
@@ -65,15 +66,22 @@ public class RingoConfiguration {
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
+     * @param basePath the path to resolve application against, pass null for
+     *                 for current working directory
      * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, List<String> userModules,
+    public RingoConfiguration(Repository ringoHome, Repository basePath,
+                              List<String> userModules,
                               List<String> systemModules) throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
         home.setAbsolute(true);
+        if (basePath != null) {
+            base = basePath;
+            base.setAbsolute(true);
+        }
 
         String optLevel = System.getProperty("rhino.optlevel");
         if (optLevel != null) {
@@ -135,14 +143,15 @@ public class RingoConfiguration {
             throws IOException {
         File file = new File(path);
         if (!file.isAbsolute()) {
-            // If this is a system repo resolve in ringo home and ringo.jar
-            if (system) {
-                Repository repo = resolveSystemRepository(path);
-                if (repo != null) return repo;
-            }
+            // Try to resolve against root/base repository or classpath
+            Repository parent = system ? home : base;
+            Repository repo = resolveRepository(path, parent);
+            if (repo != null) return repo;
             // then try to resolve against current directory
             file = file.getAbsoluteFile();
         }
+        // make absolute
+        file = file.getAbsoluteFile();
         if (!file.exists()) {
             throw new FileNotFoundException("File '" + file + "' does not exist.");
         }
@@ -153,13 +162,16 @@ public class RingoConfiguration {
         }
     }
 
-    private Repository resolveSystemRepository(String path)
+    private Repository resolveRepository(String path, Repository parent)
             throws IOException {
-        // Try to resolve as installation repository child first
-        Repository repository = home.getChildRepository(path);
-        if (repository != null && repository.exists()) {
-            repository.setRoot();
-            return repository;
+        // Try to resolve against parent repository
+        Repository repository;
+        if (parent != null) {
+            repository = parent.getChildRepository(path);
+            if (repository != null && repository.exists()) {
+                repository.setRoot();
+                return repository;
+            }
         }
         // Try to resolve path as classpath resource
         URL url = RingoConfiguration.class.getResource("/" + path);

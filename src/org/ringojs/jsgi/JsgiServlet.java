@@ -29,6 +29,7 @@ import org.ringojs.engine.RhinoEngine;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Callable;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,7 +72,7 @@ public class JsgiServlet extends HttpServlet {
 
         if (engine == null) {
             String ringoHome = getStringParameter(config, "ringo-home", "/WEB-INF");
-            String modulePath = getStringParameter(config, "module-path", "app");
+            String modulePath = getStringParameter(config, "module-path", "WEB-INF/app");
             String bootScripts = getStringParameter(config, "bootscript", null);
             int optlevel = getIntParameter(config, "optlevel", 0);
             boolean debug = getBooleanParameter(config, "debug", false);
@@ -79,7 +80,10 @@ public class JsgiServlet extends HttpServlet {
             boolean verbose = getBooleanParameter(config, "verbose", false);
             boolean legacyMode = getBooleanParameter(config, "legacy-mode", false);
 
-            Repository home = new WebappRepository(config.getServletContext(), ringoHome);
+            ServletContext context = config.getServletContext();
+            Repository base = new WebappRepository(context, "/");
+            Repository home = new WebappRepository(context, ringoHome);
+
             try {
                 if (!home.exists()) {
                     home = new FileRepository(ringoHome);
@@ -93,7 +97,7 @@ public class JsgiServlet extends HttpServlet {
                 systemPaths.add("modules");
                 systemPaths.add("packages");
                 RingoConfiguration ringoConfig =
-                        new RingoConfiguration(home, paths, systemPaths);
+                        new RingoConfiguration(home, base, paths, systemPaths);
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);
