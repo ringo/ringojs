@@ -188,8 +188,11 @@ public class ScriptUtils {
         Context cx = Context.getCurrentContext();
         Scriptable scope = ScriptableObject.getTopLevelScope(function);
         EcmaError error = ScriptRuntime.constructError("Trace", "");
-        Scriptable thisObj = cx.getWrapFactory().wrapAsJavaObject(
-                cx, scope, error, null);
+        WrapFactory wrapFactory = cx.getWrapFactory();
+        Scriptable thisObj = wrapFactory.wrapAsJavaObject(cx, scope, error, null);
+        for (int i = 0; i < args.length; i++) {
+            args[i] = wrapFactory.wrap(cx, scope, args[i], null);
+        }
         function.call(cx, scope, thisObj, args);
     }
 
