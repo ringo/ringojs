@@ -501,6 +501,16 @@ public class Binary extends ScriptableObject implements Wrapper {
         return Context.getCurrentContext().newArray(scope, list.toArray());
     }
 
+    protected static Binary wrap(Type type, byte[] bytes, Scriptable scope,
+                                 Scriptable prototype) {
+        Binary wrapper = new Binary(type);
+        wrapper.bytes = bytes;
+        wrapper.length = bytes.length;
+        wrapper.setParentScope(scope);
+        wrapper.setPrototype(prototype);
+        return wrapper;
+    }
+
     /**
      * Static method that wraps a java byte array without copying.
      */
@@ -524,12 +534,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 throw ScriptRuntime.constructError("Error", "wrap() requires an argument of type byte[]");
             }
             byte[] bytes = (byte[]) arg;
-            Binary wrapper = new Binary(type);
-            wrapper.bytes = bytes;
-            wrapper.length = bytes.length;
-            wrapper.setParentScope(getTopLevelScope(scope));
-            wrapper.setPrototype(prototype);
-            return wrapper;
+            return wrap(type, bytes, getTopLevelScope(scope), prototype);
         }
     }
 
