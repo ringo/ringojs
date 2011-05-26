@@ -2,7 +2,7 @@
  * @fileoverview Script to create a new RingoJS web application.
  */
 
-var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base, absolute}
+var {join, Path, makeDirectory, move, copy, exists, symbolicLink, base}
         = require('fs');
 var engine = require('ringo/engine');
 var shell = require('ringo/shell');
@@ -23,7 +23,7 @@ function createApplication(path, options) {
     var skeletons = join(home, "tools", "admin", "skeletons");
     var appTemplate = options.googleAppengine ? "appengine"
                     : options.javaWebapp ? "webapp" : null;
-    var appSource = absolute(options.appSource) || join(skeletons, "app")
+    var appSource = options.appSource || join(skeletons, "app")
 
     if (appTemplate) {
         var symlink = Boolean(options.symlink);
