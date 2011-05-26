@@ -84,9 +84,7 @@ exports.static = function (resource, contentType) {
     if (!(resource instanceof org.ringojs.repository.Resource)) {
         throw Error("Wrong argument for static response: " + typeof(resource));
     }
-    if (!resource.exists()) {
-        return exports.notFound(String(resource));
-    }
+
     var input;
     return {
         status: 200,
