@@ -397,9 +397,9 @@ public class RhinoEngine implements ScopeProvider {
         ReloadableScript script;
         Resource source = findResource(moduleName + ".js", localPath);
         if (!source.exists()) {
-            source = findResource(moduleName, localPath);
+            source = loadPackage(moduleName, localPath);
             if (!source.exists()) {
-                source = loadPackage(moduleName, localPath);
+                source = findResource(moduleName, localPath);
             }
         }
         Context cx = Context.getCurrentContext();
