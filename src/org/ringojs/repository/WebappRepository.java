@@ -51,7 +51,12 @@ public class WebappRepository extends AbstractRepository {
                 exists = 1;
             } else {
                 try {
-                    exists = context.getResource(path) != null ? 1 : 0;
+                    URL url = context.getResource(path);
+                    if (url != null && url.getProtocol().equals("file")) {
+                        exists = new File(url.getPath()).isDirectory() ? 1 : 0;
+                    } else {
+                        exists = url != null ? 1 : 0;
+                    }
                 } catch (MalformedURLException mux) {
                     exists = 0;
                 }

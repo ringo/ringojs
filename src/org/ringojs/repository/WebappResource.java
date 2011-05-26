@@ -32,7 +32,12 @@ public class WebappResource extends AbstractResource {
     public boolean exists() {
         if (exists < 0) {
             try {
-                exists = context.getResource(path) != null ? 1 : 0;
+                URL url = context.getResource(path);
+                if (url != null && url.getProtocol().equals("file")) {
+                    exists = new File(url.getPath()).isFile() ? 1 : 0;
+                } else {
+                    exists = url != null ? 1 : 0;
+                }
             } catch (MalformedURLException mux) {
                 exists = 0;
             }
