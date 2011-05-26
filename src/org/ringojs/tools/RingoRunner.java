@@ -19,6 +19,7 @@ package org.ringojs.tools;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.RhinoEngine;
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.engine.SyntaxError;
 import org.ringojs.repository.FileRepository;
@@ -122,7 +123,7 @@ public class RingoRunner {
         systemModulePath.add("modules");
         systemModulePath.add("packages");
 
-        config = new RingoConfiguration(home, null, userModulePath, systemModulePath);
+        config = new RingoConfiguration(home, userModulePath, systemModulePath);
         boolean hasPolicy = System.getProperty("java.security.policy") != null;
         config.setPolicyEnabled(hasPolicy);
         config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());

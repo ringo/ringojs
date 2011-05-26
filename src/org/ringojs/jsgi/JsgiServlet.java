@@ -20,7 +20,7 @@ import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 import org.ringojs.engine.SyntaxError;
-import org.ringojs.tools.RingoConfiguration;
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.FileRepository;

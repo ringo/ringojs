@@ -18,7 +18,6 @@ package org.ringojs.engine;
 
 import org.mozilla.javascript.json.JsonParser;
 import org.ringojs.repository.*;
-import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
 import org.ringojs.wrappers.*;

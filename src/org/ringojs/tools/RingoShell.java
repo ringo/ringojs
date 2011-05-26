@@ -21,6 +21,7 @@ import jline.ConsoleReader;
 import jline.History;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.RhinoEngine;
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;

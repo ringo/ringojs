@@ -14,11 +14,10 @@
  *  limitations under the License.
  */
 
-package org.ringojs.tools;
+package org.ringojs.engine;
 
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrapFactory;
-import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;

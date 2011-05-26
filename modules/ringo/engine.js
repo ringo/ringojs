@@ -57,7 +57,7 @@ function addHostObject(javaClass) {
 function createSandbox(modulePath, globals, options) {
     options = options || {};
     var systemModules = options.systemModules || null;
-    var config = new org.ringojs.tools.RingoConfiguration(
+    var config = new engine.RingoConfiguration(
             getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {
         var shutter = options.shutter;
