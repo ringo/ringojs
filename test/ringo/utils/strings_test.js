@@ -7,6 +7,8 @@ const URL = 'http://ringojs.org/';
 const HEX_COLOR = 'd3d3d3';
 const FOO = 'foo';
 const NUM = '123';
+const STR = "[]{}()-*+?.\\^$|#, ABC";
+const ESC = "\\[\\]\\{\\}\\(\\)\\-\\*\\+\\?\\.\\\\\\^\\$\\|\\#\\,\\ ABC";
 const FOO_BASE64 = 'Zm9v';
 const NUM_BASE64 = 'MTIz';
 const BASE16 = [
@@ -194,6 +196,11 @@ exports.testStripTags = function () {
 exports.testEscapeHtml = function () {
     assert.strictEqual('&lt;p&gt;Some text.&lt;/p&gt;',
             strings.escapeHtml('<p>Some text.</p>'));
+};
+
+exports.testEscapeRegExp = function() {
+    assert.equal(ESC, strings.escapeRegExp(STR));
+    assert.isTrue(new RegExp(strings.escapeRegExp(STR)).test(STR));
 };
 
 exports.testSorter = function () {
