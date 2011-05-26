@@ -66,6 +66,19 @@ public class RingoConfiguration {
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
+     * @param userModules the module search path as list of paths
+     * @param systemModules system module path to append to module path, or null
+     * @throws FileNotFoundException if a moudule path item does not exist
+     */
+    public RingoConfiguration(Repository ringoHome, List<String> userModules,
+                              List<String> systemModules) throws IOException {
+        this(ringoHome, null, userModules, systemModules);
+    }
+
+    /**
+     * Create a new Ringo configuration and sets up its module search path.
+     *
+     * @param ringoHome the ringo installation directory
      * @param basePath the path to resolve application against, pass null for
      *                 for current working directory
      * @param userModules the module search path as list of paths
