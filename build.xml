@@ -54,7 +54,8 @@
     <!-- Fetches dependencies via Apache Ivy                                 -->
     <!-- =================================================================== -->
     <target name="update">
-        <ivy:retrieve type="jar" pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
+        <ivy:retrieve type="jar" sync="true"
+            pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
     </target>
 
     <!-- =================================================================== -->
