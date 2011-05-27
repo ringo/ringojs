@@ -105,10 +105,6 @@ var impl = {
         if (isArray(listeners) && !listeners.length) {
             listeners = null; // normalize empty listener array
         }
-        if (type === "error" && !listeners) {
-            throw arguments[1] instanceof Error ?
-                    arguments[1] : "Unhandled 'error' event";
-        }
         if (typeof listeners === "function") {
             args = Array.slice(arguments, 1);
             listeners.apply(this, args);
