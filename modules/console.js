@@ -93,7 +93,7 @@ exports.assert = assertHelper;
  */
 exports.time = function(name) {
     if (name && !timers[name]) {
-        timers[name] = Date.now();
+        timers[name] = java.lang.System.nanoTime();
     }
 };
 
@@ -104,7 +104,7 @@ exports.time = function(name) {
 exports.timeEnd = function(name) {
     var start = timers[name];
     if (start) {
-        var time = Date.now() - start;
+        var time = Math.round((java.lang.System.nanoTime() - start) / 1000000);
         writer.writeln(name + ": " + time + "ms");
         delete timers[name];
         return time;
