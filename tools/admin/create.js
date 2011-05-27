@@ -157,7 +157,7 @@ function main(args) {
         print("No path, exiting.");
     } else {
         print("Creating " + type + " in " + path);
-        if (opts.package) {
+        if (opts.ringoPackage) {
             createPackage(path, opts);
         } else {
             createApplication(path, opts);
