@@ -17,11 +17,11 @@
 			<param-value>WEB-INF/app</param-value>
 		</init-param>
 		<init-param>
-			<param-name>config</param-name>
-			<param-value>config</param-value>
+			<param-name>app-module</param-name>
+			<param-value>main</param-value>
 		</init-param>
 		<init-param>
-			<param-name>app</param-name>
+			<param-name>app-name</param-name>
 			<param-value>app</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>

@@ -28,14 +28,14 @@ var options,
  * </ul>
  *
  * For convenience, the constructor supports the definition of a JSGI application
- * and static resource mapping in the config object using the following properties:
+ * and static resource mapping in the options object using the following properties:
  * <ul>
  * <li>virtualHost (undefined)</li>
  * <li>mountpoint ('/')</li>
  * <li>staticDir ('static')</li>
  * <li>staticMountpoint ('/static')</li>
- * <li>config ('config')</li>
- * <li>app ('app')</li>
+ * <li>appModule ('main')</li>
+ * <li>appName ('app')</li>
  * </ul>
  */
 function Server(options) {
@@ -94,11 +94,12 @@ function Server(options) {
         return {
             /**
              * Map this context to a JSGI application.
-             * @param {function|object} app a JSGI application, either as a function or an object
-             *   with properties <code>config</code> and <code>app</code> defining
-             *   the application.
-             *   <div><code>{ config: 'config', app: 'app' }</code></div>
-             * @param {RhinoEngine} engine optional RhinoEngine instance for multi-engine setups
+             * @param {function|object} app a JSGI application, either as a function
+             *   or an object with properties <code>appModule</code> and
+             *   <code>appName</code> defining the application.
+             *   <div><code>{ appModule: 'main', appName: 'app' }</code></div>
+             * @param {RhinoEngine} engine optional RhinoEngine instance for
+             *   multi-engine setups
              * @since: 0.6
              * @name Context.instance.serveApplication
              */
@@ -112,8 +113,8 @@ function Server(options) {
                 var jpkg = org.eclipse.jetty.servlet;
                 var servletHolder = new jpkg.ServletHolder(servlet);
                 if (!isFunction) {
-                    servletHolder.setInitParameter('config', app.config || 'config');
-                    servletHolder.setInitParameter('app', app.app || 'app');
+                    servletHolder.setInitParameter('app-module', app.appModule || 'main');
+                    servletHolder.setInitParameter('app-name', app.appName || 'app');
                 }
                 cx.addServlet(servletHolder, "/*");
             },
@@ -134,8 +135,10 @@ function Server(options) {
             /**
              * Map a request path within this context to the given servlet.
              * @param {string} servletPath the servlet path
-             * @param {Servlet} servlet a java object implementing the javax.servlet.Servlet interface.
-             * @param {Object} initParams optional object containing servlet init parameters
+             * @param {Servlet} servlet a java object implementing the
+             *     javax.servlet.Servlet interface.
+             * @param {Object} initParams optional object containing servlet
+             *     init parameters
              * @since: 0.6
              * @name Context.instance.addServlet
              */
@@ -309,7 +312,7 @@ function Server(options) {
     // If options defines an application mount it
     if (typeof options.app === "function") {
         defaultContext.serveApplication(options.app);
-    } else if (options.app && options.config) {
+    } else if (options.appModule && options.appName) {
         defaultContext.serveApplication(options);
     }
 
@@ -317,7 +320,7 @@ function Server(options) {
     if (options.staticDir) {
         var files = require('ringo/utils/files');
         var staticContext = this.getContext(options.staticMountpoint || '/static', options.virtualHost);
-        staticContext.serveStatic(files.resolveId(options.config, options.staticDir));
+        staticContext.serveStatic(files.resolveId(options.appModule, options.staticDir));
     }
 
     // Start listeners. This allows us to run on privileged port 80 under jsvc
@@ -334,8 +337,7 @@ function Server(options) {
 function parseOptions(arguments, defaults) {
     // parse command line options
     parser = new Parser();
-    parser.addOption("a", "app", "APP", "The exported property name of the JSGI app (default: 'app')");
-    parser.addOption("c", "config", "MODULE", "The module containing the JSGI app (default: 'config')");
+    parser.addOption("a", "app-name", "APP", "The exported property name of the JSGI app (default: 'app')");
     parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
     parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
     parser.addOption("m", "mountpoint", "PATH", "The URI path where to mount the application (default: /)");
@@ -373,8 +375,7 @@ function init(path) {
     var cmd = system.args.shift();
     try {
         options = parseOptions(system.args, {
-            app: "app",
-            config: "config"
+            appName: "app"
         });
     } catch (error) {
         print(error);
@@ -397,22 +398,22 @@ function init(path) {
         try {
             // check if argument can be resolved as module id
             require(path);
-            options.config = path;
+            options.appModule = path;
         } catch (error) {
             path = fs.absolute(path);
             if (fs.isDirectory(path)) {
-                // if argument is a directory assume app in config.js
-                options.config = fs.join(path, "config");
+                // if argument is a directory assume app in main.js
+                options.appModule = fs.join(path, "main");
                 appDir = path;
             } else {
                 // if argument is a file use it as config module
-                options.config = path;
+                options.appModule = path;
                 appDir = fs.directory(path);
             }
         }
     } else {
         appDir = fs.workingDirectory();
-        options.config = fs.join(appDir, "config");
+        options.appModule = fs.join(appDir, "main");
     }
 
     // logging module is already loaded and configured, check if webapp provides
@@ -423,7 +424,7 @@ function init(path) {
     }
 
     server = new Server(options);
-    var app = require(options.config);
+    var app = require(options.appModule);
     if (typeof app.init === "function") {
         app.init(server);
     }
@@ -440,7 +441,7 @@ function init(path) {
 function start() {
     server.start();
     started = true;
-    var app = require(options.config);
+    var app = require(options.appModule);
     if (typeof app.start === "function") {
         app.start(server);
     }
@@ -457,7 +458,7 @@ function start() {
  * @returns {Server} the Server instance.
  */
 function stop() {
-    var app = require(options.config);
+    var app = require(options.appModule);
     if (typeof app.stop === "function") {
         app.stop(server);
     }
@@ -474,7 +475,7 @@ function stop() {
  * @returns {Server} the Server instance.
  */
 function destroy() {
-    var app = require(options.config);
+    var app = require(options.appModule);
     if (typeof app.destroy === "function") {
         app.destroy(server);
     }

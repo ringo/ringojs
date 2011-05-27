@@ -66,8 +66,8 @@ public class JsgiServlet extends HttpServlet {
 
         // don't overwrite function if it was set in constructor
         if (function == null) {
-            module = getStringParameter(config, "config", "config");
-            function = getStringParameter(config, "app", "app");
+            module = getStringParameter(config, "app-module", "main");
+            function = getStringParameter(config, "app-name", "app");
         }
 
         if (engine == null) {
