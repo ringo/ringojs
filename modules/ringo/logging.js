@@ -16,8 +16,9 @@
  */
 
 var strings = require('ringo/utils/strings');
-var debug = require('ringo/utils/debug');
 var {EventEmitter} = require('ringo/events');
+
+export('getLogger', 'setConfig', 'getScriptStack', 'getJavaStack');
 
 var configured = false;
 // interval id for configuration watcher
@@ -115,7 +116,7 @@ function Logger(name, impl) {
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
  * repeatedly checks the resource for updates.
  */
-var setConfig = exports.setConfig = function(resource, watchForUpdates) {
+function setConfig(resource, watchForUpdates) {
     var {path, url} = resource;
     var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
     var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
@@ -150,11 +151,11 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
  * @param {string} name the name of the logger
  * @returns {Logger} a logger instance for the given name
  */
-var getLogger = exports.getLogger = function(name) {
+function getLogger(name) {
     name = name.replace(/\//g, '.');
     var impl = new LoggerImpl(name);
     return new Logger(name, impl);
-};
+}
 
 function formatMessage(args) {
     var message = strings.format.apply(null, args);
@@ -168,6 +169,38 @@ function formatMessage(args) {
         }
     }
     return message;
+}
+
+/**
+ * Get a rendered JavaScript stack trace from a caught error.
+ * @param {Error} error an error object
+ * @param {String} prefix to prepend to result if available
+ * @return {String} the rendered JavaScript stack trace
+ */
+function getScriptStack(error, prefix) {
+    prefix = prefix || "";
+    if (error && error.stack)
+        return prefix + error.stack;
+    return "";
+}
+
+/**
+ * Get a rendered JavaScript stack trace from a caught error.
+ * @param {Error} error an error object
+ * @param {String} prefix to prepend to result if available
+ * @return {String} the rendered JavaScript stack trace
+ */
+function getJavaStack(error, prefix) {
+    prefix = prefix || "";
+    var exception = error && error.rhinoException ?
+        error.rhinoException : error;
+    if (exception instanceof java.lang.Throwable) {
+        var writer = new java.io.StringWriter();
+        var printer = new java.io.PrintWriter(writer);
+        exception.printStackTrace(printer);
+        return prefix + writer.toString();
+    }
+    return "";
 }
 
 /**
