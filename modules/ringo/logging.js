@@ -163,8 +163,8 @@ function formatMessage(args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                debug.getScriptStack(arg, "\nScript stack:\n"),
-                verbose ? debug.getJavaStack(arg, "Java stack:\n") : null
+                getScriptStack(arg, "\nScript stack:\n"),
+                verbose ? getJavaStack(arg, "Java stack:\n") : null
             ].join('');
         }
     }
