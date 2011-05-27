@@ -43,7 +43,7 @@ function Logger(name, impl) {
         if (impl.isTraceEnabled()) {
             var msg = formatMessage(arguments);
             impl.trace(msg);
-            exports.emit.apply(exports, ["trace", name, msg]);
+            exports.emit("trace", name, msg);
         }
     };
 
@@ -51,7 +51,7 @@ function Logger(name, impl) {
         if (impl.isDebugEnabled()) {
             var msg = formatMessage(arguments);
             impl.debug(msg);
-            exports.emit.apply(exports, ["debug", name, msg]);
+            exports.emit("debug", name, msg);
         }
     };
 
@@ -59,7 +59,7 @@ function Logger(name, impl) {
         if (impl.isInfoEnabled()) {
             var msg = formatMessage(arguments);
             impl.info(msg);
-            exports.emit.apply(exports, ["info", name, msg]);
+            exports.emit("info", name, msg);
         }
     };
 
@@ -67,7 +67,7 @@ function Logger(name, impl) {
         if (impl.isWarnEnabled()) {
             var msg = formatMessage(arguments);
             impl.warn(msg);
-            exports.emit.apply(exports, ["warn", name, msg]);
+            exports.emit("warn", name, msg);
         }
     };
 
@@ -75,7 +75,7 @@ function Logger(name, impl) {
         if (impl.isErrorEnabled()) {
             var msg = formatMessage(arguments);
             impl.error(msg);
-            exports.emit.apply(exports, ["error", name, msg]);
+            exports.emit("error", name, msg);
         }
     };
 
