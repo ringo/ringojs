@@ -46,13 +46,16 @@ public class ModuleObject extends ScriptableObject {
             throw ScriptRuntime.constructError("Error",
                     "singleton() requires a string id as first argument");
         }
-        if (!(factory instanceof Function)) {
+        Function factoryFunction = null;
+        if (factory instanceof Function) {
+            factoryFunction = (Function)factory;
+        } else if (factory != Undefined.instance && factory != null) {
             throw ScriptRuntime.constructError("Error",
-                    "singleton() requires a function as second argument");
+                    "Expected function as second argument");
         }
         String key = source.getPath() + ":" + ScriptRuntime.toString(id);
         RhinoEngine engine = RhinoEngine.getEngine();
-        return engine.getSingleton(key, (Function) factory, this);
+        return engine.getSingleton(key, factoryFunction, this);
     }
 
     @JSGetter

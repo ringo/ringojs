@@ -750,6 +750,8 @@ public class RhinoEngine implements ScopeProvider {
                                                Scriptable thisObj) {
         if (singletons.containsKey(key)) {
             return singletons.get(key);
+        } else if (factory == null) {
+            return Undefined.instance;
         }
         Context cx = Context.getCurrentContext();
         Object value = factory.call(cx, globalScope, thisObj, ScriptRuntime.emptyArgs);
