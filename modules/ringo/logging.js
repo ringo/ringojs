@@ -10,17 +10,23 @@
  * it as format string and use any following arguments to replace the curly
  * bracket pairs. If an argument is an Error or Java Exception object, the
  * logger will render a stack trace for it and append it to the log message.</p>
+ *
+ * <p>This module's exports object implements the [EventEmitter](../events/)
+ * interface and emits logged messages using the log level name as event type.</p>
  */
 
 var strings = require('ringo/utils/strings');
 var debug = require('ringo/utils/debug');
+var {EventEmitter} = require('ringo/events');
 
 var configured = false;
 // interval id for configuration watcher
-var configurationWatcher;
+var configWatcher;
+
 var verbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
 
-var interceptors = new java.lang.ThreadLocal();
+// Make exports object emit log events
+EventEmitter.call(exports);
 
 /**
  * Logger class. This constructor is not exported, use this module's
@@ -37,7 +43,7 @@ function Logger(name, impl) {
         if (impl.isTraceEnabled()) {
             var msg = formatMessage(arguments);
             impl.trace(msg);
-            intercept("TRACE", name, msg);
+            exports.emit.apply(exports, ["trace", name, msg]);
         }
     };
 
@@ -45,7 +51,7 @@ function Logger(name, impl) {
         if (impl.isDebugEnabled()) {
             var msg = formatMessage(arguments);
             impl.debug(msg);
-            intercept("DEBUG", name, msg);
+            exports.emit.apply(exports, ["debug", name, msg]);
         }
     };
 
@@ -53,7 +59,7 @@ function Logger(name, impl) {
         if (impl.isInfoEnabled()) {
             var msg = formatMessage(arguments);
             impl.info(msg);
-            intercept("INFO", name, msg);
+            exports.emit.apply(exports, ["info", name, msg]);
         }
     };
 
@@ -61,7 +67,7 @@ function Logger(name, impl) {
         if (impl.isWarnEnabled()) {
             var msg = formatMessage(arguments);
             impl.warn(msg);
-            intercept("WARN", name, msg);
+            exports.emit.apply(exports, ["warn", name, msg]);
         }
     };
 
@@ -69,7 +75,7 @@ function Logger(name, impl) {
         if (impl.isErrorEnabled()) {
             var msg = formatMessage(arguments);
             impl.error(msg);
-            intercept("ERROR", name, msg);
+            exports.emit.apply(exports, ["error", name, msg]);
         }
     };
 
@@ -122,10 +128,10 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
                 // set up a scheduler to watch the configuration file for changes
                 var {setInterval, clearInterval} = require("./scheduler");
                 var lastModified = resource.lastModified();
-                if (configurationWatcher) {
-                    clearInterval(configurationWatcher);
+                if (configWatcher) {
+                    clearInterval(configWatcher);
                 }
-                configurationWatcher = setInterval(function() {
+                configWatcher = setInterval(function() {
                     if (resource.exists() && resource.lastModified() != lastModified) {
                         lastModified = resource.lastModified();
                         configurator.configure(url);
@@ -149,30 +155,6 @@ var getLogger = exports.getLogger = function(name) {
     var impl = new LoggerImpl(name);
     return new Logger(name, impl);
 };
-
-/**
- * Use array as log message interceptor for the current thread.
- * @param array an array
- */
-exports.setInterceptor = function(array) {
-    interceptors.set(array);
-};
-
-/**
- * Return the log message interceptor for the current thread,
- * or null if none is set.
- * @return the interceptor array
- */
-exports.getInterceptor = function() {
-    return interceptors.get();
-};
-
-function intercept(level, name, message) {
-    var interceptor = interceptors.get();
-    if (interceptor) {
-        interceptor.push([Date.now(), level, name, message]);
-    }
-}
 
 function formatMessage(args) {
     var message = strings.format.apply(null, args);
