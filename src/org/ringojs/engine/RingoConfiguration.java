@@ -137,12 +137,14 @@ public class RingoConfiguration {
         getLogger().fine("Parsed repository list: " + repositories);
     }
 
-    public void addModuleRepository(Repository repository) throws IOException {
-        if (repository != null && repository.exists()) {
+    /**
+     * Add a repository to the module search path.
+     * @param repository the repository to add.
+     */
+    public void addModuleRepository(Repository repository) {
+        if (repository != null) {
             repository.setRoot();
             repositories.add(repository);
-        } else {
-            throw new FileNotFoundException(repository.getPath());
         }
     }
 
@@ -151,7 +153,7 @@ public class RingoConfiguration {
      * @param path the path
      * @param system whether repository should be resolved as system repository
      * @return a repository
-     * @throws FileNotFoundException if the path couldn't be resolved
+     * @throws IOException if an I/O error happened while resolving
      */
     public Repository resolveRepository(String path, boolean system)
             throws IOException {
@@ -164,11 +166,10 @@ public class RingoConfiguration {
             // then try to resolve against current directory
             file = file.getAbsoluteFile();
         }
+
         // make absolute
         file = file.getAbsoluteFile();
-        if (!file.exists()) {
-            throw new FileNotFoundException("File '" + file + "' does not exist.");
-        }
+
         if (file.isFile() && StringUtils.isZipOrJarFile(path)) {
             return new ZipRepository(file);
         } else {
