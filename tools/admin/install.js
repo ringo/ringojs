@@ -21,8 +21,8 @@ var description = "Download and install a RingoJS package from a zip URL";
  * @param {Object} options
  */
 function installPackage(url, options) {
-    var packages = (options && options.packages)
-            ||fs.join(system.prefix, "packages");
+    var directory = (options && options.directory)
+            || fs.join(system.prefix, "packages");
     // expand foo/bar to a github zipball url for user foo, project bar
     if (url.match(/^\w+\/[\w\-_\.]+$/)) {
         url = "http://github.com/" + url + "/zipball/master";
@@ -48,14 +48,14 @@ function installPackage(url, options) {
         var package = JSON.parse(zip.open(json).read().decodeToString("UTF-8"));
         var name = package.name
                 || fail("package.json does not contain a package name");
-        var dir = fs.join(packages, name);
+        var dir = fs.join(directory, name);
         if (fs.exists(dir)) {
             if (!options.force)
                 throw new Error("Package already installed: " + dir);
             print("Removing currently installed version of package " + name);
             fs.removeTree(dir);
         }
-        print("Installing package " + name);
+        print("Installing package '" + name + "' in " + dir);
         for each (var entry in zip.entries) {
             var path = fs.join(dir, entry.substring(prefix.length));
             if (zip.isDirectory(entry)) {
@@ -127,7 +127,7 @@ function main(args) {
     var script = args.shift();
     var parser = new Parser();
     parser.addOption("f", "force", null, "Force install, even if package already exists");
-    parser.addOption("p", "packages", "DIR", "Packages directory to install into");
+    parser.addOption("d", "directory", "DIR", "Packages directory to install into");
     parser.addOption("h", "help", null, "Print help message and exit");
     var opts = parser.parse(args);
     if (opts.help) {
