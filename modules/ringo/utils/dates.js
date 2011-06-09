@@ -501,13 +501,15 @@ function resetDate(date) {
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
  * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
  * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
+ * @param {Boolean} withMilliSeconds if true, the string will contain also the milliseconds of the date. Default false.
  * @returns String date as ISO 8601 string.
  */
-function toISOString(date, withTime, withTimeZone, withSeconds) {
-    var withTime = withTime || true,
-    withTimeZone = withTimeZone || true,
-    withSeconds = withSeconds || true,
-    year, month, day, hours, minutes, seconds;
+function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
+    var withTime = withTime !== false,
+    withTimeZone = withTimeZone !== false,
+    withSeconds = withSeconds !== false,
+    withMilliseconds = withMilliseconds === true,
+    year, month, day, hours, minutes, seconds, milliseconds, str;
     
     // use local time if output is not in UTC
     if (withTimeZone) {
@@ -517,6 +519,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
         hours = date.getHours();
         minutes = date.getMinutes();
         seconds = date.getSeconds();
+        milliseconds = date.getMilliseconds();
     } else { // use UTC
         year  = date.getUTCFullYear();
         month = date.getUTCMonth();
@@ -524,6 +527,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
         hours = date.getUTCHours();
         minutes = date.getUTCMinutes();
         seconds = date.getUTCSeconds();
+        milliseconds = date.getUTCMilliseconds();
     }
     
     str = year + "-" + strings.pad((month + 1), "0", 2, -1) + "-" + strings.pad(day, "0", 2, -1);
@@ -533,11 +537,15 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
         str += "T" + strings.pad(hours, "0", 2, -1) + ":" + strings.pad(minutes, "0", 2, -1);
         if (withSeconds) {
             str += ":" + strings.pad(seconds, "0", 2, -1);
+            
+            if (withMilliseconds) {
+                str += "." + strings.pad(milliseconds, "0", 3, -1);
+            }
         }
     }
     
     // Append the timezone offset
-    if (withTimeZone) {
+    if (withTime && withTimeZone) {
         var offset  = date.getTimezoneOffset(),
         inHours   = Math.abs(Math.floor(offset / 60)),
         inMinutes = Math.abs(offset) - (inHours * 60);
@@ -549,7 +557,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
             str += "-";
         }
         str += strings.pad(inHours, "0", 2, -1) + ":" + strings.pad(inMinutes, "0", 2, -1);
-    } else {
+    } else if(withTime) {
         str += "Z"; // UTC indicator
     }
     
