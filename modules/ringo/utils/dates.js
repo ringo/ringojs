@@ -501,7 +501,7 @@ function resetDate(date) {
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
  * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
  * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
- * @param {Boolean} withMilliSeconds if true, the string will contain also the milliseconds of the date. Default false.
+ * @param {Boolean} withMilliseconds if true, the string will contain also the milliseconds of the date. Default false.
  * @returns String date as ISO 8601 string.
  */
 function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
