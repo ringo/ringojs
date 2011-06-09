@@ -605,9 +605,13 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     private String toCharset(Object charset) {
-        if (charset != Undefined.instance && !(charset instanceof String)) {
-            throw ScriptRuntime.constructError("Error", "Unsupported charset: " + charset);
+        if (charset == Undefined.instance || charset == null) {
+            return null;
         }
-        return charset instanceof String ? (String) charset : null;
+        if (!(charset instanceof String)) {
+            throw ScriptRuntime.constructError("Error",
+                    "Charset is not a string: " + charset);
+        }
+        return (String) charset;
     }
 }
