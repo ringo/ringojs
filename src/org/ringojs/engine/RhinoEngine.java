@@ -417,7 +417,12 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Implement Node-like package loading.
+     * Resolves a module id to a package resource. If module id consists of
+     * just one term and resolves to a package directory, the main module of
+     * the package is returned. If the module id consists of several terms
+     * and the first term resolves to a package directory, the remaining part
+     * of the module id is resolved against the "lib" directory of the package.
+     *
      * @link http://nodejs.org/docs/v0.4.4/api/modules.html#folders_as_Modules
      * @param moduleName the name of the package to load
      * @param localPath the path of the resource issuing this call
@@ -427,25 +432,57 @@ public class RhinoEngine implements ScopeProvider {
      */
     protected Resource loadPackage(String moduleName, Repository localPath)
             throws IOException {
-        Resource json = findResource(moduleName + "/package.json", localPath);
+        int slash = moduleName.indexOf('/');
+        String packageName, remainingName;
+
+        if (slash == -1) {
+            packageName = moduleName;
+            remainingName = null;
+        } else {
+            packageName = moduleName.substring(0, slash);
+            remainingName = moduleName.substring(slash + 1);
+        }
+        Resource json = findResource(packageName + "/package.json", localPath);
+
         if (json != null && json.exists()) {
             JsonParser parser = new JsonParser(
                     Context.getCurrentContext(), globalScope);
             try {
-                Object obj = parser.parseValue(json.getContent());
-                if (!(obj instanceof NativeObject)) {
+                String moduleId = null;
+                Object parsed = parser.parseValue(json.getContent());
+                if (!(parsed instanceof NativeObject)) {
                     throw new RuntimeException(
-                            "Expected Object from package.js, got " + obj);
+                            "Expected Object from package.js, got " + parsed);
                 }
-                Object main = ScriptableObject.getProperty((Scriptable) obj, "main");
-                if (main != null && main != ScriptableObject.NOT_FOUND) {
-                    String mainId = (String) Context.jsToJava(main, String.class);
-                    Repository parent = json.getParentRepository();
-                    Resource mainRes = parent.getResource(mainId);
-                    if (mainRes == null || !mainRes.exists()) {
-                        mainRes = parent.getResource(mainId + ".js");
+                Scriptable obj = (Scriptable) parsed;
+
+                if (remainingName == null) {
+                    // get the main module of this package
+                    Object main = ScriptableObject.getProperty(obj, "main");
+                    if (main != null && main != ScriptableObject.NOT_FOUND) {
+                        moduleId = ScriptRuntime.toString(main);
                     }
-                    return mainRes;
+                } else {
+                    // map remaining name to libs directory
+                    String lib = "lib";
+                    Object dirs = ScriptableObject.getProperty(obj, "directories");
+                    if (dirs instanceof Scriptable) {
+                        Object libDir = ScriptableObject.getProperty(
+                                (Scriptable) dirs, "lib");
+                        if (libDir != null && libDir != Scriptable.NOT_FOUND) {
+                            lib = ScriptRuntime.toString(libDir);
+                        }
+                    }
+                    moduleId = lib + "/" + remainingName;
+                }
+
+                if (moduleId != null) {
+                    Repository parent = json.getParentRepository();
+                    Resource res = parent.getResource(moduleId);
+                    if (res == null || !res.exists()) {
+                        res = parent.getResource(moduleId + ".js");
+                    }
+                    return res;
                 }
             } catch (JsonParser.ParseException px) {
                 throw new RuntimeException(px);
