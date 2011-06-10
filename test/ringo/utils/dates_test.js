@@ -713,10 +713,7 @@ exports.testParse = function() {
 };
 
 exports.testToISOString = function() {
-    var d = new Date(Date.UTC(2010, 0, 2, 23, 59, 59, 999));
-    assert.strictEqual(dates.toISOString(d, false), "2010-01-02");
-    assert.strictEqual(dates.toISOString(d, false, true), "2010-01-02");
-    d = new Date(Date.UTC(2010, 0, 2, 2, 3, 4, 5));
+    var d = new Date(Date.UTC(2010, 0, 2, 2, 3, 4, 5));
     assert.strictEqual(dates.toISOString(d, false, false), "2010-01-02");
     assert.strictEqual(dates.toISOString(d, true, false, false), "2010-01-02T02:03Z");
     assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T02:03:04Z");
