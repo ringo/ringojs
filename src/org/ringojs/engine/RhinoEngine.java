@@ -432,62 +432,70 @@ public class RhinoEngine implements ScopeProvider {
      */
     protected Resource loadPackage(String moduleName, Repository localPath)
             throws IOException {
-        int slash = moduleName.indexOf('/');
+
+        int slash = 0;
         String packageName, remainingName;
 
-        if (slash == -1) {
-            packageName = moduleName;
-            remainingName = null;
-        } else {
-            packageName = moduleName.substring(0, slash);
-            remainingName = moduleName.substring(slash + 1);
-        }
-        Resource json = findResource(packageName + "/package.json", localPath);
-
-        if (json != null && json.exists()) {
-            JsonParser parser = new JsonParser(
-                    Context.getCurrentContext(), globalScope);
-            try {
-                String moduleId = null;
-                Object parsed = parser.parseValue(json.getContent());
-                if (!(parsed instanceof NativeObject)) {
-                    throw new RuntimeException(
-                            "Expected Object from package.js, got " + parsed);
-                }
-                Scriptable obj = (Scriptable) parsed;
-
-                if (remainingName == null) {
-                    // get the main module of this package
-                    Object main = ScriptableObject.getProperty(obj, "main");
-                    if (main != null && main != ScriptableObject.NOT_FOUND) {
-                        moduleId = ScriptRuntime.toString(main);
-                    }
-                } else {
-                    // map remaining name to libs directory
-                    String lib = "lib";
-                    Object dirs = ScriptableObject.getProperty(obj, "directories");
-                    if (dirs instanceof Scriptable) {
-                        Object libDir = ScriptableObject.getProperty(
-                                (Scriptable) dirs, "lib");
-                        if (libDir != null && libDir != Scriptable.NOT_FOUND) {
-                            lib = ScriptRuntime.toString(libDir);
-                        }
-                    }
-                    moduleId = lib + "/" + remainingName;
-                }
-
-                if (moduleId != null) {
-                    Repository parent = json.getParentRepository();
-                    Resource res = parent.getResource(moduleId);
-                    if (res == null || !res.exists()) {
-                        res = parent.getResource(moduleId + ".js");
-                    }
-                    return res;
-                }
-            } catch (JsonParser.ParseException px) {
-                throw new RuntimeException(px);
+        do {
+            slash = moduleName.indexOf('/', slash + 1);
+            if (slash == -1) {
+                packageName = moduleName;
+                remainingName = null;
+            } else {
+                packageName = moduleName.substring(0, slash);
+                if (".".equals(packageName) || "..".equals(packageName))
+                    continue;
+                remainingName = moduleName.substring(slash + 1);
             }
-        }
+
+            Resource json = findResource(packageName + "/package.json", localPath);
+
+            if (json != null && json.exists()) {
+                JsonParser parser = new JsonParser(
+                        Context.getCurrentContext(), globalScope);
+                try {
+                    String moduleId = null;
+                    Object parsed = parser.parseValue(json.getContent());
+                    if (!(parsed instanceof NativeObject)) {
+                        throw new RuntimeException(
+                                "Expected Object from package.js, got " + parsed);
+                    }
+                    Scriptable obj = (Scriptable) parsed;
+
+                    if (remainingName == null) {
+                        // get the main module of this package
+                        Object main = ScriptableObject.getProperty(obj, "main");
+                        if (main != null && main != ScriptableObject.NOT_FOUND) {
+                            moduleId = ScriptRuntime.toString(main);
+                        }
+                    } else {
+                        // map remaining name to libs directory
+                        String lib = "lib";
+                        Object dirs = ScriptableObject.getProperty(obj, "directories");
+                        if (dirs instanceof Scriptable) {
+                            Object libDir = ScriptableObject.getProperty(
+                                    (Scriptable) dirs, "lib");
+                            if (libDir != null && libDir != Scriptable.NOT_FOUND) {
+                                lib = ScriptRuntime.toString(libDir);
+                            }
+                        }
+                        moduleId = lib + "/" + remainingName;
+                    }
+
+                    if (moduleId != null) {
+                        Repository parent = json.getParentRepository();
+                        Resource res = parent.getResource(moduleId);
+                        if (res == null || !res.exists()) {
+                            res = parent.getResource(moduleId + ".js");
+                        }
+                        return res;
+                    }
+                } catch (JsonParser.ParseException px) {
+                    throw new RuntimeException(px);
+                }
+            }
+        } while (slash != -1);
+
         return findResource(moduleName + "/index.js", localPath);
     }
 
@@ -728,7 +736,8 @@ public class RhinoEngine implements ScopeProvider {
      * @return the resource
      * @throws IOException if an I/O error occurred
      */
-    public Resource findResource(String path, Repository localRoot) throws IOException {
+    public Resource findResource(String path, Repository localRoot)
+            throws IOException {
         // Note: as an extension to the securable modules API
         // we allow absolute module paths for resources
         File file = new File(path);
@@ -736,7 +745,8 @@ public class RhinoEngine implements ScopeProvider {
             Resource res = new FileResource(file);
             res.setAbsolute(true);
             return res;
-        } else if (localRoot != null && path.startsWith(".")) {
+        } else if (localRoot != null
+                && (path.startsWith("./") || path.startsWith("../"))) {
             return findResource(localRoot.getRelativePath() + path, null);
         } else {
             return config.getResource(path);
