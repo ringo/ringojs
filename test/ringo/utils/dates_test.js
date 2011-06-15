@@ -723,13 +723,15 @@ exports.testToISOString = function() {
     assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:00:00Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:00:00.000Z");
 
-    var ld = new Date(2011, 0, 2, 12, 0, 0), // Local date
-    offset = ld.getTimezoneOffset(),
-    hourOffset = Math.abs(Math.floor(offset / 60)),
-    minuteOffset = Math.abs(offset) - (hourOffset * 60);
-
-    assert.strictEqual(dates.toISOString(ld, true, true, true),
-        "2011-01-02T12:00:00" + (offset < 0 ? "+" : "-") + (hourOffset < 10 ? "0" : "") + hourOffset + (minuteOffset < 10 ? ":0" : ":") + minuteOffset);
+    // Test for local time using current time to prevent nasty timzone/dst jumps
+    d = new Date();
+    var sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    var formatted = sdf.format(d);
+    assert.strictEqual(dates.toISOString(d, true, true), formatted.substr(0,22) + ":" + formatted.substr(-2));
+    
+    sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    formatted = sdf.format(d);
+    assert.strictEqual(dates.toISOString(d, true, true, true, true), formatted.substr(0,26) + ":" + formatted.substr(-2));;
 };
 
 if (require.main == module.id) {

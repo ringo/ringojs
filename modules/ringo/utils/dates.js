@@ -547,7 +547,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
     // Append the timezone offset
     if (withTime && withTimeZone) {
         var offset  = date.getTimezoneOffset(),
-        inHours   = Math.abs(Math.floor(offset / 60)),
+        inHours   = Math.floor(Math.abs(offset / 60)),
         inMinutes = Math.abs(offset) - (inHours * 60);
 
         // Write the time zone offset in hours
