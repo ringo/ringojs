@@ -458,7 +458,7 @@ public class RhinoEngine implements ScopeProvider {
                     Object parsed = parser.parseValue(json.getContent());
                     if (!(parsed instanceof NativeObject)) {
                         throw new RuntimeException(
-                                "Expected Object from package.js, got " + parsed);
+                                "Expected Object from package.json, got " + parsed);
                     }
                     Scriptable obj = (Scriptable) parsed;
 
