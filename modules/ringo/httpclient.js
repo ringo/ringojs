@@ -15,7 +15,7 @@ var base64 = require('ringo/base64');
 var {defer} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
 
-export('request', 'post', 'get', 'del', 'put', 'Client');
+export('request', 'post', 'get', 'del', 'put');
 
 /**
  * Wrapper around jetty.http.HttpCookie.
@@ -143,7 +143,7 @@ var Exchange = function(url, options, callbacks) {
         status: {
             get: function() {
                 return exchange.getResponseStatus();
-            }
+            }, enumerable: true
         },
         /**
          * The response content type
@@ -152,7 +152,7 @@ var Exchange = function(url, options, callbacks) {
         contentType: {
             get: function() {
                 return responseHeaders.get('Content-Type');
-            }
+            }, enumerable: true
         },
         /**
          * The response body as String
@@ -161,7 +161,7 @@ var Exchange = function(url, options, callbacks) {
         content: {
             get: function() {
                 return exchange.getResponseContent();
-            }
+            }, enumerable: true
         },
         /**
          * The response body as ByteString
@@ -171,7 +171,7 @@ var Exchange = function(url, options, callbacks) {
             get: function() {
                 var bytes = exchange.getResponseContentBytes();
                 return bytes ? ByteString.wrap(bytes) : new ByteString();
-            }
+            }, enumerable: true
         },
         /**
          * @name Exchange.prototype.contentChunk
@@ -179,7 +179,7 @@ var Exchange = function(url, options, callbacks) {
         contentChunk: {
             get: function() {
                 return exchange.getRequestContentChunk();
-            }
+            }, enumerable: true
         },
         /**
          * The Jetty ContentExchange object
@@ -189,7 +189,7 @@ var Exchange = function(url, options, callbacks) {
         contentExchange: {
             get: function() {
                 return exchange;
-            }
+            }, enumerable: true
         },
         /**
          * The response headers
@@ -198,7 +198,7 @@ var Exchange = function(url, options, callbacks) {
         headers: {
             get: function() {
                 return responseHeaders;
-            }
+            }, enumerable: true
         },
         /**
          * The cookies set by the server
@@ -214,7 +214,7 @@ var Exchange = function(url, options, callbacks) {
                     cookies[cookie.name] = cookie;
                 }
                 return cookies;
-            }
+            }, enumerable: true
         },
         /**
          * The response encoding
@@ -224,7 +224,7 @@ var Exchange = function(url, options, callbacks) {
             // NOTE HttpExchange._encoding knows about this but is protected
             get: function() {
                 return getMimeParameter(this.contentType, "charset") || 'utf-8';
-            }
+            }, enumerable: true
         },
         /**
          * True if the request has completed, false otherwise
@@ -233,7 +233,7 @@ var Exchange = function(url, options, callbacks) {
         done: {
             get: function() {
                 return exchange.isDone();
-            }
+            }, enumerable: true
         },
         /**
          * Waits for the request to complete and returns the Exchange object itself.
@@ -246,7 +246,7 @@ var Exchange = function(url, options, callbacks) {
             value: function() {
                 exchange.waitForDone();
                 return this;
-            }
+            }, enumerable: true
         }
     });
 
@@ -364,6 +364,17 @@ var Exchange = function(url, options, callbacks) {
     });
 
     exchange.setMethod(options.method);
+
+    // deal with username:password in url
+    var urlObj = new java.net.URL(url);
+    var userInfo = urlObj.getUserInfo();
+    if (userInfo) {
+        // exchange.setURL does not take username:password in URL
+        url = url.replace(userInfo + "@", "");
+        var [username, password] = userInfo.split(":");
+        options.username = options.username || username;
+        options.password = options.password || password;
+    }    
 
     if (typeof(options.username) === 'string' && typeof(options.password) === 'string') {
         var authKey = base64.encode(options.username + ':' + options.password);
@@ -506,17 +517,6 @@ var extractOptionalArguments = function(args) {
  */
 var Client = function(timeout, followRedirects) {
 
-    /**
-     * Make a GET request. If a success callback is provided, the request is executed
-     * asynchronously and the function returns immediately. Otherwise, the function
-     * blocks until the request terminates.
-     * @param {String} url the url to request
-     * @param {Object|String} data request data, optional
-     * @param {Function} success callback in case of successful status code, optional
-     * @param {Function} error callback in case of any error - transmission or response, optional
-     * @returns {Exchange} exchange object
-     * @see Client.prototype.request
-     */
     this.get = function(url, data, success, error) {
         if (arguments.length < 4) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
@@ -531,17 +531,6 @@ var Client = function(timeout, followRedirects) {
         });
     };
 
-    /**
-     * Make a POST request. If a success callback is provided, the request is executed
-     * asynchronously and the function returns immediately. Otherwise, the function
-     * blocks until the request terminates.
-     * @param {String} url the url to request
-     * @param {Object|String|Binary|Stream} data request data, optional
-     * @param {Function} success callback in case of successful status code, optional
-     * @param {Function} error callback in case of any error - transmission or response, optional
-     * @returns {Exchange} exchange object
-     * @see Client.prototype.request
-     */
     this.post = function(url, data, success, error) {
         if (arguments.length < 4) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
@@ -556,17 +545,6 @@ var Client = function(timeout, followRedirects) {
         });
     };
 
-    /**
-     * Make a DELETE request. If a success callback is provided, the request is executed
-     * asynchronously and the function returns immediately. Otherwise, the function
-     * blocks until the request terminates.
-     * @param {String} url the url to request
-     * @param {Object|String} data request data, optional
-     * @param {Function} success callback in case of successful status code, optional
-     * @param {Function} error callback in case of any error - transmission or response, optional
-     * @returns {Exchange} exchange object
-     * @see Client.prototype.request
-     */
     this.del = function(url, data, success, error) {
         if (arguments.length < 4) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
@@ -581,17 +559,6 @@ var Client = function(timeout, followRedirects) {
         });
     };
 
-    /**
-     * Make a PUT request. If a success callback is provided, the request is executed
-     * asynchronously and the function returns immediately. Otherwise, the function
-     * blocks until the request terminates.
-     * @param {String} url the url to request
-     * @param {Object|String|Binary|Stream} data request data, optional
-     * @param {Function} success callback in case of successful status code, optional
-     * @param {Function} error callback in case of any error - transmission or response, optional
-     * @returns {Exchange} exchange object
-     * @see Client.prototype.request
-     */
     this.put = function(url, data, success, error) {
         if (arguments.length < 4) {
             var {url, data, success, error} = extractOptionalArguments(arguments);
@@ -606,53 +573,6 @@ var Client = function(timeout, followRedirects) {
         });
     };
 
-    /**
-     * Make a generic request.
-     *
-     * #### Generic request options
-     *
-     *  The `options` object may contain the following properties:
-     *
-     *  - `url`: the request URL
-     *  - `method`: request method such as GET or POST
-     *  - `data`: request data as string, object, or, for POST or PUT requests,
-     *     Stream or Binary.
-     *  - `headers`: request headers
-     *  - `username`: username for HTTP authentication
-     *  - `password`: password for HTTP authentication
-     *  - `contentType`: the contentType
-     *  - `async`: if true this method will return immedialtely , else it will block
-     *     until the request is completed
-     *  - `binary`: if true if content should be delivered as binary,
-     *     else it will be decoded to string
-     *  - `promise`: if true a promise that resolves to the request's Exchange
-     *     object is returned instead of the Exchange object itself
-     *
-     *  #### Callbacks
-     *
-     *  The `options` object may also contain the following callback functions:
-     *
-     *  - `complete`: called when the request is completed
-     *  - `success`: called when the request is completed successfully
-     *  - `error`: called when the request is completed with an error
-     *  - `part`: called when a part of the response is available
-     *  - `beforeSend`: called with the Exchange object as argument before the request is sent
-     *
-     *  The following arguments are passed to the `complete`, `success` and `part` callbacks:
-     *  1. `content`: the content as String or ByteString
-     *  2. `status`: the HTTP status code
-     *  3. `contentType`: the content type
-     *  4. `exchange`: the exchange object
-     *
-     *  The following arguments are passed to the `error` callback:
-     *  1. `message`: the error message. This is either the message from an exception thrown
-     *     during request processing or an HTTP error message
-     *  2. `status`: the HTTP status code. This is `0` if no response was received
-     *  3. `exchange`: the exchange object
-     *
-     * @param {Object} options
-     * @returns {Exchange} exchange object
-     */
     this.request = function(options) {
         var opts = defaultOptions(options);
         if (opts.promise) {
@@ -716,80 +636,127 @@ var Client = function(timeout, followRedirects) {
 };
 
 // avoid reinstantiating default client if module is reevaluated.
-var defaultClient = defaultClient || new Client();
+var defaultClient;
+
+function getClient() {
+    defaultClient = defaultClient || new Client();
+    return defaultClient;
+}
 
 /**
- * Convenience function to make a generic HTTP request without creating a new client.
+ * Make a generic request.
+ *
+ * #### Generic request options
+ *
+ *  The `options` object may contain the following properties:
+ *
+ *  - `url`: the request URL
+ *  - `method`: request method such as GET or POST
+ *  - `data`: request data as string, object, or, for POST or PUT requests,
+ *     Stream or Binary.
+ *  - `headers`: request headers
+ *  - `username`: username for HTTP authentication
+ *  - `password`: password for HTTP authentication
+ *  - `contentType`: the contentType
+ *  - `async`: if true this method will return immedialtely , else it will block
+ *     until the request is completed
+ *  - `binary`: if true if content should be delivered as binary,
+ *     else it will be decoded to string
+ *  - `promise`: if true a promise that resolves to the request's Exchange
+ *     object is returned instead of the Exchange object itself
+ *
+ *  #### Callbacks
+ *
+ *  The `options` object may also contain the following callback functions:
+ *
+ *  - `complete`: called when the request is completed
+ *  - `success`: called when the request is completed successfully
+ *  - `error`: called when the request is completed with an error
+ *  - `part`: called when a part of the response is available
+ *  - `beforeSend`: called with the Exchange object as argument before the request is sent
+ *
+ *  The following arguments are passed to the `complete`, `success` and `part` callbacks:
+ *  1. `content`: the content as String or ByteString
+ *  2. `status`: the HTTP status code
+ *  3. `contentType`: the content type
+ *  4. `exchange`: the exchange object
+ *
+ *  The following arguments are passed to the `error` callback:
+ *  1. `message`: the error message. This is either the message from an exception thrown
+ *     during request processing or an HTTP error message
+ *  2. `status`: the HTTP status code. This is `0` if no response was received
+ *  3. `exchange`: the exchange object
+ *
  * @param {Object} options
  * @returns {Exchange} exchange object
- * @see Client.prototype.request
  */
 var request = function() {
-    return defaultClient.request.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.request.apply(client, arguments);
 };
 
 /**
- * Convenience function to make a POST request without creating a new client.
- * If a success callback is provided, the request is executed asynchronously and the
- * function returns immediately. Otherwise, the function blocks until the request
- * terminates.
+ * Make a POST request. If a success callback is provided, the request is executed
+ * asynchronously and the function returns immediately. Otherwise, the function
+ * blocks until the request terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.prototype.request
+ * @see request
  */
 var post = function() {
-    return defaultClient.post.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.post.apply(client, arguments);
 };
 
 /**
- * Convenience function to make a GET request without creating a new client.
- * If a success callback is provided, the request is executed asynchronously and the
- * function returns immediately. Otherwise, the function blocks until the request
- * terminates.
+ * Make a GET request. If a success callback is provided, the request is executed
+ * asynchronously and the function returns immediately. Otherwise, the function
+ * blocks until the request terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.prototype.request
+ * @see request
  */
 var get = function() {
-    return defaultClient.get.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.get.apply(client, arguments);
 };
 
 /**
- * Convenience function to make a DELETE request without creating a new client.
- * If a success callback is provided, the request is executed asynchronously and the
- * function returns immediately. Otherwise, the function blocks until the request
- * terminates.
+ * Make a DELETE request. If a success callback is provided, the request is executed
+ * asynchronously and the function returns immediately. Otherwise, the function
+ * blocks until the request terminates.
  * @param {String} url the url to request
  * @param {Object|String} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.prototype.request
+ * @see request
  */
 var del = function() {
-    return defaultClient.del.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.del.apply(client, arguments);
 };
 
 /**
- * Convenience function to make a PUT request without creating a new client.
- * If a success callback is provided, the request is executed asynchronously and the
- * function returns immediately. Otherwise, the function blocks until the request
- * terminates.
+ * Make a PUT request. If a success callback is provided, the request is executed
+ * asynchronously and the function returns immediately. Otherwise, the function
+ * blocks until the request terminates.
  * @param {String} url the url to request
  * @param {Object|String|Binary|Stream} data request data, optional
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see Client.prototype.request
+ * @see request
  */
 var put = function() {
-    return defaultClient.put.apply(defaultClient, arguments);
+    var client = getClient();
+    return client.put.apply(client, arguments);
 };
 
 

@@ -75,7 +75,7 @@ exports.testStreamDecoder = function() {
 exports.testStreamDecoderReadLine = function() {
     var dec = new Decoder("utf-8");
     var stream = new MemoryStream();
-    new TextStream(stream, "utf-8").writeLine(str).writeLine(str).writeLine(str);
+    new TextStream(stream, {charset: "utf-8"}).writeLine(str).writeLine(str).writeLine(str);
     stream.position = 0;
     dec.readFrom(stream);
     assert.strictEqual(str, dec.readLine());
@@ -89,7 +89,7 @@ exports.testStreamDecoderReadLineShort = function() {
     var line = "The quick brown fox jumps over the lazy dog";
     var dec = new Decoder("utf-8", false, 2);
     var stream = new MemoryStream();
-    new TextStream(stream, "utf-8").writeLine(line).writeLine(line).writeLine(line);
+    new TextStream(stream, {charset: "utf-8"}).writeLine(line).writeLine(line).writeLine(line);
     stream.position = 0;
     dec.readFrom(stream);
     assert.strictEqual(line, dec.readLine());

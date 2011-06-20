@@ -16,15 +16,13 @@
 
 package org.ringojs.engine;
 
+import org.mozilla.javascript.json.JsonParser;
 import org.ringojs.repository.*;
-import org.ringojs.tools.RingoConfiguration;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
 import org.ringojs.wrappers.*;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
-import org.mozilla.javascript.serialize.ScriptableOutputStream;
-import org.mozilla.javascript.serialize.ScriptableInputStream;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -32,8 +30,6 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -48,6 +44,7 @@ public class RhinoEngine implements ScopeProvider {
     private RingoGlobal globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
+    private final Map<String, Object> singletons;
     private AppClassLoader loader = new AppClassLoader();
     private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
@@ -56,14 +53,17 @@ public class RhinoEngine implements ScopeProvider {
     private ModuleScope mainScope = null;
 
     public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final List<Integer> VERSION = Collections.unmodifiableList(Arrays.asList(0, 7));
+    public static final List<Integer> VERSION =
+            Collections.unmodifiableList(Arrays.asList(0, 8));
 
-    public static final ThreadLocal<List<SyntaxError>> errors = new ThreadLocal<List<SyntaxError>>();
-    static final ThreadLocal<RhinoEngine> engines = new ThreadLocal<RhinoEngine>();
-    static final ThreadLocal<Map<Resource, ModuleScope>>modules = new ThreadLocal<Map<Resource, ModuleScope>>();
-    static final ThreadLocal<ReloadableScript>currentScripts = new ThreadLocal<ReloadableScript>();
-
-    private Logger log = Logger.getLogger("org.ringojs.engine.RhinoEngine");
+    public static final ThreadLocal<List<SyntaxError>> errors =
+            new ThreadLocal<List<SyntaxError>>();
+    static final ThreadLocal<RhinoEngine> engines =
+            new ThreadLocal<RhinoEngine>();
+    static final ThreadLocal<Map<Resource, ModuleScope>>modules =
+            new ThreadLocal<Map<Resource, ModuleScope>>();
+    static final ThreadLocal<ReloadableScript>currentScripts =
+            new ThreadLocal<ReloadableScript>();
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
@@ -76,11 +76,12 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        this.compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        this.contextFactory = new RingoContextFactory(this, config);
-        this.repositories = config.getRepositories();
+        compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
+        singletons = Collections.synchronizedMap(new HashMap<String, Object>());
+        contextFactory = new RingoContextFactory(this, config);
+        repositories = config.getRepositories();
         if (repositories.isEmpty()) {
             throw new IllegalArgumentException("Empty repository list");
         }
@@ -189,8 +190,9 @@ public class RhinoEngine implements ScopeProvider {
             resource.setStripShebang(true);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope, cx);
+            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope);
             retval = evaluateScript(cx, script, mainScope);
+            mainScope.updateExports();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
@@ -215,7 +217,7 @@ public class RhinoEngine implements ScopeProvider {
             Object retval;
             Repository repository = repositories.get(0);
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope, cx);
+            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope);
             retval = cx.evaluateString(scope, expr, "<expr>", 1, null);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
@@ -279,63 +281,16 @@ public class RhinoEngine implements ScopeProvider {
         }
     }
 
-    // TODO is this still used or needed?
-    public Object invoke(Callable callable, Object... args)
-            throws IOException, NoSuchMethodException {
-        Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
-        try {
-            initArguments(args);
-            Object retval;
-            while (true) {
-                try {
-                    retval = callable.call(cx, globalScope, null, args);
-                    break;
-                } catch (JavaScriptException jsx) {
-                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
-                            (Scriptable) jsx.getValue() : null;
-                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
-                        modules.get().clear();
-                    } else {
-                        throw jsx;
-                    }
-                } catch (RetryException retry) {
-                    // request to try again
-                    modules.get().clear();
-                }
-            }
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
-            }
-            return retval;
-        } finally {
-            Context.exit();
-            resetThreadLocals(threadLocals);
-        }
-    }
-
     /**
      * Return a shell scope for interactive evaluation
      * @return a shell scope
      * @throws IOException an I/O related exception occurred
      */
     public Scriptable getShellScope() throws IOException {
-        Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
-        try {
-            Repository repository = new FileRepository("");
-            Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<shell>", repository, parentScope, cx);
-            try {
-                evaluateScript(cx, getScript("ringo/shell"), scope);
-            } catch (Exception x) {
-                log.log(Level.SEVERE, "Warning: couldn't load module 'ringo/shell'", x);
-            }
-            return scope;
-        } finally {
-            Context.exit();
-            resetThreadLocals(threadLocals);
-        }
+        Repository repository = new FileRepository("");
+        repository.setAbsolute(true);
+        Scriptable parentScope = mainScope != null ? mainScope : globalScope;
+        return new ModuleScope("<shell>", repository, parentScope);
     }
 
     /**
@@ -438,14 +393,16 @@ public class RhinoEngine implements ScopeProvider {
      */
     public ReloadableScript getScript(String moduleName, Repository localPath)
             throws JavaScriptException, IOException {
+        ReloadableScript script;
+        Resource source = findResource(moduleName + ".js", localPath);
+        if (!source.exists()) {
+            source = loadPackage(moduleName, localPath);
+            if (!source.exists()) {
+                source = findResource(moduleName, localPath);
+            }
+        }
         Context cx = Context.getCurrentContext();
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
-        ReloadableScript script;
-        Resource source;
-        source = findResource(moduleName + ".js", localPath);
-        if (!source.exists()) {
-            source = findResource(moduleName, localPath);
-        }
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
         } else if (sharedScripts.containsKey(source)) {
@@ -457,6 +414,89 @@ public class RhinoEngine implements ScopeProvider {
             }
         }
         return script;
+    }
+
+    /**
+     * Resolves a module id to a package resource. If module id consists of
+     * just one term and resolves to a package directory, the main module of
+     * the package is returned. If the module id consists of several terms
+     * and the first term resolves to a package directory, the remaining part
+     * of the module id is resolved against the "lib" directory of the package.
+     *
+     * @link http://nodejs.org/docs/v0.4.4/api/modules.html#folders_as_Modules
+     * @param moduleName the name of the package to load
+     * @param localPath the path of the resource issuing this call
+     * @return the location of the package's main module
+     * @throws IOException an unrecoverable I/O exception occurred while
+     * reading the package
+     */
+    protected Resource loadPackage(String moduleName, Repository localPath)
+            throws IOException {
+
+        int slash = 0;
+        String packageName, remainingName;
+
+        do {
+            slash = moduleName.indexOf('/', slash + 1);
+            if (slash == -1) {
+                packageName = moduleName;
+                remainingName = null;
+            } else {
+                packageName = moduleName.substring(0, slash);
+                if (".".equals(packageName) || "..".equals(packageName))
+                    continue;
+                remainingName = moduleName.substring(slash + 1);
+            }
+
+            Resource json = findResource(packageName + "/package.json", localPath);
+
+            if (json != null && json.exists()) {
+                JsonParser parser = new JsonParser(
+                        Context.getCurrentContext(), globalScope);
+                try {
+                    String moduleId = null;
+                    Object parsed = parser.parseValue(json.getContent());
+                    if (!(parsed instanceof NativeObject)) {
+                        throw new RuntimeException(
+                                "Expected Object from package.json, got " + parsed);
+                    }
+                    Scriptable obj = (Scriptable) parsed;
+
+                    if (remainingName == null) {
+                        // get the main module of this package
+                        Object main = ScriptableObject.getProperty(obj, "main");
+                        if (main != null && main != ScriptableObject.NOT_FOUND) {
+                            moduleId = ScriptRuntime.toString(main);
+                        }
+                    } else {
+                        // map remaining name to libs directory
+                        String lib = "lib";
+                        Object dirs = ScriptableObject.getProperty(obj, "directories");
+                        if (dirs instanceof Scriptable) {
+                            Object libDir = ScriptableObject.getProperty(
+                                    (Scriptable) dirs, "lib");
+                            if (libDir != null && libDir != Scriptable.NOT_FOUND) {
+                                lib = ScriptRuntime.toString(libDir);
+                            }
+                        }
+                        moduleId = lib + "/" + remainingName;
+                    }
+
+                    if (moduleId != null) {
+                        Repository parent = json.getParentRepository();
+                        Resource res = parent.getResource(moduleId);
+                        if (res == null || !res.exists()) {
+                            res = parent.getResource(moduleId + ".js");
+                        }
+                        return res;
+                    }
+                } catch (JsonParser.ParseException px) {
+                    throw new RuntimeException(px);
+                }
+            }
+        } while (slash != -1);
+
+        return findResource(moduleName + "/index.js", localPath);
     }
 
     /**
@@ -490,24 +530,32 @@ public class RhinoEngine implements ScopeProvider {
      * @param cx the current context
      * @param moduleName the module name
      * @param loadingScope the scope requesting the module
-     * @return the loaded module scope
+     * @return the loaded module's scope
      * @throws IOException indicates that in input/output related error occurred
      */
-    public ModuleScope loadModule(Context cx, String moduleName, Scriptable loadingScope)
+    public ModuleScope loadModule(Context cx, String moduleName,
+                                  Scriptable loadingScope)
             throws IOException {
         Repository local = getParentRepository(loadingScope);
         ReloadableScript script = getScript(moduleName, local);
+
         ModuleScope module;
         ReloadableScript parent = currentScripts.get();
         try {
+            // check if we already came across the module in the current context/request
+            Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
+            if (modules.containsKey(script.resource)) {
+                return modules.get(script.resource);
+            }
             currentScripts.set(script);
-            module = script.load(globalScope, cx);
+            module = script.load(globalScope, cx, modules);
         } finally {
             if (parent != null) {
                 parent.addDependency(script);
             }
             currentScripts.set(parent);
         }
+
         return module;
     }
 
@@ -639,15 +687,6 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the repository containing installed packages
-     * @return the packages repository
-     * @throws IOException if an I/O error occurred
-     */
-    public Repository getPackageRepository() throws IOException {
-        return config.getPackageRepository();
-    }
-
-    /**
      * Get the repository associated with the scope or one of its prototypes
      *
      * @param scope the scope to get the repository from
@@ -682,7 +721,7 @@ public class RhinoEngine implements ScopeProvider {
      * @return the resource or repository
      * @throws IOException if an I/O error occurred
      */
-    public Trackable findPath(String path, Repository localRoot) throws IOException {
+    public Trackable resolve(String path, Repository localRoot) throws IOException {
         Trackable t = findResource(path, localRoot);
         if (t == null || !t.exists()) {
             t = findRepository(path, localRoot);
@@ -697,7 +736,8 @@ public class RhinoEngine implements ScopeProvider {
      * @return the resource
      * @throws IOException if an I/O error occurred
      */
-    public Resource findResource(String path, Repository localRoot) throws IOException {
+    public Resource findResource(String path, Repository localRoot)
+            throws IOException {
         // Note: as an extension to the securable modules API
         // we allow absolute module paths for resources
         File file = new File(path);
@@ -705,7 +745,8 @@ public class RhinoEngine implements ScopeProvider {
             Resource res = new FileResource(file);
             res.setAbsolute(true);
             return res;
-        } else if (localRoot != null && path.startsWith(".")) {
+        } else if (localRoot != null
+                && (path.startsWith("./") || path.startsWith("../"))) {
             return findResource(localRoot.getRelativePath() + path, null);
         } else {
             return config.getResource(path);
@@ -740,89 +781,6 @@ public class RhinoEngine implements ScopeProvider {
         loader.addURL(path.getUrl());
     }
 
-    /**
-     * Provide object serialization for this engine's scripted objects. If no special
-     * provisions are required, this method should just wrap the stream with an
-     * ObjectOutputStream and write the object.
-     *
-     * @param obj the object to serialize
-     * @param out the stream to write to
-     * @throws IOException if an I/O error occurred
-     */
-    public void serialize(Object obj, OutputStream out) throws IOException {
-        final Context cx = contextFactory.enterContext();
-        try {
-            // use a special ScriptableOutputStream that unwraps Wrappers
-            ScriptableOutputStream sout = new ScriptableOutputStream(out, globalScope) {
-                protected Object replaceObject(Object obj) throws IOException {
-                    if (obj == globalScope) {
-                        return new SerializedScopeProxy(null);
-                    } else if (obj instanceof ModuleScope || obj instanceof ModuleScope.ExportsObject) {
-                        return new SerializedScopeProxy(obj);
-                    }
-                    return super.replaceObject(obj);
-                }
-            };
-
-            sout.writeObject(obj);
-            sout.flush();
-        } finally {
-            Context.exit();
-        }
-    }
-
-    /**
-     * Provide object deserialization for this engine's scripted objects. If no special
-     * provisions are required, this method should just wrap the stream with an
-     * ObjectIntputStream and read the object.
-     *
-     * @param in the stream to read from
-     * @return the deserialized object
-     * @throws IOException if an I/O error occurred
-     * @throws ClassNotFoundException if a class referred in the stream couldn't be resolved
-     */
-    public Object deserialize(InputStream in) throws IOException, ClassNotFoundException {
-        final Context cx = contextFactory.enterContext();
-        try {
-            ObjectInputStream sin = new ScriptableInputStream(in, globalScope) {
-                protected Object resolveObject(Object obj) throws IOException {
-                    if (obj instanceof SerializedScopeProxy) {
-                        return ((SerializedScopeProxy) obj).getObject(cx, RhinoEngine.this);
-                    }
-                    return super.resolveObject(obj);
-                }
-            };
-            return sin.readObject();
-        } finally {
-            Context.exit();
-        }
-    }
-
-    private static class SerializedScopeProxy implements Serializable {
-        String moduleName;
-        boolean isExports;
-        SerializedScopeProxy(Object obj) {
-            if (obj instanceof ModuleScope) {
-                moduleName = ((ModuleScope) obj).getModuleName();
-                isExports = false;
-            } else if (obj instanceof ModuleScope.ExportsObject) {
-                moduleName = ((ModuleScope.ExportsObject) obj).getModuleName();
-                isExports = true;
-            }
-        }
-
-        Object getObject(Context cx, RhinoEngine engine) throws IOException {
-            if (isExports) {
-                return engine.loadModule(cx, moduleName, null).getExports();
-            }
-            return moduleName == null ?
-                    engine.globalScope :
-                    "<shell>".equals(moduleName) ?
-                            engine.getShellScope() :
-                            engine.loadModule(cx, moduleName, null);
-        }
-    }
-
     public RingoContextFactory getContextFactory() {
         return contextFactory;
     }
@@ -833,6 +791,19 @@ public class RhinoEngine implements ScopeProvider {
 
     public RingoConfiguration getConfig() {
         return config;
+    }
+
+    protected synchronized Object getSingleton(String key, Function factory,
+                                               Scriptable thisObj) {
+        if (singletons.containsKey(key)) {
+            return singletons.get(key);
+        } else if (factory == null) {
+            return Undefined.instance;
+        }
+        Context cx = Context.getCurrentContext();
+        Object value = factory.call(cx, globalScope, thisObj, ScriptRuntime.emptyArgs);
+        singletons.put(key, value);
+        return value;
     }
 
     /**

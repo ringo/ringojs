@@ -10,17 +10,24 @@
  * it as format string and use any following arguments to replace the curly
  * bracket pairs. If an argument is an Error or Java Exception object, the
  * logger will render a stack trace for it and append it to the log message.</p>
+ *
+ * <p>This module's exports object implements the [EventEmitter](../events/)
+ * interface and emits logged messages using the log level name as event type.</p>
  */
 
 var strings = require('ringo/utils/strings');
-var debug = require('ringo/utils/debug');
+var {EventEmitter} = require('ringo/events');
+
+export('getLogger', 'setConfig', 'getScriptStack', 'getJavaStack');
 
 var configured = false;
 // interval id for configuration watcher
-var configurationWatcher;
+var configWatcher;
+
 var verbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
 
-var interceptors = new java.lang.ThreadLocal();
+// Make exports object emit log events
+EventEmitter.call(exports);
 
 /**
  * Logger class. This constructor is not exported, use this module's
@@ -37,7 +44,7 @@ function Logger(name, impl) {
         if (impl.isTraceEnabled()) {
             var msg = formatMessage(arguments);
             impl.trace(msg);
-            intercept("TRACE", name, msg);
+            exports.emit("trace", name, msg);
         }
     };
 
@@ -45,7 +52,7 @@ function Logger(name, impl) {
         if (impl.isDebugEnabled()) {
             var msg = formatMessage(arguments);
             impl.debug(msg);
-            intercept("DEBUG", name, msg);
+            exports.emit("debug", name, msg);
         }
     };
 
@@ -53,7 +60,7 @@ function Logger(name, impl) {
         if (impl.isInfoEnabled()) {
             var msg = formatMessage(arguments);
             impl.info(msg);
-            intercept("INFO", name, msg);
+            exports.emit("info", name, msg);
         }
     };
 
@@ -61,7 +68,7 @@ function Logger(name, impl) {
         if (impl.isWarnEnabled()) {
             var msg = formatMessage(arguments);
             impl.warn(msg);
-            intercept("WARN", name, msg);
+            exports.emit("warn", name, msg);
         }
     };
 
@@ -69,7 +76,7 @@ function Logger(name, impl) {
         if (impl.isErrorEnabled()) {
             var msg = formatMessage(arguments);
             impl.error(msg);
-            intercept("ERROR", name, msg);
+            exports.emit("error", name, msg);
         }
     };
 
@@ -109,7 +116,7 @@ function Logger(name, impl) {
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
  * repeatedly checks the resource for updates.
  */
-var setConfig = exports.setConfig = function(resource, watchForUpdates) {
+function setConfig(resource, watchForUpdates) {
     var {path, url} = resource;
     var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
     var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
@@ -122,10 +129,10 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
                 // set up a scheduler to watch the configuration file for changes
                 var {setInterval, clearInterval} = require("./scheduler");
                 var lastModified = resource.lastModified();
-                if (configurationWatcher) {
-                    clearInterval(configurationWatcher);
+                if (configWatcher) {
+                    clearInterval(configWatcher);
                 }
-                configurationWatcher = setInterval(function() {
+                configWatcher = setInterval(function() {
                     if (resource.exists() && resource.lastModified() != lastModified) {
                         lastModified = resource.lastModified();
                         configurator.configure(url);
@@ -144,34 +151,10 @@ var setConfig = exports.setConfig = function(resource, watchForUpdates) {
  * @param {string} name the name of the logger
  * @returns {Logger} a logger instance for the given name
  */
-var getLogger = exports.getLogger = function(name) {
+function getLogger(name) {
     name = name.replace(/\//g, '.');
     var impl = new LoggerImpl(name);
     return new Logger(name, impl);
-};
-
-/**
- * Use array as log message interceptor for the current thread.
- * @param array an array
- */
-exports.setInterceptor = function(array) {
-    interceptors.set(array);
-};
-
-/**
- * Return the log message interceptor for the current thread,
- * or null if none is set.
- * @return the interceptor array
- */
-exports.getInterceptor = function() {
-    return interceptors.get();
-};
-
-function intercept(level, name, message) {
-    var interceptor = interceptors.get();
-    if (interceptor) {
-        interceptor.push([Date.now(), level, name, message]);
-    }
 }
 
 function formatMessage(args) {
@@ -180,12 +163,44 @@ function formatMessage(args) {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
-                debug.getScriptStack(arg, "\nScript stack:\n"),
-                verbose ? debug.getJavaStack(arg, "Java stack:\n") : null
+                getScriptStack(arg, "\nScript stack:\n"),
+                verbose ? getJavaStack(arg, "Java stack:\n") : null
             ].join('');
         }
     }
     return message;
+}
+
+/**
+ * Get a rendered JavaScript stack trace from a caught error.
+ * @param {Error} error an error object
+ * @param {String} prefix to prepend to result if available
+ * @return {String} the rendered JavaScript stack trace
+ */
+function getScriptStack(error, prefix) {
+    prefix = prefix || "";
+    if (error && error.stack)
+        return prefix + error.stack;
+    return "";
+}
+
+/**
+ * Get a rendered JavaScript stack trace from a caught error.
+ * @param {Error} error an error object
+ * @param {String} prefix to prepend to result if available
+ * @return {String} the rendered JavaScript stack trace
+ */
+function getJavaStack(error, prefix) {
+    prefix = prefix || "";
+    var exception = error && error.rhinoException ?
+        error.rhinoException : error;
+    if (exception instanceof java.lang.Throwable) {
+        var writer = new java.io.StringWriter();
+        var printer = new java.io.PrintWriter(writer);
+        exception.printStackTrace(printer);
+        return prefix + writer.toString();
+    }
+    return "";
 }
 
 /**

@@ -13,7 +13,6 @@ package org.ringojs.engine;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.ringojs.repository.Resource;
-import org.ringojs.tools.RingoConfiguration;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;

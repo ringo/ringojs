@@ -19,7 +19,6 @@ package org.ringojs.repository;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides common methods and fields for the default implementations of the
@@ -37,12 +36,14 @@ public abstract class AbstractRepository implements Repository {
      * Cache for direct child repositories
      */
     Map<String, SoftReference<AbstractRepository>> repositories =
-            new ConcurrentHashMap<String, SoftReference<AbstractRepository>>();
+            Collections.synchronizedMap(
+                    new HashMap<String, SoftReference<AbstractRepository>>());
 
     /**
      * Cache for direct resources
      */
-    Map<String, AbstractResource> resources = new ConcurrentHashMap<String, AbstractResource>();
+    Map<String, AbstractResource> resources =
+            Collections.synchronizedMap(new HashMap<String, AbstractResource>());
 
     /**
      * Cached name for faster access

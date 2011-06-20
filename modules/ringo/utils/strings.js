@@ -23,7 +23,9 @@ var HEXPATTERN = /[^a-fA-F0-9]/;
 // licensed unter MIT license - http://www.opensource.org/licenses/mit-license.php
 var EMAILPATTERN = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
 var URLPATTERN = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
-var ISOFORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+
+var {Binary, ByteArray, ByteString} = require('binary');
+var base64;
 
 /**
  * @fileoverview Adds useful methods to the JavaScript String type.
@@ -57,10 +59,13 @@ export('isDateFormat',
        'getCommonPrefix',
        'isEmail',
        'count',
-       'enbase64',
-       'debase64',
+       'b16encode',
+       'b16decode',
+       'b64encode',
+       'b64decode',
        'stripTags',
        'escapeHtml',
+       'escapeRegExp',
        'Sorter',
        'compose',
        'random',
@@ -320,22 +325,12 @@ function unwrap(string, removeTags, replacement) {
  * argument is passed, the MD5 algorithm is used.
  * @param {String} string the string to digest
  * @param {String} algorithm the name of the algorithm to use
- * @returns {String} message digest of the string
+ * @returns {String} base16-encoded message digest of the string
  */
 function digest(string, algorithm) {
-    var {ByteString} = require('binary');
     var md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
     var b = ByteString.wrap(md.digest(string.toByteString()));
-    var buf = [];
-
-    for (var i = 0; i < b.length; i++) {
-        var j = b[i];
-        if (j < 16) {
-            buf[buf.length] = '0';
-        }
-        buf[buf.length] = j.toString(16);
-}
-    return buf.join('');
+    return b16encode(b);
 }
 
 /**
@@ -472,17 +467,77 @@ function count(string, pattern) {
     }
 
 /**
- * returns the string encoded using the base64 algorithm
+ * Encode a string or binary to a Base64 encoded string
+ * @param {String|Binary} string a string or binary
+ * @param {String} encoding optional encoding to use if
+ *     first argument is a string. Defaults to 'utf8'.
+ * @returns the Base64 encoded string
  */
-function enbase64(string) {
-    return require('ringo/base64').encode(string);
+function b64encode(string, encoding) {
+    if (!base64) base64 = require('ringo/base64');
+    return base64.encode(string, encoding);
 }
 
 /**
- * returns the decoded string using the base64 algorithm
+ * Decodes a Base64 encoded string to a string or byte array.
+ * @param {String} string the Base64 encoded string
+ * @param {String} encoding the encoding to use for the return value.
+ *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
+ * @returns the decoded string or ByteArray
  */
-function debase64(string) {
-    return require('ringo/base64').decode(string);
+function b64decode(string, encoding) {
+    if (!base64) base64 = require('ringo/base64');
+    return base64.decode(string, encoding);
+}
+
+/**
+ * Encode a string or binary to a Base16 encoded string
+ * @param {String|Binary} str a string or binary
+ * @param {String} encoding optional encoding to use if
+ *     first argument is a string. Defaults to 'utf8'.
+ * @returns the Base16 encoded string
+ */
+function b16encode(str, encoding) {
+    encoding = encoding || 'utf8';
+    var input = str instanceof Binary ? str : String(str).toByteString(encoding);
+    var length = input.length;
+    var result = [];
+    var chars = ['0', '1', '2', '3', '4', '5', '6', '7',
+                 '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+
+    for (var i = 0; i < length; i++) {
+        var n = input[i];
+        result.push(chars[n >>> 4], chars[n & 0xf]);
+    }
+    return result.join('');
+}
+
+/**
+ * Decodes a Base16 encoded string to a string or byte array.
+ * @param {String} str the Base16 encoded string
+ * @param {String} encoding the encoding to use for the return value.
+ *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
+ * @returns the decoded string or ByteArray
+ */
+function b16decode(str, encoding) {
+    var input = str instanceof Binary ? str : String(str).toByteString('ascii');
+    var length = input.length / 2;
+    var output = new ByteArray(length);
+
+    function decodeChar(c) {
+        if (c >= 48 && c <= 57) return c - 48;
+        if (c >= 65 && c <= 70) return c - 55;
+        if (c >= 97 && c <= 102) return c - 87;
+        throw new Error('Invalid base16 character: ' + c);
+    }
+
+    for (var i = 0; i < length; i++) {
+        var n1 = decodeChar(input[i * 2]);
+        var n2 = decodeChar(input[i * 2 + 1]);
+        output[i] = (n1 << 4) + n2;
+    }
+    encoding = encoding || 'utf8';
+    return encoding == 'raw' ? output : output.decodeToString(encoding);
 }
 
 /**
@@ -504,6 +559,18 @@ function escapeHtml(string) {
             .replace(/"/g, '&quot;')
             .replace(/>/g, '&gt;')
             .replace(/</g, '&lt;');
+}
+
+/**
+ * Accepts a string; returns the string with regex metacharacters escaped.
+ * the returned string can safely be used within a regex to match a literal
+ * string. escaped characters are \[, ], {, }, (, ), -, *, +, ?, ., \, ^, $,
+ * |, #, \[comma], and whitespace.
+ * @param {String} str the string to escape
+ * @returns {String} the escaped string
+ */
+function escapeRegExp(str) {
+    return str.replace(/[-[\]{}()*+?.\\^$|,#\s]/g, "\\$&");
 }
 
 /**

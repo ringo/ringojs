@@ -255,17 +255,25 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     @JSFunction
-    public synchronized Object toByteArray(Object sourceCharset, Object targetCharset)
+    public Object toByteArray(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
         return makeCopy(Type.ByteArray, sourceCharset, targetCharset);
     }
+
     @JSFunction
-    public synchronized Object toByteString(Object sourceCharset, Object targetCharset)
+    public Object toByteString(Object sourceCharset, Object targetCharset)
             throws UnsupportedEncodingException {
+        // no need to make a copy of an unmodifiable ByteString
+        if (type == Type.ByteString &&
+                sourceCharset == Undefined.instance &&
+                targetCharset == Undefined.instance) {
+            return this;
+        }
         return makeCopy(Type.ByteString, sourceCharset, targetCharset);
     }
 
-    private Binary makeCopy(Type targetType, Object sourceCharset, Object targetCharset)
+    private synchronized Binary makeCopy(Type targetType, Object sourceCharset,
+                                         Object targetCharset)
             throws UnsupportedEncodingException {
         String source = toCharset(sourceCharset);
         String target = toCharset(targetCharset);
@@ -493,6 +501,16 @@ public class Binary extends ScriptableObject implements Wrapper {
         return Context.getCurrentContext().newArray(scope, list.toArray());
     }
 
+    protected static Binary wrap(Type type, byte[] bytes, Scriptable scope,
+                                 Scriptable prototype) {
+        Binary wrapper = new Binary(type);
+        wrapper.bytes = bytes;
+        wrapper.length = bytes.length;
+        wrapper.setParentScope(scope);
+        wrapper.setPrototype(prototype);
+        return wrapper;
+    }
+
     /**
      * Static method that wraps a java byte array without copying.
      */
@@ -516,12 +534,7 @@ public class Binary extends ScriptableObject implements Wrapper {
                 throw ScriptRuntime.constructError("Error", "wrap() requires an argument of type byte[]");
             }
             byte[] bytes = (byte[]) arg;
-            Binary wrapper = new Binary(type);
-            wrapper.bytes = bytes;
-            wrapper.length = bytes.length;
-            wrapper.setParentScope(getTopLevelScope(scope));
-            wrapper.setPrototype(prototype);
-            return wrapper;
+            return wrap(type, bytes, getTopLevelScope(scope), prototype);
         }
     }
 
@@ -592,9 +605,13 @@ public class Binary extends ScriptableObject implements Wrapper {
     }
 
     private String toCharset(Object charset) {
-        if (charset != Undefined.instance && !(charset instanceof String)) {
-            throw ScriptRuntime.constructError("Error", "Unsupported charset: " + charset);
+        if (charset == Undefined.instance || charset == null) {
+            return null;
         }
-        return charset instanceof String ? (String) charset : null;
+        if (!(charset instanceof String)) {
+            throw ScriptRuntime.constructError("Error",
+                    "Charset is not a string: " + charset);
+        }
+        return (String) charset;
     }
 }

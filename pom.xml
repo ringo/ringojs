@@ -18,7 +18,7 @@
     <artifactId>ringojs</artifactId>
     <version>0.7.1-TRACER</version>
 
-    <packaging>jar</packaging>
+    <packaging>jar</packaging>    
 
     <name>RingoJS</name>
     <description>
@@ -35,6 +35,15 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+
+    <distributionManagement>
+        <repository>
+            <id>tracer_repo</id>
+            <name>tracer_repo-releases</name>
+            <url>https://repo.tracermedia.com/artifactory/ext-releases-local</url>
+        </repository>
+    </distributionManagement>
 
     <scm>
         <url>http://github.com/ringo/ringojs</url>

@@ -90,10 +90,14 @@ public final class ZipRepository extends AbstractRepository {
             throws ZipException, IOException {
         if (entryPath == null) {
             throw new NullPointerException("entryPath must not be null");
+        } else if (entryPath.equals("")) {
+            throw new IllegalArgumentException("entryPath must not be empty");
         }
         this.file = file;
         this.parent = parent;
-        this.entryPath = entryPath;
+        // Make sure entryPath ends with slash. This is the only way we
+        // can be sure the zip entry isn't actually a file.
+        this.entryPath = entryPath.endsWith("/") ? entryPath : entryPath + "/";
         String[] pathArray = StringUtils.split(entryPath, SEPARATOR);
         depth = pathArray.length;
         name = pathArray[depth - 1];
@@ -124,25 +128,24 @@ public final class ZipRepository extends AbstractRepository {
     }
 
 
-    private String getChildName(String name) {
-        if (entryPath.length() == 0) {
-            return name;
-        } else if (entryPath.endsWith("/")) {
-            return entryPath + name;
-        } else {
-            return entryPath + "/" + name;
-        }
-    }
-
     /**
-     * Called to create a child resource for this repository
+     * Called to create a child resource for this repository.
      */
     @Override
     protected Resource lookupResource(String name) throws IOException {
         AbstractResource res = resources.get(name);
         if (res == null) {
-            String childName = getChildName(name);
-            ZipEntry entry = getZipFile().getEntry(childName);
+            String childName = entryPath + name;
+            ZipFile zip = getZipFile();
+            // getEntry() will return a directory entry without trailing slash,
+            // but it will not return a file entry with trailing slash.
+            // Thus, the only way to make sure an entry is not a directory is
+            // to explicitly try to fetch the entry as directory before fetching
+            // it as file.
+            ZipEntry entry = zip.getEntry(childName + "/");
+            if (entry == null) {
+                entry = zip.getEntry(childName);
+            }
             res = new ZipResource(childName, this, entry);
             resources.put(name, res);
         }
@@ -166,8 +169,9 @@ public final class ZipRepository extends AbstractRepository {
         return exists;
     }
 
-    protected AbstractRepository createChildRepository(String name) throws IOException {
-        return new ZipRepository(file, this, getChildName(name));
+    protected AbstractRepository createChildRepository(String name)
+            throws IOException {
+        return new ZipRepository(file, this, entryPath + name);
     }
 
     protected void getResources(List<Resource> list, boolean recursive)
@@ -210,7 +214,7 @@ public final class ZipRepository extends AbstractRepository {
         } else {
             String baseUrl = "jar:file:" + file + "!/";
             return entryPath.length() == 0 ?
-                    new URL(baseUrl) : new URL(baseUrl + entryPath + "/");
+                    new URL(baseUrl) : new URL(baseUrl + entryPath);
         }
     }
 

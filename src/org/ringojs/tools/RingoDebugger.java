@@ -1,5 +1,6 @@
 package org.ringojs.tools;
 
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.tools.debugger.Dim;
 import org.mozilla.javascript.tools.debugger.SwingGui;

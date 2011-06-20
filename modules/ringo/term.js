@@ -30,7 +30,16 @@ var supportedTerminals = {
     'gnome-terminal': 1
 };
 var jansiInstalled = typeof AnsiConsole === "function";
-var enabled = (env.TERM && env.TERM in supportedTerminals) || jansiInstalled;
+
+// enable if java.lang.System.console() is available and either
+// TERM has a supported value or Jansi is installed.
+try {
+    var javaConsole = System.console;
+} catch (error) {
+    // java.lang.System.console() is not available in JDK < 1.6
+}
+var enabled = (!javaConsole || javaConsole())
+        && ((env.TERM && env.TERM in supportedTerminals) || jansiInstalled);
 
 if (jansiInstalled) {
     // Jansi wraps System.out and System.err so we need to
@@ -63,23 +72,81 @@ exports.ONMAGENTA = "\u001B[45m";
 exports.ONCYAN =    "\u001B[46m";
 exports.ONWHITE =   "\u001B[47m";
 
-exports.write = function() {
-    for (var i = 0; i < arguments.length; i++) {
-        var arg = String(arguments[i]);
-        var out = system.stdout;
-        if (arg.charCodeAt(0) == 27) {
-            if (enabled) out.write(arg);
-        } else {
+// used to remove ANSI control sequences if disabled
+var cleaner = /\u001B\[\d*(?:;\d+)?[a-zA-Z]/g;
+// used to check if a string consists only of ANSI control sequences
+var matcher = /^(?:\u001B\[\d*(?:;\d+)?[a-zA-Z])+$/;
+
+/**
+ * Creates a terminal writer that writes to the given text output stream.
+ * @param {Stream} out a TextStream
+ */
+var TermWriter = exports.TermWriter = function(out) {
+
+    if (!(this instanceof TermWriter)) {
+        return new TermWriter(out);
+    }
+
+    var _enabled = enabled;
+    out = out || system.stdout;
+
+    /**
+     * Enable or disable ANSI terminal colors for this writer.
+     * @param {boolean} flag true to enable ANSI colors.
+     */
+    this.setEnabled = function(flag) {
+        _enabled = flag;
+    }
+
+    /**
+     * Returns true if ANSI terminal colors are enabled.
+     * @returns true if ANSI is enabled.
+     */
+    this.isEnabled = function() {
+        return _enabled;
+    }
+
+    /**
+     * Write the arguments to the stream, applying ANSI terminal colors if
+     * enabled is true.
+     * @param args... variable number of arguments to write
+     */
+    this.write = function() {
+        for (var i = 0; i < arguments.length; i++) {
+            var arg = String(arguments[i]);
+            if (!_enabled) {
+                arg = arg.replace(cleaner, '');
+            }
             out.write(arg);
-            if (i < arguments.length - 1) {
+            if (arg && !matcher.test(arg) && i < arguments.length - 1) {
                 out.write(" ");
             }
         }
-    }
-};
+    };
 
-exports.writeln = function() {
-    exports.write.apply(this, arguments);
-    system.stdout.writeLine(enabled ? exports.RESET : "");
-};
+    /**
+     * Write the arguments to the stream followed by a newline character,
+     * applying ANSI terminal colors if enabled is true.
+     * @param args... variable number of arguments to write
+     */
+    this.writeln = function() {
+        this.write.apply(this, arguments);
+        out.writeLine(_enabled ? exports.RESET : "");
+    };
+}
+
+var stdout = new TermWriter(system.stdout);
+/**
+ * Write the arguments to `system.stdout`, applying ANSI terminal colors if
+ * support has been detected.
+ * @param args... variable number of arguments to write
+ */
+exports.write = stdout.write.bind(stdout);
+/**
+ * Write the arguments to `system.stdout` followed by a newline character,
+ * applying ANSI terminal colors if support has been detected.
+ * @param args... variable number of arguments to write
+ */
+exports.writeln = stdout.writeln.bind(stdout);
+
 

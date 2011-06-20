@@ -12,10 +12,10 @@ var FAILED = 2;
  * Returns an object of type `Deferred` representing a deferred value. 
  * The deferred is a JavaScript object with two properties: a `Promise` object and a resolve function.
  *
- * The promise object can be used to [register a callback][#deferred.promise.then] to be invoked when
- * the promise is eventually resolved, or [wait for the promise to be resolved][#deferred.promise.wait].
+ * The promise object can be used to [register a callback](#Promise.prototype.then) to be invoked when
+ * the promise is eventually resolved, or [wait for the promise to be resolved](#Promise.prototype.wait).
  *
- * The [resolve][#deferred.resolve] function is used to resolve the promise as either fulfilled or failed.
+ * The [resolve](#Deferred.prototype.resolve) function is used to resolve the promise as either fulfilled or failed.
  *
  * @example
  * // Example for an asynchronous JSGI response.
@@ -178,8 +178,8 @@ function promises() {
  */
 
 /** 
- * The promise object can be used to [register a callback][#deferred.promise.then] to be invoked when
- * the promise is eventually resolved, or [wait for the promise to be resolved][#deferred.promise.wait].
+ * The promise object can be used to [register a callback](#Promise.prototype.then) to be invoked when
+ * the promise is eventually resolved, or [wait for the promise to be resolved](#Promise.prototype.wait).
  * @name Deferred.prototype.promise
  *
  */

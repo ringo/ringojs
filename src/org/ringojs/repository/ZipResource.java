@@ -32,7 +32,7 @@ public final class ZipResource extends AbstractResource {
     protected ZipResource(String childName, ZipRepository repository, ZipEntry entry) {
         this.repository = repository;
         this.entryName = childName;
-        exists = entry != null;
+        exists = entry != null && !entry.isDirectory();
         length = exists ? entry.getSize() : 0;
         lastModified = repository.lastModified();
 
@@ -62,7 +62,7 @@ public final class ZipResource extends AbstractResource {
     private void update() {
         try {
             ZipEntry entry = getZipFile().getEntry(entryName);
-            exists = entry != null;
+            exists = entry != null && !entry.isDirectory();
             length = exists ? entry.getSize() : 0;
             lastModified = repository.lastModified();
         } catch (IOException ex) {

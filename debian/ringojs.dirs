@@ -1,4 +1,2 @@
 usr/share/ringojs/packages
-var/lib/ringojs/apps
-var/lib/ringojs/db
 usr/bin

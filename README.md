@@ -49,10 +49,6 @@ to run the Ringo test suite:
 
     ringo test/all.js
 
-To run the demo web application on port 8080:
-
-    ringo apps/demo/main.js
-
 Use the ringo-admin command to create a new web application or install
 packages. To create a blank Ringo web app:
 

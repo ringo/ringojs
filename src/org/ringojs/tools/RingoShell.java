@@ -21,6 +21,7 @@ import jline.ConsoleReader;
 import jline.History;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.RhinoEngine;
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
@@ -74,6 +75,7 @@ public class RingoShell {
             runSilently();
             return;
         }
+        preloadShellModule();
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
         // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
@@ -116,7 +118,7 @@ public class RingoShell {
                 }
             } catch (Exception ex) {
                 // TODO: shouldn't this print to System.err?
-                printError(ex, System.out, config.isVerbose());
+                printError(ex, out, config.isVerbose());
             } finally {
                 Context.exit();
             }
@@ -133,16 +135,24 @@ public class RingoShell {
     }
 
     protected void printResult(Object result, PrintStream out) {
-        // Avoid printing out undefined or function definitions.
-        if (result != Context.getUndefinedValue()) {
-            out.println(Context.toString(result));
+        try {
+            engine.invoke("ringo/shell", "printResult", result);
+        } catch (Exception x) {
+            // Avoid printing out undefined or function definitions.
+            if (result != Context.getUndefinedValue()) {
+                out.println(Context.toString(result));
+            }
+            out.flush();
         }
-        out.flush();
     }
 
     protected void printError(Exception ex, PrintStream out, boolean verbose) {
-        // default implementation forwards to RingoRunner.reportError()
-        RingoRunner.reportError(ex, out, verbose);
+        try {
+            engine.invoke("ringo/shell", "printError", ex, verbose);
+        } catch (Exception x) {
+            // fall back to RingoRunner.reportError()
+            RingoRunner.reportError(ex, out, verbose);
+        }
     }
 
     private void runSilently() throws IOException {
@@ -150,7 +160,6 @@ public class RingoShell {
         outer: while (true) {
             Context cx = engine.getContextFactory().enterContext();
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
-            cx.setOptimizationLevel(-1);
             String source = "";
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
@@ -168,12 +177,31 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                printError(ex, System.err, config.isVerbose());
+                RingoRunner.reportError(ex, System.err, config.isVerbose());
             } finally {
                 Context.exit();
             }
         }
         System.exit(0);
+    }
+
+    // preload ringo/shell in separate thread
+    private void preloadShellModule() {
+        Thread t = new Thread() {
+            public void run() {
+                Context cx = engine.getContextFactory().enterContext();
+                try {
+                    engine.loadModule(cx, "ringo/shell", null);
+                } catch (Exception ignore) {
+                    // ignore
+                } finally {
+                    Context.exit();
+                }
+            }
+        };
+        t.setPriority(Thread.MIN_PRIORITY);
+        t.setDaemon(true);
+        t.start();
     }
 
     class JSCompletor implements Completor {
@@ -215,7 +243,7 @@ public class RingoShell {
                         // System.err.println(word + " -- " + obj);
                         Object[] ids = obj.getIds();
                         collectIds(ids, obj, word, lastpart, list);
-                        if (list.isEmpty() && obj instanceof ScriptableObject) {
+                        if (list.size() <= 3 && obj instanceof ScriptableObject) {
                             ids = ((ScriptableObject) obj).getAllIds();
                             collectIds(ids, obj, word, lastpart, list);
                         }

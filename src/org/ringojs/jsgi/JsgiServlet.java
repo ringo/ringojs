@@ -20,7 +20,7 @@ import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 import org.ringojs.engine.SyntaxError;
-import org.ringojs.tools.RingoConfiguration;
+import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.FileRepository;
@@ -29,6 +29,7 @@ import org.ringojs.engine.RhinoEngine;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Callable;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +37,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
@@ -63,20 +66,24 @@ public class JsgiServlet extends HttpServlet {
 
         // don't overwrite function if it was set in constructor
         if (function == null) {
-            module = getStringParameter(config, "config", "config");
-            function = getStringParameter(config, "app", "app");
+            module = getStringParameter(config, "app-module", "main");
+            function = getStringParameter(config, "app-name", "app");
         }
 
         if (engine == null) {
             String ringoHome = getStringParameter(config, "ringo-home", "/WEB-INF");
-            String modulePath = getStringParameter(config, "module-path", "app");
+            String modulePath = getStringParameter(config, "module-path", "WEB-INF/app");
+            String bootScripts = getStringParameter(config, "bootscript", null);
             int optlevel = getIntParameter(config, "optlevel", 0);
             boolean debug = getBooleanParameter(config, "debug", false);
             boolean production = getBooleanParameter(config, "production", false);
             boolean verbose = getBooleanParameter(config, "verbose", false);
             boolean legacyMode = getBooleanParameter(config, "legacy-mode", false);
 
-            Repository home = new WebappRepository(config.getServletContext(), ringoHome);
+            ServletContext context = config.getServletContext();
+            Repository base = new WebappRepository(context, "/");
+            Repository home = new WebappRepository(context, ringoHome);
+
             try {
                 if (!home.exists()) {
                     home = new FileRepository(ringoHome);
@@ -84,14 +91,23 @@ public class JsgiServlet extends HttpServlet {
                             + "reverting to file repository " + home);
                 }
                 // Use ',' as platform agnostic path separator
-                String[] paths = StringUtils.split(modulePath, ",");
-                RingoConfiguration ringoConfig = new RingoConfiguration(home, paths, "modules");
+                List<String> paths = Arrays.asList(
+                        StringUtils.split(modulePath, ","));
+                List<String> systemPaths = new ArrayList<String>();
+                systemPaths.add("modules");
+                systemPaths.add("packages");
+                RingoConfiguration ringoConfig =
+                        new RingoConfiguration(home, base, paths, systemPaths);
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);
                 ringoConfig.setStrictVars(!legacyMode && !production);
                 ringoConfig.setReloading(!production);
                 ringoConfig.setOptLevel(optlevel);
+                if (bootScripts != null) {
+                    ringoConfig.setBootstrapScripts(Arrays.asList(
+                            StringUtils.split(bootScripts, ",")));
+                }
                 engine = new RhinoEngine(ringoConfig, null);
             } catch (Exception x) {
                 throw new ServletException(x);
@@ -126,8 +142,9 @@ public class JsgiServlet extends HttpServlet {
         }
         Context cx = engine.getContextFactory().enterContext();
         try {
-            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto, engine.getScope(), this);
-            engine.invoke("ringo/jsgi", "handleRequest", module, function, req);
+            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto,
+                    engine.getScope(), this);
+            engine.invoke("ringo/jsgi/connector", "handleRequest", module, function, req);
         } catch (Exception x) {
             try {
                 renderError(x, response);

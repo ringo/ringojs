@@ -275,16 +275,25 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
  * A TextStream implements an I/O stream used to read and write strings. It
  * wraps a raw Stream and exposes a similar interface.
  * @param {Stream} io The raw Stream to be wrapped.
- * @param charset
- * @param buflen
+ * @param {Object} options the options object. Supports the following properties:
+ *        <ul><li>charset: string containing the name of the encoding to use.
+ *            Defaults to "utf8".</li>
+ *        <li>newline: string containing the newline character sequence to use.
+ *            Defaults to "\n".</li>
+ *        <li>delimiter: string containing the delimiter to use in print().
+ *            Defaults to " ".</li></ul>
+ * @param {number} buflen optional buffer size. Defaults to 8192.
  * @constructor
  */
-exports.TextStream = function TextStream(io, charset, buflen) {
+exports.TextStream = function TextStream(io, options, buflen) {
     if (this.constructor !== exports.TextStream) {
-        return new exports.TextStream(io, charset, buflen);
+        return new exports.TextStream(io, options, buflen);
     }
 
-    charset = charset || "utf8";
+    options = options || {};
+    var charset = options.charset || "utf8";
+    var newline = options.hasOwnProperty("newline") ? options.newline : "\n";
+    var delimiter = options.hasOwnProperty("delimiter") ? options.delimiter : " ";
     var reader, writer;
     var encoder, decoder;
     var DEFAULTSIZE = 8192;
@@ -412,7 +421,7 @@ exports.TextStream = function TextStream(io, charset, buflen) {
      * Writes the given line, followed by a newline.
      */
     this.writeLine = function (line) {
-        this.write(line + "\n"); // todo recordSeparator
+        this.write(line + newline);
         return this;
     };
 
@@ -434,12 +443,11 @@ exports.TextStream = function TextStream(io, charset, buflen) {
         for (var i = 0; i < arguments.length; i++) {
             this.write(String(arguments[i]));
             if (i < arguments.length - 1) {
-                this.write(' ');
+                this.write(delimiter);
             }
         }
-        this.write('\n');
+        this.write(newline);
         this.flush();
-        // todo recordSeparator, fieldSeparator
         return this;
     };
 

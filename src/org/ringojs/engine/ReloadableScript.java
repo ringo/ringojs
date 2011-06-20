@@ -84,6 +84,14 @@ public class ReloadableScript {
     }
 
     /**
+     * Get the script's source resource.
+     * @return the script's source resource.
+     */
+    public Resource getSource() {
+        return resource;
+    }
+
+    /**
      * Get the actual compiled script.
      *
      * @param cx the current Context
@@ -106,7 +114,8 @@ public class ReloadableScript {
             exception = scriptref.exception;
         }
         // recompile if neither script or exception are available, or if source has been updated
-        if ((script == null && exception == null) || (reloading && checksum != resource.getChecksum())) {
+        if ((script == null && exception == null)
+                || (reloading && checksum != resource.getChecksum())) {
             shared = Shared.UNKNOWN;
             if (!resource.exists()) {
                 throw new IOException(resource + " not found or not readable");
@@ -185,7 +194,8 @@ public class ReloadableScript {
             modules.put(resource, module);
         }
         Object value = script.exec(cx, scope);
-        if (scope instanceof ModuleScope) {
+        if (module != null) {
+            module.updateExports();
             checkShared(module);
         }
         return value;
@@ -196,17 +206,14 @@ public class ReloadableScript {
      *
      * @param prototype the prototype for the module, usually the shared top level scope
      * @param cx the rhino context
+     * @param modules thread-local map for registering the module scope
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected ModuleScope load(Scriptable prototype, Context cx)
+    protected synchronized ModuleScope load(Scriptable prototype, Context cx,
+                               Map<Resource, ModuleScope> modules)
             throws JavaScriptException, IOException {
-        // check if we already came across the module in the current context/request
-        Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
-        if (modules.containsKey(resource)) {
-            return modules.get(resource);
-        }
         ModuleScope module = moduleScope;
         if (shared == Shared.TRUE
                 && module != null
@@ -216,33 +223,20 @@ public class ReloadableScript {
             return module;
         }
 
-        if (shared == Shared.UNKNOWN) {
-            module = execSync(cx, getScript(cx), module, prototype, modules);
-        } else {
-            module = exec(cx, getScript(cx), module, prototype, modules);
-        }
-        return module;
+        return exec(cx, getScript(cx), prototype, modules);
     }
 
-    private synchronized ModuleScope execSync(Context cx, Script script,
-                                              ModuleScope module, Scriptable prototype,
-                                              Map<Resource, ModuleScope> modules)
+    private ModuleScope exec(Context cx, Script script, Scriptable prototype,
+                             Map<Resource, ModuleScope> modules)
             throws IOException {
-        return exec(cx, script, module, prototype, modules);
-    }
-
-    private ModuleScope exec(Context cx, Script script, ModuleScope module,
-                             Scriptable prototype, Map<Resource, ModuleScope> modules)
-            throws IOException {
-        if (module == null) {
-            module = new ModuleScope(moduleName, resource, prototype, cx);
-        } else {
-            module.reset();
-        }
+        ModuleScope module = new ModuleScope(moduleName, resource, prototype);
+        modules.put(resource, module);
         if (log.isLoggable(Level.FINE)) {
             log.fine("Loading module: " + moduleName);
         }
-        modules.put(resource, module);
+        if (engine.getConfig().isVerbose()) {
+            System.err.println("Loading module: " + moduleName);
+        }
         // warnings are disabled in shell - enable warnings for module loading
         ErrorReporter er = cx.getErrorReporter();
         ToolErrorReporter reporter = er instanceof ToolErrorReporter ?
@@ -257,6 +251,8 @@ public class ReloadableScript {
         } else {
             script.exec(cx, module);
         }
+        // Update exports in case module updated module.exports
+        module.updateExports();
         checkShared(module);
         return module;
     }
@@ -276,7 +272,7 @@ public class ReloadableScript {
      * @throws IOException source could not be checked because of an I/O error
      */
     protected void checkShared(ModuleScope module) throws IOException {
-        Scriptable meta = module.getMetaObject();
+        Scriptable meta = module.getModuleObject();
         // main module is always treated as shared to guarantee the require.main
         // property meets the requirements of the Securable Modules spec
         boolean isShared = meta.get("shared", meta) != Boolean.FALSE
@@ -380,7 +376,8 @@ public class ReloadableScript {
 
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            System.err.println("Warning: " + new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            System.err.println("Warning: " + new SyntaxError(message, sourceName,
+                    line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
@@ -401,8 +398,10 @@ public class ReloadableScript {
         }
 
         public EvaluatorException runtimeError(String message, String sourceName,
-                                               int line, String lineSource, int lineOffset) {
-            return new EvaluatorException(message, sourceName, line, lineSource, lineOffset);
+                                               int line, String lineSource,
+                                               int lineOffset) {
+            return new EvaluatorException(message, sourceName, line,
+                    lineSource, lineOffset);
         }
     }
 
@@ -413,7 +412,8 @@ public class ReloadableScript {
         Exception exception;
 
 
-        ScriptReference(Resource source, Script script, ReloadableScript rescript, ReferenceQueue<Script> queue)
+        ScriptReference(Resource source, Script script,
+                        ReloadableScript rescript, ReferenceQueue<Script> queue)
                 throws IOException {
             super(script, queue);
             this.source = source;

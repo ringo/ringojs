@@ -86,11 +86,11 @@ function createGregorianCalender(date, locale) {
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
     }
-    
+
     var cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
     cal.set(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     cal.set(java.util.Calendar.MILLISECOND, date.getMilliseconds());
-    
+
     return cal;
 }
 
@@ -106,7 +106,7 @@ function checkDate(fullYear, month, day) {
     if (fullYear == null || month == null || day == null) {
         return false;
     }
-    
+
     var d = new Date(fullYear, month, day);
     return d.getFullYear() === fullYear && d.getMonth() === month && d.getDate() === day;
 }
@@ -126,7 +126,7 @@ function add(date, delta, unit) {
     var cal = createGregorianCalender(date),
     delta = delta || 0,
     unit = unit || "day";
-    
+
     switch (unit) {
         case "year":
             cal.add(java.util.Calendar.YEAR, delta);
@@ -321,16 +321,16 @@ function quarterInFiscalYear(date, fiscalYearStart) {
     var firstDay   = fiscalYearStart.getDate(),
     firstMonth = fiscalYearStart.getMonth(),
     year = date.getFullYear();
-    
+
     if (firstDay === 29 && firstMonth === 1) {
         throw "Fiscal year cannot start on 29th february.";
     }
-    
+
     // fiscal year starts in the year before the date
     if (date.getMonth() < firstMonth || (date.getMonth() == firstMonth && date.getDate() < firstDay)) {
         year --;
     }
-    
+
     var currentFiscalYear = [
         new Date(year, firstMonth, firstDay),
         new Date(year, firstMonth + 3, firstDay),
@@ -338,13 +338,13 @@ function quarterInFiscalYear(date, fiscalYearStart) {
         new Date(year, firstMonth + 9, firstDay),
         new Date(year, firstMonth + 12, firstDay)
     ];
-    
+
     for (var i = 1; i <= 4; i++) {
         if (inPeriod(date, currentFiscalYear[i-1], currentFiscalYear[i], false, true)) {
             return i;
         }
     }
-    
+
     throw "Kudos! You found a bug, if you see this message. Report it!";
 }
 
@@ -363,7 +363,7 @@ function diff(a, b, unit) {
     mDiff = Math.abs(a.getTime() - b.getTime()),
     yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
     delta = mDiff;
-       
+
     switch (unit) {
         case "mixed":
             return {
@@ -392,7 +392,7 @@ function diff(a, b, unit) {
                         break;
         case "millisecond": break; // delta is by default the diff in millis
     }
-    
+
     return Math.floor(delta);
 }
 
@@ -410,7 +410,7 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
         aEnd   = aEnd.getTime(),
         bStart = bStart.getTime(),
         bEnd   = bEnd.getTime();
-        
+
         // A     |----|
         // B  |----|
         if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
@@ -434,7 +434,7 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
         if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
             return true;
         }
-        
+
         return false;
 }
 
@@ -453,7 +453,7 @@ function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) 
     pStartOpen = periodStartOpen || false,
     pEndOpen   = periodEndOpen || false,
     dateMillis = date.getTime();
-    
+
     if(!pStartOpen && !pEndOpen && pStart <= dateMillis && dateMillis <= pEnd) {
         // period  |-------|
         // date       ^
@@ -471,7 +471,7 @@ function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) 
         // date       ^
         return true;
     }
-    
+
     return false;
 }
 
@@ -501,14 +501,16 @@ function resetDate(date) {
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
  * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
  * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
+ * @param {Boolean} withMilliseconds if true, the string will contain also the milliseconds of the date. Default false.
  * @returns String date as ISO 8601 string.
  */
-function toISOString(date, withTime, withTimeZone, withSeconds) {
-    var withTime = withTime || true,
-    withTimeZone = withTimeZone || true,
-    withSeconds = withSeconds || true,
-    year, month, day, hours, minutes, seconds;
-    
+function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
+    var withTime = withTime !== false,
+    withTimeZone = withTimeZone !== false,
+    withSeconds = withSeconds !== false,
+    withMilliseconds = withMilliseconds === true,
+    year, month, day, hours, minutes, seconds, milliseconds, str;
+
     // use local time if output is not in UTC
     if (withTimeZone) {
         year  = date.getFullYear();
@@ -517,6 +519,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
         hours = date.getHours();
         minutes = date.getMinutes();
         seconds = date.getSeconds();
+        milliseconds = date.getMilliseconds();
     } else { // use UTC
         year  = date.getUTCFullYear();
         month = date.getUTCMonth();
@@ -524,24 +527,29 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
         hours = date.getUTCHours();
         minutes = date.getUTCMinutes();
         seconds = date.getUTCSeconds();
+        milliseconds = date.getUTCMilliseconds();
     }
-    
+
     str = year + "-" + strings.pad((month + 1), "0", 2, -1) + "-" + strings.pad(day, "0", 2, -1);
-    
+
     // Append the time
     if (withTime) {
         str += "T" + strings.pad(hours, "0", 2, -1) + ":" + strings.pad(minutes, "0", 2, -1);
         if (withSeconds) {
             str += ":" + strings.pad(seconds, "0", 2, -1);
+
+            if (withMilliseconds) {
+                str += "." + strings.pad(milliseconds, "0", 3, -1);
+            }
         }
     }
-    
+
     // Append the timezone offset
-    if (withTimeZone) {
+    if (withTime && withTimeZone) {
         var offset  = date.getTimezoneOffset(),
-        inHours   = Math.abs(Math.floor(offset / 60)),
+        inHours   = Math.floor(Math.abs(offset / 60)),
         inMinutes = Math.abs(offset) - (inHours * 60);
-        
+
         // Write the time zone offset in hours
         if (offset < 0) {
             str += "+";
@@ -549,10 +557,10 @@ function toISOString(date, withTime, withTimeZone, withSeconds) {
             str += "-";
         }
         str += strings.pad(inHours, "0", 2, -1) + ":" + strings.pad(inMinutes, "0", 2, -1);
-    } else {
+    } else if(withTime) {
         str += "Z"; // UTC indicator
     }
-    
+
     return str;
 }
 
@@ -567,9 +575,9 @@ function fromUTCDate(year, month, date, hour, minute, second) {
  * Parse a string representing a date.
  * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
  * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
- * 
+ *
  * @param {String} str The date string.  This follows the format specified for timestamps
- *        on the internet described in RFC 3339.  
+ *        on the internet described in RFC 3339.
  * @returns {Date} a date representing the given string
  * @see http://tools.ietf.org/html/rfc3339
  * @see http://www.w3.org/TR/NOTE-datetime
@@ -589,12 +597,12 @@ function parse(str) {
             var day = parseInt(match[3], 10) || 1;
 
             date = new Date(Date.UTC(year, month, day));
-            
+
             // Check if the given date is valid
             if (date.getUTCMonth() != month || date.getUTCDate() != day) {
                 return new Date("invalid");
             }
-            
+
             // optional time
             if (match[4] !== undefined) {
                 var type = match[7];
@@ -615,7 +623,7 @@ function parse(str) {
                     }
                     return true;
                 };
-                
+
                 // Use UTC or local time
                 if (type !== undefined) {
                     date.setUTCHours(hours, minutes, seconds, milliseconds);
@@ -624,13 +632,13 @@ function parse(str) {
                             return new Date("invalid");
                         }
                     }
-                    
+
                     // Check offset
                     if (type !== "Z") {
                         var hoursOffset = parseInt(type, 10);
                         var minutesOffset = parseInt(match[8]) || 0;
                         var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
-                        
+
                         // check maximal timezone offset (24 hours)
                         if (Math.abs(offset) >= 86400000) {
                             return new Date("invalid");

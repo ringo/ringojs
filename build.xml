@@ -21,7 +21,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="ringojs"/>
-        <property name="version" value="0.7"/>
+        <property name="version" value="0.8"/>
 
         <property name="home" value="."/>
 
@@ -54,7 +54,8 @@
     <!-- Fetches dependencies via Apache Ivy                                 -->
     <!-- =================================================================== -->
     <target name="update">
-        <ivy:retrieve type="jar" pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
+        <ivy:retrieve type="jar" sync="true"
+            pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
     </target>
 
     <!-- =================================================================== -->
@@ -124,10 +125,11 @@
        </javadoc>
        <delete dir="${jsdocs}"/>
        <java jar="run.jar" fork="true">
-           <arg value="${home}/apps/jsdoc/doc.js"/>
+           <arg value="${home}/tools/jsdoc/doc.js"/>
+           <arg  value="--file-urls"/>
            <arg  value="--source=${home}/modules"/>
            <arg  value="--directory=${jsdocs}"/>
-           <arg  value="--name=RingoJS Module API"/>
+           <arg  value="--name=Ringo Modules"/>
        </java>
     </target>
 

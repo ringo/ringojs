@@ -1,3 +1,9 @@
+/**
+ * @fileOverview A test runner compliant to the
+ * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0)
+ * specification.
+ */
+
 var strings = require("ringo/utils/strings");
 var term = require("ringo/term");
 var fs = require("fs");
@@ -163,7 +169,7 @@ function run(scope, name, writer) {
     }
     scope = null;
     writer.writeSummary(summary);
-    return summary.failures;
+    return summary.failures + summary.errors;
 }
 
 /**

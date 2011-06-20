@@ -99,7 +99,7 @@ function open(path, options) {
     if (binary) {
         return stream;
     } else if (read || write || append) {
-        return new TextStream(stream, charset);
+        return new TextStream(stream, {charset: charset});
     } else if (update) {
         throw new Error("update not yet implemented");
     }
@@ -175,8 +175,13 @@ function copy(from, to) {
  * path, symbolic links to directories are copied but not traversed into.
  */
 function copyTree(from, to) {
-    var source = resolveFile(from);
-    var target = resolveFile(to);
+    var source = resolveFile(from).getCanonicalFile();
+    var target = resolveFile(to).getCanonicalFile();
+    if (String(target) == String(source)) {
+        throw new Error("Source and target files are equal in copyTree.");
+    } else if (String(target).indexOf(String(source) + SEPARATOR) == 0) {
+        throw new Error("Target is a child of source in copyTree");
+    }
     if (source.isDirectory()) {
         makeTree(target);
         var files = source.list();
@@ -446,35 +451,68 @@ function relative(source, target) {
     return target.join(SEPARATOR);
 }
 
-function move(from, to) {
-    var source = resolveFile(from);
-    var target = resolveFile(to);
-    if (!source.renameTo(target)) {
-        throw new Error("failed to move file from " + from + " to " + to);
+/**
+ * Move a file from `source` to `target`.
+ * @param {string} source the source path
+ * @param {string} target the target path
+ * @throws Error
+ */
+function move(source, target) {
+    var from = resolveFile(source);
+    var to = resolveFile(target);
+    if (!from.renameTo(to)) {
+        throw new Error("Failed to move file from " + source + " to " + target);
     }
 }
 
+/**
+ * Remove a file at the given `path`. Throws an error if `path` is not a file
+ * or a symbolic link to a file.
+ * @param {string} path the path of the file to remove.
+ * @throws Error if path is not a file or could not be removed.
+ */
 function remove(path) {
     var file = resolveFile(path);
+    if (!file.isFile()) {
+        throw new Error(path + " is not a file");
+    }
     if (!file['delete']()) {
         throw new Error("failed to remove file " + path);
     }
 }
 
+/**
+ * Return true if the file denoted by `path` exists, false otherwise.
+ * @param {string} path the file path.
+ */
 function exists(path) {
     var file = resolveFile(path);
     return file.exists();
 }
 
+/**
+ * Return the path name of the current working directory.
+ * @returns {string} the current working directory
+ */
 function workingDirectory() {
     return java.lang.System.getProperty('user.dir') + SEPARATOR;
 }
 
+/**
+ * Set the current working directory to `path`.
+ * @param {string} path the new working directory
+ */
 function changeWorkingDirectory(path) {
     path = new File(path).getCanonicalPath();
     java.lang.System.setProperty('user.dir', path);
 }
 
+/**
+ * Remove a file or directory identified by `path`. Throws an error if
+ * `path` is a directory and not empty.
+ * @param path the directory path
+ * @throws Error if the file or directory could not be removed.
+ */
 function removeDirectory(path) {
     var file = resolveFile(path);
     if (!file['delete']()) {
@@ -482,6 +520,11 @@ function removeDirectory(path) {
     }
 }
 
+/**
+ * Returns an array with all the names of files contained in the direcory `path`.
+ * @param {string} path the directory path
+ * @returns {Array} a list of file names
+ */
 function list(path) {
     var file = resolveFile(path);
     var list = file.list();
@@ -495,16 +538,40 @@ function list(path) {
     return result;
 }
 
+/**
+ * Returns the size of a file in bytes, or throws an exception if the path does
+ * not correspond to an accessible path, or is not a regular file or a link.
+ * @param {string} path the file path
+ * @returns {number} the file size in bytes
+ * @throws Error if path is not a file
+ */
 function size(path) {
     var file = resolveFile(path);
+    if (!file.isFile()) {
+        throw new Error(path + " is not a file");
+    }
     return file.length();
 }
 
+/**
+ * Returns the time a file was last modified as a Date object.
+ * @param {string} path the file path
+ * @returns the date the file was last modified
+ */
 function lastModified(path) {
     var file = resolveFile(path);
     return new Date(file.lastModified());
 }
 
+/**
+ * Create a single directory specified by `path`. If the directory cannot be
+ * created for any reason an error is thrown. This includes if the parent
+ * directories of `path` are not present. If a `permissions` argument is passed
+ * to this function it is used to create a Permissions instance which is
+ * applied to the given path during directory creation.
+ * @param {string} path the file path
+ * @param {number|object} permissions optional permissions
+ */
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
     permissions = permissions != null ?
@@ -515,74 +582,133 @@ function makeDirectory(path, permissions) {
     }
 }
 
+/**
+ * Returns true if the file specified by path exists and can be opened for reading.
+ * @param {string} path the file path
+ * @returns {boolean} whether the file exists and is readable
+ */
 function isReadable(path) {
     return resolveFile(path).canRead();
 }
 
+/**
+ * Returns true if the file specified by path exists and can be opened for writing.
+ * @param {string} path the file path
+ * @returns {boolean} whether the file exists and is writable
+ */
 function isWritable(path) {
     return resolveFile(path).canWrite();
 }
 
+/**
+ * Returns true if the file specified by path exists and is a regular file.
+ * @param {string} path the file path
+ * @returns {boolean} whether the file exists and is a file
+ */
 function isFile(path) {
     return resolveFile(path).isFile();
 }
 
+/**
+ * Returns true if the file specified by path exists and is a directory.
+ * @param {string} path the file path
+ * @returns {boolean} whether the file exists and is a directory
+ */
 function isDirectory(path) {
     return resolveFile(path).isDirectory();
 }
 
 /**
  * Return true if target file is a symbolic link, false otherwise.
- * @param target
+ * @param {string} path the file path
+ * @returns true if the given file exists and is a symbolic link
  */
-function isLink(target) {
-    if (security) security.checkRead(target);
+function isLink(path) {
+    if (security) security.checkRead(path);
     try {
         var POSIX = getPOSIX();
-        var stat = POSIX.lstat(target);
+        var stat = POSIX.lstat(path);
         return stat.isSymlink();
     } catch (error) {
         // fallback if POSIX is no available
-        target = resolveFile(target);
-        var parent = target.getParentFile();
+        path = resolveFile(path);
+        var parent = path.getParentFile();
         if (!parent) return false;
         parent = parent.getCanonicalFile();
-        target = new File(parent, target.getName());
-        return !target.equals(target.getCanonicalFile())
+        path = new File(parent, path.getName());
+        return !path.equals(path.getCanonicalFile())
     }
 }
 
+/**
+ * Returns whether two paths refer to the same storage (file or directory),
+ * either by virtue of symbolic or hard links, such that modifying one would
+ * modify the other.
+ * @param {string} pathA the first path
+ * @param {string} pathB the second path
+ */
 function same(pathA, pathB) {
     if (security) {
         security.checkRead(pathA);
         security.checkRead(pathB);
     }
+    // make canonical to resolve symbolic links
+    pathA = canonical(pathA);
+    pathB = canonical(pathB);
+    // check inode to test hard links
     var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
     return stat1.isIdentical(stat2);
 }
 
+/**
+ * Returns whether two paths refer to an entity of the same file system.
+ * @param {string} pathA the first path
+ * @param {string} pathB the second path
+ */
 function sameFilesystem(pathA, pathB) {
     if (security) {
         security.checkRead(pathA);
         security.checkRead(pathB);
     }
+    // make canonical to resolve symbolic links
+    pathA = canonical(pathA);
+    pathB = canonical(pathB);
     var POSIX = getPOSIX();
     var stat1 = POSIX.stat(pathA);
     var stat2 = POSIX.stat(pathB);
     return stat1.dev() == stat2.dev();
 }
 
+/**
+ * Returns the canonical path to a given abstract path. Canonical paths are both
+ * absolute and intrinsic, such that all paths that refer to a given file
+ * (whether it exists or not) have the same corresponding canonical path.
+ * @param {string} path a file path
+ * @returns the canonical path
+ */
 function canonical(path) {
     return resolveFile(path).getCanonicalPath();
 }
 
+/**
+ * Sets the modification time of a file or directory at a given path to a
+ * specified time, or the current time. Creates an empty file at the given path
+ * if no file or directory exists, using the default permissions.
+ * @param {string} path the file path
+ * @param {Date} mtime optional date
+ */
 function touch(path, mtime) {
     mtime = mtime || Date.now();
     return resolveFile(path).setLastModified(mtime);
 }
 
+/**
+ * Creates a symbolic link at the target path that refers to the source path.
+ * @param {string} source the source file
+ * @param {string} target the target link
+ */
 function symbolicLink(source, target) {
     if (security) {
         security.checkRead(source);
@@ -592,6 +718,11 @@ function symbolicLink(source, target) {
     return POSIX.symlink(source, target);
 }
 
+/**
+ * Creates a hard link at the target path that refers to the source path.
+ * @param {string} source the source file
+ * @param {string} target the target file
+ */
 function hardLink(source, target) {
     if (security) {
         security.checkRead(source);
@@ -601,12 +732,20 @@ function hardLink(source, target) {
     return POSIX.link(source, target);
 }
 
+/**
+ * Returns the immediate target of the symbolic link at the given `path`.
+ * @param {string} path a file path
+ */
 function readLink(path) {
     if (security) security.checkRead(path);
     var POSIX = getPOSIX();
     return POSIX.readlink(path);
 }
 
+/**
+ * Returns a generator that produces the file names of a directory.
+ * @param {string} path a directory path
+ */
 function iterate(path) {
     var iter = function() {
         for each (var item in list(path)) {
@@ -619,6 +758,11 @@ function iterate(path) {
     return iter;
 }
 
+/**
+ * The Permissions class describes the permissions associated with a file.
+ * @param {number|object} permissions a number or object representing the permissions.
+ * @param constructor
+ */
 function Permissions(permissions, constructor) {
     if (!(this instanceof Permissions)) {
         return new Permissions(permissions, constructor);

@@ -12,6 +12,7 @@ var System = java.lang.System;
 
 /**
  * A TextStream to read from stdin.
+ * @name stdin
  */
 Object.defineProperty(exports, "stdin", {
     get: function() {
@@ -23,11 +24,12 @@ Object.defineProperty(exports, "stdin", {
     },
     set: function(value) {
         stdin = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**
  * A TextStream to write to stdout.
+ * @name stdout
  */
 Object.defineProperty(exports, "stdout", {
     get: function() {
@@ -39,11 +41,12 @@ Object.defineProperty(exports, "stdout", {
     },
     set: function(value) {
         stdout = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**
  * A TextStream to write to stderr.
+ * @name stderr
  */
 Object.defineProperty(exports, "stderr", {
     get: function() {
@@ -55,7 +58,7 @@ Object.defineProperty(exports, "stderr", {
     },
     set: function(value) {
         stderr = value;
-    }, configurable: true
+    }, configurable: true, enumerable: true
 });
 
 /**

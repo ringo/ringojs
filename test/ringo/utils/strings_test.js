@@ -7,8 +7,18 @@ const URL = 'http://ringojs.org/';
 const HEX_COLOR = 'd3d3d3';
 const FOO = 'foo';
 const NUM = '123';
+const STR = "[]{}()-*+?.\\^$|#, ABC";
+const ESC = "\\[\\]\\{\\}\\(\\)\\-\\*\\+\\?\\.\\\\\\^\\$\\|\\#\\,\\ ABC";
 const FOO_BASE64 = 'Zm9v';
 const NUM_BASE64 = 'MTIz';
+const BASE16 = [
+    ["pleasure", "706C656173757265"],
+    ["leasure", "6C656173757265"],
+    ["easure", "656173757265"],
+    ["asure", "6173757265"],
+    ["sure", "73757265"],
+    ["\u2665", "E299A5"]
+];
 
 exports.testIsDateFormat = function () {
     assert.isTrue(strings.isDateFormat(DATE_FORMAT));
@@ -112,7 +122,7 @@ exports.testUnwrap = function () {
 };
 
 exports.testDigest = function () {
-    assert.strictEqual('acbd18db4cc2f85cedef654fccc4a4d8', strings.digest(FOO));
+    assert.strictEqual('ACBD18DB4CC2F85CEDEF654FCCC4A4D8', strings.digest(FOO));
 };
 
 exports.testRepeat = function () {
@@ -159,14 +169,24 @@ exports.testCount = function () {
     assert.strictEqual(3, strings.count(FOO + FOO + NUM + FOO, FOO));
 };
 
-exports.testEnbase64 = function () {
-    assert.strictEqual(FOO_BASE64, strings.enbase64(FOO));
-    assert.strictEqual(FOO_BASE64 + NUM_BASE64, strings.enbase64(FOO + NUM));
+exports.testB64Encode = function () {
+    assert.strictEqual(FOO_BASE64, strings.b64encode(FOO));
+    assert.strictEqual(FOO_BASE64 + NUM_BASE64, strings.b64encode(FOO + NUM));
 };
 
-exports.testDebase64 = function () {
-    assert.strictEqual(FOO, strings.debase64(FOO_BASE64));
-    assert.strictEqual(FOO + NUM, strings.debase64(FOO_BASE64 + NUM_BASE64));
+exports.testB64Decode = function () {
+    assert.strictEqual(FOO, strings.b64decode(FOO_BASE64));
+    assert.strictEqual(FOO + NUM, strings.b64decode(FOO_BASE64 + NUM_BASE64));
+};
+
+exports.testB64EncodeDecode = function() {
+    for each (var test in BASE16) {
+        assert.strictEqual(strings.b16encode(test[0]), test[1]);
+        assert.strictEqual(strings.b16decode(strings.b16encode(test[0])), test[0]);
+        assert.deepEqual(strings.b16decode(
+                strings.b16encode(test[0]), 'raw').toArray(),
+                new ByteString(test[0], 'utf8').toArray());
+    }
 };
 
 exports.testStripTags = function () {
@@ -176,6 +196,11 @@ exports.testStripTags = function () {
 exports.testEscapeHtml = function () {
     assert.strictEqual('&lt;p&gt;Some text.&lt;/p&gt;',
             strings.escapeHtml('<p>Some text.</p>'));
+};
+
+exports.testEscapeRegExp = function() {
+    assert.equal(ESC, strings.escapeRegExp(STR));
+    assert.isTrue(new RegExp(strings.escapeRegExp(STR)).test(STR));
 };
 
 exports.testSorter = function () {

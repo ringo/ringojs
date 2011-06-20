@@ -73,7 +73,9 @@ public class FileRepository extends AbstractRepository {
         directory = dir.getCanonicalFile();
 
         this.parent = parent;
-        name = directory.getName();
+        // We intentionally get the name from original file,
+        // canonical path's file name may be different in case of symlink.
+        name = dir.getName();
         path = directory.getPath();
         if (!path.endsWith(File.separator)) {
             path += File.separator;

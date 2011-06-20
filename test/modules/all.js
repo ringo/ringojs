@@ -36,7 +36,7 @@ var fs = require('fs');
         var sandbox = createSandbox(
             [prefix], // module path
             {sys: sys}, // globals
-            {includeSystemModules: true} // options
+            {systemModules: ["modules"]} // options
         );
 
         sandbox.runScript('program.js');

@@ -14,7 +14,6 @@ export( 'properties',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
-        'getPackageRepository',
         'getOptimizationLevel',
         'setOptimizationLevel',
         'serialize',
@@ -22,6 +21,7 @@ export( 'properties',
         'version');
 
 var rhino = org.mozilla.javascript;
+var engine = org.ringojs.engine;
 
 /**
  * An object reflecting the Java system properties.
@@ -31,7 +31,7 @@ var properties = new ScriptableMap(java.lang.System.getProperties());
 /**
  * The RingoJS version as [major, minor] array.
  */
-var version =new ScriptableList(org.ringojs.engine.RhinoEngine.VERSION);
+var version =new ScriptableList(engine.RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
@@ -47,7 +47,8 @@ function addHostObject(javaClass) {
  * @param {Array} modulePath the comma separated module search path
  * @param {Object} globals a map of predefined global properties (may be undefined)
  * @param {Object} options an options object (may be undefined). The following options are supported:
- *  - includeSystemModules whether to include the system modules in the module search path
+ *  - systemModules array of system module directories to add to the module search path
+ *                  (may be relative to the ringo install dir)
  *  - classShutter a Rhino class shutter, may be null
  *  - sealed if the global object should be sealed, defaults to false
  * @returns {RhinoEngine} a sandboxed RhinoEngine instance
@@ -55,8 +56,8 @@ function addHostObject(javaClass) {
  */
 function createSandbox(modulePath, globals, options) {
     options = options || {};
-    var systemModules = options.includeSystemModules ? "modules" : null;
-    var config = new org.ringojs.tools.RingoConfiguration(
+    var systemModules = options.systemModules || null;
+    var config = new engine.RingoConfiguration(
             getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {
         var shutter = options.shutter;
@@ -118,34 +119,6 @@ function setOptimizationLevel(level) {
 }
 
 /**
- * Serialize a JavaScript object graph to a java.io.OutputStream. If the
- * function is called without second argument the serialized object is
- * returned as byte array.
- * @param {Object} object the object to serialize
- * @param {java.io.OutputStream} output a java.io.OutputStream
- */
-function serialize(object, output) {
-    if (!(output instanceof java.io.OutputStream)) {
-        output = new java.io.ByteArrayOutputStream();
-        getRhinoEngine().serialize(object, output);
-        return output.toByteArray();
-    }
-    getRhinoEngine().serialize(object, output);
-}
-
-/**
- * Deserialize a previously serialized object graph from a java.io.Inputstream
- * or a byte array.
- * @param {java.io.InputStream} input a InputStream or byte array containing a serialized object
- */
-function deserialize(input) {
-    if (!(input instanceof java.io.InputStream)) {
-        input = new java.io.ByteArrayInputStream(input);
-    }
-    return getRhinoEngine().deserialize(input);
-}
-
-/**
  * Evaluate a module script on an existing scope instead of creating a
  * new module scope. This can be used to mimic traditional JavaScript
  * environments such as those found in web browsers.
@@ -153,23 +126,13 @@ function deserialize(input) {
  * @param {Object} scope the JavaScript object to evaluate the script on
  */
 function evaluate(moduleName, scope) {
+    var script = getRhinoEngine().getScript(moduleName);
     if (!scope) {
         // create a new top level scope object
-        scope = {};
-        scope.__parent__ = null;
-        scope.__proto__ = Object.__parent__;
+        scope = new engine.ModuleScope(moduleName, script.getSource(), global);
     }
-    getRhinoEngine()
-            .getScript(moduleName)
-            .evaluate(scope, getRhinoContext());
+    script.evaluate(scope, getRhinoContext());
     return scope;
-}
-
-/**
- * Get the repository containing installed packages
- */
-function getPackageRepository() {
-    return getRhinoEngine().getPackageRepository();
 }
 
 /**
@@ -184,7 +147,7 @@ function getRhinoContext() {
  * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
-    return org.ringojs.engine.RhinoEngine.getEngine();
+    return engine.RhinoEngine.getEngine();
 }
 
 /**
@@ -192,7 +155,7 @@ function getRhinoEngine() {
  * @returns {ScriptableList} a list containing the errors encountered in the current context
  */
 function getErrors() {
-    return new ScriptableList(org.ringojs.engine.RhinoEngine.errors.get());
+    return new ScriptableList(engine.RhinoEngine.errors.get());
 }
 
 /**

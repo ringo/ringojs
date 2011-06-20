@@ -4,6 +4,17 @@
  */
 
 /**
+ * Converts a string of Markdown formatted text to HTML.
+ *
+ * @param {String} text a Markdown formatted text
+ * @returns {String} the Markdown text converted to HTML
+ */
+exports.process = function(text) {
+    var md = new org.ringojs.util.MarkdownProcessor();
+    return md.process(text);
+}
+
+/**
  * Get an instance of org.ringojs.util.MarkdownProcessor. Passing in an
  * optional JavaScript object as argument allows the caller to override some
  * methods in that class. Specifically, the following methods can be overridden:

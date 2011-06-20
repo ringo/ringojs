@@ -1,8 +1,9 @@
 /**
- * @fileOverview A Buffer class for composing strings.
+ * @fileOverview A simple text Buffer class for composing strings.
  */
 
 var {ByteString} = require('binary');
+var strings = require('ringo/utils/strings');
 
 export('Buffer');
 
@@ -34,7 +35,7 @@ function Buffer() {
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
             var str = String(arguments[i]);
-            content[content.length] = str;
+            content.push(str);
             length += str.length;
         }
         return this;
@@ -47,7 +48,7 @@ function Buffer() {
      */
     this.writeln = function() {
         this.write.apply(this, arguments);
-        content[content.length] = "\r\n";
+        content.push("\r\n");
         length += 2;
         return this;
     };
@@ -85,16 +86,7 @@ function Buffer() {
             md.update(String(part).toByteString());
         });
         var b = ByteString.wrap(md.digest());
-        var buf = [];
-
-        for (var i = 0; i < b.length; i++) {
-            var j = b[i];
-            if (j < 16) {
-                buf[buf.length] = "0";
-            }
-            buf[buf.length] = j.toString(16);
-        }
-        return buf.join("");
+        return strings.b16encode(b);
     };
 
     if (arguments.length > 0) {
