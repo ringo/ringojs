@@ -4,6 +4,7 @@
  */
 
 var {Stream, MemoryStream, TextStream} = require('io');
+var fs = require('fs');
 var arrays = require('ringo/utils/arrays');
 
 function parseArguments(args) {
@@ -34,8 +35,7 @@ function parseArguments(args) {
 var createProcess = exports.createProcess = function(args) {
     // convert arguments
     var {command, env, dir, binary, encoding} = args;
-    dir = dir ? new java.io.File(dir) :
-            new java.io.File(java.lang.System.getProperty('user.dir'));
+    dir = new java.io.File(dir || fs.workingDirectory());
     if (env && !Array.isArray(env)) {
         // convert env to an array of the form ["key=value", ...]
         env = [key + "=" + env[key] for (key in env)];
