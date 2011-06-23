@@ -9,6 +9,7 @@ exports.testBuffer         = require('./ringo/buffer_test');
 exports.testEncoding       = require('./ringo/encoding_test');
 exports.testEvents         = require('./ringo/events_test');
 exports.testPromise        = require('./ringo/promise_test');
+exports.testSubprocess     = require('./ringo/subprocess_test');
 exports.testArrays         = require('./ringo/utils/arrays_test');
 exports.testFiles          = require('./ringo/utils/files_test');
 exports.testObjects        = require('./ringo/utils/objects_test');
