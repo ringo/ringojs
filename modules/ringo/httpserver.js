@@ -168,9 +168,8 @@ function Server(options) {
                         log.debug("new websocket");
                         var socket;
 
-                        return new WebSocket({
-                            onConnect: function(outbound) {
-                                log.debug("onconnect");
+                        return new WebSocket.OnTextMessage({
+                            onOpen: function(outbound) {
 
                                 /**
                                  * The WebSocket object passed as argument to the `connect` callback.
@@ -225,14 +224,14 @@ function Server(options) {
                                 }
                             },
 
-                            onMessage: function(frame, data) {
-                                log.debug("onmessage");
+                            onMessage: function(data) {
+                                log.debug('on message is ', arguments);
                                 if (typeof socket.onmessage === "function") {
                                     socket.onmessage(data);
                                 }
                             },
 
-                            onDisconnect: function() {
+                            onClose: function() {
                                 log.debug("ondisconnect");
                                 if (typeof socket.onclose === "function") {
                                     socket.onclose();
@@ -502,4 +501,3 @@ function main(path) {
 if (require.main == module) {
     main();
 }
-
