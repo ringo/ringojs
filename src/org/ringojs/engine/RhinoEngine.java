@@ -749,7 +749,7 @@ public class RhinoEngine implements ScopeProvider {
                 && (path.startsWith("./") || path.startsWith("../"))) {
             return findResource(localRoot.getRelativePath() + path, null);
         } else {
-            return config.getResource(path);
+            return config.getResource(normalizePath(path));
         }
     }
 
@@ -774,7 +774,38 @@ public class RhinoEngine implements ScopeProvider {
                 return repository;
             }
         }
-        return config.getRepository(path);
+        return config.getRepository(normalizePath(path));
+    }
+
+    public static String normalizePath(String path) {
+        if (path.indexOf('.') == -1) {
+            return path;
+        }
+        boolean absolute = path.startsWith("/");
+        String[] elements = path.split(Repository.SEPARATOR);
+        LinkedList<String> list = new LinkedList<String>();
+        for (String e : elements) {
+            if ("..".equals(e)) {
+                if (list.isEmpty() || "..".equals(list.getLast())) {
+                    list.add(e);
+                } else {
+                    list.removeLast();
+                }
+            } else if (!".".equals(e) && e.length() > 0) {
+                list.add(e);
+            }
+        }
+        StringBuilder sb = new StringBuilder(path.length());
+        if (absolute) {
+            sb.append("/");
+        }
+        int count = 0, last = list.size() - 1;
+        for (String e : list) {
+            sb.append(e);
+            if (count++ < last)
+                sb.append("/");
+        }
+        return sb.toString();
     }
 
     public void addToClasspath(Trackable path) throws MalformedURLException {
