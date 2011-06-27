@@ -9,8 +9,10 @@ function isWindows() /win/i.test(java.lang.System.getProperty('os.name'));
 exports.testCwdSensibleness = function () {
     fs.changeWorkingDirectory(RINGO_HOME);
 
-    var cmd = isWindows() ? 'cd' : '/bin/pwd';
-    var out = subprocess.command(cmd).replace(/\n/, '').replace(/\\/g, '/');
+    var cmd = isWindows() ? 'cmd /c cd' : '/bin/pwd';
+    var out = subprocess.command(cmd)
+            .replace(/\n/, '')
+            .replace(/\\/g, '/');
     var pwd = /\/$/.test(out) ? out : out + '/';
 
     assert.strictEqual(fs.workingDirectory(), RINGO_HOME);
