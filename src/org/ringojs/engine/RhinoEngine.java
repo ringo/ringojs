@@ -778,7 +778,7 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     public static String normalizePath(String path) {
-        if (path.indexOf('.') == -1) {
+        if (path.indexOf("./") == -1) {
             return path;
         }
         boolean absolute = path.startsWith("/");
