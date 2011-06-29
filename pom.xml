@@ -36,6 +36,18 @@
         </license>
     </licenses>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>tracer_repo</id>
+            <name>tracer_repo-snapshots</name>
+            <url>https://repo.tracermedia.com/artifactory/ext-snapshots-local</url>
+        </snapshotRepository>
+        <repository>
+               <id>tracer_repo</id>
+               <name>tracer_repo-releases</name>
+               <url>https://repo.tracermedia.com/artifactory/ext-releases-local</url>
+           </repository>
+    </distributionManagement>
 
     <distributionManagement>
         <repository>
