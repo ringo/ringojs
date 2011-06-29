@@ -7,7 +7,7 @@
   from the RingoJS root folder:
 
       mvn install:install-file -Dfile=lib/js.jar -DgroupId=org.ringojs \
-       -DartifactId=rhino-js -Dversion=1.7R3-SNAPSHOT -Dpackaging=jar
+       -DartifactId=rhino-js -Dversion=1.7R3a-SNAPSHOT -Dpackaging=jar
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -16,7 +16,7 @@
 
     <groupId>org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.7.0</version>
+    <version>0.8.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -119,12 +119,12 @@
         <jetty-version>7.1.6.v20100715</jetty-version>
         <slf4j-version>1.6.1</slf4j-version>
         <log4j-version>1.2.16</log4j-version>
-        <rhino-version>1.7R3-SNAPSHOT</rhino-version>
+        <rhino-version>1.7R3a-SNAPSHOT</rhino-version>
         <junit-version>3.8.2</junit-version>
-        <jnr-posix-version>1.1.5</jnr-posix-version>
+        <jnr-posix-version>1.1.7</jnr-posix-version>
         <constantine-version>0.7</constantine-version>
-        <jffi-version>1.0.5</jffi-version>
-        <jaffl-version>0.5.7</jaffl-version>
+        <jffi-version>1.0.9</jffi-version>
+        <jaffl-version>0.5.9</jaffl-version>
         <jline-version>0.9.94</jline-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -247,7 +247,7 @@
 
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <!--<version>2.4.3</version>-->
+                <version>2.5</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -270,6 +270,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -283,6 +284,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
@@ -315,6 +317,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -335,16 +338,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-changelog-plugin</artifactId>
+                <version>2.2</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.2</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
+                <version>2.5</version>
                 <configuration>
                     <targetJdk>1.5</targetJdk>
                 </configuration>
@@ -353,6 +359,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8</version>
                 <configuration>
                     <source>1.5</source>
                 </configuration>
@@ -361,7 +368,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.4</version>
+                <version>2.5.1</version>
                 <configuration>
                   <instrumentation>
                     <excludes>
