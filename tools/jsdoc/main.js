@@ -29,7 +29,9 @@ var templates = {
     };
 
 /**
- * @param {Object} repostitory
+ * Renders jsdoc html files for the given repository into the exportDirectory.
+ *
+ * @param {Object} repository
  * @param {String} exportDirectory
  * @param {Boolean} quiet
  */
@@ -64,9 +66,9 @@ function copyStaticFiles(target) {
 }
 
 /**
- * Write the module list to directory. Corresponds to actions:repository
+ * Write the html file listing all modules to directory.
  *
- * @param {String} target directory of file to be written
+ * @param {String} target directory of html file to be written
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
@@ -88,7 +90,7 @@ function writeModuleList(target, repository) {
 }
 
 /**
- * Write documentation page for a module to directory. corresponds to actions:module
+ * Write html page documenting one module to the directory.
  *
  * @param {String} directory
  * @param {String} repository path
@@ -148,12 +150,12 @@ function writeModuleDoc(target, repository, moduleId){
 /**
  * Create static documentation for a Repository.
  *
- *   ringo doc.js -s /home/foo/ringojs/modules/
+ *   ringo-doc -s /home/foo/ringojs/modules/
  *
  * You can specify a human readable name for the module which will
  * be display in the documentation:
  *
- *   ringo doc.js -s /home/foo/ringojs/modules -n "Ringojs Modules"
+ *   ringo-doc -s /home/foo/ringojs/modules -n "Ringojs Modules"
  *
  * @param args
  */
@@ -213,8 +215,6 @@ function main(args) {
         throw new Error('Directory ' + dest + ' exists but is not empty');
     }
 
-    // figure out what type of doc we write, single module, multi repos
-    // or single repo
     if (!isDirectory(repository.path)) {
         throw new Error('Invalid source specified. Must be directory.');
         return;
