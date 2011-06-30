@@ -25,7 +25,8 @@ var templates = {
         repository: getResource('./templates/repository.html').content,
         menu: getResource('./templates/menu.html').content,
         head: getResource('./templates/head.html').content,
-        page: getResource('./templates/page.html').content
+        page: getResource('./templates/page.html').content,
+        index: getResource('./templates/index_all.html').content
     };
 
 /**
@@ -43,6 +44,8 @@ var renderRepository = exports.renderRepository = function (repository, exportDi
 
     if (!quiet) print ('Writing to ' + exportDirectory + '...');
     copyStaticFiles(exportDirectory);
+    if (!quiet) print ('Module index');
+    writeRepositoryIndex(exportDirectory, repository);
     if (!quiet) print(repository.path);
     writeModuleList(exportDirectory, repository);
     moduleList(repository.path).forEach(function(module) {
@@ -146,6 +149,32 @@ function writeModuleDoc(target, repository, moduleId){
     var moduleFile = join(moduleDirectory, 'index.html');
     write(moduleFile, moduleHtml);
 }
+
+function writeRepositoryIndex(target, repository) {
+    var modules = moduleList(repository.path).map(function(module) {
+        module.data = structureModuleDoc(moduleDoc(repository.path, module.id));
+        module.moduleName = module.name;
+        return module;
+    });
+    var context = objects.merge(defaultContext, {
+        rootPath: './',
+        repositoryName: repository.name,
+        title: 'Index, ' + repository.name,
+        modules: modules,
+        paramTypeList: function(value) {
+            return value && value.length ? [p.type for each (p in value)].join(', ') : '';
+        },
+        limit: function(value) {
+            return value ? value.substr(0, 100) + '...' : '';
+        }
+    });
+    context.head = mustache.to_html(templates.head, context);
+    context.menu = mustache.to_html(templates.menu, context);
+    context.content = mustache.to_html(templates.index, context);
+    var indexHtml = mustache.to_html(templates.page, context);
+    var indexFile = join(target, 'index_all.html');
+    write(indexFile, indexHtml);
+};
 
 /**
  * Create static documentation for a Repository.

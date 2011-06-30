@@ -153,6 +153,12 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
  */
 exports.structureModuleDoc = function(data) {
 
+    // need to store module id in every item to get access to it during
+    // mustache renering
+    data.items.forEach(function(i) {
+        i.moduleName = data.name;
+    });
+
     var classes = data.items.filter(function(item) {
         return item.isClass;
     });
