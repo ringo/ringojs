@@ -28,7 +28,7 @@ function defineEmitterMethods(obj) {
         /**
          * Emit an event to all listeners registered for this event type
          * @param {string} type type the event type
-         * @param [args...] optional arguments to pass to the listeners
+         * @param {...} [args...] optional arguments to pass to the listeners
          * @name EventEmitter.prototype.emit
          * @return true if the event was handled by at least one listener, false otherwise
          * @throws Error if the event type was "error" and there were no listeners

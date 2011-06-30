@@ -15,6 +15,7 @@ var File = java.io.File;
  * and strictly uses forward slashes as file separators. This makes it
  * usable for resolving URI paths as well as module ids and resource paths.
  * Originally adapted for helma/file from narwhal's file module.
+ * @param {...} arbitrary number of path elements
  */
 function resolveUri() {
     var root = '';
@@ -101,6 +102,7 @@ function createTempFile(prefix, suffix, directory) {
 /**
  * Tests whether the file represented by this File object is a hidden file.
  * What constitutes a hidden file may depend on the platform we are running on.
+ * @param {String} file
  * @returns Boolean true if this File object is hidden
  * @type Boolean
  */
@@ -121,4 +123,3 @@ var roots = File.listRoots().map(String);
  * @type String
  */
 var separator = File.separator;
-

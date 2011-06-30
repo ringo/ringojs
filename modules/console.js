@@ -58,7 +58,7 @@ exports.warn = traceHelper.bind(null, function() {
 /**
  * Logs a message with the visual "info" representation, including the file name
  * and line number of the calling code.
- * @param msg... one or more message arguments
+ * @param {...} msg... one or more message arguments
  * @function
  */
 exports.info = traceHelper.bind(null, function() {
@@ -69,7 +69,7 @@ exports.info = traceHelper.bind(null, function() {
 
 /**
  * Prints a stack trace of JavaScript execution at the point where it is called.
- * @param msg... optional message arguments
+ * @param {...} msg... optional message arguments
  * @function
  */
 exports.trace = traceHelper.bind(null, function() {
@@ -81,7 +81,7 @@ exports.trace = traceHelper.bind(null, function() {
 /**
  * Tests that an expression is true and throws an exception if not.
  * @param expression the expression to test
- * @param msg... one or more error messages
+ * @param {...} msg... one or more error messages
  * @function
  */
 exports.assert = assertHelper;
@@ -89,7 +89,7 @@ exports.assert = assertHelper;
 /**
  * Creates a new timer under the given name. Call `console.timeEnd(name)` with
  * the same name to stop the timer and log the time elapsed.
- * @param name the timer name
+ * @param {String} name the timer name
  */
 exports.time = function(name) {
     if (name && !timers[name]) {
@@ -99,7 +99,7 @@ exports.time = function(name) {
 
 /**
  * Stops a timer created by a call to `console.time(name)` and logs the time elapsed.
- * @param name the timer name
+ * @param {String} name the timer name
  */
 exports.timeEnd = function(name) {
     var start = timers[name];
@@ -114,7 +114,7 @@ exports.timeEnd = function(name) {
 
 /**
  * Prints a list of all properties of an object.
- * @param obj the object
+ * @param {Object} obj the object
  */
 exports.dir = function(obj) {
     require("ringo/shell").printResult(obj, writer);

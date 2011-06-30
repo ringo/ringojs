@@ -25,11 +25,14 @@ var templates = {
         repository: getResource('./templates/repository.html').content,
         menu: getResource('./templates/menu.html').content,
         head: getResource('./templates/head.html').content,
-        page: getResource('./templates/page.html').content
+        page: getResource('./templates/page.html').content,
+        index: getResource('./templates/index_all.html').content
     };
 
 /**
- * @param {Object} repostitory
+ * Renders jsdoc html files for the given repository into the exportDirectory.
+ *
+ * @param {Object} repository
  * @param {String} exportDirectory
  * @param {Boolean} quiet
  */
@@ -41,6 +44,8 @@ var renderRepository = exports.renderRepository = function (repository, exportDi
 
     if (!quiet) print ('Writing to ' + exportDirectory + '...');
     copyStaticFiles(exportDirectory);
+    if (!quiet) print ('Module index');
+    writeRepositoryIndex(exportDirectory, repository);
     if (!quiet) print(repository.path);
     writeModuleList(exportDirectory, repository);
     moduleList(repository.path).forEach(function(module) {
@@ -64,9 +69,9 @@ function copyStaticFiles(target) {
 }
 
 /**
- * Write the module list to directory. Corresponds to actions:repository
+ * Write the html file listing all modules to directory.
  *
- * @param {String} target directory of file to be written
+ * @param {String} target directory of html file to be written
  * @param {String} repository path
  */
 function writeModuleList(target, repository) {
@@ -88,7 +93,7 @@ function writeModuleList(target, repository) {
 }
 
 /**
- * Write documentation page for a module to directory. corresponds to actions:module
+ * Write html page documenting one module to the directory.
  *
  * @param {String} directory
  * @param {String} repository path
@@ -145,15 +150,41 @@ function writeModuleDoc(target, repository, moduleId){
     write(moduleFile, moduleHtml);
 }
 
+function writeRepositoryIndex(target, repository) {
+    var modules = moduleList(repository.path).map(function(module) {
+        module.data = structureModuleDoc(moduleDoc(repository.path, module.id));
+        module.moduleName = module.name;
+        return module;
+    });
+    var context = objects.merge(defaultContext, {
+        rootPath: './',
+        repositoryName: repository.name,
+        title: 'Index, ' + repository.name,
+        modules: modules,
+        paramTypeList: function(value) {
+            return value && value.length ? [p.type for each (p in value)].join(', ') : '';
+        },
+        limit: function(value) {
+            return value ? value.substr(0, 100) + '...' : '';
+        }
+    });
+    context.head = mustache.to_html(templates.head, context);
+    context.menu = mustache.to_html(templates.menu, context);
+    context.content = mustache.to_html(templates.index, context);
+    var indexHtml = mustache.to_html(templates.page, context);
+    var indexFile = join(target, 'index_all.html');
+    write(indexFile, indexHtml);
+};
+
 /**
  * Create static documentation for a Repository.
  *
- *   ringo doc.js -s /home/foo/ringojs/modules/
+ *   ringo-doc -s /home/foo/ringojs/modules/
  *
  * You can specify a human readable name for the module which will
  * be display in the documentation:
  *
- *   ringo doc.js -s /home/foo/ringojs/modules -n "Ringojs Modules"
+ *   ringo-doc -s /home/foo/ringojs/modules -n "Ringojs Modules"
  *
  * @param args
  */
@@ -213,8 +244,6 @@ function main(args) {
         throw new Error('Directory ' + dest + ' exists but is not empty');
     }
 
-    // figure out what type of doc we write, single module, multi repos
-    // or single repo
     if (!isDirectory(repository.path)) {
         throw new Error('Invalid source specified. Must be directory.');
         return;

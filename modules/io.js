@@ -38,7 +38,7 @@ Stream.prototype.copy = function(output) {
 
 /**
  * Read all data from this stream and invoke function `fn` for each chunk of data read.
- * The callback function is called with a ByteArray as single argument. Note that 
+ * The callback function is called with a ByteArray as single argument. Note that
  * the stream is not closed after reading.
  * @param {Function} fn the callback function
  * @param {Object} [thisObj] optional this-object to use for callback
@@ -357,7 +357,11 @@ exports.TextStream = function TextStream(io, options, buflen) {
         }
         return String(line);
     };
-
+    
+    /**
+     * @param {Function} fn the callback function
+     * @param {Object} [thisObj] optional this-object to use for callback
+     */
     this.forEach = function (callback, thisObj) {
         for (var line in this) {
             callback.call(thisObj, line);

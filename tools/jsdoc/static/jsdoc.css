@@ -87,7 +87,7 @@ hr {
 }
 
 .classoverview {
-    background-color: #f0ffc0; /*#f7ffe5; */
+    border-left: 10px solid #f0ffc0; /*#f7ffe5; */
     padding: 5px 10px;
     margin: 15px 0;
 }
@@ -99,4 +99,9 @@ hr {
 .showmore {
     color: blue;
     cursor: pointer;
+}
+
+.modulecontainer {
+    border-left: 10px solid #f0ffc0;
+    padding: 0 0 0 5px;
 }

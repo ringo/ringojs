@@ -285,9 +285,10 @@ function entitize(string) {
 
 /**
  * function inserts a string every number of characters
- * @param Int number of characters after which insertion should take place
- * @param String string to be inserted
- * @param Boolean definitely insert at each interval position
+ * @param {String} string
+ * @param {Number} interval number of characters after which insertion should take place
+ * @param {String} string to be inserted
+ * @param {Boolean} ignoreWhiteSpace definitely insert at each interval position
  * @returns String resulting string
  */
 function group(string, interval, str, ignoreWhiteSpace) {
@@ -309,8 +310,8 @@ function group(string, interval, str, ignoreWhiteSpace) {
 
 /**
  * replace all linebreaks and optionally all w/br tags
- * @param Boolean flag indicating if html tags should be replaced
- * @param String replacement for the linebreaks / html tags
+ * @param {Boolean} flag indicating if html tags should be replaced
+ * @param {String} replacement for the linebreaks / html tags
  * @returns String the unwrapped string
  */
 function unwrap(string, removeTags, replacement) {
@@ -425,9 +426,9 @@ function contains(string, substring, fromIndex) {
 /**
  * Get the longest common segment that two strings
  * have in common, starting at the beginning of the string
- * @param str1 a string
- * @param str2 another string
- * @returns the longest common segment
+ * @param {String} str1 a string
+ * @param {String} str2 another string
+ * @returns {String} the longest common segment
  */
 function getCommonPrefix(str1, str2) {
     if (str1 == null || str2 == null) {
@@ -448,6 +449,7 @@ function getCommonPrefix(str1, str2) {
 
 /**
  * returns true if the string looks like an e-mail
+ * @param {String} string
  */
 function isEmail(string) {
     return EMAILPATTERN.test(string);
@@ -455,6 +457,8 @@ function isEmail(string) {
 
 /**
  * returns the amount of occurences of one string in another
+ * @param {String} string
+ * @param {String} pattern
  */
 function count(string, pattern) {
         var count = 0;
@@ -604,8 +608,8 @@ function compose() {
 
 /**
  * creates a random string (numbers and chars)
- * @param len length of key
- * @param mode determines which letters to use. null or 0 = all letters;
+ * @param {Number} len length of key
+ * @param {Number} mode determines which letters to use. null or 0 = all letters;
  *      1 = skip 0, 1, l and o which can easily be mixed with numbers;
  *      2 = use numbers only
  * @returns random string
@@ -637,10 +641,10 @@ function random(len, mode) {
 /**
  * append one string onto another and add some "glue"
  * if none of the strings is empty or null.
- * @param String the first string
- * @param String the string to be appended onto the first one
- * @param String the "glue" to be inserted between both strings
- * @returns String the resulting string
+ * @param {String} the first string
+ * @param {String} the string to be appended onto the first one
+ * @param {String} the "glue" to be inserted between both strings
+ * @returns {String} the resulting string
  */
 function join(str1, str2, glue) {
     if (glue == null)

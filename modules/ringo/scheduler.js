@@ -26,7 +26,7 @@ var spawnPermission = org.ringojs.security.RingoSecurityManager.SPAWN_THREAD;
  * Executes a function after specified delay.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
- * @param [args] optional arguments to pass to the function
+ * @param {...} [args] optional arguments to pass to the function
  * @returns {object} an id object useful for cancelling the scheduled
  * invocation
  */
@@ -70,7 +70,7 @@ exports.clearTimeout = function(id) {
  * that function.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
- * @param [args] optional arguments to pass to the function
+ * @param {...} args optional arguments to pass to the function
  * @returns {object} an id object useful for cancelling the scheduled invocation
  */
 exports.setInterval = function(callback, delay) {

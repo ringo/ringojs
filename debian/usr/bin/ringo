@@ -50,7 +50,7 @@ case "$(basename $0)" in
     ringo-web)
         app_args=("ringo/httpserver" "${app_args[@]}") ;;
     ringo-doc)
-        app_args=("$RINGO_HOME/tools/jsdoc/doc.js" "${app_args[@]}") ;;
+        app_args=("$RINGO_HOME/tools/jsdoc/main.js" "${app_args[@]}") ;;
     narwhal)
         app_args=("--legacy-mode" "${app_args[@]}") ;;
 esac

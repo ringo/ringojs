@@ -17,13 +17,13 @@ var log = require('ringo/logging').getLogger(module.id);
  * A utility class for implementing JSGI response filters. Each part of the
  * response is first passed to the filter function. If the filter function
  * returns a value, that value is passed on to the JSGI response stream.
- * @param body a JSGI response body
- * @param filter a filter function
+ * @param {Object} body a JSGI response body
+ * @param {Function} filter a filter function
  */
 function ResponseFilter(body, filter) {
     /**
      * forEach function called by the JSGI connector.
-     * @param fn the response handler callback function
+     * @param {Function} fn the response handler callback function
      */
     this.forEach = function(fn) {
         body.forEach(function(block) {
@@ -41,7 +41,7 @@ function ResponseFilter(body, filter) {
  * case-preserving way.
  *
  * This function can be used as mixin for an existing JavaScript object or as a constructor.
- * @param headers an existing JS object. If undefined, a new object is created
+ * @param {Object} headers an existing JS object. If undefined, a new object is created
  */
 function Headers(headers) {
     // when is a duck a duck?
@@ -58,7 +58,7 @@ function Headers(headers) {
 
     /**
      * Get the value of the header with the given name
-     * @param name the header name
+     * @param {String} name the header name
      * @returns the header value
      * @name Headers.instance.get
      */
@@ -74,8 +74,8 @@ function Headers(headers) {
 
     /**
      * Set the header with the given name to the given value.
-     * @param name the header name
-     * @param value the header value
+     * @param {String} name the header name
+     * @param {String} value the header value
      * @name Headers.instance.set
      */
     Object.defineProperty(headers, "set", {
@@ -93,8 +93,8 @@ function Headers(headers) {
 
     /**
      * Add a header with the given name and value.
-     * @param name the header name
-     * @param value the header value
+     * @param {String} name the header name
+     * @param {String} value the header value
      * @name Headers.instance.add
      */
     Object.defineProperty(headers, "add", {
@@ -121,7 +121,7 @@ function Headers(headers) {
 
     /**
      * Queries whether a header with the given name is set
-     * @param name the header name
+     * @param {String} name the header name
      * @returns {Boolean} true if a header with this name is set
      * @name Headers.instance.contains
      */
@@ -134,7 +134,7 @@ function Headers(headers) {
 
     /**
      * Unsets any cookies with the given name
-     * @param name the header name
+     * @param {String} name the header name
      * @name Headers.instance.unset
      */
     Object.defineProperty(headers, "unset", {
@@ -170,8 +170,8 @@ function Headers(headers) {
 /**
  * Get a parameter from a MIME header value. For example, calling this function
  * with "Content-Type: text/plain; charset=UTF-8" and "charset" will return "UTF-8".
- * @param headerValue a header value
- * @param paramName a MIME parameter name
+ * @param {String} headerValue a header value
+ * @param {String} paramName a MIME parameter name
  */
 function getMimeParameter(headerValue, paramName) {
     if (!headerValue)
@@ -300,7 +300,7 @@ var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 
 /**
  * Find out whether the content type denotes a format this module can parse.
- * @param contentType a HTTP request Content-Type header
+ * @param {String} contentType a HTTP request Content-Type header
  * @returns true if the content type can be parsed as form data by this module
  */
 function isUrlEncoded(contentType) {
@@ -310,7 +310,7 @@ function isUrlEncoded(contentType) {
 
 /**
  * Find out whether the content type denotes a format this module can parse.
- * @param contentType a HTTP request Content-Type header
+ * @param {String} contentType a HTTP request Content-Type header
  * @return true if the content type can be parsed as form data by this module
  */
 function isFileUpload(contentType) {
@@ -353,9 +353,9 @@ function parseParameters(input, params, encoding) {
  * Adds a value to a parameter object using a square bracket property syntax.
  * For example, parameter <code>foo[bar][][baz]=hello</code> will result in
  * object structure <code>{foo: {bar: [{baz : "hello"}]}}</code>.
- * @param params the top level parameter object
- * @param name the parameter name
- * @param value the parameter value
+ * @param {Object} params the top level parameter object
+ * @param {String} name the parameter name
+ * @param {String} value the parameter value
  */
 function mergeParameter(params, name, value) {
     // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
@@ -564,6 +564,8 @@ function parseFileUpload(request, params, encoding, streamFactory) {
  * argument to [parseFileUpload()](#parseFileUpload).
  *
  * The buffer is stored in the `value` property of the parameter's data object.
+ * @param {Object} data
+ * @param {String} encoding
  */
 function BufferFactory(data, encoding) {
     var isFile = data.filename != null;
@@ -589,6 +591,8 @@ function BufferFactory(data, encoding) {
  *
  * The name of the temporary file is stored in the `tempfile` property
  * of the parameter's data object.
+ * @param {Object} data
+ * @param {String} encoding
  */
 function TempFileFactory(data, encoding) {
     if (data.filename == null) {
@@ -598,5 +602,3 @@ function TempFileFactory(data, encoding) {
     data.tempfile = createTempFile("ringo-upload-");
     return open(data.tempfile, {write: true, binary: true});
 }
-
-

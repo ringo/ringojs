@@ -154,8 +154,8 @@ function Server(options) {
             /**
              * Start accepting WebSocket connections in this context context.
              *
-             * @param path The URL path on which to accept WebSocket connections
-             * @param onconnect a function called for each new WebSocket connection
+             * @param {String} path The URL path on which to accept WebSocket connections
+             * @param {Function} onconnect a function called for each new WebSocket connection
              *        with the WebSocket object as argument.
              * @since 0.8
              * @see WebSocket

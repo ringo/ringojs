@@ -33,7 +33,7 @@ exports.Binary = Binary;
  * is a String, the constructor requires a second argument containing the
  * name of the String's encoding. If called without arguments, an empty ByteArray
  * is returned.
- * 
+ *
  * @param {Binary|Array|String|Number} contentOrLength content or length of the ByteArray.
  * @param {String} [charset] the encoding name if the first argument is a String.
  * @constructor
@@ -167,7 +167,7 @@ Object.defineProperty(ByteArray.prototype, 'map', {
  * to a single value.
  * @param {Function} callback the function to call with each element of the
  *        ByteArray
- * @param initialValue optional argument to be used as the first argument to
+ * @param {Object} initialValue optional argument to be used as the first argument to
  *        the first call to the callback
  * @returns the return value of the last callback invocation
  * @see https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Array/reduce
@@ -185,7 +185,7 @@ Object.defineProperty(ByteArray.prototype, 'reduce', {
  * element as to reduce its content to a single value.
  * @param {Function} callback the function to call with each element of the
  *        ByteArray
- * @param initialValue optional argument to be used as the first argument to
+ * @param {Object} initialValue optional argument to be used as the first argument to
  *        the first call to the callback
  * @returns the return value of the last callback invocation
  * @see ByteArray.prototype.reduce
