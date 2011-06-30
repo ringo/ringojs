@@ -86,6 +86,8 @@ export('absolute',
 /**
  * Open an IO stream for reading/writing to the file corresponding to the given
  * path.
+ * @param {String} path
+ * @param {Object} options
  */
 function open(path, options) {
     options = checkOptions(options);
@@ -105,6 +107,12 @@ function open(path, options) {
     }
 }
 
+/**
+ * @param {String} path
+ * @param {Object} mode
+ * @param {Object} permissions (not yet supported)
+ * @returns {Stream}
+ */
 function openRaw(path, mode, permissions) {
     // TODO many things missing here
     var file = resolveFile(path);
@@ -123,6 +131,8 @@ function openRaw(path, mode, permissions) {
 
 /**
  * Open, read, and close a file, returning the file's contents.
+ * @param {String} path
+ * @param {Object} options
  */
 function read(path, options) {
     options = options === undefined ? {} : checkOptions(options);
@@ -138,6 +148,9 @@ function read(path, options) {
 /**
  * Open, write, flush, and close a file, writing the given content. If
  * content is a binary.ByteArray or binary.ByteString, binary mode is implied.
+ * @param {String} path
+ * @param {binary.Binary|String} content
+ * @param {Object} options
  */
 function write(path, content, options) {
     options = options === undefined ? {} : checkOptions(options)
@@ -154,6 +167,8 @@ function write(path, content, options) {
 
 /**
  * Read data from one file and write it into another using binary mode.
+ * @param {String} from
+ * @param {String} to
  */
 function copy(from, to) {
     var source = resolveFile(from);
@@ -173,6 +188,8 @@ function copy(from, to) {
  * Copy files from a source path to a target path. Files of the below the
  * source path are copied to the corresponding locations relative to the target
  * path, symbolic links to directories are copied but not traversed into.
+ * @param {String} from
+ * @param {String} to
  */
 function copyTree(from, to) {
     var source = resolveFile(from).getCanonicalFile();
@@ -303,6 +320,9 @@ function absolute(path) {
  * Return the basename of the given path. That is the path with any leading
  * directory components removed. If specified, also remove a trailing
  * extension.
+ * @param {String} path
+ * @param {String} ext
+ * @returns {String}
  */
 function base(path, ext) {
     var name = arrays.peek(split(path));
@@ -318,6 +338,7 @@ function base(path, ext) {
 /**
  * Return the dirname of the given path. That is the path with any trailing
  * non-directory component removed.
+ * @param {String} path
  */
 function directory(path) {
     return new File(path).getParent() || '.';
@@ -327,6 +348,7 @@ function directory(path) {
  * Return the extension of a given path. That is everything after the last dot
  * in the basename of the given path, including the last dot. Returns an empty
  * string if no valid extension exists.
+ * @param {String} path
  */
 function extension(path) {
     var name = base(path);
@@ -352,6 +374,7 @@ function join() {
 
 /**
  * Split a given path into an array of path components.
+ * @param {String} path
  */
 function split(path) {
     if (!path) {
@@ -426,6 +449,8 @@ function resolve() {
  * traversing up ('..') to find a common ancestor of both paths. If the target
  * is omitted, returns the path to the source from the current working
  * directory.
+ * @param {String} source
+ * @param {String} target
  */
 function relative(source, target) {
     if (!target) {
@@ -510,7 +535,7 @@ function changeWorkingDirectory(path) {
 /**
  * Remove a file or directory identified by `path`. Throws an error if
  * `path` is a directory and not empty.
- * @param path the directory path
+ * @param {String} path the directory path
  * @throws Error if the file or directory could not be removed.
  */
 function removeDirectory(path) {
@@ -773,6 +798,9 @@ function Permissions(permissions, constructor) {
     this.constructor = constructor;
 }
 
+/**
+ * @param {Number|Object} permissions
+ */
 Permissions.prototype.update = function(permissions) {
     var fromNumber = typeof permissions == 'number';
     if (!fromNumber && !(permissions instanceof Object)) {
@@ -813,6 +841,9 @@ if (!Permissions['default']) {
     }
 }
 
+/**
+ * @param {String} path
+ */
 function permissions(path) {
     if (security) security.checkRead(path);
     var POSIX = getPOSIX();
@@ -820,6 +851,9 @@ function permissions(path) {
     return new Permissions(stat.mode() & 0777);
 }
 
+/**
+ * @param {String} path
+ */
 function owner(path) {
     if (security) security.checkRead(path);
     try {
@@ -832,6 +866,9 @@ function owner(path) {
     }
 }
 
+/**
+ * @param {String} path
+ */
 function group(path) {
     if (security) security.checkRead(path);
     try {
@@ -844,6 +881,10 @@ function group(path) {
     }
 }
 
+/**
+ * @param {String} path
+ * @param {Number|Object} permissions
+ */
 function changePermissions(path, permissions) {
     if (security) security.checkWrite(path);
     permissions = new Permissions(permissions);
@@ -855,7 +896,11 @@ function changePermissions(path, permissions) {
     POSIX.chmod(path, preservedBits | newBits);
 }
 
-// Supports user name string as well as uid int input.
+/**
+ * Supports user name string as well as uid int input.
+ * @param {String} path
+ * @param {String|Number} group
+ */
 function changeOwner(path, user) {
     if (security) security.checkWrite(path);
     var POSIX = getPOSIX();
@@ -863,7 +908,11 @@ function changeOwner(path, user) {
             POSIX.getpwnam(user).pw_uid : user, -1);
 }
 
-// Supports group name string as well as gid int input.
+/**
+ * Supports group name string as well as gid int input.
+ * @param {String} path
+ * @param {String|Number} group
+ */
 function changeGroup(path, group) {
     if (security) security.checkWrite(path);
     var POSIX = getPOSIX();

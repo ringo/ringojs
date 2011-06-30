@@ -47,8 +47,8 @@ function read() {
 
 /**
  * Read a single line from the standard input.
- * @param prompt {String} optional prompt to display
- * @param echoChar {String} character to use as echo,
+ * @param {String} prompt optional prompt to display
+ * @param {String} echoChar character to use as echo,
  *         e.g. '*' for passwords or '' for no echo.
  */
 function readln(prompt, echoChar) {
@@ -80,7 +80,7 @@ function start(engine) {
 
 /**
  * Quit the shell and exit the JVM.
- * @param status {Number} optional integer exit status code (default is 0)
+ * @param {Number} status optional integer exit status code (default is 0)
  */
 function quit(status) {
    java.lang.System.exit(status || 0);
@@ -241,6 +241,10 @@ function printValue(value, writer, nesting) {
     }
 }
 
+/**
+ * @param {Exception} xcept
+ * @param {Boolean} verbose
+ */
 function printError(xcept, verbose) {
     if (xcept instanceof org.mozilla.javascript.RhinoException) {
         term.writeln(term.BOLD, term.RED, xcept.getMessage());

@@ -36,9 +36,9 @@ function Decoder(charset, strict, capacity) {
 
     /**
      * Decode bytes from the given buffer.
-     * @param bytes a ByteString or ByteArray
-     * @param start The start index, or 0 if undefined
-     * @param end the end index, or bytes.length if undefined
+     * @param {binary.Binary} bytes a ByteString or ByteArray
+     * @param {Number} start The start index, or 0 if undefined
+     * @param {Number} end the end index, or bytes.length if undefined
      */
     this.decode = function(bytes, start, end) {
         start = start || 0;
@@ -53,6 +53,9 @@ function Decoder(charset, strict, capacity) {
         return this;
     };
 
+    /**
+     * @param {Number} remaining
+     */
     function decodeInput(remaining) {
         input.flip();
         var result = decoder.decode(input, output, false);
@@ -109,6 +112,9 @@ function Decoder(charset, strict, capacity) {
                     null : String(output.subSequence(mark, output.limit()));
     };
 
+    /**
+     * @param {Boolean} includeNewline
+     */
     this.readLine = function(includeNewline) {
         var eof = false;
         var newline = StringUtils.searchNewline(output, mark);
@@ -171,6 +177,9 @@ function Decoder(charset, strict, capacity) {
         return input.position() > 0;
     };
 
+    /**
+     * @param {binary.Binary} source
+     */
     this.readFrom = function(source) {
         stream = source;
         return this;
@@ -207,6 +216,11 @@ function Encoder(charset, strict, capacity) {
     encoder.onMalformedInput(errorAction);
     encoder.onUnmappableCharacter(errorAction);
 
+    /**
+     * @param {String} string
+     * @param {Number} start
+     * @param {Number} end
+     */
     this.encode = function(string, start, end) {
         start = start || 0;
         end = end || string.length;

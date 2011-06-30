@@ -566,6 +566,13 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
 
 /**
  * Create new Date from UTC timestamp.
+ * @param {Number} year
+ * @param {Number} month
+ * @param {Number} date
+ * @param {Number} hour
+ * @param {Number} minute
+ * @param {Number} second
+ * @returns {Date}
  */
 function fromUTCDate(year, month, date, hour, minute, second) {
     return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0));

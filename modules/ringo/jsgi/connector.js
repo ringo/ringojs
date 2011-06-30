@@ -12,11 +12,11 @@ var log = require('ringo/logging').getLogger(module.id);
 
 /**
  * Handle a JSGI request.
- * @param moduleId the module id. Ignored if functionObj is already a function.
- * @param functionObj the function, either as function object or function name to be
+ * @param {String} moduleId the module id. Ignored if functionObj is already a function.
+ * @param {Function} functionObj the function, either as function object or function name to be
  *             imported from the module moduleId.
- * @param req the JSGI request object
- * @returns the JSGI response object
+ * @param {Object} req the JSGI request object
+ * @returns {Object} the JSGI response object
  */
 function handleRequest(moduleId, functionObj, request) {
     initRequest(request);
@@ -47,7 +47,7 @@ function handleRequest(moduleId, functionObj, request) {
 
 /**
  * Set up the I/O related properties of a jsgi environment object.
- * @param env a jsgi request object
+ * @param {Object} env a jsgi request object
  */
 function initRequest(request) {
     var input, errors;

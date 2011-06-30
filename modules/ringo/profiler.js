@@ -200,4 +200,3 @@ function Profiler() {
     profiler.debuggerScript = module.id + ".js";
     return profiler;
 }
-
