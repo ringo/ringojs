@@ -19,7 +19,7 @@
     <artifactId>ringojs</artifactId>
     <version>0.8.0-SNAPSHOT</version>
 
-    <packaging>jar</packaging>
+    <packaging>jar</packaging>    
 
     <name>RingoJS</name>
     <description>
@@ -36,6 +36,27 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>tracer_repo</id>
+            <name>tracer_repo-snapshots</name>
+            <url>https://repo.tracermedia.com/artifactory/ext-snapshots-local</url>
+        </snapshotRepository>
+        <repository>
+               <id>tracer_repo</id>
+               <name>tracer_repo-releases</name>
+               <url>https://repo.tracermedia.com/artifactory/ext-releases-local</url>
+           </repository>
+    </distributionManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>tracer_repo</id>
+            <name>tracer_repo-releases</name>
+            <url>https://repo.tracermedia.com/artifactory/ext-releases-local</url>
+        </repository>
+    </distributionManagement>
 
     <scm>
         <url>http://github.com/ringo/ringojs</url>
