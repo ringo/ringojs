@@ -116,13 +116,7 @@ public class RhinoEngine implements ScopeProvider {
                 }
             }
             evaluateScript(cx, getScript("ringo/global"), globalScope);
-            List<String> bootstrapScripts = config.getBootstrapScripts();
-            if (bootstrapScripts != null) {
-                for(String script : bootstrapScripts) {
-                    Resource resource = new FileResource(script);
-                    evaluateScript(cx, new ReloadableScript(resource, this), globalScope);
-                }
-            }
+            evaluateBootstrapScripts(cx);
             if (sealed) {
                 globalScope.sealObject();
             }
@@ -656,6 +650,24 @@ public class RhinoEngine implements ScopeProvider {
         if (objs != null) {
             engines.set((RhinoEngine) objs[0]);
             modules.set((Map<Resource, ModuleScope>) objs[1]);
+        }
+    }
+
+    private void evaluateBootstrapScripts(Context cx) throws IOException {
+        List<String> bootstrapScripts = config.getBootstrapScripts();
+        if (bootstrapScripts != null) {
+            for(String script : bootstrapScripts) {
+                Resource resource = new FileResource(script);
+                // not found, attempt to resolve the file relative to ringo home
+                if (!resource.exists()) {
+                    resource = getRingoHome().getResource(script);
+                }
+                if (resource == null || !resource.exists()) {
+                    throw new FileNotFoundException(
+                            "Bootstrap script " + script + " not found");
+                }
+                evaluateScript(cx, new ReloadableScript(resource, this), globalScope);
+            }
         }
     }
 
