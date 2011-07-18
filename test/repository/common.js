@@ -54,7 +54,7 @@ exports.setup = function(exports, path, repo) {
     exports.testGetRecursiveResources = function() {
         var res = repo.getResources(true);
         assert.strictEqual(res.length, 2);
-        res = res.sort(function(a, b) a.length > b.length);
+        res = res.sort(function(a, b) a.length - b.length);
         assert.strictEqual(res[0].name, "test.txt");
         assert.strictEqual(res[0].relativePath, "test.txt");
         assert.strictEqual(res[0].path, absolute(join(path, "test.txt")));
