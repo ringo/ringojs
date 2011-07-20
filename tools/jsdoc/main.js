@@ -159,7 +159,7 @@ function writeRepositoryIndex(target, repository) {
     var context = objects.merge(defaultContext, {
         rootPath: './',
         repositoryName: repository.name,
-        title: 'Index, ' + repository.name,
+        title: 'Index: ' + repository.name,
         modules: modules,
         paramTypeList: function(value) {
             return value && value.length ? [p.type for each (p in value)].join(', ') : '';
