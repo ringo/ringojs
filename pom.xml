@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  RingoJS uses a newer version of Rhino than the one that can currently be found
-  in Maven's central repository.
 
-  To add the RingoJS version of Rhino to your local repository, run the following command
-  from the RingoJS root folder. Ideally, your company runs there own repository and an SCM
-  admin can install the artifact there for the whole company to benefit. The Mozilla team
-  are now working towards getting the 1.7R3 version deployed to the central repository, so
-  this step will soon be moot.
-
-      mvn install:install-file -Dfile=lib/js.jar -DgroupId=org.mozilla \
-       -DartifactId=rhino -Dversion=1.7R3 -Dpackaging=jar
-
-  Next, we need to get RingoJS added to the central repository. :)
-
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
