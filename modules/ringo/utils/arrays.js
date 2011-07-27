@@ -24,7 +24,7 @@ export('contains', 'peek', 'remove', 'union', 'intersection', 'max', 'min', 'par
 /**
  * Check if an array passed as argument contains
  * a specific value (start from end of array).
- * @param {Array} the array
+ * @param {Array} array the array
  * @param {Object} val the value to check
  * @returns {boolean} true if the value is contained
  */
@@ -35,7 +35,7 @@ function contains(array, val) {
 /**
  * Return the last element of the array. This is like pop(), but
  * without modifying the array.
- * @param {Array} the array
+ * @param {Array} array the array
  * @returns {Object} the last element of the array, or undefined if the array is empty.
  */
 function peek(array) {
@@ -46,7 +46,7 @@ function peek(array) {
  * Remove the first occurrence of the argument value from the array. This method
  * mutates and returns the array on which it is called and does not create a
  * new array instance.
- * @param {Array} the array
+ * @param {Array} array the array
  * @param {Object} val the value to remove
  * @returns {Array} the array
  */
@@ -102,7 +102,7 @@ function intersection(array) {
 }
 
 /**
- * @param {Array} the array
+ * @param {Array} array the array
  * @returns the maximal element in an array obtained by calling Math.max().
  */
 function max(array) {
@@ -110,7 +110,7 @@ function max(array) {
 }
 
 /**
- * @param {Array} the array
+ * @param {Array} array the array
  * @returns the minimal element in an array obtained by calling Math.min().
  */
 function min(array) {
