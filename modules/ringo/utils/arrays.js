@@ -113,14 +113,13 @@ function min(array) {
 }
 
 function partition(fn) {
-        var trues = [], falses = [];
-        for (var i=0; i<this.length; i++) {
-            if (fn(this[i], i)) {
-                trues.push(this[i]);
-            } else {
-                falses.push(this[i]);
-            }
+    var trues = [], falses = [];
+    for (var i=0; i<this.length; i++) {
+        if (fn(this[i], i)) {
+            trues.push(this[i]);
+        } else {
+            falses.push(this[i]);
         }
-        return [trues, falses]
     }
-
+    return [trues, falses]
+}
