@@ -363,8 +363,16 @@ function mergeParameter(params, name, value) {
         var names = name.split(/\]\s*\[|\[|\]/).map(function(s) s.trim()).slice(0, -1);
         mergeParameterInternal(params, names, value);
     } else {
-        // not matching the foo[bar] pattern, add param as is
-        params[name] = value;
+        // not matching the foo[bar] pattern, add param as is. If there is another param with the
+        // same name, we need to create an array.
+        if (params[name]) {
+            if (Array.isArray(params[name])) params[name].push(value);
+            else {
+                params[name] = [].concat(params[name]).concat(value);
+            }
+        } else {
+            params[name] = value;
+        }
     }
 }
 
