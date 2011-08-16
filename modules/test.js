@@ -61,8 +61,10 @@ function jsDump(value, lvl) {
                 buf.push(jsDump.indent(lvl + 1) + '"' + propName + '": ' + jsDump(value[propName], lvl + 1));
             }
             return ["{", buf.join(",\n"), jsDump.indent(lvl) + "}"].join("\n");
+        case "java":
+            return '<java:' + value.class.name + '>';
     }
-};
+}
 jsDump.indent = function(lvl) {
     return strings.repeat(" ", 4 * lvl);
 };
@@ -96,9 +98,11 @@ function getType(obj) {
         return "regexp";
     } else if (obj instanceof Function) {
         return "function";
+    } else if (obj instanceof java.lang.Object) {
+        return "java";
     }
     return "object";
-};
+}
 
 /**
  * Creates a stack trace and parses it for display.
