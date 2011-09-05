@@ -118,7 +118,8 @@ function checkDate(fullYear, month, day) {
  * @param {Date} date base date to add or remove time from.
  * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
  * @param {String} unit (optional) field to change. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
- *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt>.
+ *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt> (24-hour clock), <tt>minute</tt>, <tt>second</tt>,
+ *        <tt>millisecond</tt>.
  * @returns {Date} date with the calculated date and time
  * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#add(int,%20int)
  */
@@ -144,7 +145,7 @@ function add(date, delta, unit) {
             cal.add(java.util.Calendar.DATE, delta);
             break;
         case "hour":
-            cal.add(java.util.Calendar.HOUR, delta);
+            cal.add(java.util.Calendar.HOUR_OF_DAY, delta);
             break;
         case "minute":
             cal.add(java.util.Calendar.MINUTE, delta);

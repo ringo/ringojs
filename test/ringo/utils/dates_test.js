@@ -74,7 +74,7 @@ exports.testAdd = function () {
     assert.equal(dates.add(d, 0, 'quarter').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'year').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
-    // Remove 10
+    // Remove 1
     var removeOne = {
         "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 9),
         "second":       Date.UTC(2010, 10, 10, 10, 10, 9, 10),
@@ -87,6 +87,26 @@ exports.testAdd = function () {
     for (var tUnit in removeOne) {
         assert.equal((dates.add(d, -1, tUnit)).getTime(), new Date(removeOne[tUnit]).getTime(), tUnit);
     }
+
+    // Remove 13 hours
+    var fullHourDate = new Date(Date.UTC(2010, 10, 10, 23, 10, 10, 10)); // Wed Nov 10 2010 23:10:10 GMT+0100 (MEZ)
+    assert.equal(dates.add(fullHourDate, -13, 'hour').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    
+    // Add 13 hours
+    fullHourDate = new Date(Date.UTC(2010, 10, 10, 0, 10, 10, 10)); // Wed Nov 10 2010 00:10:10 GMT+0100 (MEZ)
+    assert.equal(dates.add(fullHourDate, 13, 'hour').getTime(), Date.UTC(2010, 10, 10, 13, 10, 10, 10));
+    
+    // Remove 48 hours
+    assert.equal(dates.add(d, -48, 'hour').getTime(), Date.UTC(2010, 10, 8, 10, 10, 10, 10));
+    
+    // Add 48 hours
+    assert.equal(dates.add(d, 48, 'hour').getTime(), Date.UTC(2010, 10, 12, 10, 10, 10, 10));
+    
+    // Add 61 hours
+    assert.equal(dates.add(d, 61, 'hour').getTime(), Date.UTC(2010, 10, 12, 23, 10, 10, 10));
+    
+    // Remove 61 hours
+    assert.equal(dates.add(d, -61, 'hour').getTime(), Date.UTC(2010, 10, 7, 21, 10, 10, 10));
 
     // To avoid time zone and daylight saving time problems, month and quarter are tested with full circles
     assert.equal((dates.add(d, -12, "month")).getTime(), new Date(Date.UTC(2009, 10, 10, 10, 10, 10, 10)).getTime());
