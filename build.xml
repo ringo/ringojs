@@ -64,6 +64,7 @@
     <target name="compile" depends="init">
         <mkdir dir="${classes}"/>
         <javac srcdir="${src}"
+            source="1.5"
             target="1.5"
             destdir="${classes}"
             debug="${debug}"
