@@ -1,6 +1,8 @@
 <ivy-module version="2.0">
     <info organisation="org.ringojs" module="ringojs"/>
     <dependencies>
+        <!-- rhino -->
+        <dependency org="org.mozilla" name="rhino" rev="1.7R3"/>
         <!-- jetty -->
         <dependency org="org.eclipse.jetty" name="jetty-client" rev="7.4.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-server" rev="7.4.+"/>
@@ -8,9 +10,20 @@
         <dependency org="org.eclipse.jetty" name="jetty-websocket" rev="7.4.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-xml" rev="7.4.+"/>
         <dependency org="javax.servlet" name="servlet-api" rev="2.5"/>
+        <!-- logging -->
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.5.+"/>
+        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.5.+"/>
+        <!-- dependency org="log4j" name="log4j" rev="1.2.15"/-->
+        <!-- jnr-posix -->
+        <dependency org="org.jruby.extras" name="jaffl" rev="0.5.+"/>
+        <dependency org="org.jruby.ext.posix" name="jnr-posix" rev="1.1.+"/>
+        <!-- junit -->
+        <dependency org="junit" name="junit" rev="3.8.+"/>
         <!-- exclude transitive dependencies we already have or don't want -->
-        <exclude org="org.mortbay.jetty" module="jetty-util" />
-        <exclude org="org.mortbay.jetty" module="servlet-api" />
-        <exclude org="org.slf4j" module="slf4j-api" />
+        <exclude org="org.mortbay.jetty" module="jetty-util"/>
+        <exclude org="org.mortbay.jetty" module="servlet-api"/>
+        <!-- exclude org="log4j" module="log4j"/ -->
+        <exclude org="javax.mail" module="mail"/>
+        <exclude org="org.apache.geronimo.specs" module="geronimo-jms_1.1_spec"/>
     </dependencies>
 </ivy-module>

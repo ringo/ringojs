@@ -55,7 +55,7 @@
     <!-- =================================================================== -->
     <target name="update">
         <ivy:retrieve type="jar" sync="true"
-            pattern="${ivy.lib.dir}/jetty/[artifact]-[revision].[ext]"/>
+            pattern="${ivy.lib.dir}/ivy/[artifact]-[revision].[ext]"/>
     </target>
 
     <!-- =================================================================== -->
