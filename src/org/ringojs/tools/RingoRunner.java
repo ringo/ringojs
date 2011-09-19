@@ -169,7 +169,7 @@ public class RingoRunner {
                 engine.waitTillDone();
             }
         } catch (Exception x) {
-            reportError(x, err, verbose);
+            reportError(x, err, engine.getErrorList(), verbose);
             System.exit(-1);
         }
     }
@@ -182,12 +182,12 @@ public class RingoRunner {
             }
             cx = engine.getContextFactory().enterContext();
             String moduleId = config.getMainResource().getModuleName();
-            module = engine.loadModule(cx, moduleId, null).getExports();
+            module = engine.getWorker().loadModule(cx, moduleId, null).getExports();
             engine.invoke(module, "init");
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, err, verbose);
+            reportError(x, err, engine.getErrorList(), verbose);
             System.exit(-1);
         }
     }
@@ -199,7 +199,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, verbose);
+                reportError(x, err, engine.getErrorList(), verbose);
                 System.exit(-1);
             }
         }
@@ -213,7 +213,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, verbose);
+                reportError(x, err, engine.getErrorList(), verbose);
                 System.exit(-1);
             }
         }
@@ -226,7 +226,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, verbose);
+                reportError(x, err, engine.getErrorList(), verbose);
                 System.exit(-1);
             }
         }
@@ -397,13 +397,13 @@ public class RingoRunner {
         System.exit(code);
     }
 
-    public static void reportError(Throwable x, PrintStream output, boolean debug) {
+    public static void reportError(Throwable x, PrintStream output,
+                                   List<SyntaxError> errors, boolean debug) {
         if (x instanceof RhinoException) {
             output.println(x.getMessage());
         } else {
             output.println(x.toString());
         }
-        List<SyntaxError> errors = RhinoEngine.errors.get();
         if (errors != null && !errors.isEmpty()) {
             for (SyntaxError error : errors) {
                 output.println(error);

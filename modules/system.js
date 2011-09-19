@@ -87,7 +87,7 @@ exports.exit = function(status) {
 };
 
 // Narwhal compatibility
-var engine = org.ringojs.engine.RhinoEngine.getEngine();
+var engine = org.ringojs.engine.RhinoEngine.getEngine(global);
 var home = engine.getRingoHome();
 /** @ignore */
 exports.prefix = home.getPath();

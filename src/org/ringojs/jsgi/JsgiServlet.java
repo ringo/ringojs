@@ -146,12 +146,14 @@ public class JsgiServlet extends HttpServlet {
                     engine.getScope(), this);
             engine.invoke("ringo/jsgi/connector", "handleRequest", module, function, req);
         } catch (Exception x) {
+            List<SyntaxError> errors = engine.getErrorList();
+            boolean verbose = engine.getConfig().isVerbose();
             try {
-                renderError(x, response);
-                RingoRunner.reportError(x, System.err, engine.getConfig().isVerbose());
+                renderError(x, response, errors);
+                RingoRunner.reportError(x, System.err, errors, verbose);
             } catch (Exception failed) {
                 // custom error reporting failed, rethrow original exception for default handling
-                RingoRunner.reportError(x, System.err, false);
+                RingoRunner.reportError(x, System.err, errors, false);
                 throw new ServletException(x);
             }
         } finally {
@@ -159,7 +161,8 @@ public class JsgiServlet extends HttpServlet {
         }
     }
 
-    protected void renderError(Throwable t, HttpServletResponse response)
+    protected void renderError(Throwable t, HttpServletResponse response,
+                               List<SyntaxError> errors)
             throws IOException {
         response.reset();
         InputStream stream = JsgiServlet.class.getResourceAsStream("error.html");
@@ -187,9 +190,10 @@ public class JsgiServlet extends HttpServlet {
                     .append("</b> at line <b>")
                     .append(rx.lineNumber())
                     .append("</b></p>");
-            List<SyntaxError> errors = RhinoEngine.errors.get();
-            for (SyntaxError error : errors) {
-                body.append(error.toHtml());
+            if (errors != null) {
+                for (SyntaxError error : errors) {
+                    body.append(error.toHtml());
+                }
             }
             body.append("<h3>Script Stack</h3><pre>")
                     .append(rx.getScriptStackTrace())

@@ -30,6 +30,8 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -43,7 +45,7 @@ public class RhinoEngine implements ScopeProvider {
     private List<Repository> repositories;
     private RingoGlobal globalScope;
     private List<String> commandLineArgs;
-    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts, sharedScripts;
+    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts;
     private final Map<String, Object> singletons;
     private AppClassLoader loader = new AppClassLoader();
     private WrapFactory wrapFactory;
@@ -56,14 +58,9 @@ public class RhinoEngine implements ScopeProvider {
     public static final List<Integer> VERSION =
             Collections.unmodifiableList(Arrays.asList(0, 8));
 
-    public static final ThreadLocal<List<SyntaxError>> errors =
-            new ThreadLocal<List<SyntaxError>>();
-    static final ThreadLocal<RhinoEngine> engines =
-            new ThreadLocal<RhinoEngine>();
-    static final ThreadLocal<Map<Resource, ModuleScope>>modules =
-            new ThreadLocal<Map<Resource, ModuleScope>>();
-    static final ThreadLocal<ReloadableScript>currentScripts =
-            new ThreadLocal<ReloadableScript>();
+    private final ThreadLocal<RingoWorker> workers = new ThreadLocal<RingoWorker>();
+    private final Queue<RingoWorker> workerCache =
+            new ConcurrentLinkedQueue<RingoWorker>();
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
@@ -78,7 +75,6 @@ public class RhinoEngine implements ScopeProvider {
         this.config = config;
         compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        sharedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         singletons = Collections.synchronizedMap(new HashMap<String, Object>());
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
@@ -95,7 +91,6 @@ public class RhinoEngine implements ScopeProvider {
         }
         // create a new global scope level
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
@@ -115,8 +110,9 @@ public class RhinoEngine implements ScopeProvider {
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            evaluateScript(cx, getScript("ringo/global"), globalScope);
-            evaluateBootstrapScripts(cx);
+            RingoWorker worker = getWorker();
+            worker.evaluateScript(cx, getScript("ringo/global"), globalScope);
+            evaluateBootstrapScripts(cx, worker);
             if (sealed) {
                 globalScope.sealObject();
             }
@@ -125,7 +121,6 @@ public class RhinoEngine implements ScopeProvider {
             }
         } finally {
             Context.exit();
-            resetThreadLocals(threadLocals);
         }
     }
 
@@ -165,7 +160,6 @@ public class RhinoEngine implements ScopeProvider {
     public Object runScript(Object scriptResource, String... scriptArgs)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
         Resource resource;
         if (scriptResource instanceof Resource) {
             resource = (Resource) scriptResource;
@@ -185,12 +179,12 @@ public class RhinoEngine implements ScopeProvider {
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope);
-            retval = evaluateScript(cx, script, mainScope);
+            RingoWorker worker = getWorker();
+            retval = worker.evaluateScript(cx, script, mainScope);
             mainScope.updateExports();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
-            resetThreadLocals(threadLocals);
         }
     }
 
@@ -205,7 +199,6 @@ public class RhinoEngine implements ScopeProvider {
     public Object evaluateExpression(String expr)
             throws IOException, JavaScriptException {
         Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
         cx.setOptimizationLevel(-1);
         try {
             Object retval;
@@ -216,7 +209,6 @@ public class RhinoEngine implements ScopeProvider {
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             Context.exit();
-            resetThreadLocals(threadLocals);
         }
     }
 
@@ -233,46 +225,43 @@ public class RhinoEngine implements ScopeProvider {
      * @throws IOException an I/O related error occurred
      */
     public Object invoke(Object module, String method, Object... args)
-            throws IOException, NoSuchMethodException {
-        Context cx = contextFactory.enterContext();
-        Object[] threadLocals = checkThreadLocals();
-        try {
-            initArguments(args);
-            if (!(module instanceof String) && !(module instanceof Scriptable)) {
-                throw new IllegalArgumentException("module argument must be a Scriptable or String object");
-            }
-            Object retval;
-            while (true) {
-                try {
-                    Scriptable scriptable = module instanceof Scriptable ?
-                            (Scriptable) module : loadModule(cx, (String) module, null);
-                    Object function = ScriptableObject.getProperty(scriptable, method);
-                    if (!(function instanceof Function)) {
-                        throw new NoSuchMethodException("Function " + method + " not defined");
-                    }
-                    retval = ((Function) function).call(cx, globalScope, scriptable, args);
-                    break;
-                } catch (JavaScriptException jsx) {
-                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
-                            (Scriptable) jsx.getValue() : null;
-                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
-                        modules.get().clear();
-                    } else {
-                        throw jsx;
-                    }
-                } catch (RetryException retry) {
-                    // request to try again
-                    modules.get().clear();
-                }
-            }
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
-            }
-            return retval;
-        } finally {
-            Context.exit();
-            resetThreadLocals(threadLocals);
+            throws IOException, NoSuchMethodException, ExecutionException,
+                    InterruptedException {
+        return getWorker().invoke(module, method, args);
+    }
+
+    protected void initWorker() {
+        RingoWorker worker = workerCache.poll();
+        if (worker == null) {
+            worker = new RingoWorker(this);
         }
+        workers.set(worker);
+    }
+
+    protected void releaseWorker() {
+        RingoWorker worker = workers.get();
+        if (worker != null) {
+            workers.remove();
+            worker.getErrors().clear();
+            workerCache.offer(worker);
+        }
+    }
+
+    /**
+     * Get the {@link RingoWorker} associated with the current thread.
+     * @return the current worker.
+     */
+    public RingoWorker getWorker() {
+        return workers.get();
+    }
+
+    /**
+     * Get the list of errors encountered by the current worker.
+     * @return a list of errors, may be null.
+     */
+    public List<SyntaxError> getErrorList() {
+        RingoWorker worker = workers.get();
+        return worker != null ? worker.getErrors() : null;
     }
 
     /**
@@ -399,8 +388,6 @@ public class RhinoEngine implements ScopeProvider {
         Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
         if (scripts.containsKey(source)) {
             script = scripts.get(source);
-        } else if (sharedScripts.containsKey(source)) {
-            script = sharedScripts.get(source);
         } else {
             script = new ReloadableScript(source, this);
             if (source.exists()) {
@@ -494,66 +481,6 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Evaluate a script within a given scope.
-     * @param cx the current context
-     * @param script the script
-     * @param scope the scope
-     * @return the value returned by the script
-     * @throws IOException an I/O related error occurred
-     */
-    protected Object evaluateScript(Context cx, ReloadableScript script, Scriptable scope)
-            throws IOException {
-        Object result;
-        ReloadableScript parent = currentScripts.get();
-        try {
-            currentScripts.set(script);
-            result = script.evaluate(scope, cx);
-        } finally {
-            if (parent != null) {
-                parent.addDependency(script);
-            }
-            currentScripts.set(parent);
-        }
-        return result;
-
-    }
-
-    /**
-     * Load a Javascript module into a module scope. This checks if the module has already
-     * been loaded in the current context and if so returns the existing module scope.
-     * @param cx the current context
-     * @param moduleName the module name
-     * @param loadingScope the scope requesting the module
-     * @return the loaded module's scope
-     * @throws IOException indicates that in input/output related error occurred
-     */
-    public ModuleScope loadModule(Context cx, String moduleName,
-                                  Scriptable loadingScope)
-            throws IOException {
-        Repository local = getParentRepository(loadingScope);
-        ReloadableScript script = getScript(moduleName, local);
-
-        ModuleScope module;
-        ReloadableScript parent = currentScripts.get();
-        try {
-            // check if we already came across the module in the current context/request
-            Map<Resource, ModuleScope> modules = RhinoEngine.modules.get();
-            if (modules.containsKey(script.resource)) {
-                return modules.get(script.resource);
-            }
-            currentScripts.set(script);
-            module = script.load(globalScope, cx, modules);
-        } finally {
-            if (parent != null) {
-                parent.addDependency(script);
-            }
-            currentScripts.set(parent);
-        }
-
-        return module;
-    }
-
-    /**
      * Get the name of the main script as module name, if any
      * @return the main module name, or null
      */
@@ -592,8 +519,11 @@ public class RhinoEngine implements ScopeProvider {
      * Get the currently active RhinoEngine instance.
      * @return the current RhinoEngine
      */
-    public static RhinoEngine getEngine() {
-        return engines.get();
+    public static RhinoEngine getEngine(Scriptable scope) {
+        if (scope instanceof RingoGlobal) {
+            return ((RingoGlobal) scope).getEngine();
+        }
+        throw new IllegalStateException("Unsupported scope");
     }
 
     /**
@@ -616,44 +546,13 @@ public class RhinoEngine implements ScopeProvider {
         return config.isPolicyEnabled();
     }
 
-    protected void registerSharedScript(Trackable resource, ReloadableScript script) {
-        sharedScripts.put(resource, script);
-    }
-
-    protected void removeSharedScript(Trackable resource) {
-        if (sharedScripts.containsKey(resource)) {
-            sharedScripts.remove(resource);
-        }
-    }
-
     private Map<Trackable,ReloadableScript> getScriptCache(Context cx) {
         return cx.getOptimizationLevel() == -1 ?
                 interpretedScripts : compiledScripts;
     }
 
-    // helpers for multi-engine isolation and sandboxing
-    private Object[] checkThreadLocals() {
-        if (engines.get() == this) {
-            return null;
-        }
-        Object[] retval = new Object[] {
-            engines.get(),
-            modules.get()
-        };
-        engines.set(this);
-        modules.set(new HashMap<Resource, ModuleScope>());
-        return retval;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void resetThreadLocals(Object[] objs) {
-        if (objs != null) {
-            engines.set((RhinoEngine) objs[0]);
-            modules.set((Map<Resource, ModuleScope>) objs[1]);
-        }
-    }
-
-    private void evaluateBootstrapScripts(Context cx) throws IOException {
+    private void evaluateBootstrapScripts(Context cx, RingoWorker worker)
+            throws IOException {
         List<String> bootstrapScripts = config.getBootstrapScripts();
         if (bootstrapScripts != null) {
             for(String script : bootstrapScripts) {
@@ -666,7 +565,8 @@ public class RhinoEngine implements ScopeProvider {
                     throw new FileNotFoundException(
                             "Bootstrap script " + script + " not found");
                 }
-                evaluateScript(cx, new ReloadableScript(resource, this), globalScope);
+                worker.evaluateScript(cx, new ReloadableScript(resource, this),
+                        globalScope);
             }
         }
     }

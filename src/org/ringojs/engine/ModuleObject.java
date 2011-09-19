@@ -54,8 +54,10 @@ public class ModuleObject extends ScriptableObject {
                     "Expected function as second argument");
         }
         String key = source.getPath() + ":" + ScriptRuntime.toString(id);
-        RhinoEngine engine = RhinoEngine.getEngine();
-        return engine.getSingleton(key, factoryFunction, this);
+        // RhinoEngine engine = RhinoEngine.getEngine();
+        // return engine.getSingleton(key, factoryFunction, this);
+        // FIXME TODO
+        return null;
     }
 
     @JSGetter

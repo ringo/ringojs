@@ -52,14 +52,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RingoGlobal extends Global {
 
+    private final RhinoEngine engine;
     private final static SecurityManager securityManager = System.getSecurityManager();
     private static ExecutorService threadPool;
     private static AtomicInteger ids = new AtomicInteger();
     private int asyncCount = 0;
 
-    protected RingoGlobal() {}
-
     public RingoGlobal(Context cx, RhinoEngine engine, boolean sealed) {
+        this.engine = engine;
         init(cx, engine, sealed);
     }
 
@@ -127,6 +127,10 @@ public class RingoGlobal extends Global {
         }
     }
 
+    public RhinoEngine getEngine() {
+        return engine;
+    }
+
     @SuppressWarnings("unchecked")
     public static void defineClass(final Context cx, Scriptable thisObj,
                                      Object[] args, Function funObj)
@@ -136,7 +140,7 @@ public class RingoGlobal extends Global {
         if (!(arg instanceof Class)) {
             throw Context.reportRuntimeError("defineClass() requires a class argument");
         }
-        RhinoEngine engine = RhinoEngine.engines.get();
+        RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
         engine.defineHostClass((Class) arg);
     }
 
@@ -146,11 +150,12 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError(
                     "require() expects a single string argument");
         }
-        RhinoEngine engine = RhinoEngine.engines.get();
+        RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            ModuleScope module = engine.loadModule(cx, (String)args[0], moduleScope);
+            ModuleScope module = engine.getWorker()
+                    .loadModule(cx, (String)args[0], moduleScope);
             return module.getExports();
         } catch (IOException iox) {
             throw Context.reportRuntimeError("Cannot find module '" + args[0] + "'");
@@ -163,7 +168,7 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError(
                     "getResource() requires a string argument");
         }
-        RhinoEngine engine = RhinoEngine.engines.get();
+        RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
         try {
             Resource res = engine.findResource((String) args[0],
                     engine.getParentRepository(thisObj));
@@ -180,7 +185,7 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError(
                     "getRepository() requires a string argument");
         }
-        RhinoEngine engine = RhinoEngine.engines.get();
+        RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
         try {
             Repository repo = engine.findRepository((String) args[0],
                     engine.getParentRepository(thisObj));
@@ -201,7 +206,7 @@ public class RingoGlobal extends Global {
         }
         try {
             Trackable path;
-            RhinoEngine engine = RhinoEngine.engines.get();
+            RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
             Object arg = args[0] instanceof Wrapper ?
                     ((Wrapper) args[0]).unwrap() : args[0];
             if (arg instanceof String) {
@@ -314,7 +319,7 @@ public class RingoGlobal extends Global {
 
     public static Object getMain(Scriptable thisObj) {
         try {
-            RhinoEngine engine = RhinoEngine.engines.get();
+            RhinoEngine engine = ((RingoGlobal) thisObj.getParentScope()).engine;
             ModuleScope main = engine.getMainModuleScope();
             return main != null ? main.getModuleObject() : Undefined.instance;
         } catch (Exception x) {

@@ -72,8 +72,7 @@ public class RingoContextFactory extends ContextFactory {
     @Override
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
-        RhinoEngine.engines.set(engine);
-        RhinoEngine.modules.set(new HashMap<Resource, ModuleScope>());
+        engine.initWorker();
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {
                 Thread.currentThread().setContextClassLoader(engine.getClassLoader());
@@ -92,16 +91,13 @@ public class RingoContextFactory extends ContextFactory {
             cx.setSecurityController(new PolicySecurityController());
         }
         cx.setErrorReporter(new ToolErrorReporter(true));
-        RhinoEngine.errors.set(new ArrayList<SyntaxError>());
         cx.setGeneratingDebug(generatingDebug);
     }
 
     @Override
     protected void onContextReleased(Context cx) {
         super.onContextReleased(cx);
-        RhinoEngine.engines.set(null);
-        RhinoEngine.modules.set(null);
-        RhinoEngine.errors.set(null);
+        engine.releaseWorker();
     }
 
     /**

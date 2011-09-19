@@ -58,7 +58,7 @@ public class ReloadableScript {
     Exception exception = null;
     List<SyntaxError> errors;
     // the loaded module scope is cached for shared modules
-    ModuleScope moduleScope = null;
+    // ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
     // the static script cache
@@ -129,7 +129,7 @@ public class ReloadableScript {
             }
         }
         if (errors != null && !errors.isEmpty()) {
-            RhinoEngine.errors.get().addAll(errors);
+            engine.getErrorList().addAll(errors);
         }
         if (exception != null) {
             throw exception instanceof RhinoException ?
@@ -184,10 +184,10 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Object evaluate(Scriptable scope, Context cx)
+    public Object evaluate(Scriptable scope, Map<Resource,ModuleScope> modules,
+                           Context cx)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Resource,ModuleScope> modules = RhinoEngine.modules.get();
         ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
@@ -214,7 +214,7 @@ public class ReloadableScript {
     protected synchronized ModuleScope load(Scriptable prototype, Context cx,
                                Map<Resource, ModuleScope> modules)
             throws JavaScriptException, IOException {
-        ModuleScope module = moduleScope;
+        ModuleScope module = modules.get(resource);
         if (shared == Shared.TRUE
                 && module != null
                 && (!reloading || module.getChecksum() == getChecksum())) {
@@ -280,11 +280,11 @@ public class ReloadableScript {
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
             module.setChecksum(getChecksum());
-            engine.registerSharedScript(resource, this);
-            moduleScope = module;
+            // engine.registerSharedScript(resource, this);
+            // moduleScope = module;
         } else {
-            engine.removeSharedScript(resource);
-            moduleScope = null;
+            // engine.removeSharedScript(resource);
+            // moduleScope = null;
         }
     }
 
