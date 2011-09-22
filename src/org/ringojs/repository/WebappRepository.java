@@ -2,6 +2,8 @@ package org.ringojs.repository;
 
 import javax.servlet.ServletContext;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.*;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -53,7 +55,13 @@ public class WebappRepository extends AbstractRepository {
                 try {
                     URL url = context.getResource(path);
                     if (url != null && url.getProtocol().equals("file")) {
-                        exists = new File(url.getPath()).isDirectory() ? 1 : 0;
+                        String pathDecoded = null;
+                        try {
+                            pathDecoded = URLDecoder.decode(url.getPath(), "UTF-8");
+                        } catch (UnsupportedEncodingException e) {
+                            pathDecoded = url.getPath();
+                        }
+                        exists = new File(pathDecoded).isDirectory() ? 1 : 0;
                     } else {
                         exists = url != null ? 1 : 0;
                     }
