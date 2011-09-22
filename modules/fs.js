@@ -247,7 +247,7 @@ function listDirectoryTree(path) {
             }
         }
     });
-    return result;
+    return result.sort();
 }
 
 /**
@@ -270,7 +270,7 @@ function listTree(path) {
             result.push(child);
         }
     });
-    return result;
+    return result.sort();
 }
 
 /**
@@ -1079,7 +1079,7 @@ Path.prototype.from = function (target) {
  * wrapped in Path objects.
  */
 Path.prototype.listPaths = function() {
-    return this.list().map(function (file) new Path(this, file), this);
+    return this.list().map(function (file) new Path(this, file), this).sort();
 };
 
 var pathed = [
