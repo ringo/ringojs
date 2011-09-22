@@ -55,13 +55,13 @@ public class WebappRepository extends AbstractRepository {
                 try {
                     URL url = context.getResource(path);
                     if (url != null && url.getProtocol().equals("file")) {
-                        String pathDecoded = null;
+                        String path = url.getPath();
                         try {
-                            pathDecoded = URLDecoder.decode(url.getPath(), "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            pathDecoded = url.getPath();
+                            path = URLDecoder.decode(path, System.getProperty("file.encoding"));
+                        } catch (UnsupportedEncodingException x) {
+                            System.err.println("Unable to decode webapp repository URL: " + x);
                         }
-                        exists = new File(pathDecoded).isDirectory() ? 1 : 0;
+                        exists = new File(path).isDirectory() ? 1 : 0;
                     } else {
                         exists = url != null ? 1 : 0;
                     }

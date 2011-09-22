@@ -4,8 +4,10 @@ import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 
 public class WebappResource extends AbstractResource {
 
@@ -34,7 +36,13 @@ public class WebappResource extends AbstractResource {
             try {
                 URL url = context.getResource(path);
                 if (url != null && url.getProtocol().equals("file")) {
-                    exists = new File(url.getPath()).isFile() ? 1 : 0;
+                    String path = url.getPath();
+                    try {
+                        path = URLDecoder.decode(path, System.getProperty("file.encoding"));
+                    } catch (UnsupportedEncodingException x) {
+                        System.err.println("Unable to decode webapp resource URL: " + x);
+                    }
+                    exists = new File(path).isFile() ? 1 : 0;
                 } else {
                     exists = url != null ? 1 : 0;
                 }
