@@ -69,8 +69,8 @@ public class RingoConfiguration {
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a moudule path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, List<String> userModules,
-                              List<String> systemModules) throws IOException {
+    public RingoConfiguration(Repository ringoHome, String[] userModules,
+                              String[] systemModules) throws IOException {
         this(ringoHome, null, userModules, systemModules);
     }
 
@@ -85,8 +85,8 @@ public class RingoConfiguration {
      * @throws FileNotFoundException if a moudule path item does not exist
      */
     public RingoConfiguration(Repository ringoHome, Repository basePath,
-                              List<String> userModules,
-                              List<String> systemModules) throws IOException {
+                              String[] userModules, String[] systemModules)
+            throws IOException {
         repositories = new ArrayList<Repository>();
         home = ringoHome;
         home.setAbsolute(true);

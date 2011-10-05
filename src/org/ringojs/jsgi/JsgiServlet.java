@@ -91,11 +91,8 @@ public class JsgiServlet extends HttpServlet {
                             + "reverting to file repository " + home);
                 }
                 // Use ',' as platform agnostic path separator
-                List<String> paths = Arrays.asList(
-                        StringUtils.split(modulePath, ","));
-                List<String> systemPaths = new ArrayList<String>();
-                systemPaths.add("modules");
-                systemPaths.add("packages");
+                String[] paths = StringUtils.split(modulePath, ",");
+                String[] systemPaths = {"modules", "packages"};
                 RingoConfiguration ringoConfig =
                         new RingoConfiguration(home, base, paths, systemPaths);
                 ringoConfig.setDebug(debug);
