@@ -72,7 +72,6 @@ public class RingoContextFactory extends ContextFactory {
     @Override
     protected void onContextCreated(Context cx) {
         super.onContextCreated(cx);
-        engine.initWorker();
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {
                 Thread.currentThread().setContextClassLoader(engine.getClassLoader());
@@ -97,7 +96,6 @@ public class RingoContextFactory extends ContextFactory {
     @Override
     protected void onContextReleased(Context cx) {
         super.onContextReleased(cx);
-        engine.releaseWorker();
     }
 
     /**

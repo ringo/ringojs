@@ -146,7 +146,7 @@ public class RingoGlobal extends Global {
 
     public static Object require(final Context cx, Scriptable thisObj,
                                  Object[] args, Function funObj) {
-        if (args.length != 1 || !(args[0] instanceof String)) {
+        if (args.length != 1 || !(args[0] instanceof CharSequence)) {
             throw Context.reportRuntimeError(
                     "require() expects a single string argument");
         }
@@ -154,8 +154,9 @@ public class RingoGlobal extends Global {
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            ModuleScope module = engine.getWorker()
-                    .loadModule(cx, (String)args[0], moduleScope);
+            RingoWorker worker = engine.getCurrentWorker();
+            String arg = args[0].toString();
+            ModuleScope module = worker.loadModule(cx, arg, moduleScope);
             return module.getExports();
         } catch (IOException iox) {
             throw Context.reportRuntimeError("Cannot find module '" + args[0] + "'");

@@ -188,7 +188,7 @@ public class RingoShell {
             public void run() {
                 Context cx = engine.getContextFactory().enterContext();
                 try {
-                    engine.getWorker().loadModule(cx, "ringo/shell", null);
+                    engine.loadModule(cx, "ringo/shell", null);
                 } catch (Exception ignore) {
                     // ignore
                 } finally {

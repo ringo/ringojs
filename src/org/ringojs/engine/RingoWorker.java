@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class RingoWorker {
@@ -35,15 +35,18 @@ public class RingoWorker {
         errors = new ArrayList<SyntaxError>();
     }
 
-    private Object invokeDirect(Object module, String method, Object... args)
+    public synchronized Object invoke(Object module, String method,
+                                       Object... args)
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
         Context cx = contextFactory.enterContext();
+        engine.setCurrentWorker(this);
         try {
             engine.initArguments(args);
             if (!(module instanceof String) && !(module instanceof Scriptable)) {
-                throw new IllegalArgumentException("module argument must be a Scriptable or String object");
+                throw new IllegalArgumentException(
+                        "module argument must be a Scriptable or String object");
             }
             Object retval;
             while (true) {
@@ -74,26 +77,30 @@ public class RingoWorker {
             }
             return retval;
         } finally {
+            engine.setCurrentWorker(null);
             Context.exit();
         }
     }
 
-    public Object invoke(final Object module, final String method, final Object... args)
-            throws IOException, InterruptedException, ExecutionException,
-                    NoSuchMethodException {
-        // if event loop has been started we must invoke through it
-        if (eventloop != null) {
-            return eventloop.submit(new Callable<Object>() {
-                public Object call() throws Exception {
-                    return invokeDirect(module, method, args);
-                }
-            }).get();
+    public Future<Object> submit(final Object module, final String method,
+                                 final Object... args) {
+        if (eventloop == null) {
+            initEventLoop();
         }
-
-        return invokeDirect(module, method, args);
+        return eventloop.submit(new Callable<Object>() {
+            public Object call() throws Exception {
+                return invoke(module, method, args);
+            }
+        });
     }
 
-        /**
+    private synchronized void initEventLoop() {
+        if (eventloop == null) {
+            eventloop = new ScheduledThreadPoolExecutor(1);
+        }
+    }
+
+    /**
      * Load a Javascript module into a module scope. This checks if the module has already
      * been loaded in the current context and if so returns the existing module scope.
      * @param cx the current context
@@ -102,8 +109,9 @@ public class RingoWorker {
      * @return the loaded module's scope
      * @throws java.io.IOException indicates that in input/output related error occurred
      */
-    public ModuleScope loadModule(Context cx, String moduleName,
-                                  Scriptable loadingScope)
+    protected synchronized ModuleScope loadModule(Context cx,
+                                                  String moduleName,
+                                                  Scriptable loadingScope)
             throws IOException {
         Repository local = engine.getParentRepository(loadingScope);
         ReloadableScript script = engine.getScript(moduleName, local);
@@ -127,14 +135,6 @@ public class RingoWorker {
         return module;
     }
 
-    public RhinoEngine getEngine() {
-        return engine;
-    }
-
-    public List<SyntaxError> getErrors() {
-        return errors;
-    }
-
     /**
      * Evaluate a script within a given scope.
      * @param cx the current context
@@ -143,7 +143,9 @@ public class RingoWorker {
      * @return the value returned by the script
      * @throws IOException an I/O related error occurred
      */
-    protected Object evaluateScript(Context cx, ReloadableScript script, Scriptable scope)
+    protected synchronized Object evaluateScript(Context cx,
+                                                 ReloadableScript script,
+                                                 Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = currentScript;
@@ -157,7 +159,18 @@ public class RingoWorker {
             currentScript = parent;
         }
         return result;
+    }
 
+    public RhinoEngine getEngine() {
+        return engine;
+    }
+
+    public List<SyntaxError> getErrors() {
+        return errors;
+    }
+
+    protected void reset() {
+        // todo
     }
 
 }
