@@ -60,9 +60,9 @@ public class RingoWorker {
                     retval = ((Function) function).call(cx, scope, scriptable, args);
                     break;
                 } catch (JavaScriptException jsx) {
-                    Scriptable thrown = jsx.getValue() instanceof Scriptable ?
-                            (Scriptable) jsx.getValue() : null;
-                    if (thrown != null && thrown.get("retry", thrown) == Boolean.TRUE) {
+                    Object value = jsx.getValue();
+                    if (value instanceof Scriptable && ScriptableObject
+                            .getProperty((Scriptable)value, "retry") == Boolean.TRUE) {
                         modules.clear();
                     } else {
                         throw jsx;
@@ -72,10 +72,8 @@ public class RingoWorker {
                     modules.clear();
                 }
             }
-            if (retval instanceof Wrapper) {
-                return ((Wrapper) retval).unwrap();
-            }
-            return retval;
+            return retval instanceof Wrapper ?
+                    ((Wrapper) retval).unwrap() : retval;
         } finally {
             engine.setCurrentWorker(null);
             Context.exit();
