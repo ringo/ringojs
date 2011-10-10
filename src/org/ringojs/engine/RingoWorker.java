@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class RingoWorker {
 
@@ -35,28 +37,31 @@ public class RingoWorker {
         errors = new ArrayList<SyntaxError>();
     }
 
-    public synchronized Object invoke(Object module, String method,
-                                       Object... args)
+    public synchronized Object invoke(Object module, Object function,
+                                      Object... args)
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
         Context cx = contextFactory.enterContext();
         engine.setCurrentWorker(this);
         try {
-            engine.initArguments(args);
             if (!(module instanceof String) && !(module instanceof Scriptable)) {
                 throw new IllegalArgumentException(
                         "module argument must be a Scriptable or String object");
             }
+            Scriptable scriptable = module instanceof Scriptable ?
+                    (Scriptable) module : loadModule(cx, (String) module, null);
+            if (!(function instanceof Function)) {
+                Object fun = ScriptableObject.getProperty(scriptable, function.toString());
+                if (!(fun instanceof Function)) {
+                    throw new NoSuchMethodException("Function " + function + " not defined");
+                }
+                function = fun;
+            }
+            engine.initArguments(args);
             Object retval;
             while (true) {
                 try {
-                    Scriptable scriptable = module instanceof Scriptable ?
-                            (Scriptable) module : loadModule(cx, (String) module, null);
-                    Object function = ScriptableObject.getProperty(scriptable, method);
-                    if (!(function instanceof Function)) {
-                        throw new NoSuchMethodException("Function " + method + " not defined");
-                    }
                     retval = ((Function) function).call(cx, scope, scriptable, args);
                     break;
                 } catch (JavaScriptException jsx) {
@@ -80,7 +85,7 @@ public class RingoWorker {
         }
     }
 
-    public Future<Object> submit(final Object module, final String method,
+    public Future<Object> submit(final Object module, final Object method,
                                  final Object... args) {
         if (eventloop == null) {
             initEventLoop();
@@ -90,6 +95,36 @@ public class RingoWorker {
                 return invoke(module, method, args);
             }
         });
+    }
+
+    public ScheduledFuture<Object> schedule(long delay, final Object module,
+                                            final Object method,
+                                            final Object... args) {
+        if (eventloop == null) {
+            initEventLoop();
+        }
+        return eventloop.schedule(new Callable<Object>() {
+            public Object call() throws Exception {
+                return invoke(module, method, args);
+            }
+        }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    public ScheduledFuture<?> scheduleInterval(long delay, final Object module,
+                                               final Object method,
+                                               final Object... args) {
+        if (eventloop == null) {
+            initEventLoop();
+        }
+        return eventloop.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                try {
+                    invoke(module, method, args);
+                } catch (Exception x) {
+                    throw new RuntimeException(x);
+                }
+            }
+        }, delay, delay, TimeUnit.MILLISECONDS);
     }
 
     private synchronized void initEventLoop() {
