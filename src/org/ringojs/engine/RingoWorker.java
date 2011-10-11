@@ -19,7 +19,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RingoWorker {
 
@@ -30,11 +32,14 @@ public class RingoWorker {
     private List<SyntaxError> errors;
     private Map<Resource, ModuleScope> modules;
 
+    private static AtomicInteger workerId = new AtomicInteger(1);
+    private final int id;
 
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
         modules = new HashMap<Resource, ModuleScope>();
         errors = new ArrayList<SyntaxError>();
+        id = workerId.getAndIncrement();
     }
 
     public synchronized Object invoke(Object module, Object function,
@@ -87,12 +92,17 @@ public class RingoWorker {
 
     public Future<Object> submit(final Object module, final Object method,
                                  final Object... args) {
+        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
         return eventloop.submit(new Callable<Object>() {
             public Object call() throws Exception {
-                return invoke(module, method, args);
+                try {
+                    return invoke(module, method, args);
+                } finally {
+                    engine.decreaseAsyncCount();
+                }
             }
         });
     }
@@ -100,12 +110,17 @@ public class RingoWorker {
     public ScheduledFuture<Object> schedule(long delay, final Object module,
                                             final Object method,
                                             final Object... args) {
+        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
         return eventloop.schedule(new Callable<Object>() {
             public Object call() throws Exception {
-                return invoke(module, method, args);
+                try {
+                    return invoke(module, method, args);
+                } finally {
+                    engine.decreaseAsyncCount();
+                }
             }
         }, delay, TimeUnit.MILLISECONDS);
     }
@@ -129,7 +144,13 @@ public class RingoWorker {
 
     private synchronized void initEventLoop() {
         if (eventloop == null) {
-            eventloop = new ScheduledThreadPoolExecutor(1);
+            eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+                public Thread newThread(Runnable runnable) {
+                    Thread thread = new Thread(runnable, "ringo-worker-" + id);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
         }
     }
 

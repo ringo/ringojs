@@ -591,6 +591,14 @@ public class RhinoEngine implements ScopeProvider {
         return config.isPolicyEnabled();
     }
 
+    protected void increaseAsyncCount() {
+        globalScope.increaseAsyncCount();
+    }
+
+    protected void decreaseAsyncCount() {
+        globalScope.decreaseAsyncCount();
+    }
+
     private Map<Trackable,ReloadableScript> getScriptCache(Context cx) {
         return cx.getOptimizationLevel() == -1 ?
                 interpretedScripts : compiledScripts;
