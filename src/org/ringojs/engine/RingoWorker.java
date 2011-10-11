@@ -232,6 +232,18 @@ public class RingoWorker {
         return errors;
     }
 
+    public long countScheduledTasks() {
+        ScheduledThreadPoolExecutor loop = eventloop;
+        return loop == null ? 0 : loop.getQueue().size();
+    }
+
+    public synchronized void terminate() {
+        if (eventloop != null) {
+            eventloop.shutdownNow();
+            eventloop = null;
+        }
+    }
+
     protected void reset() {
         // todo
     }
