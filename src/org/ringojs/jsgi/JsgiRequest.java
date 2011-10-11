@@ -34,19 +34,23 @@ public class JsgiRequest extends ScriptableObject {
     /**
      * Prototype constructor
      */
-    public JsgiRequest(Context cx, Scriptable scope) throws NoSuchMethodException {
+    public JsgiRequest(Scriptable scope) {
         setParentScope(scope);
         setPrototype(ScriptableObject.getObjectPrototype(scope));
-        defineProperty("host", null, getMethod("getServerName"), null, readonly);
-        defineProperty("port", null, getMethod("getServerPort"), null, readonly);
-        defineProperty("queryString", null, getMethod("getQueryString"), null, readonly);
-        defineProperty("version", null, getMethod("getHttpVersion"), null, readonly);
-        defineProperty("remoteAddress", null, getMethod("getRemoteHost"), null, readonly);
-        defineProperty("scheme", null, getMethod("getUrlScheme"), null, readonly);
+        try {
+            defineProperty("host", null, getMethod("getServerName"), null, readonly);
+            defineProperty("port", null, getMethod("getServerPort"), null, readonly);
+            defineProperty("queryString", null, getMethod("getQueryString"), null, readonly);
+            defineProperty("version", null, getMethod("getHttpVersion"), null, readonly);
+            defineProperty("remoteAddress", null, getMethod("getRemoteHost"), null, readonly);
+            defineProperty("scheme", null, getMethod("getUrlScheme"), null, readonly);
+        } catch (NoSuchMethodException nsm) {
+            throw new RuntimeException(nsm);
+        }
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", ScriptableObject.getProperty(scope, "Object"), DONTENUM);
-        Scriptable jsgi = jsgiObject = cx.newObject(scope);
-        Scriptable version = cx.newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(3)});
+        Scriptable jsgi = jsgiObject = newObject(scope);
+        Scriptable version = newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(3)});
         ScriptableObject.defineProperty(jsgi, "version", version, readonly);
         ScriptableObject.defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
         ScriptableObject.defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
@@ -58,16 +62,16 @@ public class JsgiRequest extends ScriptableObject {
     /**
      * Instance constructor
      */
-    public JsgiRequest(Context cx, HttpServletRequest request, HttpServletResponse response,
+    public JsgiRequest(HttpServletRequest request, HttpServletResponse response,
                    JsgiRequest prototype, Scriptable scope, JsgiServlet servlet) {
         this.request = request;
         this.response = response;
         setPrototype(prototype);
         setParentScope(scope);
-        Scriptable jsgi = cx.newObject(scope);
+        Scriptable jsgi = newObject(scope);
         jsgi.setPrototype(prototype.jsgiObject);
         ScriptableObject.defineProperty(this, "jsgi", jsgi, PERMANENT);
-        Scriptable headers = cx.newObject(scope);
+        Scriptable headers = newObject(scope);
         ScriptableObject.defineProperty(this, "headers", headers, PERMANENT);
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
@@ -75,17 +79,22 @@ public class JsgiRequest extends ScriptableObject {
             name = name.toLowerCase();
             headers.put(name, headers, value);
         }
-        put("scriptName", this, checkString(request.getContextPath() + request.getServletPath()));
+        put("scriptName", this, checkString(request.getContextPath()
+                + request.getServletPath()));
         String pathInfo = request.getPathInfo();
         String uri = request.getRequestURI();
         // Workaround for Tomcat returning "/" for pathInfo even if URI doesn't end with "/"
-        put("pathInfo", this, "/".equals(pathInfo) && !uri.endsWith("/") ? "" : checkString(pathInfo));
+        put("pathInfo", this, "/".equals(pathInfo) && !uri.endsWith("/") ?
+                "" : checkString(pathInfo));
         put("method", this, checkString(request.getMethod()));
-        Scriptable env = cx.newObject(scope);
+        Scriptable env = newObject(scope);
         ScriptableObject.defineProperty(this, "env", env, PERMANENT);
-        ScriptableObject.defineProperty(env, "servlet", Context.javaToJS(servlet, this), PERMANENT);
-        ScriptableObject.defineProperty(env, "servletRequest", Context.javaToJS(request, this), PERMANENT);
-        ScriptableObject.defineProperty(env, "servletResponse", Context.javaToJS(response, this), PERMANENT);
+        ScriptableObject.defineProperty(env, "servlet",
+                new NativeJavaObject(scope, servlet, null), PERMANENT);
+        ScriptableObject.defineProperty(env, "servletRequest",
+                new NativeJavaObject(scope, request, null), PERMANENT);
+        ScriptableObject.defineProperty(env, "servletResponse",
+                new NativeJavaObject(scope, response, null), PERMANENT);
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", scope.get("Object", scope), DONTENUM);
     }
@@ -104,7 +113,6 @@ public class JsgiRequest extends ScriptableObject {
 
     public Object getHttpVersion() {
         if (httpVersion == null) {
-            Context cx = Context.getCurrentContext();
             Scriptable scope = getParentScope();
             String protocol = request.getProtocol();
             if (protocol != null) {
@@ -113,12 +121,12 @@ public class JsgiRequest extends ScriptableObject {
                 if (major > -1 && minor > major) {
                     major = Integer.parseInt(protocol.substring(major + 1, minor));
                     minor = Integer.parseInt(protocol.substring(minor + 1));
-                    httpVersion =  cx.newArray(scope, new Object[] {
+                    httpVersion =  newArray(scope, new Object[] {
                             Integer.valueOf(major), Integer.valueOf(minor)});
                 }
             }
             if (httpVersion == null) {
-                cx.newArray(scope, new Object[0]);
+                newArray(scope, new Object[0]);
             }
         }
         return httpVersion;
@@ -132,20 +140,26 @@ public class JsgiRequest extends ScriptableObject {
         return request.isSecure() ? "https" : "http";
     }
 
-    public Object getServletRequest() {
-        return Context.javaToJS(request, this);
-    }
-
-    public Object getServletResponse() {
-        return Context.javaToJS(response, this);
-    }
-
     private static Method getMethod(String name) throws NoSuchMethodException {
         return JsgiRequest.class.getDeclaredMethod(name);
     }
 
     private static String checkString(String str) {
         return str == null ? "" : str;
+    }
+
+    // local copies of Context methods so we can create new objects/arrays
+    // without entering a context
+    private Scriptable newObject(Scriptable scope) {
+        NativeObject result = new NativeObject();
+        ScriptRuntime.setBuiltinProtoAndParent(result, scope, TopLevel.Builtins.Object);
+        return result;
+    }
+
+    private Scriptable newArray(Scriptable scope, Object[] elements) {
+        NativeArray result = new NativeArray(elements);
+        ScriptRuntime.setBuiltinProtoAndParent(result, scope, TopLevel.Builtins.Array);
+        return result;
     }
 
     /**
