@@ -137,7 +137,7 @@ public class RingoWorker {
         if (eventloop == null) {
             initEventLoop();
         }
-        return eventloop.scheduleAtFixedRate(new Runnable() {
+        return eventloop.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
                     invoke(module, method, args);
