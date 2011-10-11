@@ -57,8 +57,6 @@ public class ReloadableScript {
     // to recompile if the underlying resource or repository hasn't changed
     Exception exception = null;
     List<SyntaxError> errors;
-    // the loaded module scope is cached for shared modules
-    // ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
     // the static script cache
@@ -280,11 +278,6 @@ public class ReloadableScript {
         shared = isShared ? Shared.TRUE : Shared.FALSE;
         if (isShared) {
             module.setChecksum(getChecksum());
-            // engine.registerSharedScript(resource, this);
-            // moduleScope = module;
-        } else {
-            // engine.removeSharedScript(resource);
-            // moduleScope = null;
         }
     }
 
