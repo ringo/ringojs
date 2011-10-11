@@ -54,8 +54,6 @@ public class RingoGlobal extends Global {
 
     private final RhinoEngine engine;
     private final static SecurityManager securityManager = System.getSecurityManager();
-    private static ExecutorService threadPool;
-    private static AtomicInteger ids = new AtomicInteger();
     private int asyncCount = 0;
 
     public RingoGlobal(Context cx, RhinoEngine engine, boolean sealed) {
@@ -150,7 +148,7 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError(
                     "require() expects a single string argument");
         }
-        RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
+        RhinoEngine engine = ((RingoGlobal)funObj.getParentScope()).engine;
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
@@ -265,30 +263,18 @@ public class RingoGlobal extends Global {
 
     public static Object spawn(final Context cx, Scriptable thisObj,
                                Object[] args, Function funObj) {
-        if (securityManager != null) {
-            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
-        }
         if (args.length < 1  || !(args[0] instanceof Function)) {
             throw Context.reportRuntimeError("spawn() requires a function argument");
         }
-        final Scriptable scope = funObj.getParentScope();
-        final ContextFactory cxfactory = cx.getFactory();
-        final Function function = (Function) args[0];
-        Object[] newArgs = null;
+        Object[] fnArgs;
         if (args.length > 1 && args[1] instanceof Scriptable) {
-            newArgs = cx.getElements((Scriptable) args[1]);
+            fnArgs = cx.getElements((Scriptable) args[1]);
+        } else {
+            fnArgs = ScriptRuntime.emptyArgs;
         }
-        if (newArgs == null) { newArgs = ScriptRuntime.emptyArgs; }
-        final Object[] functionArgs = newArgs;
-        return getThreadPool().submit(new Callable<Object>() {
-            public Object call() {
-                return cxfactory.call(new ContextAction() {
-                    public Object run(Context cx) {
-                        return function.call(cx, scope, scope, functionArgs);
-                    }
-                });
-            }
-        });
+        RhinoEngine engine = ((RingoGlobal)funObj.getParentScope()).engine;
+        RingoWorker worker = engine.getCurrentWorker();
+        return worker.submit(thisObj, args[0], fnArgs);
     }
 
     public synchronized int getAsyncCount(Scriptable obj) {
@@ -325,25 +311,6 @@ public class RingoGlobal extends Global {
             return main != null ? main.getModuleObject() : Undefined.instance;
         } catch (Exception x) {
             return Undefined.instance;
-        }
-    }
-
-    static ExecutorService getThreadPool() {
-        if (threadPool != null) {
-            return threadPool;
-        }
-        synchronized (Global.class) {
-            if (threadPool == null) {
-                threadPool = Executors.newCachedThreadPool(new ThreadFactory() {
-                    public Thread newThread(Runnable runnable) {
-                        Thread thread = new Thread(runnable,
-                                "ringo-spawn-" + ids.incrementAndGet());
-                        thread.setDaemon(true);
-                        return thread;
-                    }
-                });
-            }
-            return threadPool;
         }
     }
 
