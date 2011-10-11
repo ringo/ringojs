@@ -2,6 +2,8 @@
  * @fileOverview Allows to work with deferred values that will be resolved in the future.
  */
 
+var {setTimeout} = require("ringo/scheduler");
+
 export("defer", "promises");
 
 var NEW = 0;
@@ -55,7 +57,7 @@ function defer() {
     var notify = function(listener) {
         var isError = state === FAILED;
         var callback = isError ? listener.errback : listener.callback;
-        spawn(function() {
+        setTimeout(function() {
             if (!callback) {
                 // if no callback defined we pass through the value
                 listener.tail.resolve(value, isError);
@@ -66,7 +68,7 @@ function defer() {
                     listener.tail.resolve(error, true);
                 }
             }
-        });
+        }, 0);
     };
 
     /**
