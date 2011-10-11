@@ -268,7 +268,7 @@ public class RhinoEngine implements ScopeProvider {
      * Release a worker, returning it to the worker pool.
      * @param worker the worker to be released
      */
-    protected void releaseWorker(RingoWorker worker) {
+    public void releaseWorker(RingoWorker worker) {
         if (worker != null) {
             try {
                 worker.reset();
