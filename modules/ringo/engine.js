@@ -10,7 +10,6 @@ export( 'properties',
         'createSandbox',
         'evaluate',
         'getErrors',
-        'getWorker',
         'getRingoHome',
         'getRepositories',
         'getRhinoContext',
@@ -157,14 +156,6 @@ function getRhinoEngine() {
  */
 function getErrors() {
     return new ScriptableList(getRhinoEngine().getErrorList());
-}
-
-/**
- * Get the current org.ringojs.engine.RingoWorker instance.
- * @returns the worker instance associated with the current thread
- */
-function getWorker() {
-    return getRhinoEngine().getWorker();
 }
 
 /**
