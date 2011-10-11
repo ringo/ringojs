@@ -26,6 +26,12 @@ exports.setTimeout = function(callback, delay) {
  * @see setTimeout
  */
 exports.clearTimeout = function(id) {
+    try {
+        var worker = engine.getCurrentWorker();
+        worker.cancel(id);
+    } catch (error) {
+        // ignore
+    }
 };
 
 /**
@@ -49,4 +55,10 @@ exports.setInterval = function(callback, delay) {
  * @see setInterval
  */
 exports.clearInterval = function(id) {
+    try {
+        var worker = engine.getCurrentWorker();
+        worker.cancel(id);
+    } catch (error) {
+        // ignore
+    }
 };

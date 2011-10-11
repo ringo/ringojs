@@ -133,6 +133,7 @@ public class RingoWorker {
     public ScheduledFuture<?> scheduleInterval(long delay, final Object module,
                                                final Object method,
                                                final Object... args) {
+        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
@@ -145,6 +146,12 @@ public class RingoWorker {
                 }
             }
         }, delay, delay, TimeUnit.MILLISECONDS);
+    }
+
+    public void cancel(Future<?> future) {
+        if (future.cancel(false)) {
+            engine.decreaseAsyncCount();
+        }
     }
 
     private synchronized void initEventLoop() {
