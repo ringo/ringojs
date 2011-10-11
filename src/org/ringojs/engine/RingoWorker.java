@@ -22,11 +22,14 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RingoWorker {
 
     private ScheduledThreadPoolExecutor eventloop;
     private final RhinoEngine engine;
+    private final Lock runlock = new ReentrantLock();
 
     private ReloadableScript currentScript;
     private List<SyntaxError> errors;
@@ -42,12 +45,13 @@ public class RingoWorker {
         id = workerId.getAndIncrement();
     }
 
-    public synchronized Object invoke(Object module, Object function,
+    public Object invoke(Object module, Object function,
                                       Object... args)
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
         Context cx = contextFactory.enterContext();
+        runlock.lock();
         engine.setCurrentWorker(this);
         try {
             if (!(module instanceof String) && !(module instanceof Scriptable)) {
@@ -86,6 +90,7 @@ public class RingoWorker {
                     ((Wrapper) retval).unwrap() : retval;
         } finally {
             engine.setCurrentWorker(null);
+            runlock.unlock();
             Context.exit();
         }
     }
@@ -163,7 +168,7 @@ public class RingoWorker {
      * @return the loaded module's scope
      * @throws java.io.IOException indicates that in input/output related error occurred
      */
-    protected synchronized ModuleScope loadModule(Context cx,
+    protected ModuleScope loadModule(Context cx,
                                                   String moduleName,
                                                   Scriptable loadingScope)
             throws IOException {
@@ -172,6 +177,7 @@ public class RingoWorker {
 
         ModuleScope module;
         ReloadableScript parent = currentScript;
+        runlock.lock();
         try {
             // check if we already came across the module in the current context/request
             if (modules.containsKey(script.resource)) {
@@ -180,10 +186,11 @@ public class RingoWorker {
             currentScript = script;
             module = script.load(engine.getScope(), cx, modules);
         } finally {
+            currentScript = parent;
+            runlock.unlock();
             if (parent != null) {
                 parent.addDependency(script);
             }
-            currentScript = parent;
         }
 
         return module;
@@ -197,20 +204,22 @@ public class RingoWorker {
      * @return the value returned by the script
      * @throws IOException an I/O related error occurred
      */
-    protected synchronized Object evaluateScript(Context cx,
+    protected Object evaluateScript(Context cx,
                                                  ReloadableScript script,
                                                  Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = currentScript;
+        runlock.lock();
         try {
             currentScript = script;
             result = script.evaluate(scope, modules, cx);
         } finally {
+            currentScript = parent;
+            runlock.unlock();
             if (parent != null) {
                 parent.addDependency(script);
             }
-            currentScript = parent;
         }
         return result;
     }
