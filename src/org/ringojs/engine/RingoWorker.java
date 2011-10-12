@@ -3,7 +3,6 @@ package org.ringojs.engine;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Function;
-import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Wrapper;
@@ -33,7 +32,8 @@ public class RingoWorker {
 
     private ReloadableScript currentScript;
     private List<SyntaxError> errors;
-    private Map<Resource, ModuleScope> modules;
+    private Map<Resource, ModuleScope> modules, checkedModules;
+    private boolean reloading;
 
     private static AtomicInteger workerId = new AtomicInteger(1);
     private final int id;
@@ -41,6 +41,9 @@ public class RingoWorker {
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
         modules = new HashMap<Resource, ModuleScope>();
+        reloading = engine.getConfig().isReloading();
+        checkedModules = reloading ?
+                new HashMap<Resource, ModuleScope>() : modules;
         errors = new ArrayList<SyntaxError>();
         id = workerId.getAndIncrement();
     }
@@ -50,16 +53,19 @@ public class RingoWorker {
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
+        if (reloading) {
+            checkedModules.clear();
+        }
         Context cx = contextFactory.enterContext();
         runlock.lock();
         engine.setCurrentWorker(this);
         try {
-            if (!(module instanceof String) && !(module instanceof Scriptable)) {
+            if (!(module instanceof CharSequence) && !(module instanceof Scriptable)) {
                 throw new IllegalArgumentException(
                         "module argument must be a Scriptable or String object");
             }
             Scriptable scriptable = module instanceof Scriptable ?
-                    (Scriptable) module : loadModule(cx, (String) module, null);
+                    (Scriptable) module : loadModule(cx, module.toString(), null);
             if (!(function instanceof Function)) {
                 Object fun = ScriptableObject.getProperty(scriptable, function.toString());
                 if (!(fun instanceof Function)) {
@@ -159,22 +165,25 @@ public class RingoWorker {
      * @throws java.io.IOException indicates that in input/output related error occurred
      */
     protected ModuleScope loadModule(Context cx,
-                                                  String moduleName,
-                                                  Scriptable loadingScope)
+                                     String moduleName,
+                                     Scriptable loadingScope)
             throws IOException {
         Repository local = engine.getParentRepository(loadingScope);
         ReloadableScript script = engine.getScript(moduleName, local);
 
-        ModuleScope module;
+        // check if we already came across the module in the current context/request
+        if (checkedModules.containsKey(script.resource)) {
+            return checkedModules.get(script.resource);
+        }
+
+        // check if module has been loaded before
+        ModuleScope module = modules.get(script.resource);
         ReloadableScript parent = currentScript;
         runlock.lock();
         try {
-            // check if we already came across the module in the current context/request
-            if (modules.containsKey(script.resource)) {
-                return modules.get(script.resource);
-            }
             currentScript = script;
-            module = script.load(engine.getScope(), cx, modules);
+            module = script.load(engine.getScope(), cx, module, checkedModules);
+            modules.put(script.resource, module);
         } finally {
             currentScript = parent;
             runlock.unlock();
@@ -195,15 +204,18 @@ public class RingoWorker {
      * @throws IOException an I/O related error occurred
      */
     protected Object evaluateScript(Context cx,
-                                                 ReloadableScript script,
-                                                 Scriptable scope)
+                                    ReloadableScript script,
+                                    Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = currentScript;
         runlock.lock();
         try {
             currentScript = script;
-            result = script.evaluate(scope, modules, cx);
+            result = script.evaluate(scope, cx, checkedModules);
+            if (scope instanceof ModuleScope) {
+                modules.put(script.resource, (ModuleScope)scope);
+            }
         } finally {
             currentScript = parent;
             runlock.unlock();
