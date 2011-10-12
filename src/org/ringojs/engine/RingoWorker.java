@@ -53,11 +53,11 @@ public class RingoWorker {
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
+        Context cx = contextFactory.enterContext();
+        runlock.lock();
         if (reloading) {
             checkedModules.clear();
         }
-        Context cx = contextFactory.enterContext();
-        runlock.lock();
         engine.setCurrentWorker(this);
         try {
             if (!(module instanceof CharSequence) && !(module instanceof Scriptable)) {
