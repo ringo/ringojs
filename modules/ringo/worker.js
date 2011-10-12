@@ -1,7 +1,8 @@
 
 var engine = require("ringo/engine").getRhinoEngine();
+var {Semaphore: JavaSemaphore, TimeUnit} = java.util.concurrent;
 
-export("Worker");
+export("Worker", "Semaphore");
 
 function Worker(module) {
     if (!(this instanceof Worker)) {
@@ -23,7 +24,7 @@ function Worker(module) {
         }
     };
 
-    this.postMessage = function(data) {
+    this.postMessage = function(data, semaphore) {
         worker = worker || engine.getWorker();
         var target = {
             postMessage: function(data) {
@@ -31,13 +32,15 @@ function Worker(module) {
             }
         };
         var currentWorker = engine.getCurrentWorker();
+        var event = {data: data, target: target, semaphore: semaphore};
         worker.submit(self, function() {
             try {
-                worker.invoke(module, "onmessage", {data: data, target: target});
+                worker.invoke(module, "onmessage", event);
             } catch (error) {
                 currentWorker.submit(self, onerror, {data: error, target: self});
             } finally {
-                // fixme - release worker if no pending scheduled tasks
+                // fixme - release worker if no pending scheduled tasks;
+                // we want to do better than that.
                 if (worker.countScheduledTasks() == 0) {
                     engine.releaseWorker(worker);
                     worker = null;
@@ -53,4 +56,28 @@ function Worker(module) {
             worker = null;
         }
     }
+}
+
+function Semaphore(permits) {
+    if (!(this instanceof Semaphore)) {
+        return new Semaphore(permits);
+    }
+
+    if (typeof permits === "undefined") permits = 0;
+    var s = new JavaSemaphore(permits);
+
+    this.wait = function(permits) {
+        if (typeof permits === "undefined") permits = 1;
+        s.acquire(permits);
+    };
+
+    this.tryWait = function(timeout, permits) {
+        if (typeof permits === "undefined") permits = 1;
+        return s.tryAcquire(permits, timeout, TimeUnit.MILLISECONDS);
+    };
+
+    this.signal = function(permits) {
+        if (typeof permits === "undefined") permits = 1;
+        s.release(permits);
+    };
 }

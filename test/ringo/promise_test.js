@@ -1,21 +1,20 @@
 var assert = require("assert");
 var {defer, promises} = require("ringo/promise");
-var {Worker} = require("ringo/worker");
-var {Semaphore, TimeUnit} = java.util.concurrent;
+var {Worker, Semaphore} = require("ringo/worker");
 
 exports.testPromise = function() {
     var d1 = defer(), d2 = defer();
-    var semaphore = new Semaphore(0);
+    var semaphore = new Semaphore();
     var v1, v2, e2;
     d1.promise.then(function(value) {
         v1 = value;
-        semaphore.release();
+        semaphore.signal();
     });
     d2.promise.then(function(value) {
         v2 = value;
     }, function(error) {
         e2 = error;
-        semaphore.release();
+        semaphore.signal();
     });
     // Resolve promise in worker so async promise callbacks get called
     var worker = new Worker({
@@ -26,7 +25,7 @@ exports.testPromise = function() {
     });
     worker.postMessage();
     // wait for promises to resolve
-    if (!semaphore.tryAcquire(2, 1000, TimeUnit.MILLISECONDS)) {
+    if (!semaphore.tryWait(1000, 2)) {
         assert.fail("timed out");
     }
     // make sure promises have resolved via chained callback
@@ -39,7 +38,7 @@ exports.testPromise = function() {
 exports.testPromiseList = function() {
     var d1 = defer(), d2 = defer(), d3 = defer(), done = defer();
     var l = promises(d1.promise, d2.promise, d3); // promiseList should convert d3 to promise
-    var semaphore = new Semaphore(0);
+    var semaphore = new Semaphore();
     var result;
     l.then(function(value) {
         done.resolve(value);
@@ -48,7 +47,7 @@ exports.testPromiseList = function() {
     });
     done.promise.then(function(value) {
         result = value;
-        semaphore.release();
+        semaphore.signal();
     });
     // Resolve promise in worker so async promise callbacks get called
     var worker = new Worker({
@@ -60,7 +59,7 @@ exports.testPromiseList = function() {
     });
     worker.postMessage();
     // wait for last promise to resolve
-    if (!semaphore.tryAcquire(1000, TimeUnit.MILLISECONDS)) {
+    if (!semaphore.tryWait(1000)) {
         assert.fail("timed out");
     }
     // make sure promises have resolved via chained callback
