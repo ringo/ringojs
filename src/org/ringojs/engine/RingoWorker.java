@@ -68,24 +68,7 @@ public class RingoWorker {
                 function = fun;
             }
             engine.initArguments(args);
-            Object retval;
-            while (true) {
-                try {
-                    retval = ((Function) function).call(cx, scope, scriptable, args);
-                    break;
-                } catch (JavaScriptException jsx) {
-                    Object value = jsx.getValue();
-                    if (value instanceof Scriptable && ScriptableObject
-                            .getProperty((Scriptable)value, "retry") == Boolean.TRUE) {
-                        modules.clear();
-                    } else {
-                        throw jsx;
-                    }
-                } catch (RhinoEngine.RetryException retry) {
-                    // request to try again
-                    modules.clear();
-                }
-            }
+            Object retval = ((Function) function).call(cx, scope, scriptable, args);
             return retval instanceof Wrapper ?
                     ((Wrapper) retval).unwrap() : retval;
         } finally {

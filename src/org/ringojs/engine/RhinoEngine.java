@@ -838,14 +838,6 @@ public class RhinoEngine implements ScopeProvider {
         return wrapFactory;
     }
 
-    public static class RetryException extends RuntimeException {
-        public final String retry;
-
-        public RetryException(String message) {
-            super(message);
-            retry = message;
-        }
-    }
 }
 
 class AppClassLoader extends RingoClassLoader {
