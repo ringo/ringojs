@@ -215,8 +215,9 @@ public class ReloadableScript {
         return exec(cx, getScript(cx), prototype, modules);
     }
 
-    private ModuleScope exec(Context cx, Script script, Scriptable prototype,
-                             Map<Resource, ModuleScope> modules)
+    private synchronized ModuleScope exec(Context cx, Script script,
+                                          Scriptable prototype,
+                                          Map<Resource, ModuleScope> modules)
             throws IOException {
         ModuleScope module = new ModuleScope(moduleName, resource, prototype);
         // put module scope in map right away to make circular dependencies work
