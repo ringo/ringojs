@@ -133,10 +133,10 @@ public class JsgiServlet extends HttpServlet {
         } catch (Exception ignore) {
             // continuation may not be set up even if class is availble - ignore
         }
+        JsgiRequest req = new JsgiRequest(request, response, requestProto,
+                engine.getScope(), this);
         RingoWorker worker = engine.getWorker();
         try {
-            JsgiRequest req = new JsgiRequest(request, response, requestProto,
-                    engine.getScope(), this);
             worker.invoke("ringo/jsgi/connector", "handleRequest", module,
                     function, req);
         } catch (Exception x) {

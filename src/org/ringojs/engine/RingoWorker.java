@@ -246,8 +246,4 @@ public class RingoWorker {
         }
     }
 
-    protected void reset() {
-        // todo
-    }
-
 }

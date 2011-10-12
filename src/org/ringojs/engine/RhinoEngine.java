@@ -73,7 +73,7 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        workers = new LinkedBlockingDeque<RingoWorker>(32);
+        workers = new LinkedBlockingDeque<RingoWorker>(256);
         mainWorker = new RingoWorker(this);
         compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
@@ -270,11 +270,8 @@ public class RhinoEngine implements ScopeProvider {
      */
     public void releaseWorker(RingoWorker worker) {
         if (worker != null) {
-            try {
-                worker.reset();
-                workers.offerFirst(worker);
-            } catch (Exception x) {
-                // error in reset, worker is not returned into pool
+            if (!workers.offerFirst(worker)) {
+                worker.terminate();
             }
         }
     }
