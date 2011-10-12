@@ -568,7 +568,7 @@ public class RhinoEngine implements ScopeProvider {
         if (scope instanceof RingoGlobal) {
             return ((RingoGlobal) scope).getEngine();
         }
-        throw new IllegalStateException("Unsupported scope");
+        throw new IllegalArgumentException("Unsupported scope");
     }
 
     /**
