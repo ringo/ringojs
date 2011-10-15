@@ -24,20 +24,24 @@ function Worker(module) {
         }
     };
 
-    this.postMessage = function(data, semaphore) {
+    this.postMessage = function(data, syncCallbacks) {
         worker = worker || engine.getWorker();
+        var invokeCallback = function(callback, arg) {
+            if (syncCallbacks) callback(arg);
+            else currentWorker.submit(self, callback, arg);
+        }
         var target = {
             postMessage: function(data) {
-                currentWorker.submit(self, onmessage, {data: data, target: self});
+                invokeCallback(onmessage, {data: data, target: self});
             }
         };
         var currentWorker = engine.getCurrentWorker();
-        var event = {data: data, target: target, semaphore: semaphore};
+        var event = {data: data, target: target};
         worker.submit(self, function() {
             try {
                 worker.invoke(module, "onmessage", event);
             } catch (error) {
-                currentWorker.submit(self, onerror, {data: error, target: self});
+                invokeCallback(onerror, {data: error, target: self});
             } finally {
                 // fixme - release worker if no pending scheduled tasks;
                 // we want to do better than that.
