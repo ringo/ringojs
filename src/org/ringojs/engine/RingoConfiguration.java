@@ -189,19 +189,10 @@ public class RingoConfiguration {
             }
         }
         // Try to resolve path as classpath resource
-        URL url = RingoConfiguration.class.getResource("/" + path);
-        if (url != null) {
-            String protocol = url.getProtocol();
-            if (("jar".equals(protocol) || "zip".equals(protocol))) {
-                Repository jar = toZipRepository(url);
-                if (jar != null) {
-                    repository = jar.getChildRepository(path);
-                    if (repository.exists()) {
-                        repository.setRoot();
-                        return repository;
-                    }
-                }
-            }
+        repository = repositoryFromClasspath(path);
+        if (repository != null && repository.exists()) {
+            repository.setRoot();
+            return repository;
         }
         return null;
     }
