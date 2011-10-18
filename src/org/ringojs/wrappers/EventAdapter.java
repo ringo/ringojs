@@ -2,7 +2,6 @@ package org.ringojs.wrappers;
 
 import org.mozilla.classfile.ByteCode;
 import org.mozilla.classfile.ClassFileWriter;
-import org.mozilla.javascript.Callable;
 import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -15,20 +14,25 @@ import org.mozilla.javascript.SecurityController;
 import org.mozilla.javascript.SecurityUtilities;
 import org.mozilla.javascript.annotations.JSConstructor;
 import org.mozilla.javascript.annotations.JSFunction;
+import org.ringojs.engine.RhinoEngine;
+import org.ringojs.engine.RingoWorker;
+
+import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
 
 import java.lang.reflect.Method;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
 public class EventAdapter extends ScriptableObject {
 
-    private Map<String,List<Callable>> callbacks = new HashMap<String,List<Callable>>();
-    AtomicInteger serial = new AtomicInteger();
+    private Map<String,List<Callback>> callbacks = new HashMap<String,List<Callback>>();
 
     @Override
     public String getClassName() {
@@ -42,7 +46,7 @@ public class EventAdapter extends ScriptableObject {
     public static Object jsConstructor(Context cx, Object[] args,
                                        Function functionObj, boolean inNewExpr) {
         List<Class<?>> interfaces = new ArrayList<Class<?>>();
-        Map mapping = null;
+        Map<String, String> mapping = null;
         int length = args.length;
         for (int i = 0; i < length; i++) {
             Object arg = args[i];
@@ -56,7 +60,7 @@ public class EventAdapter extends ScriptableObject {
                     throw ScriptRuntime.typeError1("msg.arg.not.obj",
                             ScriptRuntime.typeof(arg));
                 }
-                mapping = new HashMap<String,List<Callable>>((Map)arg);
+                mapping = new HashMap<String, String>((Map)arg);
             } else {
                 Class<?> c = ((NativeJavaClass) arg).getClassObject();
                 if (!c.isInterface()) {
@@ -69,7 +73,7 @@ public class EventAdapter extends ScriptableObject {
             Scriptable scope = ScriptableObject.getTopLevelScope(functionObj);
             ClassCache cache = ClassCache.get(scope);
             String className = "EventAdapter" + cache.newClassSerialNumber();
-            byte[] code = getAdapterClass(scope, className, interfaces, mapping);
+            byte[] code = getAdapterClass(className, interfaces, mapping);
             Class<?> adapterClass = loadAdapterClass(className, code);
             return adapterClass.getConstructor().newInstance();
         } catch (Exception ex) {
@@ -78,21 +82,36 @@ public class EventAdapter extends ScriptableObject {
     }
 
     @JSFunction
-    public void addListener(String type, Object callback) {
-        if (!(callback instanceof Callable)) {
+    public void addListener(String type, Object function) {
+        addListener(type, false, function);
+    }
+
+    @JSFunction
+    public void addSyncListener(String type, Object function) {
+        addListener(type, true, function);
+    }
+
+    private void addListener(String type, boolean sync, Object function) {
+        if (!(function instanceof Function)) {
             Context.reportError("Event listener must be a function");
         }
-        List<Callable> list = callbacks.get(type);
+        List<Callback> list = callbacks.get(type);
         if (list == null) {
-            list = new ArrayList<Callable>();
+            list = new ArrayList<Callback>();
             callbacks.put(type, list);
         }
-        list.add((Callable)callback);
+        Callback callback = new Callback();
+        Scriptable scope = ScriptableObject.getTopLevelScope((Scriptable)function);
+        callback.module = scope;
+        callback.function = function;
+        callback.worker = RhinoEngine.getEngine(scope.getPrototype()).getCurrentWorker();
+        callback.sync = sync;
+        list.add(callback);
     }
 
     @JSFunction
     public Object removeListener(String type, Object callback) {
-        List<Callable> list = callbacks.get(type);
+        List<Callback> list = callbacks.get(type);
         if (list != null) {
             list.remove(callback);
         }
@@ -117,40 +136,84 @@ public class EventAdapter extends ScriptableObject {
         int length = args.length - 1;
         Object[] fargs = new Object[length];
         System.arraycopy(args, 1, fargs, 0, length);
-        ((EventAdapter)thisObj).emit(cx, type, fargs);
+        ((EventAdapter)thisObj).emit(type, fargs);
     }
 
-    public void emit(Context cx, String type, Object... args) {
-        List<Callable> list = callbacks.get(type);
+    public void emit(String type, Object... args) {
+        List<Callback> list = callbacks.get(type);
         if (list != null) {
-            if (cx == null) {
-                cx = Context.getCurrentContext();
-            }
-            for (Callable callback : list) {
-                callback.call(cx, null, null, args);
+            for (Callback callback : list) {
+                callback.invoke(args);
             }
         }
     }
 
-    private static byte[] getAdapterClass(Scriptable scope, String className,
+    private static byte[] getAdapterClass(String className,
                                            List<Class<?>> interfaces,
-                                           Map mapping) {
+                                           Map<String, String> mapping) {
         String superName = EventAdapter.class.getName();
         ClassFileWriter cfw = new ClassFileWriter(className,
                                                   superName,
                                                   "<EventAdapter>");
+        Set<Method> methods = new HashSet<Method>();
         for (Class<?> interf : interfaces) {
             cfw.addInterface(interf.getName());
-            // Method[] methods = interf.getMethods();
-            // TODO
+            Method[] ifmethods = interf.getMethods();
+            Collections.addAll(methods, ifmethods);
         }
 
-        cfw.startMethod("<init>", "()V", ClassFileWriter.ACC_PUBLIC);
+        cfw.startMethod("<init>", "()V", ACC_PUBLIC);
         // Invoke base class constructor
         cfw.add(ByteCode.ALOAD_0);  // this
         cfw.addInvoke(ByteCode.INVOKESPECIAL, superName, "<init>", "()V");
         cfw.add(ByteCode.RETURN);
         cfw.stopMethod((short)1); // this
+
+        for (Method method : methods) {
+            Class<?>[]paramTypes = method.getParameterTypes();
+            int paramLength = paramTypes.length;
+            Class<?>returnType = method.getReturnType();
+            cfw.startMethod(method.getName(), getSignature(paramTypes, returnType), ACC_PUBLIC);
+            cfw.addLoadThis();
+            cfw.addLoadConstant(method.getName()); // event type
+            cfw.addLoadConstant(paramLength);  // create args array
+            cfw.add(ByteCode.ANEWARRAY, "java/lang/Object");
+            for (int i = 0; i < paramLength; i++) {
+                cfw.add(ByteCode.DUP);
+                cfw.addLoadConstant(i);
+                Class<?> param = paramTypes[i];
+                if (param.isPrimitive()) {
+                    throw new RuntimeException("primitive event parameters are not supported yet");
+                }
+                cfw.addALoad(i + 1);
+                cfw.add(ByteCode.AASTORE);
+            }
+            cfw.addInvoke(ByteCode.INVOKEVIRTUAL, className, "emit",
+                    "(Ljava/lang/String;[Ljava/lang/Object;)V");
+            if (returnType == Void.TYPE) {
+                cfw.add(ByteCode.RETURN);
+            } else if (returnType == Integer.TYPE || returnType == Byte.TYPE
+                    || returnType == Character.TYPE || returnType == Short.TYPE) {
+                cfw.add(ByteCode.ICONST_0);
+                cfw.add(ByteCode.IRETURN);
+            } else if (returnType == Boolean.TYPE) {
+                cfw.add(ByteCode.ICONST_1); // return true for boolean
+                cfw.add(ByteCode.IRETURN);
+            } else if (returnType == Double.TYPE) {
+                cfw.add(ByteCode.DCONST_0);
+                cfw.add(ByteCode.DRETURN);
+            } else if (returnType == Float.TYPE) {
+                cfw.add(ByteCode.FCONST_0);
+                cfw.add(ByteCode.FRETURN);
+            } else if (returnType == Long.TYPE) {
+                cfw.add(ByteCode.LCONST_0);
+                cfw.add(ByteCode.LRETURN);
+            } else {
+                cfw.add(ByteCode.ACONST_NULL);
+                cfw.add(ByteCode.ARETURN);
+            }
+            cfw.stopMethod((short)(paramLength + 1));
+        }
 
         return cfw.toByteArray();
     }
@@ -179,6 +242,58 @@ public class EventAdapter extends ScriptableObject {
         Class<?> result = loader.defineClass(className, classBytes);
         loader.linkClass(result);
         return result;
+    }
+
+    public static String getSignature(Class<?>[] paramTypes, Class<?> returnType) {
+        StringBuilder b = new StringBuilder("(");
+        for (Class<?> param : paramTypes) {
+            b.append(classToSignature(param));
+        }
+        b.append(")");
+        b.append(classToSignature(returnType));
+        return b.toString();
+    }
+
+    /**
+     * Convert Java class to "Lname-with-dots-replaced-by-slashes;" form
+     * suitable for use as JVM type signatures. This includes support
+     * for arrays and primitive types such as int or boolean.
+     */
+    public static String classToSignature(Class<?> clazz) {
+        if (clazz.isArray()) {
+            // arrays return their signature as name, e.g. "[B" for byte arrays
+            return "[" + classToSignature(clazz.getComponentType());
+        } else if (clazz.isPrimitive()) {
+            if (clazz == java.lang.Integer.TYPE) return "I";
+            if (clazz == java.lang.Long.TYPE) return "J";
+            if (clazz == java.lang.Short.TYPE) return "S";
+            if (clazz == java.lang.Byte.TYPE) return "B";
+            if (clazz == java.lang.Boolean.TYPE) return "Z";
+            if (clazz == java.lang.Character.TYPE) return "C";
+            if (clazz == java.lang.Double.TYPE) return "D";
+            if (clazz == java.lang.Float.TYPE) return "F";
+            if (clazz == java.lang.Void.TYPE) return "V";
+        }
+        return ClassFileWriter.classNameToSignature(clazz.getName());
+    }
+
+    class Callback {
+        RingoWorker worker;
+        Object module;
+        Object function;
+        boolean sync;
+
+        void invoke(Object[] args) {
+            if (sync) {
+                try {
+                    worker.invoke(module, function, args);
+                } catch (Exception x) {
+                    throw new RuntimeException(x);
+                }
+            } else {
+                worker.submit(module, function, args);
+            }
+        }
     }
 
 }
