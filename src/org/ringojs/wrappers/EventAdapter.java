@@ -180,21 +180,42 @@ public class EventAdapter extends ScriptableObject {
             Class<?>returnType = method.getReturnType();
             cfw.startMethod(method.getName(), getSignature(paramTypes, returnType), ACC_PUBLIC);
             cfw.addLoadThis();
-            cfw.addLoadConstant(method.getName()); // event type
+            cfw.addLoadConstant(toEventName(method.getName())); // event type
             cfw.addLoadConstant(paramLength);  // create args array
             cfw.add(ByteCode.ANEWARRAY, "java/lang/Object");
             for (int i = 0; i < paramLength; i++) {
                 cfw.add(ByteCode.DUP);
                 cfw.addLoadConstant(i);
                 Class<?> param = paramTypes[i];
-                if (param.isPrimitive()) {
-                    throw new RuntimeException("primitive event parameters are not supported yet");
+                if (param == Integer.TYPE || param == Byte.TYPE
+                        || param == Character.TYPE || param == Short.TYPE) {
+                    cfw.addILoad(i + 1);
+                    cfw.addInvoke(ByteCode.INVOKESTATIC, "java/lang/Integer",
+                            "valueOf", "(I)Ljava/lang/Integer;");
+                } else if (param == Boolean.TYPE) {
+                    cfw.addILoad(i + 1);
+                    cfw.addInvoke(ByteCode.INVOKESTATIC, "java/lang/Boolean",
+                            "valueOf", "(Z)Ljava/lang/Boolean;");
+                } else if (param == Double.TYPE) {
+                    cfw.addDLoad(i + 1);
+                    cfw.addInvoke(ByteCode.INVOKESTATIC, "java/lang/Double",
+                            "valueOf", "(I)Ljava/lang/Double;");
+                } else if (param == Float.TYPE) {
+                    cfw.addFLoad(i + 1);
+                    cfw.addInvoke(ByteCode.INVOKESTATIC, "java/lang/Float",
+                            "valueOf", "(I)Ljava/lang/Float;");
+                } else if (param == Long.TYPE) {
+                    cfw.addLLoad(i + 1);
+                    cfw.addInvoke(ByteCode.INVOKESTATIC, "java/lang/Long",
+                            "valueOf", "(I)Ljava/lang/Long;");
+                } else {
+                    cfw.addALoad(i + 1);
                 }
-                cfw.addALoad(i + 1);
                 cfw.add(ByteCode.AASTORE);
             }
             cfw.addInvoke(ByteCode.INVOKEVIRTUAL, className, "emit",
-                    "(Ljava/lang/String;[Ljava/lang/Object;)V");
+                    "(Ljava/lang/String;[Ljava/lang/Object;)Z");
+            cfw.add(ByteCode.POP); // always discard result of emit()
             if (returnType == Void.TYPE) {
                 cfw.add(ByteCode.RETURN);
             } else if (returnType == Integer.TYPE || returnType == Byte.TYPE
@@ -247,6 +268,18 @@ public class EventAdapter extends ScriptableObject {
         Class<?> result = loader.defineClass(className, classBytes);
         loader.linkClass(result);
         return result;
+    }
+
+    public static String toEventName(String methodName) {
+        int length = methodName.length();
+        if (length > 2 && methodName.regionMatches(0, "on", 0, 2)
+                && Character.isUpperCase(methodName.charAt(2))) {
+            char[] chars = new char[length - 2];
+            methodName.getChars(2, length, chars, 0);
+            chars[0] = Character.toLowerCase(chars[0]);
+            return new String(chars);
+        }
+        return methodName;
     }
 
     public static String getSignature(Class<?>[] paramTypes, Class<?> returnType) {
