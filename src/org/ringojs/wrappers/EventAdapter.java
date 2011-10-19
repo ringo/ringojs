@@ -15,6 +15,7 @@ import org.mozilla.javascript.annotations.JSConstructor;
 import org.mozilla.javascript.annotations.JSFunction;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoWorker;
+import org.mozilla.javascript.Undefined;
 
 import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
 
@@ -80,13 +81,15 @@ public class EventAdapter extends ScriptableObject {
     }
 
     @JSFunction
-    public void addListener(String type, Object function) {
+    public Object addListener(String type, Object function) {
         addListener(type, false, function);
+        return this;
     }
 
     @JSFunction
-    public void addSyncListener(String type, Object function) {
+    public Object addSyncListener(String type, Object function) {
         addListener(type, true, function);
+        return this;
     }
 
     private void addListener(String type, boolean sync, Object function) {
@@ -124,27 +127,33 @@ public class EventAdapter extends ScriptableObject {
     }
 
     @JSFunction
-    public static void emit(Context cx, Scriptable thisObj,
-                            Object[] args, Function funObj) {
+    public static boolean emit(Context cx, Scriptable thisObj,
+                               Object[] args, Function funObj) {
         if (!(thisObj instanceof EventAdapter)) {
             throw ScriptRuntime.typeError(
-                    "emit() called on incompatible object: "
-                            + ScriptRuntime.toString(thisObj));
+                    "emit() called on incompatible object: " + ScriptRuntime.toString(thisObj));
         }
-        String type = (String) args[0];
+        if (args.length == 0 || args[0] == null || args[0] == Undefined.instance) {
+            throw ScriptRuntime.typeError(
+                    "emit() requires event type as first argument");
+        }
+        String type = ScriptRuntime.toString(args[0]);
         int length = args.length - 1;
         Object[] fargs = new Object[length];
         System.arraycopy(args, 1, fargs, 0, length);
-        ((EventAdapter)thisObj).emit(type, fargs);
+        EventAdapter self = (EventAdapter)thisObj;
+        return self.emit(type, fargs);
     }
 
-    public void emit(String type, Object... args) {
+    public boolean emit(String type, Object... args) {
         List<Callback> list = callbacks.get(type);
         if (list != null) {
             for (Callback callback : list) {
                 callback.invoke(args);
             }
+            return !list.isEmpty();
         }
+        return false;
     }
 
     private static byte[] getAdapterClass(String className,
