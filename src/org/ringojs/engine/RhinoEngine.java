@@ -559,9 +559,13 @@ public class RhinoEngine implements ScopeProvider {
 
     /**
      * Get the currently active RhinoEngine instance.
+     * @param scope the global scope or a top level module scope
      * @return the current RhinoEngine
      */
     public static RhinoEngine getEngine(Scriptable scope) {
+        if (scope instanceof ModuleScope) {
+            scope = scope.getPrototype();
+        }
         if (scope instanceof RingoGlobal) {
             return ((RingoGlobal) scope).getEngine();
         }
