@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class EventAdapter extends ScriptableObject {
                 byte[] code = getAdapterClass(className, interf);
                 adapterClass = loadAdapterClass(className, code);
             }
-            Scriptable scope = ScriptableObject.getTopLevelScope(function);
+            Scriptable scope = getTopLevelScope(function);
             RhinoEngine engine = RhinoEngine.getEngine(scope);
             Constructor cnst = adapterClass.getConstructor(RhinoEngine.class);
             return cnst.newInstance(engine);
@@ -104,9 +105,14 @@ public class EventAdapter extends ScriptableObject {
     @JSFunction
     public Object removeListener(String type, Object callback) {
         List<Callback> list = callbacks.get(type);
-        if (list != null) {
-            // TODO not working
-            list.remove(callback);
+        if (list != null && callback instanceof Scriptable) {
+            Scriptable s = (Scriptable) callback;
+            for (Iterator<Callback> it = list.iterator(); it.hasNext();) {
+                if (it.next().equalsCallback(s)) {
+                    it.remove();
+                    break;
+                }
+            }
         }
         return this;
     }
@@ -274,17 +280,34 @@ public class EventAdapter extends ScriptableObject {
         final boolean sync;
 
         Callback(Scriptable function, boolean sync) {
-            Scriptable scope = ScriptableObject.getTopLevelScope(function);
+            Scriptable scope = getTopLevelScope(function);
             if (function instanceof Function) {
                 this.module = scope;
                 this.function = function;
                 this.worker = engine.getCurrentWorker();
             } else {
-                this.module = ScriptableObject.getProperty(function, "module");
-                this.function = ScriptableObject.getProperty(function, "name");
+                this.module = getProperty(function, "module");
+                this.function = getProperty(function, "name");
+                if (module == NOT_FOUND || module == null) {
+                    throw Context.reportRuntimeError(
+                            "Callback object must contain 'module' property");
+                }
+                if (this.function != NOT_FOUND || this.function == null) {
+                    throw Context.reportRuntimeError(
+                            "Callback object must contain 'app' property");
+                }
                 this.worker = null;
             }
             this.sync = sync;
+        }
+
+        boolean equalsCallback(Scriptable callback) {
+            if (callback instanceof Function) {
+                return function == callback;
+            } else {
+                return module.equals(getProperty(callback, "module"))
+                        && function.equals(getProperty(callback, "name"));
+            }
         }
 
         void invoke(Object[] args) {
