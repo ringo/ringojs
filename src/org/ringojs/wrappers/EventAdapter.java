@@ -2,7 +2,6 @@ package org.ringojs.wrappers;
 
 import org.mozilla.classfile.ByteCode;
 import org.mozilla.classfile.ClassFileWriter;
-import org.mozilla.javascript.ClassCache;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.GeneratedClassLoader;
@@ -19,63 +18,61 @@ import org.ringojs.engine.RingoWorker;
 
 import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventAdapter extends ScriptableObject {
 
+    private RhinoEngine engine;
     private Map<String,List<Callback>> callbacks = new HashMap<String,List<Callback>>();
+    static Map<Class<?>,Class<?>> adapterCache = new HashMap<Class<?>, Class<?>>();
+    static AtomicInteger serial = new AtomicInteger();
 
     @Override
     public String getClassName() {
         return "EventAdapter";
     }
 
-    public EventAdapter() {}
+    public EventAdapter() {
+        this.engine = null;
+    }
+
+    public EventAdapter(RhinoEngine engine) {
+        this.engine = engine;
+    }
 
     @JSConstructor
     @SuppressWarnings("unchecked")
     public static Object jsConstructor(Context cx, Object[] args,
-                                       Function functionObj, boolean inNewExpr) {
-        List<Class<?>> interfaces = new ArrayList<Class<?>>();
-        Map<String, String> mapping = null;
+                                       Function function, boolean inNewExpr) {
         int length = args.length;
-        for (int i = 0; i < length; i++) {
-            Object arg = args[i];
-            if (!(arg instanceof NativeJavaClass)) {
-                if (i < length - 1) {
-                    throw ScriptRuntime.typeError2("msg.not.java.class.arg",
-                            String.valueOf(i),
-                            ScriptRuntime.toString(arg));
-                }
-                if (!(arg instanceof Map)) {
-                    throw ScriptRuntime.typeError1("msg.arg.not.obj",
-                            ScriptRuntime.typeof(arg));
-                }
-                mapping = new HashMap<String, String>((Map)arg);
-            } else {
-                Class<?> c = ((NativeJavaClass) arg).getClassObject();
-                if (!c.isInterface()) {
-                    throw ScriptRuntime.typeError("EventAdapter argument must be interface");
-                }
-                interfaces.add(c);
-            }
+        if (length != 1 || !(args[0] instanceof NativeJavaClass)) {
+            throw ScriptRuntime.typeError2("msg.not.java.class.arg",
+                    String.valueOf(1),
+                    length == 0 ? "undefined" : ScriptRuntime.toString(args[0]));
+        }
+        Class<?> interf = ((NativeJavaClass) args[0]).getClassObject();
+        if (!interf.isInterface()) {
+            throw ScriptRuntime.typeError("EventAdapter argument must be interface");
         }
         try {
-            Scriptable scope = ScriptableObject.getTopLevelScope(functionObj);
-            ClassCache cache = ClassCache.get(scope);
-            String className = "EventAdapter" + cache.newClassSerialNumber();
-            byte[] code = getAdapterClass(className, interfaces, mapping);
-            Class<?> adapterClass = loadAdapterClass(className, code);
-            return adapterClass.getConstructor().newInstance();
+            Class<?> adapterClass = adapterCache.get(interf);
+            if (adapterClass == null) {
+                String className = "EventAdapter" + serial.incrementAndGet();
+                byte[] code = getAdapterClass(className, interf);
+                adapterClass = loadAdapterClass(className, code);
+            }
+            Scriptable scope = ScriptableObject.getTopLevelScope(function);
+            RhinoEngine engine = RhinoEngine.getEngine(scope);
+            Constructor cnst = adapterClass.getConstructor(RhinoEngine.class);
+            return cnst.newInstance(engine);
         } catch (Exception ex) {
             throw Context.throwAsScriptRuntimeEx(ex);
         }
@@ -92,20 +89,15 @@ public class EventAdapter extends ScriptableObject {
     }
 
     private void addListener(String type, boolean sync, Object function) {
-        if (!(function instanceof Function)) {
-            Context.reportError("Event listener must be a function");
+        if (!(function instanceof Scriptable)) {
+            Context.reportError("Event listener must be an object or function");
         }
         List<Callback> list = callbacks.get(type);
         if (list == null) {
-            list = new ArrayList<Callback>();
+            list = new LinkedList<Callback>();
             callbacks.put(type, list);
         }
-        Callback callback = new Callback();
-        Scriptable scope = ScriptableObject.getTopLevelScope((Scriptable)function);
-        callback.module = scope;
-        callback.function = function;
-        callback.worker = RhinoEngine.getEngine(scope.getPrototype()).getCurrentWorker();
-        callback.sync = sync;
+        Callback callback = new Callback((Scriptable)function, sync);
         list.add(callback);
     }
 
@@ -113,6 +105,7 @@ public class EventAdapter extends ScriptableObject {
     public Object removeListener(String type, Object callback) {
         List<Callback> list = callbacks.get(type);
         if (list != null) {
+            // TODO not working
             list.remove(callback);
         }
         return this;
@@ -149,25 +142,22 @@ public class EventAdapter extends ScriptableObject {
     }
 
     private static byte[] getAdapterClass(String className,
-                                           List<Class<?>> interfaces,
-                                           Map<String, String> mapping) {
+                                          Class<?> interf) {
         String superName = EventAdapter.class.getName();
         ClassFileWriter cfw = new ClassFileWriter(className,
                                                   superName,
                                                   "<EventAdapter>");
-        Set<Method> methods = new HashSet<Method>();
-        for (Class<?> interf : interfaces) {
-            cfw.addInterface(interf.getName());
-            Method[] ifmethods = interf.getMethods();
-            Collections.addAll(methods, ifmethods);
-        }
+        cfw.addInterface(interf.getName());
+        Method[] methods = interf.getMethods();
 
-        cfw.startMethod("<init>", "()V", ACC_PUBLIC);
+        cfw.startMethod("<init>", "(Lorg/ringojs/engine/RhinoEngine;)V", ACC_PUBLIC);
         // Invoke base class constructor
         cfw.add(ByteCode.ALOAD_0);  // this
-        cfw.addInvoke(ByteCode.INVOKESPECIAL, superName, "<init>", "()V");
+        cfw.add(ByteCode.ALOAD_1);  // engine
+        cfw.addInvoke(ByteCode.INVOKESPECIAL, superName, "<init>",
+                "(Lorg/ringojs/engine/RhinoEngine;)V");
         cfw.add(ByteCode.RETURN);
-        cfw.stopMethod((short)1); // this
+        cfw.stopMethod((short)2); // this
 
         for (Method method : methods) {
             Class<?>[]paramTypes = method.getParameterTypes();
@@ -278,12 +268,39 @@ public class EventAdapter extends ScriptableObject {
     }
 
     class Callback {
-        RingoWorker worker;
-        Object module;
-        Object function;
-        boolean sync;
+        final RingoWorker worker;
+        final Object module;
+        final Object function;
+        final boolean sync;
+
+        Callback(Scriptable function, boolean sync) {
+            Scriptable scope = ScriptableObject.getTopLevelScope(function);
+            if (function instanceof Function) {
+                this.module = scope;
+                this.function = function;
+                this.worker = engine.getCurrentWorker();
+            } else {
+                this.module = ScriptableObject.getProperty(function, "module");
+                this.function = ScriptableObject.getProperty(function, "name");
+                this.worker = null;
+            }
+            this.sync = sync;
+        }
 
         void invoke(Object[] args) {
+            if (this.worker == null) {
+                RingoWorker worker = engine.getWorker();
+                try {
+                    invokeWithWorker(worker, args);
+                } finally {
+                    worker.releaseWhenDone();
+                }
+            } else {
+                invokeWithWorker(this.worker, args);
+            }
+        }
+
+        void invokeWithWorker(RingoWorker worker, Object[] args) {
             if (sync) {
                 try {
                     worker.invoke(module, function, args);

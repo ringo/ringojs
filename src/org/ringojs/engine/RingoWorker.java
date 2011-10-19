@@ -15,20 +15,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class RingoWorker {
 
     private ScheduledThreadPoolExecutor eventloop;
     private final RhinoEngine engine;
-    private final Lock runlock = new ReentrantLock();
+    private final ReentrantLock runlock = new ReentrantLock();
 
     private ReloadableScript currentScript;
     private List<SyntaxError> errors;
@@ -75,8 +75,7 @@ public class RingoWorker {
             }
             engine.initArguments(args);
             Object retval = ((Function) function).call(cx, scope, scriptable, args);
-            return retval instanceof Wrapper ?
-                    ((Wrapper) retval).unwrap() : retval;
+            return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
             engine.setCurrentWorker(null);
             runlock.unlock();
@@ -239,10 +238,38 @@ public class RingoWorker {
         return loop == null ? 0 : loop.getQueue().size();
     }
 
+    public boolean isActive() {
+        if (runlock.isLocked()) {
+            return true;
+        }
+        if (eventloop != null) {
+            Delayed task = (Delayed)eventloop.getQueue().peek();
+            if (task != null && task.getDelay(TimeUnit.MILLISECONDS) < 1l) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public synchronized void terminate() {
         if (eventloop != null) {
             eventloop.shutdownNow();
             eventloop = null;
+        }
+    }
+
+    public void releaseWhenDone() {
+        if (isActive()) {
+            if (eventloop == null) {
+                initEventLoop();
+            }
+            eventloop.submit(new Runnable() {
+                public void run() {
+                    engine.releaseWorker(RingoWorker.this);
+                }
+            });
+        } else {
+            engine.releaseWorker(this);
         }
     }
 
