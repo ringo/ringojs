@@ -169,7 +169,8 @@ public class RingoRunner {
                 engine.waitTillDone();
             }
         } catch (Exception x) {
-            reportError(x, err, engine.getErrorList(), verbose);
+            List<SyntaxError> errors = engine == null ? null : engine.getErrorList();
+            reportError(x, err, errors, verbose);
             System.exit(-1);
         }
     }
