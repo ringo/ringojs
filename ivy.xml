@@ -12,18 +12,14 @@
         <dependency org="javax.servlet" name="servlet-api" rev="2.5"/>
         <!-- logging -->
         <dependency org="org.slf4j" name="slf4j-api" rev="1.5.+"/>
-        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.5.+"/>
-        <!-- dependency org="log4j" name="log4j" rev="1.2.15"/-->
+        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.5.+">
+            <exclude org="log4j"/>
+        </dependency>
+        <dependency org="log4j" name="log4j" rev="1.2.14"/>
         <!-- jnr-posix -->
         <dependency org="org.jruby.extras" name="jaffl" rev="0.5.+"/>
         <dependency org="org.jruby.ext.posix" name="jnr-posix" rev="1.1.+"/>
         <!-- junit -->
         <dependency org="junit" name="junit" rev="3.8.+"/>
-        <!-- exclude transitive dependencies we already have or don't want -->
-        <exclude org="org.mortbay.jetty" module="jetty-util"/>
-        <exclude org="org.mortbay.jetty" module="servlet-api"/>
-        <!-- exclude org="log4j" module="log4j"/ -->
-        <exclude org="javax.mail" module="mail"/>
-        <exclude org="org.apache.geronimo.specs" module="geronimo-jms_1.1_spec"/>
     </dependencies>
 </ivy-module>
