@@ -31,7 +31,7 @@ export("clone", "merge");
  */
 function clone(object, cloned, recursive) {
     if (!cloned) {
-        cloned = new this.constructor();
+        cloned = new object.constructor();
     }
     var value;
     for (var propName in object) {
