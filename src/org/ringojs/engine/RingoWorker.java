@@ -48,8 +48,21 @@ public class RingoWorker {
         id = workerId.getAndIncrement();
     }
 
-    public Object invoke(Object module, Object function,
-                                      Object... args)
+    /**
+     * Invoke the function specified by `function` in module `module` with the
+     * given arguments.
+     *
+     * Note that if module specifies a module id, the function is looke for
+     * in the top level module scope, not the module's exports object.
+     *
+     * @param module the module id or object
+     * @param function the function name or object
+     * @param args optional arguments to pass to the function
+     * @return the return value of the function invocation
+     * @throws NoSuchMethodException if the function could not be found
+     * @throws IOException if loading the module caused an IO error
+     */
+    public Object invoke(Object module, Object function, Object... args)
             throws NoSuchMethodException, IOException {
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();

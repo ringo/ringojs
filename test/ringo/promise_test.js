@@ -1,6 +1,7 @@
 var assert = require("assert");
 var {defer, promises} = require("ringo/promise");
-var {Worker, Semaphore} = require("ringo/worker");
+var {Worker} = require("ringo/worker");
+var {Semaphore} = require("ringo/concurrent");
 
 exports.testPromise = function() {
     var d1 = defer(), d2 = defer();

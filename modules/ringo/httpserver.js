@@ -169,6 +169,18 @@ function Server(options) {
                         log.debug("new websocket");
 
                         var conn;
+                        /**
+                         * Provides support for WebSockets in the HTTP server.
+                         *
+                         * WebSocket is an event emitter that supports the
+                         * following events:
+                         *
+                         *  * **open**: called when a new websocket connection is accepted
+                         *  * **message**: Called with a complete text message when all fragments have been received.
+                         *  * **close**: called when an established websocket connection closes
+                         *
+                         * @name WebSocket
+                         */
                         var socket = {
                             /**
                              * Closes the WebSocket connection.
@@ -194,6 +206,7 @@ function Server(options) {
                             /**
                              * Check whether the WebSocket is open.
                              * @name WebSocket.instance.isOpen
+                             * @return {Boolean} true if the connection is open
                              * @function
                              */
                             isOpen: function() {

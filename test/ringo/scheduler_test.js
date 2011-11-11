@@ -1,6 +1,7 @@
 var assert = require("assert");
 include("ringo/scheduler");
-var {Worker, Semaphore} = require("ringo/worker");
+var {Worker} = require("ringo/worker");
+var {Semaphore} = require("ringo/concurrent");
 
 exports.testSetTimeout = function() {
     var value;

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Exports an EventEmitter class that provides methods
- * to emit events and register event listeners.
+ * @fileoverview Exports an EventEmitter classes that provide methods
+ * to emit events and register event listener functions.
  */
 
 defineClass(org.ringojs.wrappers.EventAdapter);
@@ -8,7 +8,7 @@ defineClass(org.ringojs.wrappers.EventAdapter);
 /**
  * This class provides methods to emit events and add or remove event listeners.
  *
- * The `EventEmitter` function can be used as constructor or as mixin. Use the
+ * The `EventEmitter` function can be used as constructor or as mix-in. Use the
  * `new` keyword to construct a new EventEmitter:
  *
  *     var emitter = new EventEmitter();
@@ -25,24 +25,86 @@ var EventEmitter = exports.EventEmitter = function() {
     }
 };
 
+/**
+ * An adapter for dispatching Java events to Ringo. This class takes a Java
+ * interface as argument and compiles and creates a Java object implementing
+ * this interface that will forward calls to the interface methods to event
+ * listener functions registered using the EventEmitter methods.
+ *
+ * Like [EventEmitter](#EventEmitter), `JavaEventEmitter` can be used as
+ * constructor or as mix-in. Use the `new` keyword to construct a new
+ * JavaEventEmitter:
+ *
+ *     var emitter = new JavaEventEmitter(JavaInterface);
+ *
+ * To add event handling methods to an existing object, call or apply the
+ * `JavaEventEmitter` function with the object as `this`:
+ *
+ *     JavaEventEmitter.call(object, JavaInterface);
+ *
+ * @param interface a Java interface
+ */
 exports.JavaEventEmitter = function(interface) {
     var e = new EventAdapter(interface);
     Object.defineProperties(this, {
+        /**
+         * The generated Java object. This implements the Java interface
+         * passed to the `JavaEventEmitter` constructor and can be passed
+         * to Java code that expects given interface.
+         */
         impl: {
             value: e
         },
+        /**
+         * Emit an event to all listeners registered for this event type
+         * @param {string} type type the event type
+         * @param {...} [args...] optional arguments to pass to the listeners
+         * @return true if the event was handled by at least one listener, false otherwise
+         * @throws Error if the event type was "error" and there were no listeners
+         * @function
+         */
         emit: {
             value: e.emit.bind(e)
         },
+        /**
+         * Add a listener function for the given event. The function will be
+         * called asynchronously on the thread of the local event loop.
+         * @param {string} type the event type
+         * @param {function} listener the listener
+         * @function
+         */
         addListener: {
             value: e.addListener.bind(e)
         },
+        /**
+         * Add a listener function for the given event. This is a shortcut for
+         * [addListener()](#EventEmitter.prototype.addListener)
+         * @param {string} type the event type
+         * @param {function} listener the listener
+         * @function
+         */
         on: {
             get: function() this.addListener
         },
+        /**
+         * Add a synchronous listener function for the given event. A
+         * synchronous listener will be called by an outside thread instead
+         * of the thread of the local event loop. This means it can be
+         * called concurrently while this worker is running other code.
+         * of the
+         * @param {string} type the event type
+         * @param {function} listener the listener
+         * @function
+         */
         addSyncListener: {
             value: e.addSyncListener.bind(e)
         },
+        /**
+         * Remove a listener function for the given event.
+         * @param {string} type the event type
+         * @param {function} listener the listener
+         * @function
+         */
         removeListener: {
             value: e.removeListener.bind(e)
         }

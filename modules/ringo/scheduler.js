@@ -6,7 +6,10 @@
 var engine = require("ringo/engine").getRhinoEngine();
 
 /**
- * Executes a function after specified delay.
+ * Executes a function after specified delay. The function will be called
+ * in the thread of the local event loop. This means it will only run after
+ * the currently executing code and other code running before it have
+ * terminated.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
  * @param {...} [args] optional arguments to pass to the function
@@ -36,7 +39,9 @@ exports.clearTimeout = function(id) {
 
 /**
  * Calls a function repeatedly, with a fixed time delay between each call to
- * that function.
+ * that function. The function will be called in the thread of the local event
+ * loop. This means it will only run after the currently executing code and
+ * other code running before it have terminated.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
  * @param {...} args optional arguments to pass to the function
