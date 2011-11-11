@@ -147,7 +147,7 @@ function getRhinoContext() {
  * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
-    return engine.RhinoEngine.getEngine();
+    return engine.RhinoEngine.getEngine(global);
 }
 
 /**
@@ -155,7 +155,7 @@ function getRhinoEngine() {
  * @returns {ScriptableList} a list containing the errors encountered in the current context
  */
 function getErrors() {
-    return new ScriptableList(engine.RhinoEngine.errors.get());
+    return new ScriptableList(getRhinoEngine().getErrorList());
 }
 
 /**

@@ -5,6 +5,7 @@
 var log = require('ringo/logging').getLogger(module.id);
 var Parser = require('ringo/args').Parser;
 var system = require('system');
+var {JavaEventEmitter} = require('ringo/events');
 var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
 
 export('Server', 'main', 'init', 'start', 'stop', 'destroy');
@@ -166,78 +167,66 @@ function Server(options) {
                 this.addServlet(path, new WebSocketServlet({
                     doWebSocketConnect : function(request, protocol) {
                         log.debug("new websocket");
-                        var socket;
 
-                        return new WebSocket.OnTextMessage({
-                            onOpen: function(outbound) {
-
-                                /**
-                                 * The WebSocket object passed as argument to the `connect` callback.
-                                 * Assign callbacks to its [onmessage](#WebSocket.prototype.onmessage)
-                                 * and [onclose](#WebSocket.prototype.onclose) properties.
-                                 * @name WebSocket
-                                 * @class
-                                 */
-                                socket = {
-                                    /**
-                                     * Closes the WebSocket connection.
-                                     * @name WebSocket.instance.close
-                                     * @function
-                                     */
-                                    close: function() {
-                                        outbound.disconnect();
-                                    },
-                                    /**
-                                     * Send a string over the WebSocket.
-                                     * @param msg a string
-                                     * @name WebSocket.instance.send
-                                     * @function
-                                     */
-                                    send: function(msg) {
-                                        outbound.sendMessage(msg);
-                                    },
-                                    /**
-                                     * Check whether the WebSocket is open.
-                                     * @name WebSocket.instance.isOpen
-                                     * @function
-                                     */
-                                    isOpen: function() {
-                                        return outbound.isOpen();
-                                    },
-                                    /**
-                                     * Callback slot for receiving messages on this WebSocket. To receive
-                                     * messages on this WebSocket, assign a function to this property.
-                                     * The function is called with a single argument containing the message string.
-                                     * @name WebSocket.instance.onmessage
-                                     */
-                                    onmessage: null,
-                                    /**
-                                     * Callback slot for getting notified when the WebSocket is closed.
-                                     * To get called when the WebSocket is closed assign a function to this
-                                     * property. The function is called without arguments.
-                                     * @name WebSocket.instance.onclose
-                                     */
-                                    onclose: null
-                                };
-                                if (typeof onconnect === "function") {
-                                    onconnect(socket)
+                        var conn;
+                        /**
+                         * Provides support for WebSockets in the HTTP server.
+                         *
+                         * WebSocket is an event emitter that supports the
+                         * following events:
+                         *
+                         *  * **open**: called when a new websocket connection is accepted
+                         *  * **message**: Called with a complete text message when all fragments have been received.
+                         *  * **close**: called when an established websocket connection closes
+                         *
+                         * @name WebSocket
+                         */
+                        var socket = {
+                            /**
+                             * Closes the WebSocket connection.
+                             * @name WebSocket.instance.close
+                             * @function
+                             */
+                            close: function() {
+                                if (conn) {
+                                    conn.disconnect();
                                 }
                             },
-
-                            onMessage: function(data) {
-                                log.debug('on message is ', arguments);
-                                if (typeof socket.onmessage === "function") {
-                                    socket.onmessage(data);
+                            /**
+                             * Send a string over the WebSocket.
+                             * @param msg a string
+                             * @name WebSocket.instance.send
+                             * @function
+                             */
+                            send: function(msg) {
+                                if (conn) {
+                                    conn.sendMessage(msg);
                                 }
                             },
-
-                            onClose: function() {
-                                log.debug("ondisconnect");
-                                if (typeof socket.onclose === "function") {
-                                    socket.onclose();
-                                }
+                            /**
+                             * Check whether the WebSocket is open.
+                             * @name WebSocket.instance.isOpen
+                             * @return {Boolean} true if the connection is open
+                             * @function
+                             */
+                            isOpen: function() {
+                                return conn && conn.isOpen();
                             }
+
+                        };
+
+                        // make socket a java event-emitter (mixin)
+                        JavaEventEmitter.call(socket, WebSocket.OnTextMessage);
+
+                        socket.addListener("open", function(connection) {
+                            conn = connection;
                         });
+
+                        if (typeof onconnect === "function") {
+                            onconnect(request, protocol, socket)
+                        }
+
+                        return socket.impl;
                     }
                 }));
             }

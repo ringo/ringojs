@@ -47,10 +47,6 @@ public class RingoShell {
     File history;
     CodeSource codeSource = null;
 
-    public RingoShell() throws IOException {
-        this(RhinoEngine.getEngine(), null, false);
-    }
-
     public RingoShell(RhinoEngine engine) throws IOException {
         this(engine, null, false);
     }
@@ -151,7 +147,7 @@ public class RingoShell {
             engine.invoke("ringo/shell", "printError", ex, verbose);
         } catch (Exception x) {
             // fall back to RingoRunner.reportError()
-            RingoRunner.reportError(ex, out, verbose);
+            RingoRunner.reportError(ex, out, engine.getErrorList(), verbose);
         }
     }
 
@@ -177,7 +173,8 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.err, config.isVerbose());
+                RingoRunner.reportError(ex, System.err, engine.getErrorList(),
+                        config.isVerbose());
             } finally {
                 Context.exit();
             }

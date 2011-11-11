@@ -1,8 +1,8 @@
 package org.ringojs.engine;
 
-import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptRuntime;
+import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.annotations.JSFunction;
@@ -54,7 +54,8 @@ public class ModuleObject extends ScriptableObject {
                     "Expected function as second argument");
         }
         String key = source.getPath() + ":" + ScriptRuntime.toString(id);
-        RhinoEngine engine = RhinoEngine.getEngine();
+        Scriptable scope = ScriptableObject.getTopLevelScope(getParentScope());
+        RhinoEngine engine = RhinoEngine.getEngine(scope);
         return engine.getSingleton(key, factoryFunction, this);
     }
 

@@ -17,8 +17,8 @@
 package org.ringojs.jsgi;
 
 import org.eclipse.jetty.continuation.ContinuationSupport;
-import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
+import org.ringojs.engine.RingoWorker;
 import org.ringojs.engine.SyntaxError;
 import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
@@ -111,14 +111,7 @@ public class JsgiServlet extends HttpServlet {
             }
         }
 
-        Context cx = engine.getContextFactory().enterContext();
-        try {
-            requestProto = new JsgiRequest(cx, engine.getScope());
-        } catch (NoSuchMethodException nsm) {
-            throw new ServletException(nsm);
-        } finally {
-            Context.exit();
-        }
+        requestProto = new JsgiRequest(engine.getScope());
 
         try {
             hasContinuation = ContinuationSupport.class != null;
@@ -137,26 +130,30 @@ public class JsgiServlet extends HttpServlet {
         } catch (Exception ignore) {
             // continuation may not be set up even if class is availble - ignore
         }
-        Context cx = engine.getContextFactory().enterContext();
+        JsgiRequest req = new JsgiRequest(request, response, requestProto,
+                engine.getScope(), this);
+        RingoWorker worker = engine.getWorker();
         try {
-            JsgiRequest req = new JsgiRequest(cx, request, response, requestProto,
-                    engine.getScope(), this);
-            engine.invoke("ringo/jsgi/connector", "handleRequest", module, function, req);
+            worker.invoke("ringo/jsgi/connector", "handleRequest", module,
+                    function, req);
         } catch (Exception x) {
+            List<SyntaxError> errors = engine.getErrorList();
+            boolean verbose = engine.getConfig().isVerbose();
             try {
-                renderError(x, response);
-                RingoRunner.reportError(x, System.err, engine.getConfig().isVerbose());
+                renderError(x, response, errors);
+                RingoRunner.reportError(x, System.err, errors, verbose);
             } catch (Exception failed) {
                 // custom error reporting failed, rethrow original exception for default handling
-                RingoRunner.reportError(x, System.err, false);
+                RingoRunner.reportError(x, System.err, errors, false);
                 throw new ServletException(x);
             }
         } finally {
-            Context.exit();
+            engine.releaseWorker(worker);
         }
     }
 
-    protected void renderError(Throwable t, HttpServletResponse response)
+    protected void renderError(Throwable t, HttpServletResponse response,
+                               List<SyntaxError> errors)
             throws IOException {
         response.reset();
         InputStream stream = JsgiServlet.class.getResourceAsStream("error.html");
@@ -184,9 +181,10 @@ public class JsgiServlet extends HttpServlet {
                     .append("</b> at line <b>")
                     .append(rx.lineNumber())
                     .append("</b></p>");
-            List<SyntaxError> errors = RhinoEngine.errors.get();
-            for (SyntaxError error : errors) {
-                body.append(error.toHtml());
+            if (errors != null) {
+                for (SyntaxError error : errors) {
+                    body.append(error.toHtml());
+                }
             }
             body.append("<h3>Script Stack</h3><pre>")
                     .append(rx.getScriptStackTrace())

@@ -3,27 +3,13 @@
  * functions.
  */
 
-var {newScheduledThreadPool, newCachedThreadPool} =
-        java.util.concurrent.Executors;
-var {Callable} = java.util.concurrent;
-var {MILLISECONDS} = java.util.concurrent.TimeUnit;
+var engine = require("ringo/engine").getRhinoEngine();
 
-var ids = new java.util.concurrent.atomic.AtomicInteger();
-
-function newThread(runnable) {
-    var thread = new java.lang.Thread(runnable,
-                "ringo-scheduler-" + ids.incrementAndGet());
-    thread.setDaemon(true);
-    return thread;
-}
-
-var executor = executor || newCachedThreadPool(newThread);
-var scheduler = scheduler || newScheduledThreadPool(4, newThread);
-
-var security = java.lang.System.getSecurityManager();
-var spawnPermission = org.ringojs.security.RingoSecurityManager.SPAWN_THREAD;
 /**
- * Executes a function after specified delay.
+ * Executes a function after specified delay. The function will be called
+ * in the thread of the local event loop. This means it will only run after
+ * the currently executing code and other code running before it have
+ * terminated.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
  * @param {...} [args] optional arguments to pass to the function
@@ -31,22 +17,10 @@ var spawnPermission = org.ringojs.security.RingoSecurityManager.SPAWN_THREAD;
  * invocation
  */
 exports.setTimeout = function(callback, delay) {
-    if (security) security.checkPermission(spawnPermission);
     var args = Array.slice(arguments, 2);
-    var runnable = new Callable({
-        call: function() {
-            try {
-                return callback.apply(global, args);
-            } finally {
-                global.decreaseAsyncCount();
-            }
-        }
-    });
     delay = parseInt(delay, 10) || 0;
-    global.increaseAsyncCount();
-    return delay == 0 ?
-            executor.submit(runnable) :
-            scheduler.schedule(runnable, delay, MILLISECONDS);
+    var worker = engine.getCurrentWorker();
+    return worker.schedule(delay, this, callback, args);
 };
 
 /**
@@ -55,39 +29,29 @@ exports.setTimeout = function(callback, delay) {
  * @see setTimeout
  */
 exports.clearTimeout = function(id) {
-    if (security) security.checkPermission(spawnPermission);
     try {
-        if (id.cancel(false)) {
-            global.decreaseAsyncCount();
-        }
-    } catch (e) {
+        var worker = engine.getCurrentWorker();
+        worker.cancel(id);
+    } catch (error) {
         // ignore
     }
 };
 
 /**
  * Calls a function repeatedly, with a fixed time delay between each call to
- * that function.
+ * that function. The function will be called in the thread of the local event
+ * loop. This means it will only run after the currently executing code and
+ * other code running before it have terminated.
  * @param {function} callback a function
  * @param {number} delay the delay in milliseconds
  * @param {...} args optional arguments to pass to the function
  * @returns {object} an id object useful for cancelling the scheduled invocation
  */
 exports.setInterval = function(callback, delay) {
-    if (security) security.checkPermission(spawnPermission);
     var args = Array.slice(arguments, 2);
-    var runnable = new java.lang.Runnable({
-        run: function() {
-            try {
-                callback.apply(global, args);
-            } catch (e) {
-                // ignore
-            }
-        }
-    });
     delay = Math.max(parseInt(delay, 10) || 0, 1);
-    global.increaseAsyncCount();
-    return scheduler.scheduleAtFixedRate(runnable, delay, delay, MILLISECONDS);
+    var worker = engine.getCurrentWorker();
+    return worker.scheduleInterval(delay, this, callback, args);
 };
 
 /**
@@ -96,12 +60,10 @@ exports.setInterval = function(callback, delay) {
  * @see setInterval
  */
 exports.clearInterval = function(id) {
-    if (security) security.checkPermission(spawnPermission);
     try {
-        if (id.cancel(false)) {
-            global.decreaseAsyncCount();
-        }
-    } catch (e) {
+        var worker = engine.getCurrentWorker();
+        worker.cancel(id);
+    } catch (error) {
         // ignore
     }
 };

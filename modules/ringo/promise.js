@@ -34,7 +34,6 @@ function defer() {
     var value;
     var listeners = [];
     var state = NEW;
-    var lock = new java.lang.Object();
 
     /**
      * Resolve the promise.
@@ -43,7 +42,7 @@ function defer() {
      * @param {boolean} isError if true the promise is resolved as failed
      * @type function
      */
-    var resolve = sync(function(result, isError) {
+    var resolve = function(result, isError) {
         if (state !== NEW) {
             throw new Error("Promise has already been resolved.");
         }
@@ -51,24 +50,21 @@ function defer() {
         state = isError ? FAILED : FULFILLED;
         listeners.forEach(notify);
         listeners = [];
-        lock.notifyAll();
-    }, lock);
+    };
 
     var notify = function(listener) {
         var isError = state === FAILED;
         var callback = isError ? listener.errback : listener.callback;
-        spawn(function() {
-            if (!callback) {
-                // if no callback defined we pass through the value
-                listener.tail.resolve(value, isError);
-            } else {
-                try {
-                    listener.tail.resolve(callback(value), isError);
-                } catch (error) {
-                    listener.tail.resolve(error, true);
-                }
+        if (!callback) {
+            // if no callback defined we pass through the value
+            listener.tail.resolve(value, isError);
+        } else {
+            try {
+                listener.tail.resolve(callback(value), isError);
+            } catch (error) {
+                listener.tail.resolve(error, true);
             }
-        });
+        }
     };
 
     /**
@@ -85,7 +81,7 @@ function defer() {
          * @return {Object} a new promise that resolves to the return value of the
          *     callback or errback when it is called.
          */
-        then: sync(function(callback, errback) {
+        then: function(callback, errback) {
             if (typeof callback !== "function") {
                 throw new Error("First argument to then() must be a function.");
             }
@@ -101,30 +97,8 @@ function defer() {
                 notify(listener);
             }
             return tail.promise;
-        }, lock),
+        }
 
-        /**
-         * Wait for the promise to be resolved.
-         * @name Promise.prototype.wait
-         * @param {number} timeout optional time in milliseconds to wait for. If undefined
-         *    wait() blocks forever.
-         * @return {Object} the value if the promise is resolved as fulfilled
-         * @throws {Object} the error value if the promise is resolved as failed
-         */
-        wait: sync(function(timeout) {
-            if (state === NEW) {
-                if (timeout === undefined) {
-                    lock.wait();
-                } else {
-                    lock.wait(timeout);
-                }
-            }
-            if (state === FAILED) {
-                throw value;
-            } else {
-                return value;
-            }
-        }, lock)
     };
 
     return {
@@ -145,7 +119,7 @@ function defer() {
  */
 function promises() {
     var promises = Array.slice(arguments);
-    var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
+    var count = promises.length;
     var results = [];
     var i = 0;
     var deferred = defer();
@@ -156,18 +130,18 @@ function promises() {
         }
         var index = i++;
         promise.then(
-            sync(function(value) {
+            function(value) {
                 results[index] = {value: value};
-                if (count.decrementAndGet() == 0) {
+                if (--count == 0) {
                     deferred.resolve(results);
                 }
-            }, count),
-            sync(function(error) {
+            },
+            function(error) {
                 results[index] = {error: error};
-                if (count.decrementAndGet() == 0) {
+                if (--count == 0) {
                     deferred.resolve(results);
                 }
-            }, count)
+            }
         );
     });
     return deferred.promise;

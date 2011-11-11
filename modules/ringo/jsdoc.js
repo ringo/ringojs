@@ -225,11 +225,11 @@ exports.parseResource = function(resource) {
                     target.push('instance');
                     isExported = true;
                 }
-                if (isExported) {
-                    // object literal holding multiple property descs
-                    var objectElements = args[1].elements;
-                    for (var i=0;i<objectElements.size();i++) {
-                        var left = objectElements.get(i).left;
+                if (isExported && args[1] && args[1].elements) {
+                    // check for object literal holding multiple property descs
+                    var elements = args[1].elements;
+                    for (var i = 0, l = elements.size(); i < l; i++) {
+                        var left = elements.get(i).left;
                         value = nodeToString(left);
                         target.push(value);
                         jsdoc = left.jsDoc;

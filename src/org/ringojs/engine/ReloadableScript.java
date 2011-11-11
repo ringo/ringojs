@@ -48,8 +48,6 @@ public class ReloadableScript {
     // the checksum of the underlying resource or repository when
     // the script was last compiled
     long checksum = -1;
-    // true if module scope is shared
-    Shared shared = Shared.UNKNOWN;
     // the compiled script
     ScriptReference scriptref;
     // any exception that may have been thrown during compilation.
@@ -57,16 +55,10 @@ public class ReloadableScript {
     // to recompile if the underlying resource or repository hasn't changed
     Exception exception = null;
     List<SyntaxError> errors;
-    // the loaded module scope is cached for shared modules
-    ModuleScope moduleScope = null;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
     // the static script cache
     static ScriptCache cache = new ScriptCache();
-
-    private enum Shared {
-        UNKNOWN, FALSE, TRUE
-    }
 
     private static Logger log = Logger.getLogger("org.ringojs.engine.ReloadableScript");
 
@@ -116,7 +108,6 @@ public class ReloadableScript {
         // recompile if neither script or exception are available, or if source has been updated
         if ((script == null && exception == null)
                 || (reloading && checksum != resource.getChecksum())) {
-            shared = Shared.UNKNOWN;
             if (!resource.exists()) {
                 throw new IOException(resource + " not found or not readable");
             }
@@ -129,7 +120,7 @@ public class ReloadableScript {
             }
         }
         if (errors != null && !errors.isEmpty()) {
-            RhinoEngine.errors.get().addAll(errors);
+            engine.getErrorList().addAll(errors);
         }
         if (exception != null) {
             throw exception instanceof RhinoException ?
@@ -184,19 +175,19 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    public Object evaluate(Scriptable scope, Context cx)
+    public Object evaluate(Scriptable scope, Context cx,
+                           Map<Resource,ModuleScope> modules)
             throws JavaScriptException, IOException {
         Script script = getScript(cx);
-        Map<Resource,ModuleScope> modules = RhinoEngine.modules.get();
-        ModuleScope module = scope instanceof ModuleScope ?
-                (ModuleScope) scope : null;
+        ModuleScope module =
+                scope instanceof ModuleScope ? (ModuleScope) scope : null;
         if (module != null) {
             modules.put(resource, module);
         }
         Object value = script.exec(cx, scope);
         if (module != null) {
             module.updateExports();
-            checkShared(module);
+            module.setChecksum(getChecksum());
         }
         return value;
     }
@@ -211,14 +202,12 @@ public class ReloadableScript {
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
-    protected synchronized ModuleScope load(Scriptable prototype, Context cx,
+    protected ModuleScope load(Scriptable prototype, Context cx,
+                               ModuleScope module,
                                Map<Resource, ModuleScope> modules)
             throws JavaScriptException, IOException {
-        ModuleScope module = moduleScope;
-        if (shared == Shared.TRUE
-                && module != null
-                && (!reloading || module.getChecksum() == getChecksum())) {
-            // Reuse cached scope for shared modules.
+        if (module != null && module.getChecksum() == getChecksum()) {
+            // Module scope exists and is up to date
             modules.put(resource, module);
             return module;
         }
@@ -226,10 +215,12 @@ public class ReloadableScript {
         return exec(cx, getScript(cx), prototype, modules);
     }
 
-    private ModuleScope exec(Context cx, Script script, Scriptable prototype,
-                             Map<Resource, ModuleScope> modules)
+    private synchronized ModuleScope exec(Context cx, Script script,
+                                          Scriptable prototype,
+                                          Map<Resource, ModuleScope> modules)
             throws IOException {
         ModuleScope module = new ModuleScope(moduleName, resource, prototype);
+        // put module scope in map right away to make circular dependencies work
         modules.put(resource, module);
         if (log.isLoggable(Level.FINE)) {
             log.fine("Loading module: " + moduleName);
@@ -253,57 +244,23 @@ public class ReloadableScript {
         }
         // Update exports in case module updated module.exports
         module.updateExports();
-        checkShared(module);
+        module.setChecksum(getChecksum());
         return module;
     }
 
     /**
-     * Return true if this represents a module shared among all threads/contexts
-     * @return true of this script represents a shared module
-     */
-    public boolean isShared() {
-        return shared == Shared.TRUE;
-    }
-
-    /**
-     * Check if the module has the module.shared flag set, and set the moduleScope
-     * field accordingly.
-     * @param module the module scope
-     * @throws IOException source could not be checked because of an I/O error
-     */
-    protected void checkShared(ModuleScope module) throws IOException {
-        Scriptable meta = module.getModuleObject();
-        // main module is always treated as shared to guarantee the require.main
-        // property meets the requirements of the Securable Modules spec
-        boolean isShared = meta.get("shared", meta) != Boolean.FALSE
-                || moduleName.equals(engine.getMainModule());
-        shared = isShared ? Shared.TRUE : Shared.FALSE;
-        if (isShared) {
-            module.setChecksum(getChecksum());
-            engine.registerSharedScript(resource, this);
-            moduleScope = module;
-        } else {
-            engine.removeSharedScript(resource);
-            moduleScope = null;
-        }
-    }
-
-    /**
-     * Get the checksum of the script. For ordinary (non-shared) modules this is just
-     * the checksum of the script code itself. For shared modules, it includes the
-     * transitive sum of loaded module checksums, as shared modules need to be re-evaluated
+     * Get the checksum of the script. This includes the transitive sum of
+     * loaded module checksums, as modules need to be re-evaluated
      * even if just a dependency has been updated.
      * @return the evaluation checksum for this script
      * @throws IOException source could not be checked because of an I/O error
      */
     protected long getChecksum() throws IOException {
         long cs = resource.getChecksum();
-        if (shared == Shared.TRUE) {
-            Set<ReloadableScript> set = new HashSet<ReloadableScript>();
-            set.add(this);
-            for (ReloadableScript script: dependencies) {
-                cs += script.getNestedChecksum(set);
-            }
+        Set<ReloadableScript> set = new HashSet<ReloadableScript>();
+        set.add(this);
+        for (ReloadableScript script: dependencies) {
+            cs += script.getNestedChecksum(set);
         }
         return cs;
     }
