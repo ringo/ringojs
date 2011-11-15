@@ -26,6 +26,7 @@
 */
 
 var Mustache = function() {
+  var regexCache = {};
   var Renderer = function() {};
 
   Renderer.prototype = {
@@ -55,13 +56,22 @@ var Mustache = function() {
         }
       }
 
+      // get the pragmas together
       template = this.render_pragmas(template);
+
+      // render the template
       var html = this.render_section(template, context, partials);
-      if(in_recursion) {
-        return this.render_tags(html, context, partials, in_recursion);
+
+      // render_section did not find any sections, we still need to render the tags
+      if (html === false) {
+        html = this.render_tags(template, context, partials, in_recursion);
       }
 
-      this.render_tags(html, context, partials, in_recursion);
+      if (in_recursion) {
+        return html;
+      } else {
+        this.sendLines(html);
+      }
     },
 
     /*
@@ -69,6 +79,15 @@ var Mustache = function() {
     */
     send: function(line) {
       this.buffer.push(line);
+    },
+
+    sendLines: function(text) {
+      if (text) {
+        var lines = text.split("\n");
+        for (var i = 0; i < lines.length; i++) {
+          this.send(lines[i]);
+        }
+      }
     },
 
     /*
@@ -81,11 +100,13 @@ var Mustache = function() {
       }
 
       var that = this;
-      var regex = new RegExp(this.otag + "%([\\w-]+) ?([\\w]+=[\\w]+)?" +
-            this.ctag);
+      var regex = this.getCachedRegex("render_pragmas", function(otag, ctag) {
+        return new RegExp(otag + "%([\\w-]+) ?([\\w]+=[\\w]+)?" + ctag, "g");
+      });
+
       return template.replace(regex, function(match, pragma, options) {
         if(!that.pragmas_implemented[pragma]) {
-          throw({message: 
+          throw({message:
             "This implementation of mustache doesn't understand the '" +
             pragma + "' pragma"});
         }
@@ -118,50 +139,79 @@ var Mustache = function() {
     */
     render_section: function(template, context, partials) {
       if(!this.includes("#", template) && !this.includes("^", template)) {
-        return template;
+        // did not render anything, there were no sections
+        return false;
       }
 
       var that = this;
-      // CSW - Added "+?" so it finds the tighest bound, not the widest
-      var regex = new RegExp(this.otag + "(\\^|\\#)\\s*(.+)\\s*" + this.ctag +
-              "\n*([\\s\\S]+?)" + this.otag + "\\/\\s*\\2\\s*" + this.ctag +
-              "\\s*", "mg");
+
+      var regex = this.getCachedRegex("render_section", function(otag, ctag) {
+        // This regex matches _the first_ section ({{#foo}}{{/foo}}), and captures the remainder
+        return new RegExp(
+          "^([\\s\\S]*?)" +         // all the crap at the beginning that is not {{*}} ($1)
+
+          otag +                    // {{
+          "(\\^|\\#)\\s*(.+)\\s*" + //  #foo (# == $2, foo == $3)
+          ctag +                    // }}
+
+          "\n*([\\s\\S]*?)" +       // between the tag ($2). leading newlines are dropped
+
+          otag +                    // {{
+          "\\/\\s*\\3\\s*" +        //  /foo (backreference to the opening tag).
+          ctag +                    // }}
+
+          "\\s*([\\s\\S]*)$",       // everything else in the string ($4). leading whitespace is dropped.
+
+        "g");
+      });
+
 
       // for each {{#foo}}{{/foo}} section do...
-      return template.replace(regex, function(match, type, name, content) {
+      return template.replace(regex, function(match, before, type, name, content, after) {
+        // before contains only tags, no sections
+        var renderedBefore = before ? that.render_tags(before, context, partials, true) : "",
+
+        // after may contain both sections and tags, so use full rendering function
+            renderedAfter = after ? that.render(after, context, partials, true) : "",
+
+        // will be computed below
+            renderedContent;
+
         var names = name.split(/\s+/);
         var value;
         // loop through names in reverse order: {{foo bar}} -> foo(bar)
         for (var i = names.length - 1; i >= 0; i--) {
           value = that.find(names[i], context, value);
         }
-        if(type == "^") { // inverted section
-          if(!value || that.is_array(value) && value.length === 0) {
+
+        if (type === "^") { // inverted section
+          if (!value || that.is_array(value) && value.length === 0) {
             // false or empty list, render it
-            return that.render(content, context, partials, true);
+            renderedContent = that.render(content, context, partials, true);
           } else {
-            return "";
+            renderedContent = "";
           }
-        } else if(type == "#") { // normal section
-          if(that.is_array(value)) { // Enumerable, Let's loop!
-            return that.map(value, function(row) {
-              return that.render(content, that.create_context(row),
-                partials, true);
+        } else if (type === "#") { // normal section
+          if (that.is_array(value)) { // Enumerable, Let's loop!
+            renderedContent = that.map(value, function(row) {
+              return that.render(content, that.create_context(row), partials, true);
             }).join("");
-          } else if(that.is_object(value)) { // Object, Use it as subcontext!
-            return that.render(content, that.create_context(value),
+          } else if (that.is_object(value)) { // Object, Use it as subcontext!
+            renderedContent = that.render(content, that.create_context(value),
               partials, true);
-          } else if(typeof value === "function") {
+          } else if (typeof value === "function") {
             // higher order section
-            return value.call(context, content, function(text) {
+            renderedContent = value.call(context, content, function(text) {
               return that.render(text, context, partials, true);
             });
-          } else if(value) { // boolean section
-            return that.render(content, context, partials, true);
+          } else if (value) { // boolean section
+            renderedContent = that.render(content, context, partials, true);
           } else {
-            return "";
+            renderedContent = "";
           }
         }
+
+        return renderedBefore + renderedContent + renderedAfter;
       });
     },
 
@@ -172,9 +222,12 @@ var Mustache = function() {
       // tit for tat
       var that = this;
 
+
+
       var new_regex = function() {
-        return new RegExp(that.otag + "(=|!|>|\\{|%)?([^\\/#\\^]+?)\\1?" +
-          that.ctag + "+", "g");
+        return that.getCachedRegex("render_tags", function(otag, ctag) {
+          return new RegExp(otag + "(=|!|>|\\{|%)?([^\\/#\\^]+?)\\1?" + ctag + "+", "g");
+        });
       };
 
       var regex = new_regex();
@@ -245,10 +298,20 @@ var Mustache = function() {
       }
 
       var value;
-      if(is_kinda_truthy(context[name])) {
-        value = context[name];
-      } else if(is_kinda_truthy(this.context[name])) {
-        value = this.context[name];
+      
+      // check for dot notation eg. foo.bar
+      if(name.match(/([a-z_]+)\./ig)){
+        var childValue = this.walk_context(name, context);
+        if(is_kinda_truthy(childValue)) {
+          value = childValue;
+        }
+      }
+      else{
+        if(is_kinda_truthy(context[name])) {
+          value = context[name];
+        } else if(is_kinda_truthy(this.context[name])) {
+          value = this.context[name];
+        }
       }
 
       if(typeof value === "function") {
@@ -260,6 +323,22 @@ var Mustache = function() {
       }
       // silently ignore unkown variables
       return "";
+    },
+
+    walk_context: function(name, context){
+      var path = name.split('.');
+      // if the var doesn't exist in current context, check the top level context
+      var value_context = (context[path[0]] != undefined) ? context : this.context;
+      var value = value_context[path.shift()];
+      while(value != undefined && path.length > 0){
+        value_context = value;
+        value = value[path.shift()];
+      }
+      // if the value is a function, call it, binding the correct context
+      if(typeof value === "function") {
+        return value.apply(value_context);
+      }
+      return value;
     },
 
     // Utility methods
@@ -277,7 +356,6 @@ var Mustache = function() {
       return s.replace(/&(?!\w+;)|["'<>\\]/g, function(s) {
         switch(s) {
         case "&": return "&amp;";
-        case "\\": return "\\\\";
         case '"': return '&quot;';
         case "'": return '&#39;';
         case "<": return "&lt;";
@@ -331,12 +409,31 @@ var Mustache = function() {
         }
         return r;
       }
+    },
+
+    getCachedRegex: function(name, generator) {
+      var byOtag = regexCache[this.otag];
+      if (!byOtag) {
+        byOtag = regexCache[this.otag] = {};
+      }
+
+      var byCtag = byOtag[this.ctag];
+      if (!byCtag) {
+        byCtag = byOtag[this.ctag] = {};
+      }
+
+      var regex = byCtag[name];
+      if (!regex) {
+        regex = byCtag[name] = generator(this.otag, this.ctag);
+      }
+
+      return regex;
     }
   };
 
   return({
     name: "mustache.js",
-    version: "0.3.1-dev",
+    version: "0.4.0-dev",
 
     /*
       Turns a template and view into HTML
@@ -346,7 +443,7 @@ var Mustache = function() {
       if(send_fun) {
         renderer.send = send_fun;
       }
-      renderer.render(template, view, partials);
+      renderer.render(template, view || {}, partials);
       if(!send_fun) {
         return renderer.buffer.join("\n");
       }
