@@ -15,7 +15,7 @@ export("Worker");
  *
  * The worker's `onmessage` function will be called with an event object
  * containing the argument passed to `postMessage` in its `data` property.
- * The event also contains a `target.postMessage` method to post messages
+ * The event also contains a `source.postMessage` method to post messages
  * back to the original caller.
  *
  * Event listeners for callbacks from the worker can be registered by
@@ -47,7 +47,7 @@ function Worker(module) {
      * Post a message to the worker. This method deposits the message
      * in the worker's input queue and returns immediately. The worker's
      * `onmessage` function is called with an event containing the `data`
-     * argument and a `target.postMessage` function to return data to the
+     * argument and a `source.postMessage` function to return data to the
      * original caller.
      * @param data the data to pass to the worker
      * @param {Boolean} syncCallbacks flag that indicates whether callbacks
@@ -62,18 +62,18 @@ function Worker(module) {
             if (syncCallbacks) callback(arg);
             else currentWorker.submit(self, callback, arg);
         }
-        var target = {
+        var source = {
             postMessage: function(data) {
-                invokeCallback(onmessage, {data: data, target: self});
+                invokeCallback(onmessage, {data: data, source: self});
             }
         };
         var currentWorker = engine.getCurrentWorker();
-        var event = {data: data, target: target};
+        var event = {data: data, source: source};
         worker.submit(self, function() {
             try {
                 worker.invoke(module, "onmessage", event);
             } catch (error) {
-                invokeCallback(onerror, {data: error, target: self});
+                invokeCallback(onerror, {data: error, source: self});
             } finally {
                 // fixme - release worker if no pending scheduled tasks;
                 // we want to do better than that.
