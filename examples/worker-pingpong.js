@@ -2,7 +2,9 @@ var {Worker} = require("ringo/worker");
 var i = 0;
 
 function main() {
-    // create a new worker from this same module
+    // Create a new worker from this same module.
+    // Note that this will create a new instance of
+    // this module as workers are isolated.
     var w = new Worker(module.id);
 
     w.onmessage = function(e) {
