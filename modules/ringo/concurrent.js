@@ -48,9 +48,12 @@ function Semaphore(permits) {
     };
 
     /**
-     * Wait for one or more permits for the given span of time.
+     * Wait for one or more permits for the given span of time. Returns true
+     * if the requested permits could be acquired before the timeout elapsed.
      * @param timeout The span of time to wait, in milliseconds
      * @param permits the number of permits to wait for, defaults to 1
+     * @return true if the requested permits could be acquired, false if the
+     *   timeout elapsed
      */
     this.tryWait = function(timeout, permits) {
         if (typeof permits === "undefined") permits = 1;
