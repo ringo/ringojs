@@ -1,6 +1,6 @@
 var {Worker} = require("ringo/worker")
 var {Semaphore} = require("ringo/concurrent")
-var {setInterval} = require("ringo/scheduler");
+var {setInterval, clearInterval} = require("ringo/scheduler");
 
 function main() {
     // Create a new worker from this same module.
@@ -17,23 +17,23 @@ function main() {
     // Calling worker.postMessage with true as second 
     // argument causes callbacks from the worker to be 
     // executed synchronously in the worker's own thread
-    // instead of in our own event loop thread
+    // instead of in our own event loop thread, allowing
+    // us to wait synchronously for replies.
     w.postMessage(1, true);
 
-    // Wait until the semaphore gets 5 signals. Of course
-    // you could use this to collect results from several
-    // workers instead of just a single one.
+    // Wait until the semaphore gets 5 signals. 
     s.wait(5);
     print("Got 5 signals, quitting.");
-    system.exit();
 }
 
 
 function onmessage(e) {
     print("Worker got message: " + e.data);
-    setInterval(function() {
+    var count = 0;
+    var id = setInterval(function() {
         e.source.postMessage(e.data);
-    }, 1000);
+        if (++count >= 5) clearInterval(id);
+    }, 500);
 }
 
 if (require.main === module) {
