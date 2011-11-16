@@ -334,9 +334,9 @@ public class EventAdapter extends ScriptableObject {
                     throw Context.reportRuntimeError(
                             "Callback object must contain 'module' property");
                 }
-                if (this.function != NOT_FOUND || this.function == null) {
+                if (this.function == NOT_FOUND || this.function == null) {
                     throw Context.reportRuntimeError(
-                            "Callback object must contain 'app' property");
+                            "Callback object must contain 'name' property");
                 }
                 this.worker = null;
             }
