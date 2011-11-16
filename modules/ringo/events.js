@@ -91,7 +91,6 @@ exports.JavaEventEmitter = function(interface) {
          * synchronous listener will be called by an outside thread instead
          * of the thread of the local event loop. This means it can be
          * called concurrently while this worker is running other code.
-         * of the
          * @param {string} type the event type
          * @param {function} listener the listener
          * @function
