@@ -65,6 +65,9 @@ function Worker(module) {
         var source = {
             postMessage: function(data) {
                 invokeCallback(onmessage, {data: data, source: self});
+            },
+            postError: function(error) {
+                invokeCallback(onerror, {data: error, source: self})
             }
         };
         var currentWorker = engine.getCurrentWorker();
