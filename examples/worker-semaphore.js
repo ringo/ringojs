@@ -9,7 +9,7 @@ function main() {
     var s = new Semaphore();
 
     w.onmessage = function(e) {
-        print("Got response from worker: " + e.data);
+        print("  Response from worker: " + e.data);
         s.signal();
     };
 
@@ -19,9 +19,12 @@ function main() {
     // allowing us to wait synchronously for replies.
     w.postMessage(1, true);
 
-    // Wait until the semaphore gets 5 signals. 
-    s.wait(5);
-    print("Got 5 responses, quitting.");
+    // Wait until the semaphore gets 3 signals.
+    s.wait(3);
+    print("Got 3 responses from worker.");
+    // Wait for 2 more responses.
+    s.wait(2);
+    print("Got 2 more responses, quitting.");
 }
 
 
