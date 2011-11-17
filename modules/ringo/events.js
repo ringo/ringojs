@@ -27,25 +27,35 @@ var EventEmitter = exports.EventEmitter = function() {
 
 /**
  * An adapter for dispatching Java events to Ringo. This class takes a Java
- * interface as argument and compiles and creates a Java object implementing
- * this interface that will forward calls to the interface methods to event
+ * class or interface as argument and creates a Java object that extends or
+ * implements the  class or interface and forwards method calls to event
  * listener functions registered using the EventEmitter methods.
  *
  * Like [EventEmitter](#EventEmitter), `JavaEventEmitter` can be used as
  * constructor or as mix-in. Use the `new` keyword to construct a new
  * JavaEventEmitter:
  *
- *     var emitter = new JavaEventEmitter(JavaInterface);
+ *     var emitter = new JavaEventEmitter(JavaClassOrInterface);
  *
  * To add event handling methods to an existing object, call or apply the
  * `JavaEventEmitter` function with the object as `this`:
  *
- *     JavaEventEmitter.call(object, JavaInterface);
+ *     JavaEventEmitter.call(object, JavaClassOrInterface);
  *
- * @param interface a Java interface
+ * JavaEventEmitter accepts an object as optional second argument that maps
+ * Java methods to event names. If the first argument is a Java class
+ * this mapping also allows to select which methods should be overridden. If
+ * called without event mapping the method name is used as event name, except
+ * for methods like `onFoo` which will trigger event `foo`.
+ *
+ * @param classOrInterface a Java class or interface
+ * @param eventMapping optional object mapping method names to event names.
+ *     If this parameter is defined only methods whose name is a property
+ *     key in the object will be overridden, and the event type will be
+ *     set to the property value instead of the method name.
  */
-exports.JavaEventEmitter = function(interface) {
-    var e = new EventAdapter(interface);
+exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
+    var e = new EventAdapter(classOrInterface, eventMapping);
     Object.defineProperties(this, {
         /**
          * The generated Java object. This implements the Java interface

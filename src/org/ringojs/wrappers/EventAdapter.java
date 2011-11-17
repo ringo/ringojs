@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventAdapter extends ScriptableObject {
@@ -40,7 +41,7 @@ public class EventAdapter extends ScriptableObject {
     private Map<String,List<Callback>> callbacks = new HashMap<String,List<Callback>>();
     private Object impl;
 
-    static Map<Class<?>,Class<?>> adapterCache = new HashMap<Class<?>, Class<?>>();
+    static Map<Object, Class<?>> adapterCache = new WeakHashMap<Object, Class<?>>();
     static AtomicInteger serial = new AtomicInteger();
 
     @Override
@@ -60,18 +61,21 @@ public class EventAdapter extends ScriptableObject {
     @SuppressWarnings("unchecked")
     public static Object jsConstructor(Context cx, Object[] args,
                                        Function function, boolean inNewExpr) {
-        int length = args.length;
-        if (length != 1 || !(args[0] instanceof NativeJavaClass)) {
-            throw ScriptRuntime.typeError2("msg.not.java.class.arg",
-                    String.valueOf(1),
-                    length == 0 ? "undefined" : ScriptRuntime.toString(args[0]));
+        if (args.length == 0 || !(args[0] instanceof NativeJavaClass)) {
+            throw ScriptRuntime.typeError2("msg.not.java.class.arg", "1",
+                    args.length == 0 ? "undefined" : ScriptRuntime.toString(args[0]));
         }
         Class<?> clazz = ((NativeJavaClass) args[0]).getClassObject();
         try {
+            // TODO we need to include event mapping in the cache lookup!
             Class<?> adapterClass = adapterCache.get(clazz);
             if (adapterClass == null) {
                 String className = "EventAdapter" + serial.incrementAndGet();
-                byte[] code = getAdapterClass(className, clazz);
+                Map overrides = null;
+                if (args.length > 1 && args[1] instanceof Map) {
+                    overrides = (Map) args[1];
+                }
+                byte[] code = getAdapterClass(className, clazz, overrides);
                 adapterClass = loadAdapterClass(className, code);
             }
             Scriptable scope = getTopLevelScope(function);
@@ -166,8 +170,8 @@ public class EventAdapter extends ScriptableObject {
         return false;
     }
 
-    private static byte[] getAdapterClass(String className,
-                                          Class<?> clazz) {
+    private static byte[] getAdapterClass(String className, Class<?> clazz,
+                                          Map<String, String> overrides) {
         boolean isInterface = clazz.isInterface();
         String superName = isInterface ? Object.class.getName() : clazz.getName();
         String adapterSignature = classToSignature(EventAdapter.class);
@@ -191,8 +195,10 @@ public class EventAdapter extends ScriptableObject {
         cfw.stopMethod((short)2);
 
         for (Method method : methods) {
-            int mod = method.getModifiers();
-            if (Modifier.isFinal(mod)) {
+            String methodName = method.getName();
+            String eventName = overrides == null ?
+                    toEventName(methodName) : overrides.get(methodName);
+            if (eventName == null || Modifier.isFinal(method.getModifiers())) {
                 continue;
             }
             Class<?>[]paramTypes = method.getParameterTypes();
@@ -203,10 +209,10 @@ public class EventAdapter extends ScriptableObject {
                 if (c == Double.TYPE || c == Long.TYPE) ++localsLength;
             }
             Class<?>returnType = method.getReturnType();
-            cfw.startMethod(method.getName(), getSignature(paramTypes, returnType), ACC_PUBLIC);
+            cfw.startMethod(methodName, getSignature(paramTypes, returnType), ACC_PUBLIC);
             cfw.addLoadThis();
             cfw.add(ByteCode.GETFIELD, cfw.getClassName(), "events", adapterSignature);
-            cfw.addLoadConstant(toEventName(method.getName())); // event type
+            cfw.addLoadConstant(eventName); // event type
             cfw.addLoadConstant(paramLength);  // create args array
             cfw.add(ByteCode.ANEWARRAY, "java/lang/Object");
             for (int i = 0; i < paramLength; i++) {
