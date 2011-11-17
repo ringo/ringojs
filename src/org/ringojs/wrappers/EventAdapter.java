@@ -13,10 +13,13 @@ import org.mozilla.javascript.SecurityController;
 import org.mozilla.javascript.SecurityUtilities;
 import org.mozilla.javascript.annotations.JSConstructor;
 import org.mozilla.javascript.annotations.JSFunction;
+import org.mozilla.javascript.annotations.JSGetter;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoWorker;
 import org.mozilla.javascript.Undefined;
 
+import static org.mozilla.classfile.ClassFileWriter.ACC_FINAL;
+import static org.mozilla.classfile.ClassFileWriter.ACC_PRIVATE;
 import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
 
 import java.lang.reflect.Constructor;
@@ -34,6 +37,8 @@ public class EventAdapter extends ScriptableObject {
 
     private RhinoEngine engine;
     private Map<String,List<Callback>> callbacks = new HashMap<String,List<Callback>>();
+    private Object impl;
+
     static Map<Class<?>,Class<?>> adapterCache = new HashMap<Class<?>, Class<?>>();
     static AtomicInteger serial = new AtomicInteger();
 
@@ -60,24 +65,28 @@ public class EventAdapter extends ScriptableObject {
                     String.valueOf(1),
                     length == 0 ? "undefined" : ScriptRuntime.toString(args[0]));
         }
-        Class<?> interf = ((NativeJavaClass) args[0]).getClassObject();
-        if (!interf.isInterface()) {
-            throw ScriptRuntime.typeError("EventAdapter argument must be interface");
-        }
+        Class<?> clazz = ((NativeJavaClass) args[0]).getClassObject();
         try {
-            Class<?> adapterClass = adapterCache.get(interf);
+            Class<?> adapterClass = adapterCache.get(clazz);
             if (adapterClass == null) {
                 String className = "EventAdapter" + serial.incrementAndGet();
-                byte[] code = getAdapterClass(className, interf);
+                byte[] code = getAdapterClass(className, clazz);
                 adapterClass = loadAdapterClass(className, code);
             }
             Scriptable scope = getTopLevelScope(function);
             RhinoEngine engine = RhinoEngine.getEngine(scope);
-            Constructor cnst = adapterClass.getConstructor(RhinoEngine.class);
-            return cnst.newInstance(engine);
+            Constructor cnst = adapterClass.getConstructor(EventAdapter.class);
+            EventAdapter adapter = new EventAdapter(engine);
+            adapter.impl = cnst.newInstance(adapter);
+            return adapter;
         } catch (Exception ex) {
             throw Context.throwAsScriptRuntimeEx(ex);
         }
+    }
+
+    @JSGetter
+    public Object getImpl() {
+        return impl;
     }
 
     @JSFunction
@@ -157,22 +166,28 @@ public class EventAdapter extends ScriptableObject {
     }
 
     private static byte[] getAdapterClass(String className,
-                                          Class<?> interf) {
-        String superName = EventAdapter.class.getName();
-        ClassFileWriter cfw = new ClassFileWriter(className,
-                                                  superName,
+                                          Class<?> clazz) {
+        boolean isInterface = clazz.isInterface();
+        String superName = isInterface ? Object.class.getName() : clazz.getName();
+        String adapterSignature = classToSignature(EventAdapter.class);
+        ClassFileWriter cfw = new ClassFileWriter(className, superName,
                                                   "<EventAdapter>");
-        cfw.addInterface(interf.getName());
-        Method[] methods = interf.getMethods();
+        if (isInterface) {
+            cfw.addInterface(clazz.getName());
+        }
+        Method[] methods = clazz.getMethods();
 
-        cfw.startMethod("<init>", "(Lorg/ringojs/engine/RhinoEngine;)V", ACC_PUBLIC);
+        cfw.addField("events", adapterSignature, (short) (ACC_PRIVATE | ACC_FINAL));
+
+        cfw.startMethod("<init>", "(" + adapterSignature + ")V", ACC_PUBLIC);
         // Invoke base class constructor
-        cfw.add(ByteCode.ALOAD_0);  // this
-        cfw.add(ByteCode.ALOAD_1);  // engine
-        cfw.addInvoke(ByteCode.INVOKESPECIAL, superName, "<init>",
-                "(Lorg/ringojs/engine/RhinoEngine;)V");
+        cfw.addLoadThis();
+        cfw.addInvoke(ByteCode.INVOKESPECIAL, superName, "<init>", "()V");
+        cfw.addLoadThis();
+        cfw.add(ByteCode.ALOAD_1);  // event adapter
+        cfw.add(ByteCode.PUTFIELD, cfw.getClassName(), "events", adapterSignature);
         cfw.add(ByteCode.RETURN);
-        cfw.stopMethod((short)2); // this
+        cfw.stopMethod((short)2);
 
         for (Method method : methods) {
             Class<?>[]paramTypes = method.getParameterTypes();
@@ -180,6 +195,7 @@ public class EventAdapter extends ScriptableObject {
             Class<?>returnType = method.getReturnType();
             cfw.startMethod(method.getName(), getSignature(paramTypes, returnType), ACC_PUBLIC);
             cfw.addLoadThis();
+            cfw.add(ByteCode.GETFIELD, cfw.getClassName(), "events", adapterSignature);
             cfw.addLoadConstant(toEventName(method.getName())); // event type
             cfw.addLoadConstant(paramLength);  // create args array
             cfw.add(ByteCode.ANEWARRAY, "java/lang/Object");
@@ -213,8 +229,8 @@ public class EventAdapter extends ScriptableObject {
                 }
                 cfw.add(ByteCode.AASTORE);
             }
-            cfw.addInvoke(ByteCode.INVOKEVIRTUAL, className, "emit",
-                    "(Ljava/lang/String;[Ljava/lang/Object;)Z");
+            cfw.addInvoke(ByteCode.INVOKEVIRTUAL, EventAdapter.class.getName(),
+                    "emit", "(Ljava/lang/String;[Ljava/lang/Object;)Z");
             cfw.add(ByteCode.POP); // always discard result of emit()
             if (returnType == Void.TYPE) {
                 cfw.add(ByteCode.RETURN);

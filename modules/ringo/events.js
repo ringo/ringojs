@@ -53,7 +53,7 @@ exports.JavaEventEmitter = function(interface) {
          * to Java code that expects given interface.
          */
         impl: {
-            value: e
+            value: e.impl
         },
         /**
          * Emit an event to all listeners registered for this event type
