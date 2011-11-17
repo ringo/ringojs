@@ -24,6 +24,7 @@ import static org.mozilla.classfile.ClassFileWriter.ACC_PUBLIC;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
@@ -175,7 +176,7 @@ public class EventAdapter extends ScriptableObject {
         if (isInterface) {
             cfw.addInterface(clazz.getName());
         }
-        Method[] methods = clazz.getMethods();
+        Method[] methods = clazz.getDeclaredMethods();
 
         cfw.addField("events", adapterSignature, (short) (ACC_PRIVATE | ACC_FINAL));
 
@@ -190,8 +191,17 @@ public class EventAdapter extends ScriptableObject {
         cfw.stopMethod((short)2);
 
         for (Method method : methods) {
+            int mod = method.getModifiers();
+            if (Modifier.isFinal(mod)) {
+                continue;
+            }
             Class<?>[]paramTypes = method.getParameterTypes();
             int paramLength = paramTypes.length;
+            int localsLength = paramLength + 1;
+            for (Class<?> c : paramTypes) {
+                // adjust locals length for long and double parameters
+                if (c == Double.TYPE || c == Long.TYPE) ++localsLength;
+            }
             Class<?>returnType = method.getReturnType();
             cfw.startMethod(method.getName(), getSignature(paramTypes, returnType), ACC_PUBLIC);
             cfw.addLoadThis();
@@ -254,7 +264,7 @@ public class EventAdapter extends ScriptableObject {
                 cfw.add(ByteCode.ACONST_NULL);
                 cfw.add(ByteCode.ARETURN);
             }
-            cfw.stopMethod((short)(paramLength + 1));
+            cfw.stopMethod((short)(localsLength));
         }
 
         return cfw.toByteArray();
