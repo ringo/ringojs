@@ -339,10 +339,10 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
 
     /**
-     * Returns this stream (which also is an Iterator).
+     * Returns this stream.
      * @function
      */
-    this.iterator = this.__iterator__ = function () {
+    this.iterator = function () {
         return this;
     };
 
@@ -359,12 +359,15 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
     
     /**
+     * Calls `fn` with each line in the input stream.
      * @param {Function} fn the callback function
      * @param {Object} [thisObj] optional this-object to use for callback
      */
     this.forEach = function (callback, thisObj) {
-        for (var line in this) {
+        var line = decoder.readLine(false);
+        while (line != null) {
             callback.call(thisObj, line);
+            line = decoder.readLine(false);
         }
     };
 
