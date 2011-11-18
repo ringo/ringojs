@@ -97,9 +97,9 @@ public class RhinoEngine implements ScopeProvider {
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
-            Class<Scriptable>[] classes = config.getHostClasses();
+            Class<? extends Scriptable>[] classes = config.getHostClasses();
             if (classes != null) {
-                for (Class<Scriptable> clazz: classes) {
+                for (Class<? extends Scriptable> clazz: classes) {
                     defineHostClass(clazz);
                 }
             }
@@ -137,7 +137,7 @@ public class RhinoEngine implements ScopeProvider {
      * @exception InvocationTargetException if an exception is thrown
      *            during execution of methods of the named class
      */
-    public void defineHostClass(Class<Scriptable> clazz)
+    public void defineHostClass(Class<? extends Scriptable> clazz)
             throws InvocationTargetException, InstantiationException, IllegalAccessException {
         if (hostClasses != null && hostClasses.contains(clazz)) {
             return;

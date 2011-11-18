@@ -21,19 +21,30 @@ import org.mozilla.javascript.WrapFactory;
 import org.ringojs.util.StringUtils;
 import org.ringojs.repository.*;
 import org.mozilla.javascript.ClassShutter;
+import org.ringojs.wrappers.Binary;
+import org.ringojs.wrappers.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.JavaUtilJarAccess;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collections;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+import java.security.MessageDigest;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 /**
  * This class describes the configuration for a RingoJS application or shell session.
@@ -49,10 +60,11 @@ public class RingoConfiguration {
     private int optimizationLevel = 0;
     private boolean strictVars = true;
     private boolean debug = false;
+    private boolean sandboxed = false;
     private boolean verbose = false;
     private int languageVersion = 180;
     private boolean parentProtoProperties = false;
-    private Class<Scriptable>[] hostClasses = null;
+    private Class<? extends Scriptable>[] hostClasses = null;
     private ClassShutter classShutter = null;
     private WrapFactory wrapFactory = null;
     private List<String> bootstrapScripts;
@@ -311,7 +323,7 @@ public class RingoConfiguration {
      * Get the host classes to be added to the Rhino engine.
      * @return a list of Rhino host classes
      */
-    public Class<Scriptable>[] getHostClasses() {
+    public Class<? extends Scriptable>[] getHostClasses() {
         return hostClasses;
     }
 
@@ -346,6 +358,40 @@ public class RingoConfiguration {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    public boolean isSandboxed() {
+        return sandboxed;
+    }
+
+    public void setSandboxed(boolean sandboxed) {
+        this.sandboxed = sandboxed;
+        if (sandboxed) {
+            hostClasses = new Class[] {
+                Binary.class,
+                Stream.class
+            };
+
+            classShutter = new ClassShutter()
+            {
+                Set<String> whitelist = new HashSet<String>(Arrays.asList(
+                    HttpServletRequest.class.getName(), HttpServletResponse.class.getName(), OutputStream.class.getName(),
+                        InputStream.class.getName(), PrintStream.class.getName(), String.class.getName(), HashMap.class.getName(),
+                        TimeZone.class.getName(), SimpleDateFormat.class.getName(), Locale.class.getName(),
+                        GregorianCalendar.class.getName(), Calendar.class.getName(), Date.class.getName(),
+                        DecimalFormat.class.getName(), DecimalFormatSymbols.class.getName(), MessageDigest.class.getName(),
+                        Charset.class.getName(), CharsetEncoder.class.getName(), CharsetDecoder.class.getName(), CodingErrorAction.class.getName(),
+                        ByteBuffer.class.getName(), CharBuffer.class.getName(), StringUtils.class.getName(),
+                        Logger.class.getName(), LoggerFactory.class.getName(),
+                        InputStreamReader.class.getName(), BufferedReader.class.getName(), OutputStreamWriter.class.getName(), BufferedWriter.class.getName()
+
+                ));
+                public boolean visibleToScripts(String fullClassName)
+                {
+                    return whitelist.contains(fullClassName);
+                }
+            };
+        }
     }
 
     public boolean getStrictVars() {
@@ -505,8 +551,8 @@ public class RingoConfiguration {
         this.bootstrapScripts = bootstrapScripts;
     }
 
-    private static Logger getLogger() {
-        return Logger.getLogger("org.ringojs.tools");
+    private static java.util.logging.Logger getLogger() {
+        return java.util.logging.Logger.getLogger("org.ringojs.tools");
     }
 
     private static Repository toZipRepository(URL url) throws IOException {

@@ -33,11 +33,14 @@ import org.mozilla.javascript.tools.shell.Environment;
 import org.mozilla.javascript.tools.shell.QuitAction;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
+import org.ringojs.sandbox.Sandbox;
 import org.ringojs.security.RingoSecurityManager;
 import org.ringojs.util.ScriptUtils;
 import org.mozilla.javascript.tools.shell.Global;
+import org.ringojs.wrappers.Binary;
 import org.ringojs.wrappers.ModulePath;
 import org.ringojs.repository.Resource;
+import org.ringojs.wrappers.Stream;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,21 +70,17 @@ public class RingoGlobal extends Global {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
         initStandardObjects(cx, sealed);
-        initQuitAction(new QuitAction() {
-            public void quit(Context cx, int exitCode) {
-                System.exit(exitCode);
-            }
-        });
+
         String[] names = {
             "doctest",
-            "gc",
-            "load",
-            "loadClass",
+//            "gc",
+//            "load",
+//            "loadClass",
             "print",
-            "quit",
-            "readFile",
-            "readUrl",
-            "runCommand",
+//            "quit",
+//            "readFile",
+//            "readUrl",
+//            "runCommand",
             "seal",
             "sync",
             "toint32",
@@ -90,13 +89,13 @@ public class RingoGlobal extends Global {
         defineFunctionProperties(names, Global.class,
                                  ScriptableObject.DONTENUM);
         names = new String[] {
-            "defineClass",
+//            "defineClass",
             "require",
-            "getResource",
-            "getRepository",
-            "addToClasspath",
-            "privileged",
-            "spawn",
+//            "getResource",
+//            "getRepository",
+//            "addToClasspath",
+//            "privileged",
+//            "spawn",
             "trycatch",
             "increaseAsyncCount",
             "decreaseAsyncCount"
@@ -105,26 +104,72 @@ public class RingoGlobal extends Global {
                                  ScriptableObject.DONTENUM);
 
         ScriptableObject require = (ScriptableObject) get("require", this);
-        // Set up require.main property as setter - note that accessing this will cause
-        // the main module to be loaded, which may result in problems if engine setup
-        // isn't finished yet. Alas, the Securable Modules spec requires us to do this.
-        require.defineProperty("main", RingoGlobal.class,
-                DONTENUM | PERMANENT | READONLY);
-        require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
-                DONTENUM | PERMANENT | READONLY);
-        defineProperty("arguments", cx.newArray(this, engine.getArguments()), DONTENUM);
-        // Set up "environment" in the global scope to provide access to the
-        // System environment variables. http://github.com/ringo/ringojs/issues/#issue/88
-        Environment.defineClass(this);
-        Environment environment = new Environment(this);
-        defineProperty("environment", environment,
-                       ScriptableObject.DONTENUM);
+
+        if (!engine.getConfig().isSandboxed()) {
+            initNonSandboxed(engine, require);
+        }
+        else {
+            initSandboxed(engine);
+        }
+
         try {
             Method getter = RingoGlobal.class.getMethod("getAsyncCount", Scriptable.class);
             defineProperty("asyncCount", this, getter, null, DONTENUM | PERMANENT | READONLY);
         } catch (NoSuchMethodException nsm) {
             throw new RuntimeException(nsm);
         }
+
+        // Set up require.main property as setter - note that accessing this will cause
+        // the main module to be loaded, which may result in problems if engine setup
+        // isn't finished yet. Alas, the Securable Modules spec requires us to do this.
+        require.defineProperty("main", RingoGlobal.class,
+                DONTENUM | PERMANENT | READONLY);
+        defineProperty("arguments", cx.newArray(this, engine.getArguments()), DONTENUM);
+    }
+
+    private void initSandboxed(RhinoEngine engine) {
+        defineProperty("sandbox", new Sandbox(), DONTENUM | PERMANENT | READONLY);
+    }
+
+    private void initNonSandboxed(RhinoEngine engine, ScriptableObject require) {
+        initQuitAction(new QuitAction() {
+            public void quit(Context cx, int exitCode) {
+                System.exit(exitCode);
+            }
+        });
+        String[] names = {
+            "gc",
+            "load",
+            "loadClass",
+            "quit",
+            "readFile",
+            "readUrl",
+            "runCommand"
+        };
+        defineFunctionProperties(names, Global.class,
+                                 ScriptableObject.DONTENUM);
+        names = new String[] {
+            "defineClass",
+            "getResource",
+            "getRepository",
+            "addToClasspath",
+            "privileged",
+            "spawn",
+        };
+        defineFunctionProperties(names, RingoGlobal.class,
+                                 ScriptableObject.DONTENUM);
+
+
+        require.defineProperty("paths", new ModulePath(engine.getRepositories(), this),
+                DONTENUM | PERMANENT | READONLY);
+
+
+        // Set up "environment" in the global scope to provide access to the
+        // System environment variables. http://github.com/ringo/ringojs/issues/#issue/88
+        Environment.defineClass(this);
+        Environment environment = new Environment(this);
+        defineProperty("environment", environment,
+                       ScriptableObject.DONTENUM);
     }
 
     public RhinoEngine getEngine() {

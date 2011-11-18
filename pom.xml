@@ -5,9 +5,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.ringojs</groupId>
+    <groupId>org.twdata.org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.0-db1-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -250,6 +250,21 @@
                             <resources>
                                 <resource>
                                     <directory>modules</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-sandboxed-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/modules-sandboxed</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>modules-sandboxed</directory>
                                 </resource>
                             </resources>
                         </configuration>
