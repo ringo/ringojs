@@ -563,7 +563,13 @@ public class RingoConfiguration {
                 Repository repo = toZipRepository(url);
                 return repo.getChildRepository(path);
             } else if ("file".equals(protocol)) {
-                return new FileRepository(url.getPath());
+                path = url.getPath();
+                try {
+                    path = URLDecoder.decode(path, System.getProperty("file.encoding"));
+                } catch (UnsupportedEncodingException x) {
+                    System.err.println("Unable to decode jar URL: " + x);
+                }
+                return new FileRepository(path);
             }
         }
         return null;
