@@ -359,8 +359,8 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
     
     /**
-     * Calls `fn` with each line in the input stream.
-     * @param {Function} fn the callback function
+     * Calls `callback` with each line in the input stream.
+     * @param {Function} callback the callback function
      * @param {Object} [thisObj] optional this-object to use for callback
      */
     this.forEach = function (callback, thisObj) {
