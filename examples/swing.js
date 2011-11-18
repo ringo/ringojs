@@ -4,7 +4,7 @@ var n = 0;
 
 function main() {
     var frame = new JFrame("Swing Demo");
-    var button = new JButton(new ImageIcon("img/ringo-drums.png"));
+    var button = new JButton(new ImageIcon(module.resolve("img/ringo-drums.png")));
     button.addActionListener(function(e) {
         setInterval(function() {
             if (n++ > 200) system.exit();
