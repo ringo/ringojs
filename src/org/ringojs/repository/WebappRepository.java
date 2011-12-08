@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.*;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.io.IOException;
 
 public class WebappRepository extends AbstractRepository {
@@ -53,7 +54,13 @@ public class WebappRepository extends AbstractRepository {
                 try {
                     URL url = context.getResource(path);
                     if (url != null && url.getProtocol().equals("file")) {
-                        exists = new File(url.getPath()).isDirectory() ? 1 : 0;
+                        File dir;
+                        try {
+                            dir = new File(url.toURI());
+                        } catch (URISyntaxException e) {
+                            dir = new File(url.getPath());
+                        }
+                        exists = dir.isDirectory() ? 1 : 0;
                     } else {
                         exists = url != null ? 1 : 0;
                     }

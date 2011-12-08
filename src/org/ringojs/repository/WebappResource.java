@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class WebappResource extends AbstractResource {
@@ -34,7 +35,13 @@ public class WebappResource extends AbstractResource {
             try {
                 URL url = context.getResource(path);
                 if (url != null && url.getProtocol().equals("file")) {
-                    exists = new File(url.getPath()).isFile() ? 1 : 0;
+                    File file;
+                    try {
+                        file = new File(url.toURI());
+                    } catch (URISyntaxException e) {
+                        file = new File(url.getPath());
+                    }
+                    exists = file.isFile() ? 1 : 0;
                 } else {
                     exists = url != null ? 1 : 0;
                 }
