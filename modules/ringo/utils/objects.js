@@ -36,7 +36,10 @@ function clone(object, cloned, recursive) {
     var value;
     for (var propName in object) {
         value = object[propName];
-        if (recursive && (value.constructor == Object || value.constructor == Array)) {
+        
+        if (!value) {
+            cloned[propName] = value;
+        } else if (recursive && (value.constructor == Object || value.constructor == Array)) {
             cloned[propName] = clone(value, new value.constructor(), recursive);
         } else {
             cloned[propName] = value;
