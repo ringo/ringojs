@@ -536,11 +536,11 @@ public class RingoConfiguration {
                 path.substring(0, path.length() - 1) : path;
         URL url = urlFromClasspath(canonicalPath, loader);
         if (url != null) {
-            String protocol = url.getProtocol();
-            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+            String proto = url.getProtocol();
+            if ("jar".equals(proto) || "zip".equals(proto) || "wsjar".equals(proto)) {
                 Repository repo = toZipRepository(url);
                 return repo.getResource(path);
-            } else if ("file".equals(protocol)) {
+            } else if ("file".equals(proto)) {
                 String enc = Charset.defaultCharset().name();
                 return new FileResource(URLDecoder.decode(url.getPath(), enc));
             }
@@ -554,11 +554,11 @@ public class RingoConfiguration {
         String canonicalPath = path.endsWith("/") ? path : path + "/";
         URL url = urlFromClasspath(canonicalPath, loader);
         if (url != null) {
-            String protocol = url.getProtocol();
-            if ("jar".equals(protocol) || "zip".equals(protocol)) {
+            String proto = url.getProtocol();
+            if ("jar".equals(proto) || "zip".equals(proto) || "wsjar".equals(proto)) {
                 Repository repo = toZipRepository(url);
                 return repo.getChildRepository(path);
-            } else if ("file".equals(protocol)) {
+            } else if ("file".equals(proto)) {
                 String enc = Charset.defaultCharset().name();
                 return new FileRepository(URLDecoder.decode(url.getPath(), enc));
             }
