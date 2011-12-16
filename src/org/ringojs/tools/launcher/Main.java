@@ -18,11 +18,11 @@ package org.ringojs.tools.launcher;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 /**
  * Main launcher class. This figures out the Ringo home directory,
@@ -168,13 +168,9 @@ public class Main {
 
             String jarUrl = launcherUrl.toString();
             // decode installDir in case it is URL-encoded
-            try {
-                jarUrl = URLDecoder.decode(jarUrl, System.getProperty("file.encoding"));
-            } catch (UnsupportedEncodingException x) {
-                System.err.println("Unable to decode jar URL: " + x);
-            }
+            jarUrl = URLDecoder.decode(jarUrl, Charset.defaultCharset().name());
 
-            if (!jarUrl.startsWith("jar:") || jarUrl.indexOf("!") < 0) {
+            if (!jarUrl.startsWith("jar:") || !jarUrl.contains("!")) {
                 ringoHome = System.getProperty("user.dir");
                 System.err.println("Warning: ringo.home system property is not set ");
                 System.err.println("         and not started from launcher.jar. Using ");

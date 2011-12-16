@@ -2,6 +2,8 @@ package org.ringojs.repository;
 
 import javax.servlet.ServletContext;
 import java.io.File;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -45,7 +47,7 @@ public class WebappRepository extends AbstractRepository {
         }
     }
 
-    public boolean exists() {
+    public boolean exists() throws IOException {
         if (exists < 0) {
             if ("/".equals(path)) {
                 exists = 1;
@@ -53,7 +55,9 @@ public class WebappRepository extends AbstractRepository {
                 try {
                     URL url = context.getResource(path);
                     if (url != null && url.getProtocol().equals("file")) {
-                        exists = new File(url.getPath()).isDirectory() ? 1 : 0;
+                        String enc = Charset.defaultCharset().name();
+                        String path = URLDecoder.decode(url.getPath(), enc);
+                        exists = new File(path).isDirectory() ? 1 : 0;
                     } else {
                         exists = url != null ? 1 : 0;
                     }

@@ -26,8 +26,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
@@ -523,13 +523,8 @@ public class RingoConfiguration {
             }
 
             if ("file".equals(url.getProtocol())) {
-                String path = url.getPath();
-                try {
-                    path = URLDecoder.decode(path, System.getProperty("file.encoding"));
-                } catch (UnsupportedEncodingException x) {
-                    System.err.println("Unable to decode jar URL: " + x);
-                }
-                return new ZipRepository(path);
+                String enc = Charset.defaultCharset().name();
+                return new ZipRepository(URLDecoder.decode(url.getPath(), enc));
             }
         }
         return null;
@@ -546,7 +541,8 @@ public class RingoConfiguration {
                 Repository repo = toZipRepository(url);
                 return repo.getResource(path);
             } else if ("file".equals(protocol)) {
-                return new FileResource(url.getPath());
+                String enc = Charset.defaultCharset().name();
+                return new FileResource(URLDecoder.decode(url.getPath(), enc));
             }
         }
         return null;
@@ -563,7 +559,8 @@ public class RingoConfiguration {
                 Repository repo = toZipRepository(url);
                 return repo.getChildRepository(path);
             } else if ("file".equals(protocol)) {
-                return new FileRepository(url.getPath());
+                String enc = Charset.defaultCharset().name();
+                return new FileRepository(URLDecoder.decode(url.getPath(), enc));
             }
         }
         return null;

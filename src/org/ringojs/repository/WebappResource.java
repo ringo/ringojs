@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 public class WebappResource extends AbstractResource {
 
@@ -29,12 +31,14 @@ public class WebappResource extends AbstractResource {
         }
     }
 
-    public boolean exists() {
+    public boolean exists() throws IOException{
         if (exists < 0) {
             try {
                 URL url = context.getResource(path);
                 if (url != null && url.getProtocol().equals("file")) {
-                    exists = new File(url.getPath()).isFile() ? 1 : 0;
+                    String enc = Charset.defaultCharset().name();
+                    String path = URLDecoder.decode(url.getPath(), enc);
+                    exists = new File(path).isFile() ? 1 : 0;
                 } else {
                     exists = url != null ? 1 : 0;
                 }
