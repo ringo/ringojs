@@ -34,12 +34,14 @@ function clone(object, cloned, recursive) {
         cloned = new object.constructor();
     }
     var value;
-    for (var propName in object) {
-        value = object[propName];
-        if (recursive && (value.constructor == Object || value.constructor == Array)) {
-            cloned[propName] = clone(value, new value.constructor(), recursive);
+    for (var id in object) {
+        if (!object.hasOwnProperty(id)) continue;
+        value = object[id];
+        if (recursive && value &&
+                (value.constructor == Object || value.constructor == Array)) {
+            cloned[id] = clone(value, new value.constructor(), recursive);
         } else {
-            cloned[propName] = value;
+            cloned[id] = value;
         }
     }
     return cloned;
@@ -55,8 +57,9 @@ function merge() {
     var result = {};
     for (var i = arguments.length; i > 0; --i) {
         var obj = arguments[i - 1];
-        for (var property in obj) {
-            result[property] = obj[property];
+        for (var id in obj) {
+            if (!obj.hasOwnProperty(id)) continue;
+            result[id] = obj[id];
         }
     }
     return result;
