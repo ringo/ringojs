@@ -355,6 +355,7 @@ function repeat(string, num) {
  *            of the string, false otherwise
  */
 function startsWith(string, substring) {
+    if (!string) return false;
     return string.indexOf(substring) == 0;
 }
 
@@ -366,6 +367,7 @@ function startsWith(string, substring) {
  *            the string, false otherwise
  */
 function endsWith(string, substring) {
+    if (!string) return false;
     var diff = string.length - substring.length;
     return diff > -1 && string.lastIndexOf(substring) == diff;
 }
