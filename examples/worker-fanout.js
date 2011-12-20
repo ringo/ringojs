@@ -6,7 +6,7 @@ function main() {
     for (var i = 0; i < 8; i++) {
         var w = new Worker(module.id);
         w.onmessage = function(e) {
-            print("Got reply from worker " + i);
+            print("Got reply from worker " + e.data);
         }
         w.postMessage(i);
     }
