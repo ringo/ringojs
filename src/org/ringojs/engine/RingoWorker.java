@@ -33,7 +33,7 @@ public class RingoWorker {
     private ReloadableScript currentScript;
     private List<SyntaxError> errors;
     private Map<Resource, ModuleScope> modules, checkedModules;
-    private boolean reloading;
+    private boolean reload;
 
     private static AtomicInteger workerId = new AtomicInteger(1);
     private final int id;
@@ -41,9 +41,8 @@ public class RingoWorker {
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
         modules = new HashMap<Resource, ModuleScope>();
-        reloading = engine.getConfig().isReloading();
-        checkedModules = reloading ?
-                new HashMap<Resource, ModuleScope>() : modules;
+        reload = engine.getConfig().isReloading();
+        checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
         errors = new ArrayList<SyntaxError>();
         id = workerId.getAndIncrement();
     }
@@ -64,21 +63,23 @@ public class RingoWorker {
      */
     public Object invoke(Object module, Object function, Object... args)
             throws NoSuchMethodException, IOException {
+
         ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
         Context cx = contextFactory.enterContext();
         runlock.lock();
-        if (reloading) {
-            checkedModules.clear();
-        }
+        if (reload) checkedModules.clear();
         engine.setCurrentWorker(this);
+
         try {
             if (!(module instanceof CharSequence) && !(module instanceof Scriptable)) {
                 throw new IllegalArgumentException(
                         "module argument must be a Scriptable or String object");
             }
+
             Scriptable scriptable = module instanceof Scriptable ?
                     (Scriptable) module : loadModule(cx, module.toString(), null);
+
             if (!(function instanceof Function)) {
                 Object fun = ScriptableObject.getProperty(scriptable, function.toString());
                 if (!(fun instanceof Function)) {
@@ -86,9 +87,11 @@ public class RingoWorker {
                 }
                 function = fun;
             }
+
             engine.initArguments(args);
             Object retval = ((Function) function).call(cx, scope, scriptable, args);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
+
         } finally {
             engine.setCurrentWorker(null);
             runlock.unlock();
@@ -149,6 +152,28 @@ public class RingoWorker {
         }, delay, delay, TimeUnit.MILLISECONDS);
     }
 
+    public Future<Object> load(final String module) {
+        if (eventloop == null) {
+            initEventLoop();
+        }
+        engine.enterAsyncTask();
+        return eventloop.submit(new Callable<Object>() {
+            public Object call() throws Exception {
+                if (reload) checkedModules.clear();
+                ContextFactory contextFactory = engine.getContextFactory();
+                Context cx = contextFactory.enterContext();
+                engine.setCurrentWorker(RingoWorker.this);
+                try {
+                    return loadModule(cx, module, null);
+                } finally {
+                    engine.setCurrentWorker(null);
+                    Context.exit();
+                    engine.exitAsyncTask();
+                }
+            }
+        });
+    }
+
     public void cancel(Future<?> future) {
         if (future.cancel(false)) {
             engine.exitAsyncTask();
@@ -156,15 +181,16 @@ public class RingoWorker {
     }
 
     private synchronized void initEventLoop() {
-        if (eventloop == null) {
-            eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-                public Thread newThread(Runnable runnable) {
-                    Thread thread = new Thread(runnable, "ringo-worker-" + id);
-                    thread.setDaemon(true);
-                    return thread;
-                }
-            });
+        if (eventloop != null) {
+            return;
         }
+        eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+            public Thread newThread(Runnable runnable) {
+                Thread thread = new Thread(runnable, "ringo-worker-" + id);
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
     }
 
     /**
@@ -236,6 +262,17 @@ public class RingoWorker {
             }
         }
         return result;
+    }
+
+    public boolean isReloading() {
+        return reload;
+    }
+
+    public void setReloading(boolean reload) {
+        if (reload != this.reload) {
+            checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
+        }
+        this.reload = reload;
     }
 
     public RhinoEngine getEngine() {

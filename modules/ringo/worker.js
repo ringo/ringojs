@@ -28,8 +28,15 @@ function Worker(module) {
         return new Worker(module);
     }
 
-    var worker;
     var self = this;
+    var worker = engine.getWorker();
+
+    worker.setReloading(false);
+    if (typeof module === "string") {
+        // Load module immediately and wait till done. This will
+        // throw an error if module can't be loaded.
+        worker.load(module).get();
+    }
 
     var onmessage = function(e) {
         if (typeof self.onmessage === "function") {
@@ -57,7 +64,9 @@ function Worker(module) {
      * the worker while running other code.
      */
     this.postMessage = function(data, syncCallbacks) {
-        worker = worker || engine.getWorker();
+        if (!worker) {
+            throw new Error("Worker has been terminated");
+        }
         var invokeCallback = function(callback, arg) {
             if (syncCallbacks) callback(arg);
             else currentWorker.submit(self, callback, arg);
@@ -77,13 +86,6 @@ function Worker(module) {
                 worker.invoke(module, "onmessage", event);
             } catch (error) {
                 invokeCallback(onerror, {data: error, source: self});
-            } finally {
-                // fixme - release worker if no pending scheduled tasks;
-                // we want to do better than that.
-                if (worker.countScheduledTasks() == 0) {
-                    engine.releaseWorker(worker);
-                    worker = null;
-                }
             }
         });
     };
