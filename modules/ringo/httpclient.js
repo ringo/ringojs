@@ -289,7 +289,7 @@ var Exchange = function(url, options, callbacks) {
                 }
             } finally {
                 if (options.async) {
-                    global.decreaseAsyncCount();
+                    global.exitAsyncTask();
                 }
             }
             return;
@@ -329,7 +329,7 @@ var Exchange = function(url, options, callbacks) {
                 }
             } finally {
                 if (options.async) {
-                    global.decreaseAsyncCount();
+                    global.exitAsyncTask();
                 }
             }
             return;
@@ -343,7 +343,7 @@ var Exchange = function(url, options, callbacks) {
                 }
             } finally {
                 if (options.async) {
-                    global.decreaseAsyncCount();
+                    global.exitAsyncTask();
                 }
             }
             return;
@@ -356,7 +356,7 @@ var Exchange = function(url, options, callbacks) {
                 }
             } finally {
                 if (options.async) {
-                    global.decreaseAsyncCount();
+                    global.exitAsyncTask();
                 }
             }
             return;
@@ -374,7 +374,7 @@ var Exchange = function(url, options, callbacks) {
         var [username, password] = userInfo.split(":");
         options.username = options.username || username;
         options.password = options.password || password;
-    }    
+    }
 
     if (typeof(options.username) === 'string' && typeof(options.password) === 'string') {
         var authKey = base64.encode(options.username + ':' + options.password);
@@ -602,7 +602,7 @@ var Client = function(timeout, followRedirects) {
         try {
             client.send(exchange.contentExchange);
             if (opts.async) {
-                global.increaseAsyncCount();
+                global.enterAsyncTask();
             } else {
                 exchange.contentExchange.waitForDone();
             }

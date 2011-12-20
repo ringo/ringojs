@@ -165,7 +165,7 @@ public class RingoRunner {
                 // engine.invoke("ringo/shell", "start");
             } else {
                 // wait for daemon or scheduler threads to terminate
-                engine.waitTillDone();
+                engine.waitForAsyncTasks();
             }
         } catch (Exception x) {
             List<SyntaxError> errors = engine == null ? null : engine.getErrorList();

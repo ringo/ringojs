@@ -98,16 +98,16 @@ public class RingoWorker {
 
     public Future<Object> submit(final Object module, final Object method,
                                  final Object... args) {
-        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
+        engine.enterAsyncTask();
         return eventloop.submit(new Callable<Object>() {
             public Object call() throws Exception {
                 try {
                     return invoke(module, method, args);
                 } finally {
-                    engine.decreaseAsyncCount();
+                    engine.exitAsyncTask();
                 }
             }
         });
@@ -116,16 +116,16 @@ public class RingoWorker {
     public ScheduledFuture<Object> schedule(long delay, final Object module,
                                             final Object method,
                                             final Object... args) {
-        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
+        engine.enterAsyncTask();
         return eventloop.schedule(new Callable<Object>() {
             public Object call() throws Exception {
                 try {
                     return invoke(module, method, args);
                 } finally {
-                    engine.decreaseAsyncCount();
+                    engine.exitAsyncTask();
                 }
             }
         }, delay, TimeUnit.MILLISECONDS);
@@ -134,10 +134,10 @@ public class RingoWorker {
     public ScheduledFuture<?> scheduleInterval(long delay, final Object module,
                                                final Object method,
                                                final Object... args) {
-        engine.increaseAsyncCount();
         if (eventloop == null) {
             initEventLoop();
         }
+        engine.enterAsyncTask();
         return eventloop.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
@@ -151,7 +151,7 @@ public class RingoWorker {
 
     public void cancel(Future<?> future) {
         if (future.cancel(false)) {
-            engine.decreaseAsyncCount();
+            engine.exitAsyncTask();
         }
     }
 

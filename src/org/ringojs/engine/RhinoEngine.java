@@ -61,6 +61,7 @@ public class RhinoEngine implements ScopeProvider {
     private final RingoWorker mainWorker;
     private final ThreadLocal<RingoWorker> currentWorker = new ThreadLocal<RingoWorker>();
     private final Deque<RingoWorker> workers;
+    private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
@@ -341,14 +342,6 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Wait until all daemon threads running in this engine have terminated.
-     * @throws InterruptedException if the current thread has been interrupted
-     */
-    public void waitTillDone() throws InterruptedException {
-        globalScope.waitTillDone();
-    }
-
-    /**
      * Get the current Rhino optimization level
      * @return the current optimization level
      */
@@ -592,12 +585,20 @@ public class RhinoEngine implements ScopeProvider {
         return config.isPolicyEnabled();
     }
 
-    protected void increaseAsyncCount() {
-        globalScope.increaseAsyncCount();
+    /**
+     * Wait until all daemon threads running in this engine have terminated.
+     * @throws InterruptedException if the current thread has been interrupted
+     */
+    public void waitForAsyncTasks() throws InterruptedException {
+        asyncCounter.waitTillDone();
     }
 
-    protected void decreaseAsyncCount() {
-        globalScope.decreaseAsyncCount();
+    protected void enterAsyncTask() {
+        asyncCounter.increase();
+    }
+
+    protected void exitAsyncTask() {
+        asyncCounter.decrease();
     }
 
     private Map<Trackable,ReloadableScript> getScriptCache(Context cx) {
@@ -837,6 +838,27 @@ public class RhinoEngine implements ScopeProvider {
      */
     public WrapFactory getWrapFactory() {
         return wrapFactory;
+    }
+
+    static class AsyncTaskCounter {
+
+        int count = 0;
+
+        synchronized void waitTillDone() throws InterruptedException {
+            while(count > 0) {
+                wait();
+            }
+        }
+
+        synchronized void increase() {
+            ++count;
+        }
+
+        synchronized void decrease() {
+            if (--count <= 0) {
+                notifyAll();
+            }
+        }
     }
 
 }

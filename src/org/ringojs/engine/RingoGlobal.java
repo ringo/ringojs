@@ -56,7 +56,6 @@ public class RingoGlobal extends Global {
     private final static SecurityManager securityManager = System.getSecurityManager();
     private static ExecutorService threadPool;
     private static AtomicInteger ids = new AtomicInteger();
-    private int asyncCount = 0;
 
     public RingoGlobal(Context cx, RhinoEngine engine, boolean sealed) {
         this.engine = engine;
@@ -98,8 +97,8 @@ public class RingoGlobal extends Global {
             "privileged",
             "spawn",
             "trycatch",
-            "increaseAsyncCount",
-            "decreaseAsyncCount"
+            "enterAsyncTask",
+            "exitAsyncTask"
         };
         defineFunctionProperties(names, RingoGlobal.class,
                                  ScriptableObject.DONTENUM);
@@ -117,14 +116,7 @@ public class RingoGlobal extends Global {
         // System environment variables. http://github.com/ringo/ringojs/issues/#issue/88
         Environment.defineClass(this);
         Environment environment = new Environment(this);
-        defineProperty("environment", environment,
-                       ScriptableObject.DONTENUM);
-        try {
-            Method getter = RingoGlobal.class.getMethod("getAsyncCount", Scriptable.class);
-            defineProperty("asyncCount", this, getter, null, DONTENUM | PERMANENT | READONLY);
-        } catch (NoSuchMethodException nsm) {
-            throw new RuntimeException(nsm);
-        }
+        defineProperty("environment", environment, ScriptableObject.DONTENUM);
     }
 
     public RhinoEngine getEngine() {
@@ -291,31 +283,12 @@ public class RingoGlobal extends Global {
         });
     }
 
-    public synchronized int getAsyncCount(Scriptable obj) {
-        return asyncCount;
+    public void enterAsyncTask() {
+        engine.enterAsyncTask();
     }
 
-    public synchronized void increaseAsyncCount() {
-        if (securityManager != null) {
-            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
-        }
-        asyncCount += 1;
-    }
-
-    public synchronized void decreaseAsyncCount() {
-        if (securityManager != null) {
-            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
-        }
-        asyncCount -= 1;
-        if (asyncCount <= 0) {
-            notifyAll();
-        }
-    }
-
-    synchronized void waitTillDone() throws InterruptedException {
-        while (asyncCount > 0) {
-            wait();
-        }
+    public void exitAsyncTask() {
+        engine.exitAsyncTask();
     }
 
     public static Object getMain(Scriptable thisObj) {
