@@ -11,8 +11,8 @@
         <dependency org="org.eclipse.jetty" name="jetty-xml" rev="7.4.+"/>
         <dependency org="javax.servlet" name="servlet-api" rev="2.5"/>
         <!-- logging -->
-        <dependency org="org.slf4j" name="slf4j-api" rev="1.5.+"/>
-        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.5.+">
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.6.+"/>
+        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.6.+">
             <exclude org="log4j"/>
         </dependency>
         <dependency org="log4j" name="log4j" rev="1.2.14"/>
