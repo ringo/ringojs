@@ -223,7 +223,7 @@ function Server(options) {
                         });
 
                         if (typeof onconnect === "function") {
-                            onconnect(request, protocol, socket)
+                            onconnect(socket, request, protocol);
                         }
 
                         return socket.impl;
