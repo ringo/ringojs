@@ -607,8 +607,8 @@ var Client = function(timeout, followRedirects) {
                 exchange.contentExchange.waitForDone();
             }
         } catch (e) { // probably java.net.ConnectException
-            if (typeof(callbacks.error) === 'function') {
-                callbacks.error(e, 0, exchange);
+            if (typeof(opts.error) === 'function') {
+                opts.error(e, 0, exchange);
             }
         }
         return opts.promise ? deferred.promise : exchange;
@@ -758,5 +758,3 @@ var put = function() {
     var client = getClient();
     return client.put.apply(client, arguments);
 };
-
-
