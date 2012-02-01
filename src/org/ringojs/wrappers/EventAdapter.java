@@ -180,7 +180,7 @@ public class EventAdapter extends ScriptableObject {
         if (isInterface) {
             cfw.addInterface(clazz.getName());
         }
-        Method[] methods = clazz.getDeclaredMethods();
+        Method[] methods = clazz.getMethods();
 
         cfw.addField("events", adapterSignature, (short) (ACC_PRIVATE | ACC_FINAL));
 
