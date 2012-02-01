@@ -1,4 +1,4 @@
-// Minimal websocket demo
+// Simple websocket server demo
 var response = require("ringo/jsgi/response");
 var arrays = require("ringo/utils/arrays");
 
@@ -11,14 +11,17 @@ exports.app = function(req) {
 function onconnect(conn) {
     conn.addListener("open", function() {
         connections.push(conn);
+        console.info("Opening connection, " + connections.length + " open");
     });
     conn.addListener("message", function(message) {
         connections.forEach(function(conn) {
             conn.send(message);
-        })
+        });
+        console.info("Sending message");
     });
     conn.addListener("close", function() {
         arrays.remove(connections, conn);
+        console.info("Closing connection, " + connections.length + " remaining");
     })
 }
 

@@ -8,11 +8,11 @@
 <body>
     <h1>Ringo WebSocket Demo</h1>
 
-    <p>Try viewing this page in multiple browsers!</p>
+    <p>Try viewing this page in multiple browser windows!</p>
 
     <div>
     <form onsubmit="return sendMessage()">
-        <input name="message" size="40" placeholder="Type message and hit Enter">
+        <input name="message" size="40" placeholder="Type message and hit <Enter>">
     </form>
     </div>
 </body>
@@ -22,6 +22,7 @@
         WebSocket = MozWebSocket;
     }
     if (typeof WebSocket === "function") {
+        // Build websocket URL from current location
         var url = location.href.replace(/^[^:]+/, "ws");
 
         var socket = new WebSocket(url + "websocket");
