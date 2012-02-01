@@ -77,6 +77,7 @@ public class EventAdapter extends ScriptableObject {
                 }
                 byte[] code = getAdapterClass(className, clazz, overrides);
                 adapterClass = loadAdapterClass(className, code);
+                adapterCache.put(clazz, adapterClass);
             }
             Scriptable scope = getTopLevelScope(function);
             RhinoEngine engine = RhinoEngine.getEngine(scope);
