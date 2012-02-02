@@ -86,7 +86,8 @@ public class ScriptableList extends NativeJavaObject {
      * @param scope the scope
      * @param list the list instance
      */
-    public ScriptableList(Scriptable scope, List<Object> list) {
+    @SuppressWarnings("unchecked")
+    public ScriptableList(Scriptable scope, List list) {
         super(scope, list, list.getClass());
         this.list = list;
         initPrototype(scope);

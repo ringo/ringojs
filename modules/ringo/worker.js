@@ -35,7 +35,7 @@ function Worker(module) {
     if (typeof module === "string") {
         // Load module immediately and wait till done. This will
         // throw an error if module can't be loaded.
-        worker.load(module).get();
+        worker.loadModuleInWorkerThread(module).get();
     }
 
     var onmessage = function(e) {

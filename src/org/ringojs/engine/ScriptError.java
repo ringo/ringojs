@@ -2,24 +2,25 @@ package org.ringojs.engine;
 
 import org.ringojs.util.StringUtils;
 
-public class SyntaxError {
+public class ScriptError {
 
     public final String message, sourceName, lineSource;
-    public final int line, offset;
+    public final int lineNumber, offset;
 
-    SyntaxError(String message, String sourceName, int line, String lineSource, int offset) {
+    ScriptError(String message, String sourceName, int lineNumber,
+                String lineSource, int offset) {
         this.message = message;
         this.sourceName = sourceName == null ? "[unknown source]" : sourceName;
         this.lineSource = lineSource;
-        this.line = line;
+        this.lineNumber = lineNumber;
         this.offset = offset;
     }
 
     public String toString() {
         String lineSeparator = System.getProperty("line.separator", "\n");
         StringBuilder b = new StringBuilder(sourceName).append(", line ")
-                .append(line).append(": ").append(message).append(lineSeparator)
-                .append(lineSource).append(lineSeparator);
+                .append(lineNumber).append(": ").append(message)
+                .append(lineSeparator).append(lineSource).append(lineSeparator);
         for(int i = 0; i < offset - 1; i++) {
             b.append(' ');
         }
@@ -29,9 +30,9 @@ public class SyntaxError {
 
     public String toHtml() {
         String lineSeparator = System.getProperty("line.separator", "\n");
-        StringBuilder b = new StringBuilder("<div>").append(sourceName)
-                .append(", line ").append(line).append(": <b>")
-                .append(StringUtils.escapeHtml(message)).append("</b></div>")
+        StringBuilder b = new StringBuilder("<p>").append(sourceName)
+                .append(", line ").append(lineNumber).append(": <b>")
+                .append(StringUtils.escapeHtml(message)).append("</b></p>")
                 .append(lineSeparator).append("<pre>");
         int srcLength = lineSource.length();
         int errorStart = Math.max(0, offset - 2);

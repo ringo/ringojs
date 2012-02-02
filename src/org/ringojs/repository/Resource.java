@@ -28,7 +28,7 @@ public interface Resource extends Trackable {
 
 
     /**
-     * Returns the lengh of the resource's content
+     * Returns the length of the resource's content
      * @return content length
      */
     public long getLength();

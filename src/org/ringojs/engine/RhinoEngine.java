@@ -81,10 +81,8 @@ public class RhinoEngine implements ScopeProvider {
         singletons = Collections.synchronizedMap(new HashMap<String, Object>());
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
-        if (repositories.isEmpty()) {
-            throw new IllegalArgumentException("Empty repository list");
-        }
         this.wrapFactory = config.getWrapFactory();
+
         RingoDebugger debugger = null;
         if (config.getDebug()) {
             debugger = new RingoDebugger(config);
@@ -92,9 +90,9 @@ public class RhinoEngine implements ScopeProvider {
             debugger.attachTo(contextFactory);
             debugger.setBreakOnExceptions(true);
         }
-        // create a new global scope level
+
+        // create and intialize global scope
         Context cx = contextFactory.enterContext();
-        setCurrentWorker(mainWorker);
         try {
             boolean sealed = config.isSealed();
             globalScope = new RingoGlobal(cx, this, sealed);
@@ -123,7 +121,6 @@ public class RhinoEngine implements ScopeProvider {
                 debugger.setBreak();
             }
         } finally {
-            setCurrentWorker(null);
             Context.exit();
         }
     }
@@ -175,7 +172,6 @@ public class RhinoEngine implements ScopeProvider {
             throw new FileNotFoundException(scriptResource.toString());
         }
         Context cx = contextFactory.enterContext();
-        setCurrentWorker(mainWorker);
         try {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
@@ -187,7 +183,6 @@ public class RhinoEngine implements ScopeProvider {
             mainScope.updateExports();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
         } finally {
-            setCurrentWorker(null);
             Context.exit();
         }
     }
@@ -240,8 +235,7 @@ public class RhinoEngine implements ScopeProvider {
      * @return the worker associated with the current thread, or null.
      */
     public RingoWorker getCurrentWorker() {
-        RingoWorker worker = currentWorker.get();
-        return worker == null ? mainWorker : worker;
+        return currentWorker.get();
     }
 
     protected void setCurrentWorker(RingoWorker worker) {
@@ -277,10 +271,21 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the list of errors encountered by the current worker.
+     * Get the list of errors encountered by the main worker.
      * @return a list of errors, may be null.
      */
-    public List<SyntaxError> getErrorList() {
+    public List<ScriptError> getMainErrors() {
+        return mainWorker.getErrors();
+    }
+
+    /**
+     * Get the list of errors encountered by the current worker. This will only
+     * succeed if a worker is associated with the current thread. Otherwise this
+     * method returns null.
+     * @return a list of errors, null if no worker is associated with the
+     * current thread.
+     */
+    public List<ScriptError> getCurrentErrors() {
         RingoWorker worker = currentWorker.get();
         return worker != null ? worker.getErrors() : null;
     }
@@ -293,8 +298,8 @@ public class RhinoEngine implements ScopeProvider {
     public Scriptable getShellScope() throws IOException {
         Repository repository = new FileRepository("");
         repository.setAbsolute(true);
-        Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-        return new ModuleScope("<shell>", repository, parentScope);
+        Scriptable protoScope = mainScope != null ? mainScope : globalScope;
+        return new ModuleScope("<shell>", repository, protoScope);
     }
 
     /**
@@ -506,12 +511,7 @@ public class RhinoEngine implements ScopeProvider {
     public ModuleScope loadModule(Context cx, String moduleName,
                                   Scriptable loadingScope)
             throws IOException {
-        setCurrentWorker(mainWorker);
-        try {
-            return mainWorker.loadModule(cx, moduleName, loadingScope);
-        } finally {
-            setCurrentWorker(null);
-        }
+        return mainWorker.loadModule(cx, moduleName, loadingScope);
     }
 
     /**

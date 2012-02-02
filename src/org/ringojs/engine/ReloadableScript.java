@@ -54,7 +54,7 @@ public class ReloadableScript {
     // we keep this around in order to be able to rethrow without trying
     // to recompile if the underlying resource or repository hasn't changed
     Exception exception = null;
-    List<SyntaxError> errors;
+    List<ScriptError> errors;
     // Set of direct module dependencies
     HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
     // the static script cache
@@ -121,7 +121,10 @@ public class ReloadableScript {
             }
         }
         if (errors != null && !errors.isEmpty()) {
-            engine.getErrorList().addAll(errors);
+            List<ScriptError> currentErrors = engine.getCurrentErrors();
+            if (currentErrors != null) {
+                currentErrors.addAll(errors);
+            }
         }
         if (exception != null) {
             throw exception instanceof RhinoException ?
@@ -335,16 +338,16 @@ public class ReloadableScript {
 
         public void warning(String message, String sourceName,
                             int line, String lineSource, int lineOffset) {
-            System.err.println("Warning: " + new SyntaxError(message, sourceName,
+            System.err.println("Warning: " + new ScriptError(message, sourceName,
                     line, lineSource, lineOffset));
         }
 
         public void error(String message, String sourceName,
                           int line, String lineSource, int lineOffset) {
             if (errors == null) {
-                errors = new ArrayList<SyntaxError>();
+                errors = new ArrayList<ScriptError>();
             }
-            errors.add(new SyntaxError(message, sourceName, line, lineSource, lineOffset));
+            errors.add(new ScriptError(message, sourceName, line, lineSource, lineOffset));
             String error = "SyntaxError";
             if (message.startsWith("TypeError: ")) {
                 error = "TypeError";
@@ -367,7 +370,7 @@ public class ReloadableScript {
     static class ScriptReference extends SoftReference<Script> {
         Resource source;
         long checksum;
-        List<SyntaxError> errors;
+        List<ScriptError> errors;
         Exception exception;
 
 

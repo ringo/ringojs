@@ -3,7 +3,6 @@
  */
 
 var system = require('system');
-var engine = require('ringo/engine');
 var term = require('ringo/term');
 
 export('write', 'writeln', 'read', 'readln', 'start', 'quit',
@@ -246,13 +245,12 @@ function printValue(value, writer, nesting) {
  * @param {Exception} xcept
  * @param {Boolean} verbose
  */
-function printError(xcept, verbose) {
+function printError(xcept, errors, verbose) {
     if (xcept instanceof org.mozilla.javascript.RhinoException) {
-        term.writeln(term.BOLD, term.RED, xcept.getMessage());
+        term.writeln(term.BOLD, term.RED, xcept.details());
     } else {
         term.writeln(term.BOLD, term.RED, xcept.toString());
     }
-    var errors = engine.getErrors();
     for (var i = 0, l = errors.length; i < l; i++) {
         term.writeln(term.GREEN, errors[i]);
     }

@@ -1,8 +1,8 @@
 package org.ringojs.engine;
 
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Wrapper;
@@ -10,8 +10,8 @@ import org.ringojs.repository.Repository;
 import org.ringojs.repository.Resource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -31,28 +31,33 @@ public class RingoWorker {
     private final ReentrantLock runlock = new ReentrantLock();
 
     private ReloadableScript currentScript;
-    private List<SyntaxError> errors;
+    private List<ScriptError> errors;
     private Map<Resource, ModuleScope> modules, checkedModules;
     private boolean reload;
 
     private static AtomicInteger workerId = new AtomicInteger(1);
     private final int id;
 
+    /**
+     * Create a new ringo worker
+     * @param engine the engine
+     */
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
         modules = new HashMap<Resource, ModuleScope>();
         reload = engine.getConfig().isReloading();
         checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
-        errors = new ArrayList<SyntaxError>();
         id = workerId.getAndIncrement();
     }
 
     /**
-     * Invoke the function specified by `function` in module `module` with the
-     * given arguments.
+     * <p>Invoke the function specified by `function` in module `module` with the
+     * given arguments on the current thread. If this worker is currently busy
+     * running another thread this method will block until the other thread
+     * is done.</p>
      *
-     * Note that if module specifies a module id, the function is looke for
-     * in the top level module scope, not the module's exports object.
+     * <p>Note that if module specifies a module id, the function is looked
+     * up in the top level module scope, not the module's exports object.</p>
      *
      * @param module the module id or object
      * @param function the function name or object
@@ -64,9 +69,9 @@ public class RingoWorker {
     public Object invoke(Object module, Object function, Object... args)
             throws NoSuchMethodException, IOException {
 
-        ContextFactory contextFactory = engine.getContextFactory();
         Scriptable scope = engine.getScope();
-        Context cx = contextFactory.enterContext();
+        Context cx = engine.getContextFactory().enterContext(null);
+        errors = new LinkedList<ScriptError>();
         runlock.lock();
         if (reload) checkedModules.clear();
         engine.setCurrentWorker(this);
@@ -77,8 +82,13 @@ public class RingoWorker {
                         "module argument must be a Scriptable or String object");
             }
 
-            Scriptable scriptable = module instanceof Scriptable ?
-                    (Scriptable) module : loadModule(cx, module.toString(), null);
+            Scriptable scriptable;
+            if (module instanceof Scriptable) {
+                scriptable = (Scriptable) module;
+            } else {
+                String moduleId = ScriptRuntime.toString(module);
+                scriptable = loadModuleInternal(cx, moduleId, null);
+            }
 
             if (!(function instanceof Function)) {
                 Object fun = ScriptableObject.getProperty(scriptable, function.toString());
@@ -99,7 +109,18 @@ public class RingoWorker {
         }
     }
 
-    public Future<Object> submit(final Object module, final Object method,
+    /**
+     * <p>Submit a function to be invoked on the worker's event loop thread and
+     * return a future for the result.</p>
+     *
+     * <p>This method always returns immediately.</p>
+     *
+     * @param module the module id or object
+     * @param function the function name or object
+     * @param args optional arguments to pass to the function
+     * @return a future for the return value of the function invocation
+     */
+    public Future<Object> submit(final Object module, final Object function,
                                  final Object... args) {
         if (eventloop == null) {
             initEventLoop();
@@ -108,7 +129,7 @@ public class RingoWorker {
         return eventloop.submit(new Callable<Object>() {
             public Object call() throws Exception {
                 try {
-                    return invoke(module, method, args);
+                    return invoke(module, function, args);
                 } finally {
                     engine.exitAsyncTask();
                 }
@@ -116,8 +137,20 @@ public class RingoWorker {
         });
     }
 
+    /**
+     * <p>Submit a function to be invoked on the worker's event loop thread
+     * with the given delay and arguments, returning a future for the result.</p>
+     *
+     * <p>This method always returns immediately.</p>
+     *
+     * @param delay the delay in milliseconds
+     * @param module the module id or object
+     * @param function the function name or object
+     * @param args optional arguments to pass to the function
+     * @return a future for the return value of the function invocation
+     */
     public ScheduledFuture<Object> schedule(long delay, final Object module,
-                                            final Object method,
+                                            final Object function,
                                             final Object... args) {
         if (eventloop == null) {
             initEventLoop();
@@ -126,7 +159,7 @@ public class RingoWorker {
         return eventloop.schedule(new Callable<Object>() {
             public Object call() throws Exception {
                 try {
-                    return invoke(module, method, args);
+                    return invoke(module, function, args);
                 } finally {
                     engine.exitAsyncTask();
                 }
@@ -134,8 +167,20 @@ public class RingoWorker {
         }, delay, TimeUnit.MILLISECONDS);
     }
 
-    public ScheduledFuture<?> scheduleInterval(long delay, final Object module,
-                                               final Object method,
+    /**
+     * <p>Submit a function to be invoked repeatedly with the given interval
+     * on the worker's event loop thread, returning a future for the result.</p>
+     *
+     * <p>This method always returns immediately.</p>
+     *
+     * @param interval the interval in milliseconds
+     * @param module the module id or object
+     * @param function the function name or object
+     * @param args optional arguments to pass to the function
+     * @return a future for the return value of the function invocation
+     */
+    public ScheduledFuture<?> scheduleInterval(long interval, final Object module,
+                                               final Object function,
                                                final Object... args) {
         if (eventloop == null) {
             initEventLoop();
@@ -144,15 +189,21 @@ public class RingoWorker {
         return eventloop.scheduleWithFixedDelay(new Runnable() {
             public void run() {
                 try {
-                    invoke(module, method, args);
+                    invoke(module, function, args);
                 } catch (Exception x) {
                     throw new RuntimeException(x);
                 }
             }
-        }, delay, delay, TimeUnit.MILLISECONDS);
+        }, interval, interval, TimeUnit.MILLISECONDS);
     }
 
-    public Future<Object> load(final String module) {
+    /**
+     * Load a module in the worker's event loop thread, returning a future for
+     * the loaded module.
+     * @param module the module id
+     * @return the loaded module
+     */
+    public Future<Object> loadModuleInWorkerThread(final String module) {
         if (eventloop == null) {
             initEventLoop();
         }
@@ -160,11 +211,10 @@ public class RingoWorker {
         return eventloop.submit(new Callable<Object>() {
             public Object call() throws Exception {
                 if (reload) checkedModules.clear();
-                ContextFactory contextFactory = engine.getContextFactory();
-                Context cx = contextFactory.enterContext();
+                Context cx = engine.getContextFactory().enterContext(null);
                 engine.setCurrentWorker(RingoWorker.this);
                 try {
-                    return loadModule(cx, module, null);
+                    return loadModuleInternal(cx, module, null);
                 } finally {
                     engine.setCurrentWorker(null);
                     Context.exit();
@@ -174,23 +224,34 @@ public class RingoWorker {
         });
     }
 
+    /**
+     * Cancel a scheduled call.
+     * @param future the future
+     */
     public void cancel(Future<?> future) {
         if (future.cancel(false)) {
             engine.exitAsyncTask();
         }
     }
 
-    private synchronized void initEventLoop() {
-        if (eventloop != null) {
-            return;
+    /**
+     * Load a Javascript module into a module scope. This checks if the module
+     * has already been loaded in the current context and if so returns the
+     * existing module scope.
+     * @param cx the current context
+     * @param moduleName the module name
+     * @param loadingScope the scope requesting the module
+     * @return the loaded module's scope
+     * @throws IOException indicates that in input/output related error occurred
+     */
+    public ModuleScope loadModule(Context cx, String moduleName,
+                                  Scriptable loadingScope) throws IOException {
+        engine.setCurrentWorker(this);
+        try {
+            return loadModuleInternal(cx, moduleName, loadingScope);
+        } finally {
+            engine.setCurrentWorker(null);
         }
-        eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-            public Thread newThread(Runnable runnable) {
-                Thread thread = new Thread(runnable, "ringo-worker-" + id);
-                thread.setDaemon(true);
-                return thread;
-            }
-        });
     }
 
     /**
@@ -202,9 +263,8 @@ public class RingoWorker {
      * @return the loaded module's scope
      * @throws java.io.IOException indicates that in input/output related error occurred
      */
-    protected ModuleScope loadModule(Context cx,
-                                     String moduleName,
-                                     Scriptable loadingScope)
+    protected ModuleScope loadModuleInternal(Context cx, String moduleName,
+                                             Scriptable loadingScope) 
             throws IOException {
         Repository local = engine.getParentRepository(loadingScope);
         ReloadableScript script = engine.getScript(moduleName, local);
@@ -241,13 +301,15 @@ public class RingoWorker {
      * @return the value returned by the script
      * @throws IOException an I/O related error occurred
      */
-    protected Object evaluateScript(Context cx,
-                                    ReloadableScript script,
-                                    Scriptable scope)
+    public Object evaluateScript(Context cx,
+                                 ReloadableScript script,
+                                 Scriptable scope)
             throws IOException {
         Object result;
         ReloadableScript parent = currentScript;
+        errors = new LinkedList<ScriptError>();
         runlock.lock();
+        engine.setCurrentWorker(this);
         try {
             currentScript = script;
             result = script.evaluate(scope, cx, checkedModules);
@@ -256,6 +318,7 @@ public class RingoWorker {
             }
         } finally {
             currentScript = parent;
+            engine.setCurrentWorker(null);
             runlock.unlock();
             if (parent != null) {
                 parent.addDependency(script);
@@ -264,10 +327,19 @@ public class RingoWorker {
         return result;
     }
 
+    /**
+     * Returns true if this worker will reload modified modules between
+     * invocations.
+     * @return true if module reloading is enabled
+     */
     public boolean isReloading() {
         return reload;
     }
 
+    /**
+     * Enable or disable reloading of modified modules for this worker.
+     * @param reload true to enable module reloading
+     */
     public void setReloading(boolean reload) {
         if (reload != this.reload) {
             checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
@@ -275,19 +347,35 @@ public class RingoWorker {
         this.reload = reload;
     }
 
+    /**
+     * Get the worker's engine.
+     * @return the engine
+     */
     public RhinoEngine getEngine() {
         return engine;
     }
 
-    public List<SyntaxError> getErrors() {
+    /**
+     * Get a list of errors encountered in the last invocation of this worker.
+     * @return a list of errors
+     */
+    public List<ScriptError> getErrors() {
         return errors;
     }
 
+    /**
+     * Count the number of scheduled calls in this worker.
+     * @return the number of scheduled calls
+     */
     public long countScheduledTasks() {
         ScheduledThreadPoolExecutor loop = eventloop;
         return loop == null ? 0 : loop.getQueue().size();
     }
 
+    /**
+     * Returns true if this worker is currently running.
+     * @return true if worker is active
+     */
     public boolean isActive() {
         if (runlock.isLocked()) {
             return true;
@@ -301,6 +389,9 @@ public class RingoWorker {
         return false;
     }
 
+    /**
+     * Immediately shut down this worker's event loop.
+     */
     public synchronized void terminate() {
         if (eventloop != null) {
             eventloop.shutdownNow();
@@ -308,6 +399,10 @@ public class RingoWorker {
         }
     }
 
+    /**
+     * Schedule a task that will release this worker when the current task
+     * is finished, putting it back into the engine's worker pool.
+     */
     public void releaseWhenDone() {
         if (isActive()) {
             if (eventloop == null) {
@@ -321,6 +416,20 @@ public class RingoWorker {
         } else {
             engine.releaseWorker(this);
         }
+    }
+
+    // init the worker's event loop
+    private synchronized void initEventLoop() {
+        if (eventloop != null) {
+            return;
+        }
+        eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+            public Thread newThread(Runnable runnable) {
+                Thread thread = new Thread(runnable, "ringo-worker-" + id);
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
     }
 
 }

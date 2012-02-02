@@ -155,7 +155,7 @@ function getRhinoEngine() {
  * @returns {ScriptableList} a list containing the errors encountered in the current context
  */
 function getErrors() {
-    return new ScriptableList(getRhinoEngine().getErrorList());
+    return new ScriptableList(getRhinoEngine().getCurrentErrors());
 }
 
 /**

@@ -21,7 +21,7 @@ import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.engine.RingoWrapFactory;
-import org.ringojs.engine.SyntaxError;
+import org.ringojs.engine.ScriptError;
 import org.ringojs.repository.FileRepository;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.ZipRepository;
@@ -168,7 +168,7 @@ public class RingoRunner {
                 engine.waitForAsyncTasks();
             }
         } catch (Exception x) {
-            List<SyntaxError> errors = engine == null ? null : engine.getErrorList();
+            List<ScriptError> errors = engine == null ? null : engine.getMainErrors();
             reportError(x, err, errors, verbose);
             System.exit(-1);
         }
@@ -180,14 +180,14 @@ public class RingoRunner {
             if (scriptName == null) {
                 throw new RuntimeException("daemon interface requires a script argument");
             }
-            cx = engine.getContextFactory().enterContext();
+            cx = engine.getContextFactory().enterContext(null);
             String moduleId = config.getMainResource().getModuleName();
             module = engine.loadModule(cx, moduleId, null).getExports();
             engine.invoke(module, "init");
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
         } catch (Exception x) {
-            reportError(x, err, engine.getErrorList(), verbose);
+            reportError(x, err, engine.getMainErrors(), verbose);
             System.exit(-1);
         }
     }
@@ -199,7 +199,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, engine.getErrorList(), verbose);
+                reportError(x, err, engine.getMainErrors(), verbose);
                 System.exit(-1);
             }
         }
@@ -213,7 +213,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, engine.getErrorList(), verbose);
+                reportError(x, err, engine.getMainErrors(), verbose);
                 System.exit(-1);
             }
         }
@@ -226,7 +226,7 @@ public class RingoRunner {
             } catch (NoSuchMethodException nsm) {
                 // daemon life-cycle method not implemented
             } catch (Exception x) {
-                reportError(x, err, engine.getErrorList(), verbose);
+                reportError(x, err, engine.getMainErrors(), verbose);
                 System.exit(-1);
             }
         }
@@ -398,14 +398,14 @@ public class RingoRunner {
     }
 
     public static void reportError(Throwable x, PrintStream output,
-                                   List<SyntaxError> errors, boolean debug) {
+                                   List<ScriptError> errors, boolean debug) {
         if (x instanceof RhinoException) {
-            output.println(x.getMessage());
+            output.println(((RhinoException)x).details());
         } else {
             output.println(x.toString());
         }
         if (errors != null && !errors.isEmpty()) {
-            for (SyntaxError error : errors) {
+            for (ScriptError error : errors) {
                 output.println(error);
             }
         }

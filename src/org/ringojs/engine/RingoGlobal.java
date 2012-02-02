@@ -148,7 +148,7 @@ public class RingoGlobal extends Global {
         try {
             RingoWorker worker = engine.getCurrentWorker();
             String arg = args[0].toString();
-            ModuleScope module = worker.loadModule(cx, arg, moduleScope);
+            ModuleScope module = worker.loadModuleInternal(cx, arg, moduleScope);
             return module.getExports();
         } catch (IOException iox) {
             throw Context.reportRuntimeError("Cannot find module '" + args[0] + "'");

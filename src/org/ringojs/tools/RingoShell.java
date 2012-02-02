@@ -20,11 +20,17 @@ import jline.Completor;
 import jline.ConsoleReader;
 import jline.History;
 import org.ringojs.engine.ModuleScope;
+import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoConfiguration;
+import org.ringojs.engine.RingoWorker;
+import org.ringojs.engine.ScriptError;
 import org.ringojs.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
+import org.ringojs.repository.Resource;
+import org.ringojs.repository.StringResource;
+import org.ringojs.wrappers.ScriptableList;
 
 import java.io.*;
 import java.util.Collections;
@@ -42,6 +48,7 @@ public class RingoShell {
 
     RingoConfiguration config;
     RhinoEngine engine;
+    RingoWorker worker;
     Scriptable scope;
     boolean silent;
     File history;
@@ -58,6 +65,7 @@ public class RingoShell {
         this.history = history;
     	this.scope = engine.getShellScope();
         this.silent = silent;
+        this.worker = engine.getWorker();
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
             Repository modules = config.getRingoHome().getChildRepository("modules");
@@ -83,7 +91,7 @@ public class RingoShell {
         PrintStream out = System.out;
         int lineno = 0;
         repl: while (true) {
-            Context cx = engine.getContextFactory().enterContext();
+            Context cx = engine.getContextFactory().enterContext(null);
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             String source = "";
             String prompt = getPrompt();
@@ -103,8 +111,10 @@ public class RingoShell {
                 prompt = getSecondaryPrompt();
             }
             try {
-                Script script = cx.compileString(source, "<stdin>", lineno, codeSource);
-                Object result = script.exec(cx, scope);
+                Resource res = new StringResource("<stdin>", source, lineno);
+                ReloadableScript script = new ReloadableScript(res, engine);
+                Object result = worker.evaluateScript(cx, script, scope);
+
                 printResult(result, out);
                 lineno++;
                 // trigger GC once in a while - if we run in non-interpreter mode
@@ -113,7 +123,7 @@ public class RingoShell {
                     System.gc();
                 }
             } catch (Exception ex) {
-                // TODO: shouldn't this print to System.err?
+                // TODO: should this print to System.err?
                 printError(ex, out, config.isVerbose());
             } finally {
                 Context.exit();
@@ -132,7 +142,7 @@ public class RingoShell {
 
     protected void printResult(Object result, PrintStream out) {
         try {
-            engine.invoke("ringo/shell", "printResult", result);
+            worker.invoke("ringo/shell", "printResult", result);
         } catch (Exception x) {
             // Avoid printing out undefined or function definitions.
             if (result != Context.getUndefinedValue()) {
@@ -143,18 +153,20 @@ public class RingoShell {
     }
 
     protected void printError(Exception ex, PrintStream out, boolean verbose) {
+        List<ScriptError> errors = worker.getErrors();
         try {
-            engine.invoke("ringo/shell", "printError", ex, verbose);
+            worker.invoke("ringo/shell", "printError", ex,
+                    new ScriptableList(scope, errors), Boolean.valueOf(verbose));
         } catch (Exception x) {
             // fall back to RingoRunner.reportError()
-            RingoRunner.reportError(ex, out, engine.getErrorList(), verbose);
+            RingoRunner.reportError(ex, out, errors, verbose);
         }
     }
 
     private void runSilently() throws IOException {
         int lineno = 0;
         outer: while (true) {
-            Context cx = engine.getContextFactory().enterContext();
+            Context cx = engine.getContextFactory().enterContext(null);
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             String source = "";
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -173,7 +185,7 @@ public class RingoShell {
                 cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.err, engine.getErrorList(),
+                RingoRunner.reportError(ex, System.err, worker.getErrors(),
                         config.isVerbose());
             } finally {
                 Context.exit();
@@ -186,9 +198,9 @@ public class RingoShell {
     private void preloadShellModule() {
         Thread t = new Thread() {
             public void run() {
-                Context cx = engine.getContextFactory().enterContext();
+                Context cx = engine.getContextFactory().enterContext(null);
                 try {
-                    engine.loadModule(cx, "ringo/shell", null);
+                    worker.loadModule(cx, "ringo/shell", null);
                 } catch (Exception ignore) {
                     // ignore
                 } finally {

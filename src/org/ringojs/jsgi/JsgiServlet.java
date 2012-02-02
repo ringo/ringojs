@@ -19,7 +19,7 @@ package org.ringojs.jsgi;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.RhinoException;
 import org.ringojs.engine.RingoWorker;
-import org.ringojs.engine.SyntaxError;
+import org.ringojs.engine.ScriptError;
 import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
@@ -137,7 +137,7 @@ public class JsgiServlet extends HttpServlet {
             worker.invoke("ringo/jsgi/connector", "handleRequest", module,
                     function, req);
         } catch (Exception x) {
-            List<SyntaxError> errors = engine.getErrorList();
+            List<ScriptError> errors = worker.getErrors();
             boolean verbose = engine.getConfig().isVerbose();
             try {
                 renderError(x, response, errors);
@@ -154,7 +154,7 @@ public class JsgiServlet extends HttpServlet {
     }
 
     protected void renderError(Throwable t, HttpServletResponse response,
-                               List<SyntaxError> errors) throws IOException {
+                               List<ScriptError> errors) throws IOException {
         response.reset();
         InputStream stream = JsgiServlet.class.getResourceAsStream("error.html");
         byte[] buffer = new byte[1024];
@@ -172,19 +172,19 @@ public class JsgiServlet extends HttpServlet {
             }
         }
         String template = new String(buffer, 0, read);
-        String title = t.getMessage();
+        String title = t instanceof RhinoException ?
+                ((RhinoException)t).details() : t.getMessage();
         StringBuilder body = new StringBuilder();
         if (t instanceof RhinoException) {
             RhinoException rx = (RhinoException) t;
-            body.append("<p>In file <b>")
-                    .append(rx.sourceName())
-                    .append("</b> at line <b>")
-                    .append(rx.lineNumber())
-                    .append("</b></p>");
-            if (errors != null) {
-                for (SyntaxError error : errors) {
+            if (errors != null && !errors.isEmpty()) {
+                for (ScriptError error : errors) {
                     body.append(error.toHtml());
                 }
+            } else {
+                body.append("<p><b>").append(rx.sourceName())
+                        .append("</b>, line <b>").append(rx.lineNumber())
+                        .append("</b></p>");
             }
             body.append("<h3>Script Stack</h3><pre>")
                     .append(rx.getScriptStackTrace())
