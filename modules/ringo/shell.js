@@ -3,6 +3,7 @@
  */
 
 var system = require('system');
+var engine = require('ringo/engine');
 var term = require('ringo/term');
 
 export('write', 'writeln', 'read', 'readln', 'start', 'quit',
@@ -251,11 +252,9 @@ function printError(xcept, verbose) {
     } else {
         term.writeln(term.BOLD, term.RED, xcept.toString());
     }
-    var errors = org.ringojs.engine.RhinoEngine.errors.get();
-    if (errors != null && !errors.isEmpty()) {
-        for (var error in errors) {
-            term.writeln(term.GREEN, error);
-        }
+    var errors = engine.getErrors();
+    for (var i = 0, l = errors.length; i < l; i++) {
+        term.writeln(term.GREEN, errors[i]);
     }
     if (typeof xcept.getScriptStackTrace === "function") {
         term.write(xcept.getScriptStackTrace());
