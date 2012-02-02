@@ -95,4 +95,11 @@ public interface Resource extends Trackable {
      */
     public void setStripShebang(boolean stripShebang);
 
+    /**
+     * Return the line number of the first piece of code in this resource.
+     * Useful in combination with shebang stripping.
+     * @return the first line number containing actual code
+     */
+    public int getFirstLine();
+
 }

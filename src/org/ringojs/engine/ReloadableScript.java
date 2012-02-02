@@ -69,6 +69,7 @@ public class ReloadableScript {
      * @param engine the rhino engine
      */
     public ReloadableScript(Resource source, RhinoEngine engine) {
+        source.setStripShebang(true);
         this.resource = source;
         this.engine = engine;
         reloading = engine.getConfig().isReloading();
@@ -150,7 +151,8 @@ public class ReloadableScript {
             script = AccessController.doPrivileged(new PrivilegedAction<Script>() {
                 public Script run() {
                     try {
-                        return cx.compileReader(reader, path, 1, source);
+                        return cx.compileReader(reader, path,
+                                resource.getFirstLine(), source);
                     } catch (Exception x) {
                         exception = x;
                     }
