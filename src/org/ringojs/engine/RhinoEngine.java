@@ -180,7 +180,6 @@ public class RhinoEngine implements ScopeProvider {
             Object retval;
             Map<Trackable,ReloadableScript> scripts = getScriptCache(cx);
             commandLineArgs = Arrays.asList(scriptArgs);
-            resource.setStripShebang(true);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
             mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope);
