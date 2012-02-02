@@ -37,7 +37,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -124,11 +123,12 @@ public class JsgiServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            if (hasContinuation && ContinuationSupport.getContinuation(request).isExpired()) {
+            if (hasContinuation && ContinuationSupport
+                    .getContinuation(request).isExpired()) {
                 return; // continuation timeouts are handled by ringo/jsgi module
             }
         } catch (Exception ignore) {
-            // continuation may not be set up even if class is availble - ignore
+            // continuation may not be set up even if class is available - ignore
         }
         JsgiRequest req = new JsgiRequest(request, response, requestProto,
                 engine.getScope(), this);
@@ -143,7 +143,8 @@ public class JsgiServlet extends HttpServlet {
                 renderError(x, response, errors);
                 RingoRunner.reportError(x, System.err, errors, verbose);
             } catch (Exception failed) {
-                // custom error reporting failed, rethrow original exception for default handling
+                // custom error reporting failed, rethrow original exception
+                // for default handling
                 RingoRunner.reportError(x, System.err, errors, false);
                 throw new ServletException(x);
             }
@@ -153,8 +154,7 @@ public class JsgiServlet extends HttpServlet {
     }
 
     protected void renderError(Throwable t, HttpServletResponse response,
-                               List<SyntaxError> errors)
-            throws IOException {
+                               List<SyntaxError> errors) throws IOException {
         response.reset();
         InputStream stream = JsgiServlet.class.getResourceAsStream("error.html");
         byte[] buffer = new byte[1024];
@@ -173,7 +173,7 @@ public class JsgiServlet extends HttpServlet {
         }
         String template = new String(buffer, 0, read);
         String title = t.getMessage();
-        StringBuffer body = new StringBuffer();
+        StringBuilder body = new StringBuilder();
         if (t instanceof RhinoException) {
             RhinoException rx = (RhinoException) t;
             body.append("<p>In file <b>")
@@ -197,24 +197,28 @@ public class JsgiServlet extends HttpServlet {
         response.getWriter().write(template);
     }
 
-    protected String getStringParameter(ServletConfig config, String name, String defaultValue) {
+    protected String getStringParameter(ServletConfig config, String name,
+                                        String defaultValue) {
         String value = config.getInitParameter(name);
         return value == null ? defaultValue : value;
     }
 
-    protected int getIntParameter(ServletConfig config, String name, int defaultValue) {
+    protected int getIntParameter(ServletConfig config, String name,
+                                  int defaultValue) {
         String value = config.getInitParameter(name);
         if (value != null) {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException nfx) {
-                System.err.println("Invalid value for parameter \"" + name + "\": " + value);
+                System.err.println("Invalid value for parameter \"" + name
+                                 + "\": " + value);
             }
         }
         return defaultValue;
     }
 
-    protected boolean getBooleanParameter(ServletConfig config, String name, boolean defaultValue) {
+    protected boolean getBooleanParameter(ServletConfig config, String name,
+                                          boolean defaultValue) {
         String value = config.getInitParameter(name);
         if (value != null) {
             if ("true".equals(value) || "1".equals(value) || "on".equals(value)) {
@@ -223,7 +227,8 @@ public class JsgiServlet extends HttpServlet {
             if ("false".equals(value) || "0".equals(value) || "off".equals(value)) {
                 return false;
             }
-            System.err.println("Invalid value for parameter \"" + name + "\": " + value);
+            System.err.println("Invalid value for parameter \"" + name
+                             + "\": " + value);
         }
         return defaultValue;
     }
