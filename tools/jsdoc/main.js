@@ -60,21 +60,20 @@ var renderRepository = exports.renderRepository = function (repository, exportDi
 /**
  * Copy static files of this webapp to target directory
  *
- * @param {String} target
+ * @param {String} directory
  */
-function copyStaticFiles(target) {
-    makeTree(join(target, 'static'));
-    copyTree(join(module.directory, 'static'), join(target, 'static'));
-    return;
+function copyStaticFiles(directory) {
+    makeTree(join(directory, 'static'));
+    copyTree(join(module.directory, 'static'), join(directory, 'static'));
 }
 
 /**
  * Write the html file listing all modules to directory.
  *
- * @param {String} target directory of html file to be written
+ * @param {String} directory directory of html file to be written
  * @param {String} repository path
  */
-function writeModuleList(target, repository) {
+function writeModuleList(directory, repository) {
     var context = objects.merge(defaultContext, {
         repositoryName: repository.name,
         title: 'Module overview - ' + repository.name,
@@ -89,7 +88,7 @@ function writeModuleList(target, repository) {
     context.menu = mustache.to_html(templates.menu, context);
     context.content = mustache.to_html(templates.repository, context);
     var repositoryHtml = mustache.to_html(templates.page, context);
-    write(join(target, 'index.html'), repositoryHtml);
+    write(join(directory, 'index.html'), repositoryHtml);
 }
 
 /**
@@ -99,21 +98,37 @@ function writeModuleList(target, repository) {
  * @param {String} repository path
  * @param {String} moduleId
  */
-function writeModuleDoc(target, repository, moduleId){
+function writeModuleDoc(directory, repository, moduleId){
 
-    var moduleDirectory = target;
+    var moduleDirectory = directory;
     var modules = [];
-    moduleDirectory = join(target, moduleId);
+    moduleDirectory = join(directory, moduleId);
     makeTree(moduleDirectory);
     modules = moduleList(repository.path);
 
-    var docs = moduleDoc(repository.path, moduleId);
+    var slashCount = strings.count(moduleId, '/');
+    var relativeRoot = '../' + strings.repeat('../', slashCount);
+
+    function toLink(target) {
+        // if link target roughly matches "foo/bar#xxx.yyy"
+        // format as API reference link
+        if (target.match(/^[\w\/\.#]+$/)) {
+            var [module, hash] = target.split("#");
+            if (!module) {
+                return [target, target.slice(1)];
+            } else {
+                var href = relativeRoot + module + "/" + defaultContext.indexhtml;
+                if (hash) href += "#" + hash;
+                return [href, target.replace("#", ".")];
+            }
+        }
+        return null;
+    }
+
+    var docs = moduleDoc(repository.path, moduleId, toLink);
     if (docs == null) {
         throw new Error('Could not parse JsDoc for ' + repository.path + moduleId);
     }
-
-    var slashCount = strings.count(moduleId, '/');
-    var relativeRoot = '../' + strings.repeat('../', slashCount);
 
     var context = objects.merge(defaultContext, {
         rootPath: relativeRoot,
@@ -126,7 +141,7 @@ function writeModuleDoc(target, repository, moduleId){
             return this.parameters.map(function(p) p.name).join(', ')
         },
         markdown: function(text) {
-            return markdown.process(text);
+            return markdown.process(text, {getLink: toLink});
         },
         iterate: function(value) {
             return value && value.length ? {each: value} : null;
@@ -150,7 +165,7 @@ function writeModuleDoc(target, repository, moduleId){
     write(moduleFile, moduleHtml);
 }
 
-function writeRepositoryIndex(target, repository) {
+function writeRepositoryIndex(directory, repository) {
     var modules = moduleList(repository.path).map(function(module) {
         module.data = structureModuleDoc(moduleDoc(repository.path, module.id));
         module.moduleName = module.name;
@@ -172,9 +187,9 @@ function writeRepositoryIndex(target, repository) {
     context.menu = mustache.to_html(templates.menu, context);
     context.content = mustache.to_html(templates.index, context);
     var indexHtml = mustache.to_html(templates.page, context);
-    var indexFile = join(target, 'index_all.html');
+    var indexFile = join(directory, 'index_all.html');
     write(indexFile, indexHtml);
-};
+}
 
 /**
  * Create static documentation for a Repository.

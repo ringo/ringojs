@@ -74,7 +74,7 @@ var repositoryList = exports.repositoryList = function(repositoryPaths) {
 /**
  * @returns {Array} objects with jsdoc information for each property defined in module
  */
-var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
+var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId, toLink) {
     var repository = new ScriptRepository(repositoryPath);
     var res = repository.getScriptResource(moduleId + '.js');
     if (!res.exists()) {
@@ -89,7 +89,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
         doc.example = docItems.fileoverview.getTag('example');
         doc.since = docItems.fileoverview.getTag('since');
         doc.deprecated = docItems.fileoverview.getTag('deprecated');
-        doc.sees = getSees(docItems.fileoverview);
+        doc.sees = getSees(docItems.fileoverview, toLink);
     }
     // tags for all items in this module
     var items = [];
@@ -118,7 +118,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
             isStatic: isStatic(docItem, next),
             parameters: getParameters(docItem),
             throws: getThrows(docItem),
-            sees: getSees(docItem),
+            sees: getSees(docItem, toLink),
             returns: getReturns(docItem),
             // standard
             example:  docItem.getTag('example'),
@@ -153,7 +153,7 @@ var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId) {
 exports.structureModuleDoc = function(data) {
 
     // need to store module id in every item to get access to it during
-    // mustache renering
+    // mustache rendering
     data.items.forEach(function(i) {
         i.moduleName = data.name;
     });
@@ -267,15 +267,17 @@ function getRelatedClass(item) {
     }).join('.');
 }
 
-function getSees(item) {
+function getSees(item, getLink) {
     return item.getTags('see').map(function(link) {
+        var input = link;
         if (strings.isUrl(link)) {
             link = '<a href="' + link + '">' + link + '</a>';
-        } else {
-            // apply some sanity checks to local targets like removing hashes and parantheses
-            link = link.replace(/^#/, '');
-            var id = link.replace(/[\(\)]/g, '');
-            link = '<a href="#' + id + '">' + link + '</a>';
+        } else if (typeof getLink === "function") {
+            // apply some sanity checks to local targets like removing parentheses
+            var target = getLink(link.replace(/[\(\)]/g, ''));
+            if (target) {
+                link = '<a href="' + target[0] + '">' + target[1] + '</a>';
+            }
         }
         return link;
     });
