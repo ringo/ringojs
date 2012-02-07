@@ -159,7 +159,7 @@ function Server(options) {
              * @param {Function} onconnect a function called for each new WebSocket connection
              *        with the WebSocket object as argument.
              * @since 0.8
-             * @see WebSocket
+             * @see #WebSocket
              * @name Context.instance.addWebSocket
              */
             addWebSocket: function(path, onconnect) {

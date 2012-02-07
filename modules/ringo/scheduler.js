@@ -15,6 +15,7 @@ var engine = require("ringo/engine").getRhinoEngine();
  * @param {...} [args] optional arguments to pass to the function
  * @returns {object} an id object useful for cancelling the scheduled
  * invocation
+ * @see #clearTimeout()
  */
 exports.setTimeout = function(callback, delay) {
     var args = Array.slice(arguments, 2);
@@ -24,9 +25,9 @@ exports.setTimeout = function(callback, delay) {
 };
 
 /**
- * Cancel a timeout previuosly scheduled with setTimeout().
+ * Cancel a timeout previuosly scheduled with [setTimeout()][#setTimeout].
  * @param {object} id the id object returned by setTimeout()
- * @see setTimeout
+ * @see #setTimeout
  */
 exports.clearTimeout = function(id) {
     try {
@@ -46,6 +47,7 @@ exports.clearTimeout = function(id) {
  * @param {number} delay the delay in milliseconds
  * @param {...} args optional arguments to pass to the function
  * @returns {object} an id object useful for cancelling the scheduled invocation
+ * @see #clearInterval()
  */
 exports.setInterval = function(callback, delay) {
     var args = Array.slice(arguments, 2);
@@ -55,9 +57,9 @@ exports.setInterval = function(callback, delay) {
 };
 
 /**
- * Cancel a timeout previuosly scheduled with setInterval().
+ * Cancel a timeout previuosly scheduled with [setInterval()][#setInterval].
  * @param {object} id the id object returned by setInterval()
- * @see setInterval
+ * @see #setInterval
  */
 exports.clearInterval = function(id) {
     try {

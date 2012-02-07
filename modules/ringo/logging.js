@@ -36,7 +36,7 @@ EventEmitter.call(exports);
  * @param impl the logger implementation
  * @constructor
  * @name Logger
- * @see getLogger
+ * @see #getLogger()
  */
 function Logger(name, impl) {
 

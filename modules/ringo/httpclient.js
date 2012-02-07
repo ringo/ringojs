@@ -689,6 +689,10 @@ function getClient() {
  *
  * @param {Object} options
  * @returns {Exchange} exchange object
+ * @see #get
+ * @see #post
+ * @see #put
+ * @see #del
  */
 var request = function() {
     var client = getClient();
@@ -704,7 +708,7 @@ var request = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see request
+ * @see #request
  */
 var post = function() {
     var client = getClient();
@@ -720,7 +724,7 @@ var post = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see request
+ * @see #request
  */
 var get = function() {
     var client = getClient();
@@ -736,7 +740,7 @@ var get = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see request
+ * @see #request
  */
 var del = function() {
     var client = getClient();
@@ -752,7 +756,7 @@ var del = function() {
  * @param {Function} success callback in case of successful status code, optional
  * @param {Function} error callback in case of any error - transmission or response, optional
  * @returns {Exchange} exchange object
- * @see request
+ * @see #request
  */
 var put = function() {
     var client = getClient();

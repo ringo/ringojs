@@ -52,8 +52,8 @@ var createProcess = exports.createProcess = function(args) {
         stderr = new TextStream(stderr, {charset: encoding});
     }
     /**
-     * The Process object can be used to control and obtain information about a subprocess
-     * started using [createProcess()](#createProcess).
+     * The Process object can be used to control and obtain information about a
+     * subprocess started using [createProcess()](#createProcess).
      * @name Process
      * @class Process
      */

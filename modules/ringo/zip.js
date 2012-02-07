@@ -93,7 +93,7 @@ function ZipFile(path) {
  * Each entry stream has additional name, isDirectory, isFile, size, and time
  * properties with the same semantics of the corresponding methods in ZipFile.
  * @param {Stream|String} resource an input stream or file name
- * @see ZipFile
+ * @see #ZipFile
  */
 function ZipIterator(resource) {
     var stream = typeof resource == "string" ?
