@@ -12,8 +12,7 @@
 
 // stdlib
 var strings = require('ringo/utils/strings');
-var {parseResource} = require('ringo/jsdoc');
-var {ScriptRepository} = require('ringo/jsdoc');
+var {parseResource, ScriptRepository} = require('ringo/jsdoc');
 var {join, base, directory, canonical} = require('fs');
 
 /**
@@ -42,7 +41,7 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
         return !r.moduleName.match(/^ringo\/?global$/);
     }).map(function(mod) {
         var fileoverview = undefined;
-        if (moduleFileOverview == true) {
+        if (moduleFileOverview) {
             var docItems = parseResource(mod);
             fileoverview = docItems.fileoverview && docItems.fileoverview.getTag('fileoverview') || '';
         }

@@ -199,8 +199,7 @@ function main(args) {
         print('  ringo ' + script + ' -s [sourcepath]');
         print('Options:');
         print(parser.help());
-        return;
-    };
+    }
 
     var script = args.shift();
     var parser = new Parser();
@@ -246,11 +245,9 @@ function main(args) {
 
     if (!isDirectory(repository.path)) {
         throw new Error('Invalid source specified. Must be directory.');
-        return;
     }
 
     renderRepository(repository, exportDirectory, quiet);
-    return;
 }
 
 if (require.main == module) {
