@@ -47,14 +47,11 @@ function Socket() {
     };
 
     /**
-     * When a new socket is created, it has no address bound to it. Bind assigns the
-     * specified address (also known as name) to the socket. Throws an exception in
-     * case of failure.
+     * Binds the socket to a local address and port. If address or port are
+     * omitted the system will choose a local address and port to bind the socket.
      *
      * @param {String} host address (interface) to which the socket will be bound.
-     * If address is omitted, any address is will match.
-     * @param {Number} port port number or service name to which socket is to
-     * be bound. If port is undefined, the socket wont bind to any port.
+     * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
@@ -194,14 +191,11 @@ function DatagramSocket() {
     }
 
     /**
-     * When a new socket is created, it has no address bound to it. Bind assigns the
-     * specified address (also known as name) to the socket. Throws an exception in
-     * case of failure.
+     * Binds the socket to a local address and port. If address or port are
+     * omitted the system will choose a local address and port to bind the socket.
      *
      * @param {String} host address (interface) to which the socket will be bound.
-     * If address is omitted, any address is will match.
-     * @param {Number} port port number or service name to which socket is to
-     * be bound. If port is undefined, the socket wont bind to any port.
+     * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
@@ -393,14 +387,11 @@ function ServerSocket() {
     };
 
     /**
-     * When a new socket is created, it has no address bound to it. Bind assigns the
-     * specified address (also known as name) to the socket. Throws an exception in
-     * case of failure.
+     * Binds the socket to a local address and port. If address or port are
+     * omitted the system will choose a local address and port to bind the socket.
      *
      * @param {String} host address (interface) to which the socket will be bound.
-     * If address is omitted, any address is will match.
-     * @param {Number} port port number or service name to which socket is to
-     * be bound. If port is undefined, the socket wont bind to any port.
+     * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port, backlog) {
         var address = toSocketAddress(host, port);
