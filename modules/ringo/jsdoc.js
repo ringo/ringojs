@@ -79,7 +79,7 @@ exports.parseResource = function(resource) {
     var exportedName;
     var exported = [];
     var jsdocs = [];
-    var seen = {};
+    var dict = {};
 
     var checkAssignment = function(node, root, exported) {
         if (node.type == Token.ASSIGN) {
@@ -97,7 +97,7 @@ exports.parseResource = function(resource) {
                     }
                 } else if (target.type == Token.THIS) {
                     if (isGreatGrandMa(exportedFunction, root)) {
-                        addDocItem(exportedName + ".instance." + name, root.jsDoc, node.right);
+                        addDocItem(exportedName + ".prototype." + name, root.jsDoc, node.right);
                         /* if (node.right.type == Token.FUNCTION) {
                          exportedFunction = node.right;
                          exportedName = exportedName + ".prototype." + name;
@@ -135,25 +135,32 @@ exports.parseResource = function(resource) {
                 name = memberOf + "." + name;
             }
         }
-        if (!seen[name]) {
+        // If an empty doc item for the name already exists replace it
+        // with the new one.
+        var previous = dict[name];
+        if (previous) {
+            if (jsdoc.tags.length && !previous.tags.length) {
+                previous.tags = jsdoc.tags;
+            }
+        } else {
             jsdoc.name = name;
-            if ((value && value.type == Token.FUNCTION)
-                    || jsdoc.getTag("function") != null
-                    || jsdoc.getTag("param") != null
-                    || jsdoc.getTag("returns") != null
-                    || jsdoc.getTag("constructor") != null) {
-                jsdoc.isFunction = true;
-                // extract params
-                if (value && value.type == Token.FUNCTION) {
-                    jsdoc.params = value.getParams().toArray().map(function(p) nodeToString(p));
-                }
-            }
-            if (jsdoc.getTag("constructor") != null
-                    || jsdoc.getTag("class") != null) {
-                jsdoc.isClass = true;
-            }
             jsdocs.push(jsdoc);
-            seen[name] = true;
+            dict[name] = jsdoc;
+        }
+        if ((value && value.type == Token.FUNCTION)
+                || jsdoc.getTag("function") != null
+                || jsdoc.getTag("param") != null
+                || jsdoc.getTag("returns") != null
+                || jsdoc.getTag("constructor") != null) {
+            jsdoc.isFunction = true;
+            // extract params
+            if (value && value.type == Token.FUNCTION) {
+                jsdoc.params = value.getParams().toArray().map(function(p) nodeToString(p));
+            }
+        }
+        if (jsdoc.getTag("constructor") != null
+                || jsdoc.getTag("class") != null) {
+            jsdoc.isClass = true;
         }
     };
 
@@ -202,7 +209,7 @@ exports.parseResource = function(resource) {
                     addDocItem(target.join('.'), jsdoc, value);
                 } else if (target[0] == 'this' && isGreatGrandMa(exportedFunction, node)) {
                     target[0] = exportedName;
-                    target.push('instance', nodeToString(args[1]));
+                    target.push('prototype', nodeToString(args[1]));
                     addDocItem(target.join('.'), jsdoc, value);
                 }
             }
@@ -222,7 +229,7 @@ exports.parseResource = function(resource) {
                     isExported = true;
                 } else if (target[0] == 'this' && exportedFunction != null) {
                     target[0] = exportedName;
-                    target.push('instance');
+                    target.push('prototype');
                     isExported = true;
                 }
                 if (isExported && args[1] && args[1].elements) {
@@ -255,7 +262,7 @@ exports.parseResource = function(resource) {
                   addDocItem(target.join('.'), jsdoc);
                // this.__defineGetter__
                } else if (target[0] == 'this' && exportedFunction != null) {
-                  addDocItem(exportedName + ".instance." + name, jsdoc, exported);
+                  addDocItem(exportedName + ".prototype." + name, jsdoc, exported);
                }
             }
         }
@@ -330,7 +337,7 @@ function extractTags(/**String*/comment) {
         }
     });
     return Object.create(docProto, {
-        tags: {value: tags}
+        tags: {value: tags, writable: true, enumerable: true}
     });
 }
 
