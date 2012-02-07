@@ -54,29 +54,37 @@ Stream.prototype.forEach = function(fn, thisObj) {
 };
 
 /**
- * In binary stream that reads from and/or writes to an in-memory byte array. If the stream
- * is writable, its internal buffer will automatically on demand.
- * @param {Binary|number} bufferOrCapacity the buffer to use, or the capacity of the buffer
- * to allocate . If this is a number, a ByteArray with the given length is allocated.
- * If this is a ByteArray, the resulting stream is both readable, writable, and seekable.
- * If this is a ByteString, the resulting stream is readable and seekable but not writable.
- * If undefined, a ByteArray of length 1024 is allocated as buffer.
+ * A binary stream that reads from and/or writes to an in-memory byte array.
+ *
+ * If the constructor is called with a Number argument, a ByteArray with the
+ * given length is allocated and the length of the stream is set to zero.
+ *
+ * If the argument is a [binary object][binary] it will be used as underlying
+ * buffer and the stream length set to the length of the binary object.
+ * If argument is a [ByteArray][binary#ByteArray], the resulting stream is both
+ * readable, writable, and seekable. If it is a [ByteString][binary#ByteString],
+ * the resulting stream is readable and seekable but not writable.
+ *
+ * If called without argument, a ByteArray of length 1024 is allocated as buffer.
+ *
+ * @param {Binary|Number} binaryOrNumber the buffer to use, or the initial
+ * capacity of the buffer to allocate.
  * @constructor
  */
-exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
+exports.MemoryStream = function MemoryStream(binaryOrNumber) {
 
     var buffer, length;
-    if (!bufferOrCapacity) {
+    if (!binaryOrNumber) {
         buffer = new ByteArray(0);
         length = 0;
-    } else if (bufferOrCapacity instanceof Binary) {
-        buffer = bufferOrCapacity;
+    } else if (binaryOrNumber instanceof Binary) {
+        buffer = binaryOrNumber;
         length = buffer.length;
-    } else if (typeof bufferOrCapacity == "number") {
-        buffer = new ByteArray(bufferOrCapacity);
+    } else if (typeof binaryOrNumber == "number") {
+        buffer = new ByteArray(binaryOrNumber);
         length = 0;
     } else {
-        throw new Error("buffer argument must be Binary or undefined");
+        throw new Error("Argument must be Binary, Number, or undefined");
     }
 
     var stream = Object.create(Stream.prototype);
@@ -232,7 +240,7 @@ exports.MemoryStream = function MemoryStream(bufferOrCapacity) {
     });
 
     /**
-     * The length of the wrapped buffer.
+     * The number of bytes in the stream's underlying buffer.
      * @name MemoryStream.prototype.length
      */
     Object.defineProperty(stream, "length", {
