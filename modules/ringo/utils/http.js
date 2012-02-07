@@ -37,11 +37,13 @@ function ResponseFilter(body, filter) {
 
 /**
  * Returns an object for use as a HTTP header collection. The returned object
- * provides methods for setting, getting, and deleting its properties in a case-insensitive and
- * case-preserving way.
+ * provides methods for setting, getting, and deleting its properties in a
+ * case-insensitive and case-preserving way.
  *
- * This function can be used as mixin for an existing JavaScript object or as a constructor.
- * @param {Object} headers an existing JS object. If undefined, a new object is created
+ * This function can be used as mixin for an existing JavaScript object or as a
+ * constructor.
+ * @param {Object} headers an existing JS object. If undefined, a new object is
+ * created
  */
 function Headers(headers) {
     // when is a duck a duck?
@@ -351,8 +353,8 @@ function parseParameters(input, params, encoding) {
 
 /**
  * Adds a value to a parameter object using a square bracket property syntax.
- * For example, parameter <code>foo[bar][][baz]=hello</code> will result in
- * object structure <code>{foo: {bar: [{baz : "hello"}]}}</code>.
+ * For example, parameter `foo[bar][][baz]=hello` will result in
+ * object structure `{foo: {bar: [{baz : "hello"}]}}`.
  * @param {Object} params the top level parameter object
  * @param {String} name the parameter name
  * @param {String} value the parameter value

@@ -29,7 +29,8 @@ var engine = org.ringojs.engine;
 var properties = new ScriptableMap(java.lang.System.getProperties());
 
 /**
- * The RingoJS version as [major, minor] array.
+ * The RingoJS version as an array-like object with the major and minor version
+ * number as first and second element.
  */
 var version =new ScriptableList(engine.RhinoEngine.VERSION);
 
