@@ -32,9 +32,9 @@ function Socket() {
      * Initiate a connection on a socket. Connect to a remote port on the specified
      * host with a connection timeout. Throws an exception in case of failure.
      *
-     * @param host IP address or hostname
-     * @param port port number or service name
-     * @param [timeout] optional timeout value in milliseconds
+     * @param {String} host IP address or hostname
+     * @param {Number} port port number or service name
+     * @param {Number} [timeout] optional timeout value in milliseconds
      */
     this.connect = function(host, port, timeout) {
         var address = toSocketAddress(host, port);
@@ -51,10 +51,10 @@ function Socket() {
      * specified address (also known as name) to the socket. Throws an exception in
      * case of failure.
      *
-     * @param host address (interface) to which the socket will be bound. If address
-     * is omitted, any address is will match.
-     * @param port port number or service name to which socket is to be bound. If
-     * port is undefined, the socket wont bind to any port.
+     * @param {String} host address (interface) to which the socket will be bound.
+     * If address is omitted, any address is will match.
+     * @param {Number} port port number or service name to which socket is to
+     * be bound. If port is undefined, the socket wont bind to any port.
      */
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
@@ -177,8 +177,8 @@ function DatagramSocket() {
      * it may only send data to and receive data from the given address. By
      * default DatagramSockets are not connected.
      *
-     * @param host IP address or hostname
-     * @param port port number or service name
+     * @param {String} host IP address or hostname
+     * @param {Number} port port number or service name
      */
     this.connect = function(host, port) {
         var address = toSocketAddress(host, port);
@@ -198,10 +198,10 @@ function DatagramSocket() {
      * specified address (also known as name) to the socket. Throws an exception in
      * case of failure.
      *
-     * @param host address (interface) to which the socket will be bound. If address
-     * is omitted, any address is will match.
-     * @param port port number or service name to which socket is to be bound. If
-     * port is undefined, the socket wont bind to any port.
+     * @param {String} host address (interface) to which the socket will be bound.
+     * If address is omitted, any address is will match.
+     * @param {Number} port port number or service name to which socket is to
+     * be bound. If port is undefined, the socket wont bind to any port.
      */
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
@@ -211,7 +211,7 @@ function DatagramSocket() {
 
     /**
      * Returns whether this socket is bound to an address.
-     * @return true if the socket has been bound to an address
+     * @return {Boolean} true if the socket has been bound to an address
      */
     this.isBound = function() {
         return socket.isBound();
@@ -219,7 +219,7 @@ function DatagramSocket() {
 
     /**
      * Returns whether the socket is connected or not.
-     * @return true if the socket has been connected to a remote address
+     * @return {Boolean} true if the socket has been connected to a remote address
      */
     this.isConnected = function() {
         return socket.isConnected();
@@ -227,7 +227,7 @@ function DatagramSocket() {
 
     /**
      * Returns whether the socket is closed or not.
-     * @return true if the socket has been closed
+     * @return {Boolean} true if the socket has been closed
      */
     this.isClosed = function() {
         return socket.isClosed();
@@ -303,7 +303,7 @@ function DatagramSocket() {
      * Send a datagram packet from this socket. This method does not allow
      * the specify the recipient's IP address, so it is meant to be in
      * conjunction with [connect()][#connect].
-     * @param data {Binary} the data to send
+     * @param {Binary} data the data to send
      */
     this.send = function(data) {
         socket.send(toDatagramPacket(data));
@@ -311,9 +311,9 @@ function DatagramSocket() {
 
     /**
      * Send a datagram packet from this socket to the specified address.
-     * @param host the IP address of the recipient
-     * @param port the port number
-     * @param data the data to send
+     * @param {String} host the IP address of the recipient
+     * @param {Number} port the port number
+     * @param {Binary} data the data to send
      */
     this.sendTo = function(host, port, data) {
         var packet = toDatagramPacket(data);
@@ -324,7 +324,7 @@ function DatagramSocket() {
     /**
      * Return the current timeout of this DatagramSocket. A value of zero
      * implies that timeout is disabled, i.e. receive() will never time out.
-     * @return the current timeout
+     * @return {Number} the current timeout
      */
     this.getTimeout = function() {
         return socket.getSoTimeout();
@@ -334,7 +334,7 @@ function DatagramSocket() {
      * Enable/disable timeout with the specified timeout, in milliseconds.
      * With this option set to a non-zero timeout, a call to receive() for this
      * DatagramSocket will block for only this amount of time.
-     * @param timeout timeout in milliseconds
+     * @param {Number} timeout timeout in milliseconds
      */
     this.setTimeout = function(timeout) {
         socket.setSoTimeout(timeout);
@@ -382,9 +382,11 @@ function ServerSocket() {
 
     // Either create a new socket or a wrapper around an existing socket
     socket = arg instanceof net.ServerSocket ? arg : new net.ServerSocket();
+
     /**
-     * Listens for a connection to be made to this socket and accepts it.
-     * The method blocks until a connection is made.
+     * Listens for a connection to be made to this socket and returns a new
+     * [Socket][#Socket] object. The method blocks until a connection is made.
+     * @return {Socket} a newly connected socket object
      */
     this.accept = function() {
         return new Socket(socket.accept());
@@ -395,10 +397,10 @@ function ServerSocket() {
      * specified address (also known as name) to the socket. Throws an exception in
      * case of failure.
      *
-     * @param host address (interface) to which the socket will be bound. If address
-     * is omitted, any address is will match.
-     * @param port port number or service name to which socket is to be bound. If
-     * port is undefined, the socket wont bind to any port.
+     * @param {String} host address (interface) to which the socket will be bound.
+     * If address is omitted, any address is will match.
+     * @param {Number} port port number or service name to which socket is to
+     * be bound. If port is undefined, the socket wont bind to any port.
      */
     this.bind = function(host, port, backlog) {
         var address = toSocketAddress(host, port);
@@ -412,7 +414,7 @@ function ServerSocket() {
 
     /**
      * Returns whether this socket is bound to an address.
-     * @return true if the socket has been bound to an address
+     * @return {Boolean} true if the socket has been bound to an address
      */
     this.isBound = function() {
         return socket.isBound();
@@ -420,7 +422,7 @@ function ServerSocket() {
 
     /**
      * Returns whether the socket is closed or not.
-     * @return true if the socket has been closed
+     * @return {Boolean} true if the socket has been closed
      */
     this.isClosed = function() {
         return socket.isClosed();
@@ -443,7 +445,7 @@ function ServerSocket() {
     /**
      * Return the current timeout of this ServerSocket. A value of zero implies
      * that timeout is disabled, i.e. accept() will never time out.
-     * @return the current timeout
+     * @return {Number} the current timeout
      */
     this.getTimeout = function() {
         return socket.getSoTimeout();
@@ -453,7 +455,7 @@ function ServerSocket() {
      * Enable/disable timeout with the specified timeout, in milliseconds.
      * With this option set to a non-zero timeout, a call to accept() for this
      * ServerSocket will block for only this amount of time.
-     * @param timeout timeout in milliseconds
+     * @param {Number} timeout timeout in milliseconds
      */
     this.setTimeout = function(timeout) {
         socket.setSoTimeout(timeout);
