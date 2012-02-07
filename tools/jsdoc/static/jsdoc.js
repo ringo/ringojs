@@ -27,7 +27,13 @@ function jsdocSetup() {
         } */
         filterList(query, $('.jsdoc-leftnav'));
     }
-    $("#jsdoc-leftnavsearch").change(doFilter).keyup(doFilter).click(doFilter).focus();
+
+    var searchbox = $("#jsdoc-leftnavsearch");
+    searchbox.change(doFilter).keyup(doFilter).click(doFilter);
+    // only focus search box if current location does not have a fragment id
+    if (!location.hash) {
+        searchbox.focus();
+    }
 
     // hide all but first paragraph from module fileoverview
     var $showMoreLink = $('.jsdoc-showmore');
@@ -38,12 +44,11 @@ function jsdocSetup() {
             $allButFirstElement.hide();
             $overview.append($showMoreLink.clone());
         }
-        return;
     });
     $(".jsdoc-showmore").click(function() {
         $(this).hide().siblings().show();
     });
-    
+
     // load query string from storage if any
     /* var query = sessionStorage && sessionStorage.jsdocQuery;
     if (query) {
