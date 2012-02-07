@@ -258,7 +258,7 @@ function DatagramSocket() {
     /**
      * Receive a datagram packet from this socket. This method does not return
      * the sender's IP address, so it is meant to be in conjunction with
-     * [connect()][#connect].
+     * [connect()][#DatagramSocket.prototype.connect].
      * @param {Number} length the maximum number of bytes to receive
      * @param {ByteArray} buffer optional buffer to store bytes in
      * @return {ByteArray} the received data
@@ -296,7 +296,7 @@ function DatagramSocket() {
     /**
      * Send a datagram packet from this socket. This method does not allow
      * the specify the recipient's IP address, so it is meant to be in
-     * conjunction with [connect()][#connect].
+     * conjunction with [connect()][#DatagramSocket.prototype.connect].
      * @param {Binary} data the data to send
      */
     this.send = function(data) {
