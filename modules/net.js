@@ -102,7 +102,7 @@ function Socket() {
      * Get the local address to which this socket is bound. This returns an
      * object with a property `address` containing the IP address as string
      * and a property `port` containing the port number, e.g.
-     * `{ address: '127.0.0.1', port: 8080 }`.
+     * `{address: '127.0.0.1', port: 8080}`.
      * @return {Object} an address descriptor
      */
     this.localAddress = function() {
@@ -116,7 +116,7 @@ function Socket() {
      * Get the remote address to which this socket is connected. This returns an
      * object with a property `address` containing the IP address as string
      * and a property `port` containing the port number, e.g.
-     * `{ address: '127.0.0.1', port: 8080 }`.
+     * `{address: '127.0.0.1', port: 8080}`.
      * @return {Object} an address descriptor
      */
     this.remoteAddress = function() {
@@ -231,7 +231,7 @@ function DatagramSocket() {
      * Get the local address to which this socket is bound. This returns an
      * object with a property `address` containing the IP address as string
      * and a property `port` containing the port number, e.g.
-     * `{ address: '127.0.0.1', port: 8080 }`.
+     * `{address: '127.0.0.1', port: 8080}`.
      * @return {Object} an address descriptor
      */
     this.localAddress = function() {
@@ -245,7 +245,7 @@ function DatagramSocket() {
      * Get the remote address to which this socket is connected. This returns an
      * object with a property `address` containing the IP address as string
      * and a property `port` containing the port number, e.g.
-     * `{ address: '127.0.0.1', port: 8080 }`.
+     * `{address: '127.0.0.1', port: 8080}`.
      * @return {Object} an address descriptor
      */
     this.remoteAddress = function() {
@@ -423,7 +423,7 @@ function ServerSocket() {
      * Get the local address to which this socket is bound. This returns an
      * object with a property `address` containing the IP address as string
      * and a property `port` containing the port number, e.g.
-     * `{ address: '127.0.0.1', port: 8080 }`
+     * `{address: '127.0.0.1', port: 8080}`
      * @return {Object} an address descriptor
      */
     this.localAddress = function() {
