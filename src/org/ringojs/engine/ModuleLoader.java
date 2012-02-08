@@ -62,7 +62,7 @@ class JsModuleLoader extends ModuleLoader {
                 try {
                     return cx.compileReader(resource.getReader(),
                             resource.getRelativePath(),
-                            resource.getFirstLine(), securityDomain);
+                            resource.getLineNumber(), securityDomain);
                 } catch (IOException iox) {
                     throw new RuntimeException(iox);
                 }
@@ -151,7 +151,7 @@ class ScriptedModuleLoader extends ModuleLoader {
 
         if (source instanceof CharSequence) {
             return cx.compileString(source.toString(), resource.getRelativePath(),
-                    resource.getFirstLine(), securityDomain);
+                    resource.getLineNumber(), securityDomain);
         } else if (source instanceof Scriptable) {
             return source;
         } else {

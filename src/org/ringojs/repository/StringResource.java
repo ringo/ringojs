@@ -82,7 +82,7 @@ public class StringResource implements Resource {
         // ignore
     }
 
-    public int getFirstLine() {
+    public int getLineNumber() {
         return firstLine;
     }
 

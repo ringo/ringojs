@@ -142,7 +142,7 @@ public abstract class AbstractResource implements Resource {
         this.stripShebang = stripShebang;
     }
 
-    public int getFirstLine() {
+    public int getLineNumber() {
         return firstLine;
     }
 
