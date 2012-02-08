@@ -21,7 +21,7 @@ function Socket() {
     var socket, stream;
     var arg = arguments[0];
 
-	if(!(this instanceof Socket)) {
+    if(!(this instanceof Socket)) {
         return arg ? new Socket(arg) : new Socket();
     }
 
@@ -43,7 +43,7 @@ function Socket() {
         } else {
             socket.connect(address, timeout);
         }
-    	return this;
+        return this;
     };
 
     /**
@@ -56,7 +56,7 @@ function Socket() {
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
         socket.bind(address);
-    	return this;
+        return this;
     };
 
     /**
@@ -65,13 +65,13 @@ function Socket() {
      * @see io#Stream
      */
     this.getStream = function() {
-    	if(!stream) {
+        if(!stream) {
             if (!socket.isConnected()) {
                 throw new Error("Socket is not connected");
             }
-    		stream = new io.Stream(socket.inputStream, socket.outputStream);
-    	}
-    	return stream;
+            stream = new io.Stream(socket.inputStream, socket.outputStream);
+        }
+        return stream;
     };
 
     /**
@@ -149,7 +149,7 @@ function Socket() {
      * Close the socket immediately
      */
     this.close = function() {
-    	socket.close();
+        socket.close();
     };
 }
 
@@ -162,7 +162,7 @@ function DatagramSocket() {
     var socket;
     var arg = arguments[0];
 
-	if(!(this instanceof DatagramSocket)) {
+    if(!(this instanceof DatagramSocket)) {
         return arg ? new DatagramSocket(arg) : new DatagramSocket();
     }
 
@@ -180,7 +180,7 @@ function DatagramSocket() {
     this.connect = function(host, port) {
         var address = toSocketAddress(host, port);
         socket.connect(address);
-    	return this;
+        return this;
     };
 
     /**
@@ -200,7 +200,7 @@ function DatagramSocket() {
     this.bind = function(host, port) {
         var address = toSocketAddress(host, port);
         socket.bind(address);
-    	return this;
+        return this;
     };
 
     /**
@@ -370,7 +370,7 @@ function ServerSocket() {
     var socket;
     var arg = arguments[0];
 
-	if(!(this instanceof ServerSocket)) {
+    if(!(this instanceof ServerSocket)) {
         return arg ? new ServerSocket(arg) : new ServerSocket();
     }
 
@@ -400,7 +400,7 @@ function ServerSocket() {
         } else {
             socket.bind(address, backlog);
         }
-    	return this;
+        return this;
     };
 
     /**
@@ -456,7 +456,7 @@ function ServerSocket() {
      * Close the socket immediately
      */
     this.close = function() {
-    	socket.close();
+        socket.close();
     };
 }
 
