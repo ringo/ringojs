@@ -27,7 +27,7 @@ import java.net.URL;
 public class StringResource implements Resource {
     
     private String name;
-    private int firstLine;
+    private int lineNumber;
     private String content;
     private long lastModified;
     
@@ -35,10 +35,10 @@ public class StringResource implements Resource {
         this(name, content, 1);
     }
 
-    public StringResource(String name, String content, int firstLine) {
+    public StringResource(String name, String content, int lineNumber) {
         this.name = name;
         this.content = content;
-        this.firstLine = firstLine;
+        this.lineNumber = lineNumber;
         lastModified = System.currentTimeMillis();
     }
        
@@ -83,7 +83,7 @@ public class StringResource implements Resource {
     }
 
     public int getLineNumber() {
-        return firstLine;
+        return lineNumber;
     }
 
     public long lastModified() {

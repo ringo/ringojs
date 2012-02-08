@@ -9,7 +9,7 @@ public abstract class AbstractResource implements Resource {
     protected String name;
     protected String baseName;
     private boolean stripShebang = false;
-    private int firstLine = 1;
+    private int lineNumber = 1;
 
     protected void setBaseNameFromName(String name) {
         // base name is short name with extension cut off
@@ -55,7 +55,7 @@ public abstract class AbstractResource implements Resource {
                         break;
                     }
                 }
-                firstLine = 2;
+                lineNumber = 2;
             } else {
                 stream.reset();
             }
@@ -143,7 +143,7 @@ public abstract class AbstractResource implements Resource {
     }
 
     public int getLineNumber() {
-        return firstLine;
+        return lineNumber;
     }
 
     /**
