@@ -5,7 +5,6 @@ import org.jruby.ext.posix.POSIX;
 import org.jruby.ext.posix.POSIXFactory;
 import org.jruby.ext.posix.POSIXHandler;
 import org.mozilla.javascript.Context;
-import org.ringojs.engine.RhinoEngine;
 
 import java.io.File;
 import java.io.InputStream;
@@ -34,9 +33,7 @@ public class POSIXSupport {
         }
 
         public boolean isVerbose() {
-            return false;
-            /* RhinoEngine engine = RhinoEngine.getEngine();
-            return engine != null && engine.getConfig().isVerbose(); */
+            return true;
         }
 
         public File getCurrentWorkingDirectory() {
