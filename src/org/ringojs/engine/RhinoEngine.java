@@ -50,6 +50,7 @@ public class RhinoEngine implements ScopeProvider {
     private AppClassLoader loader = new AppClassLoader();
     private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
+    private ModuleLoader[] loaders;
 
     private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
@@ -82,6 +83,10 @@ public class RhinoEngine implements ScopeProvider {
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
         this.wrapFactory = config.getWrapFactory();
+        
+        loaders = new ModuleLoader[] {
+            new JsModuleLoader(), new JsonModuleLoader(), new ClassModuleLoader()
+        };
 
         RingoDebugger debugger = null;
         if (config.getDebug()) {
@@ -164,7 +169,7 @@ public class RhinoEngine implements ScopeProvider {
         if (scriptResource instanceof Resource) {
             resource = (Resource) scriptResource;
         } else if (scriptResource instanceof String) {
-            resource = findResource((String) scriptResource, null);
+            resource = findResource((String) scriptResource, null, null);
         } else {
             throw new IOException("Unsupported script resource: " + scriptResource);
         }
@@ -395,11 +400,11 @@ public class RhinoEngine implements ScopeProvider {
     public ReloadableScript getScript(String moduleName, Repository localPath)
             throws JavaScriptException, IOException {
         ReloadableScript script;
-        Resource source = findResource(moduleName + ".js", localPath);
+        Resource source = findResource(moduleName, loaders, localPath);
         if (!source.exists()) {
             source = loadPackage(moduleName, localPath);
             if (!source.exists()) {
-                source = findResource(moduleName, localPath);
+                source = findResource(moduleName, null, localPath);
             }
         }
         Context cx = Context.getCurrentContext();
@@ -447,7 +452,7 @@ public class RhinoEngine implements ScopeProvider {
                 remainingName = moduleName.substring(slash + 1);
             }
 
-            Resource json = findResource(packageName + "/package.json", localPath);
+            Resource json = findResource(packageName + "/package.json", null, localPath);
 
             if (json != null && json.exists()) {
                 JsonParser parser = new JsonParser(
@@ -495,7 +500,7 @@ public class RhinoEngine implements ScopeProvider {
             }
         } while (slash != -1);
 
-        return findResource(moduleName + "/index.js", localPath);
+        return findResource(moduleName + "/index", loaders, localPath);
     }
 
 
@@ -508,7 +513,7 @@ public class RhinoEngine implements ScopeProvider {
      * @return the loaded module's scope
      * @throws IOException indicates that in input/output related error occurred
      */
-    public ModuleScope loadModule(Context cx, String moduleName,
+    public Scriptable loadModule(Context cx, String moduleName,
                                   Scriptable loadingScope)
             throws IOException {
         return mainWorker.loadModule(cx, moduleName, loadingScope);
@@ -688,7 +693,7 @@ public class RhinoEngine implements ScopeProvider {
      * @throws IOException if an I/O error occurred
      */
     public Trackable resolve(String path, Repository localRoot) throws IOException {
-        Trackable t = findResource(path, localRoot);
+        Trackable t = findResource(path, null, localRoot);
         if (t == null || !t.exists()) {
             t = findRepository(path, localRoot);
         }
@@ -698,24 +703,40 @@ public class RhinoEngine implements ScopeProvider {
     /**
      * Search for a resource in a local path, or the main repository path.
      * @param path the resource name
+     * @param loaders optional list of module loaders
      * @param localRoot a repository to look first
      * @return the resource
      * @throws IOException if an I/O error occurred
      */
-    public Resource findResource(String path, Repository localRoot)
+    public Resource findResource(String path, ModuleLoader[] loaders,
+                                 Repository localRoot)
             throws IOException {
-        // Note: as an extension to the securable modules API
+        // Note: as an extension to the CommonJS modules API
         // we allow absolute module paths for resources
         File file = new File(path);
         if (file.isAbsolute()) {
-            Resource res = new FileResource(file);
+            Resource res;
+            outer: if (loaders != null) {
+                // loaders must contain at least one loader
+                assert loaders.length > 0 && loaders[0] != null;
+                for (ModuleLoader loader: loaders) {
+                    res = new FileResource(path + loader.getExtension());
+                    if (res.exists()) {
+                        break outer;
+                    }
+                }
+                res = new FileResource(path + loaders[0].getExtension());
+            } else {
+                res = new FileResource(file);
+            }
             res.setAbsolute(true);
             return res;
-        } else if (localRoot != null
-                && (path.startsWith("./") || path.startsWith("../"))) {
-            return findResource(localRoot.getRelativePath() + path, null);
+        } else if (localRoot != null && 
+                (path.startsWith("./") || path.startsWith("../"))) {
+            String newpath = localRoot.getRelativePath() + path;
+            return findResource(newpath, loaders, null);
         } else {
-            return config.getResource(normalizePath(path));
+            return config.getResource(normalizePath(path), loaders);
         }
     }
 
@@ -742,7 +763,54 @@ public class RhinoEngine implements ScopeProvider {
         }
         return config.getRepository(normalizePath(path));
     }
+    
+    public ModuleLoader getModuleLoader(Resource resource) {
+        String name = resource.getName();
+        for (ModuleLoader loader : loaders) {
+            if (name.endsWith(loader.getExtension())) {
+                return loader;
+            }
+        }
+        return loaders[0];
+    }
 
+    public synchronized void addModuleLoader(String extension, Object value) {
+        if (value == null || value == Undefined.instance) {
+            removeModuleLoader(extension);
+        } else if (!(value instanceof Function)) {
+            throw Context.reportRuntimeError("Module loader must be a function");
+        }
+        Function function = (Function) value;
+        int length = loaders.length;
+        for (int i = 0; i < length; i++) {
+            if (extension.equals(loaders[i].getExtension())) {
+                // replace existing loader
+                loaders[i] = new ScriptedModuleLoader(extension, function);
+                return;
+            }
+        }
+        ModuleLoader[] newLoaders = new ModuleLoader[length + 1];
+        System.arraycopy(loaders, 0, newLoaders, 0, length);
+        newLoaders[length] = new ScriptedModuleLoader(extension, function);
+        loaders = newLoaders;
+    }
+    
+    public synchronized void removeModuleLoader(String extension) {
+        int length = loaders.length;
+        for (int i = 0; i < length; i++) {
+            if (loaders[i] instanceof ScriptedModuleLoader && 
+                    extension.equals(loaders[i].getExtension())) {
+                ModuleLoader[] newLoaders = new ModuleLoader[length - 1];
+                if (i > 0) 
+                    System.arraycopy(loaders, 0, newLoaders, 0, i);
+                if (i < length - 1) 
+                    System.arraycopy(loaders, i + 1, newLoaders, i, length - i - 1);
+                loaders = newLoaders;
+                return;
+            }
+        }
+    }
+    
     public static String normalizePath(String path) {
         if (!path.contains("./")) {
             return path;

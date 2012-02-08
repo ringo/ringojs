@@ -32,7 +32,7 @@ public class RingoWorker {
 
     private ReloadableScript currentScript;
     private List<ScriptError> errors;
-    private Map<Resource, ModuleScope> modules, checkedModules;
+    private Map<Resource, Scriptable> modules, checkedModules;
     private boolean reload;
 
     private static AtomicInteger workerId = new AtomicInteger(1);
@@ -44,9 +44,9 @@ public class RingoWorker {
      */
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
-        modules = new HashMap<Resource, ModuleScope>();
+        modules = new HashMap<Resource, Scriptable>();
         reload = engine.getConfig().isReloading();
-        checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
+        checkedModules = reload ? new HashMap<Resource, Scriptable>() : modules;
         id = workerId.getAndIncrement();
     }
 
@@ -244,7 +244,7 @@ public class RingoWorker {
      * @return the loaded module's scope
      * @throws IOException indicates that in input/output related error occurred
      */
-    public ModuleScope loadModule(Context cx, String moduleName,
+    public Scriptable loadModule(Context cx, String moduleName,
                                   Scriptable loadingScope) throws IOException {
         engine.setCurrentWorker(this);
         try {
@@ -263,7 +263,7 @@ public class RingoWorker {
      * @return the loaded module's scope
      * @throws java.io.IOException indicates that in input/output related error occurred
      */
-    protected ModuleScope loadModuleInternal(Context cx, String moduleName,
+    protected Scriptable loadModuleInternal(Context cx, String moduleName,
                                              Scriptable loadingScope) 
             throws IOException {
         Repository local = engine.getParentRepository(loadingScope);
@@ -275,7 +275,7 @@ public class RingoWorker {
         }
 
         // check if module has been loaded before
-        ModuleScope module = modules.get(script.resource);
+        Scriptable module = modules.get(script.resource);
         ReloadableScript parent = currentScript;
         runlock.lock();
         try {
@@ -313,9 +313,7 @@ public class RingoWorker {
         try {
             currentScript = script;
             result = script.evaluate(scope, cx, checkedModules);
-            if (scope instanceof ModuleScope) {
-                modules.put(script.resource, (ModuleScope)scope);
-            }
+            modules.put(script.resource, scope);
         } finally {
             currentScript = parent;
             engine.setCurrentWorker(null);
@@ -342,7 +340,7 @@ public class RingoWorker {
      */
     public void setReloading(boolean reload) {
         if (reload != this.reload) {
-            checkedModules = reload ? new HashMap<Resource, ModuleScope>() : modules;
+            checkedModules = reload ? new HashMap<Resource, Scriptable>() : modules;
         }
         this.reload = reload;
     }

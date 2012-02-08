@@ -387,16 +387,47 @@ public class RingoConfiguration {
      * @throws IOException an I/O error occurred
      */
     public Resource getResource(String path) throws IOException {
+        return getResource(path, null);
+    }
+    /**
+     * Get a resource from our script repository
+     * @param path the resource path
+     * @param loaders optional list of module loaders
+     * @return the resource
+     * @throws IOException an I/O error occurred
+     */
+    public Resource getResource(String path, ModuleLoader[] loaders)
+            throws IOException {
         Resource res;
         for (Repository repo: repositories) {
-            res = repo.getResource(path);
+            if (loaders != null) {
+                assert loaders.length > 0 && loaders[0] != null;
+                for (ModuleLoader loader : loaders) {
+                    res = repo.getResource(path + loader.getExtension());
+                    if (res != null && res.exists()) {
+                        return res;
+                    }
+                }
+            } else {
+                res = repo.getResource(path);
+                if (res != null && res.exists()) {
+                    return res;
+                }
+            }
+        }
+        if (loaders == null) {
+            res = resourceFromClasspath(path, null);
             if (res != null && res.exists()) {
                 return res;
             }
-        }
-        res = resourceFromClasspath(path, null);
-        if (res != null && res.exists()) {
-            return res;
+        } else {
+            for (ModuleLoader loader : loaders) {
+                String p = path + loader.getExtension();
+                res = resourceFromClasspath(p, null);
+                if (res != null && res.exists()) {
+                    return res;
+                }
+            }
         }
         return new NotFound(path);
     }
@@ -546,7 +577,6 @@ public class RingoConfiguration {
             }
         }
         return null;
-
     }
 
     private static Repository repositoryFromClasspath(String path, ClassLoader loader)

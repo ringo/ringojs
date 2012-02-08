@@ -18,6 +18,7 @@ package org.ringojs.tools;
 
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrappedException;
+import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.engine.RingoWrapFactory;
@@ -182,7 +183,10 @@ public class RingoRunner {
             }
             cx = engine.getContextFactory().enterContext(null);
             String moduleId = config.getMainResource().getModuleName();
-            module = engine.loadModule(cx, moduleId, null).getExports();
+            module = engine.loadModule(cx, moduleId, null);
+            if (module instanceof ModuleScope) {
+                module = ((ModuleScope)module).getExports();
+            }
             engine.invoke(module, "init");
         } catch (NoSuchMethodException nsm) {
             // daemon life-cycle method not implemented
