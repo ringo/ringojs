@@ -26,13 +26,17 @@ var engine = org.ringojs.engine;
 /**
  * An object reflecting the Java system properties.
  */
-var properties = new ScriptableMap(java.lang.System.getProperties());
+try {
+    var properties = new ScriptableMap(java.lang.System.getProperties());
+} catch (error) {
+    properties = {};
+}
 
 /**
  * The RingoJS version as an array-like object with the major and minor version
  * number as first and second element.
  */
-var version =new ScriptableList(engine.RhinoEngine.VERSION);
+var version = new ScriptableList(engine.RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
