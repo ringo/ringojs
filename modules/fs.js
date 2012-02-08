@@ -84,10 +84,21 @@ export('absolute',
        'permissions');
 
 /**
- * Open an IO stream for reading/writing to the file corresponding to the given
- * path.
- * @param {String} path
- * @param {Object} options
+ * Open the file corresponding to `path` for reading or writing,
+ * depending on the `options` argument. Returns a [binary stream][io#Stream]
+ * or a [text stream][io#TextStream].
+ *
+ * The `options` argument may contain the following properties:
+ *
+ *  - __read__ _(boolean)_ open the file in read mode.
+ *  - __write__ _(boolean)_ open the file in write mode starting at the beginning of the file.
+ *  - __append__ _(boolean)_ open the file in write mode starting at the end of the file.
+ *  - __binary__ _(boolean)_ open the file in binary mode.
+ *  - __charset__ _(string)_ open the file in text mode using the given encoding. Defaults to "utf8".
+ *
+ * @param {String} path the file path
+ * @param {Object} options options
+ * @return {Stream} a stream object
  */
 function open(path, options) {
     options = checkOptions(options);
@@ -108,16 +119,20 @@ function open(path, options) {
 }
 
 /**
- * @param {String} path
- * @param {Object} mode
- * @param {Object} permissions (not yet supported)
+ * Opens the file corresponding to `path` for reading or writing in binary
+ * mode. This function supports the same options as [open()][#open] except
+ * for `binary` and `charset`.
+ *
+ * @param {String} path the file path
+ * @param {Object} options options
+ * @param {Object} permissions not yet supported
  * @returns {Stream}
  */
-function openRaw(path, mode, permissions) {
+function openRaw(path, options, permissions) {
     // TODO many things missing here
     var file = resolveFile(path);
-    mode = mode || {};
-    var {read, write, append, create, exclusive, truncate} = mode;
+    options = options || {};
+    var {read, write, append, create, exclusive, truncate} = options;
     if (!read && !write && !append) {
         read = true;
     }
@@ -130,9 +145,13 @@ function openRaw(path, mode, permissions) {
 
 
 /**
- * Open, read, and close a file, returning the file's contents.
- * @param {String} path
- * @param {Object} options
+ * Read the content of the file corresponding to `path`. Returns a
+ * String or [ByteString][binary#ByteString] object depending on the `options`
+ * argument. This function supports the same options as [open()][#open].
+ *
+ * @param {String} path the file path
+ * @param {Object} options optional options
+ * @return {String|Binary} the content of the file
  */
 function read(path, options) {
     options = options === undefined ? {} : checkOptions(options);
