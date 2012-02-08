@@ -879,7 +879,7 @@ function owner(path) {
         var POSIX = getPOSIX();
         var uid = POSIX.stat(path).uid();
         var owner = POSIX.getpwuid(uid);
-        return owner ? owner.pw_name : uid;
+        return owner ? String(owner.pw_name) : uid;
     } catch (error) {
         return null;
     }
@@ -894,7 +894,7 @@ function group(path) {
         var POSIX = getPOSIX();
         var gid = POSIX.stat(path).gid();
         var group = POSIX.getgrgid(gid);
-        return group ? group.gr_name : gid;
+        return group ? String(group.gr_name) : gid;
     } catch (error) {
         return null;
     }
