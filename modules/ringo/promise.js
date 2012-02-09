@@ -37,6 +37,7 @@ function Deferred() {
     var value;
     var listeners = [];
     var state = NEW;
+    var lock = new java.lang.Object();
 
     /**
      * Resolve the promise.
@@ -45,7 +46,7 @@ function Deferred() {
      * @param {boolean} isError if true the promise is resolved as failed
      * @type function
      */
-    var resolve = function(result, isError) {
+    var resolve = sync(function(result, isError) {
         if (state !== NEW) {
             throw new Error("Promise has already been resolved.");
         }
@@ -53,7 +54,8 @@ function Deferred() {
         state = isError ? FAILED : FULFILLED;
         listeners.forEach(notify);
         listeners = [];
-    };
+        lock.notifyAll();
+    }, lock);
 
     var notify = function(listener) {
         var isError = state === FAILED;
@@ -85,7 +87,7 @@ function Deferred() {
          * @return {Object} a new promise that resolves to the return value of the
          *     callback or errback when it is called.
          */
-        then: function(callback, errback) {
+        then: sync(function(callback, errback) {
             if (typeof callback !== "function") {
                 throw new Error("First argument to then() must be a function.");
             }
@@ -101,8 +103,30 @@ function Deferred() {
                 notify(listener);
             }
             return tail.promise;
-        }
+        }, lock),
 
+        /**
+         * Wait for the promise to be resolved.
+         * @name Promise.prototype.wait
+         * @param {Number} timeout optional time in milliseconds to wait for.
+         *                 If timeout is undefined wait() blocks forever.
+         * @return {Object} the value if the promise is resolved as fulfilled
+         * @throws Object the error value if the promise is resolved as failed
+         */
+        wait: sync(function(timeout) {
+            if (state === NEW) {
+                if (typeof timeout === "undefined") {
+                    lock.wait();
+                } else {
+                    lock.wait(timeout);
+                }
+            }
+            if (state === FAILED) {
+                throw value;
+            } else {
+                return value;
+            }
+        }, lock)
     };
 
     return {
@@ -126,7 +150,7 @@ function Deferred() {
  */
 function PromiseList() {
     var promises = Array.slice(arguments);
-    var count = promises.length;
+    var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
     var results = [];
     var i = 0;
     var deferred = new Deferred();
@@ -137,18 +161,18 @@ function PromiseList() {
         }
         var index = i++;
         promise.then(
-            function(value) {
+            sync(function(value) {
                 results[index] = {value: value};
-                if (--count == 0) {
+                if (count.decrementAndGet() == 0) {
                     deferred.resolve(results);
                 }
-            },
-            function(error) {
+            }, count),
+            sync(function(error) {
                 results[index] = {error: error};
-                if (--count == 0) {
+                if (count.decrementAndGet() == 0) {
                     deferred.resolve(results);
                 }
-            }
+            }, count)
         );
     });
     return deferred.promise;

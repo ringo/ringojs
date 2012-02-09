@@ -167,4 +167,14 @@ function WorkerPromise(moduleId, message) {
      * @return {Object} a new promise that resolves to the return value of the
      *     callback or errback when it is called.
      */
+
+    /**
+     * Wait for the worker to resolve the promise. See documentation for
+     * [Promise.wait()][ringo/promise#Promise.prototype.wait].
+     * @name Promise.prototype.wait
+     * @param {Number} timeout optional time in milliseconds to wait for.
+     *                 If timeout is undefined wait() blocks forever.
+     * @return {Object} the value if the promise is resolved as fulfilled
+     * @throws Object the error value if the promise is resolved as failed
+     */
 }
