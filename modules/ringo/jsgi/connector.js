@@ -228,7 +228,8 @@ function AsyncResponse(request, timeout, autoflush) {
     }
     var req = request.env.servletRequest;
     var res = request.env.servletResponse;
-    var state = 0; // 1: headers written, 2: closed
+    var NEW = 0, CONNECTED = 1, CLOSED = 2;
+    var state = NEW;
     var continuation;
     return {
         /**
@@ -240,10 +241,10 @@ function AsyncResponse(request, timeout, autoflush) {
          * @name AsyncResponse.prototype.start
          */
         start: sync(function(status, headers) {
-            if (state > 0) {
+            if (state > NEW) {
                 throw new Error("start() must only be called once");
             }
-            state = 1;
+            state = CONNECTED;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -251,6 +252,7 @@ function AsyncResponse(request, timeout, autoflush) {
             writeHeaders(res, headers || {});
             return this;
         }),
+
         /**
           * Write a chunk of data to the response stream.
           * @param {String|Binary} data a binary or string
@@ -259,10 +261,10 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.write
           */
          write: sync(function(data, encoding) {
-            if (state == 2) {
+            if (state == CLOSED) {
                 throw new Error("Response has been closed");
             }
-            state = 1;
+            state = CONNECTED;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -274,6 +276,7 @@ function AsyncResponse(request, timeout, autoflush) {
             }
             return this;
         }),
+
         /**
           * Flush the response stream, causing all buffered data to be written
           * to the client.
@@ -281,16 +284,17 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.flush
           */
         flush: sync(function() {
-            if (state == 2) {
+            if (state == CLOSED) {
                 throw new Error("Response has been closed");
             }
-            state = 1;
+            state = CONNECTED;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
             res.getOutputStream().flush();
             return this;
         }),
+
         /**
           * Close the response stream, causing all buffered data to be written
           * to the client.
@@ -298,10 +302,10 @@ function AsyncResponse(request, timeout, autoflush) {
           * @name AsyncResponse.prototype.close
           */
         close: sync(function() {
-            if (state == 2) {
+            if (state == CLOSED) {
                 throw new Error("close() must only be called once");
             }
-            state = 2;
+            state = CLOSED;
             if (continuation) {
                 res = continuation.getServletResponse();
             }
@@ -310,9 +314,10 @@ function AsyncResponse(request, timeout, autoflush) {
                 continuation.complete();
             }
         }),
+
         // Used internally by ringo/jsgi
         suspend: sync(function() {
-            if (state < 2) {
+            if (state < CLOSED) {
                 var {ContinuationSupport} = org.eclipse.jetty.continuation;
                 continuation = ContinuationSupport.getContinuation(req);
                 continuation.setTimeout(timeout || 30000);
