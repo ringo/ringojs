@@ -428,13 +428,21 @@ public final class RingoWorker {
         if (eventloop != null) {
             return;
         }
-        eventloop = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-            public Thread newThread(Runnable runnable) {
-                Thread thread = new Thread(runnable, "ringo-worker-" + id);
-                thread.setDaemon(true);
-                return thread;
-            }
-        });
+        eventloop = new EventLoop(id);
+    }
+    
+    static class EventLoop extends ScheduledThreadPoolExecutor {
+        EventLoop(final int id) {
+            super(1, new ThreadFactory() {
+                public Thread newThread(Runnable runnable) {
+                    Thread thread = new Thread(runnable, "ringo-worker-" + id);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
+            setKeepAliveTime(60000, TimeUnit.MILLISECONDS);
+            allowCoreThreadTimeOut(true);            
+        }
     }
 
 }
