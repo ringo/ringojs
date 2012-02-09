@@ -142,6 +142,7 @@ exports.parseResource = function(resource) {
             if (jsdoc.tags.length && !previous.tags.length) {
                 previous.tags = jsdoc.tags;
             }
+            jsdoc = previous;
         } else {
             jsdoc.name = name;
             jsdocs.push(jsdoc);
