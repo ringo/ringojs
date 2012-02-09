@@ -62,7 +62,7 @@ function Worker(module) {
      * to post messages or report errors back to the original caller.
      *
      * If `syncCallbacks` is `true`, callbacks from the worker will run on the
-     * worker's own thread instead of our own local event loop thread. This
+     * worker's own thread instead of our local event loop thread. This
      * allows callbacks to be delivered concurrently while the local thread is
      * busy doing something else.
      *
@@ -115,7 +115,7 @@ function Worker(module) {
 }
 
 /**
- * Creates a [Promise][ringo/promise] backed by a [Worker][#Worker].
+ * A [Promise][ringo/promise] backed by a [Worker][#Worker].
  *
  * This creates a new Worker with the given `module` and calls its `postMessage`
  * function with the `message` argument. The first message or error received
