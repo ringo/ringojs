@@ -1,6 +1,5 @@
 var assert = require("assert");
 var {Deferred, PromiseList} = require("ringo/promise");
-var {Worker} = require("ringo/worker");
 var {Semaphore} = require("ringo/concurrent");
 
 exports.testPromise = function() {
@@ -17,14 +16,11 @@ exports.testPromise = function() {
         e2 = error;
         semaphore.signal();
     });
-    // Resolve promise in worker so async promise callbacks get called
-    var worker = new Worker({
-        onmessage: function() {
-            d1.resolve("value");
-            d2.resolve("error", true);
-        }
+    // Resolve promise in thread so async promise callbacks get called
+    spawn(function() {
+        d1.resolve("value");
+        d2.resolve("error", true);
     });
-    worker.postMessage();
     // wait for promises to resolve
     if (!semaphore.tryWait(1000, 2)) {
         assert.fail("timed out");
@@ -33,7 +29,6 @@ exports.testPromise = function() {
     assert.equal(v1, "value");
     assert.equal(v2, undefined);
     assert.equal(e2, "error");
-    worker.terminate();
 };
 
 exports.testPromiseList = function() {
@@ -50,22 +45,18 @@ exports.testPromiseList = function() {
         result = value;
         semaphore.signal();
     });
-    // Resolve promise in worker so async promise callbacks get called
-    var worker = new Worker({
-        onmessage: function() {
-            d2.resolve(1);
-            d3.resolve("error", true);
-            d1.resolve("ok");
-        }
+    // Resolve promises in thread so async promise callbacks get called
+    spawn(function() {
+        d2.resolve(1);
+        d3.resolve("error", true);
+        d1.resolve("ok");
     });
-    worker.postMessage();
     // wait for last promise to resolve
     if (!semaphore.tryWait(1000)) {
         assert.fail("timed out");
     }
     // make sure promises have resolved via chained callback
     assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
-    worker.terminate();
 };
 
 // start the test runner if we're called directly from command line

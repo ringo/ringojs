@@ -6,16 +6,12 @@ var {Semaphore} = require("ringo/concurrent");
 exports.testSetTimeout = function() {
     var value;
     var semaphore = new Semaphore();
-    // Resolve promise in worker so async promise callbacks get called
-    var worker = new Worker({
-        onmessage: function() {
-            setTimeout(function(arg) {
-                value = arg;
-                semaphore.signal();
-            }, 1, "value");
-        }
-    });
-    worker.postMessage();
+    // Spawn worker which will set timeout
+    var worker = new Worker(module.id);
+    worker.onmessage = function(e) {
+        value = e.data;
+    }
+    worker.postMessage({test: 1, semaphore: semaphore}, true);
     // wait for promises to resolve
     if (!semaphore.tryWait(1000)) {
         assert.fail("timed out");
@@ -28,16 +24,12 @@ exports.testSetTimeout = function() {
 exports.testSetInterval = function() {
     var value = 0;
     var semaphore = new Semaphore();
-    // Resolve promise in worker so async promise callbacks get called
-    var worker = new Worker({
-        onmessage: function() {
-            var id = setInterval(function(arg) {
-                value += arg;
-                semaphore.signal();
-            }, 5, 10);
-        }
-    });
-    worker.postMessage();
+    // Spawn worker which will set interval
+    var worker = new Worker(module.id);
+    worker.onmessage = function(e) {
+        value += e.data;
+    }
+    worker.postMessage({test: 2, semaphore: semaphore}, true);
     // wait for promises to resolve
     if (!semaphore.tryWait(1000, 3)) {
         assert.fail("timed out");
@@ -46,6 +38,21 @@ exports.testSetInterval = function() {
     assert.equal(value, 30);
     worker.terminate();
 };
+
+// Worker onmessage handler
+function onmessage(e) {
+    if (e.data.test == 1) {
+        setTimeout(function(arg) {
+            e.source.postMessage(arg);
+            e.data.semaphore.signal();
+        }, 1, "value");
+    } else {
+        var id = setInterval(function(arg) {
+            e.source.postMessage(arg);
+            e.data.semaphore.signal();
+        }, 5, 10);
+    }
+}
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
