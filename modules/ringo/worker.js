@@ -149,7 +149,7 @@ function WorkerPromise(moduleId, message) {
     function resolve(message, isError) {
         if (!resolved) {
             resolved = true;
-            deferred.resolve(e.data, isError);
+            deferred.resolve(message, isError);
             worker.terminate();
         }
     }
