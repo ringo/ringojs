@@ -5,7 +5,8 @@
 var {Headers, getMimeParameter} = require('ringo/utils/http');
 var {Stream} = require('io');
 var {Binary, ByteString} = require('binary');
-var system = require('system')
+var system = require('system');
+var strings = require('ringo/utils/strings');
 
 export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
@@ -150,7 +151,7 @@ function handleAsyncResponse(request, response, result) {
         return true;
     }
     // As a convenient shorthand, allow apps to return the deferred as returned
-    // by ringo.promise.defer()
+    // by ringo.promise.Deferred()
     if (result.promise && typeof result.promise.then === "function") {
         result = result.promise;
     }
@@ -159,57 +160,64 @@ function handleAsyncResponse(request, response, result) {
         return false;
     }
 
-    var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
-    var continuation = ContinuationSupport.getContinuation(request);
-    if (!continuation) {
-        throw new Error("Jetty continuation support required for asynchronous "
-                      + "response is not available");
-    }
-    var handled = false;
+    var continuation;
+    var done = false;
 
     var onFinish = sync(function(value) {
-        if (handled) return;
-        log.debug("JSGI async response finished", value);
-        handled = true;
-        writeAsync(continuation.getServletResponse(), value);
-        continuation.complete();
+        if (done) return;
+        done = true;
+        writeAsync(response, value);
+        if (continuation) {
+            continuation.complete();
+        }
     }, request);
 
     var onError = sync(function(error) {
-        if (handled) return;
-        log.error("JSGI async error", error);
+        if (done) return;
+        done = true;
         var jsgiResponse = {
             status: 500,
             headers: {"Content-Type": "text/html"},
-            body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>", String(error), "</p></body></html>"]
+            body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>",
+                strings.escapeHtml(String(error)), "</p></body></html>"]
         };
-        handled = true;
-        writeAsync(continuation.getServletResponse(), jsgiResponse);
-        continuation.complete();
+        writeAsync(response, jsgiResponse);
+        if (continuation) {
+            continuation.complete();
+        }
     }, request);
 
-    continuation.addContinuationListener(new ContinuationListener({
-        onTimeout: sync(function() {
-            if (handled) return;
-            log.error("JSGI async timeout");
-            var jsgiResponse = {
-                status: 500,
-                headers: {"Content-Type": "text/html"},
-                body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>Request timed out</p></body></html>"]
-            };
-            handled = true;
-            writeAsync(continuation.getServletResponse(), jsgiResponse);
-            continuation.complete();
-        }, request)
-    }));
+    result.then(onFinish, onError);
 
-    log.debug('handling JSGI async response, calling then');
     sync(function() {
-        result.then(onFinish, onError);
+        if (done) return;
+
+        var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
+        continuation = ContinuationSupport.getContinuation(request);
+        if (!continuation) {
+            throw new Error("Jetty continuation support required for " +
+                            "asynchronous response is not available");
+        }
+
+        continuation.addContinuationListener(new ContinuationListener({
+            onTimeout: sync(function() {
+                if (done) return;
+                done = true;
+                var jsgiResponse = {
+                    status: 500,
+                    headers: {"Content-Type": "text/html"},
+                    body: ["<!DOCTYPE html><html><body><h1>Error</h1>" +
+                            "<p>Request timed out</p></body></html>"]
+                };
+                writeAsync(response, jsgiResponse);
+                continuation.complete();
+            }, request)
+        }));
         // default async request timeout is 30 seconds
         continuation.setTimeout(result.timeout || 30000);
         continuation.suspend(response);
     }, request)();
+
     return true;
 }
 
@@ -231,6 +239,7 @@ function AsyncResponse(request, timeout, autoflush) {
     var NEW = 0, CONNECTED = 1, CLOSED = 2;
     var state = NEW;
     var continuation;
+
     return {
         /**
          * Set the HTTP status code and headers of the response. This method must only
@@ -245,13 +254,10 @@ function AsyncResponse(request, timeout, autoflush) {
                 throw new Error("start() must only be called once");
             }
             state = CONNECTED;
-            if (continuation) {
-                res = continuation.getServletResponse();
-            }
             res.setStatus(status);
             writeHeaders(res, headers || {});
             return this;
-        }),
+        }, request),
 
         /**
           * Write a chunk of data to the response stream.
@@ -260,14 +266,11 @@ function AsyncResponse(request, timeout, autoflush) {
           * @returns this response object for chaining
           * @name AsyncResponse.prototype.write
           */
-         write: sync(function(data, encoding) {
+        write: sync(function(data, encoding) {
             if (state == CLOSED) {
                 throw new Error("Response has been closed");
             }
             state = CONNECTED;
-            if (continuation) {
-                res = continuation.getServletResponse();
-            }
             var out = res.getOutputStream();
             data = data instanceof Binary ? data : String(data).toByteArray(encoding);
             out.write(data);
@@ -275,7 +278,7 @@ function AsyncResponse(request, timeout, autoflush) {
                 out.flush();
             }
             return this;
-        }),
+        }, request),
 
         /**
           * Flush the response stream, causing all buffered data to be written
@@ -288,12 +291,9 @@ function AsyncResponse(request, timeout, autoflush) {
                 throw new Error("Response has been closed");
             }
             state = CONNECTED;
-            if (continuation) {
-                res = continuation.getServletResponse();
-            }
             res.getOutputStream().flush();
             return this;
-        }),
+        }, request),
 
         /**
           * Close the response stream, causing all buffered data to be written
@@ -306,24 +306,32 @@ function AsyncResponse(request, timeout, autoflush) {
                 throw new Error("close() must only be called once");
             }
             state = CLOSED;
-            if (continuation) {
-                res = continuation.getServletResponse();
-            }
             res.getOutputStream().close();
             if (continuation) {
                 continuation.complete();
             }
-        }),
+        }, request),
 
         // Used internally by ringo/jsgi
         suspend: sync(function() {
             if (state < CLOSED) {
-                var {ContinuationSupport} = org.eclipse.jetty.continuation;
+                var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
                 continuation = ContinuationSupport.getContinuation(req);
+                if (!continuation) {
+                    throw new Error("Jetty continuation support required for " +
+                                    "asynchronous response is not available");
+                }
                 continuation.setTimeout(timeout || 30000);
+                continuation.addContinuationListener(new ContinuationListener({
+                    onTimeout: sync(function() {
+                        if (state < CLOSED) {
+                            log.error("AsyncResponse timed out");
+                        }
+                    }, request)
+                }));
                 continuation.suspend(res);
             }
-        })
+        }, request)
     };
 }
 
