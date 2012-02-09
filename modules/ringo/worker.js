@@ -173,7 +173,7 @@ function WorkerPromise(moduleId, message) {
     /**
      * Wait for the worker to resolve the promise. See documentation for
      * [Promise.wait()][ringo/promise#Promise.prototype.wait].
-     * @name Promise.prototype.wait
+     * @name WorkerPromise.prototype.wait
      * @param {Number} timeout optional time in milliseconds to wait for.
      *                 If timeout is undefined wait() blocks forever.
      * @return {Object} the value if the promise is resolved as fulfilled
