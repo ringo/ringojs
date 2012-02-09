@@ -264,14 +264,12 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Release a worker, returning it to the worker pool.
+     * Return a worker, returning it to the worker pool.
      * @param worker the worker to be released
      */
-    public void releaseWorker(RingoWorker worker) {
-        if (worker != null) {
-            if (!workers.offerFirst(worker)) {
-                worker.terminate();
-            }
+    void returnWorker(RingoWorker worker) {
+        if (!workers.offerFirst(worker)) {
+            worker.shutdown();
         }
     }
 

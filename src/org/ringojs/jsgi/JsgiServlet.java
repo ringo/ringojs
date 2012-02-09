@@ -149,7 +149,7 @@ public class JsgiServlet extends HttpServlet {
                 throw new ServletException(x);
             }
         } finally {
-            engine.releaseWorker(worker);
+            worker.release();
         }
     }
 

@@ -108,15 +108,17 @@ function Worker(moduleId) {
     };
 
     /**
-     * Immediately terminate and release the worker thread.
+     * Release the worker, returning it to the engine's worker pool.
+     * Note that this does not terminate the worker thread, or remove any
+     * current or future scheduled tasks from its event loop.
      */
     this.terminate = function() {
         if (worker) {
-            worker.terminate();
-            engine.releaseWorker(worker);
+            worker.release();
             worker = null;
         }
-    }
+    };
+
 }
 
 /**

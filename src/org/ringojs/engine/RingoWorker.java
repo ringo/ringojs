@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RingoWorker {
+public final class RingoWorker {
 
     private ScheduledThreadPoolExecutor eventloop;
     private final RhinoEngine engine;
@@ -390,7 +390,7 @@ public class RingoWorker {
     /**
      * Immediately shut down this worker's event loop.
      */
-    public synchronized void terminate() {
+    public synchronized void shutdown() {
         if (eventloop != null) {
             eventloop.shutdownNow();
             eventloop = null;
@@ -398,8 +398,15 @@ public class RingoWorker {
     }
 
     /**
+     * Release the worker, returning it to the engine's worker pool.
+     */
+    public void release() {
+        engine.returnWorker(this);
+    }
+    
+    /**
      * Schedule a task that will release this worker when the current task
-     * is finished, putting it back into the engine's worker pool.
+     * is finished, returning it back into the engine's worker pool.
      */
     public void releaseWhenDone() {
         if (isActive()) {
@@ -408,11 +415,11 @@ public class RingoWorker {
             }
             eventloop.submit(new Runnable() {
                 public void run() {
-                    engine.releaseWorker(RingoWorker.this);
+                    release();
                 }
             });
         } else {
-            engine.releaseWorker(this);
+            release();
         }
     }
 
