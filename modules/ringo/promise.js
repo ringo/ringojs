@@ -77,7 +77,8 @@ function Deferred() {
      */
     var promise = {
         /**
-         * Invoke a callback or errback function when the promise is resolved.
+         * Register callback and errback functions to be invoked when
+         * the promise is resolved.
          * @name Promise.prototype.then
          * @param {function} callback called if the promise is resolved as fulfilled
          * @param {function} errback called if the promise is resolved as failed
