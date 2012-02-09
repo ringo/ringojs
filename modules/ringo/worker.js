@@ -9,14 +9,19 @@ exports.Worker = Worker;
 exports.WorkerPromise = WorkerPromise;
 
 /**
- * A Worker loosely modeled after the [W3C Web Worker API](http://www.w3.org/TR/workers/).
- * Workers operate on their own set of module instances,  making concurrent
- * behaviour much more predictable than with shared state multithreading.
+ * A Worker thread loosely modeled after the
+ * [W3C Web Worker API](http://www.w3.org/TR/workers/).
  *
- * The `module` argument must be the fully resolved id of the module
- * implementing the worker. In order to be able to send messages to the worker
+ * The `moduleId` argument must be the fully resolved id of the module
+ * to load in the worker. In order to be able to send messages to the worker
  * using the [postMessage][#Worker.prototype.postMessage] method the module must
  * define (though not necessarily export) a `onmessage` function.
+ *
+ * Workers operate on their own set of modules, so a new instance of the
+ * module will be created even if the module is already loaded in the current
+ * thread or is the same as the currently executing module. Thus,
+ * each worker operates in its private module environment, making concurrent
+ * programming much more predictable than with shared state multithreading.
  *
  * Event listeners for callbacks from the worker can be registered by
  * assigning them to the `onmessage` and `onerror` properties of the worker.
@@ -24,12 +29,12 @@ exports.WorkerPromise = WorkerPromise;
  * To free the worker's thread and other resources once the worker is no longer
  * needed its [terminate][#Worker.prototype.terminate] method should be called.
  *
- * @param module the worker module id or object. Must have a `onmessage()` function.
+ * @param {String} moduleId the id of the module to load in the worker.
  * @constructor
  */
-function Worker(module) {
+function Worker(moduleId) {
     if (!(this instanceof Worker)) {
-        return new Worker(module);
+        return new Worker(moduleId);
     }
 
     var self = this;
@@ -37,7 +42,7 @@ function Worker(module) {
 
     // Load module immediately and wait till done. This will
     // throw an error if module can't be loaded.
-    worker.loadModuleInWorkerThread(module).get();
+    worker.loadModuleInWorkerThread(moduleId).get();
 
     var onmessage = function(e) {
         if (typeof self.onmessage === "function") {
@@ -67,8 +72,8 @@ function Worker(module) {
      * busy doing something else.
      *
      * Note that in contrast to the
-     * [Web Workers specification](http://www.w3.org/TR/workers/) this method
-     * does not cause the message to be JSON-serialized.
+     * [Web Workers specification](http://www.w3.org/TR/workers/) this worker
+     * implementation does not require JSON serialization of messages.
      *
      * @param {Object} data the data to pass to the worker
      * @param {Boolean} [syncCallbacks] flag that indicates whether
@@ -95,7 +100,7 @@ function Worker(module) {
         var event = {data: data, source: source};
         worker.submit(self, function() {
             try {
-                worker.invoke(module, "onmessage", event);
+                worker.invoke(moduleId, "onmessage", event);
             } catch (error) {
                 invokeCallback(onerror, {data: error, source: self});
             }
@@ -117,20 +122,20 @@ function Worker(module) {
 /**
  * A [Promise][ringo/promise] backed by a [Worker][#Worker].
  *
- * This creates a new Worker with the given `module` and calls its `postMessage`
+ * This creates a new Worker with the given `moduleId` and calls its `postMessage`
  * function with the `message` argument. The first message or error received
  * back from the worker will be used to resolve the promise.
  *
  * The worker is terminated immediately after it resolves the promise.
  *
- * @param module the worker module id or object.
- * @param message the message to post to the worker.
+ * @param {String} moduleId the id of the module to load in the worker.
+ * @param {Object} message the message to post to the worker.
  * @constructor
  * @see ringo/promise#Promise
  */
-function WorkerPromise(module, message) {
+function WorkerPromise(moduleId, message) {
     var deferred = new Deferred();
-    var worker = new Worker(module);
+    var worker = new Worker(moduleId);
     var resolved = false;
 
     worker.onmessage = function(e) {
