@@ -1,10 +1,10 @@
 var assert = require("assert");
-var {defer, promises} = require("ringo/promise");
+var {Deferred, PromiseList} = require("ringo/promise");
 var {Worker} = require("ringo/worker");
 var {Semaphore} = require("ringo/concurrent");
 
 exports.testPromise = function() {
-    var d1 = defer(), d2 = defer();
+    var d1 = new Deferred(), d2 = new Deferred();
     var semaphore = new Semaphore();
     var v1, v2, e2;
     d1.promise.then(function(value) {
@@ -37,8 +37,8 @@ exports.testPromise = function() {
 };
 
 exports.testPromiseList = function() {
-    var d1 = defer(), d2 = defer(), d3 = defer(), done = defer();
-    var l = promises(d1.promise, d2.promise, d3); // promiseList should convert d3 to promise
+    var d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
+    var l = PromiseList(d1.promise, d2.promise, d3); // PromiseList should convert d3 to promise
     var semaphore = new Semaphore();
     var result;
     l.then(function(value) {

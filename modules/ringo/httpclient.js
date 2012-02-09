@@ -12,7 +12,7 @@ var {Buffer} = require('ringo/buffer');
 var {Decoder} = require('ringo/encoding');
 var {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
 var base64 = require('ringo/base64');
-var {defer} = require('ringo/promise');
+var {Deferred} = require('ringo/promise');
 var log = require('ringo/logging').getLogger(module.id);
 
 export('request', 'post', 'get', 'del', 'put');
@@ -576,7 +576,7 @@ var Client = function(timeout, followRedirects) {
     this.request = function(options) {
         var opts = defaultOptions(options);
         if (opts.promise) {
-            var deferred = defer();
+            var deferred = new Deferred();
             opts.success = function() {deferred.resolve(arguments[3])};
             opts.error = function() {deferred.resolve(arguments[2], true)};
             opts.async = true;
