@@ -116,8 +116,7 @@ public class EventAdapter extends ScriptableObject {
             list = new LinkedList<Callback>();
             callbacks.put(type, list);
         }
-        Callback callback = new Callback((Scriptable)function, sync);
-        list.add(callback);
+        list.add(new Callback((Scriptable)function, sync));
     }
 
     @JSFunction
@@ -329,6 +328,8 @@ public class EventAdapter extends ScriptableObject {
      * Convert Java class to "Lname-with-dots-replaced-by-slashes;" form
      * suitable for use as JVM type signatures. This includes support
      * for arrays and primitive types such as int or boolean.
+     * @param clazz the class
+     * @return the signature
      */
     public static String classToSignature(Class<?> clazz) {
         if (clazz.isArray()) {
@@ -348,6 +349,13 @@ public class EventAdapter extends ScriptableObject {
         return ClassFileWriter.classNameToSignature(clazz.getName());
     }
 
+    /**
+     * A wrapper around a JavaScript function or (moduleId, functionName) pair.
+     * If callback is a function, the callback is bound to its current worker
+     * as the function is a closure over its scope. If the callback is a
+     * (moduleId, functionName) pair it is not bound to any worker as the
+     * module will be loaded on demand when the callback is invoked.
+     */
     class Callback {
         final RingoWorker worker;
         final Object module;
@@ -398,7 +406,7 @@ public class EventAdapter extends ScriptableObject {
             }
         }
 
-        void invokeWithWorker(RingoWorker worker, Object[] args) {
+        private void invokeWithWorker(RingoWorker worker, Object[] args) {
             if (sync) {
                 try {
                     worker.invoke(module, function, args);
