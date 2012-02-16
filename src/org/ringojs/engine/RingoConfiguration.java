@@ -346,6 +346,7 @@ public class RingoConfiguration {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+        System.setProperty("ringo.verbose", String.valueOf(verbose));
     }
 
     public boolean getStrictVars() {

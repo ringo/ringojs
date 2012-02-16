@@ -33,7 +33,7 @@ public class POSIXSupport {
         }
 
         public boolean isVerbose() {
-            return true;
+            return "true".equals(System.getProperty("ringo.verbose"));
         }
 
         public File getCurrentWorkingDirectory() {
