@@ -46,7 +46,7 @@ public class RhinoEngine implements ScopeProvider {
     private RingoGlobal globalScope;
     private List<String> commandLineArgs;
     private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts;
-    private final Map<String, Object> singletons;
+    private final Map<Singleton, Singleton> singletons;
     private AppClassLoader loader = new AppClassLoader();
     private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
@@ -79,7 +79,7 @@ public class RhinoEngine implements ScopeProvider {
         mainWorker = new RingoWorker(this);
         compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        singletons = Collections.synchronizedMap(new HashMap<String, Object>());
+        singletons = new HashMap<Singleton, Singleton>();
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
         this.wrapFactory = config.getWrapFactory();
@@ -856,17 +856,15 @@ public class RhinoEngine implements ScopeProvider {
         return config;
     }
 
-    protected synchronized Object getSingleton(String key, Function factory,
-                                               Scriptable thisObj) {
-        if (singletons.containsKey(key)) {
-            return singletons.get(key);
-        } else if (factory == null) {
-            return Undefined.instance;
+    Singleton getSingleton(Singleton singleton) {
+        synchronized (singletons) {
+            Singleton st = singletons.get(singleton);
+            if (st == null) {
+                st = singleton;
+                singletons.put(singleton, singleton);
+            }
+            return st;
         }
-        Context cx = Context.getCurrentContext();
-        Object value = factory.call(cx, globalScope, thisObj, ScriptRuntime.emptyArgs);
-        singletons.put(key, value);
-        return value;
     }
 
     /**

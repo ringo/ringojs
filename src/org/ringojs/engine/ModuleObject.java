@@ -1,5 +1,6 @@
 package org.ringojs.engine;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
@@ -42,7 +43,7 @@ public class ModuleObject extends ScriptableObject {
 
     @JSFunction
     public Object singleton(Object id, Object factory) {
-        if (id == null || id == Undefined.instance) {
+        if (!(id instanceof CharSequence)) {
             throw ScriptRuntime.constructError("Error",
                     "singleton() requires a string id as first argument");
         }
@@ -53,10 +54,10 @@ public class ModuleObject extends ScriptableObject {
             throw ScriptRuntime.constructError("Error",
                     "Expected function as second argument");
         }
-        String key = source.getPath() + ":" + ScriptRuntime.toString(id);
         Scriptable scope = ScriptableObject.getTopLevelScope(getParentScope());
         RhinoEngine engine = RhinoEngine.getEngine(scope);
-        return engine.getSingleton(key, factoryFunction, this);
+        Singleton singleton = engine.getSingleton(new Singleton(source, id.toString()));
+        return singleton.getValue(factoryFunction, scope, this);
     }
 
     @JSGetter
@@ -94,5 +95,40 @@ public class ModuleObject extends ScriptableObject {
     @Override
     public String getClassName() {
         return "ModuleObject";
+    }
+}
+
+/**
+ * A wrapper around a singleton id and value.
+ */
+class Singleton {
+
+    final String key;
+    boolean evaluated;
+    Object value;
+
+    Singleton(Trackable source, String id) {
+        this.key = source.getPath() + ":" + id;
+    }
+
+    synchronized Object getValue(Function function, Scriptable scope,
+                                 ModuleObject obj) {
+        if (!evaluated) {
+            Context cx = Context.getCurrentContext();
+            value = function.call(cx, scope, obj, ScriptRuntime.emptyArgs);
+            evaluated = true; // only if evaluation was successful
+        }
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Singleton
+                && key.equals(((Singleton) obj).key);
+    }
+
+    @Override
+    public int hashCode() {
+        return key.hashCode();
     }
 }
