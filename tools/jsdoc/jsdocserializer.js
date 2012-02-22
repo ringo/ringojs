@@ -28,16 +28,18 @@ var getRepositoryName = exports.getRepositoryName = function(repositoryOrPath) {
 
 /**
  * Returns a name sorted, stringify-able list of objects describing the
- * modules for the given repositoryPath.
+ * modules for the given repository.
  *
- * @param {String} repositoryPath
+ * @param {Object} repository repository descriptor
  * @param {Boolean} moduleFileOverview if true every module will be parsed and
  *                  it's fileoverview attached. default: false.
  * @returns {Array} modules
  */
-var moduleList = exports.moduleList = function(repositoryPath, moduleFileOverview) {
-    var repository = new ScriptRepository(repositoryPath);
-    var modules = repository.getScriptResources(true).filter(function(r) {
+var moduleList = exports.moduleList = function(repository, moduleFileOverview) {
+    var packageName = repository.package.name;
+    var mainModule = repository.package.main;
+    var scriptRepository = new ScriptRepository(repository.path);
+    return scriptRepository.getScriptResources(true).filter(function(r) {
         return !r.moduleName.match(/^ringo\/?global$/);
     }).map(function(mod) {
         var fileoverview = undefined;
@@ -45,18 +47,26 @@ var moduleList = exports.moduleList = function(repositoryPath, moduleFileOvervie
             var docItems = parseResource(mod);
             fileoverview = docItems.fileoverview && docItems.fileoverview.getTag('fileoverview') || '';
         }
+        var id = mod.moduleName.replace(/\./g,'/');
+        var name = id;
+        // If this is a package adjust module names according to package loading
+        // conventions: use just the package name for main module and prepend
+        // the package name to all other modules.
+        if (mainModule && mainModule == mod)
+            name = packageName || name;
+        else if (packageName && packageName != id)
+            name = packageName + '/' + id;
         return {
-            id: mod.moduleName.replace(/\./g,'/'),
+            id: id,
+            name: name,
             fileoverview: fileoverview
         }
     }).sort(function(a, b) {
         // sort modules by namespace depth first, then lexographically
-        var level = strings.count(a.id, '/') - strings.count(b.id, '/');
+        var level = strings.count(a.name, '/') - strings.count(b.name, '/');
         if (level != 0) return level;
-        return a.id > b.id ? 1 : -1;
+        return a.name > b.name ? 1 : -1;
     });
-
-   return modules;
 };
 
 /**
@@ -74,16 +84,16 @@ var repositoryList = exports.repositoryList = function(repositoryPaths) {
 /**
  * @returns {Array} objects with jsdoc information for each property defined in module
  */
-var moduleDoc = exports.moduleDoc = function(repositoryPath, moduleId, toLink) {
+var moduleDoc = exports.moduleDoc = function(repositoryPath, module, toLink) {
     var repository = new ScriptRepository(repositoryPath);
-    var res = repository.getScriptResource(moduleId + '.js');
+    var res = repository.getScriptResource(module.id + '.js');
     if (!res.exists()) {
         return null;
     }
     var docItems = parseResource(res);
 
     var doc = {};
-    doc.name = moduleId;
+    doc.name = module.name;
     if (docItems.fileoverview) {
         doc.fileoverview = docItems.fileoverview.getTag('fileoverview');
         doc.example = docItems.fileoverview.getTag('example');

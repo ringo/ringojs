@@ -8,9 +8,8 @@
 
 // stdlib
 var files = require('ringo/utils/files');
-var {makeTree, write, copyTree, join, Path} = require('fs');
+var fs = require('fs');
 var {Parser} = require('ringo/args');
-var {isFile, isDirectory} = require('fs');
 var {ScriptRepository} = require('ringo/jsdoc');
 var strings = require('ringo/utils/strings');
 var objects = require('ringo/utils/objects');
@@ -30,30 +29,30 @@ var templates = {
     };
 
 /**
- * Renders jsdoc html files for the given repository into the exportDirectory.
+ * Renders jsdoc html files for the given repository into the given directory.
  *
  * @param {Object} repository
- * @param {String} exportDirectory
+ * @param {String} directory
  * @param {Boolean} quiet
  */
-var renderRepository = exports.renderRepository = function (repository, exportDirectory, quiet) {
+var renderRepository = exports.renderRepository = function (repository, directory, quiet) {
     // need apps/jsdoc on path for skin extend to work
     if (require.paths.indexOf(module.directory) == -1) {
         require.paths.push(module.directory);
     }
 
-    if (!quiet) print ('Writing to ' + exportDirectory + '...');
-    copyStaticFiles(exportDirectory);
+    if (!quiet) print ('Writing to ' + directory + '...');
+    copyStaticFiles(directory);
     if (!quiet) print ('Module index');
-    writeRepositoryIndex(exportDirectory, repository);
+    writeRepositoryIndex(directory, repository);
     if (!quiet) print(repository.path);
-    writeModuleList(exportDirectory, repository);
-    moduleList(repository.path).forEach(function(module) {
-        if (!quiet) print('\t' + module.id);
-        writeModuleDoc(exportDirectory, repository, module.id);
+    writeModuleList(directory, repository);
+    moduleList(repository).forEach(function(module) {
+        if (!quiet) print('\t' + module.name);
+        writeModuleDoc(directory, repository, module);
     });
 
-    if (!quiet) print('Finished writing to ' + exportDirectory);
+    if (!quiet) print('Finished writing to ' + directory);
     return;
 }
 
@@ -63,21 +62,21 @@ var renderRepository = exports.renderRepository = function (repository, exportDi
  * @param {String} directory
  */
 function copyStaticFiles(directory) {
-    makeTree(join(directory, 'static'));
-    copyTree(join(module.directory, 'static'), join(directory, 'static'));
+    fs.makeTree(fs.join(directory, 'static'));
+    fs.copyTree(fs.join(module.directory, 'static'), fs.join(directory, 'static'));
 }
 
 /**
  * Write the html file listing all modules to directory.
  *
  * @param {String} directory directory of html file to be written
- * @param {String} repository path
+ * @param {Object} repository repository descriptor
  */
 function writeModuleList(directory, repository) {
     var context = objects.merge(defaultContext, {
         repositoryName: repository.name,
         title: 'Module overview - ' + repository.name,
-        modules: moduleList(repository.path, true),
+        modules: moduleList(repository, true),
         rootPath: './',
         markdown: function(text) {
             return markdown.process(text);
@@ -88,25 +87,25 @@ function writeModuleList(directory, repository) {
     context.menu = mustache.to_html(templates.menu, context);
     context.content = mustache.to_html(templates.repository, context);
     var repositoryHtml = mustache.to_html(templates.page, context);
-    write(join(directory, 'index.html'), repositoryHtml);
+    fs.write(fs.join(directory, 'index.html'), repositoryHtml);
 }
 
 /**
  * Write html page documenting one module to the directory.
  *
  * @param {String} directory
- * @param {String} repository path
- * @param {String} moduleId
+ * @param {Object} repository repository descriptor
+ * @param {Object} module module descriptor
  */
-function writeModuleDoc(directory, repository, moduleId){
+function writeModuleDoc(directory, repository, module){
 
     var moduleDirectory = directory;
     var modules = [];
-    moduleDirectory = join(directory, moduleId);
-    makeTree(moduleDirectory);
-    modules = moduleList(repository.path);
+    moduleDirectory = fs.join(directory, module.id);
+    fs.makeTree(moduleDirectory);
+    modules = moduleList(repository);
 
-    var slashCount = strings.count(moduleId, '/');
+    var slashCount = strings.count(module.id, '/');
     var relativeRoot = '../' + strings.repeat('../', slashCount);
 
     function toLink(target) {
@@ -125,16 +124,16 @@ function writeModuleDoc(directory, repository, moduleId){
         return null;
     }
 
-    var docs = moduleDoc(repository.path, moduleId, toLink);
+    var docs = moduleDoc(repository.path, module, toLink);
     if (docs == null) {
-        throw new Error('Could not parse JsDoc for ' + repository.path + moduleId);
+        throw new Error('Could not parse JsDoc for ' + repository.path + module.id);
     }
 
     var context = objects.merge(defaultContext, {
         rootPath: relativeRoot,
         repositoryName: repository.name,
-        title: moduleId + ' - ' + repository.name,
-        moduleId: moduleId,
+        title: module.name + ' - ' + repository.name,
+        moduleId: module.id,
         modules: modules,
         item: structureModuleDoc(docs),
         paramList: function() {
@@ -161,13 +160,13 @@ function writeModuleDoc(directory, repository, moduleId){
     context.menu = mustache.to_html(templates.menu, context);
     context.content = mustache.to_html(templates.module, context);
     var moduleHtml = mustache.to_html(templates.page, context);
-    var moduleFile = join(moduleDirectory, 'index.html');
-    write(moduleFile, moduleHtml);
+    var moduleFile = fs.join(moduleDirectory, 'index.html');
+    fs.write(moduleFile, moduleHtml);
 }
 
 function writeRepositoryIndex(directory, repository) {
-    var modules = moduleList(repository.path).map(function(module) {
-        module.data = structureModuleDoc(moduleDoc(repository.path, module.id));
+    var modules = moduleList(repository).map(function(module) {
+        module.data = structureModuleDoc(moduleDoc(repository.path, module));
         module.moduleName = module.name;
         return module;
     });
@@ -187,8 +186,8 @@ function writeRepositoryIndex(directory, repository) {
     context.menu = mustache.to_html(templates.menu, context);
     context.content = mustache.to_html(templates.index, context);
     var indexHtml = mustache.to_html(templates.page, context);
-    var indexFile = join(directory, 'index_all.html');
-    write(indexFile, indexHtml);
+    var indexFile = fs.join(directory, 'index_all.html');
+    fs.write(indexFile, indexHtml);
 }
 
 /**
@@ -223,6 +222,7 @@ function main(args) {
     parser.addOption('t', 'template', 'file', 'Master template to use');
     parser.addOption('n', 'name', 'name', 'Name of the Repository (default: auto generated from path)');
     parser.addOption('q', 'quiet', null, 'Do not output any messages.');
+    parser.addOption('p', 'package', 'package.json', 'Use package manifest to adjust module names.')
     parser.addOption(null, 'file-urls', null, 'Add "index.html" to all URLs for file:// serving.');
     parser.addOption('h', 'help', null, 'Print help message and exit');
 
@@ -242,27 +242,38 @@ function main(args) {
         templates.page = t.content;
     }
 
-    var exportDirectory = join(opts.directory || './out/');
+    if (opts.package) {
+        // read package.json manifest
+        var packageJson = fs.absolute(opts.package);
+        var pkg = opts.package = require(packageJson);
+        if (pkg.main) {
+            // make main module absolute
+            pkg.main = fs.absolute(fs.join(fs.directory(packageJson), pkg.main))
+        }
+    }
+
+    var directory = fs.join(opts.directory || './out/');
     var repository = {
         path: opts.source,
-        name: opts.name || getRepositoryName(opts.source)
+        name: opts.name || getRepositoryName(opts.source),
+        package: opts.package || {}
     };
     var quiet = opts.quiet || false;
     defaultContext.indexhtml = opts['fileUrls'] ? 'index.html' : '';
 
     // check if export dir exists & is empty
-    var dest = new Path(exportDirectory);
+    var dest = new fs.Path(directory);
     if (dest.exists() && !dest.isDirectory()) {
         throw new Error(dest + ' exists but is not a directory.');
     } else if (dest.isDirectory() && dest.list().length > 0) {
         throw new Error('Directory ' + dest + ' exists but is not empty');
     }
 
-    if (!isDirectory(repository.path)) {
+    if (!fs.isDirectory(repository.path)) {
         throw new Error('Invalid source specified. Must be directory.');
     }
 
-    renderRepository(repository, exportDirectory, quiet);
+    renderRepository(repository, directory, quiet);
 }
 
 if (require.main == module) {
