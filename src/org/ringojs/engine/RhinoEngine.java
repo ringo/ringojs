@@ -453,52 +453,69 @@ public class RhinoEngine implements ScopeProvider {
             Resource json = findResource(packageName + "/package.json", null, localPath);
 
             if (json != null && json.exists()) {
-                JsonParser parser = new JsonParser(
-                        Context.getCurrentContext(), globalScope);
-                try {
-                    String moduleId = null;
-                    Object parsed = parser.parseValue(json.getContent());
-                    if (!(parsed instanceof NativeObject)) {
-                        throw new RuntimeException(
-                                "Expected Object from package.json, got " + parsed);
-                    }
-                    Scriptable obj = (Scriptable) parsed;
 
-                    if (remainingName == null) {
-                        // get the main module of this package
-                        Object main = ScriptableObject.getProperty(obj, "main");
-                        if (main != null && main != ScriptableObject.NOT_FOUND) {
-                            moduleId = ScriptRuntime.toString(main);
-                        }
-                    } else {
-                        // map remaining name to libs directory
-                        String lib = "lib";
-                        Object dirs = ScriptableObject.getProperty(obj, "directories");
-                        if (dirs instanceof Scriptable) {
-                            Object libDir = ScriptableObject.getProperty(
-                                    (Scriptable) dirs, "lib");
-                            if (libDir != null && libDir != Scriptable.NOT_FOUND) {
-                                lib = ScriptRuntime.toString(libDir);
-                            }
-                        }
-                        moduleId = lib + "/" + remainingName;
-                    }
+                Scriptable obj = parseJsonResource(json);
+                Repository parent = json.getParentRepository();
+                String moduleId;
+                Resource res;
 
+                if (remainingName == null) {
+                    // get the main module of this package
+                    moduleId = getStringProperty(obj, "main", null);
                     if (moduleId != null) {
-                        Repository parent = json.getParentRepository();
-                        Resource res = parent.getResource(moduleId);
-                        if (res == null || !res.exists()) {
-                            res = parent.getResource(moduleId + ".js");
-                        }
-                        return res;
+                        // optimize for the common case where main module
+                        // property links to the exact file name
+                        res = parent.getResource(moduleId);
+                        if (res != null && res.exists()) return res;
                     }
-                } catch (JsonParser.ParseException px) {
-                    throw new RuntimeException(px);
+                } else {
+                    // map remaining name to libs directory
+                    String lib = "lib";
+                    Object dirs = ScriptableObject.getProperty(obj, "directories");
+                    if (dirs instanceof Scriptable) {
+                        lib = getStringProperty((Scriptable)dirs, "lib", "lib");
+                    }
+                    moduleId = lib + "/" + remainingName;
                 }
+
+                if (moduleId != null) {
+                    for (ModuleLoader loader: loaders) {
+                        res = parent.getResource(moduleId + loader.getExtension());
+                        if (res != null && res.exists()) return res;
+                    }
+                    if (remainingName != null) {
+                        res = parent.getResource(moduleId);
+                        if (res != null && res.exists()) return res;
+                    }
+                }
+
             }
+
         } while (slash != -1);
 
         return findResource(moduleName + "/index", loaders, localPath);
+    }
+    
+    private Scriptable parseJsonResource(Resource resource) throws IOException {
+        JsonParser parser = new JsonParser(Context.getCurrentContext(), globalScope);
+        try {
+            Object result = parser.parseValue(resource.getContent());
+            if (!(result instanceof Scriptable)) {
+                throw new RuntimeException(
+                        "Expected Object from package.json, got " + result);
+            }
+            return (Scriptable) result;
+        } catch (JsonParser.ParseException px) {
+            throw new RuntimeException(px);
+        }
+    }
+    
+    private String getStringProperty(Scriptable obj, String name, String defaultValue) {
+        Object value = ScriptableObject.getProperty(obj, name);
+        if (value != null && value != ScriptableObject.NOT_FOUND) {
+            return ScriptRuntime.toString(value);
+        }
+        return defaultValue;
     }
 
 
