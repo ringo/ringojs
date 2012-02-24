@@ -218,7 +218,7 @@ public class RingoGlobal extends Global {
         }
         Scriptable scope = getTopLevelScope(thisObj);
         try {
-            return ((Function)args[0]).call(cx, scope, thisObj, RhinoEngine.EMPTY_ARGS);
+            return ((Function)args[0]).call(cx, scope, thisObj, ScriptRuntime.emptyArgs);
         } catch (RhinoException re) {
             return new NativeJavaObject(scope, re, null);
         }

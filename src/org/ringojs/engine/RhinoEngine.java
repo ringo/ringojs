@@ -55,14 +55,13 @@ public class RhinoEngine implements ScopeProvider {
     private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
 
-    public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final List<Integer> VERSION =
-            Collections.unmodifiableList(Arrays.asList(0, 8));
-
     private final RingoWorker mainWorker;
     private final ThreadLocal<RingoWorker> currentWorker = new ThreadLocal<RingoWorker>();
     private final Deque<RingoWorker> workers;
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
+
+    public static final List<Integer> VERSION =
+            Collections.unmodifiableList(Arrays.asList(0, 8));
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
@@ -96,7 +95,7 @@ public class RhinoEngine implements ScopeProvider {
             debugger.setBreakOnExceptions(true);
         }
 
-        // create and intialize global scope
+        // create and initialize global scope
         Context cx = contextFactory.enterContext();
         try {
             boolean sealed = config.isSealed();
@@ -557,7 +556,7 @@ public class RhinoEngine implements ScopeProvider {
     public Object[] getArguments() {
         String[] args = config.getArguments();
         if (args == null) {
-            return EMPTY_ARGS;
+            return ScriptRuntime.emptyArgs;
         } else {
             Object[] array = new Object[args.length];
             System.arraycopy(args, 0, array, 0, args.length);
