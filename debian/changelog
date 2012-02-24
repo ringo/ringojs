@@ -1,3 +1,9 @@
+ringojs (0.9-1) unstable; urgency=low
+
+  * Bump version to 0.9
+
+ -- Hannes Wallnoefer <hannesw@gmail.com>  Fri, 24 Feb 2012 17:09:52 +0100
+
 ringojs (0.8-1) unstable; urgency=low
 
   * Bump version to 0.8

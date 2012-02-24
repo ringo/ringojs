@@ -61,7 +61,7 @@ public class RhinoEngine implements ScopeProvider {
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
 
     public static final List<Integer> VERSION =
-            Collections.unmodifiableList(Arrays.asList(0, 8));
+            Collections.unmodifiableList(Arrays.asList(0, 9));
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
