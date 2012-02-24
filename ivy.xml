@@ -4,7 +4,6 @@
         <!-- rhino -->
         <dependency org="org.mozilla" name="rhino" rev="1.7R3"/>
         <!-- jetty -->
-        <dependency org="org.eclipse.jetty" name="jetty-client" rev="7.5.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-server" rev="7.5.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="7.5.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-websocket" rev="7.5.+"/>
