@@ -182,7 +182,9 @@ public class RingoShell {
                     break;
             }
             try {
-                cx.evaluateString(scope, source, "<stdin>", lineno, codeSource);
+                Resource res = new StringResource("<stdin>", source, lineno);
+                ReloadableScript script = new ReloadableScript(res, engine);
+                worker.evaluateScript(cx, script, scope);
                 lineno++;
             } catch (Exception ex) {
                 RingoRunner.reportError(ex, System.err, worker.getErrors(),
