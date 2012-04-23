@@ -357,7 +357,7 @@ public class EventAdapter extends ScriptableObject {
      * module will be loaded on demand when the callback is invoked.
      */
     class Callback {
-        final RingoWorker worker;
+        RingoWorker worker;
         final Object module;
         final Object function;
         final boolean sync;
@@ -367,7 +367,10 @@ public class EventAdapter extends ScriptableObject {
             if (function instanceof Function) {
                 this.module = scope;
                 this.function = function;
-                this.worker = engine.getCurrentWorker();
+                worker = engine.getCurrentWorker();
+                if (worker == null) {
+                    worker = engine.getWorker();
+                }
             } else {
                 this.module = getProperty(function, "module");
                 this.function = getProperty(function, "name");

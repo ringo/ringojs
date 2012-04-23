@@ -77,6 +77,9 @@ public class Require extends BaseFunction {
                 (ModuleScope) thisObj : null;
         try {
             RingoWorker worker = engine.getCurrentWorker();
+            if (worker == null) {
+                worker = engine.getWorker();
+            }
             String arg = args[0].toString();
             Scriptable module = worker.loadModuleInternal(cx, arg, moduleScope);
             return module instanceof ModuleScope ?

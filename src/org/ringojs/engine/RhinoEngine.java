@@ -241,11 +241,7 @@ public class RhinoEngine implements ScopeProvider {
      * @return the worker associated with the current thread, or null.
      */
     public RingoWorker getCurrentWorker() {
-        RingoWorker worker = currentWorker.get();
-        if (worker == null) {
-            throw new RuntimeException("No worker associated with current thread");
-        }
-        return worker;
+        return currentWorker.get();
     }
 
     protected void setCurrentWorker(RingoWorker worker) {
