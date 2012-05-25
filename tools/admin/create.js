@@ -79,7 +79,7 @@ function copyJars(home, dest, symlink) {
         "ringo.jar",
         "ivy/rhino-1.7R3.jar",
         "ivy/jaffl-0.5.11.jar",
-        "ivy/jnr-posix-1.1.8.jar"
+        "ivy/jnr-posix-1.1.9.jar"
     ];
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");
