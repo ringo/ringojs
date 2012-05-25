@@ -104,8 +104,8 @@ public class ModuleObject extends ScriptableObject {
 class Singleton {
 
     final String key;
-    boolean evaluated;
-    Object value;
+    boolean evaluated = false;
+    Object value = Undefined.instance;
 
     Singleton(Trackable source, String id) {
         this.key = source.getPath() + ":" + id;
@@ -113,7 +113,7 @@ class Singleton {
 
     synchronized Object getValue(Function function, Scriptable scope,
                                  ModuleObject obj) {
-        if (!evaluated) {
+        if (!evaluated && function != null) {
             Context cx = Context.getCurrentContext();
             value = function.call(cx, scope, obj, ScriptRuntime.emptyArgs);
             evaluated = true; // only if evaluation was successful
