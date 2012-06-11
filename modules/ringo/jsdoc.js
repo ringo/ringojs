@@ -197,10 +197,11 @@ exports.parseResource = function(resource) {
                 var args = ScriptableList(node.arguments);
                 var target = nodeToString(args[0]).split('.');
                 var jsdoc, value;
-                // rhino puts jsdoc on the first name of the third argument object literal (property descriptor)
+                // rhino used to put jsdoc on the first name of the third argument object literal (property descriptor)
                 if (args[2] && args[2].elements) {
+                    jsdoc = args[2].jsDoc;
                     var left = args[2].elements.get(0).left;
-                    jsdoc = left.jsDoc;
+                    jsdoc = jsdoc || left.jsDoc;
                     if (nodeToString(left) == "value") {
                         value = args[2].elements.get(0).right;
                     }
