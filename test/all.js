@@ -7,6 +7,7 @@ exports.testArgs           = require('./ringo/args_test');
 exports.testBuffer         = require('./ringo/buffer_test');
 exports.testEncoding       = require('./ringo/encoding_test');
 exports.testEvents         = require('./ringo/events_test');
+exports.testHttpclient     = require('./ringo/httpclient_test');
 exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
 exports.testSubprocess     = require('./ringo/subprocess_test');
