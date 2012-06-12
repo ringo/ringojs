@@ -48,14 +48,17 @@ var EventEmitter = exports.EventEmitter = function() {
  * called without event mapping the method name is used as event name, except
  * for methods like `onFoo` which will trigger event `foo`.
  *
- * @param classOrInterface a Java class or interface
+ * @param classOrInterface a Java class or interface, or an Array containing
+ *     multiple Java interfaces.
  * @param eventMapping optional object mapping method names to event names.
  *     If this parameter is defined only methods whose name is a property
  *     key in the object will be overridden, and the event type will be
  *     set to the property value instead of the method name.
  */
 exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
-    var e = new EventAdapter(classOrInterface, eventMapping);
+    var classArg = Array.isArray(classOrInterface) ?
+            classOrInterface : [classOrInterface];
+    var e = new EventAdapter(classArg, eventMapping);
     Object.defineProperties(this, {
         /**
          * The generated Java object. This implements the Java interface
