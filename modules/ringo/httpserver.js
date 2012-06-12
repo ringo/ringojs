@@ -216,7 +216,8 @@ function Server(options) {
                         };
 
                         // make socket a java event-emitter (mixin)
-                        JavaEventEmitter.call(socket, WebSocket.OnTextMessage);
+                        JavaEventEmitter.call(socket, [WebSocket.OnTextMessage,
+                                                       WebSocket.OnBinaryMessage]);
 
                         socket.addListener("open", function(connection) {
                             conn = connection;
