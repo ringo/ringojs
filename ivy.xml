@@ -23,5 +23,7 @@
         </dependency>
         <!-- junit -->
         <dependency org="junit" name="junit" rev="3.8.+"/>
+        <!-- jline -->
+        <dependency org="jline" name="jline" rev="1.0"/>
     </dependencies>
 </ivy-module>
