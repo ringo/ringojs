@@ -76,12 +76,12 @@ public class Require extends BaseFunction {
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            RingoWorker worker = engine.getCurrentWorker();
+            RingoWorker worker = engine.getCurrentWorker(thisObj);
             if (worker == null) {
-                worker = engine.getWorker();
+                worker = engine.getMainWorker();
             }
             String arg = args[0].toString();
-            Scriptable module = worker.loadModuleInternal(cx, arg, moduleScope);
+            Scriptable module = worker.loadModule(cx, arg, moduleScope);
             return module instanceof ModuleScope ?
                     ((ModuleScope)module).getExports() : module;
         } catch (FileNotFoundException notFound) {

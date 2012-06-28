@@ -3,7 +3,7 @@
  * functions.
  */
 
-var engine = require("ringo/engine").getRhinoEngine();
+var engine = require("ringo/engine");
 
 /**
  * Executes a function after specified delay. The function will be called

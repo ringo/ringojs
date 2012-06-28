@@ -93,7 +93,7 @@ public class ReloadableScript {
      * @throws IOException if an error occurred reading the script file
      * @return the compiled and up-to-date script
      */
-    public synchronized Object getScript(Context cx)
+    public synchronized Object getScript(Context cx, RingoWorker worker)
             throws JavaScriptException, IOException {
         // only use shared code cache if optlevel >= 0
         int optlevel = cx.getOptimizationLevel();
@@ -121,8 +121,8 @@ public class ReloadableScript {
                 cache.put(resource, scriptref);
             }
         }
-        if (errors != null && !errors.isEmpty()) {
-            List<ScriptError> currentErrors = engine.getCurrentErrors();
+        if (errors != null && worker != null && !errors.isEmpty()) {
+            List<ScriptError> currentErrors = worker.getErrors();
             if (currentErrors != null) {
                 currentErrors.addAll(errors);
             }
@@ -171,9 +171,9 @@ public class ReloadableScript {
      * @throws IOException if an error occurred reading the script file
      */
     public Object evaluate(Scriptable scope, Context cx,
-                           Map<Resource, Scriptable> modules)
+                           RingoWorker worker)
             throws JavaScriptException, IOException {
-        Object obj = getScript(cx);
+        Object obj = getScript(cx, worker);
         if (!(obj instanceof Script)) {
             return obj;
         }
@@ -181,7 +181,7 @@ public class ReloadableScript {
         ModuleScope module = scope instanceof ModuleScope ? 
                 (ModuleScope) scope : null;
         if (module != null) {
-            modules.put(resource, module);
+            worker.registerModule(resource, module);
         }
         Object value = script.exec(cx, scope);
         if (module != null) {
@@ -197,26 +197,26 @@ public class ReloadableScript {
      * @param prototype the prototype for the module, usually the shared top level scope
      * @param cx the rhino context
      * @param module the preexisting module for this resource if available
-     * @param modules thread-local map for registering the module scope
+     * @param worker the worker instance loading this module
      * @return a new module scope
      * @throws JavaScriptException if an error occurred evaluating the script file
      * @throws IOException if an error occurred reading the script file
      */
     protected Scriptable load(Scriptable prototype, Context cx,
-                              Scriptable module, Map<Resource, Scriptable> modules)
+                              Scriptable module, RingoWorker worker)
             throws JavaScriptException, IOException {
         if (module instanceof ModuleScope &&
                 ((ModuleScope)module).getChecksum() == getChecksum()) {
             // Module scope exists and is up to date
-            modules.put(resource, module);
+            worker.registerModule(resource, module);
             return module;
         }
 
-        return exec(cx, prototype, modules);
+        return exec(cx, prototype, worker);
     }
 
     private synchronized Scriptable exec(Context cx, Scriptable prototype,
-                                         Map<Resource, Scriptable> modules)
+                                         RingoWorker worker)
             throws IOException {
         if (log.isLoggable(Level.FINE)) {
             log.fine("Loading module: " + moduleName);
@@ -224,19 +224,19 @@ public class ReloadableScript {
         if (engine.getConfig().isVerbose()) {
             System.err.println("Loading module: " + moduleName);
         }
-        Object obj = getScript(cx);
+        Object obj = getScript(cx, worker);
         if (!(obj instanceof Script)) {
             if (!(obj instanceof Scriptable)) {
                 throw Context.reportRuntimeError("Module must be an object");
             }
             Scriptable scriptable = (Scriptable) obj;
-            modules.put(resource, scriptable);
+            worker.registerModule(resource, scriptable);
             return scriptable;
         }
         Script script = (Script) obj;
-        ModuleScope module = new ModuleScope(moduleName, resource, prototype);
+        ModuleScope module = new ModuleScope(moduleName, resource, prototype, worker);
         // put module scope in map right away to make circular dependencies work
-        modules.put(resource, module);
+        worker.registerModule(resource, module);
         // warnings are disabled in shell - enable warnings for module loading
         ErrorReporter er = cx.getErrorReporter();
         ToolErrorReporter reporter = er instanceof ToolErrorReporter ?

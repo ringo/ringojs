@@ -392,7 +392,7 @@ public class EventAdapter extends ScriptableObject {
             if (function instanceof Function) {
                 this.module = scope;
                 this.function = function;
-                worker = engine.getCurrentWorker();
+                worker = engine.getCurrentWorker(scope);
                 if (worker == null) {
                     worker = engine.getWorker();
                 }

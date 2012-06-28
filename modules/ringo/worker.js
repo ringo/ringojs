@@ -2,7 +2,7 @@
  * @fileoverview A Worker API based on the
  * [W3C Web Workers](http://www.w3.org/TR/workers/).
  */
-var engine = require("ringo/engine").getRhinoEngine();
+var engine = require("ringo/engine");
 var Deferred = require("ringo/promise").Deferred;
 
 exports.Worker = Worker;
@@ -44,17 +44,17 @@ function Worker(moduleId) {
     // throw an error if module can't be loaded.
     worker.loadModuleInWorkerThread(moduleId).get();
 
-    var onmessage = function(e) {
+    function onmessage(e) {
         if (typeof self.onmessage === "function") {
             self.onmessage(e);
         }
-    };
+    }
 
-    var onerror = function(e) {
+    function onerror(e) {
         if (typeof self.onerror === "function") {
             self.onerror(e);
         }
-    };
+    }
 
     /**
      * Post a message to the worker. This enqueues the message

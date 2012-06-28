@@ -16,12 +16,20 @@
 
 package org.ringojs.engine;
 
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.ScriptRuntime;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.WrapFactory;
+import org.mozilla.javascript.Wrapper;
 import org.mozilla.javascript.json.JsonParser;
 import org.ringojs.repository.*;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
 import org.ringojs.wrappers.*;
-import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
 
 import java.io.*;
@@ -56,7 +64,6 @@ public class RhinoEngine implements ScopeProvider {
     private ModuleScope mainScope = null;
 
     private final RingoWorker mainWorker;
-    private final ThreadLocal<RingoWorker> currentWorker = new ThreadLocal<RingoWorker>();
     private final Deque<RingoWorker> workers;
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
 
@@ -81,7 +88,7 @@ public class RhinoEngine implements ScopeProvider {
         singletons = new HashMap<Singleton, Singleton>();
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
-        this.wrapFactory = config.getWrapFactory();
+        wrapFactory = config.getWrapFactory();
         
         loaders = new ModuleLoader[] {
             new JsModuleLoader(), new JsonModuleLoader(), new ClassModuleLoader()
@@ -182,7 +189,8 @@ public class RhinoEngine implements ScopeProvider {
             commandLineArgs = Arrays.asList(scriptArgs);
             ReloadableScript script = new ReloadableScript(resource, this);
             scripts.put(resource, script);
-            mainScope = new ModuleScope(resource.getModuleName(), resource, globalScope);
+            mainScope = new ModuleScope(resource.getModuleName(), resource,
+                    globalScope, mainWorker);
             retval = mainWorker.evaluateScript(cx, script, mainScope);
             mainScope.updateExports();
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
@@ -207,7 +215,8 @@ public class RhinoEngine implements ScopeProvider {
             Object retval;
             Repository repository = repositories.get(0);
             Scriptable parentScope = mainScope != null ? mainScope : globalScope;
-            ModuleScope scope = new ModuleScope("<expr>", repository, parentScope);
+            ModuleScope scope = new ModuleScope("<expr>", repository,
+                    parentScope, mainWorker);
             Resource res = new StringResource("<expr>", expr, 1);
             ReloadableScript script = new ReloadableScript(res, this);
             retval = mainWorker.evaluateScript(cx, script, scope);
@@ -236,20 +245,26 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the worker associated with the current thread, or null if no worker
-     * is associated with the current thread.
+     * Get the worker associated with the given scope, or null.
+     * @param scope a JavaScropt scope object
      * @return the worker associated with the current thread, or null.
      */
-    public RingoWorker getCurrentWorker() {
-        return currentWorker.get();
+    public RingoWorker getCurrentWorker(Scriptable scope) {
+        while (scope != null) {
+            if (scope instanceof ModuleScope) {
+                return ((ModuleScope) scope).getWorker();
+            }
+            scope = scope.getParentScope();
+        }
+        return null;
     }
 
-    protected void setCurrentWorker(RingoWorker worker) {
-        if (worker == null) {
-            currentWorker.remove();
-        } else {
-            currentWorker.set(worker);
-        }
+    /**
+     * Get the main worker running the main script.
+     * @return the main worker
+     */
+    public RingoWorker getMainWorker() {
+        return mainWorker;
     }
 
     /**
@@ -283,27 +298,15 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the list of errors encountered by the current worker. This will only
-     * succeed if a worker is associated with the current thread. Otherwise this
-     * method returns null.
-     * @return a list of errors, null if no worker is associated with the
-     * current thread.
-     */
-    public List<ScriptError> getCurrentErrors() {
-        RingoWorker worker = currentWorker.get();
-        return worker != null ? worker.getErrors() : null;
-    }
-
-    /**
      * Return a shell scope for interactive evaluation
      * @return a shell scope
      * @throws IOException an I/O related exception occurred
      */
-    public Scriptable getShellScope() throws IOException {
+    public Scriptable getShellScope(RingoWorker worker) throws IOException {
         Repository repository = new FileRepository("");
         repository.setAbsolute(true);
         Scriptable protoScope = mainScope != null ? mainScope : globalScope;
-        return new ModuleScope("<shell>", repository, protoScope);
+        return new ModuleScope("<shell>", repository, protoScope, worker);
     }
 
     /**

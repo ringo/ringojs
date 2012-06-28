@@ -29,11 +29,13 @@ public class ModuleScope extends ImporterTopLevel {
     private Trackable source;
     private Repository repository;
     private String id;
+    private RingoWorker worker;
     private long checksum;
     private Scriptable exportsObject, moduleObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
-    public ModuleScope(String moduleId, Trackable source, Scriptable prototype) {
+    public ModuleScope(String moduleId, Trackable source,
+                       Scriptable prototype, RingoWorker worker) {
         setParentScope(null);
         setPrototype(prototype);
         // for activating the ImporterTopLevel import* functions
@@ -49,6 +51,7 @@ public class ModuleScope extends ImporterTopLevel {
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();
         this.id = moduleId;
+        this.worker = worker;
         // create and define module meta-object
         moduleObject = new ModuleObject(this);
         defineProperty("module", moduleObject, DONTENUM);
@@ -66,6 +69,10 @@ public class ModuleScope extends ImporterTopLevel {
 
     public Repository getRepository() {
         return repository;
+    }
+
+    public RingoWorker getWorker() {
+        return worker;
     }
 
     public void reset() {

@@ -8,20 +8,21 @@ export( 'properties',
         'asJavaString',
         'asJavaObject',
         'createSandbox',
-        'evaluate',
-        'getErrors',
         'getRingoHome',
         'getRepositories',
         'getRhinoContext',
         'getRhinoEngine',
         'getOptimizationLevel',
         'setOptimizationLevel',
+        'getCurrentWorker',
+        'getWorker',
         'serialize',
         'deserialize',
         'version');
 
-var rhino = org.mozilla.javascript;
-var engine = org.ringojs.engine;
+var {Context, ClassSHutter} = org.mozilla.javascript;
+var {RhinoEngine, RingoConfiguration} = org.ringojs.engine;
+var engine = RhinoEngine.getEngine(global);
 
 /**
  * An object reflecting the Java system properties.
@@ -36,14 +37,14 @@ try {
  * The RingoJS version as an array-like object with the major and minor version
  * number as first and second element.
  */
-var version = new ScriptableList(engine.RhinoEngine.VERSION);
+var version = new ScriptableList(RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
  * @param {JavaClass} javaClass the class to define as host object
  */
 function addHostObject(javaClass) {
-    getRhinoEngine().defineHostClass(javaClass);
+    engine.defineHostClass(javaClass);
 }
 
 /**
@@ -62,15 +63,15 @@ function addHostObject(javaClass) {
 function createSandbox(modulePath, globals, options) {
     options = options || {};
     var systemModules = options.systemModules || null;
-    var config = new engine.RingoConfiguration(
+    var config = new RingoConfiguration(
             getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {
         var shutter = options.shutter;
-        config.setClassShutter(shutter instanceof rhino.ClassShutter ?
-                shutter : new rhino.ClassShutter(shutter));
+        config.setClassShutter(shutter instanceof ClassShutter ?
+                shutter : new ClassShutter(shutter));
     }
     config.setSealed(Boolean(options.sealed));
-    return getRhinoEngine().createSandbox(config, globals);
+    return engine.createSandbox(config, globals);
 }
 
 /**
@@ -78,7 +79,7 @@ function createSandbox(modulePath, globals, options) {
  * @returns {Repository} a Repository representing the Ringo installation directory
  */
 function getRingoHome() {
-    return getRhinoEngine().getRingoHome();
+    return engine.getRingoHome();
 }
 
 /**
@@ -87,7 +88,7 @@ function getRingoHome() {
  * @returns {Object} the object wrapped as native java object
  */
 function asJavaObject(object) {
-    return getRhinoEngine().asJavaObject(object);
+    return engine.asJavaObject(object);
 }
 
 /**
@@ -98,7 +99,7 @@ function asJavaObject(object) {
  * @returns {Object} the object converted to a string and wrapped as native java object
  */
 function asJavaString(object) {
-    return getRhinoEngine().asJavaString(object);
+    return engine.asJavaString(object);
 }
 
 /**
@@ -109,7 +110,7 @@ function asJavaString(object) {
  * @returns {Number} level an integer between -1 and 9
  */
 function getOptimizationLevel() {
-    return getRhinoEngine().getOptimizationLevel();
+    return engine.getOptimizationLevel();
 }
 
 /**
@@ -120,31 +121,14 @@ function getOptimizationLevel() {
  * @param {Number} level an integer between -1 and 9
  */
 function setOptimizationLevel(level) {
-    getRhinoEngine().setOptimizationLevel(level);
-}
-
-/**
- * Evaluate a module script on an existing scope instead of creating a
- * new module scope. This can be used to mimic traditional JavaScript
- * environments such as those found in web browsers.
- * @param {String} moduleName the name of the module to evaluate
- * @param {Object} scope the JavaScript object to evaluate the script on
- */
-function evaluate(moduleName, scope) {
-    var script = getRhinoEngine().getScript(moduleName);
-    if (!scope) {
-        // create a new top level scope object
-        scope = new engine.ModuleScope(moduleName, script.getSource(), global);
-    }
-    script.evaluate(scope, getRhinoContext());
-    return scope;
+    engine.setOptimizationLevel(level);
 }
 
 /**
  * Get the org.mozilla.javascript.Context associated with the current thread.
  */
 function getRhinoContext() {
-    return rhino.Context.getCurrentContext();
+    return Context.getCurrentContext();
 }
 
 /**
@@ -152,15 +136,19 @@ function getRhinoContext() {
  * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
 function getRhinoEngine() {
-    return engine.RhinoEngine.getEngine(global);
+    return engine;
+}
+
+function getWorker() {
+    return engine.getWorker();
 }
 
 /**
- * Get a list containing the syntax errors encountered in the current context.
- * @returns {ScriptableList} a list containing the errors encountered in the current context
+ * Get the current worker instance.
+ * @return {org.ringojs.engine.RingoWorker} the current RingoWorker instance
  */
-function getErrors() {
-    return new ScriptableList(getRhinoEngine().getCurrentErrors());
+function getCurrentWorker() {
+    return engine.getCurrentWorker(module);
 }
 
 /**
@@ -168,7 +156,7 @@ function getErrors() {
  * @returns {ScriptableList} a list containing the module search path repositories
  */
 function getRepositories() {
-    return new ScriptableList(getRhinoEngine().getRepositories());
+    return new ScriptableList(engine.getRepositories());
 }
 
 /**
