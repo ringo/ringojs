@@ -20,7 +20,7 @@ export( 'properties',
         'deserialize',
         'version');
 
-var {Context, ClassSHutter} = org.mozilla.javascript;
+var {Context, ClassShutter} = org.mozilla.javascript;
 var {RhinoEngine, RingoConfiguration} = org.ringojs.engine;
 var engine = RhinoEngine.getEngine(global);
 
