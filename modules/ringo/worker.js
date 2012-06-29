@@ -56,6 +56,10 @@ function Worker(moduleId) {
         }
     }
 
+    worker.setErrorListener(function(t) {
+        onerror({data: t});
+    });
+
     /**
      * Post a message to the worker. This enqueues the message
      * in the worker's input queue and returns immediately. The worker thread

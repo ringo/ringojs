@@ -2,6 +2,8 @@ package org.ringojs.engine;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -32,6 +34,7 @@ public final class RingoWorker {
 
     private ReloadableScript currentScript;
     private List<ScriptError> errors;
+    private Function errorListener;
     private Map<Resource, Scriptable> modules, checkedModules;
     private boolean reload;
 
@@ -100,7 +103,19 @@ public final class RingoWorker {
             engine.initArguments(args);
             Object retval = ((Function) function).call(cx, scope, scriptable, args);
             return retval instanceof Wrapper ? ((Wrapper) retval).unwrap() : retval;
-
+        } catch (RhinoException rx) {
+            if (errorListener != null) {
+                Object error;
+                if (rx instanceof JavaScriptException) {
+                    error = ((JavaScriptException)rx).getValue();
+                } else {
+                    error = ScriptRuntime.wrapException(rx, scope, cx);
+                }
+                errorListener.call(cx, scope, scope, new Object[] {error});
+                return null;
+            } else {
+                throw rx;
+            }
         } finally {
             runlock.unlock();
             Context.exit();
@@ -315,6 +330,22 @@ public final class RingoWorker {
             checkedModules = reload ? new HashMap<Resource, Scriptable>() : modules;
         }
         this.reload = reload;
+    }
+
+    /**
+     * Get the current error listener for uncaught errors in this worker
+     * @return the error listener
+     */
+    public Function getErrorListener() {
+        return errorListener;
+    }
+
+    /**
+     * Set the error listener to handle uncaught errors in this worker
+     * @param errorListener the error listener
+     */
+    public void setErrorListener(Function errorListener) {
+        this.errorListener = errorListener;
     }
 
     /**
