@@ -8,6 +8,7 @@ export( 'properties',
         'asJavaString',
         'asJavaObject',
         'createSandbox',
+        'getErrors',
         'getRingoHome',
         'getRepositories',
         'getRhinoContext',
@@ -139,6 +140,10 @@ function getRhinoEngine() {
     return engine;
 }
 
+/**
+ * Get a new worker instance.
+ * @return {org.ringojs.engine.RingoWorker} a new RingoWorker instance
+ */
 function getWorker() {
     return engine.getWorker();
 }
@@ -149,6 +154,15 @@ function getWorker() {
  */
 function getCurrentWorker() {
     return engine.getCurrentWorker(module);
+}
+
+/**
+ * Get a list containing the syntax errors encountered in the current worker.
+ * @returns {ScriptableList} a list containing the errors encountered in the
+ * current worker
+ */
+function getErrors() {
+    return new ScriptableList(getCurrentWorker().getErrors());
 }
 
 /**
