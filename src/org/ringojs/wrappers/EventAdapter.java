@@ -221,8 +221,9 @@ public class EventAdapter extends ScriptableObject {
             String methodName = method.getName();
             String eventName = overrides == null
                     ? toEventName(methodName)
-                    : ScriptRuntime.toString(overrides.get(methodName));
-            if (eventName == null || Modifier.isFinal(method.getModifiers())) {
+                    : toStringOrNull(overrides.get(methodName));
+            int mod = method.getModifiers();
+            if (!Modifier.isAbstract(mod) && (eventName == null || Modifier.isFinal(mod))) {
                 continue;
             }
             Class<?>[]paramTypes = method.getParameterTypes();
@@ -326,6 +327,10 @@ public class EventAdapter extends ScriptableObject {
         return result;
     }
 
+    private static String toStringOrNull(Object name) {
+        return name == null ? null : name.toString();
+    }
+
     public static String toEventName(Object name) {
         String methodName = ScriptRuntime.toString(name);
         int length = methodName.length();
@@ -427,7 +432,10 @@ public class EventAdapter extends ScriptableObject {
                 try {
                     invokeWithWorker(worker, args);
                 } finally {
-                    worker.releaseWhenDone();
+                    if (sync)
+                        worker.release();
+                    else
+                        worker.releaseWhenDone();
                 }
             } else {
                 invokeWithWorker(this.worker, args);
