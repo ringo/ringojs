@@ -348,14 +348,16 @@ function parseOptions(arguments, defaults) {
 
 /**
  * Daemon life cycle function invoked by init script. Creates a new Server with
- * the application at `path`. If the application exports a function called
+ * the application at `appPath`. If the application exports a function called
  * `init`, it will be invoked with the new server as argument.
  *
- * @param path {string} optional path to the application. If undefined,
- *     the path will be taken from `system.args`.
+ * @param appPath {string} optional application file name or module id.
+ *     If undefined, the first command line argument will be used as application.
+ *     If there are no command line arguments, module `main` in the current
+ *     working directory is used.
  * @returns {Server} the Server instance.
  */
-function init(path) {
+function init(appPath) {
     // protect against module reloading
     if (started) {
         return server;
@@ -380,15 +382,15 @@ function init(path) {
     }
 
     var appDir = "";
-    // if no explicit path is given use first command line argument
-    path = path || system.args[0];
+    // if no explicit app is given use first command line argument
+    appPath = appPath || system.args[0];
     var fs = require("fs");
-    if (path) {
+    if (appPath) {
         // use argument as app module
-        options.appModule = path;
-        appDir = fs.directory(path);
+        options.appModule = appPath;
+        appDir = fs.directory(appPath);
     } else {
-        // look for `main` module in current path as app module
+        // look for `main` module in current working directory as app module
         appDir = fs.workingDirectory();
         options.appModule = fs.join(appDir, "main");
     }
@@ -466,12 +468,12 @@ function destroy() {
 }
 
 /**
- * Main webapp startup function.
- * @param {String} path optional path to the web application directory or module.
+ * Main function to start an HTTP server from the command line.
+ * @param {String} appPath optional application file name or module id.
  * @returns {Server} the Server instance.
  */
-function main(path) {
-    init(path);
+function main(appPath) {
+    init(appPath);
     start();
     // return the server instance
     return server;
