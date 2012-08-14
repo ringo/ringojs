@@ -20,8 +20,8 @@ var options,
  * either define properties to be used with the default jetty.xml, or define
  * a custom configuration file.
  *
- * @param {Object} options A javascript object with any of the following properties,
- * with the default value in parentheses:
+ * @param {Object} options A javascript object with any of the following
+ * properties (default values in parentheses):
  * <ul>
  * <li>jettyConfig ('config/jetty.xml')</li>
  * <li>port (8080)</li>
@@ -367,7 +367,7 @@ function init(path) {
             appName: "app"
         });
     } catch (error) {
-        print(error);
+        log.error("Error parsing options", error);
         system.exit(1);
     }
 
@@ -384,33 +384,22 @@ function init(path) {
     path = path || system.args[0];
     var fs = require("fs");
     if (path) {
-        try {
-            // check if argument can be resolved as module id
-            require(path);
-            options.appModule = path;
-        } catch (error) {
-            path = fs.absolute(path);
-            if (fs.isDirectory(path)) {
-                // if argument is a directory assume app in main.js
-                options.appModule = fs.join(path, "main");
-                appDir = path;
-            } else {
-                // if argument is a file use it as config module
-                options.appModule = path;
-                appDir = fs.directory(path);
-            }
-        }
+        // use argument as app module
+        options.appModule = path;
+        appDir = fs.directory(path);
     } else {
+        // look for `main` module in current path as app module
         appDir = fs.workingDirectory();
         options.appModule = fs.join(appDir, "main");
     }
 
-    // logging module is already loaded and configured, check if webapp provides
+    // logging module is already loaded and configured, check if app provides
     // its own log4j configuration file and apply it if so.
     var logConfig = getResource(fs.join(appDir, "config/log4j.properties"));
     if (logConfig.exists()) {
         require("./logging").setConfig(logConfig);
     }
+    log.info("Set app module:", options.appModule);
 
     server = new Server(options);
     var app = require(options.appModule);
@@ -478,7 +467,7 @@ function destroy() {
 
 /**
  * Main webapp startup function.
- * @param {String} path optional path to the web application directory or config module.
+ * @param {String} path optional path to the web application directory or module.
  * @returns {Server} the Server instance.
  */
 function main(path) {
