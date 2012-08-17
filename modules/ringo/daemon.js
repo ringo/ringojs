@@ -12,7 +12,7 @@
 var system = require('system');
 var log = require('ringo/logging').getLogger(module.id);
 
-var app, appId;
+var app;
 
 export('init', 'start', 'stop', 'destroy');
 
@@ -27,7 +27,7 @@ function init() {
     // Remove our own script name from args
     system.args.shift();
     if (system.args.length) {
-        appId = system.args[0];
+        var appId = system.args[0];
         try {
             app = require(appId);
         } catch (error) {

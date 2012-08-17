@@ -3,7 +3,6 @@
  */
 
 var log = require('ringo/logging').getLogger(module.id);
-var Parser = require('ringo/args').Parser;
 var system = require('system');
 var {JavaEventEmitter} = require('ringo/events');
 var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
@@ -12,7 +11,6 @@ export('Server', 'main', 'init', 'start', 'stop', 'destroy');
 
 var options,
     server,
-    parser,
     started = false;
 
 /**
@@ -263,7 +261,7 @@ function Server(options) {
      * @returns true if the server is running, false otherwise.
      */
     this.isRunning = function() {
-        return jetty != null && jetty.isRunning();
+        return jetty && jetty.isRunning();
     };
 
     /**
@@ -323,9 +321,13 @@ function Server(options) {
 }
 
 
-function parseOptions(arguments, defaults) {
-    // parse command line options
-    parser = new Parser();
+function parseOptions(args, defaults) {
+    // like `cmd = args.shift()` but we don't want to modify system.args
+    var cmd = args[0];
+    args = args.slice(1);
+    var Parser = require('ringo/args').Parser;
+    var parser = new Parser();
+
     parser.addOption("a", "app-name", "APP", "The exported property name of the JSGI app (default: 'app')");
     parser.addOption("j", "jetty-config", "PATH", "The jetty xml configuration file (default. 'config/jetty.xml')");
     parser.addOption("H", "host", "ADDRESS", "The IP address to bind to (default: 0.0.0.0)");
@@ -335,7 +337,9 @@ function parseOptions(arguments, defaults) {
     parser.addOption("S", "static-mountpoint", "PATH", "The URI path where ot mount the static resources");
     parser.addOption("v", "virtual-host", "VHOST", "The virtual host name (default: undefined)");
     parser.addOption("h", "help", null, "Print help message to stdout");
-    options = parser.parse(arguments, defaults);
+
+    var options = parser.parse(args, defaults);
+
     if (options.port && !isFinite(options.port)) {
         var port = parseInt(options.port, 10);
         if (isNaN(port) || port < 1) {
@@ -343,6 +347,15 @@ function parseOptions(arguments, defaults) {
         }
         options.port = port;
     }
+
+    if (options.help) {
+        print("Usage:");
+        print("", cmd, "[OPTIONS]", "[PATH]");
+        print("Options:");
+        print(parser.help());
+        system.exit(0);
+    }
+
     return options;
 }
 
@@ -363,27 +376,18 @@ function init(appPath) {
         return server;
     }
     // parse command line options
-    var cmd = system.args.shift();
     try {
         options = parseOptions(system.args, {
             appName: "app"
         });
     } catch (error) {
-        log.error("Error parsing options", error);
+        log.error("Error parsing options:", error);
         system.exit(1);
     }
 
-    if (options.help) {
-        print("Usage:");
-        print("", cmd, "[OPTIONS]", "[PATH]");
-        print("Options:");
-        print(parser.help());
-        system.exit(0);
-    }
-
-    var appDir = "";
+    var appDir;
     // if no explicit app is given use first command line argument
-    appPath = appPath || system.args[0];
+    appPath = appPath || system.args[1];
     var fs = require("fs");
     if (appPath) {
         // use argument as app module
@@ -419,6 +423,9 @@ function init(appPath) {
  * @returns {Server} the Server instance.
  */
 function start() {
+    if (started) {
+        return server;
+    }
     server.start();
     started = true;
     var app = require(options.appModule);
@@ -438,6 +445,9 @@ function start() {
  * @returns {Server} the Server instance.
  */
 function stop() {
+    if (!started) {
+        return server;
+    }
     var app = require(options.appModule);
     if (typeof app.stop === "function") {
         app.stop(server);
@@ -455,11 +465,13 @@ function stop() {
  * @returns {Server} the Server instance.
  */
 function destroy() {
-    var app = require(options.appModule);
-    if (typeof app.destroy === "function") {
-        app.destroy(server);
+    if (server) {
+        var app = require(options.appModule);
+        if (typeof app.destroy === "function") {
+            app.destroy(server);
+        }
+        server.destroy();
     }
-    server.destroy();
     try {
         return server;
     } finally {
@@ -475,6 +487,10 @@ function destroy() {
 function main(appPath) {
     init(appPath);
     start();
+    require('ringo/engine').addShutdownHook(function() {
+        stop();
+        destroy();
+    });
     // return the server instance
     return server;
 }
