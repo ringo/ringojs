@@ -60,7 +60,7 @@ public class ReloadableScript {
     // the static script cache
     static ScriptCache cache = new ScriptCache();
 
-    private static Logger log = Logger.getLogger("org.ringojs.engine.ReloadableScript");
+    private static Logger log = Logger.getLogger(ReloadableScript.class.getName());
 
     /**
      * Construct a Script from the given script resource.

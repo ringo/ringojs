@@ -19,7 +19,7 @@ public abstract class DebuggerBase implements Debugger {
 
     String debuggerScript;
     int debuggerScriptDepth = 0;
-    Logger log = Logger.getLogger("org.ringojs.util.DebuggerBase");
+    Logger log = Logger.getLogger(DebuggerBase.class.getName());
 
     public abstract DebuggerBase createDebugger();
 

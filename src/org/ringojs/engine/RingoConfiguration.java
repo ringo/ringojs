@@ -538,7 +538,7 @@ public class RingoConfiguration {
     }
 
     private static Logger getLogger() {
-        return Logger.getLogger("org.ringojs.tools");
+        return Logger.getLogger(RingoConfiguration.class.getName());
     }
 
     private static Repository toZipRepository(URL url) throws IOException {
