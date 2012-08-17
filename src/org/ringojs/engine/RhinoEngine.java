@@ -40,6 +40,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides methods to create JavaScript objects
@@ -59,6 +61,7 @@ public class RhinoEngine implements ScopeProvider {
     private WrapFactory wrapFactory;
     private Set<Class> hostClasses;
     private ModuleLoader[] loaders;
+    private List<Callback> shutdownHooks;
 
     private RingoContextFactory contextFactory = null;
     private ModuleScope mainScope = null;
@@ -66,6 +69,8 @@ public class RhinoEngine implements ScopeProvider {
     private final RingoWorker mainWorker;
     private final Deque<RingoWorker> workers;
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
+
+    private static Logger log = Logger.getLogger(RhinoEngine.class.getName());
 
     public static final List<Integer> VERSION =
             Collections.unmodifiableList(Arrays.asList(0, 9));
@@ -131,6 +136,11 @@ public class RhinoEngine implements ScopeProvider {
             if (debugger != null) {
                 debugger.setBreak();
             }
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    shutdown();
+                }
+            });
         } finally {
             Context.exit();
         }
@@ -287,6 +297,36 @@ public class RhinoEngine implements ScopeProvider {
         if (!workers.offerFirst(worker)) {
             worker.shutdown();
         }
+    }
+
+    synchronized void shutdown() {
+        List<Callback> hooks = shutdownHooks;
+        if (hooks != null) {
+            for (Callback callback: hooks) {
+                try {
+                    callback.invoke();
+                } catch (Exception x) {
+                    log.log(Level.WARNING, "Error in shutdown hook", x);
+                }
+            }
+            shutdownHooks = null;
+        }
+    }
+
+    /**
+     * Add a callback to be invoked on shutdown.
+     * @param callback a callback function or object
+     */
+    public synchronized void addShutdownHook(Scriptable callback) {
+        List<Callback> hooks = shutdownHooks;
+        if (hooks == null) {
+            hooks = shutdownHooks = new ArrayList<Callback>();
+        }
+        // TODO Allow shutdown hooks to be called asynchronously on the
+        // worker's event loop thread. Currently this is not possible because
+        // we'd have to wait for termination of the worker in the main
+        // shutdown hook thread.
+        hooks.add(new Callback(callback, this, true));
     }
 
     /**

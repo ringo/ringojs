@@ -13,8 +13,8 @@ import org.mozilla.javascript.SecurityUtilities;
 import org.mozilla.javascript.annotations.JSConstructor;
 import org.mozilla.javascript.annotations.JSFunction;
 import org.mozilla.javascript.annotations.JSGetter;
+import org.ringojs.engine.Callback;
 import org.ringojs.engine.RhinoEngine;
-import org.ringojs.engine.RingoWorker;
 import org.mozilla.javascript.Undefined;
 
 import static org.mozilla.classfile.ClassFileWriter.ACC_FINAL;
@@ -120,7 +120,7 @@ public class EventAdapter extends ScriptableObject {
             list = new LinkedList<Callback>();
             callbacks.put(type, list);
         }
-        list.add(new Callback((Scriptable)function, sync));
+        list.add(new Callback((Scriptable)function, engine, sync));
     }
 
     @JSFunction
@@ -377,82 +377,6 @@ public class EventAdapter extends ScriptableObject {
             if (clazz == java.lang.Void.TYPE) return "V";
         }
         return ClassFileWriter.classNameToSignature(clazz.getName());
-    }
-
-    /**
-     * A wrapper around a JavaScript function or (moduleId, functionName) pair.
-     * If callback is a function, the callback is bound to its current worker
-     * as the function is a closure over its scope. If the callback is a
-     * (moduleId, functionName) pair it is not bound to any worker as the
-     * module will be loaded on demand when the callback is invoked.
-     */
-    class Callback {
-        RingoWorker worker;
-        final Object module;
-        final Object function;
-        final boolean sync;
-
-        Callback(Scriptable function, boolean sync) {
-            Scriptable scope = getTopLevelScope(function);
-            if (function instanceof Function) {
-                this.module = scope;
-                this.function = function;
-                worker = engine.getCurrentWorker(scope);
-                if (worker == null) {
-                    worker = engine.getWorker();
-                }
-            } else {
-                this.module = getProperty(function, "module");
-                this.function = getProperty(function, "name");
-                if (module == NOT_FOUND || module == null) {
-                    throw Context.reportRuntimeError(
-                            "Callback object must contain 'module' property");
-                }
-                if (this.function == NOT_FOUND || this.function == null) {
-                    throw Context.reportRuntimeError(
-                            "Callback object must contain 'name' property");
-                }
-                this.worker = null;
-            }
-            this.sync = sync;
-        }
-
-        boolean equalsCallback(Scriptable callback) {
-            if (callback instanceof Function) {
-                return function == callback;
-            } else {
-                return module.equals(getProperty(callback, "module"))
-                        && function.equals(getProperty(callback, "name"));
-            }
-        }
-
-        void invoke(Object[] args) {
-            if (this.worker == null) {
-                RingoWorker worker = engine.getWorker();
-                try {
-                    invokeWithWorker(worker, args);
-                } finally {
-                    if (sync)
-                        worker.release();
-                    else
-                        worker.releaseWhenDone();
-                }
-            } else {
-                invokeWithWorker(this.worker, args);
-            }
-        }
-
-        private void invokeWithWorker(RingoWorker worker, Object[] args) {
-            if (sync) {
-                try {
-                    worker.invoke(module, function, args);
-                } catch (Exception x) {
-                    throw new RuntimeException(x);
-                }
-            } else {
-                worker.submit(module, function, args);
-            }
-        }
     }
 
     static class AdapterKey {

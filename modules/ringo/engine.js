@@ -5,6 +5,7 @@
 export( 'properties',
         'addHostObject',
         'addRepository',
+        'addShutdownHook',
         'asJavaString',
         'asJavaObject',
         'createSandbox',
@@ -46,6 +47,17 @@ var version = new ScriptableList(RhinoEngine.VERSION);
  */
 function addHostObject(javaClass) {
     engine.defineHostClass(javaClass);
+}
+
+/**
+ * Register a callback to be invoked when the current RingoJS instance is
+ * terminated.
+ * @param functionOrObject Either a JavaScript function or a JavaScript object
+ * containing properties called `module` and `name` specifying a function
+ * exported by a RingoJS module.
+ */
+function addShutdownHook(functionOrObject) {
+    engine.addShutdownHook(functionOrObject);
 }
 
 /**
