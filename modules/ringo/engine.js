@@ -52,15 +52,15 @@ function addHostObject(javaClass) {
 /**
  * Register a callback to be invoked when the current RingoJS instance is
  * terminated.
- * @param functionOrObject Either a JavaScript function or a JavaScript object
- * containing properties called `module` and `name` specifying a function
- * exported by a RingoJS module.
- * @param {boolean} sync optional flag whether to invoke the callback
+ * @param {Function|Object} funcOrObject Either a JavaScript function or a
+ * JavaScript object containing properties called `module` and `name`
+ * specifying a function exported by a RingoJS module.
+ * @param {Boolean} sync optional flag whether to invoke the callback
  * synchronously (on the main shutdown thread) or asynchronously on the
  * worker's event loop thread)
  */
-function addShutdownHook(functionOrObject, sync) {
-    engine.addShutdownHook(functionOrObject, Boolean(sync));
+function addShutdownHook(funcOrObject, sync) {
+    engine.addShutdownHook(funcOrObject, Boolean(sync));
 }
 
 /**
