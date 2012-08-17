@@ -322,9 +322,8 @@ function Server(options) {
 
 
 function parseOptions(args, defaults) {
-    // like `cmd = args.shift()` but we don't want to modify system.args
-    var cmd = args[0];
-    args = args.slice(1);
+    // remove command from command line arguments
+    var cmd = args.shift();
     var Parser = require('ringo/args').Parser;
     var parser = new Parser();
 
@@ -386,13 +385,23 @@ function init(appPath) {
     }
 
     var appDir;
-    // if no explicit app is given use first command line argument
-    appPath = appPath || system.args[1];
     var fs = require("fs");
     if (appPath) {
         // use argument as app module
         options.appModule = appPath;
         appDir = fs.directory(appPath);
+    } else if (system.args[0]) {
+        // take app module from command line
+        appPath = fs.resolve(fs.workingDirectory(), system.args[0]);
+        if (fs.isDirectory(appPath)) {
+            // if argument is a directory assume app in main.js
+            appDir = appPath;
+            options.appModule = fs.join(appDir, "main");
+        } else {
+            // if argument is a file use it as config module
+            options.appModule = appPath;
+            appDir = fs.directory(appPath);
+        }
     } else {
         // look for `main` module in current working directory as app module
         appDir = fs.workingDirectory();
