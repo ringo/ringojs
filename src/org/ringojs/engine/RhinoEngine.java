@@ -39,6 +39,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -304,7 +305,10 @@ public class RhinoEngine implements ScopeProvider {
         if (hooks != null) {
             for (Callback callback: hooks) {
                 try {
-                    callback.invoke();
+                    Object result = callback.invoke();
+                    if (!callback.sync && result instanceof Future) {
+                        ((Future)result).get();
+                    }
                 } catch (Exception x) {
                     log.log(Level.WARNING, "Error in shutdown hook", x);
                 }
@@ -317,7 +321,7 @@ public class RhinoEngine implements ScopeProvider {
      * Add a callback to be invoked on shutdown.
      * @param callback a callback function or object
      */
-    public synchronized void addShutdownHook(Scriptable callback) {
+    public synchronized void addShutdownHook(Scriptable callback, boolean sync) {
         List<Callback> hooks = shutdownHooks;
         if (hooks == null) {
             hooks = shutdownHooks = new ArrayList<Callback>();
@@ -326,7 +330,7 @@ public class RhinoEngine implements ScopeProvider {
         // worker's event loop thread. Currently this is not possible because
         // we'd have to wait for termination of the worker in the main
         // shutdown hook thread.
-        hooks.add(new Callback(callback, this, true));
+        hooks.add(new Callback(callback, this, sync));
     }
 
     /**

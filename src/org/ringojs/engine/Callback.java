@@ -71,6 +71,12 @@ public class Callback {
         this.sync = sync;
     }
 
+    /**
+     * Tests whether the argument is a callback and represents the same
+     * function as this callback.
+     * @param callback a JavaScript function or object
+     * @return true if the callbacks represent the same function.
+     */
     public boolean equalsCallback(Scriptable callback) {
         if (callback instanceof Function) {
             return function == callback;
@@ -80,11 +86,20 @@ public class Callback {
         }
     }
 
-    public void invoke(Object... args) {
+    /**
+     * Invokes the callback with the given arguments, returning the return value
+     * or a future depending on whether this Callback is synchronous or not.
+     *
+     * @param args arguments to pass to the callback.
+     * @return the result if the callback is synchronous, or a
+     * {@link java.util.concurrent.Future} that will resolve to the invocation
+     * in case it is an asynchronous callback.
+     */
+    public Object invoke(Object... args) {
         if (this.worker == null) {
             RingoWorker worker = engine.getWorker();
             try {
-                invokeWithWorker(worker, args);
+                return invokeWithWorker(worker, args);
             } finally {
                 if (sync)
                     worker.release();
@@ -92,19 +107,19 @@ public class Callback {
                     worker.releaseWhenDone();
             }
         } else {
-            invokeWithWorker(this.worker, args);
+            return invokeWithWorker(this.worker, args);
         }
     }
 
-    private void invokeWithWorker(RingoWorker worker, Object... args) {
+    private Object invokeWithWorker(RingoWorker worker, Object... args) {
         if (sync) {
             try {
-                worker.invoke(module, function, args);
+                return worker.invoke(module, function, args);
             } catch (Exception x) {
                 throw new RuntimeException(x);
             }
         } else {
-            worker.submit(module, function, args);
+            return worker.submit(module, function, args);
         }
     }
 }
