@@ -319,17 +319,16 @@ public class RhinoEngine implements ScopeProvider {
 
     /**
      * Add a callback to be invoked on shutdown.
-     * @param callback a callback function or object
+     * @param callback a callback function wrapper
+     * @param sync whether to invoke the callback synchronously (on the main
+     *             shutdown thread) or asynchronously (on the worker's event
+     *             loop thread)
      */
     public synchronized void addShutdownHook(Scriptable callback, boolean sync) {
         List<Callback> hooks = shutdownHooks;
         if (hooks == null) {
             hooks = shutdownHooks = new ArrayList<Callback>();
         }
-        // TODO Allow shutdown hooks to be called asynchronously on the
-        // worker's event loop thread. Currently this is not possible because
-        // we'd have to wait for termination of the worker in the main
-        // shutdown hook thread.
         hooks.add(new Callback(callback, this, sync));
     }
 
