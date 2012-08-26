@@ -41,8 +41,8 @@ import java.util.logging.Logger;
  */
 public class RingoConfiguration {
 
-    private Repository home;
-    private Repository base;
+    private Repository ringoHome;
+    private Repository appHome;
     private List<Repository> repositories;
     private Resource mainResource;
     private String[] arguments;
@@ -65,9 +65,19 @@ public class RingoConfiguration {
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
+     * @throws FileNotFoundException if a module path item does not exist
+     */
+    public RingoConfiguration(Repository ringoHome) throws IOException {
+        this(ringoHome, null, null, new String[] {"modules", "packages"});
+    }
+
+    /**
+     * Create a new Ringo configuration and sets up its module search path.
+     *
+     * @param ringoHome the ringo installation directory
      * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
-     * @throws FileNotFoundException if a moudule path item does not exist
+     * @throws FileNotFoundException if a module path item does not exist
      */
     public RingoConfiguration(Repository ringoHome, String[] userModules,
                               String[] systemModules) throws IOException {
@@ -78,21 +88,21 @@ public class RingoConfiguration {
      * Create a new Ringo configuration and sets up its module search path.
      *
      * @param ringoHome the ringo installation directory
-     * @param basePath the path to resolve application against, pass null for
+     * @param appHome the path to resolve application against, pass null for
      *                 for current working directory
      * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
-     * @throws FileNotFoundException if a moudule path item does not exist
+     * @throws FileNotFoundException if a module path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, Repository basePath,
+    public RingoConfiguration(Repository ringoHome, Repository appHome,
                               String[] userModules, String[] systemModules)
             throws IOException {
         repositories = new ArrayList<Repository>();
-        home = ringoHome;
-        home.setAbsolute(true);
-        if (basePath != null) {
-            base = basePath;
-            base.setAbsolute(true);
+        this.ringoHome = ringoHome;
+        ringoHome.setAbsolute(true);
+        if (appHome != null) {
+            this.appHome = appHome;
+            appHome.setAbsolute(true);
         }
 
         String optLevel = System.getProperty("rhino.optlevel");
@@ -157,24 +167,28 @@ public class RingoConfiguration {
      */
     public Repository resolveRepository(String path, boolean system)
             throws IOException {
+        Repository repo;
         File file = new File(path);
+
+        // Unless path is an absolute file try to resolve it against the
+        // system or application directory
         if (!file.isAbsolute()) {
-            // Try to resolve against root/base repository or classpath
-            Repository parent = system ? home : base;
-            Repository repo = resolveRepository(path, parent);
-            if (repo != null) return repo;
-            // then try to resolve against current directory
+            Repository parent = system ? ringoHome : appHome;
+            repo = resolveRepository(path, parent);
+            if (repo != null) {
+                return repo;
+            }
+            // resolve against current working directory
             file = file.getAbsoluteFile();
         }
 
-        // make absolute
-        file = file.getAbsoluteFile();
-
         if (file.isFile() && StringUtils.isZipOrJarFile(path)) {
-            return new ZipRepository(file);
+            repo = new ZipRepository(file);
         } else {
-            return new FileRepository(file);
+            repo = new FileRepository(file);
         }
+        getLogger().fine("Resolved module path '" + path + "': " + repo);
+        return repo;
     }
 
     private Repository resolveRepository(String path, Repository parent)
@@ -279,7 +293,7 @@ public class RingoConfiguration {
      * @return the ringo home directory
      */
     public Repository getRingoHome() {
-        return home;
+        return ringoHome;
     }
 
     /**
