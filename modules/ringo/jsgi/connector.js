@@ -61,7 +61,8 @@ function initRequest(request) {
             if (!input)
                 input = new Stream(request.env.servletRequest.getInputStream());
             return input;
-        }
+        },
+        enumerable: true
     });
     Object.defineProperty(request.jsgi, "errors", {
         value: system.stderr
