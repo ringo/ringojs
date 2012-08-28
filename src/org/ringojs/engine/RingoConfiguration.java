@@ -187,7 +187,7 @@ public class RingoConfiguration {
         } else {
             repo = new FileRepository(file);
         }
-        getLogger().fine("Resolved module path '" + path + "': " + repo);
+        getLogger().fine("Resolved module path " + path + ": " + repo);
         return repo;
     }
 
@@ -207,6 +207,7 @@ public class RingoConfiguration {
         repository = repositoryFromClasspath(path, loader);
         if (repository != null && repository.exists()) {
             repository.setRoot();
+            getLogger().info("Loading " + path + " from classpath: " + repository);
             return repository;
         }
         return null;
