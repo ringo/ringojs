@@ -74,7 +74,7 @@ public class RingoRunner {
         {"H", "history", "Use custom history file (default: ~/.ringo-history)", "FILE"},
         {"i", "interactive", "Start shell after script file has run", ""},
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
-        {"m",  "modules", "Add a directory to the module search path", "DIR"},
+        {"m", "modules", "Add a directory to the module search path", "DIR"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "production", "Disable module reloading and warnings", ""},
         {"P", "policy", "Set java policy file and enable security manager", "URL"},
@@ -351,12 +351,13 @@ public class RingoRunner {
         } else if ("history".equals(option)) {
             history = new File(arg);
         } else if ("modules".equals(option)) {
-            userModules.add(arg);
+            Collections.addAll(userModules,
+                    StringUtils.split(arg, File.pathSeparator));
         } else if ("policy".equals(option)) {
             System.setProperty("java.security.policy", arg);
             System.setSecurityManager(new RingoSecurityManager());
         } else if ("java-property".equals(option)) {
-            if (arg.indexOf("=") > -1) {
+            if (arg.contains("=")) {
                 String property[] = arg.split("=", 2);
                 System.setProperty(property[0], property[1]);
             }
