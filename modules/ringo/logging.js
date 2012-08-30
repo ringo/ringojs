@@ -20,7 +20,8 @@ var {EventEmitter} = require('ringo/events');
 
 export('getLogger', 'setConfig', 'getScriptStack', 'getJavaStack');
 
-var configured = false;
+// Use singleton to share flag across workers to avoid unwanted reconfiguration
+var configured = module.singleton("configured");
 // interval id for configuration watcher
 var configWatcher;
 
@@ -143,8 +144,8 @@ function setConfig(resource, watchForUpdates) {
             }
         }
     }
-    configured = true;
-};
+    configured = module.singleton("configured", function() true);
+}
 
 /**
  * Get a logger for the given name.
