@@ -262,6 +262,7 @@ function Log4jLogger(name) {
 
     if (!configured) {
         setConfig(getResource('config/log4j.properties'));
+        configured = module.singleton("configured", function() true);
     }
     var Level = org.apache.log4j.Level;
     var log = org.apache.log4j.LogManager.getLogger(name);
@@ -316,6 +317,7 @@ function Slf4jLogger(name) {
 
     if (!configured) {
         setConfig(getResource('config/log4j.properties'));
+        configured = module.singleton("configured", function() true);
     }
     var log = org.slf4j.LoggerFactory.getLogger(name);
 
