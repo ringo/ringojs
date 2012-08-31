@@ -12,12 +12,9 @@ package org.ringojs.engine;
 
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
-import org.ringojs.repository.Resource;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
-import java.util.ArrayList;
 
 public class RingoContextFactory extends ContextFactory {
 
@@ -34,7 +31,7 @@ public class RingoContextFactory extends ContextFactory {
 
     static int instructionLimit = 0xfffffff;
 
-    public RingoContextFactory(RhinoEngine engine, RingoConfiguration config) {
+    public RingoContextFactory(RhinoEngine engine, RingoConfig config) {
         this.engine = engine;
         optimizationLevel = config.getOptLevel();
         languageVersion = config.getLanguageVersion();

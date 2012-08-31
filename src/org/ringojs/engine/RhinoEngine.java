@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  */
 public class RhinoEngine implements ScopeProvider {
 
-    private RingoConfiguration config;
+    private RingoConfig config;
     private List<Repository> repositories;
     private RingoGlobal globalScope;
     private List<String> commandLineArgs;
@@ -84,7 +84,7 @@ public class RhinoEngine implements ScopeProvider {
      * @param globals an optional map of global properties
      * @throws Exception if the engine can't be created
      */
-    public RhinoEngine(RingoConfiguration config, Map<String, Object> globals)
+    public RhinoEngine(RingoConfig config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
         workers = new LinkedBlockingDeque<RingoWorker>();
@@ -639,7 +639,7 @@ public class RhinoEngine implements ScopeProvider {
      * @return a sandboxed RhinoEngine instance
      * @throws FileNotFoundException if any part of the module paths does not exist
      */
-    public RhinoEngine createSandbox(RingoConfiguration config, Map<String,Object> globals)
+    public RhinoEngine createSandbox(RingoConfig config, Map<String,Object> globals)
             throws Exception {
         config.setPolicyEnabled(this.config.isPolicyEnabled());
         return new RhinoEngine(config, globals);
@@ -916,7 +916,7 @@ public class RhinoEngine implements ScopeProvider {
         return loader;
     }
 
-    public RingoConfiguration getConfig() {
+    public RingoConfig getConfig() {
         return config;
     }
 

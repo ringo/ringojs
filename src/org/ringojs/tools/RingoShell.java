@@ -22,7 +22,7 @@ import jline.History;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
-import org.ringojs.engine.RingoConfiguration;
+import org.ringojs.engine.RingoConfig;
 import org.ringojs.engine.RingoWorker;
 import org.ringojs.engine.ScriptError;
 import org.ringojs.repository.Repository;
@@ -46,7 +46,7 @@ import java.security.CodeSigner;
  */
 public class RingoShell {
 
-    RingoConfiguration config;
+    RingoConfig config;
     RhinoEngine engine;
     RingoWorker worker;
     Scriptable scope;

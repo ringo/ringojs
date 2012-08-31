@@ -23,7 +23,7 @@ export( 'properties',
         'version');
 
 var {Context, ClassShutter} = org.mozilla.javascript;
-var {RhinoEngine, RingoConfiguration} = org.ringojs.engine;
+var {RhinoEngine, RingoConfig} = org.ringojs.engine;
 var engine = RhinoEngine.getEngine(global);
 
 /**
@@ -79,7 +79,7 @@ function addShutdownHook(funcOrObject, sync) {
 function createSandbox(modulePath, globals, options) {
     options = options || {};
     var systemModules = options.systemModules || null;
-    var config = new RingoConfiguration(
+    var config = new RingoConfig(
             getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {
         var shutter = options.shutter;

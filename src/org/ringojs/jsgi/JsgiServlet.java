@@ -18,9 +18,9 @@ package org.ringojs.jsgi;
 
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.RhinoException;
+import org.ringojs.engine.RingoConfig;
 import org.ringojs.engine.RingoWorker;
 import org.ringojs.engine.ScriptError;
-import org.ringojs.engine.RingoConfiguration;
 import org.ringojs.tools.RingoRunner;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.FileRepository;
@@ -92,8 +92,8 @@ public class JsgiServlet extends HttpServlet {
                 // Use ',' as platform agnostic path separator
                 String[] paths = StringUtils.split(modulePath, ",");
                 String[] systemPaths = {"modules", "packages"};
-                RingoConfiguration ringoConfig =
-                        new RingoConfiguration(home, base, paths, systemPaths);
+                RingoConfig ringoConfig =
+                        new RingoConfig(home, base, paths, systemPaths);
                 ringoConfig.setDebug(debug);
                 ringoConfig.setVerbose(verbose);
                 ringoConfig.setParentProtoProperties(legacyMode);

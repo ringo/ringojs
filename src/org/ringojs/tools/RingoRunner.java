@@ -20,7 +20,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrappedException;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.RhinoEngine;
-import org.ringojs.engine.RingoConfiguration;
+import org.ringojs.engine.RingoConfig;
 import org.ringojs.engine.RingoWrapFactory;
 import org.ringojs.engine.ScriptError;
 import org.ringojs.repository.FileRepository;
@@ -45,7 +45,7 @@ import java.io.PrintStream;
 
 public class RingoRunner {
 
-    RingoConfiguration config;
+    RingoConfig config;
     RhinoEngine engine;
     Context cx;
     Scriptable module;
@@ -123,7 +123,7 @@ public class RingoRunner {
         String[] systemModulePath = {"modules", "packages"};
         String[] userModulePath = userModules.toArray(new String[userModules.size()]);
 
-        config = new RingoConfiguration(home, userModulePath, systemModulePath);
+        config = new RingoConfig(home, userModulePath, systemModulePath);
         boolean hasPolicy = System.getProperty("java.security.policy") != null;
         config.setPolicyEnabled(hasPolicy);
         config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());

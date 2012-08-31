@@ -1,6 +1,6 @@
 package org.ringojs.tools;
 
-import org.ringojs.engine.RingoConfiguration;
+import org.ringojs.engine.RingoConfig;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.tools.debugger.Dim;
 import org.mozilla.javascript.tools.debugger.SwingGui;
@@ -38,7 +38,7 @@ import java.awt.event.KeyEvent;
 
 public class RingoDebugger extends Dim implements TreeSelectionListener {
 
-    RingoConfiguration config;
+    RingoConfig config;
     DebugGui gui;
     JTree tree;
     JList list;
@@ -48,7 +48,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
     HashMap scriptNames = new HashMap();
 
 
-    public RingoDebugger(RingoConfiguration config) {
+    public RingoDebugger(RingoConfig config) {
         this.config = config;
         gui = new DebugGui(this, "RingoJS Debugger");
         gui.pack();

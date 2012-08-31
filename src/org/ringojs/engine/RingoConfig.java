@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  * This class describes the configuration for a RingoJS application or shell session.
  * @author hannes
  */
-public class RingoConfiguration {
+public class RingoConfig {
 
     private Repository ringoHome;
     private Repository appHome;
@@ -67,7 +67,7 @@ public class RingoConfiguration {
      * @param ringoHome the ringo installation directory
      * @throws FileNotFoundException if a module path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome) throws IOException {
+    public RingoConfig(Repository ringoHome) throws IOException {
         this(ringoHome, null, null, new String[] {"modules", "packages"});
     }
 
@@ -79,8 +79,8 @@ public class RingoConfiguration {
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a module path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, String[] userModules,
-                              String[] systemModules) throws IOException {
+    public RingoConfig(Repository ringoHome, String[] userModules,
+                       String[] systemModules) throws IOException {
         this(ringoHome, null, userModules, systemModules);
     }
 
@@ -89,13 +89,13 @@ public class RingoConfiguration {
      *
      * @param ringoHome the ringo installation directory
      * @param appHome the path to resolve application against, pass null for
-     *                 for current working directory
+     *                current working directory
      * @param userModules the module search path as list of paths
      * @param systemModules system module path to append to module path, or null
      * @throws FileNotFoundException if a module path item does not exist
      */
-    public RingoConfiguration(Repository ringoHome, Repository appHome,
-                              String[] userModules, String[] systemModules)
+    public RingoConfig(Repository ringoHome, Repository appHome,
+                       String[] userModules, String[] systemModules)
             throws IOException {
         repositories = new ArrayList<Repository>();
         this.ringoHome = ringoHome;
@@ -144,7 +144,7 @@ public class RingoConfiguration {
                 }
             }
         }
-        getLogger().fine("Parsed repository list: " + repositories);
+        getLogger().config("Ringo repository list: " + repositories);
     }
 
     /**
@@ -203,7 +203,7 @@ public class RingoConfiguration {
             }
         }
         // Try to resolve path in main classloader classpath
-        ClassLoader loader = RingoConfiguration.class.getClassLoader();
+        ClassLoader loader = RingoConfig.class.getClassLoader();
         repository = repositoryFromClasspath(path, loader);
         if (repository != null && repository.exists()) {
             repository.setRoot();
@@ -553,7 +553,7 @@ public class RingoConfiguration {
     }
 
     private static Logger getLogger() {
-        return Logger.getLogger(RingoConfiguration.class.getName());
+        return Logger.getLogger(RingoConfig.class.getName());
     }
 
     private static Repository toZipRepository(URL url) throws IOException {
@@ -617,7 +617,7 @@ public class RingoConfiguration {
             loader = Thread.currentThread().getContextClassLoader();
         }
         if (loader == null) {
-            loader = RingoConfiguration.class.getClassLoader();
+            loader = RingoConfig.class.getClassLoader();
         }
         if (loader == null) {
             return null;
@@ -627,8 +627,8 @@ public class RingoConfiguration {
 }
 
 /**
- * This is used as return value in {@link RingoConfiguration#getResource(String)}
- * and {@link RingoConfiguration#getRepository(String)} when the given path
+ * This is used as return value in {@link RingoConfig#getResource(String)}
+ * and {@link RingoConfig#getRepository(String)} when the given path
  * could not be resolved.
  */
 class NotFound extends AbstractResource implements Repository {
