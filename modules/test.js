@@ -66,10 +66,10 @@ function jsDump(value, lvl) {
     }
 }
 jsDump.indent = function(lvl) {
-    return strings.repeat(" ", 4 * lvl);
+    return strings.repeat("    ", lvl);
 };
 jsDump.quote = function(str) {
-    return '"' + str.toString().replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
+    return JSON.stringify(str.toString());
 };
 
 /**
