@@ -33,7 +33,8 @@
         <property name="jsdocs" value="${home}/docs/modules"/>
         <property name="javadocs" value="${home}/docs/java"/>
 
-        <property name="ringo.jar" value="${lib}/ringo.jar"/>
+        <property name="ringo-core.jar" value="${lib}/ringo-core.jar"/>
+        <property name="ringo-modules.jar" value="${lib}/ringo-modules.jar"/>
 
         <property name="debug" value="on"/>
         <property name="optimize" value="on"/>
@@ -44,7 +45,7 @@
         <path id="classpath">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
-                <exclude name="${ringo.jar}"/>
+                <exclude name="${ringo-core.jar}"/>
             </fileset>
             <pathelement location="${classes}"/>
         </path>
@@ -103,10 +104,12 @@
     <!-- Creates a jar file in the lib-directory                             -->
     <!-- =================================================================== -->
     <target name="jar" depends="compile">
-        <jar jarfile="${ringo.jar}">
+        <jar jarfile="${ringo-core.jar}">
             <fileset dir="${classes}"/>
-            <fileset dir="${home}" includes="modules/**"/>
             <fileset dir="${src}" excludes="**/*.java,**/package.html"/>
+        </jar>
+        <jar jarfile="${ringo-modules.jar}">
+            <fileset dir="${home}" includes="modules/**"/>
         </jar>
         <jar jarfile="run.jar"
             basedir="${classes}"
@@ -172,8 +175,11 @@
     <!-- =================================================================== -->
     <target name="clean" depends="init">
         <delete dir="${build}"/>
-        <delete file="${ringo.jar}"/>
+        <delete file="${ringo-core.jar}"/>
+        <delete file="${ringo-modules.jar}"/>
         <delete file="run.jar"/>
+        <!-- transitional: delete old ringo.jar file -->
+        <delete file="lib/ringo.jar"/>
     </target>
 
 
