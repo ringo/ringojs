@@ -36,7 +36,7 @@ public class JsgiRequest extends ScriptableObject {
      */
     public JsgiRequest(Scriptable scope) {
         setParentScope(scope);
-        setPrototype(ScriptableObject.getObjectPrototype(scope));
+        setPrototype(getObjectPrototype(scope));
         try {
             defineProperty("host", null, getMethod("getServerName"), null, readonly);
             defineProperty("port", null, getMethod("getServerPort"), null, readonly);
@@ -48,15 +48,15 @@ public class JsgiRequest extends ScriptableObject {
             throw new RuntimeException(nsm);
         }
         // JSGI spec and Jack's lint require env.constructor to be Object
-        defineProperty("constructor", ScriptableObject.getProperty(scope, "Object"), DONTENUM);
+        defineProperty("constructor", getProperty(scope, "Object"), DONTENUM);
         Scriptable jsgi = jsgiObject = newObject(scope);
         Scriptable version = newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(3)});
-        ScriptableObject.defineProperty(jsgi, "version", version, readonly);
-        ScriptableObject.defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
-        ScriptableObject.defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
-        ScriptableObject.defineProperty(jsgi, "async", Boolean.TRUE, readonly);
-        ScriptableObject.defineProperty(jsgi, "runOnce", Boolean.FALSE, readonly);
-        ScriptableObject.defineProperty(jsgi, "cgi", Boolean.FALSE, readonly);
+        defineProperty(jsgi, "version", version, readonly);
+        defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
+        defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
+        defineProperty(jsgi, "async", Boolean.TRUE, readonly);
+        defineProperty(jsgi, "runOnce", Boolean.FALSE, readonly);
+        defineProperty(jsgi, "cgi", Boolean.FALSE, readonly);
     }
 
     /**
@@ -70,9 +70,9 @@ public class JsgiRequest extends ScriptableObject {
         setParentScope(scope);
         Scriptable jsgi = newObject(scope);
         jsgi.setPrototype(prototype.jsgiObject);
-        ScriptableObject.defineProperty(this, "jsgi", jsgi, PERMANENT);
+        defineProperty(this, "jsgi", jsgi, PERMANENT);
         Scriptable headers = newObject(scope);
-        ScriptableObject.defineProperty(this, "headers", headers, PERMANENT);
+        defineProperty(this, "headers", headers, PERMANENT);
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
             String value = request.getHeader(name);
@@ -88,12 +88,12 @@ public class JsgiRequest extends ScriptableObject {
                 "" : checkString(pathInfo));
         put("method", this, checkString(request.getMethod()));
         Scriptable env = newObject(scope);
-        ScriptableObject.defineProperty(this, "env", env, PERMANENT);
-        ScriptableObject.defineProperty(env, "servlet",
+        defineProperty(this, "env", env, PERMANENT);
+        defineProperty(env, "servlet",
                 new NativeJavaObject(scope, servlet, null), PERMANENT);
-        ScriptableObject.defineProperty(env, "servletRequest",
+        defineProperty(env, "servletRequest",
                 new NativeJavaObject(scope, request, null), PERMANENT);
-        ScriptableObject.defineProperty(env, "servletResponse",
+        defineProperty(env, "servletResponse",
                 new NativeJavaObject(scope, response, null), PERMANENT);
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", scope.get("Object", scope), DONTENUM);
