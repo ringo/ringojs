@@ -34,7 +34,7 @@ public class JsgiRequest extends ScriptableObject {
     /**
      * Prototype constructor
      */
-    public JsgiRequest(Scriptable scope) {
+    public JsgiRequest(Scriptable scope, boolean asyncSupport) {
         setParentScope(scope);
         setPrototype(getObjectPrototype(scope));
         try {
@@ -54,7 +54,7 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(jsgi, "version", version, readonly);
         defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
         defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
-        defineProperty(jsgi, "async", Boolean.TRUE, readonly);
+        defineProperty(jsgi, "async", Boolean.valueOf(asyncSupport), readonly);
         defineProperty(jsgi, "runOnce", Boolean.FALSE, readonly);
         defineProperty(jsgi, "cgi", Boolean.FALSE, readonly);
     }

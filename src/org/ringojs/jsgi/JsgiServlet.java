@@ -110,13 +110,13 @@ public class JsgiServlet extends HttpServlet {
             }
         }
 
-        requestProto = new JsgiRequest(engine.getScope());
-
         try {
             hasContinuation = ContinuationSupport.class != null;
         } catch (NoClassDefFoundError ignore) {
             hasContinuation = false;
         }
+
+        requestProto = new JsgiRequest(engine.getScope(), hasContinuation);
     }
 
     @Override
@@ -127,8 +127,12 @@ public class JsgiServlet extends HttpServlet {
                     .getContinuation(request).isExpired()) {
                 return; // continuation timeouts are handled by ringo/jsgi module
             }
-        } catch (Exception ignore) {
-            // continuation may not be set up even if class is available - ignore
+        } catch (Exception x) {
+            // Continuations may not be set up even if class is available.
+            // Set flag to false and ignore otherwise.
+            log("Caught exception, disabling continuation support", x);
+            hasContinuation = false;
+            requestProto = new JsgiRequest(engine.getScope(), false);
         }
         JsgiRequest req = new JsgiRequest(request, response, requestProto,
                 engine.getScope(), this);
