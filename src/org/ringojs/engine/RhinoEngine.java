@@ -129,7 +129,7 @@ public class RhinoEngine implements ScopeProvider {
                             entry.getValue(), ScriptableObject.DONTENUM);
                 }
             }
-            mainWorker.evaluateScript(cx, getScript("ringo/global"), globalScope);
+            mainWorker.evaluateScript(cx, getScript("globals"), globalScope);
             evaluateBootstrapScripts(cx);
             if (sealed) {
                 globalScope.sealObject();
