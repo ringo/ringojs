@@ -16,7 +16,7 @@ properties: `status`, `headers` and `body`.
 
 A simple "hello world" JSGI Application might look like this:
 
-    exports.app = function (env) {
+    exports.app = function (request) {
         return {
             status: 200,
             headers: {"Content-Type": "text/plain"},
