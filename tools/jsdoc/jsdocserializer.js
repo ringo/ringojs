@@ -184,16 +184,36 @@ exports.structureModuleDoc = function(data) {
         return !item.isFunction && !item.isClass;
     });
 
-    // if we find a function for a class which isn't yet in classes
-    // add it.
-    functions.forEach(function(item) {
+    // For items that look like they belong to a class but the class doesn't
+    // exist yet either add a synthetic class item or clear the class property.
+    data.items.forEach(function(item) {
         if (item.relatedClass) {
-            var classForName = classes.filter(filterByName(item.relatedClass));
-            if (!classForName || !classForName.length) {
-                classes.push({
+            if (classes.filter(filterByName(item.relatedClass)).length) {
+                return;
+            }
+            if (isClassName(item.relatedClass)) {
+                // Create a new class item
+                var newClass = {
                     isClass: true,
-                    name: item.relatedClass
-                });
+                    moduleName: data.name,
+                    name: item.relatedClass,
+                    namePrefix: '',
+                    shortName: item.relatedClass,
+                    desc: 'Not exported as constructor by this module.'
+                };
+                classes.push(newClass);
+                // data.items is already sorted, do a sorted insert
+                for (var i = 0; i < data.items.length; i++) {
+                    if (newClass.name < data.items[i].name) {
+                        data.items.splice(i, 0, newClass);
+                        break;
+                    }
+                }
+            } else {
+                // Probably not a class, display as plain property/function
+                item.relatedClass = '';
+                item.shortName = item.namePrefix + item.shortName;
+                item.namePrefix = '';
             }
         }
     });
