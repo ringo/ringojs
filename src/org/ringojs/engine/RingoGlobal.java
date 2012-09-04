@@ -69,19 +69,13 @@ public class RingoGlobal extends Global {
             }
         });
         String[] names = {
-            "doctest",
             "gc",
             "load",
-            "loadClass",
             "print",
             "quit",
-            "readFile",
-            "readUrl",
-            "runCommand",
             "seal",
             "sync",
-            "toint32",
-            "version",
+            "version"
         };
         defineFunctionProperties(names, Global.class,
                                  ScriptableObject.DONTENUM);
@@ -91,10 +85,7 @@ public class RingoGlobal extends Global {
             "getRepository",
             "addToClasspath",
             "privileged",
-            "spawn",
-            "trycatch",
-            "enterAsyncTask",
-            "exitAsyncTask"
+            "spawn"
         };
         defineFunctionProperties(names, RingoGlobal.class,
                                  ScriptableObject.DONTENUM);
@@ -211,19 +202,6 @@ public class RingoGlobal extends Global {
                 AccessController.doPrivileged(action), null);
     }
 
-    public static Object trycatch(final Context cx, Scriptable thisObj, Object[] args,
-                                    Function funObj) {
-        if (args.length != 1 || !(args[0] instanceof Function)) {
-            throw Context.reportRuntimeError("trycatch() requires a function argument");
-        }
-        Scriptable scope = getTopLevelScope(thisObj);
-        try {
-            return ((Function)args[0]).call(cx, scope, thisObj, ScriptRuntime.emptyArgs);
-        } catch (RhinoException re) {
-            return new NativeJavaObject(scope, re, null);
-        }
-    }
-
     public static Object spawn(Context cx, Scriptable thisObj,
                                Object[] args, Function funObj) {
         if (securityManager != null) {
@@ -250,14 +228,6 @@ public class RingoGlobal extends Global {
                 });
             }
         });
-    }
-
-    public void enterAsyncTask() {
-        engine.enterAsyncTask();
-    }
-
-    public void exitAsyncTask() {
-        engine.exitAsyncTask();
     }
 
     static ExecutorService getThreadPool() {
