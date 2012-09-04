@@ -106,9 +106,51 @@ properties:
 
 ## Asynchronous JSGI
 
-By its nature JSGI is a synchronous interface, meaning that the request is
-processed on the calling thread. RingoJS provides an extension to JSGI to
-support asynchronous request handling, meaning the processing of the request
-can be uncoupled from the calling thread.
+By its nature JSGI is a synchronous interface. The request is processed on the
+calling thread, meaning that the thread is blocked for whatever time it takes
+to return from the function call.
 
-*TODO*
+RingoJS provides two extensions to JSGI to uncouple an HTTP request
+from the calling thread and process it asynchronously, one based on Promises
+and the other using an AsyncResponse helper object.
+
+It's important to note that asynchronous processing is currently only
+available when running with Jetty (which is bundled with RingoJS). The Java
+Servlet API up to version 3.0 did not support asynchronous operation. RingoJS
+does not yet support asynchronous Servlet 3.0 API.
+
+You can check the availability of asynchronous operation using the `jsgi.async`
+flag in the JSGI Request object.
+
+### Promise based Asynchronous JSGI
+
+To generate a Promise-based asynchronous simply return a promise instead of
+an ordinary JSGI Response object. A promise in RingoJS is any object with a
+method named `then` that accepts two callbacks, one to be called if the
+promise resolves successfully and the other to be called in case of an error.
+
+If the promise resolves successfully it is expected to invoke the callback
+passing a valid JSGI Response object as argument containing `status`, `headers`,
+and `body` properties as described above. If the promise fails it is expected
+to call the error callback with the cause of the error, which can be a string
+or an error object.
+
+You can use package [ringo/promise](http://ringojs.org/api/master/ringo/promise/)
+or create your own duck-type Promise object with a `then` method accepting the
+callbacks.
+
+Promise based asynchronous JSGI is a good choice if you want to detach request
+processing from the calling thread (possibly because it will take some time to
+finish) but the response is reasonably small and can be delivered in one step.
+
+### AsyncResponse Helper
+
+Another possibility to create an asynchronous response in RingoJS is to return a
+[AsyncResponse](http://ringojs.org/api/master/ringo/jsgi/connector/#AsyncResponse)
+object from your JSGI application. This will detach request processing from the
+current thread just like returning a Promise, but instead of having to resolve
+the request in one step you can use the `start`, `write`, `flush`, and `close`
+methods in the `AsyncResponse` object to process.
+
+The AsyncResponse is the way to go when you deal with large responses that are
+possibly generated in multiple, unconnected steps.
