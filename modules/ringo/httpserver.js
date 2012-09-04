@@ -50,24 +50,26 @@ function Server(options) {
     var xmlconfig;
 
     /**
-     * Get the server's default context. The default context is the
+     * Get the server's default [context][#Context]. The default context is the
      * context that is created when the server is created.
+     * @see #Context
      * @since: 0.6
-     * @returns the default context
+     * @returns the default Context
      */
     this.getDefaultContext = function() {
         return defaultContext;
     };
 
     /**
-     * Get a servlet application context for the given path and virtual hosts, creating
-     * it if it doesn't exist.
+     * Get a servlet application [context][#Context] for the given path and
+     * virtual hosts, creating it if it doesn't exist.
      * @param {string} path the context root path such as "/" or "/app"
      * @param {string|array} virtualHosts optional single or multiple virtual host names.
      *   A virtual host may start with a "*." wildcard.
      * @param {Object} options may have the following properties:
      *   sessions: true to enable sessions for this context, false otherwise
      *   security: true to enable security for this context, false otherwise
+     * @see #Context
      * @since: 0.6
      * @returns a Context object
      */
@@ -90,6 +92,13 @@ function Server(options) {
             }
         }
 
+        /**
+         * Not exported as constructor by this module.
+         * @see #Server.prototype.getContext
+         * @see #Server.prototype.getDefaultContext
+         * @class Context
+         * @name Context
+         */
         return {
             /**
              * Map this context to a JSGI application.
