@@ -234,9 +234,9 @@ Object.defineProperty(this, "global", { value: this });
  * is never called again and all calls to `module.singleton` with
  * that id return that original value.
  *
- * A singleton can be undefined if `module.singleton` is called without
- * `factory` argument with an `id` that hasn't been initialized yet.
- * In this case `module.singleton` will return `undefined` until it is called
+ * `module.singleton` supports lazy initialization. A singleton can remain
+ * undefined if `module.singleton` is called without `factory` argument.
+ * In this case `module.singleton` returns `undefined` until it is first called
  * with a `factory` argument.
  *
  * @param {String} id the singleton id
@@ -342,7 +342,7 @@ Object.defineProperty(this, "global", { value: this });
  *
  * @param {String} path the resource path
  * @name getResource
- * @return an instance of org.ringojs.repository.Resource
+ * @return {org.ringojs.repository.Resource} a resource
  * @see #getRepository
  * @function
  */
@@ -353,7 +353,7 @@ Object.defineProperty(this, "global", { value: this });
  * representing the resolved path.
  *
  * @param {String} path the repository path
- * @return an instanceo of org.ringojs.repository.Repository
+ * @return {org.ringojs.repository.Repository} a repository
  * @name getRepository
  * @see #getResource
  * @function
