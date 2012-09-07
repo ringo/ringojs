@@ -318,16 +318,6 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Get the JavaScript language version number. This returns 180 in RingoJS.
- *
- * In contrast to the Rhino shell, the JavaScript version cannot be changed
- * in RingoJS as many of the core modules require JavaScript 1.8.
- * @name version
- * @return the JavaScript version number
- * @function
- */
-
-/**
  * Define an extension using the Java class named with the string argument
  * `className`. Uses `ScriptableObject.defineClass()` to define the extension.
  * @param {String} className a Java class

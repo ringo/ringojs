@@ -74,8 +74,7 @@ public class RingoGlobal extends Global {
             "print",
             "quit",
             "seal",
-            "sync",
-            "version"
+            "sync"
         };
         defineFunctionProperties(names, Global.class,
                                  ScriptableObject.DONTENUM);
