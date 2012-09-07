@@ -75,7 +75,7 @@ public final class RingoWorker {
         Scriptable scope = engine.getScope();
         Context cx = engine.getContextFactory().enterContext(null);
         errors = new LinkedList<ScriptError>();
-        runlock.lock();
+        RingoWorker previous = acquireWorker();
         if (reload) checkedModules.clear();
 
         try {
@@ -117,7 +117,7 @@ public final class RingoWorker {
                 throw rx;
             }
         } finally {
-            runlock.unlock();
+            releaseWorker(previous);
             Context.exit();
         }
     }
@@ -257,14 +257,14 @@ public final class RingoWorker {
         // check if module has been loaded before
         Scriptable module = modules.get(script.resource);
         ReloadableScript parent = currentScript;
-        runlock.lock();
+        RingoWorker previous = acquireWorker();
         try {
             currentScript = script;
             module = script.load(engine.getScope(), cx, module, this);
             modules.put(script.resource, module);
         } finally {
             currentScript = parent;
-            runlock.unlock();
+            releaseWorker(previous);
             if (parent != null) {
                 parent.addDependency(script);
             }
@@ -297,14 +297,14 @@ public final class RingoWorker {
         Object result;
         ReloadableScript parent = currentScript;
         errors = new LinkedList<ScriptError>();
-        runlock.lock();
+        RingoWorker previous = acquireWorker();
         try {
             currentScript = script;
             result = script.evaluate(scope, cx, this);
             modules.put(script.resource, scope);
         } finally {
             currentScript = parent;
-            runlock.unlock();
+            releaseWorker(previous);
             if (parent != null) {
                 parent.addDependency(script);
             }
@@ -423,6 +423,27 @@ public final class RingoWorker {
         } else {
             release();
         }
+    }
+
+    /**
+     * Associate this worker with the current thread, making sure no other
+     * thread currently owns this worker. Returns the worker previously
+     * associated with this thread, if any.
+     * @return the worker previously associated with this thread, or null
+     */
+    private RingoWorker acquireWorker() {
+        runlock.lock();
+        return engine.setCurrentWorker(this);
+    }
+
+    /**
+     * Release this worker from the current thread, and set the worker
+     * associated with the current thread to the previous worker.
+     * @param previous the worker previously associated with this thread
+     */
+    private void releaseWorker(RingoWorker previous) {
+        engine.setCurrentWorker(previous);
+        runlock.unlock();
     }
 
     // init the worker's event loop

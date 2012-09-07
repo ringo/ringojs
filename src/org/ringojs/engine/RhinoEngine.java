@@ -69,6 +69,7 @@ public class RhinoEngine implements ScopeProvider {
 
     private final RingoWorker mainWorker;
     private final Deque<RingoWorker> workers;
+    private final ThreadLocal<RingoWorker> currentWorker;
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
 
     private static Logger log = Logger.getLogger(RhinoEngine.class.getName());
@@ -88,6 +89,7 @@ public class RhinoEngine implements ScopeProvider {
             throws Exception {
         this.config = config;
         workers = new LinkedBlockingDeque<RingoWorker>();
+        currentWorker = new ThreadLocal<RingoWorker>();
         mainWorker = new RingoWorker(this);
         compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
         interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
@@ -256,18 +258,24 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
+     * Associate a worker with the current worker and return the worker
+     * that was previously associated with it, or null.
+     *
+     * @param worker the new worker associated with the current thread
+     * @return the worker previously associated with the current thread, or null
+     */
+    protected RingoWorker setCurrentWorker(RingoWorker worker) {
+        RingoWorker previousWorker = currentWorker.get();
+        currentWorker.set(worker);
+        return previousWorker;
+    }
+
+    /**
      * Get the worker associated with the given scope, or null.
-     * @param scope a JavaScropt scope object
      * @return the worker associated with the current thread, or null.
      */
-    public RingoWorker getCurrentWorker(Scriptable scope) {
-        while (scope != null) {
-            if (scope instanceof ModuleScope) {
-                return ((ModuleScope) scope).getWorker();
-            }
-            scope = scope.getParentScope();
-        }
-        return null;
+    public RingoWorker getCurrentWorker() {
+        return currentWorker.get();
     }
 
     /**

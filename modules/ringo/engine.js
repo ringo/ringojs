@@ -168,7 +168,7 @@ function getWorker() {
  * @return {org.ringojs.engine.RingoWorker} the current RingoWorker instance
  */
 function getCurrentWorker() {
-    return engine.getCurrentWorker(module);
+    return engine.getCurrentWorker();
 }
 
 /**

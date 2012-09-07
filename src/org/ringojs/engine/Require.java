@@ -76,7 +76,7 @@ public class Require extends BaseFunction {
         ModuleScope moduleScope = thisObj instanceof ModuleScope ?
                 (ModuleScope) thisObj : null;
         try {
-            RingoWorker worker = engine.getCurrentWorker(thisObj);
+            RingoWorker worker = engine.getCurrentWorker();
             if (worker == null) {
                 worker = engine.getMainWorker();
             }
