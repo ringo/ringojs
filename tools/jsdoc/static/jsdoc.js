@@ -1,4 +1,4 @@
-function jsdocSetup() {
+$(document).ready(function() {
 
     // filter given ul $list by text query
     var filterList = function(query, $list) {
@@ -25,10 +25,10 @@ function jsdocSetup() {
         /* if (sessionStorage) {
             sessionStorage.jsdocQuery = query;
         } */
-        filterList(query, $('.jsdoc-leftnav'));
+        filterList(query, $('#modulelist'));
     }
 
-    var searchbox = $("#jsdoc-leftnavsearch");
+    var searchbox = $("#filter");
     searchbox.change(doFilter).keyup(doFilter).click(doFilter);
     // only focus search box if current location does not have a fragment id
     if (!location.hash) {
@@ -54,4 +54,4 @@ function jsdocSetup() {
     if (query) {
         $("#jsdoc-leftnavsearch").val(query).trigger('keyup');
     } */
-}
+});

@@ -1,6 +1,6 @@
-<!DOCTYPE html >
+<!DOCTYPE html>
 
-<html lang="de" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
     <title>{{title}}</title>
     <link rel="shortcut icon" href="http://ringojs.org/favicon.ico" type="image/x-icon" />
@@ -11,11 +11,14 @@
 
 <body>
 <div class="wrap">
-{{{content}}}
-    <div class="menu" style="margin-top: 1em; font-size: 13px;">
-    {{repositoryName}}<br/>
-    {{{menu}}}
-</div>
+
+   {{{content}}}
+
+   <nav>
+      <h1>{{repositoryName}}</h1>
+      {{{menu}}}
+   </nav>
+
 </div>
 </body>
 </html>
