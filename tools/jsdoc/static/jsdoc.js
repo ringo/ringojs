@@ -1,5 +1,4 @@
 $(document).ready(function() {
-
     // filter given ul $list by text query
     var filterList = function(query, $list) {
         if (!query) {
@@ -22,36 +21,23 @@ $(document).ready(function() {
     // search module list
     function doFilter() {
         var query = $.trim($(this).val().toLowerCase());
-        /* if (sessionStorage) {
-            sessionStorage.jsdocQuery = query;
-        } */
         filterList(query, $('#modulelist'));
+
+        return $('#modulelist li:visible').length;
     }
 
     var searchbox = $("#filter");
-    searchbox.change(doFilter).keyup(doFilter).click(doFilter);
+    searchbox.on("click", function(event) {
+        doFilter.apply(this);
+    }).on("keyup", function(event) {
+        if (doFilter.apply(this) === 1 && event.keyCode === 13) {
+            $('#modulelist li:visible a').get(0).click();
+        }
+    });;
+
     // only focus search box if current location does not have a fragment id
     if (!location.hash) {
         searchbox.focus();
     }
 
-    // hide all but first paragraph from module fileoverview
-    var $showMoreLink = $('.jsdoc-showmore');
-    $(".jsdoc-fileoverview").each(function(idx, overview) {
-        var $overview = $(overview);
-        var $allButFirstElement = $overview.children().not(":first-child");
-        if ($allButFirstElement.length) {
-            $allButFirstElement.hide();
-            $overview.append($showMoreLink.clone());
-        }
-    });
-    $(".jsdoc-showmore").click(function() {
-        $(this).hide().siblings().show();
-    });
-
-    // load query string from storage if any
-    /* var query = sessionStorage && sessionStorage.jsdocQuery;
-    if (query) {
-        $("#jsdoc-leftnavsearch").val(query).trigger('keyup');
-    } */
 });

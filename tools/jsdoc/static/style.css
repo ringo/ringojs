@@ -20,12 +20,12 @@ a:hover {
   text-decoration: underline;
 }
 
-div.wrap {
+.main {
     margin: 0 auto;
     max-width: 940px;
 }
 
-div.main {
+.content {
     clear: both;
     float: left;
     width: 70%;
@@ -77,9 +77,3 @@ nav #modulelist {
 nav #modulelist li {
     margin: 0 0 2px 0;
 }
-
-.hidden {
-    visibility:hidden;
-    display:none;
-}
-

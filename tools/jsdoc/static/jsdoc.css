@@ -102,7 +102,8 @@ pre {
     padding:0 12px;
 }
 
-.leftnav, .repositorylist, .propertyoverview {
+.leftnav, .repositorylist, .propertyoverview,
+.modulecontainer.indexall .moduleoverview {
     list-style-type: none;
     padding: 0;
 }
@@ -128,6 +129,8 @@ pre {
     padding: 8px;
 }
 
+.modulelist,
+.modulecontainer,
 .classoverview {
     border-left: 10px solid #C1CCD1;
     margin: 30px 0 50px -30px;
@@ -139,18 +142,25 @@ h2.functions,
     margin-top: 0;
 }
 
-.modulename {
-    /* background-color: #f1ffcc; */
+.modulelist {
+    list-style: none;
 }
 
-.showmore {
-    color: blue;
-    cursor: pointer;
+.modulelist li {
+    margin-bottom: 32px;
 }
 
-.modulecontainer {
-    border-left: 10px solid #6a6;
-    padding: 0 0 0 5px;
+.modulelist h2 {
+    margin: 0 0 2px 0;
+}
+
+.modulelist p {
+    margin: 0 0 16px 0;
+}
+
+.modulecontainer.indexall h2,
+.modulecontainer.indexall .moduleoverview {
+    margin: 0;
 }
 
 .functions.propertyoverview {
