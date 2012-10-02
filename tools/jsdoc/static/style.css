@@ -62,9 +62,28 @@ nav .toggles a {
 
 nav input {
     display: block;
-    padding: 3px 5px;
-    margin: 18px 0 6px -1px;
+    padding: 4px 5px;
+    margin: 18px 0 7px -1px;
+    height: 20px;
     width: 80%;
+    -moz-background-clip: padding;
+    -ms-background-clip: padding-box;
+    -o-background-clip: padding-box;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+    border: 1px solid #cfcfcf;
+    font-family: 'Open Sans',​Arial,​Helvetica,​sans-serif;
+    font-size: 14px;
+}
+
+nav input:focus {
+    border-color: #aaa;
+    outline: 0;
+    box-shadow: #b7d2ea 0 0 3px 0;
+}
+
+input.submittable {
+    background: url('./enterkey.png') right 4px no-repeat;
 }
 
 nav #modulelist {
@@ -76,4 +95,8 @@ nav #modulelist {
 
 nav #modulelist li {
     margin: 0 0 2px 0;
+}
+
+nav #modulelist.submittable {
+    font-weight: 600;
 }

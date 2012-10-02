@@ -3,41 +3,44 @@ $(document).ready(function() {
     var filterList = function(query, $list) {
         if (!query) {
             $('li', $list).show();
-            return false;
+            return -1;
         }
-        var found = false;
+        var count = 0;
         $('li', $list).each(function() {
             var $item = $(this);
             if ($item.html().toLowerCase().indexOf(query) < 0) {
                 $item.hide();
             } else {
                 $item.show();
-                found = true;
+                count++;
             }
         });
-        return found;
+
+        return count;
     };
 
-    // search module list
-    function doFilter() {
-        var query = $.trim($(this).val().toLowerCase());
-        filterList(query, $('#modulelist'));
-
-        return $('#modulelist li:visible').length;
-    }
-
-    var searchbox = $("#filter");
-    searchbox.on("click", function(event) {
-        doFilter.apply(this);
-    }).on("keyup", function(event) {
-        if (doFilter.apply(this) === 1 && event.keyCode === 13) {
-            $('#modulelist li:visible a').get(0).click();
+    var $searchbox = $("#filter");
+    $searchbox.on("keyup click", function(event) {
+        // ESC key
+        if (event.keyCode === 27) {
+            $searchbox.val("");
         }
-    });;
+
+
+        if (filterList.apply(this, [$.trim($(this).val().toLowerCase()), $('#modulelist')]) === 1) {
+            $("#filter, #modulelist").addClass("submittable");
+
+            if (event.keyCode === 13) {
+                $('#modulelist li:visible a').get(0).click();
+            }
+        } else {
+            $("#filter, #modulelist").removeClass("submittable");
+        }
+    });
 
     // only focus search box if current location does not have a fragment id
     if (!location.hash) {
-        searchbox.focus();
+        $searchbox.focus();
     }
 
 });
