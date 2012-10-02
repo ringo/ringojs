@@ -1,5 +1,8 @@
 build/*
 lib/ringo.jar
+lib/ivy/*.jar
+lib/ringo-core.jar
+lib/ringo-modules.jar
 run.jar
 target
 *.iml
