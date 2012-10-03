@@ -54,6 +54,13 @@ public final class RingoWorker {
     }
 
     /**
+     * Returns a string representation of the worker.
+     */
+    public String toString() {
+        return "ringo-worker-" + id;
+    }
+
+    /**
      * <p>Invoke the function specified by `function` in module `module` with the
      * given arguments on the current thread. If this worker is currently busy
      * running another thread this method will block until the other thread
