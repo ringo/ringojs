@@ -16,7 +16,7 @@ var log = require('ringo/logging').getLogger(module.id);
  * @param {String} moduleId the module id. Ignored if functionObj is already a function.
  * @param {Function} functionObj the function, either as function object or function name to be
  *             imported from the module moduleId.
- * @param {Object} req the JSGI request object
+ * @param {Object} request the JSGI request object
  * @returns {Object} the JSGI response object
  */
 function handleRequest(moduleId, functionObj, request) {
@@ -28,7 +28,7 @@ function handleRequest(moduleId, functionObj, request) {
         var module = require(moduleId);
         app = module[functionObj];
         var middleware = module.middleware || [];
-        request.env.ringo_config = moduleId;
+        request.env.app = moduleId;
         app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     // if RINGO_ENV environment variable is set and application supports
@@ -48,7 +48,7 @@ function handleRequest(moduleId, functionObj, request) {
 
 /**
  * Set up the I/O related properties of a jsgi environment object.
- * @param {Object} env a jsgi request object
+ * @param {Object} request a jsgi request object
  */
 function initRequest(request) {
     var input, errors;
