@@ -58,17 +58,27 @@ function Deferred() {
     }, lock);
 
     var notify = function(listener) {
-        var isError = state === FAILED;
+        var isError = (state === FAILED);
         var callback = isError ? listener.errback : listener.callback;
-        if (!callback) {
-            // if no callback defined we pass through the value
-            listener.tail.resolve(value, isError);
-        } else {
+        var result = value;
+
+        if (callback) {
             try {
-                listener.tail.resolve(callback(value), isError);
+                result = callback(value);
             } catch (error) {
-                listener.tail.resolve(error, true);
+                result = error;
+                isError = true;
             }
+        }
+        // If result is a promise, chain its result to our existing promise. Else resolve directly.
+        if (result != null && typeof result.then === 'function') {
+            result.then(function(val) {
+                listener.tail.resolve(val, isError);
+            }, function(err) {
+                listener.tail.resolve(err, true);
+            });
+        } else {
+            listener.tail.resolve(result, isError);
         }
     };
 

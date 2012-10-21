@@ -1,30 +1,22 @@
 var assert = require("assert");
 var {Deferred, PromiseList} = require("ringo/promise");
-var {Semaphore} = require("ringo/concurrent");
+var system = require("system");
 
 exports.testPromise = function() {
     var d1 = new Deferred(), d2 = new Deferred();
-    var semaphore = new Semaphore();
     var v1, v2, e2;
     d1.promise.then(function(value) {
         v1 = value;
-        semaphore.signal();
     });
     d2.promise.then(function(value) {
         v2 = value;
     }, function(error) {
         e2 = error;
-        semaphore.signal();
     });
-    // Resolve promise in thread so async promise callbacks get called
-    spawn(function() {
-        d1.resolve("value");
-        d2.resolve("error", true);
-    });
-    // wait for promises to resolve
-    if (!semaphore.tryWait(1000, 2)) {
-        assert.fail("timed out");
-    }
+
+    d1.resolve("value");
+    d2.resolve("error", true);
+
     // make sure promises have resolved via chained callback
     assert.equal(v1, "value");
     assert.equal(v2, undefined);
@@ -34,7 +26,6 @@ exports.testPromise = function() {
 exports.testPromiseList = function() {
     var d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
     var l = PromiseList(d1.promise, d2.promise, d3); // PromiseList should convert d3 to promise
-    var semaphore = new Semaphore();
     var result;
     l.then(function(value) {
         done.resolve(value);
@@ -43,20 +34,70 @@ exports.testPromiseList = function() {
     });
     done.promise.then(function(value) {
         result = value;
-        semaphore.signal();
     });
-    // Resolve promises in thread so async promise callbacks get called
-    spawn(function() {
-        d2.resolve(1);
-        d3.resolve("error", true);
-        d1.resolve("ok");
-    });
-    // wait for last promise to resolve
-    if (!semaphore.tryWait(1000)) {
-        assert.fail("timed out");
-    }
+    d2.resolve(1);
+    d3.resolve("error", true);
+    d1.resolve("ok");
     // make sure promises have resolved via chained callback
     assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
+};
+
+exports.testPromiseMultipleCallbacks = function() {
+    var d = new Deferred();
+    var v1, v2;
+    d.promise.then(function(value) {
+        return value + 2;
+    }).then(function(value) {
+        v1 = value + 5;
+    });
+    d.promise.then(function(value) {
+        return value + 2;
+    }).then(function(value) {
+         v2 = value + 10;
+    });
+    d.resolve(10);
+    assert.equal(v1, 17);
+    assert.equal(v2, 22);
+};
+
+exports.testPromiseChain = function() {
+    var d1 = new Deferred(), d2 = new Deferred();
+    var v1, v2, v3;
+    d1.promise.then(function(value) {
+        v1 = value;
+        return v1;
+    }).then(function(value) {
+        v2 = value + 1;
+        d2.resolve(v2);
+        return d2.promise;
+    }).then(function(value) {
+        v3 = value + 1;
+    });
+    d1.resolve(1);
+    assert.equal(v1, 1);
+    assert.equal(v2, 2);
+    assert.equal(v3, 3);
+};
+
+exports.testPromiseChainFail = function() {
+    var d = new Deferred();
+    var v1, v2, v3, err;
+    d.promise.then(function(value) {
+        v1 = value;
+        throw 'error';
+    }).then(function(value) {
+        v2 = value + 1;
+        return v2;
+    }).then(function(value) {
+        v3 = value + 1;
+    }, function(error) {
+        err = error;
+    });
+    d.resolve(1);
+    assert.equal(v1, 1);
+    assert.equal(v2, undefined);
+    assert.equal(v3, undefined);
+    assert.equal(err, 'error');
 };
 
 // start the test runner if we're called directly from command line
