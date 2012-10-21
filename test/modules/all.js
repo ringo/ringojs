@@ -1,7 +1,8 @@
 
-include('ringo/engine');
+var engine = require('ringo/engine');
 var assert = require('assert');
 var fs = require('fs');
+var system = require('system');
 
 [
     'absolute',
@@ -33,7 +34,7 @@ var fs = require('fs');
             print: { value: print }
         });
 
-        var sandbox = createSandbox(
+        var sandbox = engine.createSandbox(
             [prefix], // module path
             {sys: sys}, // globals
             {systemModules: ["modules"]} // options

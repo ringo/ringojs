@@ -29,7 +29,7 @@ Object.defineProperty(this, "global", { value: this });
      * @name include
      * @function
      */
-    Object.defineProperty(this, "include", {
+    Object.defineProperty(global, "include", {
         value: function(moduleName) {
             var module = this.require(moduleName);
             for (var key in module) {
@@ -48,7 +48,7 @@ Object.defineProperty(this, "global", { value: this });
      * @name export
      * @function
      */
-    Object.defineProperty(this, "export", {
+    Object.defineProperty(global, "export", {
         value: function() {
             var module = this;
             var exports = this.exports;
@@ -68,21 +68,88 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
+    var engine = require("ringo/engine");
+
     /**
-     * The `system` module, preloaded for your convenience.
-     * @name system
-     * @see system
+     * Executes a function after specified delay. The function will be called
+     * in the thread of the local event loop. This means it will only run after
+     * the currently executing code and other code running before it have
+     * terminated.
+     * @param {function} callback a function
+     * @param {number} delay the delay in milliseconds
+     * @param {...} [args] optional arguments to pass to the function
+     * @returns {object} an id object useful for cancelling the scheduled invocation
+     * @name setTimeout
+     * @see #clearTimeout()
      */
-    var system = this.system = this.system || require('system');
+    this.setTimeout = function(callback, delay) {
+        var args = Array.slice(arguments, 2);
+        delay = parseInt(delay, 10) || 0;
+        var worker = engine.getCurrentWorker();
+        return worker.schedule(delay, this, callback, args);
+    };
+
+    /**
+     * Cancel a timeout previously scheduled with [setTimeout()][#setTimeout].
+     * @param {object} id the id object returned by setTimeout()
+     * @name clearTimeout
+     * @see #setTimeout
+     */
+    Object.defineProperty(global, "clearTimeout", {
+        value: function(id) {
+            try {
+                var worker = engine.getCurrentWorker();
+                worker.cancel(id);
+            } catch (error) {
+                // ignore
+            }
+        }
+    });
+
+    /**
+     * Calls a function repeatedly, with a fixed time delay between each call to
+     * that function. The function will be called in the thread of the local event
+     * loop. This means it will only run after the currently executing code and
+     * other code running before it have terminated.
+     * @param {function} callback a function
+     * @param {number} delay the delay in milliseconds
+     * @param {...} args optional arguments to pass to the function
+     * @returns {object} an id object useful for cancelling the scheduled invocation
+     * @name setInterval
+     * @see #clearInterval()
+     */
+    global.setInterval =  function(callback, delay) {
+        var args = Array.slice(arguments, 2);
+        delay = Math.max(parseInt(delay, 10) || 0, 1);
+        var worker = engine.getCurrentWorker();
+        return worker.scheduleInterval(delay, this, callback, args);
+    };
+
+    /**
+     * Cancel a timeout previously scheduled with [setInterval()][#setInterval].
+     * @param {object} id the id object returned by setInterval()
+     * @name clearInterval
+     * @see #setInterval
+     */
+    Object.defineProperty(global, "clearInterval", {
+        value:  function(id) {
+            try {
+                var worker = engine.getCurrentWorker();
+                worker.cancel(id);
+            } catch (error) {
+                // ignore
+            }
+        }
+    });
+
 
     /**
      * Firebug-like debug console, preloaded for your convenience.
      * @name console
      * @see console
      */
-    Object.defineProperty(this, "console", {
-        get: function() require("console"),
-        enumerable: true
+    Object.defineProperty(global, "console", {
+        get: function() require("console")
     });
 
     // Include file and line number in error.toString() - better error messages ftw!
@@ -100,7 +167,7 @@ Object.defineProperty(this, "global", { value: this });
         writable: true, configurable: true
     });
 
-})(global);
+})();
 
 /**
  * The `require` function as defined in the
@@ -259,6 +326,10 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * The `arguments` array contains the command line arguments RingoJS was
  * started with.
+ *
+ * Note that this variable is shadowed by the `arguments` object inside
+ * functions which is why it is usually safer to use [system.args][system#args]
+ * instead.
  * @name arguments
  */
 
@@ -352,7 +423,7 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * Adds `path` to the RingoJS application class path.
  * @param {String|Resource|Repository} path a directory or jar path
- * @name addToClasspath
+ * @name addClasspath
  * @function
  */
 

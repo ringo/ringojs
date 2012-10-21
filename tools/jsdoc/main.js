@@ -7,6 +7,7 @@
  */
 
 // stdlib
+var system = require('system');
 var files = require('ringo/utils/files');
 var fs = require('fs');
 var {Parser} = require('ringo/args');

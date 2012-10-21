@@ -1,5 +1,4 @@
 var assert = require("assert");
-include("ringo/scheduler");
 var {Worker} = require("ringo/worker");
 var {Semaphore} = require("ringo/concurrent");
 

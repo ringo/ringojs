@@ -1,10 +1,11 @@
 var assert = require('assert');
 var subprocess = require('ringo/subprocess');
 var fs = require('fs');
+var engine = require('ringo/engine');
 
-const RINGO_HOME = system.prefix;
+const RINGO_HOME = require('system').prefix;
 
-function isWindows() /win/i.test(java.lang.System.getProperty('os.name'));
+function isWindows() /win/i.test(engine.properties['os.name']);
 
 exports.testCwdSensibleness = function () {
     fs.changeWorkingDirectory(RINGO_HOME);
