@@ -211,7 +211,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
     stream.write = function(source, begin, end) {
         checkClosed();
         if (typeof source === "string") {
-            system.stderr.print("Warning: binary write called with string argument. "
+            require("system").stderr.print("Warning: binary write called with string argument. "
                     + "Using default encoding");
             source = source.toByteString();
         }
@@ -416,7 +416,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
         }
         return String(line);
     };
-    
+
     /**
      * Calls `callback` with each line in the input stream.
      * @param {Function} callback the callback function

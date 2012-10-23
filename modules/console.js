@@ -4,7 +4,7 @@
  */
 var {TermWriter, BOLD, ONRED, ONYELLOW, RESET} = require("ringo/term");
 
-var writer = new TermWriter(system.stderr);
+var writer = new TermWriter(require("system").stderr);
 var timers = {};
 var {traceHelper, assertHelper} = org.ringojs.util.ScriptUtils;
 
