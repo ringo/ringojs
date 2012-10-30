@@ -128,7 +128,6 @@ function setConfig(resource, watchForUpdates) {
         if (watchForUpdates) {
             try {
                 // set up a scheduler to watch the configuration file for changes
-                var {setInterval, clearInterval} = require("./scheduler");
                 var lastModified = resource.lastModified();
                 if (configWatcher) {
                     clearInterval(configWatcher);
