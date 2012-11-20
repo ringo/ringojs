@@ -1,9 +1,9 @@
-body, html {
+body.jsdoc.standalone, html {
     margin: 0;
     padding: 0;
 }
 
-body {
+body.jsdoc.standalone {
     font-family: 'Open Sans', Arial, Helvetica, sans-serif;
     color: #222;
     font-size: 16px;
@@ -20,7 +20,7 @@ a:hover {
   text-decoration: underline;
 }
 
-.main {
+.jsdoc.standalone .main {
     margin: 0 auto;
     max-width: 940px;
 }
@@ -32,7 +32,7 @@ a:hover {
     padding: 5px 0px 70px 0px;
 }
 
-nav.jsdoc {
+nav.standalone.jsdoc {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -43,24 +43,28 @@ nav.jsdoc {
     font-size: 14px;
 }
 
-nav.jsdoc h1 {
+.jsdocSidenav {
+    font-size: 14px;
+}
+
+nav.standalone.jsdoc h1 {
     margin: 0;
     font-weight: normal;
     font-size: 18px;
 }
 
-nav.jsdoc .toggles {
+.jsdocSidenav .toggles {
     margin-top: 18px;
     overflow: hidden;
     font-weight: 600;
 }
 
-nav.jsdoc .toggles a {
+.jsdocSidenav .toggles a {
     float: left;
     width: 50%;
 }
 
-nav.jsdoc input {
+.jsdocSidenav input {
     display: block;
     padding: 4px 5px;
     margin: 18px 0 7px -1px;
@@ -76,7 +80,7 @@ nav.jsdoc input {
     font-size: 14px;
 }
 
-nav.jsdoc input:focus {
+.jsdocSidenav input:focus {
     border-color: #aaa;
     outline: 0;
     box-shadow: #b7d2ea 0 0 3px 0;
@@ -86,17 +90,17 @@ input.submittable {
     background: url('./enterkey.png') right 4px no-repeat;
 }
 
-nav.jsdoc #modulelist {
+.jsdocSidenav #modulelist {
     margin: 15px 0;
     list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-nav.jsdoc #modulelist li {
+.jsdocSidenav #modulelist li {
     margin: 0 0 2px 0;
 }
 
-nav.jsdoc #modulelist.submittable {
+.jsdocSidenav #modulelist.submittable {
     font-weight: 600;
 }
