@@ -19,7 +19,7 @@ Building RingoJS
 ----------------
 
 Ringo requires a recent version of [Java]. It uses Apache [Ant] as build tool
-and [Ivy] for managing dependencies.
+and [Ivy] for managing dependencies. To build debian package, make sure you have following package build-essential debhelper installed .(apt-get install build-essential debhelper)
 
 [Java]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [Ant]: http://ant.apache.org/
@@ -43,6 +43,10 @@ Then run the `jar` task to compile the code and build the jar file:
 Run the `docs` task to build the documentation:
 
     ant docs
+
+Run the `dpkg` task to build the debian package
+
+    ant dpkg
 
 Running RingoJS
 ---------------
