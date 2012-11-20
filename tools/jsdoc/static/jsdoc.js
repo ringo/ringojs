@@ -1,57 +1,46 @@
-function jsdocSetup() {
-
+$(document).ready(function() {
     // filter given ul $list by text query
     var filterList = function(query, $list) {
         if (!query) {
             $('li', $list).show();
-            return false;
+            return -1;
         }
-        var found = false;
+        var count = 0;
         $('li', $list).each(function() {
             var $item = $(this);
             if ($item.html().toLowerCase().indexOf(query) < 0) {
                 $item.hide();
             } else {
                 $item.show();
-                found = true;
+                count++;
             }
         });
-        return found;
+
+        return count;
     };
 
-    // search module list
-    function doFilter() {
-        var query = $.trim($(this).val().toLowerCase());
-        /* if (sessionStorage) {
-            sessionStorage.jsdocQuery = query;
-        } */
-        filterList(query, $('.jsdoc-leftnav'));
-    }
+    var $searchbox = $("#filter");
+    $searchbox.on("keyup click", function(event) {
+        // ESC key
+        if (event.keyCode === 27) {
+            $searchbox.val("");
+        }
 
-    var searchbox = $("#jsdoc-leftnavsearch");
-    searchbox.change(doFilter).keyup(doFilter).click(doFilter);
-    // only focus search box if current location does not have a fragment id
-    if (!location.hash) {
-        searchbox.focus();
-    }
 
-    // hide all but first paragraph from module fileoverview
-    var $showMoreLink = $('.jsdoc-showmore');
-    $(".jsdoc-fileoverview").each(function(idx, overview) {
-        var $overview = $(overview);
-        var $allButFirstElement = $overview.children().not(":first-child");
-        if ($allButFirstElement.length) {
-            $allButFirstElement.hide();
-            $overview.append($showMoreLink.clone());
+        if (filterList.apply(this, [$.trim($(this).val().toLowerCase()), $('#modulelist')]) === 1) {
+            $("#filter, #modulelist").addClass("submittable");
+
+            if (event.keyCode === 13) {
+                $('#modulelist li:visible a').get(0).click();
+            }
+        } else {
+            $("#filter, #modulelist").removeClass("submittable");
         }
     });
-    $(".jsdoc-showmore").click(function() {
-        $(this).hide().siblings().show();
-    });
 
-    // load query string from storage if any
-    /* var query = sessionStorage && sessionStorage.jsdocQuery;
-    if (query) {
-        $("#jsdoc-leftnavsearch").val(query).trigger('keyup');
-    } */
-}
+    // only focus search box if current location does not have a fragment id
+    if (!location.hash) {
+        $searchbox.focus();
+    }
+
+});
