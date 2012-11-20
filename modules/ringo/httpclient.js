@@ -503,6 +503,8 @@ Object.defineProperties(Exchange.prototype, {
  *  - `contentType`: the contentType
  *  - `binary`: if true if content should be delivered as binary,
  *     else it will be decoded to string
+ *  - `followRedirects`: whether HTTP redirects (response code 3xx) should be
+ *     automatically followed; default: true
  *
  *  #### Callbacks
  *
