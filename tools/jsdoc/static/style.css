@@ -25,14 +25,14 @@ a:hover {
     max-width: 940px;
 }
 
-.content {
+.content.jsdoc {
     clear: both;
     float: left;
     width: 70%;
     padding: 5px 0px 70px 0px;
 }
 
-nav {
+nav.jsdoc {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -43,24 +43,24 @@ nav {
     font-size: 14px;
 }
 
-nav h1 {
+nav.jsdoc h1 {
     margin: 0;
     font-weight: normal;
     font-size: 18px;
 }
 
-nav .toggles {
+nav.jsdoc .toggles {
     margin-top: 18px;
     overflow: hidden;
     font-weight: 600;
 }
 
-nav .toggles a {
+nav.jsdoc .toggles a {
     float: left;
     width: 50%;
 }
 
-nav input {
+nav.jsdoc input {
     display: block;
     padding: 4px 5px;
     margin: 18px 0 7px -1px;
@@ -76,7 +76,7 @@ nav input {
     font-size: 14px;
 }
 
-nav input:focus {
+nav.jsdoc input:focus {
     border-color: #aaa;
     outline: 0;
     box-shadow: #b7d2ea 0 0 3px 0;
@@ -86,17 +86,17 @@ input.submittable {
     background: url('./enterkey.png') right 4px no-repeat;
 }
 
-nav #modulelist {
+nav.jsdoc #modulelist {
     margin: 15px 0;
     list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-nav #modulelist li {
+nav.jsdoc #modulelist li {
     margin: 0 0 2px 0;
 }
 
-nav #modulelist.submittable {
+nav.jsdoc #modulelist.submittable {
     font-weight: 600;
 }
