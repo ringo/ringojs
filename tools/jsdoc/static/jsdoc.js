@@ -1,5 +1,5 @@
 function jsdocSetup() {
-
+    prettyPrint();
     // filter given ul $list by text query
     var filterList = function(query, $list) {
         if (!query) {
