@@ -4,36 +4,99 @@ body, html {
 }
 
 body {
-    min-width: 850px;
-    font-family: sans-serif;
-    font-size: 80%;
-    line-height: 170%;
+    font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+    color: #222;
+    font-size: 16px;
 }
 
-h1 {
-    padding: 14px 0;
+a {
+  color: #3879ba;
+  text-decoration: none;
 }
 
-div.wrap {
+a:focus,
+a:hover {
+  color: #5393cf;
+  text-decoration: underline;
+}
+
+.main {
     margin: 0 auto;
-    width: 800px;
+    max-width: 940px;
 }
 
-div.main {
+.content {
     clear: both;
     float: left;
-    width: 530px;
-    margin: 0 10px;
-    padding: 5px;
+    width: 70%;
+    padding: 5px 0px 70px 0px;
 }
 
-div.menu {
-    float: right;
-    padding-top: 6em;
+nav {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    float: left;
+    margin-top: 33px;
+    padding: 55px 0 0 8%;
+    width: 30%;
+    font-size: 14px;
 }
 
-.hidden {
-    visibility:hidden;
-    display:none;
+nav h1 {
+    margin: 0;
+    font-weight: normal;
+    font-size: 18px;
 }
 
+nav .toggles {
+    margin-top: 18px;
+    overflow: hidden;
+    font-weight: 600;
+}
+
+nav .toggles a {
+    float: left;
+    width: 50%;
+}
+
+nav input {
+    display: block;
+    padding: 4px 5px;
+    margin: 18px 0 7px -1px;
+    height: 20px;
+    width: 80%;
+    -moz-background-clip: padding;
+    -ms-background-clip: padding-box;
+    -o-background-clip: padding-box;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+    border: 1px solid #cfcfcf;
+    font-family: 'Open Sans',​Arial,​Helvetica,​sans-serif;
+    font-size: 14px;
+}
+
+nav input:focus {
+    border-color: #aaa;
+    outline: 0;
+    box-shadow: #b7d2ea 0 0 3px 0;
+}
+
+input.submittable {
+    background: url('./enterkey.png') right 4px no-repeat;
+}
+
+nav #modulelist {
+    margin: 15px 0;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav #modulelist li {
+    margin: 0 0 2px 0;
+}
+
+nav #modulelist.submittable {
+    font-weight: 600;
+}
