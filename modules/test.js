@@ -420,6 +420,7 @@ EvaluationError.prototype = new Error();
  * Executed when called from the command line
  */
 if (require.main == module.id) {
+    var system = require("system");
     if (system.args.length == 1) {
         term.writeln("Usage: bin/ringo test test/file1 test/file2");
     } else {
