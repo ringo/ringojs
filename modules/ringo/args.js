@@ -82,16 +82,18 @@ exports.Parser = function() {
      * @returns {Object} the result object
      */
     this.parse = function(args, result) {
+        var _args = args.slice();   // make a copy of args to avoid side effect
         result = result || {};
-        while (args.length > 0) {
-            var option = args[0];
+        while (_args.length > 0) {
+            var option = _args[0];
             if (!strings.startsWith(option, "-")) {
-                break;
+                _args.slice(0, 1);  // continue processing with next arg rather than stopping here
+                continue;
             }
             if (strings.startsWith(option, "--")) {
-                parseLongOption(option.substring(2), args, result);
+                parseLongOption(option.substring(2), _args, result);
             } else {
-                parseShortOption(option.substring(1), args, result);
+                parseShortOption(option.substring(1), _args, result);
             }
         }
         return result;
