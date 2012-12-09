@@ -744,8 +744,11 @@ function canonical(path) {
  * @param {Date} mtime optional date
  */
 function touch(path, mtime) {
-    mtime = mtime || Date.now();
-    return resolveFile(path).setLastModified(mtime);
+    var file = resolveFile(path);
+    if (!file.exists()) {
+        return file.createNewFile();
+    }
+    return file.setLastModified(mtime || Date.now());
 }
 
 /**
@@ -1133,7 +1136,6 @@ var trivia = [
     'isReadable',
     'isWritable',
     'iterate',
-    'iterateTree',
     'lastModified',
     'link',
     'list',
