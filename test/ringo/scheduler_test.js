@@ -6,10 +6,10 @@ exports.testSetTimeout = function() {
     var value;
     var semaphore = new Semaphore();
     // Spawn worker which will set timeout
-    var worker = new Worker(module.id);
+    var worker = new Worker(module.resolve("./scheduler_worker"));
     worker.onmessage = function(e) {
         value = e.data;
-    }
+    };
     worker.postMessage({test: 1, semaphore: semaphore}, true);
     // wait for promises to resolve
     if (!semaphore.tryWait(1000)) {
@@ -24,10 +24,10 @@ exports.testSetInterval = function() {
     var value = 0;
     var semaphore = new Semaphore();
     // Spawn worker which will set interval
-    var worker = new Worker(module.id);
+    var worker = new Worker(module.resolve("./scheduler_worker"));
     worker.onmessage = function(e) {
         value += e.data;
-    }
+    };
     worker.postMessage({test: 2, semaphore: semaphore}, true);
     // wait for promises to resolve
     if (!semaphore.tryWait(1000, 3)) {
@@ -55,5 +55,5 @@ function onmessage(e) {
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
-    system.exit(require('test').run(exports));
+    require("system").exit(require('test').run(exports));
 }
