@@ -423,7 +423,7 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * Adds `path` to the RingoJS application class path.
  * @param {String|Resource|Repository} path a directory or jar path
- * @name addClasspath
+ * @name addToClasspath
  * @function
  */
 
