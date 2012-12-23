@@ -548,10 +548,12 @@ exports.testPostMultipart = function() {
     });
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(received.title, title);
-    assert.strictEqual(received.text, fs.read(textFile));
+    // normalize line feeds, otherwise test fails on windows
+    var expectedText = fs.read(textFile).replace(/\r\n/g, "\n");
+    assert.strictEqual(received.text, expectedText);
     assert.isNotUndefined(received.textfile);
     assert.strictEqual(received.textfile.filename, fs.base(textFile));
-    assert.strictEqual(received.textfile.value.decodeToString(), fs.read(textFile));
+    assert.strictEqual(received.textfile.value.decodeToString(), expectedText);
     assert.isNotUndefined(received.image);
     assert.strictEqual(received.image.value.length, imageByteArray.length);
     assert.deepEqual(received.image.value.toArray(), imageByteArray.toArray());
