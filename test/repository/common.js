@@ -27,9 +27,7 @@ exports.setup = function(exports, path, repo) {
                 : absolute(join(path, "nested", "nested.txt"));
         assert.strictEqual(res.path, comparePath);
         // Windows uses two bytes for EOL while other OS's use one byte.
-        var len = /^windows/.test(java.lang.System.getProperty("os.name", "generic").toLowerCase()) ? 2274 : 2240;
-        // Except when in an archive, then it depends on what OS the archive was created, ugh.
-        if (/\.zip$|\.jar$/.test(path)) len = 2240;
+        var len = /\r\n/.test(res.content) ? 2274 : 2240;
         assert.strictEqual(res.length, len);
         assert.strictEqual(res.content.length, len);
         assert.isTrue(strings.startsWith(res.content, "Lorem ipsum dolor sit amet"));
