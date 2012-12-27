@@ -94,7 +94,8 @@ var styles = {
     'null': term.BOLD,
     'date': term.MAGENTA,
     'java': term.MAGENTA,
-    'custom': term.RED
+    'custom': term.RED,
+    'undefined': term.ONBLACK
 }
 
 function convert(value, nesting, visited) {
@@ -171,7 +172,7 @@ function convert(value, nesting, visited) {
             }
             break;
         case 'undefined':
-            retval = {};
+            retval.type = retval.string = "undefined";
             break;
         default:
             retval.string = String(value);
@@ -181,11 +182,9 @@ function convert(value, nesting, visited) {
 }
 
 function printResult(value, writer) {
-    if (typeof value !== "undefined") {
-        writer = writer || term;
-        printValue(convert(value, 0, []), writer, 0);
-        writer.writeln();
-    }
+    writer = writer || term;
+    printValue(convert(value, 0, []), writer, 0);
+    writer.writeln();
 }
 
 function printValue(value, writer, nesting) {
