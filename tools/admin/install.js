@@ -82,7 +82,11 @@ function installPackage(url, options) {
             for each (var bin in fs.list(bindir)) {
                 var binfile = fs.join(bindir, bin);
                 fs.changePermissions(binfile, 0755);
-                fs.symbolicLink(binfile, fs.join(ringoBin, bin));
+                if (/^windows/i.test(java.lang.System.getProperty("os.name"))) {
+                    fs.copy(binfile, fs.join(ringoBin, bin));
+                } else {
+                    fs.symbolicLink(binfile, fs.join(ringoBin, bin));
+                }
             }
         }
         print("Done");
