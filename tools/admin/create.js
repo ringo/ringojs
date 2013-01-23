@@ -78,7 +78,7 @@ function copyJars(home, dest, symlink) {
     var jars = [
         "ringo-core.jar",
         "ivy/rhino-1.7R5-SNAPSHOT.jar",
-        "ivy/jaffl-0.5.11.jar",
+        "ivy/jaffl-0.5.12.jar",
         "ivy/jnr-posix-1.1.9.jar"
     ];
     var libsrc = join(home, "lib");
