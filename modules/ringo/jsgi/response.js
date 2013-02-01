@@ -1,19 +1,29 @@
 /**
  * @fileOverview This module provides response helper functions for composing
- * JSGI response objects.
+ * JSGI response objects. For more flexibility the `JsgiResponse` is chainable.
  */
 
 var {merge} = require("ringo/utils/objects");
 var {mimeType} = require("ringo/mime");
 
 /**
- * A wrapper around a JSGI response object. JsgiResponse is chainable until
- * a commit call like ok(), which ends the chain and returns a JSGI response.
- * @param {object} base a base object for the new JSGI response
+ * A wrapper around a JSGI response object. `JsgiResponse` is chainable.
+ * <p><code>// Using the constructor<br>
+ * var {JsgiResponse} = require('ringo/jsgi/response');<br>
+ * return (new JsgiResponse()).text('Hello World!').setCharset('ISO-8859-1');
+ * <br><br>
+ * // Using a static helper<br>
+ * var response = require('ringo/jsgi/response');<br>
+ * return response.json({'foo': 'bar'}).error();
+ * </code></p>
+ * @param {Object} base a base object for the new JSGI response with the
+ *                 initial <code>status</code>, <code>headers</code> and
+ *                 <code>body</code> properties.
  * @constructor
  */
 var JsgiResponse = exports.JsgiResponse = function(base) {
     // Internal use only
+    /** @ignore */
     Object.defineProperty(this, "_charset", {
         value: "utf-8",
         writable: true,
@@ -33,8 +43,8 @@ var JsgiResponse = exports.JsgiResponse = function(base) {
 /**
  * Set the JSGI response status. This does not commit the
  * request and continues the JsgiReponse chain.
- * @param {number} code the status code to use
- * @returns JsgiResponse response with the new status code
+ * @param {Number} code the status code to use
+ * @returns JSGI response with the new status code
  */
 Object.defineProperty(JsgiResponse.prototype, "setStatus", {
     value: function(code) {
@@ -45,8 +55,8 @@ Object.defineProperty(JsgiResponse.prototype, "setStatus", {
 
 /**
  * Set the JSGI response content-type to 'text/plain' with the string as response body.
- * @param {string} text... a variable number of strings to send as response body
- * @returns JsgiResponse response with content-type 'text/plain'
+ * @param {String} text... a variable number of strings to send as response body
+ * @returns JSGI response with content-type 'text/plain'
  */
 Object.defineProperty(JsgiResponse.prototype, "text", {
     value: function() {
@@ -58,8 +68,8 @@ Object.defineProperty(JsgiResponse.prototype, "text", {
 
 /**
  * Set the JSGI response content-type to 'text/html' with the string as response body.
- * @param {string} html... a variable number of strings to send as response body
- * @returns JsgiResponse response with content-type 'text/html'
+ * @param {String} html... a variable number of strings to send as response body
+ * @returns JSGI response with content-type 'text/html'
  */
 Object.defineProperty(JsgiResponse.prototype, "html", {
     value: function() {
@@ -72,8 +82,8 @@ Object.defineProperty(JsgiResponse.prototype, "html", {
 /**
  * Create a JSGI response with content-type 'application/json' with the JSON
  * representation of the given object as response body.
- * @param {object} object the object whose JSON representation to return
- * @returns JsgiResponse response with content-type 'application/json'
+ * @param {Object} object the object whose JSON representation to return
+ * @returns JSGI response with content-type 'application/json'
  */
 Object.defineProperty(JsgiResponse.prototype, "json", {
     value: function(object) {
@@ -86,9 +96,9 @@ Object.defineProperty(JsgiResponse.prototype, "json", {
 /**
  * Create a JSGI response with content-type 'application/javascript' with the JSONP
  * representation of the given object as response body wrapped by the callback name.
- * @param {string} callback the callback function name for a JSONP request
- * @param {object} object the object whose JSON representation to return
- * @returns JsgiResponse response with content-type 'application/javascript'
+ * @param {String} callback the callback function name for a JSONP request
+ * @param {Object} object the object whose JSON representation to return
+ * @returns JSGI response with content-type 'application/javascript'
  */
 Object.defineProperty(JsgiResponse.prototype, "jsonp", {
     value: function(callback, object) {
@@ -101,8 +111,8 @@ Object.defineProperty(JsgiResponse.prototype, "jsonp", {
 /**
  * Create a JSGI response with content-type 'application/xml' with the given
  * XML as response body.
- * @param {xml|string} xml an XML document
- * @returns JsgiResponse response with content-type 'application/xml'
+ * @param {XML|String} xml an XML document
+ * @returns JSGI response with content-type 'application/xml'
  */
 Object.defineProperty(JsgiResponse.prototype, "xml", {
     value: function(xml) {
@@ -114,8 +124,8 @@ Object.defineProperty(JsgiResponse.prototype, "xml", {
 
 /**
  * Set the character encoding used for text responses.
- * @param {string} charsetName the encoding to use.
- * @returns JsgiResponse response with the given charset
+ * @param {String} charsetName the encoding to use.
+ * @returns JSGI response with the given charset
  */
 Object.defineProperty(JsgiResponse.prototype, "setCharset", {
     value: function(charsetName) {
@@ -131,8 +141,8 @@ Object.defineProperty(JsgiResponse.prototype, "setCharset", {
 
 /**
  * Merge the given object into the headers of the JSGI response.
- * @param {object} headers new header fields to merge with the current ones.
- * @returns JsgiResponse response with the new headers
+ * @param {Object} headers new header fields to merge with the current ones.
+ * @returns JSGI response with the new headers
  */
 Object.defineProperty(JsgiResponse.prototype, "addHeaders", {
     value: function(headers) {
@@ -142,7 +152,7 @@ Object.defineProperty(JsgiResponse.prototype, "addHeaders", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 200.
+ * Sets the HTTP status to 200.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "ok", {
@@ -153,7 +163,7 @@ Object.defineProperty(JsgiResponse.prototype, "ok", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 201.
+ * Sets the HTTP status to 201.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "created", {
@@ -164,7 +174,7 @@ Object.defineProperty(JsgiResponse.prototype, "created", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 400.
+ * Sets the HTTP status to 400.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "bad", {
@@ -175,7 +185,7 @@ Object.defineProperty(JsgiResponse.prototype, "bad", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 401.
+ * Sets the HTTP status to 401.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "unauthorized", {
@@ -186,7 +196,7 @@ Object.defineProperty(JsgiResponse.prototype, "unauthorized", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 403.
+ * Sets the HTTP status to 403.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "forbidden", {
@@ -197,7 +207,7 @@ Object.defineProperty(JsgiResponse.prototype, "forbidden", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 404.
+ * Sets the HTTP status to 404.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "notFound", {
@@ -208,7 +218,7 @@ Object.defineProperty(JsgiResponse.prototype, "notFound", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 410.
+ * Sets the HTTP status to 410.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "gone", {
@@ -219,7 +229,7 @@ Object.defineProperty(JsgiResponse.prototype, "gone", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 500.
+ * Sets the HTTP status to 500.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "error", {
@@ -230,7 +240,7 @@ Object.defineProperty(JsgiResponse.prototype, "error", {
 });
 
 /**
- * Commits the response and returns a JSGI object with HTTP status 503.
+ * Sets the HTTP status to 503.
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "unavailable", {
@@ -277,6 +287,163 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
             body: [""]
         };
     }
+});
+
+/**
+ * Static helper to create a `JsgiResponse` with the given status code.
+ * @name setStatus
+ * @function
+ * @param {Number} code the status code to use
+ * @returns JSGI response with the new status code
+ */
+
+/**
+ * Set the JSGI response content-type to 'text/plain' with the string as response body.
+ * @param {String} text... a variable number of strings to send as response body
+ * @returns JSGI response with content-type 'text/plain'
+ * @name text
+ * @function
+ */
+ 
+/**
+ * Set the JSGI response content-type to 'text/html' with the string as response body.
+ * @param {String} html... a variable number of strings to send as response body
+ * @returns JSGI response with content-type 'text/html'
+ * @name html
+ * @function
+ */
+ 
+/**
+ * Create a JSGI response with content-type 'application/json' with the JSON
+ * representation of the given object as response body.
+ * @param {Object} object the object whose JSON representation to return
+ * @returns JSGI response with content-type 'application/json'
+ * @name json
+ * @function
+ */
+ 
+/**
+ * Create a JSGI response with content-type 'application/javascript' with the JSONP
+ * representation of the given object as response body wrapped by the callback name.
+ * @param {String} callback the callback function name for a JSONP request
+ * @param {Object} object the object whose JSON representation to return
+ * @returns JSGI response with content-type 'application/javascript'
+ * @name jsonp
+ * @function
+ */
+ 
+/**
+ * Create a JSGI response with content-type 'application/xml' with the given
+ * XML as response body.
+ * @param {XML|String} xml an XML document
+ * @returns JSGI response with content-type 'application/xml'
+ * @name xml
+ * @function
+ */
+ 
+/**
+ * Set the character encoding used for text responses.
+ * @param {String} charsetName the encoding to use.
+ * @returns JSGI response with the given charset
+ * @name setCharset
+ * @function
+ */
+ 
+/**
+ * Merge the given object into the headers of the JSGI response.
+ * @param {Object} headers new header fields to merge with the current ones.
+ * @returns JSGI response with the new headers
+ * @name addHeaders
+ * @function
+ */
+ 
+/**
+ * Sets the HTTP status to 200.
+ * @returns a JSGI response object to send back
+ * @name ok
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 201.
+ * @returns a JSGI response object to send back
+ * @name created
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 400.
+ * @returns a JSGI response object to send back
+ * @name bad
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 401.
+ * @returns a JSGI response object to send back
+ * @name unauthorized
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 403.
+ * @returns a JSGI response object to send back
+ * @name forbidden
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 404.
+ * @returns a JSGI response object to send back
+ * @name notFound
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 410.
+ * @returns a JSGI response object to send back
+ * @name gone
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 500.
+ * @returns a JSGI response object to send back
+ * @name error
+ * @function
+ */
+
+/**
+ * Sets the HTTP status to 503.
+ * @returns a JSGI response object to send back
+ * @name unavailable
+ * @function
+ */
+ 
+/**
+ * Create a response with HTTP status code 303 that redirects the client
+ * to a new location.
+ * @param {String} location the new location
+ * @returns a JSGI response object to send back
+ * @name redirect
+ * @function
+ */
+ 
+/**
+ * Create a response with HTTP status code 304 that indicates the 
+ * document has not been modified
+ * @returns a JSGI response object to send back
+ * @name notModified
+ * @function
+ */
+
+// Define helper functions
+["setStatus", "text", "html", "json", "jsonp", "xml", "setCharset", "addHeaders",
+    "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
+    "unavailable", "redirect", "notModified"].forEach(function(functionName) {
+    exports[functionName] = function() {
+        return JsgiResponse.prototype[functionName].apply((new JsgiResponse()), arguments);
+    };
 });
 
 /**
