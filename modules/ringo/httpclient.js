@@ -312,7 +312,7 @@ var Exchange = function(url, options, callbacks) {
                 if (responseContent !== undefined) {
                     return responseContent;
                 }
-                return responseContent = this.contentBytes.decodeToString(this.encoding);
+                return responseContent = this.contentBytes==null?null:this.contentBytes.decodeToString(this.encoding);
             }, "enumerable": true
         },
         /**
