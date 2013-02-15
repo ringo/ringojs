@@ -154,19 +154,51 @@ exports['test throw AssertionError'] = function () {
     //if not passing an error, catch all.
     assert['throws'](makeBlock(thrower, TypeError));
     //when passing a type, only catch errors of the appropriate type
-    // NOTE: this fails, the spec doesn't say anything only catching expected errors
     var threw = false;
     try {
         assert['throws'](makeBlock(thrower, TypeError), assert.AssertionError);
     } catch (e) {
         threw = true;
-        /* -- Temporarily disabled until this issue is resolved. --
-        assert.ok(e instanceof TypeError, 'type');
-        */
+        // The spec says nothing about re-throwing the original exception;
+        // We throw an AssertionError if the expected does not match the actual
+        //assert.ok(e instanceof TypeError, 'type');
     }
     assert.ok(threw, 'assert.throws with an explicit error is eating extra errors');
     threw = false;
 
+    // doesNotThrow should pass through all errors
+    try {
+      assert.doesNotThrow(makeBlock(thrower, TypeError), a.AssertionError);
+    } catch (e) {
+      threw = true;
+      assert.ok(e instanceof TypeError);
+    }
+    assert.equal(true, threw,
+                 'a.doesNotThrow with an explicit error is eating extra errors');
+
+    // make sure that validating using constructor really works
+    threw = false;
+    try {
+      assert.throws(
+          function() {
+            throw ({});
+          },
+          Array
+      );
+    } catch (e) {
+      threw = true;
+    }
+    assert.ok(threw, 'wrong constructor validation');
+
+    // use a RegExp to validate error message
+    assert.throws(makeBlock(thrower, TypeError), /test/);
+
+    // use a fn to validate error object
+    assert.throws(makeBlock(thrower, TypeError), function(err) {
+      if ((err instanceof TypeError) && /test/.test(err)) {
+        return true;
+      }
+    });
 };
 
 if (module == require.main)

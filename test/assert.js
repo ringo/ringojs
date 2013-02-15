@@ -232,7 +232,7 @@ exports.testThrows = function() {
     // throw undefined (yes, you can do that...)
     assert.throws(function() {
         throw undefined;
-    }, undefined);
+    });
     // throw Error instance
     assert.throws(function() {
         throw new Error("a message");
@@ -244,7 +244,7 @@ exports.testThrows = function() {
     // throw string
     assert.throws(function() {
         throw "my message";
-    }, "my message");
+    }, /my message/);
     // throw java exception
     assert.throws(function() {
         var x = new java.util.Vector(0);

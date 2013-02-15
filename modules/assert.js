@@ -1,7 +1,7 @@
 /**
  * @fileOverview Assertion library covering the
  * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0) specification
- * and a few additional convenience methods. 
+ * and a few additional convenience methods.
  */
 
 export(
@@ -408,59 +408,65 @@ function notStrictEqual(actual, expected) {
     return;
 }
 
+
+function isExpectedException(actual, expected) {
+    // accept anything
+    if (expected === undefined) {
+        return true;
+    }
+
+    if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+        return expected.test(actual);
+    } else if (actual instanceof expected ||
+                    actual.rhinoException instanceof expected ||
+                    actual.javaException instanceof expected) {
+        return true;
+    } else if (typeof expected === 'function') {
+        return expected.call({}, actual) === true;
+    }
+    return false;
+}
+
 /**
  * Checks if the function passed as argument throws a defined exception.
  * @param {Object} func The function to call
- * @param {Object} expectedError Optional object expected to be thrown when executing
- * the function
+ * @param {Function|Regex} expectedError Can be a regex to test the thrown exception.
+                Can be a constructor function, tested with instanceof against the exception.
+                Can be a callback - called with the exception as the first argument,
+                return true for a valid exception.
+ * @param {String} message Optional message to output when assertion fails
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function throws(func, expectedError) {
+function throws(func, expectedError, message) {
     if (!(func instanceof Function)) {
         throw new ArgumentsError("First argument to throws() must be a function");
     }
+    if (typeof expectedError === 'string') {
+      message = expectedError;
+      expectedError = null;
+    }
+    var actualError;
+    // the actualError thrown could be `undefined`
+    // so I'm also setting a flag if exception is thrown
+    var exceptionWasThrown = false;
     try {
         func();
     } catch (e) {
-        var isExpected = false;
-        var thrown = e;
-        if (expectedError == null) {
-            // accept everything
-            isExpected = true;
-        } else if (expectedError != null && e != null) {
-            // check if exception is the one expected
-            switch (typeof(expectedError)) {
-                case "string":
-                    isExpected = (e.name === expectedError || e === expectedError);
-                    break;
-                case "function":
-                    // this is true for all JS constructors and Java classes!
-                    isExpected = (e instanceof expectedError ||
-                                      (thrown = e.rhinoException) instanceof expectedError ||
-                                      (thrown = e.javaException) instanceof expectedError);
-                    break;
-                case "number":
-                case "boolean":
-                default:
-                    isExpected = (e === expectedError);
-                    break;
-            }
-        }
-        if (!isExpected) {
-            fail({
-                "message": "Expected " + jsDump(expectedError) +
-                           " to be thrown, but got " + jsDump(e) + " instead",
-                "actual": e,
-                "expected": expectedError
-            });
-        }
-        return;
+        actualError = e;
+        exceptionWasThrown = true;
     }
-    if (expectedError != null) {
-        fail("Expected exception " + jsDump(expectedError) + " to be thrown");
+    if (!exceptionWasThrown) {
+        fail(message || "Expected an exception to be thrown");
     }
-    fail("Expected exception to be thrown");
+    if (!isExpectedException(actualError, expectedError)) {
+        fail({
+            "message": message || "Expected " + jsDump(expectedError) +
+                       " to be thrown, but got " + jsDump(actualError) + " instead",
+            "actual": actualError,
+            "expected": expectedError
+        });
+    }
 }
 
 
