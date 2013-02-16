@@ -233,6 +233,18 @@ exports.testThrows = function() {
     assert.throws(function() {
         throw undefined;
     });
+    assert.throws(function() {
+        throw null;
+    }, null);
+    var threw = false;
+    try {
+        assert.throws(function() {
+            throw 'notnull'
+        }, null);
+    } catch (e) {
+        threw = true;
+    }
+    assert.ok(threw, 'throws is accepting wrong exception');
     // throw Error instance
     assert.throws(function() {
         throw new Error("a message");

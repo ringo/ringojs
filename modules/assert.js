@@ -417,6 +417,8 @@ function isExpectedException(actual, expected) {
 
     if (Object.prototype.toString.call(expected) == '[object RegExp]') {
         return expected.test(actual);
+    } else if (actual === null && actual === expected) {
+        return true;
     } else if (actual instanceof expected ||
                     actual.rhinoException instanceof expected ||
                     actual.javaException instanceof expected) {
@@ -444,7 +446,7 @@ function throws(func, expectedError, message) {
     }
     if (typeof expectedError === 'string') {
       message = expectedError;
-      expectedError = null;
+      expectedError = undefined;
     }
     var actualError;
     // the actualError thrown could be `undefined`
