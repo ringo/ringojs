@@ -166,16 +166,6 @@ exports['test throw AssertionError'] = function () {
     assert.ok(threw, 'assert.throws with an explicit error is eating extra errors');
     threw = false;
 
-    // doesNotThrow should pass through all errors
-    try {
-      assert.doesNotThrow(makeBlock(thrower, TypeError), a.AssertionError);
-    } catch (e) {
-      threw = true;
-      assert.ok(e instanceof TypeError);
-    }
-    assert.equal(true, threw,
-                 'a.doesNotThrow with an explicit error is eating extra errors');
-
     // make sure that validating using constructor really works
     threw = false;
     try {
