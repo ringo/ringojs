@@ -552,7 +552,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
         inMinutes = Math.abs(offset) - (inHours * 60);
 
         // Write the time zone offset in hours
-        if (offset < 0) {
+        if (offset <= 0) {
             str += "+";
         } else {
             str += "-";
