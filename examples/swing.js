@@ -1,5 +1,4 @@
 var {JFrame, JButton, ImageIcon, JLabel} = javax.swing;
-var {setInterval} = require('ringo/scheduler');
 var n = 0;
 
 function main() {
