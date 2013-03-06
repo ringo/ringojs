@@ -201,7 +201,7 @@ function Server(options) {
                             },
                             /**
                              * Send a string over the WebSocket.
-                             * @param msg a string
+                             * @param {String} msg a string
                              * @name WebSocket.instance.send
                              * @function
                              */
@@ -210,6 +210,23 @@ function Server(options) {
                                     conn.sendMessage(msg);
                                 }
                             },
+
+                            /**
+                             * Send a byte array over the WebSocket.
+                             * @param {ByteArray} bytearray The byte array to send
+                             * @param {Number} offset Optional offset (defaults to zero)
+                             * @param {Number} length Optional length (defaults to the
+                             * length of the byte array)
+                             * @function
+                             */
+                            sendBinary: function(bytearray, offset, length) {
+                                if (conn) {
+                                    offset = parseInt(offset, 10) || 0;
+                                    length = parseInt(length, 10) || bytearray.length;
+                                    conn.sendMessage(bytearray, offset, length);
+                                }
+                            },
+
                             /**
                              * Check whether the WebSocket is open.
                              * @name WebSocket.instance.isOpen
