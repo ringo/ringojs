@@ -27,6 +27,7 @@ var supportedTerminals = {
     'xterm': 1,
     'xtermc': 1,
     'xterm-color': 1,
+    'xterm-256color': 1,
     'gnome-terminal': 1
 };
 var jansiInstalled = typeof AnsiConsole === "function";
