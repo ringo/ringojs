@@ -312,22 +312,23 @@ exports.testDiff = function() {
         "milliseconds": 1
     });
 
-    // more tests (Einstein's life)
-    a = new Date(Date.UTC(1879, 2, 14));
-    b = new Date(Date.UTC(1955, 3, 18));
-    assert.equal(dates.diff(a, b, "year"), 76);
-    assert.equal(dates.diff(a, b, "quarter"), 305);
-    assert.equal(dates.diff(a, b, "month"), 913);
-    assert.equal(dates.diff(a, b, "week"), 3970);
-    assert.equal(dates.diff(a, b, "day"), 27793);
+    // 366 + 31 days = 397 days
+    a = new Date(Date.UTC(2012, 0, 1));
+    b = new Date(Date.UTC(2013, 1, 1));
+
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 4);
+    assert.equal(dates.diff(a, b, "month"), 13);
+    assert.equal(dates.diff(a, b, "week"), 56);
+    assert.equal(dates.diff(a, b, "day"), 397);
 
     // again Einstein, now with time diff
-    b = new Date(Date.UTC(1955, 3, 18, 20, 39, 10, 53));
-    assert.equal(dates.diff(a, b, "year"), 76);
-    assert.equal(dates.diff(a, b, "quarter"), 305);
-    assert.equal(dates.diff(a, b, "month"), 913);
-    assert.equal(dates.diff(a, b, "week"), 3970);
-    assert.equal(dates.diff(a, b, "day"), 27793);
+    b = new Date(Date.UTC(2013, 1, 1, 20, 20, 20, 20));
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 4);
+    assert.equal(dates.diff(a, b, "month"), 13);
+    assert.equal(dates.diff(a, b, "week"), 56);
+    assert.equal(dates.diff(a, b, "day"), 397);
 };
 
 exports.testOverlapping = function() {
