@@ -313,8 +313,8 @@ exports.testDiff = function() {
     });
 
     // more tests (Einstein's life)
-    a = new Date(1879, 2, 14);
-    b = new Date(1955, 3, 18);
+    a = new Date(Date.UTC(1879, 2, 14));
+    b = new Date(Date.UTC(1955, 3, 18));
     assert.equal(dates.diff(a, b, "year"), 76);
     assert.equal(dates.diff(a, b, "quarter"), 305);
     assert.equal(dates.diff(a, b, "month"), 913);
@@ -322,7 +322,7 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "day"), 27793);
 
     // again Einstein, now with time diff
-    b = new Date(1955, 3, 18, 20, 39, 10, 53);
+    b = new Date(Date.UTC(1955, 3, 18, 20, 39, 10, 53));
     assert.equal(dates.diff(a, b, "year"), 76);
     assert.equal(dates.diff(a, b, "quarter"), 305);
     assert.equal(dates.diff(a, b, "month"), 913);
