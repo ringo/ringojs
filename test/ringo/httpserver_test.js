@@ -171,6 +171,30 @@ exports.testDeleteRequest = function () {
     });
 };
 
+exports.testMultipleHeaders = function () {
+    checkRequest = function(req) {
+        assert.equal(req.method, "GET");
+        assert.equal(req.scheme, "http");
+        
+        assert.equal(req.headers.host, host + ":" + port); // This follows RFC 2616!
+        assert.equal(req.headers["x-foo"], "bar, baz, 012345;q=15");
+        assert.equal(req.headers["x-foo-single"], "single-bar");
+    };
+
+    var connection = (new java.net.URL(baseUri)).openConnection();
+    connection.setRequestMethod("GET");
+
+    // addRequestProperty() does not override existing header pairs!
+    connection.addRequestProperty("x-foo", "bar");
+    connection.addRequestProperty("x-foo", "baz");
+    connection.addRequestProperty("x-foo", "012345;q=15");
+
+    connection.addRequestProperty("x-foo-single", "single-bar");
+
+    connection.connect();
+    connection.getResponseCode();
+};
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     var {run} = require("test");
