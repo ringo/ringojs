@@ -76,17 +76,7 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(this, "headers", headers, PERMANENT);
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
-
-            // This follows RFC 2616 - 4.2 Message Headers
-            StringBuffer value = null;
-            for (Enumeration eHeaders = request.getHeaders(name); eHeaders.hasMoreElements(); ) {
-                if (value == null) {
-                    value = new StringBuffer(256);
-                } else {
-                    value.append(", ");
-                }
-                value.append(eHeaders.nextElement());
-            }
+            String value = request.getHeader(name);
 
             name = name.toLowerCase();
             headers.put(name, headers, value);
