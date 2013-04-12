@@ -21,7 +21,6 @@ import org.mozilla.javascript.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
-import java.lang.StringBuffer;
 import java.lang.reflect.Method;
 
 public class JsgiRequest extends ScriptableObject {
