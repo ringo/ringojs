@@ -1,6 +1,5 @@
 var {Worker} = require("ringo/worker")
 var {Semaphore} = require("ringo/concurrent")
-var {setInterval, clearInterval} = require("ringo/scheduler");
 
 function main() {
     // Create a new workers from this same module. Note that this will

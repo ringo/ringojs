@@ -1,5 +1,4 @@
 var {AsyncResponse} = require('ringo/jsgi/connector');
-var {setInterval, clearInterval} = require('ringo/scheduler');
 
 exports.app = function(request) {
     var response = new AsyncResponse(request, 30000, true);

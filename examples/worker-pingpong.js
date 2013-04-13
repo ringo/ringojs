@@ -1,4 +1,5 @@
 var {Worker} = require("ringo/worker");
+
 var i = 0;
 
 function main() {
@@ -13,7 +14,6 @@ function main() {
 
     w.onerror = function(e) {
         print(e.data);
-        system.exit();
     }
 
     w.postMessage("  PING");
@@ -21,7 +21,9 @@ function main() {
 
 function onmessage(e) {
     print(e.data);
-    if (i++ > 10) throw new Error("CRASH");
+    if (i++ > 10) {
+        throw new Error("CRASH");
+    }
     e.source.postMessage("        PONG");
 }
 

@@ -1,6 +1,5 @@
 var {Worker} = require("ringo/worker");
 var {Semaphore} = require("ringo/concurrent");
-var {setTimeout} = require("ringo/scheduler");
 
 function main() {
     // Create a semaphore to wait for response from all workers
