@@ -51,10 +51,7 @@ public class Callback {
         if (function instanceof Function) {
             this.module = scope;
             this.function = function;
-            worker = engine.getCurrentWorker();
-            if (worker == null) {
-                worker = engine.getWorker();
-            }
+            this.worker = engine.getCurrentWorker(function);
         } else {
             this.module = ScriptableObject.getProperty(function, "module");
             this.function = ScriptableObject.getProperty(function, "name");

@@ -275,11 +275,35 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Get the worker associated with the given scope, or null.
-     * @return the worker associated with the current thread, or null.
+     * Get the worker associated with the current thread, or the given scope or function argument if provided.
+     * An {@code IllegalStateException} is thrown if no worker could be found or if different workers are
+     * associated with the current thread and the argument object.
+     *
+     * @param obj a scope or function object
+     * @throws IllegalStateException if no worker could be found, or if different workers are associates with
+     * the current thread and the argument object
+     * @return the current worker
      */
-    public RingoWorker getCurrentWorker() {
-        return currentWorker.get();
+    public RingoWorker getCurrentWorker(Scriptable obj) {
+        RingoWorker worker = currentWorker.get();  // Get worker associated with current thread
+        Scriptable scriptable = obj;
+
+        while (scriptable != null) {
+            if (scriptable instanceof ModuleScope) {
+                RingoWorker scopeWorker = ((ModuleScope) scriptable).getWorker();
+                if (worker == null) {
+                    worker = scopeWorker;
+                } else if (worker != scopeWorker) {
+                    throw new IllegalStateException("Current thread worker differs from scope worker");
+                }
+                break;
+            }
+            scriptable = scriptable.getParentScope();
+        }
+        if (worker == null) {
+            throw new IllegalStateException("No worker associated with current thread or scope");
+        }
+        return worker;
     }
 
     /**

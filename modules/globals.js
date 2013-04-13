@@ -85,7 +85,7 @@ Object.defineProperty(this, "global", { value: this });
     this.setTimeout = function(callback, delay) {
         var args = Array.slice(arguments, 2);
         delay = parseInt(delay, 10) || 0;
-        var worker = engine.getCurrentWorker();
+        var worker = engine.getCurrentWorker(callback);
         return worker.schedule(delay, this, callback, args);
     };
 
@@ -121,7 +121,7 @@ Object.defineProperty(this, "global", { value: this });
     global.setInterval =  function(callback, delay) {
         var args = Array.slice(arguments, 2);
         delay = Math.max(parseInt(delay, 10) || 0, 1);
-        var worker = engine.getCurrentWorker();
+        var worker = engine.getCurrentWorker(callback);
         return worker.scheduleInterval(delay, this, callback, args);
     };
 
