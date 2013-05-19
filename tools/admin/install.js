@@ -50,9 +50,10 @@ function installPackage(url, options) {
                 || fail("package.json does not contain a package name");
         var dir = fs.join(directory, name);
         if (fs.exists(dir)) {
-            zip.close();
-            if (!options.force)
+            if (!options.force) {
+                zip.close();
                 throw new Error("Package already installed: " + dir);
+            }
             print("Removing currently installed version of package " + name);
             fs.removeTree(dir);
         }
