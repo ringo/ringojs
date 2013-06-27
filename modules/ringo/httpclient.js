@@ -27,6 +27,8 @@ var prepareOptions = function(options) {
         "username": undefined,
         "password": undefined,
         "followRedirects": true,
+        "readTimeout": 0,
+        "connectTimeout": 0,
         "binary": false
     };
     var opts = options ? objects.merge(options, defaultValues) : defaultValues;
@@ -283,6 +285,7 @@ var Exchange = function(url, options, callbacks) {
     var responseContent;
     var responseContentBytes;
     var isDone = false;
+    var isException;
 
     Object.defineProperties(this, {
         /**
@@ -335,6 +338,8 @@ var Exchange = function(url, options, callbacks) {
         }
         connection = (new URL(url)).openConnection();
         connection.setAllowUserInteraction(false);
+        connection.setConnectTimeout(options.connectTimeout);
+        connection.setReadTimeout(options.readTimeout);
         connection.setFollowRedirects(options.followRedirects);
         connection.setRequestMethod(options.method);
         connection.setRequestProperty("User-Agent", "RingoJS HttpClient " + VERSION);
@@ -377,6 +382,11 @@ var Exchange = function(url, options, callbacks) {
             var content = (options.binary === true) ? this.contentBytes : this.content;
             callbacks.success(content, this.status, this.contentType, this);
         }
+    } catch (e if e.javaException instanceof java.net.SocketTimeoutException) {
+        isException = 'timeout';
+        if (typeof(callbacks.error) === "function") {
+            callbacks.error("timeout", 500, this);
+        }
     } catch (e) {
         if (typeof(callbacks.error) === "function") {
             callbacks.error(this.message, this.status, this);
@@ -385,8 +395,12 @@ var Exchange = function(url, options, callbacks) {
         isDone = true;
         try {
             if (typeof(callbacks.complete) === "function") {
-                var content = (options.binary === true) ? this.contentBytes : this.content;
-                callbacks.complete(content, this.status, this.contentType, this);
+                if (isException) {
+                    callbacks.complete(isException, 500, undefined, this);
+                } else {
+                    var content = (options.binary === true) ? this.contentBytes : this.content;
+                    callbacks.complete(content, this.status, this.contentType, this);
+                }
             }
         } finally {
             connection && connection.disconnect();
@@ -505,6 +519,12 @@ Object.defineProperties(Exchange.prototype, {
  *     else it will be decoded to string
  *  - `followRedirects`: whether HTTP redirects (response code 3xx) should be
  *     automatically followed; default: true
+ *  - `readTimeout`: setting for read timeout in millis. 0 return implies that the option
+ *     is disabled (i.e., timeout of infinity); default: 0 (or until impl decides its time)
+ *  - `connectTimeout`: Sets a specified timeout value, in milliseconds, to be used
+ *     when opening a communications link to the resource referenced by this
+ *     URLConnection. A timeout of zero is interpreted as an infinite timeout.;
+ *     default: 0 (or until impl decides its time)
  *
  *  #### Callbacks
  *
@@ -544,6 +564,8 @@ var request = function(options) {
         "password": opts.password,
         "contentType": opts.contentType,
         "followRedirects": opts.followRedirects,
+        "connectTimeout": opts.connectTimeout,
+        "readTimeout": opts.readTimeout,
         "binary": opts.binary
     }, {
         "beforeSend": opts.beforeSend,
