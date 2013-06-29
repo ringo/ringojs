@@ -7,14 +7,14 @@
 
     <groupId>org.ringojs</groupId>
     <artifactId>ringojs</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.0.3</version>
 
     <packaging>jar</packaging>
 
     <name>RingoJS</name>
     <description>
-        A JavaScript runtime and shell based on Rhino providing a CommonJS conformant module library
-        and web application framework.
+        A JavaScript runtime and shell based on Rhino providing a CommonJS compliant
+        module library and web application framework.
     </description>
 
     <url>http://ringojs.org/</url>
@@ -83,6 +83,11 @@
             <url>http://github.com/ringo/ringojs/commits/master?author=garryyao</url>
         </developer>
         <developer>
+            <id>oravecz</id>
+            <name>Jim Cook</name>
+            <url>https://github.com/oravecz</url>
+        </developer>
+        <developer>
             <id>tschaub</id>
             <name>Tim Schaub</name>
             <url>http://github.com/ringo/ringojs/commits/master?author=tschaub</url>
@@ -106,16 +111,16 @@
 
 
     <properties>
-        <jetty-version>7.1.6.v20100715</jetty-version>
-        <slf4j-version>1.6.1</slf4j-version>
-        <log4j-version>1.2.16</log4j-version>
-        <rhino-version>1.7R3</rhino-version>
+        <jetty-version>7.5.4.v20111024</jetty-version>
+        <slf4j-version>1.6.6</slf4j-version>
+        <log4j-version>1.2.14</log4j-version>
+        <rhino-version>1.7R5-SNAPSHOT</rhino-version>
         <junit-version>3.8.2</junit-version>
-        <jnr-posix-version>1.1.8</jnr-posix-version>
+        <jnr-posix-version>1.1.9</jnr-posix-version>
         <constantine-version>0.7</constantine-version>
         <jffi-version>1.0.10</jffi-version>
-        <jaffl-version>0.5.10</jaffl-version>
-        <jline-version>0.9.94</jline-version>
+        <jaffl-version>0.5.12</jaffl-version>
+        <jline-version>1.0</jline-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -370,5 +375,46 @@
 
         </plugins>
     </reporting>
+
+    <repositories>
+<!--
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+-->
+<!--
+        <repository>
+            <id>pykl-os-releases</id>
+            <name>Pykl Studios Open Source Maven Release Repository</name>
+            <url>http://repo.pykl.org/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+-->
+        <repository>
+            <id>pykl-os-snapshots</id>
+            <name>Pykl Studios Open Source Maven Snapshot Repository</name>
+            <url>http://repo.pykl.org/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+    </repositories>
+
 
 </project>

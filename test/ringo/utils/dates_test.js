@@ -312,15 +312,15 @@ exports.testDiff = function() {
         "milliseconds": 1
     });
 
-    // 366 + 31 days = 397 days
-    a = new Date(Date.UTC(2012, 0, 1));
+    // 366 + 30 days = 397 days
+    a = new Date(Date.UTC(2012, 0, 2));
     b = new Date(Date.UTC(2013, 1, 1));
 
     assert.equal(dates.diff(a, b, "year"), 1);
     assert.equal(dates.diff(a, b, "quarter"), 4);
-    assert.equal(dates.diff(a, b, "month"), 13);
+    assert.equal(dates.diff(a, b, "month"), 12);
     assert.equal(dates.diff(a, b, "week"), 56);
-    assert.equal(dates.diff(a, b, "day"), 397);
+    assert.equal(dates.diff(a, b, "day"), 396);
 
     // again Einstein, now with time diff
     b = new Date(Date.UTC(2013, 1, 1, 20, 20, 20, 20));
@@ -328,7 +328,7 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "quarter"), 4);
     assert.equal(dates.diff(a, b, "month"), 13);
     assert.equal(dates.diff(a, b, "week"), 56);
-    assert.equal(dates.diff(a, b, "day"), 397);
+    assert.equal(dates.diff(a, b, "day"), 396);
 };
 
 exports.testOverlapping = function() {
