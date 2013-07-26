@@ -42,6 +42,25 @@ exports.testPromiseList = function() {
     assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
 };
 
+exports.testPromiseListAsArray = function() {
+    var d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
+    var l = PromiseList([d1.promise, d2.promise, d3]); // PromiseList should convert d3 to promise
+    var result;
+    l.then(function(value) {
+        done.resolve(value);
+    }, function(error) {
+        done.resolve("promises called error callback", true);
+    });
+    done.promise.then(function(value) {
+        result = value;
+    });
+    d2.resolve(1);
+    d3.resolve("error", true);
+    d1.resolve("ok");
+    // make sure promises have resolved via chained callback
+    assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
+};
+
 exports.testPromiseMultipleCallbacks = function() {
     var d = new Deferred();
     var v1, v2;
