@@ -13,7 +13,7 @@ var host = "127.0.0.1";
 var port = "8282";
 var baseUri = "http://" + host + ":" + port + "/";
 
-require('ringo/logging').setConfig(getResource('./httpclient_log4j.properties'));
+require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
 
 /**
  * tests overwrite getResponse() to control the response they expect back
