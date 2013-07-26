@@ -158,8 +158,8 @@ function Deferred() {
  * @param {promise} promise... any number of promise arguments.
  * @constructor
  */
-function PromiseList() {
-    var promises = Array.slice(arguments);
+function PromiseList(args) {
+    var promises = Array.isArray(args) ? args : Array.slice(arguments);
     var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
     var results = [];
     var i = 0;
