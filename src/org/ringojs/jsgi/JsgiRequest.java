@@ -76,6 +76,7 @@ public class JsgiRequest extends ScriptableObject {
         for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
             String name = (String) e.nextElement();
             String value = request.getHeader(name);
+
             name = name.toLowerCase();
             headers.put(name, headers, value);
         }
