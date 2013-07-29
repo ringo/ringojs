@@ -1,5 +1,6 @@
 var assert = require("assert");
 var {Deferred, PromiseList} = require("ringo/promise");
+var {WorkerPromise} = require("ringo/worker");
 var system = require("system");
 
 exports.testPromise = function() {
@@ -40,6 +41,22 @@ exports.testPromiseList = function() {
     d1.resolve("ok");
     // make sure promises have resolved via chained callback
     assert.deepEqual(result, [{value: "ok"}, {value: 1}, {error: "error"}]);
+};
+
+exports.testPromiseListWait = function() {
+    var w1 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
+    var w2 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
+    var l = PromiseList(w1, w2);
+
+    var then = new Date().getTime();
+    var result = l.wait(1000);
+    var elapsed = new Date().getTime() - then;
+
+    // The workers should finish in 100ms, therefore the PromiseList should end at
+    // about the same time. If a second has passed, the PromiseList is not properly
+    // being notified of the Workers who are ending.
+    assert.isTrue(elapsed < 500);
+    assert.deepEqual(result, [{value: {success: true}}, {value: {success: true}}]);
 };
 
 exports.testPromiseListAsArray = function() {
