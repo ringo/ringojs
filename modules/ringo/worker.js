@@ -91,7 +91,7 @@ function Worker(moduleId) {
         var invokeCallback = function(callback, arg) {
             if (syncCallbacks) callback(arg);
             else currentWorker.submit(self, callback, arg);
-        }
+        };
         var source = {
             postMessage: function(data) {
                 invokeCallback(onmessage, {data: data, source: self});
@@ -136,17 +136,20 @@ function Worker(moduleId) {
  *
  * @param {String} moduleId the id of the module to load in the worker.
  * @param {Object} message the message to post to the worker.
+ * @param {Boolean} [syncCallbacks] flag that indicates whether
+ * callbacks from the worker should be called synchronously in the worker's
+ * own thread rather than in our own local event loop thread.
  * @constructor
  * @see ringo/promise#Promise
  */
-function WorkerPromise(moduleId, message) {
+function WorkerPromise(moduleId, message, syncCallbacks) {
     var deferred = new Deferred();
     var worker = new Worker(moduleId);
     var resolved = false;
 
     worker.onmessage = function(e) {
         resolve(e.data, false);
-    }
+    };
 
     worker.onerror = function(e) {
         resolve(e.data, true);
@@ -160,7 +163,7 @@ function WorkerPromise(moduleId, message) {
         }
     }
 
-    worker.postMessage(message);
+    worker.postMessage(message, syncCallbacks);
     return deferred.promise;
 
     /**
