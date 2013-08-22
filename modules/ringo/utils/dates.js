@@ -362,7 +362,7 @@ function quarterInFiscalYear(date, fiscalYearStart) {
 function diff(a, b, unit) {
     var unit = unit || "day",
     mDiff = Math.abs(a.getTime() - b.getTime()),
-    yDiff = Math.abs(a.getFullYear() - b.getFullYear()),
+    yDiff = a.getFullYear() - b.getFullYear(),
     delta = mDiff;
 
     switch (unit) {
@@ -375,13 +375,13 @@ function diff(a, b, unit) {
                 "milliseconds":   Math.floor((((delta % 86400000) % 3600000) % 60000) % 1000)
             };
         case "year":
-            delta = yDiff; // just return the yDiff
+            delta = Math.abs(yDiff); // just return the yDiff
             break;
         case "quarter":
-            delta = (yDiff * 4) + Math.abs(quarterInYear(a) - quarterInYear(b));
+            delta = Math.abs((yDiff * 4) + quarterInYear(a) - quarterInYear(b));
             break;
         case "month":
-            delta = (yDiff * 12) + Math.abs(a.getMonth() - b.getMonth());
+            delta = Math.abs((yDiff * 12) + a.getMonth() - b.getMonth());
             break;
         case "week":
             delta = Math.floor(diff(a, b, "day") / 7);
