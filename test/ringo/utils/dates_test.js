@@ -329,6 +329,46 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "month"), 13);
     assert.equal(dates.diff(a, b, "week"), 56);
     assert.equal(dates.diff(a, b, "day"), 397);
+
+    // no difference in quarters
+    a = new Date(2013, 11, 1); // Q4/2013
+    b = new Date(2013, 9, 1);  // Q4/2013
+    assert.equal(dates.diff(a, b, "year"), 0);
+    assert.equal(dates.diff(b, a, "year"), 0);
+    assert.equal(dates.diff(a, b, "quarter"), 0);
+    assert.equal(dates.diff(b, a, "quarter"), 0);
+
+    // 3 quarter difference, same years
+    a = new Date(2013, 2, 30); // Q1/2013
+    b = new Date(2013, 9, 2);  // Q4/2013
+    assert.equal(dates.diff(a, b, "year"), 0);
+    assert.equal(dates.diff(b, a, "year"), 0);
+    assert.equal(dates.diff(a, b, "quarter"), 3);
+    assert.equal(dates.diff(b, a, "quarter"), 3);
+
+    // 3 quarter difference, different years
+    a = new Date(2013, 8, 30); // Q3/2013
+    b = new Date(2014, 5, 30); // Q2/2013
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(b, a, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 3);
+    assert.equal(dates.diff(b, a, "quarter"), 3);
+
+    // 4 quarter difference, different years
+    a = new Date(2012, 0, 1); // Q4/2012
+    b = new Date(2013, 0, 1);  // Q1/2013
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(b, a, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 4);
+    assert.equal(dates.diff(b, a, "quarter"), 4);
+
+    // 1 quarter difference, different years
+    a = new Date(2012, 11, 1); // Q4/2012
+    b = new Date(2013, 0, 1);  // Q1/2013
+    assert.equal(dates.diff(a, b, "year"), 1);
+    assert.equal(dates.diff(b, a, "year"), 1);
+    assert.equal(dates.diff(a, b, "quarter"), 1);
+    assert.equal(dates.diff(b, a, "quarter"), 1);
 };
 
 exports.testOverlapping = function() {
