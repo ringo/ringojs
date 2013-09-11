@@ -190,6 +190,17 @@ exports.testQuarterInFiscalYear = function() {
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 9, 6), new Date(1990, 3, 6)), 3);
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 3, 5, 23, 59, 59), new Date(1990, 3, 6)), 4);
 
+    // Farmers (grassland calendar starts with 1st May)
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 3, 30), new Date(1990, 4, 1)), 4);
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 4, 1),  new Date(1990, 4, 1)), 1);
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 6, 31), new Date(1990, 4, 1)), 1);
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 7, 1),  new Date(1990, 4, 1)), 2);
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 9, 31), new Date(1990, 4, 1)), 2);
+    assert.equal(dates.quarterInFiscalYear(new Date(2010, 10, 1), new Date(1990, 4, 1)), 3);
+    assert.equal(dates.quarterInFiscalYear(new Date(2011, 0, 31), new Date(1990, 4, 1)), 3);
+    assert.equal(dates.quarterInFiscalYear(new Date(2011, 1, 1),  new Date(1990, 4, 1)), 4);
+    assert.equal(dates.quarterInFiscalYear(new Date(2011, 3, 30), new Date(1990, 4, 1)), 4);
+
     // With standard year starting on 01/01
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 0, 1), new Date(1970, 0, 1)), 1);
     assert.equal(dates.quarterInFiscalYear(new Date(2010, 3, 1), new Date(1970, 0, 1)), 2);
