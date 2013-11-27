@@ -217,6 +217,7 @@ function Server(options) {
                              * @param {Number} offset Optional offset (defaults to zero)
                              * @param {Number} length Optional length (defaults to the
                              * length of the byte array)
+                             * @name WebSocket.instance.sendBinary
                              * @function
                              */
                             sendBinary: function(bytearray, offset, length) {
