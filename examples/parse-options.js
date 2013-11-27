@@ -1,5 +1,6 @@
 var {Parser} = require('ringo/args');
 var {RED, BLUE, YELLOW, BOLD, writeln} = require('ringo/term');
+var system = require('system');
 
 function main(args) {
     var parser = new Parser();
