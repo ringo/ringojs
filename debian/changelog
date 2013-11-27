@@ -1,3 +1,9 @@
+ringojs (0.10-1) unstable; urgency=low
+
+  * Bump version to 0.10
+
+ -- Simon Oberhammer <simon.oberhammer@gmail.com>  Wed, 26 Nov 2013 14:30:00 +0100
+
 ringojs (0.9-1) unstable; urgency=low
 
   * Bump version to 0.9
