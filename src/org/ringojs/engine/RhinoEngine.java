@@ -128,7 +128,7 @@ public class RhinoEngine implements ScopeProvider {
             if (globals != null) {
                 for (Map.Entry<String, Object> entry : globals.entrySet()) {
                     ScriptableObject.defineProperty(globalScope, entry.getKey(),
-                            entry.getValue(), ScriptableObject.DONTENUM);
+                            wrapArgument(entry.getValue(), globalScope), ScriptableObject.DONTENUM);
                 }
             }
             mainWorker.evaluateScript(cx, getScript("globals"), globalScope);
