@@ -53,6 +53,9 @@ public class RingoShell {
     boolean silent;
     File history;
     CodeSource codeSource = null;
+    InputStream in;
+    PrintStream out;
+    PrintStream err;
 
     public RingoShell(RhinoEngine engine) throws IOException {
         this(engine, null, false);
@@ -60,12 +63,20 @@ public class RingoShell {
 
     public RingoShell(RhinoEngine engine, File history, boolean silent)
             throws IOException {
+        this(engine, history, silent, System.in, System.out, System.err);
+    }
+
+    public RingoShell(RhinoEngine engine, File history, boolean silent, InputStream in, PrintStream out, PrintStream err)
+        throws IOException {
         this.config = engine.getConfig();
         this.engine = engine;
         this.history = history;
         this.worker = engine.getWorker();
         this.scope = engine.getShellScope(worker);
         this.silent = silent;
+        this.in = in;
+        this.out = out;
+        this.err = err;
         // FIXME give shell code a trusted code source in case security is on
         if (config.isPolicyEnabled()) {
             Repository modules = config.getRingoHome().getChildRepository("modules");
@@ -88,11 +99,10 @@ public class RingoShell {
             history = new File(System.getProperty("user.home"), ".ringo-history");
         }
         reader.setHistory(new History(history));
-        PrintStream out = System.out;
         int lineno = 0;
         repl: while (true) {
             Context cx = engine.getContextFactory().enterContext(null);
-            cx.setErrorReporter(new ToolErrorReporter(false, System.err));
+            cx.setErrorReporter(new ToolErrorReporter(false, err));
             String source = "";
             String prompt = getPrompt();
             while (true) {
@@ -123,7 +133,7 @@ public class RingoShell {
                     System.gc();
                 }
             } catch (Exception ex) {
-                // TODO: should this print to System.err?
+                // TODO: should this print to err?
                 printError(ex, out, config.isVerbose());
             } finally {
                 Context.exit();
@@ -167,9 +177,9 @@ public class RingoShell {
         int lineno = 0;
         outer: while (true) {
             Context cx = engine.getContextFactory().enterContext(null);
-            cx.setErrorReporter(new ToolErrorReporter(false, System.err));
+            cx.setErrorReporter(new ToolErrorReporter(false, err));
             String source = "";
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             while (true) {
                 String line = reader.readLine();
                 if (line == null) {
@@ -187,7 +197,7 @@ public class RingoShell {
                 worker.evaluateScript(cx, script, scope);
                 lineno++;
             } catch (Exception ex) {
-                RingoRunner.reportError(ex, System.err, worker.getErrors(),
+                RingoRunner.reportError(ex, err, worker.getErrors(),
                         config.isVerbose());
             } finally {
                 Context.exit();
@@ -251,7 +261,7 @@ public class RingoShell {
                     // set return value to beginning of word we're replacing
                     start = i - lastpart.length();
                     while (obj != null) {
-                        // System.err.println(word + " -- " + obj);
+                        // err.println(word + " -- " + obj);
                         Object[] ids = obj.getIds();
                         collectIds(ids, obj, word, lastpart, list);
                         if (list.size() <= 3 && obj instanceof ScriptableObject) {

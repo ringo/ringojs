@@ -32,12 +32,13 @@ import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Formatter;
 import java.io.IOException;
 import java.io.File;
@@ -64,6 +65,10 @@ public class RingoRunner {
     List<String> bootScripts;
     List<String> userModules = new ArrayList<String>();
 
+    InputStream in;
+    PrintStream out;
+    PrintStream err;
+
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
         {"c", "charset", "Set character encoding for scripts (default: utf-8)", "CHARSET"},
@@ -84,6 +89,13 @@ public class RingoRunner {
     };
 
     public RingoRunner() {
+        this(System.in, System.out, System.err);
+    }
+
+    public RingoRunner(InputStream in, PrintStream out, PrintStream err) {
+        this.in = in;
+        this.out = out;
+        this.err = err;
     }
 
     public static void main(String[] args) throws IOException {
@@ -139,7 +151,13 @@ public class RingoRunner {
         if (charset != null) {
             config.setCharset(charset);
         }
-        engine = new RhinoEngine(config, null);
+
+        Map<String, Object> globals = new HashMap<String, Object>(3);
+        globals.put("systemIn", this.in);
+        globals.put("systemOut", this.out);
+        globals.put("systemErr", this.err);
+
+        engine = new RhinoEngine(config, globals);
     }
 
     public void run(String[] args) {
@@ -162,7 +180,7 @@ public class RingoRunner {
                         // System.console() not available
                     }
                 }
-                new RingoShell(engine, history, silent).run();
+                new RingoShell(engine, history, silent, in, out, err).run();
                 // engine.invoke("ringo/shell", "start");
             } else {
                 // wait for daemon or scheduler threads to terminate
@@ -397,8 +415,8 @@ public class RingoRunner {
     }
 
     private static void exitWithError(String message, int code) {
-        err.println(message);
-        err.println("Use -h or --help for a list of supported options.");
+        System.err.println(message);
+        System.err.println("Use -h or --help for a list of supported options.");
         System.exit(code);
     }
 
@@ -428,10 +446,10 @@ public class RingoRunner {
     }
 
     public static void printUsage() {
-        out.println("Usage:");
-        out.println("  ringo [option] ... [script] [arg] ...");
-        out.println("Options:");
-        Formatter formatter = new Formatter(out);
+        System.out.println("Usage:");
+        System.out.println("  ringo [option] ... [script] [arg] ...");
+        System.out.println("Options:");
+        Formatter formatter = new Formatter(System.out);
         for (String[] opt : options) {
             String format = opt[0].length() == 0 ? "   --%2$s %4$s" : "-%1$s --%2$s %4$s";
             String def = new Formatter().format(format, (Object[]) opt).toString();
@@ -440,8 +458,8 @@ public class RingoRunner {
     }
 
     public static void printVersion() {
-        out.print("RingoJS version ");
-        out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1));
+        System.out.print("RingoJS version ");
+        System.out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1));
     }
 
 }

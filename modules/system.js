@@ -18,7 +18,7 @@ Object.defineProperty(exports, "stdin", {
     get: function() {
         if (!stdin) {
             var {Stream, TextStream} = require('io');
-            stdin = new TextStream(new Stream(System['in']));
+            stdin = new TextStream(new Stream(global.systemIn));
         }
         return stdin;
     },
@@ -35,7 +35,7 @@ Object.defineProperty(exports, "stdout", {
     get: function() {
         if (!stdout) {
             var {Stream, TextStream} = require('io');
-            stdout = new TextStream(new Stream(System.out));
+            stdout = new TextStream(new Stream(global.systemOut));
         }
         return stdout;
     },
@@ -52,7 +52,7 @@ Object.defineProperty(exports, "stderr", {
     get: function() {
         if (!stderr) {
             var {Stream, TextStream} = require('io');
-            stderr = new TextStream(new Stream(System.err));
+            stderr = new TextStream(new Stream(global.systemErr));
         }
         return stderr;
     },
