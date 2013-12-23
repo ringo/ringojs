@@ -10,6 +10,7 @@
         <echo message=" compile    --> compiles the source code to ./build/classes"/>
         <echo message=" jar        --> generates the ./lib/ringo.jar file"/>
         <echo message=" test       --> run JUnit and RingoJS tests"/>
+        <echo message=" test-dates --> runs ringo/utils/dates test in different timezones"/>
         <echo message=" docs       --> generates the API docs"/>
         <echo message=" package    --> creates RingoJS distribution"/>
         <echo message=" dpkg       --> creates RingoJS debian package"/>
