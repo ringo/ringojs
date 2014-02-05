@@ -329,6 +329,8 @@ TermWriter.prototype.writeTestFailed = function(exception) {
         exception.stackTrace.forEach(function(line) {
             term.writeln("  ", term.BOLD, line);
         });
+    } else if (exception.fileName) {
+        term.writeln("  at " + exception.fileName + ":" + exception.lineNumber);
     }
     term.writeln("");
     return;
@@ -394,6 +396,8 @@ function EvaluationError(messageOrException) {
      */
     if (messageOrException instanceof Error) {
         exception = messageOrException;
+    } else if (typeof(messageOrException.toString) === 'function') {
+        message = messageOrException.toString();
     } else {
         message = messageOrException;
     }
