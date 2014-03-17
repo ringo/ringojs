@@ -81,8 +81,7 @@ export('isDateFormat',
        'isUpperCase',
        'isLowerCase',
        'isInt',
-       'isFloat',
-       'isIP');
+       'isFloat');
 
 /**
  * checks if a date format pattern is correct
