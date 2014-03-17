@@ -145,7 +145,7 @@ exports.testPad = function () { // TODO: validate behaviour resp. rework this.
     assert.strictEqual(strings.pad(NUM, NUM, 4, 1), NUM + NUM.charAt(0));
 
     assert.strictEqual(strings.pad(FOO, NUM, 6, 0), NUM.charAt(0) + FOO + NUM.substr(0,2));
-    
+
     assert.strictEqual(strings.pad(FOO, NUM, 6, -1), NUM + FOO);
     assert.strictEqual(strings.pad(NUM, NUM, 4, -1), NUM.charAt(0) + NUM);
 };
@@ -161,7 +161,32 @@ exports.testGetCommonPrefix = function () {
 
 exports.testIsEmail = function () {
     assert.isTrue(strings.isEmail('nobody@domain.at'));
+    assert.isTrue(strings.isEmail('nobody@domain.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@domain.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@domain.ac.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('öäü@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@ümlautdömän.at'));
+    assert.isTrue(strings.isEmail('nobody@ümlautdömän.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@some.sub.ümlautdömän.ac.at'));
+    assert.isTrue(strings.isEmail('nobody|1234567890@domain.at'));
+    assert.isTrue(strings.isEmail('nobody+filter@domain.at'));
+    assert.isTrue(strings.isEmail('nobody.has.name+filter@domain.at'));
+
     assert.isFalse(strings.isEmail('nobody[at]domain.at'));
+    assert.isFalse(strings.isEmail('domain.at'));
+    assert.isFalse(strings.isEmail('@domain.at'));
+    assert.isFalse(strings.isEmail('nobody@'));
+    assert.isFalse(strings.isEmail('mister.nobody@'));
+
+    // From http://en.wikipedia.org/wiki/Email_address#Invalid_email_addresses
+    assert.isFalse(strings.isEmail('Abc.example.com'));
+    assert.isFalse(strings.isEmail('A@b@c@example.com'));
+    assert.isFalse(strings.isEmail('a"b(c)d,e:f;g<h>i[j\\k]l@example.com'));
+    assert.isFalse(strings.isEmail('just"not"right@example.com'));
+    assert.isFalse(strings.isEmail('this is"not\\allowed@example.com'));
+    assert.isFalse(strings.isEmail('this\\ still\\"not\\\\allowed@example.com'));
 };
 
 exports.testCount = function () {
@@ -260,3 +285,51 @@ exports.testFormat = function () {
     assert.strictEqual(UNDEFINED, strings.format(undefined));
     assert.strictEqual('', strings.format());
 };
+
+exports.testIsUpperCase = function () {
+    assert.isTrue(strings.isUpperCase("ASDFJKLÖÄÜ"));
+    assert.isFalse(strings.isUpperCase("asdfjklöäü"));
+    assert.isTrue(strings.isUpperCase("1234567890"));
+};
+
+exports.testIsLowerCase = function () {
+    assert.isFalse(strings.isLowerCase("ASDFJKLÖÄÜ"));
+    assert.isTrue(strings.isLowerCase("asdfjklöäü"));
+    assert.isTrue(strings.isLowerCase("1234567890"));
+};
+
+exports.testIsInt = function() {
+    assert.isTrue(strings.isInt("123456"));
+    assert.isTrue(strings.isInt("-12345"));
+    assert.isTrue(strings.isInt("0"));
+    assert.isFalse(strings.isInt("affe"));
+    assert.isFalse(strings.isInt("0.0"));
+    assert.isFalse(strings.isInt("-0.0"));
+    assert.isFalse(strings.isInt(".0"));
+    assert.isFalse(strings.isInt("1.0"));
+    assert.isFalse(strings.isInt("-1.0"));
+    assert.isFalse(strings.isInt("1e10"));
+    assert.isFalse(strings.isInt(""));
+    assert.isFalse(strings.isInt(" "));
+};
+
+exports.testIsFloat = function() {
+    assert.isTrue(strings.isFloat("123456"));
+    assert.isTrue(strings.isFloat("-12345"));
+    assert.isTrue(strings.isFloat("0"));
+    assert.isTrue(strings.isFloat("0.0"));
+    assert.isTrue(strings.isFloat("-0.0"));
+    assert.isTrue(strings.isFloat(".0"));
+    assert.isTrue(strings.isFloat("1.0"));
+    assert.isTrue(strings.isFloat("-1.0"));
+    assert.isTrue(strings.isFloat("1e10"));
+    assert.isTrue(strings.isFloat("-1e10"));
+    assert.isFalse(strings.isFloat("-.12345"));
+    assert.isFalse(strings.isFloat("affe"));
+    assert.isFalse(strings.isFloat(""));
+    assert.isFalse(strings.isFloat(" "));
+};
+
+if (require.main == module.id) {
+    require("test").run(exports);
+}
