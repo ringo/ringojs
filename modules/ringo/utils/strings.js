@@ -28,8 +28,8 @@ var URLPATTERN = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\
 
 // Copyright (c) 2014 Chris O'Hara cohara87@gmail.com
 // licensed unter MIT license - https://github.com/chriso/validator.js/blob/master/LICENSE
-var INT = /^(?:-?(?:0|[1-9][0-9]*))$/;
-var FLOAT = /^(?:-?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
+var INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
+var FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
 
 var {Binary, ByteArray, ByteString} = require('binary');
 var base64;
@@ -426,7 +426,7 @@ function pad(string, fill, length, mode) {
  * @param {String} string the string to search in
  * @param {String} substring the string to search for
  * @param {Number} fromIndex optional index to start searching
- * @returns true if str is contained in this string
+ * @returns true if substring is contained in this string
  * @type Boolean
  */
 function contains(string, substring, fromIndex) {
@@ -721,17 +721,17 @@ function isLowerCase(string) {
 }
 
 /**
- * returns true if the string is an integer
+ * returns true if the string is an integer literal
  * @param {String} string
  */
-function isInt(str) {
-    return INT.test(str);
+function isInt(string) {
+    return INT.test(string);
 };
 
 /**
- * returns true if the string is a float
+ * returns true if the string is a floating point literal
  * @param {String} string
  */
-function isFloat(str) {
-    return str !== '' && FLOAT.test(str);
+function isFloat(string) {
+    return string !== '' && FLOAT.test(string) && !INT.test(string);
 };

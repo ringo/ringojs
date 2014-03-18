@@ -300,6 +300,7 @@ exports.testIsLowerCase = function () {
 
 exports.testIsInt = function() {
     assert.isTrue(strings.isInt("123456"));
+    assert.isTrue(strings.isInt("+123456"));
     assert.isTrue(strings.isInt("-12345"));
     assert.isTrue(strings.isInt("0"));
     assert.isFalse(strings.isInt("affe"));
@@ -314,20 +315,29 @@ exports.testIsInt = function() {
 };
 
 exports.testIsFloat = function() {
-    assert.isTrue(strings.isFloat("123456"));
-    assert.isTrue(strings.isFloat("-12345"));
-    assert.isTrue(strings.isFloat("0"));
     assert.isTrue(strings.isFloat("0.0"));
     assert.isTrue(strings.isFloat("-0.0"));
     assert.isTrue(strings.isFloat(".0"));
     assert.isTrue(strings.isFloat("1.0"));
     assert.isTrue(strings.isFloat("-1.0"));
+    assert.isTrue(strings.isFloat("+1.0"));
     assert.isTrue(strings.isFloat("1e10"));
     assert.isTrue(strings.isFloat("-1e10"));
-    assert.isFalse(strings.isFloat("-.12345"));
+    assert.isTrue(strings.isFloat("-.12345"));
     assert.isFalse(strings.isFloat("affe"));
     assert.isFalse(strings.isFloat(""));
     assert.isFalse(strings.isFloat(" "));
+
+    // A floating-point literal must have at least one digit and either a decimal point or "e" (or "E").
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Values,_variables,_and_literals
+    assert.isTrue(strings.isFloat("3.1415"));
+    assert.isTrue(strings.isFloat("-3.1E12"));
+    assert.isTrue(strings.isFloat("+3.1E12"));
+    assert.isTrue(strings.isFloat(".1e12"));
+    assert.isTrue(strings.isFloat("2E-12"));
+    assert.isFalse(strings.isFloat("123456"));
+    assert.isFalse(strings.isFloat("-12345"));
+    assert.isFalse(strings.isFloat("0"));
 };
 
 if (require.main == module.id) {
