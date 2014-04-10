@@ -19,10 +19,51 @@ var APATTERN = /[^a-zA-Z]/;
 var NUMPATTERN = /[^0-9]/;
 var FILEPATTERN = /[^a-zA-Z0-9-_\. ]/;
 var HEXPATTERN = /[^a-fA-F0-9]/;
-// Email and URL RegExps contributed by Scott Gonzalez: http://projects.scottsplayground.com/email_address_validation/
+
+// Email RegExp contributed by Scott Gonzalez (http://projects.scottsplayground.com/email_address_validation/)
 // licensed unter MIT license - http://www.opensource.org/licenses/mit-license.php
 var EMAILPATTERN = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
-var URLPATTERN = /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
+
+// URL RegExp contributed by Diego Perini
+// licensed unter MIT license - https://gist.github.com/dperini/729294
+// Copyright (c) 2010-2013 Diego Perini (http://www.iport.it)
+var URLPATTERN = java.util.regex.Pattern.compile("^" +
+    // protocol identifier
+    "(?:(?:https?|ftp)://)" +
+    // user:pass authentication
+    "(?:\\S+(?::\\S*)?@)?" +
+    "(?:" +
+        // IP address exclusion
+        // private & local networks
+        "(?!(?:10|127)(?:\\.\\d{1,3}){3})" +
+        "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" +
+        "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})" +
+        // IP address dotted notation octets
+        // excludes loopback network 0.0.0.0
+        // excludes reserved space >= 224.0.0.0
+        // excludes network & broacast addresses
+        // (first & last IP address of each class)
+        "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" +
+        "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" +
+        "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" +
+    "|" +
+        // host name
+        "(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)" +
+        // domain name
+        "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*" +
+        // TLD identifier
+        "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))" +
+    ")" +
+    // port number
+    "(?::\\d{2,5})?" +
+    // resource path
+    "(?:/[^\\s]*)?" +
+"$", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+// Copyright (c) 2014 Chris O'Hara cohara87@gmail.com
+// licensed unter MIT license - https://github.com/chriso/validator.js/blob/master/LICENSE
+var INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
+var FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
 
 var {Binary, ByteArray, ByteString} = require('binary');
 var base64;
@@ -70,7 +111,11 @@ export('isDateFormat',
        'compose',
        'random',
        'join',
-       'format');
+       'format',
+       'isUpperCase',
+       'isLowerCase',
+       'isInt',
+       'isFloat');
 
 /**
  * checks if a date format pattern is correct
@@ -87,8 +132,7 @@ function isDateFormat(string) {
 }
 
 /**
- * parse a timestamp into a date object. This is used when users
- * want to set createtime explicitly when creating/editing stories.
+ * parse a timestamp into a date object.
  * @param {String} string the string
  * @param {String} format date format to be applied
  * @param {Object} timezone Java TimeZone Object (optional)
@@ -103,14 +147,15 @@ function toDate(string, format, timezone) {
 }
 
 /**
- * function checks if the string passed contains any characters that
- * are forbidden in URLs and tries to create a java.net.URL from it
- * FIXME: probably deprecated -> ringo.Url
+ * function checks if the string is an URL validating.
+ * Only HTTP, HTTPS and FTP are allowed protocols.
  * @param {String} string the string
  * @returns Boolean
  */
 function isUrl(string) {
-    return URLPATTERN.test(string);
+    // uses java.util.regex.Pattern for performance reasons,
+    // pure JS / Rhino RegExp will not stop in feasible time!
+    return (URLPATTERN.matcher(string)).matches();
 }
 
 /**
@@ -415,7 +460,7 @@ function pad(string, fill, length, mode) {
  * @param {String} string the string to search in
  * @param {String} substring the string to search for
  * @param {Number} fromIndex optional index to start searching
- * @returns true if str is contained in this string
+ * @returns true if substring is contained in this string
  * @type Boolean
  */
 function contains(string, substring, fromIndex) {
@@ -692,3 +737,35 @@ function format() {
         return format;
     }
 }
+
+/**
+ * returns true if the string is uppercase
+ * @param {String} string
+ */
+function isUpperCase(string) {
+    return string.toUpperCase() === string;
+}
+
+/**
+ * returns true if the string is lowercase
+ * @param {String} string
+ */
+function isLowerCase(string) {
+    return string.toLowerCase() === string;
+}
+
+/**
+ * returns true if the string is an integer literal
+ * @param {String} string
+ */
+function isInt(string) {
+    return INT.test(string);
+};
+
+/**
+ * returns true if the string is a floating point literal
+ * @param {String} string
+ */
+function isFloat(string) {
+    return string !== '' && FLOAT.test(string) && !INT.test(string);
+};

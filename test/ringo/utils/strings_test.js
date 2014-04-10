@@ -36,6 +36,84 @@ exports.testToDate = function () {
 exports.testIsUrl = function () {
     assert.isTrue(strings.isUrl(URL));
     assert.isFalse(strings.isUrl(FOO));
+
+    // URLs from http://mathiasbynens.be/demo/url-regex
+    assert.isTrue(strings.isUrl("http://✪df.ws"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_blah"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_blah/"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_blah_(wikipedia)"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_blah_(wikipedia)_(again)"));
+    assert.isTrue(strings.isUrl("http://www.example.com/wpstyle/?p=364"));
+    assert.isTrue(strings.isUrl("https://www.example.com/foo/?bar=baz&inga=42&quux"));
+    assert.isTrue(strings.isUrl("http://✪df.ws/123"));
+    assert.isTrue(strings.isUrl("http://userid:password@example.com:8080"));
+    assert.isTrue(strings.isUrl("http://userid:password@example.com:8080/"));
+    assert.isTrue(strings.isUrl("http://userid@example.com"));
+    assert.isTrue(strings.isUrl("http://userid@example.com/"));
+    assert.isTrue(strings.isUrl("http://userid@example.com:8080"));
+    assert.isTrue(strings.isUrl("http://userid@example.com:8080/"));
+    assert.isTrue(strings.isUrl("http://userid:password@example.com"));
+    assert.isTrue(strings.isUrl("http://userid:password@example.com/"));
+    assert.isTrue(strings.isUrl("http://142.42.1.1/"));
+    assert.isTrue(strings.isUrl("http://142.42.1.1:8080/"));
+    assert.isTrue(strings.isUrl("http://➡.ws/䨹"));
+    assert.isTrue(strings.isUrl("http://⌘.ws"));
+    assert.isTrue(strings.isUrl("http://⌘.ws/"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_(wikipedia)#cite-1"));
+    assert.isTrue(strings.isUrl("http://foo.com/blah_(wikipedia)_blah#cite-1"));
+    assert.isTrue(strings.isUrl("http://foo.com/unicode_(✪)_in_parens"));
+    assert.isTrue(strings.isUrl("http://foo.com/(something)?after=parens"));
+    assert.isTrue(strings.isUrl("http://☺.damowmow.com/"));
+    assert.isTrue(strings.isUrl("http://code.google.com/events/#&product=browser"));
+    assert.isTrue(strings.isUrl("http://j.mp"));
+    assert.isTrue(strings.isUrl("ftp://foo.bar/baz"));
+    assert.isTrue(strings.isUrl("http://foo.bar/?q=Test%20URL-encoded%20stuff"));
+    assert.isTrue(strings.isUrl("http://مثال.إختبار"));
+    assert.isTrue(strings.isUrl("http://例子.测试"));
+    assert.isTrue(strings.isUrl("http://उदाहरण.परीक्षा"));
+    assert.isTrue(strings.isUrl("http://-.~_!$&'()*+,;=:%40:80%2f::::::@example.com"));
+    assert.isTrue(strings.isUrl("http://1337.net"));
+    assert.isTrue(strings.isUrl("http://a.b-c.de"));
+    assert.isTrue(strings.isUrl("http://223.255.255.254"));
+    assert.isFalse(strings.isUrl("http://"));
+    assert.isFalse(strings.isUrl("http://."));
+    assert.isFalse(strings.isUrl("http://.."));
+    assert.isFalse(strings.isUrl("http://../"));
+    assert.isFalse(strings.isUrl("http://?"));
+    assert.isFalse(strings.isUrl("http://??"));
+    assert.isFalse(strings.isUrl("http://??/"));
+    assert.isFalse(strings.isUrl("http://#"));
+    assert.isFalse(strings.isUrl("http://##"));
+    assert.isFalse(strings.isUrl("http://##/"));
+    assert.isFalse(strings.isUrl("http://foo.bar?q=Spaces should be encoded"));
+    assert.isFalse(strings.isUrl("//"));
+    assert.isFalse(strings.isUrl("//a"));
+    assert.isFalse(strings.isUrl("///a"));
+    assert.isFalse(strings.isUrl("///"));
+    assert.isFalse(strings.isUrl("http:///a"));
+    assert.isFalse(strings.isUrl("foo.com"));
+    assert.isFalse(strings.isUrl("rdar://1234"));
+    assert.isFalse(strings.isUrl("h://test"));
+    assert.isFalse(strings.isUrl("http:// shouldfail.com"));
+    assert.isFalse(strings.isUrl(":// should fail"));
+    assert.isFalse(strings.isUrl("http://foo.bar/foo(bar)baz quux"));
+    assert.isFalse(strings.isUrl("ftps://foo.bar/"));
+    assert.isFalse(strings.isUrl("http://-error-.invalid/"));
+    assert.isFalse(strings.isUrl("http://a.b--c.de/"));
+    assert.isFalse(strings.isUrl("http://-a.b.co"));
+    assert.isFalse(strings.isUrl("http://a.b-.co"));
+    assert.isFalse(strings.isUrl("http://0.0.0.0"));
+    assert.isFalse(strings.isUrl("http://10.1.1.0"));
+    assert.isFalse(strings.isUrl("http://10.1.1.255"));
+    assert.isFalse(strings.isUrl("http://224.1.1.1"));
+    assert.isFalse(strings.isUrl("http://1.1.1.1.1"));
+    assert.isFalse(strings.isUrl("http://123.123.123"));
+    assert.isFalse(strings.isUrl("http://3628126748"));
+    assert.isFalse(strings.isUrl("http://.www.foo.bar/"));
+    assert.isFalse(strings.isUrl("http://www.foo.bar./"));
+    assert.isFalse(strings.isUrl("http://.www.foo.bar./"));
+    assert.isFalse(strings.isUrl("http://10.1.1.1"));
+    assert.isFalse(strings.isUrl("http://10.1.1.254"));
 };
 
 exports.testIsFileName = function () {
@@ -145,7 +223,7 @@ exports.testPad = function () { // TODO: validate behaviour resp. rework this.
     assert.strictEqual(strings.pad(NUM, NUM, 4, 1), NUM + NUM.charAt(0));
 
     assert.strictEqual(strings.pad(FOO, NUM, 6, 0), NUM.charAt(0) + FOO + NUM.substr(0,2));
-    
+
     assert.strictEqual(strings.pad(FOO, NUM, 6, -1), NUM + FOO);
     assert.strictEqual(strings.pad(NUM, NUM, 4, -1), NUM.charAt(0) + NUM);
 };
@@ -161,7 +239,32 @@ exports.testGetCommonPrefix = function () {
 
 exports.testIsEmail = function () {
     assert.isTrue(strings.isEmail('nobody@domain.at'));
+    assert.isTrue(strings.isEmail('nobody@domain.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@domain.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@domain.ac.at'));
+    assert.isTrue(strings.isEmail('mister.nobody@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('öäü@some.sub.domain.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@ümlautdömän.at'));
+    assert.isTrue(strings.isEmail('nobody@ümlautdömän.ac.at'));
+    assert.isTrue(strings.isEmail('nobody@some.sub.ümlautdömän.ac.at'));
+    assert.isTrue(strings.isEmail('nobody|1234567890@domain.at'));
+    assert.isTrue(strings.isEmail('nobody+filter@domain.at'));
+    assert.isTrue(strings.isEmail('nobody.has.name+filter@domain.at'));
+
     assert.isFalse(strings.isEmail('nobody[at]domain.at'));
+    assert.isFalse(strings.isEmail('domain.at'));
+    assert.isFalse(strings.isEmail('@domain.at'));
+    assert.isFalse(strings.isEmail('nobody@'));
+    assert.isFalse(strings.isEmail('mister.nobody@'));
+
+    // From http://en.wikipedia.org/wiki/Email_address#Invalid_email_addresses
+    assert.isFalse(strings.isEmail('Abc.example.com'));
+    assert.isFalse(strings.isEmail('A@b@c@example.com'));
+    assert.isFalse(strings.isEmail('a"b(c)d,e:f;g<h>i[j\\k]l@example.com'));
+    assert.isFalse(strings.isEmail('just"not"right@example.com'));
+    assert.isFalse(strings.isEmail('this is"not\\allowed@example.com'));
+    assert.isFalse(strings.isEmail('this\\ still\\"not\\\\allowed@example.com'));
 };
 
 exports.testCount = function () {
@@ -260,3 +363,61 @@ exports.testFormat = function () {
     assert.strictEqual(UNDEFINED, strings.format(undefined));
     assert.strictEqual('', strings.format());
 };
+
+exports.testIsUpperCase = function () {
+    assert.isTrue(strings.isUpperCase("ASDFJKLÖÄÜ"));
+    assert.isFalse(strings.isUpperCase("asdfjklöäü"));
+    assert.isTrue(strings.isUpperCase("1234567890"));
+};
+
+exports.testIsLowerCase = function () {
+    assert.isFalse(strings.isLowerCase("ASDFJKLÖÄÜ"));
+    assert.isTrue(strings.isLowerCase("asdfjklöäü"));
+    assert.isTrue(strings.isLowerCase("1234567890"));
+};
+
+exports.testIsInt = function() {
+    assert.isTrue(strings.isInt("123456"));
+    assert.isTrue(strings.isInt("+123456"));
+    assert.isTrue(strings.isInt("-12345"));
+    assert.isTrue(strings.isInt("0"));
+    assert.isFalse(strings.isInt("affe"));
+    assert.isFalse(strings.isInt("0.0"));
+    assert.isFalse(strings.isInt("-0.0"));
+    assert.isFalse(strings.isInt(".0"));
+    assert.isFalse(strings.isInt("1.0"));
+    assert.isFalse(strings.isInt("-1.0"));
+    assert.isFalse(strings.isInt("1e10"));
+    assert.isFalse(strings.isInt(""));
+    assert.isFalse(strings.isInt(" "));
+};
+
+exports.testIsFloat = function() {
+    assert.isTrue(strings.isFloat("0.0"));
+    assert.isTrue(strings.isFloat("-0.0"));
+    assert.isTrue(strings.isFloat(".0"));
+    assert.isTrue(strings.isFloat("1.0"));
+    assert.isTrue(strings.isFloat("-1.0"));
+    assert.isTrue(strings.isFloat("+1.0"));
+    assert.isTrue(strings.isFloat("1e10"));
+    assert.isTrue(strings.isFloat("-1e10"));
+    assert.isTrue(strings.isFloat("-.12345"));
+    assert.isFalse(strings.isFloat("affe"));
+    assert.isFalse(strings.isFloat(""));
+    assert.isFalse(strings.isFloat(" "));
+
+    // A floating-point literal must have at least one digit and either a decimal point or "e" (or "E").
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Values,_variables,_and_literals
+    assert.isTrue(strings.isFloat("3.1415"));
+    assert.isTrue(strings.isFloat("-3.1E12"));
+    assert.isTrue(strings.isFloat("+3.1E12"));
+    assert.isTrue(strings.isFloat(".1e12"));
+    assert.isTrue(strings.isFloat("2E-12"));
+    assert.isFalse(strings.isFloat("123456"));
+    assert.isFalse(strings.isFloat("-12345"));
+    assert.isFalse(strings.isFloat("0"));
+};
+
+if (require.main == module.id) {
+    require("test").run(exports);
+}
