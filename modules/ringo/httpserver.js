@@ -24,6 +24,11 @@ var options,
  * <li>jettyConfig ('config/jetty.xml')</li>
  * <li>port (8080)</li>
  * <li>host (undefined)</li>
+ * <li>sessions (true)</li>
+ * <li>security (true)</li>
+ * <li>cookieName (null)</li>
+ * <li>httpOnlyCookies (false)</li>
+ * <li>secureCookies (false)</li>
  * </ul>
  *
  * For convenience, the constructor supports the definition of a JSGI application
@@ -69,6 +74,9 @@ function Server(options) {
      * @param {Object} options may have the following properties:
      *   sessions: true to enable sessions for this context, false otherwise
      *   security: true to enable security for this context, false otherwise
+     *   cookieName: optional cookie name
+     *   httpOnlyCookies: true to enable http-only session cookies
+     *   secureCookies: true to enable secure session cookies
      * @see #Context
      * @since: 0.6
      * @returns a Context object
@@ -86,6 +94,15 @@ function Server(options) {
             if (virtualHosts) {
                 cx.setVirtualHosts(Array.isArray(virtualHosts) ? virtualHosts : [String(virtualHosts)]);
             }
+            var sessionHandler = cx.getSessionHandler();
+            if (sessionHandler != null) {
+                var sessionManager = sessionHandler.getSessionManager();
+                sessionManager.setHttpOnly(options.httpOnlyCookies);
+                sessionManager.setSecureCookies(options.secureCookies);
+                if (typeof(options.cookieName) === "string") {
+                    sessionManager.setSessionCookie(options.cookieName);
+                }
+            }
             contextMap[contextKey] = cx;
             if (jetty.isRunning()) {
                 cx.start();
@@ -100,6 +117,12 @@ function Server(options) {
          * @name Context
          */
         return {
+            /**
+             * Returns the wrapped servlet context handler
+             */
+            getHandler: function() {
+                return cx;
+            },
             /**
              * Map this context to a JSGI application.
              * @param {function|object} app a JSGI application, either as a function
@@ -319,8 +342,11 @@ function Server(options) {
 
     // create default context
     defaultContext = this.getContext(options.mountpoint || "/", options.virtualHost, {
-        security: true,
-        sessions: true
+        security: options.security !== false,
+        sessions: options.sessions !== false,
+        cookieName: options.cookieName || null,
+        httpOnlyCookies: options.httpOnlyCookies === true,
+        secureCookies: options.secureCookies === true
     });
 
     // If options defines an application mount it
