@@ -200,6 +200,47 @@ exports.testMultipleHeaders = function () {
     connection.getResponseCode();
 };
 
+exports.testOptions = function() {
+    server.stop();
+    var config = {
+        host: host,
+        port: port,
+        sessions: false,
+        security: false
+    };
+    server = new Server(config);
+    server.start();
+    var cx = server.getDefaultContext();
+    assert.isNull(cx.getHandler().getSessionHandler());
+    assert.isNull(cx.getHandler().getSecurityHandler());
+    server.stop();
+    // enable sessions
+    config.sessions = true;
+    config.security = true;
+    server = new Server(config);
+    server.start();
+    cx = server.getDefaultContext();
+    assert.isNotNull(cx.getHandler().getSecurityHandler());
+    var sessionHandler = cx.getHandler().getSessionHandler();
+    assert.isNotNull(sessionHandler);
+    var sessionManager = sessionHandler.getSessionManager();
+    assert.strictEqual(sessionManager.getSessionCookie(), "JSESSIONID");
+    assert.isFalse(sessionManager.getHttpOnly());
+    assert.isFalse(sessionManager.getSecureCookies());
+    server.stop();
+    // configure session cookies
+    config.cookieName = "ringosession";
+    config.httpOnlyCookies = true;
+    config.secureCookies = true;
+    server = new Server(config);
+    server.start();
+    cx = server.getDefaultContext();
+    sessionManager = cx.getHandler().getSessionHandler().getSessionManager();
+    assert.strictEqual(sessionManager.getSessionCookie(), config.cookieName);
+    assert.isTrue(sessionManager.getHttpOnly());
+    assert.isTrue(sessionManager.getSecureCookies());
+};
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     var {run} = require("test");
