@@ -914,7 +914,7 @@ public class RhinoEngine implements ScopeProvider {
             return path;
         }
         boolean absolute = path.startsWith("/");
-        String[] elements = path.split(Repository.SEPARATOR);
+        String[] elements = path.split(Repository.SEPARATOR_REGEX);
         LinkedList<String> list = new LinkedList<String>();
         for (String e : elements) {
             if ("..".equals(e)) {

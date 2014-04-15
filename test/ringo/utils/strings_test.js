@@ -282,7 +282,7 @@ exports.testB64Decode = function () {
     assert.strictEqual(FOO + NUM, strings.b64decode(FOO_BASE64 + NUM_BASE64));
 };
 
-exports.testB64EncodeDecode = function() {
+exports.testB16EncodeDecode = function() {
     for each (var test in BASE16) {
         assert.strictEqual(strings.b16encode(test[0]), test[1]);
         assert.strictEqual(strings.b16decode(strings.b16encode(test[0])), test[0]);

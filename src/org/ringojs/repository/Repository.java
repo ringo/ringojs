@@ -18,6 +18,7 @@ package org.ringojs.repository;
 
 import java.io.IOException;
 import java.io.File;
+import java.util.regex.Pattern;
 
 /**
  * Repository represents an abstract container of resources (e.g. code, skins, ...).
@@ -32,6 +33,11 @@ public interface Repository extends Trackable {
      */
     final public static String SEPARATOR =
             File.separatorChar == '/' ? "/" : File.separator + "/";
+
+    /**
+     * String containing file separator characters as regular expression pattern
+     */
+    final public static String SEPARATOR_REGEX = "[" + Pattern.quote(SEPARATOR) + "]";
 
     /**
      * Returns a specific direct resource of the repository

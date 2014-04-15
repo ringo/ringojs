@@ -167,10 +167,10 @@ public abstract class AbstractRepository implements Repository {
      * @return a List containing the path elements resolved relative to this repository
      */
     protected String[] resolve(String path, boolean absolute) {
-        String[] elements = path.split(SEPARATOR);
+        String[] elements = path.split(SEPARATOR_REGEX);
         LinkedList<String> list = new LinkedList<String>();
         if (absolute) {
-            list.addAll(Arrays.asList(this.path.split(SEPARATOR)));
+            list.addAll(Arrays.asList(this.path.split(SEPARATOR_REGEX)));
         }
         for (String e : elements) {
             if ("..".equals(e)) {
