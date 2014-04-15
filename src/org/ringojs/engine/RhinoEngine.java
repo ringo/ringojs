@@ -30,6 +30,7 @@ import org.ringojs.repository.*;
 import org.ringojs.tools.RingoDebugger;
 import org.ringojs.tools.launcher.RingoClassLoader;
 import org.ringojs.wrappers.*;
+import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.tools.debugger.ScopeProvider;
 
 import java.io.*;
@@ -914,7 +915,7 @@ public class RhinoEngine implements ScopeProvider {
             return path;
         }
         boolean absolute = path.startsWith("/");
-        String[] elements = path.split(Repository.SEPARATOR);
+        String[] elements = StringUtils.split(path, Repository.SEPARATOR);
         LinkedList<String> list = new LinkedList<String>();
         for (String e : elements) {
             if ("..".equals(e)) {

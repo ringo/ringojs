@@ -16,6 +16,8 @@
 
 package org.ringojs.repository;
 
+import org.ringojs.util.StringUtils;
+
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.*;
@@ -167,10 +169,10 @@ public abstract class AbstractRepository implements Repository {
      * @return a List containing the path elements resolved relative to this repository
      */
     protected String[] resolve(String path, boolean absolute) {
-        String[] elements = path.split(SEPARATOR);
+        String[] elements = StringUtils.split(path, SEPARATOR);
         LinkedList<String> list = new LinkedList<String>();
         if (absolute) {
-            list.addAll(Arrays.asList(this.path.split(SEPARATOR)));
+            list.addAll(Arrays.asList(StringUtils.split(this.path, SEPARATOR)));
         }
         for (String e : elements) {
             if ("..".equals(e)) {
