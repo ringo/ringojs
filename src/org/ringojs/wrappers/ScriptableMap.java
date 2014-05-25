@@ -94,14 +94,14 @@ public class ScriptableMap extends NativeJavaObject {
     }
 
     /**
-     * Set the prototype to the Array prototype so we can use array methds such as
-     * push, pop, shift, slice etc.
-     * @param scope the global scope for looking up the Array constructor
+     * Set the prototype to the Object prototype so we can use object methods such as
+     * getOwnPropertyNames, hasOwnProperty, keys etc.
+     * @param scope the global scope for looking up the Object constructor
      */
     protected void initPrototype(Scriptable scope) {
-        Scriptable arrayProto = ScriptableObject.getClassPrototype(scope, "Object");
-        if (arrayProto != null) {
-            this.setPrototype(arrayProto);
+        Scriptable objectProto = ScriptableObject.getClassPrototype(scope, "Object");
+        if (objectProto != null) {
+            this.setPrototype(objectProto);
         }
     }
 
