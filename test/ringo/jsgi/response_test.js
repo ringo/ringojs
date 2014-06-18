@@ -207,18 +207,18 @@ exports.testHelpers = function() {
     expected.status = 503;
     assert.deepEqual(response.html("<h1>Hello World!</h1>").unavailable(), expected);
 
-    expected = {
+    expected = new JsgiResponse({
         status: 303,
         headers: { location: "http://ringojs.org/" },
         body: ["See other: http://ringojs.org/"]
-    };
+    });
     assert.deepEqual(response.redirect("http://ringojs.org/"), expected);
 
-    expected = {
+    expected = new JsgiResponse({
         status: 304,
         headers: {},
         body: [""]
-    };
+    });
     assert.deepEqual(response.notModified(), expected);
 
     expected = new JsgiResponse({

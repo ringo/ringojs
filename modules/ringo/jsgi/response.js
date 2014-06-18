@@ -261,12 +261,7 @@ Object.defineProperty(JsgiResponse.prototype, "redirect", {
         this.status = 303;
         this.headers = { "location": location };
         this.body = ["See other: " + location];
-
-        return {
-            status: 303,
-            headers: { "location": location },
-            body: ["See other: " + location]
-        };
+        return this;
     }
 });
 
@@ -280,12 +275,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
         this.status = 304;
         this.headers = {};
         this.body = [""];
-
-        return {
-            status: 304,
-            headers: {},
-            body: [""]
-        };
+        return this;
     }
 });
 
