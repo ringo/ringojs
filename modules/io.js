@@ -332,8 +332,8 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
  * @param {Object} options the options object. Supports the following properties:
  *        <ul><li>charset: string containing the name of the encoding to use.
  *            Defaults to "utf8".</li>
- *        <li>newline: string containing the newline character sequence to use.
- *            Defaults to "\n".</li>
+ *        <li>newline: string containing the newline character sequence to use in
+ *            writeLine() and writeLines(). Defaults to "\n".</li>
  *        <li>delimiter: string containing the delimiter to use in print().
  *            Defaults to " ".</li></ul>
  * @param {number} buflen optional buffer size. Defaults to 8192.
@@ -386,7 +386,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
     /**
      * Reads a line from this stream. If the end of the stream is reached
      * before any data is gathered, returns an empty string. Otherwise, returns
-     * the line including the newline.
+     * the line including only the newline character. Carriage return will be dropped.
      * @returns {String} the next line
      */
     this.readLine = function () {
@@ -457,7 +457,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
 
     /**
-     * Not implemented for TextStraim. Calling this method will raise an error.
+     * Not implemented for TextStream. Calling this method will raise an error.
      */
     this.readInto = function (buffer) {
         throw new Error("Not implemented");
