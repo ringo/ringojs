@@ -47,3 +47,17 @@ exports.testMemoryStream = function() {
     }
     assert.deepEqual(m.read(bytes.length), new ByteString());
 }
+
+exports.testTextStream = function() {
+    // Carriage return should be dropped
+    var input = new java.io.ByteArrayInputStream((new java.lang.String("Hello\r\nWorld!")).getBytes("UTF-8"));
+    var stream = new TextStream(new Stream(input));
+    var lines = stream.readLines();
+
+    assert.strictEqual(lines[0], "Hello\n");
+    assert.strictEqual(lines[1], "World!");
+};
+
+if (module == require.main) {
+    require("test").run(exports);
+}
