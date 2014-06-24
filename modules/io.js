@@ -481,6 +481,10 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * Writes all arguments to the stream.
      */
     this.write = function () {
+        if (!io.writable()) {
+            throw new Error("The TextStream is not writable!");
+        }
+
         for (var i = 0; i < arguments.length; i++) {
             encoder.encode(String(arguments[i]));
         }

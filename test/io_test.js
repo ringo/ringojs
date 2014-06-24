@@ -56,6 +56,24 @@ exports.testTextStream = function() {
 
     assert.strictEqual(lines[0], "Hello\n");
     assert.strictEqual(lines[1], "World!");
+
+    // Try to write a read-only stream
+    try {
+        stream.writeLine("Hello World!");
+        assert.fail("writeLine() should throw an error!");
+    } catch (err) {
+        assert.strictEqual(err.name, "Error");
+        assert.strictEqual(err.message, "The TextStream is not writable!");
+    }
+    stream.close();
+
+    // Check writing
+    var output = new java.io.ByteArrayOutputStream();
+    stream = new TextStream(new Stream(output));
+    stream.writeLine("Hello");
+    stream.write("World!");
+    stream.close();
+    assert.strictEqual(output.toString(), "Hello\nWorld!");
 };
 
 if (module == require.main) {
