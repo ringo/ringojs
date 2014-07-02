@@ -232,7 +232,19 @@ exports.testThrows = function() {
     // throw undefined (yes, you can do that...)
     assert.throws(function() {
         throw undefined;
-    }, undefined);
+    });
+    assert.throws(function() {
+        throw null;
+    }, null);
+    var threw = false;
+    try {
+        assert.throws(function() {
+            throw 'notnull'
+        }, null);
+    } catch (e) {
+        threw = true;
+    }
+    assert.ok(threw, 'throws is accepting wrong exception');
     // throw Error instance
     assert.throws(function() {
         throw new Error("a message");
@@ -244,7 +256,7 @@ exports.testThrows = function() {
     // throw string
     assert.throws(function() {
         throw "my message";
-    }, "my message");
+    }, /my message/);
     // throw java exception
     assert.throws(function() {
         var x = new java.util.Vector(0);
