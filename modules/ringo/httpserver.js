@@ -100,14 +100,14 @@ function Server(options) {
             }
             var sessionHandler = cx.getSessionHandler();
             if (sessionHandler != null) {
-                var sessionManager = sessionHandler.getSessionManager();
-                sessionManager.setHttpOnly(options.httpOnlyCookies);
-                sessionManager.setSecureCookies(options.secureCookies);
+                var sessionCookieConfig = sessionHandler.getSessionManager().getSessionCookieConfig();
+                sessionCookieConfig.setHttpOnly(options.httpOnlyCookies);
+                sessionCookieConfig.setSecure(options.secureCookies);
                 if (typeof(options.cookieName) === "string") {
-                    sessionManager.setSessionCookie(options.cookieName);
+                    sessionCookieConfig.setName(options.cookieName);
                 }
-                sessionManager.setSessionDomain(options.cookieDomain);
-                sessionManager.setSessionPath(options.cookiePath);
+                sessionCookieConfig.setDomain(options.cookieDomain);
+                sessionCookieConfig.setPath(options.cookiePath);
             }
             contextMap[contextKey] = cx;
             if (jetty.isRunning()) {
