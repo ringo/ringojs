@@ -12,6 +12,7 @@
         <echo message=" test       --> run JUnit and RingoJS tests"/>
         <echo message=" test-dates --> runs ringo/utils/dates test in different timezones"/>
         <echo message=" docs       --> generates the API docs"/>
+        <echo message=" jsdocs     --> generates only the JS module API docs"/>
         <echo message=" package    --> creates RingoJS distribution"/>
         <echo message=" dpkg       --> creates RingoJS debian package"/>
         <echo message=" clean      --> clean up compiled resources"/>
@@ -253,6 +254,21 @@
            <arg  value="--directory=${jsdocs}"/>
            <arg  value="--name=Ringo Modules"/>
        </java>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Creates only the JS modules API documentation                       -->
+    <!-- =================================================================== -->
+    <target name="jsdocs" depends="jar">
+        <delete dir="${jsdocs}"/>
+        <mkdir dir="${jsdocs}"/>
+        <java jar="run.jar" fork="true">
+            <arg value="${home}/tools/jsdoc/main.js"/>
+            <arg  value="--file-urls"/>
+            <arg  value="--source=${home}/modules"/>
+            <arg  value="--directory=${jsdocs}"/>
+            <arg  value="--name=Ringo Modules"/>
+        </java>
     </target>
 
     <!-- =================================================================== -->
