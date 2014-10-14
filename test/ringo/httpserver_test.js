@@ -225,11 +225,15 @@ exports.testOptions = function() {
     assert.isNotNull(sessionHandler);
     var sessionManager = sessionHandler.getSessionManager();
     assert.strictEqual(sessionManager.getSessionCookie(), "JSESSIONID");
+    assert.strictEqual(sessionManager.getSessionDomain(), null);
+    assert.strictEqual(sessionManager.getSessionPath(), null);
     assert.isFalse(sessionManager.getHttpOnly());
     assert.isFalse(sessionManager.getSecureCookies());
     server.stop();
     // configure session cookies
     config.cookieName = "ringosession";
+    config.cookieDomain = ".example.com";
+    config.cookiePath = "/test";
     config.httpOnlyCookies = true;
     config.secureCookies = true;
     server = new Server(config);
@@ -237,6 +241,8 @@ exports.testOptions = function() {
     cx = server.getDefaultContext();
     sessionManager = cx.getHandler().getSessionHandler().getSessionManager();
     assert.strictEqual(sessionManager.getSessionCookie(), config.cookieName);
+    assert.strictEqual(sessionManager.getSessionDomain(), config.cookieDomain);
+    assert.strictEqual(sessionManager.getSessionPath(), config.cookiePath);
     assert.isTrue(sessionManager.getHttpOnly());
     assert.isTrue(sessionManager.getSecureCookies());
 };

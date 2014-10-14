@@ -27,6 +27,8 @@ var options,
  * <li>sessions (true)</li>
  * <li>security (true)</li>
  * <li>cookieName (null)</li>
+ * <li>cookieDomain (null)</li>
+ * <li>cookiePath (null)</li>
  * <li>httpOnlyCookies (false)</li>
  * <li>secureCookies (false)</li>
  * </ul>
@@ -75,6 +77,8 @@ function Server(options) {
      *   sessions: true to enable sessions for this context, false otherwise
      *   security: true to enable security for this context, false otherwise
      *   cookieName: optional cookie name
+     *   cookieDomain: optional cookie domain
+     *   cookiePath: optional cookie path
      *   httpOnlyCookies: true to enable http-only session cookies
      *   secureCookies: true to enable secure session cookies
      * @see #Context
@@ -102,6 +106,8 @@ function Server(options) {
                 if (typeof(options.cookieName) === "string") {
                     sessionManager.setSessionCookie(options.cookieName);
                 }
+                sessionManager.setSessionDomain(options.cookieDomain);
+                sessionManager.setSessionPath(options.cookiePath);
             }
             contextMap[contextKey] = cx;
             if (jetty.isRunning()) {
@@ -345,6 +351,8 @@ function Server(options) {
         security: options.security !== false,
         sessions: options.sessions !== false,
         cookieName: options.cookieName || null,
+        cookieDomain: options.cookieDomain || null,
+        cookiePath: options.cookiePath || null,
         httpOnlyCookies: options.httpOnlyCookies === true,
         secureCookies: options.secureCookies === true
     });

@@ -6,4 +6,4 @@ following command:
 
 You need the Google App Engine SDK for Java in order to run and deploy
 the application. You can get the SDK and more information from
-<http://code.google.com/appengine/>.
+<https://developers.google.com/appengine/>.
