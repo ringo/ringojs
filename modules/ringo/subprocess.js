@@ -1,6 +1,9 @@
 /**
  * @fileOverview A module for spawning processes, connecting to their
- * input/output/errput and returning their response codes.
+ * input/output/errput and returning their response codes. It uses the
+ * current JVM's runtime provided by
+ * [java.lang.Runtime.getRuntime()](http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#getRuntime--).
+ * The exact behavior of this module is highly system-dependent.
  */
 
 var {Stream, MemoryStream, TextStream} = require('io');
@@ -21,7 +24,9 @@ function parseArguments(args) {
  * argument containing the following properties where all properties except
  * command are optional:
  *
- *   * `command` a string or array of strings containing the command to execute
+ *   * `command` a string or array of strings containing the command to execute.
+ *     Which string lists represent a valid operating system command
+ *     [is system-dependent](http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#exec-java.lang.String:A-java.lang.String:A-java.io.File-).
  *   * `dir` the directory to run the process in
  *   * `env` alternative environment variables. If null the process inherits the
  *     environment of the current process.
@@ -56,6 +61,7 @@ var createProcess = exports.createProcess = function(args) {
      * subprocess started using [createProcess()](#createProcess).
      * @name Process
      * @class Process
+     * @see http://docs.oracle.com/javase/8/docs/api/java/lang/Process.html
      */
     return {
         /**
@@ -114,11 +120,20 @@ var createProcess = exports.createProcess = function(args) {
 }
 
 /**
- * executes a given command and returns the
- * standard output.  If the exit status is non-zero,
- * throws an Error.
- * @param {String} command... command and optional arguments as single or multiple
- * string parameters
+ * Executes a given command and returns the standard output.
+ * If the exit status is non-zero, throws an Error. Examples:
+ *
+ * <code>
+ * var {command} = require("ringo/subprocess");<br><br>
+ * // get PATH environment variable on Unix-like systems<br>
+ * var path = command("/bin/bash", "-c", "echo $PATH");<br><br>
+ * // a simple ping<br>
+ * var result = command("ping", "-c 1", "ringojs.org");
+ * </code>
+ *
+ * @param {String} command command to call in the runtime environment
+ * @param {String} [arguments...] optional arguments as single or multiple string parameters.
+ *                 Each argument is analogous to a quoted argument on the command line.
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
