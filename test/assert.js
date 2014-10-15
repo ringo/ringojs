@@ -89,9 +89,7 @@ exports.testDeepEqual = function() {
     assert.deepEqual({"one": 1, "two": "2"}, {"one": 1, "two": "2"});
     assert.deepEqual([""], [""]);
     assert.deepEqual([1], ["1"]);
-    // FIXME (ro): this is from narwhal, i doubt this makes sense
-    // assert.deepEqual(["one"], {0: "one"});
-    // instead this implementation throws an exception due to different prototypes
+    // this implementation throws an exception due to different prototypes
     assert.throws(getFunction(assert.deepEqual, ["one"], {0: "one"}), assert.AssertionError);
     assert.deepEqual({"one": 1, "two": "2"}, {"two": "2", "one": 1});
     assert.deepEqual({

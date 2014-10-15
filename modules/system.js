@@ -85,15 +85,3 @@ exports.env = new ScriptableMap(System.getenv());
 exports.exit = function(status) {
     System.exit(status || 0);
 };
-
-// Narwhal compatibility
-var engine = org.ringojs.engine.RhinoEngine.getEngine(global);
-var home = engine.getRingoHome();
-/** @ignore */
-exports.prefix = home.getPath();
-/** @ignore */
-exports.prefixes = [exports.prefix];
-/** @ignore */
-exports.engine = "rhino";
-/** @ignore */
-exports.engines = ["rhino", "default"];
