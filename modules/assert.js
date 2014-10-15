@@ -808,9 +808,11 @@ function stringContains(value, pattern) {
 
 /**
  * Checks if the regular expression matches the string.
+ *
  * <pre><code>assert.matches("this will pass", /p.?[s]{2}/);
  * assert.matches("this will fail", /[0-9]+/);
  * </code></pre>
+ *
  * @param {String} value The string that should contain the regular expression pattern
  * @param {RegExp} expr The regular expression that should match the value
  * @throws ArgumentsError
