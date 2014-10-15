@@ -157,10 +157,11 @@ exports.command = function() {
 };
 
 /**
- * executes a given command, attached to this process's
+ * Executes a given command, attached to this process's
  * output and error streams, and returns the exit status.
- * @param {String} command... command and optional arguments as single or multiple
- * string parameters
+ * @param {String} command command to call in the runtime environment
+ * @param {String} [arguments...] optional arguments as single or multiple string parameters.
+ *                 Each argument is analogous to a quoted argument on the command line.
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
@@ -181,8 +182,9 @@ exports.system = function() {
 
 /**
  * Executes a given command quietly and returns the exit status.
- * @param {String} command... command and optional arguments as single or multiple
- * string parameters
+ * @param {String} command command to call in the runtime environment
+ * @param {String} [arguments...] optional arguments as single or multiple string parameters.
+ *                 Each argument is analogous to a quoted argument on the command line.
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
