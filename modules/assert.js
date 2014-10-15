@@ -1,7 +1,7 @@
 /**
- * @fileOverview Assertion library covering the
- * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0) specification
- * and a few additional convenience methods. 
+ * @fileOverview Assertion library for unit testing.
+ * It implements the [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0)
+ * specification and adds some additional convenience methods.
  */
 
 export(
@@ -51,7 +51,8 @@ function evalArguments(args, argsExpected) {
 };
 
 /**
- * Deep-compares both arguments
+ * Deep-compares both arguments.
+ *
  * @param {Object} value1 The argument to be compared
  * @param {Object} value2 The argument to be compared to
  * @returns True if arguments are equal, false otherwise
@@ -131,7 +132,14 @@ function getOwnKeys(obj) {
 }
 
 /**
- * Basic failure method
+ * Basic failure method. Fails an assertion without checking any preconditions.
+ *
+ * <pre><code>// a complex condition
+ * if (a === true && (b === "complex" || ...)) {
+ *   assert.fail("This should not be reached!");
+ * }
+ * </code></pre>
+ *
  * @param {Object|String} options An object containing optional "message", "actual"
  * and "expected" properties, or alternatively a message string
  * @throws AssertionError
@@ -275,6 +283,22 @@ ArgumentsError.prototype.toString = function() {
 
 /**
  * Checks if the value passed as argument is truthy.
+ *
+ * <pre><code>// passing assertions
+ * assert.ok(true);
+ * assert.ok("1");
+ * assert.ok([]);
+ * assert.ok({});
+ * assert.ok(new Boolean(false));
+ * assert.ok(Infinity);<br>
+ * // failing assertions
+ * assert.ok(0);
+ * assert.ok(false);
+ * assert.ok(null);
+ * assert.ok(undefined);
+ * assert.ok("");
+ * </code></pre>
+ *
  * @param {Object} value The value to check for truthiness
  * @throws ArgumentsError
  * @throws AssertionError
@@ -292,7 +316,20 @@ function ok(value) {
 }
 
 /**
- * Checks if the values passed as arguments are equal.
+ * Performs a non-strict comparison with the simple comparison operator
+ * <code>==</code> to check if the values are equal. When they are equal,
+ * the assertion passes, otherwise it fails.
+ *
+ * <pre><code>// truthy conditionals
+ * assert.equal(true, true);
+ * assert.equal(true, "1");<br>
+ * // falsy conditionals
+ * assert.equal(false, false);
+ * assert.equal(false, "");
+ * assert.equal(false, "0");
+ * assert.equal(null, undefined);
+ * </code></pre>
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -311,7 +348,18 @@ function equal(actual, expected) {
 }
 
 /**
- * Checks if the values passed as arguments are not equal.
+ * Performs a non-strict comparison with the simple comparison operator
+ * <code>!=</code> to check if the values are not equal.
+ * When they are not equal, the assertion passes, otherwise it fails.
+ *
+ * <pre><code>// passing assertions
+ * assert.notEqual(true, false);
+ * assert.notEqual(1, 2);
+ * assert.notEqual(false, NaN);
+ * assert.notEqual(null, NaN);
+ * assert.notEqual(undefined, NaN);
+ * </code></pre>
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -331,7 +379,21 @@ function notEqual(actual, expected) {
 }
 
 /**
- * Checks if the values passed as arguments are deep equal
+ * Performs a deep recursive comparison of objects. It is equivalent to
+ * <code>equal()</code>. If an object's property holds a non-object type,
+ * it performs a non-strict comparison. Instances of <code>Date</code> are
+ * compared with <code>getTime()</code> according to universal time.
+ *
+ * <pre><code>// passing assertions
+ * assert.deepEqual(5, "5");
+ * assert.deepEqual(
+ *   { time: new Date(2010, 5, 14) },
+ *   { "time": new Date(2010, 5, 14) }
+ * );
+ * assert.deepEqual([1, 2, 3], ["1", "2", "3"]);
+ * assert.deepEqual({"one": 1, "two": 2}, {"two": "2", "one": "1"});
+ * </code></pre>
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -350,7 +412,18 @@ function deepEqual(actual, expected) {
 }
 
 /**
- * Checks if the values passed as arguments are not deep equal
+ * Performs a deep recursive comparison of objects. The comparison
+ * is equivalent to <code>notEqual()</code>.
+ *
+ * <pre><code>// passing assertions
+ * assert.notDeepEqual(
+ *   { "time": new Date(2010, 5, 14) },
+ *   { "time": new Date(2010, 5, 15) }
+ * );
+ * assert.notDeepEqual([1, 2, 3, 4], ["1", "2", "3"]);
+ * assert.notDeepEqual({"one": 1, "two": 2}, {"three": "3", "one": "1"});
+ * </code></pre>
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -370,7 +443,27 @@ function notDeepEqual(actual, expected) {
 }
 
 /**
- * Checks if the values passed as arguments are strictly equal
+ * Performs a strict comparison with the strict equality operator <code>===</code>.
+ * When the values are equal in type and value, the assertion passes,
+ * otherwise it fails.
+ *
+ * <pre><code>// passing assertions
+ * assert.strictEqual(null, null);
+ * assert.strictEqual(undefined, undefined);
+ * assert.strictEqual(1, 1);
+ * assert.strictEqual("1", "1");
+ * assert.strictEqual(true, true);<br>
+ * // passing assertion
+ * var obj = {};
+ * assert.strictEqual(obj, obj);<br>
+ * // failing assertions
+ * assert.strictEqual(null, undefined);
+ * assert.strictEqual(true, "1");
+ * assert.strictEqual(false, "");
+ * assert.strictEqual(false, "0");
+ * </code></pre>
+ *
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -389,7 +482,16 @@ function strictEqual(actual, expected) {
 }
 
 /**
- * Checks if the values passed as arguments are not strictly equal
+ * Performs a strict comparison with the strict inequality operator <code>!==</code>.
+ * When the values are inequal in type and value, the assertion passes,
+ * otherwise it fails.
+ *
+ * <pre><code>// passing assertions
+ * assert.notStrictEqual(null, undefined);
+ * assert.notStrictEqual(1, "1");
+ * assert.notStrictEqual(true, false);
+ * </code></pre>
+ *
  * @param {Object} actual The actual value
  * @param {Object} expected The expected value
  * @throws ArgumentsError
@@ -410,6 +512,18 @@ function notStrictEqual(actual, expected) {
 
 /**
  * Checks if the function passed as argument throws a defined exception.
+ * It can also assert certain Java exceptions thrown by the function.
+ *
+ * <pre><code>var foo = function() { throw "foo"; };
+ * var bar = function() { (new java.util.Vector()).get(0); }<br>
+ * // passes
+ * assert.throws(foo, "foo");<br>
+ * // fails
+ * assert.throws(foo, "bar");<br>
+ * // checks for a Java runtime exception, passes
+ * assert.throws(bar, java.lang.ArrayIndexOutOfBoundsException);
+ * </code></pre>
+ *
  * @param {Object} func The function to call
  * @param {Object} expectedError Optional object expected to be thrown when executing
  * the function
@@ -472,7 +586,14 @@ function throws(func, expectedError) {
 
 
 /**
- * Checks if the value passed as argument is boolean true.
+ * Checks if the value passed as argument is boolean true using <code>===</code>.
+ *
+ * <pre><code>// passing assertion
+ * assert.isTrue(100 == 100);<br>
+ * // failing assertion
+ * assert.isTrue(100 != 100);
+ * </code></pre>
+ *
  * @param {Object} val The value that should be boolean true.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -493,7 +614,14 @@ function isTrue(value) {
 }
 
 /**
- * Checks if the value passed as argument is boolean false.
+ * Checks if the value passed as argument is strict boolean false using <code>===</code>.
+ *
+ * <pre><code>// passing assertion
+ * assert.isFalse(100 != 100);<br>
+ * // failing assertion
+ * assert.isFalse(100 == 100);
+ * </code></pre>
+ *
  * @param {Object} val The value that should be boolean false.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -514,7 +642,15 @@ function isFalse(value) {
 }
 
 /**
- * Checks if the value passed as argument is null.
+ * Checks if the value passed as argument is strict null using <code>===</code>.
+ *
+ * <pre><code>// passing assertion
+ * assert.isNull(null);<br>
+ * // failing assertions
+ * assert.isNull(undefined);
+ * assert.isNull("");
+ * </code></pre>
+ *
  * @param {Object} val The value that should be null.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -532,7 +668,15 @@ function isNull(value) {
 }
 
 /**
- * Checks if the value passed as argument is not null.
+ * Checks if the value passed as argument is strict not null using <code>===</code>.
+ *
+ * <pre><code>// passing assertions
+ * assert.isNotNull(undefined);
+ * assert.isNotNull("passes");<br>
+ * // failing assertion
+ * assert.isNotNull(null);
+ * </code></pre>
+ *
  * @param {Object} val The value that should be not null.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -549,7 +693,15 @@ function isNotNull(value) {
 }
 
 /**
- * Checks if the value passed as argument is undefined.
+ * Checks if the value passed as argument is strict undefined using <code>===</code>.
+ *
+ * <pre><code>// passing assertion
+ * assert.isUndefined(undefined);<br>
+ * // failing assertions
+ * assert.isUndefined(null);
+ * assert.isUndefined("");
+ * </code></pre>
+ *
  * @param {Object} val The value that should be undefined.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -567,7 +719,15 @@ function isUndefined(value) {
 }
 
 /**
- * Checks if the value passed as argument is not undefined.
+ * Checks if the value passed as argument is not undefined using <code>===</code>.
+ *
+ * <pre><code>// passing assertions
+ * assert.isNotUndefined(null);
+ * assert.isNotUndefined("passes");<br>
+ * // failing assertion
+ * assert.isNotUndefined(undefined);
+ * </code></pre>
+ *
  * @param {Object} val The value that should be not undefined.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -584,7 +744,8 @@ function isNotUndefined(value) {
 }
 
 /**
- * Checks if the value passed as argument is NaN.
+ * Asserts that the value passed as argument is NaN.
+ * Uses <code>global.isNaN()</code> for the check.
  * @param {Object} val The value that should be NaN.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -603,6 +764,7 @@ function isNaN(value) {
 
 /**
  * Checks if the value passed as argument is not NaN.
+ * Uses <code>global.isNaN()</code> for the check.
  * @param {Object} val The value that should be not NaN.
  * @throws ArgumentsError
  * @throws AssertionError
@@ -621,6 +783,10 @@ function isNotNaN(value) {
 
 /**
  * Checks if the value passed as argument contains the pattern specified.
+ *
+ * <pre><code>assert.stringContains("this will pass", "pass");
+ * assert.stringContains("this will fail", "pass");</code></pre>
+ *
  * @param {String} value The string that should contain the pattern
  * @param {String} pattern The string that should be contained
  * @throws ArgumentsError
@@ -642,6 +808,9 @@ function stringContains(value, pattern) {
 
 /**
  * Checks if the regular expression matches the string.
+ * <pre><code>assert.matches("this will pass", /p.?[s]{2}/);
+ * assert.matches("this will fail", /[0-9]+/);
+ * </code></pre>
  * @param {String} value The string that should contain the regular expression pattern
  * @param {RegExp} expr The regular expression that should match the value
  * @throws ArgumentsError
