@@ -3,7 +3,7 @@
  */
 
 var system = require("system");
-var engine = require("engine");
+var engine = require("ringo/engine");
 var shell = require("ringo/shell");
 var fs = require("fs");
 var files = require("ringo/utils/files");
