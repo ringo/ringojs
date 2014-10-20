@@ -43,9 +43,9 @@ public abstract class ModuleLoader {
     }
 
     public abstract Object load(Context cx,  RhinoEngine engine,
-                                Object securityDomain, String moduleName, 
+                                Object securityDomain, String moduleName,
                                 String charset, Resource resource) throws Exception;
-    
+
 }
 
 class JsModuleLoader extends ModuleLoader {
@@ -56,12 +56,12 @@ class JsModuleLoader extends ModuleLoader {
 
     @Override
     public Object load(final Context cx,  RhinoEngine engine, final Object securityDomain,
-                       String moduleName, String charset, final Resource resource)
+                       String moduleName, final String charset, final Resource resource)
             throws Exception {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 try {
-                    return cx.compileReader(resource.getReader(),
+                    return cx.compileReader(resource.getReader(charset),
                             resource.getRelativePath(),
                             resource.getLineNumber(), securityDomain);
                 } catch (IOException iox) {
@@ -122,26 +122,26 @@ class ClassModuleLoader extends ModuleLoader {
         ClassLoader rhinoLoader = getClass().getClassLoader();
         GeneratedClassLoader loader;
         loader = SecurityController.createLoader(rhinoLoader, securityDomain);
-        
+
         Class<?> clazz = loader.defineClass(className, bytes);
         loader.linkClass(clazz);
         if (!Script.class.isAssignableFrom(clazz)) {
             throw new ClassCastException("Module must be a Rhino script class");
         }
-        
+
         return clazz.newInstance();
     }
 }
 
 class ScriptedModuleLoader extends ModuleLoader {
-    
+
     Function function;
 
     public ScriptedModuleLoader(String extension, Function function) {
         super(extension);
         this.function = function;
     }
-    
+
     @Override
     public Object load(Context cx, RhinoEngine engine, Object securityDomain,
                        String moduleName, String charset, Resource resource)
