@@ -15,9 +15,6 @@ defineClass(org.ringojs.wrappers.Stream);
  */
 exports.Stream = Stream;
 
-/** @ignore provides Narwhal compatibility */
-exports.IO = Stream;
-
 var {InputStreamReader, BufferedReader, OutputStreamWriter, BufferedWriter} = java.io;
 
 /**

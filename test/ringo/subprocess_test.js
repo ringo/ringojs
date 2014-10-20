@@ -3,7 +3,7 @@ var subprocess = require('ringo/subprocess');
 var fs = require('fs');
 var engine = require('ringo/engine');
 
-const RINGO_HOME = require('system').prefix;
+const RINGO_HOME = engine.getRingoHome().getPath();
 
 function isWindows() /win/i.test(engine.properties['os.name']);
 
@@ -20,3 +20,7 @@ exports.testCwdSensibleness = function () {
     assert.strictEqual(pwd, isWindows() ?
             RINGO_HOME.replace(/\\/g, '/') : RINGO_HOME);
 };
+
+if (require.main == module.id) {
+    require("test").run(exports);
+}

@@ -3,6 +3,7 @@
  */
 
 var system = require("system");
+var engine = require("ringo/engine");
 var shell = require("ringo/shell");
 var fs = require("fs");
 var files = require("ringo/utils/files");
@@ -22,7 +23,7 @@ var description = "Download and install a RingoJS package from a zip URL";
  */
 function installPackage(url, options) {
     var directory = (options && options.directory)
-            || fs.join(system.prefix, "packages");
+            || fs.join(engine.getRingoHome().getPath(), "packages");
     // expand foo/bar to a github zipball url for user foo, project bar
     if (url.match(/^\w+\/[\w\-_\.]+$/)) {
         url = "http://github.com/" + url + "/zipball/master";
@@ -79,7 +80,7 @@ function installPackage(url, options) {
         // create symlinks for binaries and make executable
         var bindir = fs.join(dir, "bin");
         if (fs.isDirectory(bindir)) {
-            var ringoBin = fs.join(system.prefix, "bin");
+            var ringoBin = fs.join(engine.getRingoHome().getPath(), "bin");
             for each (var bin in fs.list(bindir)) {
                 var binfile = fs.join(bindir, bin);
                 fs.changePermissions(binfile, 0755);
