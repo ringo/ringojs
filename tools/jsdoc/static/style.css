@@ -5,6 +5,7 @@ body.jsdoc.standalone, html {
 
 body.jsdoc.standalone {
     font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+    font-weight: 400;
     color: #222;
     font-size: 16px;
 }
