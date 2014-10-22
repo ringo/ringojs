@@ -20,8 +20,7 @@
  */
 
 var strings = require('ringo/utils/strings');
-
-export( "format",
+ export( "format",
         "checkDate",
         "add",
         "isLeapYear",
@@ -95,7 +94,7 @@ function createGregorianCalender(date, locale) {
 }
 
 /**
- * Checks if the date is a valid date. Example: 2007 is no leap year, so <tt>checkDate(2007, 1, 29)</tt> returns false.
+ * Checks if the date is a valid date. Example: 2007 is no leap year, so <code>checkDate(2007, 1, 29)</code> returns false.
  *
  * @param {Number} fullYear
  * @param {Number} month between 0 and 11
@@ -117,9 +116,9 @@ function checkDate(fullYear, month, day) {
  *
  * @param {Date} date base date to add or remove time from.
  * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
- * @param {String} unit (optional) field to change. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
- *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt> (24-hour clock), <tt>minute</tt>, <tt>second</tt>,
- *        <tt>millisecond</tt>.
+ * @param {String} unit (optional) field to change. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
+ *        <code>week</code>, <code>day</code> (default), <code>hour</code> (24-hour clock), <code>minute</code>, <code>second</code>,
+ *        <code>millisecond</code>.
  * @returns {Date} date with the calculated date and time
  * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#add(int,%20int)
  */
@@ -171,33 +170,33 @@ function isLeapYear(date) {
 }
 
 /**
- * Checks if date <tt>a</tt> is before date <tt>b</tt>. This is equals to <tt>compareTo(a, b) &lt; 0</tt>
+ * Checks if date <code>a</code> is before date <code>b</code>. This is equals to <code>compareTo(a, b) &lt; 0</code>
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Boolean true if <tt>a</tt> is before <tt>b</tt>, false if not.
+ * @returns Boolean true if <code>a</code> is before <code>b</code>, false if not.
  */
 function before(a, b) {
     return a.getTime() < b.getTime();
 }
 
 /**
- * Checks if date <tt>a</tt> is after date <tt>b</tt>. This is equals to <tt>compare(a, b) &gt; 0</tt>
+ * Checks if date <code>a</code> is after date <code>b</code>. This is equals to <code>compare(a, b) &gt; 0</code>
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Boolean true if <tt>a</tt> is after <tt>b</tt>, false if not.
+ * @returns Boolean true if <code>a</code> is after <code>b</code>, false if not.
  */
 function after(a, b) {
     return a.getTime() > b.getTime();
 }
 
 /**
- * Compares the time values of <tt>a</tt> and <tt>b</tt>.
+ * Compares the time values of <code>a</code> and <code>b</code>.
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Number -1 if <tt>a</tt> is before <tt>b</tt>, 0 if equals and 1 if <tt>a</tt> is after <tt>b</tt>.
+ * @returns Number -1 if <code>a</code> is before <code>b</code>, 0 if equals and 1 if <code>a</code> is after <code>b</code>.
  * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/Calendar.html#compareTo(java.util.Calendar)
  */
 function compare(a, b) {
@@ -372,9 +371,9 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * Get the difference between two dates, specified by the unit of time.
  * @param {Date} a first date
  * @param {Date} b second date
- * @param {String} unit (optional) of time to return. Possible values: <tt>year</tt>, <tt>quarter</tt>, <tt>month</tt>,
- *        <tt>week</tt>, <tt>day</tt> (default), <tt>hour</tt>, <tt>minute</tt>, <tt>second</tt>, <tt>millisecond</tt> and
- *        <tt>mixed</tt> (returns an object)
+ * @param {String} unit (optional) of time to return. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
+ *        <code>week</code>, <code>day</code> (default), <code>hour</code>, <code>minute</code>, <code>second</code>, <code>millisecond</code> and
+ *        <code>mixed</code> (returns an object)
  * @returns Number|Object<{days, hours, minutes, seconds, milliseconds}>
  *          difference between the given dates in the specified unit of time.
  */
@@ -514,8 +513,8 @@ function resetDate(date) {
 }
 
 /**
- * Create a ISO 8601 compatible string from the date. Note: This is quite similar to <tt>Date.toISOString()</tt>, which only returns
- * an UTC-based string without the local timezone. If you don't need timezones, <tt>Date.toISOString()</tt> will be the better choice.
+ * Create a ISO 8601 compatible string from the date. Note: This is quite similar to <code>Date.toISOString()</code>, which only returns
+ * an UTC-based string without the local timezone. If you don't need timezones, <code>Date.toISOString()</code> will be the better choice.
  *
  * @param {Date} date to format
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
