@@ -2,6 +2,14 @@
  * @fileOverview Assertion library for unit testing.
  * It implements the [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0)
  * specification and adds some additional convenience methods.
+ *
+ * @example var assert = require('assert');
+ * assert.deepEqual({b: 2, a: 1}, {a: 1, b: 2});
+ * assert.isFalse(100 != 100);
+ * assert.isNotNull(undefined);
+ *
+ * @see The <code><a href="../test/index.html">test</a></code> module is a test runner for unit tests.
+ * It manages the execution of tests and provides the outcome to the user.
  */
 
 export(

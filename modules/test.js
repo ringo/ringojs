@@ -1,7 +1,30 @@
 /**
  * @fileOverview A test runner compliant to the
  * [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0)
- * specification.
+ * specification. It manages the execution of unit tests and processes test results.
+ * The runner reports the total number of failures as exit status code.
+ *
+ * The runner treats a module like a test case. A test case defines the fixture
+ * to run multiple tests. Test cases can provide optional <code>setUp()</code> and
+ * <code>tearDown()</code> functions to initialize and destroy the fixture. The
+ * test runner will run these methods prior to / after each test.
+ *
+ * The following example test case <code>testDatabase.js</code> starts a
+ * new test runner if executed with <code>ringo testDatabase.js</code>
+ *
+ * @example // testDatabase.js
+ * exports.setUp = function() { ... open db connection ... }
+ * exports.tearDown = function() { ... close db connection ... }
+ *
+ * exports.testCreateTable = function() { ... }
+ * exports.testInsertData = function() { ... }
+ * exports.testTransactions = function() { ... }
+ * exports.testDeleteTable = function() { ... }
+ *
+ * if (require.main == module.id) {
+ *   // Get a runner and run on the current module
+ *   require("test").run(exports);
+ * }
  */
 
 var strings = require("ringo/utils/strings");
@@ -65,17 +88,22 @@ function jsDump(value, lvl) {
             return '<java:' + value.class.name + '>';
     }
 }
+/**
+ * @ignore
+ */
 jsDump.indent = function(lvl) {
     return strings.repeat("    ", lvl);
 };
+
+/**
+ * @ignore
+ */
 jsDump.quote = function(str) {
     return JSON.stringify(str.toString());
 };
 
 /**
- * Returns the type of the object passed as argument. This is
- * heavily inspired by http://philrathe.com/articles/equiv and
- * tlrobinson's narwhal test module (http://github.com/tlrobinson/narwhal/)
+ * Returns the type of the object passed as argument.
  * @returns The type of the object passed as argument
  * @type String
  */
