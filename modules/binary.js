@@ -280,6 +280,30 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 });
 
 /**
+ * Returns the byte at the given offset as ByteArray.
+ * @name ByteArray.prototype.byteAt
+ * @param {Number} offset
+ * @returns {ByteArray}
+ * @function
+ */
+
+/**
+ * Returns the byte at the given offset as ByteArray.
+ * @name ByteArray.prototype.charAt
+ * @param {Number} offset
+ * @returns {ByteArray}
+ * @function
+ */
+
+/**
+ * Returns charcode at the given offset.
+ * @name ByteArray.prototype.charCodeAt
+ * @param {Number} offset
+ * @returns {Number}
+ * @function
+ */
+
+/**
  * Copy a range of bytes between start and stop from this object to another
  * ByteArray at the given target offset.
  * @param {Number} start
@@ -412,7 +436,40 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @since 0.5
  */
 
-  /**
+/**
+ * Sets the byte at the given offset. <code>set(offset, value)</code> is
+ * analogous to indexing with brackets <code>&#91;offset&#93;=value</code>.
+ * @name ByteArray.prototype.set
+ * @param {Number} offset
+ * @param {Number} value
+ * @function
+ * @example var ba = new ByteArray([0,255]);
+ * ba[0] = 64;
+ * print(ba[0]); // prints 64
+ */
+
+/**
+ * Returns the byte at the given offset as integer. <code>get(offset)</code> is
+ * analogous to indexing with brackets <code>&#91;offset&#93;</code>.
+ * @name ByteArray.prototype.get
+ * @param {Number} offset
+ * @returns {Number}
+ * @function
+ * @example var ba = new ByteArray([0,255]);
+ * print(ba[0]); // prints 0
+ */
+
+/**
+ * Create a ByteString wrapper for a Java byte array without creating a new copy
+ * as the ByteString constructor does.
+ * @name ByteString.wrap
+ * @param {Binary} bytes a Java byte array or Binary instance
+ * @returns {ByteString} a ByteString wrapping the argument
+ * @function
+ * @since 0.5
+ */
+
+/**
  * Unwraps the underlying Java <code>byte[]</code> from ByteString. It can be
  * passed to a Java method that expects a byte array.
  * @name ByteString.prototype.unwrap
@@ -426,6 +483,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * ByteArray.
  * @name ByteString.prototype.toByteArray
  * @function
+ * @returns {ByteArray}
  */
 
 /**
@@ -481,8 +539,24 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  */
 
 /**
- * Returns the byte at the given offset.
+ * Returns the byte at the given offset as ByteString.
  * @name ByteString.prototype.byteAt
+ * @param {Number} offset
+ * @returns {ByteString}
+ * @function
+ */
+
+/**
+ * Returns the byte at the given offset as ByteString.
+ * @name ByteString.prototype.charAt
+ * @param {Number} offset
+ * @returns {ByteString}
+ * @function
+ */
+
+ /**
+ * Returns charcode at the given offset.
+ * @name ByteString.prototype.charCodeAt
  * @param {Number} offset
  * @returns {Number}
  * @function
@@ -490,7 +564,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 
 /**
  * Returns the byte at the given offset as a ByteString. `get(offset)` is
- * analogous to indexing with brackets (`[offset]`).
+ * analogous to indexing with brackets &#91;offset&#93;.
  * @name ByteString.prototype.get
  * @param {Number} offset
  * @returns {ByteString}
@@ -544,4 +618,11 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @returns {ByteString} a new ByteString
  * @name ByteString.prototype.concat
  * @function
+ */
+
+/**
+ * The length in bytes. This property is read-only. Setting it to a value
+ * silently fails.
+ * @type Number
+ * @name ByteString.prototype.length
  */
