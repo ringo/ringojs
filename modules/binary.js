@@ -1,24 +1,46 @@
 /**
- * @fileoverview <p>This module provides implementations of the Binary,
- * ByteArray, and ByteString classes as defined in the <a
+ * @fileoverview
+ * When dealing with network sockets or binary files, it’s necessary to read and
+ * write into byte streams. JavaScript itself does not provide a native representation
+ * of binary data, so this module provides two classes addressing this shortcoming.
+ * The implementation follows the <a
  * href="http://wiki.commonjs.org/wiki/Binary/B">CommonJS Binary/B</a>
  * proposal.
  *
- * <p>The JavaScript Binary class serves as common base class for ByteArray and
- * ByteString and can't be instantiated. ByteArray implements a modifiable and
- * resizable byte buffer, while ByteString implements an immutable byte
- * sequence. The ByteArray and ByteString constructors can take several
- * arguments. Have a look at the proposal for details.</p>
+ * <code>ByteArray</code> implements a modifiable and
+ * resizable byte buffer.
  *
- * <p>When passed to a Java method that expects a byte array, instances of
- * these class are automatically unwrapped. Use the {@link #unwrap()} method to
- * explicitly get the wrapped Java byte array.</p>
+ * <code>ByteString</code> implements an immutable byte
+ * sequence.
+ *
+ * Both classes share a common base class <code>Binary</code>. The base class
+ * can't be instantiated. It exists only to affirm that <code>ByteString</code>
+ * and <code>ByteArray</code> instances of <code>Binary</code>.
+ *
+ * When passed to a Java method that expects a <code>byte[]</code>, instances of
+ * these classes are automatically unwrapped.
+ *
+ * @example
+ * // raw network streams only accept Binary as input
+ * var stream = socket.getStream();
+ * stream.write(new ByteArray([0xFA, 0xF0, 0x10, 0x58, 0xFF]));
+ *
+ * // network protocols like HTTP/1.1 require ASCII
+ * const CRLF = new ByteString("\r\n", "ASCII");
+ * const EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
+ *
+ * // saves a java.security.Key to a file;
+ * // the method getEncoded() returns a Java byte[]
+ * fs.write("id_dsa.pub", ByteArray.wrap(publicKey.getEncoded()));
+ *
+ * @see http://wiki.commonjs.org/wiki/Binary/B
  */
 
 defineClass(org.ringojs.wrappers.Binary);
 
 /**
- * Abstract base class for ByteArray and ByteString
+ * Abstract base class for ByteArray and ByteString. The Binary type exists only
+ * to affirm that ByteString and ByteArray instances of Binary.
  * @constructor
  */
 exports.Binary = Binary;
@@ -377,6 +399,24 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @name ByteArray.wrap
  * @param {Binary} bytes a Java byte array or Binary instance
  * @returns {ByteArray} a ByteArray wrapping the argument
+ * @function
+ * @since 0.5
+ */
+
+ /**
+ * Unwraps the underlying Java <code>byte[]</code> from ByteArray. It can be
+ * passed to a Java method that expects a byte array.
+ * @name ByteArray.prototype.unwrap
+ * @returns {byte[]} a native Java byte array
+ * @function
+ * @since 0.5
+ */
+
+  /**
+ * Unwraps the underlying Java <code>byte[]</code> from ByteString. It can be
+ * passed to a Java method that expects a byte array.
+ * @name ByteString.prototype.unwrap
+ * @returns {byte[]} a native Java byte array
  * @function
  * @since 0.5
  */

@@ -23,14 +23,13 @@ import java.lang.reflect.Method;
  *
  * <pre><code>defineClass(org.ringojs.wrappers.Binary);</code></pre>
  *
- * <p>The JavaScript Binary class serves as common base class for ByteArray and ByteString
+ * The JavaScript Binary class serves as common base class for ByteArray and ByteString
  * and can't be instantiated. ByteArray implements a modifiable and resizable byte buffer,
  * while ByteString implements an immutable byte sequence. The ByteArray and ByteString
- * constructors can take several arguments. Have a look at the proposal for details.</p>
+ * constructors can take several arguments. Have a look at the proposal for details.
  *
- * <p>When passed to a Java method that expects a byte array, instances of thes class
- * are automatically unwrapped. Use the {@link #unwrap()} method to explicitly get the
- * wrapped Java byte array.</p>
+ * When passed to a Java method that expects a byte array, instances of thes class
+ * are automatically unwrapped.
  */
 public class Binary extends ScriptableObject implements Wrapper {
 
