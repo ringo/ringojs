@@ -1,10 +1,8 @@
 /**
- * @fileoverview <p>This module provides an implementation of the system module
+ * @fileoverview This module provides an implementation of the system module
  * compliant to the <a href="http://wiki.commonjs.org/wiki/System/1.0">CommonJS
- * System/1.0</a> specification.</p>
- *
- * <p>Beyond the standard, a "print" function and some properties for Narwhal
- * compatibility are provided.</p>
+ * System/1.0</a> specification. Beyond the standard a <code>print()</code>
+ * function is provided.
  */
 
 var stdin, stdout, stderr;
@@ -70,11 +68,27 @@ exports.print = function() {
 
 /**
  * An array of strings representing the command line arguments passed to the running script.
+ * @example >> ringo .\myScript.js foo bar baz 12345
+ * system.args -> ['.\myScript.js', 'foo', 'bar', 'baz', '12345']
  */
 exports.args = global.arguments || [];
 
 /**
- * An object containing our environment variables.
+ * An object containing of the current system environment.
+ * @example {
+ *   USERPROFILE: 'C:\Users\username',
+ *   JAVA_HOME: 'C:\Program Files\Java\jdk1.7.0_07\',
+ *   SystemDrive: 'C:',
+ *   Path: '%System%/...',
+ *   PROCESSOR_REVISION: '1a05',
+ *   USERDOMAIN: 'EXAMPLE',
+ *   SESSIONNAME: 'Console',
+ *   TMP: 'C:\Temp',
+ *   PROMPT: '$P$G',
+ *   PROCESSOR_LEVEL: '6',
+ *   LOCALAPPDATA: 'C:\Local',
+ *   ...
+ * }
  */
 exports.env = new ScriptableMap(System.getenv());
 
