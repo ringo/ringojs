@@ -25,6 +25,9 @@
  *   // Get a runner and run on the current module
  *   require("test").run(exports);
  * }
+ *
+ * @see The <code><a href="../assert/index.html">assert</a></code> module is an
+ * assertion library to write unit tests.
  */
 
 var strings = require("ringo/utils/strings");
