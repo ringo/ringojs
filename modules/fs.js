@@ -1,10 +1,12 @@
 /**
- * @fileoverview <p>This module provides file and path related functionality as
- * defined by the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS
- * Filesystem/A</a> proposal.
+ * @fileoverview This module provides a file system API for the manipulation of paths,
+ * directories, files, links, and the construction of input and output streams. It follows
+ * the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS Filesystem/A</a>
+ * proposal.
  *
- * The "fs" module provides a file system API for the manipulation of paths,
- * directories, files, links, and the construction of file streams.
+ * Some file system manipulations use a wrapper around standard POSIX functions. Their
+ * functionality depends on the concrete file system and operating system. Others use
+ * the <code>java.io</code> package and work cross-platform.
  */
 
 var arrays = require('ringo/utils/arrays');
@@ -613,8 +615,12 @@ function lastModified(path) {
  * directories of `path` are not present. If a `permissions` argument is passed
  * to this function it is used to create a Permissions instance which is
  * applied to the given path during directory creation.
+ *
+ * This function wraps the POSIX <code>mkdir()</code> function.
+ *
  * @param {string} path the file path
  * @param {number|object} permissions optional permissions
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/mkdir.html">POSIX <code>mkdir</code></a>
  */
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
@@ -664,8 +670,13 @@ function isDirectory(path) {
 
 /**
  * Return true if target file is a symbolic link, false otherwise.
+ *
+ * This function wraps the POSIX <code>lstat()</code> function to get the
+ * symbolic link status.
+ *
  * @param {string} path the file path
  * @returns true if the given file exists and is a symbolic link
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/lstat.html">POSIX <code>lstat</code></a>
  */
 function isLink(path) {
     if (security) security.checkRead(path);
@@ -688,8 +699,13 @@ function isLink(path) {
  * Returns whether two paths refer to the same storage (file or directory),
  * either by virtue of symbolic or hard links, such that modifying one would
  * modify the other.
+ *
+ * This function uses the POSIX <code>stat()</code> function to compare two
+ * files or links.
+ *
  * @param {string} pathA the first path
  * @param {string} pathB the second path
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function same(pathA, pathB) {
     if (security) {
@@ -708,8 +724,13 @@ function same(pathA, pathB) {
 
 /**
  * Returns whether two paths refer to an entity of the same file system.
+ *
+ * This function uses the POSIX <code>stat()</code> function to compare two
+ * paths by checking if the associated devices are identical.
+ *
  * @param {string} pathA the first path
  * @param {string} pathB the second path
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function sameFilesystem(pathA, pathB) {
     if (security) {
@@ -753,8 +774,14 @@ function touch(path, mtime) {
 
 /**
  * Creates a symbolic link at the target path that refers to the source path.
+ * The concrete implementation depends on the file system and the operating system.
+ *
+ * This function wraps the POSIX <code>symlink()</code> function, which may not work
+ * on Microsoft Windows platforms.
+ *
  * @param {string} source the source file
  * @param {string} target the target link
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html">POSIX <code>symlink</code></a>
  */
 function symbolicLink(source, target) {
     if (security) {
@@ -767,8 +794,14 @@ function symbolicLink(source, target) {
 
 /**
  * Creates a hard link at the target path that refers to the source path.
+ * The concrete implementation depends on the file system and the operating system.
+ *
+ * This function wraps the POSIX <code>link()</code> function, which may not work
+ * on Microsoft Windows platforms.
+ *
  * @param {string} source the source file
  * @param {string} target the target file
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/link.html">POSIX <code>link</code></a>
  */
 function hardLink(source, target) {
     if (security) {
@@ -781,7 +814,12 @@ function hardLink(source, target) {
 
 /**
  * Returns the immediate target of the symbolic link at the given `path`.
+ *
+ * This function wraps the POSIX <code>readlink()</code> function, which may not work
+ * on Microsoft Windows platforms.
+ *
  * @param {string} path a file path
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html">POSIX <code>readlink</code></a>
  */
 function readLink(path) {
     if (security) security.checkRead(path);
@@ -904,8 +942,11 @@ function group(path) {
 }
 
 /**
+ * Changes the permissions of the specified file. This function wraps the
+ * POSIX <code>chmod()</code> function.
  * @param {String} path
  * @param {Number|Object} permissions
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chmod.html">POSIX <code>chmod</code></a>
  */
 function changePermissions(path, permissions) {
     if (security) security.checkWrite(path);
@@ -919,9 +960,13 @@ function changePermissions(path, permissions) {
 }
 
 /**
- * Supports user name string as well as uid int input.
+ * Changes the owner of the specified file. This function wraps the
+ * POSIX <code>chown()</code> function. Supports user name string as well
+ * as uid number input.
+ *
  * @param {String} path
- * @param {String|Number} group
+ * @param {String|Number} owner the user name string or uid number
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
  */
 function changeOwner(path, user) {
     if (security) security.checkWrite(path);
@@ -931,9 +976,13 @@ function changeOwner(path, user) {
 }
 
 /**
- * Supports group name string as well as gid int input.
+ * Changes the group of the specified file. This function wraps the
+ * POSIX <code>chown()</code> function. Supports group name string
+ * as well as gid number input.
+ *
  * @param {String} path
- * @param {String|Number} group
+ * @param {String|Number} group group name string or gid number
+ * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
  */
 function changeGroup(path, group) {
     if (security) security.checkWrite(path);
