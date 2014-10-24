@@ -741,7 +741,7 @@ function size(path) {
 /**
  * Returns the time a file was last modified as a Date object.
  * @param {String} path the file path
- * @returns the date the file was last modified
+ * @returns {Date} the date the file was last modified
  */
 function lastModified(path) {
     var file = resolveFile(path);
@@ -774,7 +774,7 @@ function makeDirectory(path, permissions) {
 /**
  * Returns true if the file specified by path exists and can be opened for reading.
  * @param {String} path the file path
- * @returns {boolean} whether the file exists and is readable
+ * @returns {Boolean} whether the file exists and is readable
  */
 function isReadable(path) {
     return resolveFile(path).canRead();
@@ -783,7 +783,7 @@ function isReadable(path) {
 /**
  * Returns true if the file specified by path exists and can be opened for writing.
  * @param {String} path the file path
- * @returns {boolean} whether the file exists and is writable
+ * @returns {Boolean} whether the file exists and is writable
  */
 function isWritable(path) {
     return resolveFile(path).canWrite();
@@ -792,7 +792,7 @@ function isWritable(path) {
 /**
  * Returns true if the file specified by path exists and is a regular file.
  * @param {String} path the file path
- * @returns {boolean} whether the file exists and is a file
+ * @returns {Boolean} whether the file exists and is a file
  */
 function isFile(path) {
     return resolveFile(path).isFile();
@@ -801,7 +801,7 @@ function isFile(path) {
 /**
  * Returns true if the file specified by path exists and is a directory.
  * @param {String} path the file path
- * @returns {boolean} whether the file exists and is a directory
+ * @returns {Boolean} whether the file exists and is a directory
  */
 function isDirectory(path) {
     return resolveFile(path).isDirectory();
@@ -814,7 +814,7 @@ function isDirectory(path) {
  * symbolic link status.
  *
  * @param {String} path the file path
- * @returns {boolean} true if the given file exists and is a symbolic link
+ * @returns {Boolean} true if the given file exists and is a symbolic link
  * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/lstat.html">POSIX <code>lstat</code></a>
  */
 function isLink(path) {
@@ -844,7 +844,7 @@ function isLink(path) {
  *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
- * @returns {boolean} true if identical, otherwise false
+ * @returns {Boolean} true if identical, otherwise false
  * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function same(pathA, pathB) {
@@ -870,7 +870,7 @@ function same(pathA, pathB) {
  *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
- * @returns {boolean} true if same file system, otherwise false
+ * @returns {Boolean} true if same file system, otherwise false
  * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function sameFilesystem(pathA, pathB) {
@@ -892,7 +892,7 @@ function sameFilesystem(pathA, pathB) {
  * absolute and intrinsic, such that all paths that refer to a given file
  * (whether it exists or not) have the same corresponding canonical path.
  * @param {String} path a file path
- * @returns the canonical path
+ * @returns {String} the canonical path
  */
 function canonical(path) {
     return resolveFile(path).getCanonicalPath();
