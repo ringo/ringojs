@@ -221,7 +221,7 @@ function write(path, content, options) {
  * Read data from one file and write it into another using binary mode.
  * @param {String} from original file
  * @param {String} to copy to create
- * @example // Moves file from a temporary upload directory into /var/www
+ * @example // Copies file from a temporary upload directory into /var/www
  * fs.copy('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function copy(from, to) {
@@ -641,6 +641,8 @@ function relative(source, target) {
  * @param {String} source the source path
  * @param {String} target the target path
  * @throws Error
+ * @example // Moves file from a temporary upload directory into /var/www
+ * fs.move('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function move(source, target) {
     var from = resolveFile(source);
