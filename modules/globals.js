@@ -18,6 +18,7 @@
  * defining real global variables if you want to do so.
  *
  * @name global
+ * @example global.foo = "bar";
  */
 Object.defineProperty(this, "global", { value: this });
 
@@ -28,6 +29,9 @@ Object.defineProperty(this, "global", { value: this });
      * @param {String} moduleId  the id or path of the module to load
      * @name include
      * @function
+     * @example include('fs');
+     * // calls fs.isReadable()
+     * if (isReadable('essay.txt') ) { ... }
      */
     Object.defineProperty(global, "include", {
         value: function(moduleName) {
@@ -47,6 +51,15 @@ Object.defineProperty(this, "global", { value: this });
      * @param name... one or more names of exported properties
      * @name export
      * @function
+     * @example // equivalent to exports.foo = function() { ... }
+     * // and exports.bar = function() { ... }
+     * export(
+     *   "foo",
+     *   "bar"
+     * );
+     *
+     * function foo() { ... };
+     * function bar() { ... };
      */
     Object.defineProperty(global, "export", {
         value: function() {
@@ -144,9 +157,11 @@ Object.defineProperty(this, "global", { value: this });
 
 
     /**
-     * Firebug-like debug console, preloaded for your convenience.
+     * Debug console to print messages on `stderr`. It’s similar to the console
+     * object implemented in most web browsers.
      * @name console
      * @see console
+     * @example console.log('Hello World!');
      */
     Object.defineProperty(global, "console", {
         get: function() require("console")
@@ -217,6 +232,12 @@ Object.defineProperty(this, "global", { value: this });
  *  but has the value `undefined`.
  *
  * @name require.main
+ * @example // is the current module is the main module?
+ *  if (require.main == module.id) {
+ *   // Start up actions like in a Java public static void main() method
+ *   var server = new Server();
+ *   server.start();
+ * }
  */
 
 /**
@@ -321,6 +342,7 @@ Object.defineProperty(this, "global", { value: this });
  * Define properties on the `exports` object to make them available to other
  * modules [requiring][#require] this module.
  * @name exports
+ * @example exports.multiply = function(x, y) { return x * y; }
  */
 
 /**
@@ -336,12 +358,14 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * The `environment` object contains the Java system properties.
  * @name environment
+ * @see <a href="http://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html">Java System Properties</a>
  */
 
 /**
  * Runs the garbage collector.
  * @name gc
  * @function
+ * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Runtime.html#gc()">java.lang.Runtime.gc()</a>
  */
 
 /**
@@ -386,14 +410,26 @@ Object.defineProperty(this, "global", { value: this });
  * @return {Function} a synchronized wrapper around the function
  * @name sync
  * @function
+ * @example exports.synchronizedFunction = sync(function() {
+ *   // no two threads can execute this code in parallel
+ * });
  */
 
 /**
- * Define an extension using the Java class named with the string argument
- * `className`. Uses `ScriptableObject.defineClass()` to define the extension.
- * @param {String} className a Java class
+ * Loads a custom Java-based host object into the global scope. This is useful to provide
+ * transparent access to Java classes inside the JavaScript environment. It uses
+ * `ScriptableObject.defineClass()` to define the extension.
+ * @param {java.lang.Class} clazz the host object's Java class
  * @name defineClass
  * @function
+ * @example // org.somejavalib.Foo extends org.mozilla.javascript.ScriptableObject
+ * defineClass(org.somejavalib.Foo);
+ * var x = new Foo();
+ * @see <a href="http://es5.github.io/#x4.3.8">ECMAScript 5 host object definition</a>
+ * @see <a href="http://www-archive.mozilla.org/rhino/apidocs/org/mozilla/javascript/ScriptableObject.html#defineClass%28org.mozilla.javascript.Scriptable,%20java.lang.Class%29">
+ *     Rhino's ScriptableObject.defineClass()</a>
+ * @see The Java package <code>org.ringojs.wrappers</code> includes typical host objects like <code>Binary</code>,
+ *     <code>EventAdapter</code> and <code>Stream</code>.
  */
 
 /**
@@ -421,10 +457,20 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Adds `path` to the RingoJS application class path.
+ * Adds `path` to the RingoJS application classpath at runtime. This is necessary if
+ * libraries and their classes are not in the default Java classpath.
+ *
+ * Calling `addToClasspath()` will invoke an `org.ringojs.engine.AppClassLoader`,
+ * which is a subclass of `java.net.URLClassLoader`. It checks if the URL has been
+ * already loaded and if not, adds it to the resource search path. If the given URL ends
+ * with `/`, it will be treated as directory, otherwise it's assumed to refer to a jar file.
+ *
  * @param {String|Resource|Repository} path a directory or jar path
  * @name addToClasspath
  * @function
+ * @example // Adds Apache Lucene text search engine to the classpath
+ * addToClasspath("../jars/lucene-core.jar");
+ * @see <a href="http://ringojs.org/documentation/java_integration">Ringo Java Integration</a>
  */
 
 /**

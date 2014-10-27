@@ -89,6 +89,7 @@ exports.args = global.arguments || [];
  *   LOCALAPPDATA: 'C:\Local',
  *   ...
  * }
+ * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#getenv()">java.lang.System.getenv()</a>
  */
 exports.env = new ScriptableMap(System.getenv());
 
