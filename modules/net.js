@@ -1,6 +1,34 @@
 /**
  * @fileoverview This module provides support for networking using
- * TCP and UDP sockets.
+ * TCP and UDP sockets. A socket represents a connection between a
+ * client and a server program over a network. The underlying native
+ * binding is provided by the `java.net` package.
+ *
+ * @example // A simple TCP server
+ * var io = require('io');
+ * var net = require('net');
+ *
+ * var server = new net.ServerSocket();
+ * server.bind('127.0.0.1', 6789);
+ *
+ * var socket = server.accept();
+ * var stream = new io.TextStream(socket.getStream(), {
+ *   'charset': 'US-ASCII'
+ *});
+ *
+ * var line;
+ * do {
+ *   // Read one line from the client
+ *   line = stream.readLine();
+ *   console.log(line);
+ *
+ *   // Write back to the client
+ *   stream.writeLine("Received: " + line);
+ *} while (line.indexOf("END") < 0);
+ *
+ * stream.close();
+ * socket.close();
+ * server.close();
  */
 
 var io = require('io');
