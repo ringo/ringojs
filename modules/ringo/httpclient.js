@@ -1,3 +1,20 @@
+/**
+ * @fileoverview A module for sending HTTP requests and receiving HTTP responses.
+ *
+ * @example var {request} = require('ringo/httpclient');
+ * var exchange = request({
+ *    method: 'GET',
+ *    url: 'http://ringojs.org/',
+ *    headers: {
+ *       'x-custom-header': 'foobar'
+ *    }
+ * });
+ *
+ * if(exchange.status == 200) {
+ *    console.log(exchange.content);
+ * }
+ */
+
 var {URL, URLConnection, HttpCookie} = java.net;
 var {InputStream, BufferedOutputStream, OutputStreamWriter, BufferedWriter,
         ByteArrayOutputStream, PrintWriter, OutputStreamWriter} = java.io;
