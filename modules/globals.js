@@ -464,8 +464,9 @@ Object.defineProperty(this, "global", { value: this });
  * which is a subclass of `java.net.URLClassLoader`. It checks if the URL has been
  * already loaded and if not, adds it to the resource search path. If the given URL ends
  * with `/`, it will be treated as directory, otherwise it's assumed to refer to a jar file.
+ * The function throws an exception if it could not load a path or if it fails.
  *
- * @param {String|Resource|Repository} path a directory or jar path
+ * @param {String|Resource|Repository} path a directory or jar path; or a single resource; or a repository
  * @name addToClasspath
  * @function
  * @example // Adds Apache Lucene text search engine to the classpath
