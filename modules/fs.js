@@ -131,6 +131,11 @@ function open(path, options) {
     options = checkOptions(options);
     var file = resolveFile(path);
     var {read, write, append, update, binary, charset} = options;
+
+    if (read === true && write === true) {
+        throw new Error("Cannot open a file for reading and writing at the same time");
+    }
+
     if (!read && !write && !append && !update) {
         read = true;
     }
