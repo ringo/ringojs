@@ -170,8 +170,13 @@ public class RingoGlobal extends Global {
                 throw Context.reportRuntimeError(
                         "addToClasspath() requires a path argument");
             }
+
+            if (!path.exists()) {
+                throw Context.reportRuntimeError("addToClasspath(): Cannot find " + path);
+            }
+
             engine.addToClasspath(path);
-            return path.exists() ? Boolean.TRUE : Boolean.FALSE;
+            return Boolean.TRUE;
         } catch (IOException iox) {
             throw new WrappedException(iox);
         }
