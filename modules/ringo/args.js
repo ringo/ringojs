@@ -2,12 +2,47 @@
  * @fileoverview A parser for command line options. This parser supports
  * various option formats:
  *
- * <pre>-a -b -c (multiple short options)
- * -abc (multiple short options combined into one)
- * -a value (short option with value)
- * -avalue (alternative short option with value)
- * --option value (long option with value)
- * --option=value (alternative long option with value)</pre>
+ * <ul>
+ *   <li><code>-a -b -c</code> (multiple short options)</li>
+ *   <li><code>-abc</code> (multiple short options combined into one)</li>
+ *   <li><code>-a value</code> (short option with value)</li>
+ *   <li><code>-avalue</code> (alternative short option with value)</li>
+ *   <li><code>--option value</code> (long option with value)</li>
+ *   <li><code>--option=value</code> (alternative long option with value)</li>
+ * </ul>
+ *
+ * @example // ringo parserExample.js -v --size 123 -p 45678
+ *
+ * include('ringo/term');
+ * var system = require('system');
+ * var {Parser} = require('ringo/args');
+ *
+ * var parser = new Parser();
+ * parser.addOption('s', 'size', 'SIZE', 'Sets the size to SIZE');
+ * parser.addOption('p', 'pid', 'PID', 'Kill the process with the PID');
+ * parser.addOption('v', 'verbose', null, 'Verbosely do something');
+ * parser.addOption('h', 'help', null, 'Show help');
+ *
+ * var options = parser.parse(system.args.slice(1));
+ * if (options.help) {
+ *   writeln(parser.help());
+ *} else {
+ *   if (options.size) {
+ *      writeln('Set size to ' + parseInt(options.size));
+ *   }
+ *
+ *   if (options.pid) {
+ *      writeln('Kill process ' + options.pid);
+ *   }
+ *
+ *   if (options.verbose) {
+ *      writeln('Verbose!');
+ *   }
+ *}
+ *
+ * if (!Object.keys(options).length) {
+ *   writeln("Run with -h/--help to see available options");
+ * }
  */
 
 var strings = require("ringo/utils/strings");
@@ -70,16 +105,16 @@ exports.Parser = function() {
 
     /**
      * Parse an arguments array into an option object. If a long option name is defined,
-     * it is converted to camelCase and used as property name. Otherwise, the short option
+     * it is converted to camel-case and used as property name. Otherwise, the short option
      * name is used as property name.
      *
      * Passing an result object as second argument is a convenient way to define default
      * options:
-     * @example
-     * <pre>parser.parse(system.args, {myOption: "defaultValue"});</pre>
      * @param {Array} args the argument array. Matching options are removed.
      * @param {Object} result optional result object. If undefined, a new Object is created.
      * @returns {Object} the result object
+     * @see <a href="../../ringo/utils/strings/index.html#toCamelCase">toCamelCase()</a>
+     * @example parser.parse(system.args.slice(1), {myOption: "defaultValue"});
      */
     this.parse = function(args, result) {
         result = result || {};

@@ -14,6 +14,12 @@
 
 /**
  * @fileOverview Base64 encoding and decoding for binary data and strings.
+ * @example >> var base64 = require('ringo/base64');
+ * >> var enc = base64.encode('Hello World!', 'ISO-8859-15');
+ * >> print(enc);
+ * 'SGVsbG8gV29ybGQh'
+ * >> print(base64.decode(enc, 'ISO-8859-15'));
+ * Hello World!
  */
 
 var encodeChars = [
