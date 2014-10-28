@@ -1,6 +1,14 @@
 /**
  * @fileOverview This module provides functionality for determining the MIME type for a
  * given file extension.
+ *
+ * @example >> var mime = require('ringo/mime');
+ * >> mime.mimeType('photo.jpg');
+ * 'image/jpeg'
+ * >> mime.mimeType('video.m4v');
+ * 'video/mp4'
+ * >> mime.mimeType('feed.rss');
+ * 'application/rss+xml'
  */
 
 // Stolen from Jack with slight adaptions
