@@ -1,5 +1,5 @@
 /**
- * @fileOverview provides functions to work with the Ringo shell.
+ * @fileOverview Provides functions to work with the Ringo shell.
  */
 
 var system = require('system');
@@ -243,6 +243,7 @@ function printValue(value, writer, nesting) {
 
 /**
  * @param {Exception} xcept
+ * @param {Array} errors
  * @param {Boolean} verbose
  */
 function printError(xcept, errors, verbose) {
