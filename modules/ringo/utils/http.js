@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Provides utility functions to work with HTTP requests and responses.
+ */
 
 var dates = require('ringo/utils/dates');
 var strings = require('ringo/utils/strings');
@@ -234,10 +237,6 @@ function urlEncode(object) {
  * To delete a cookie immediately, set the days argument to 0. If days is
  * undefined or negative, the cookie is set for the current browser session.
  *
- * @example <pre>setCookie("username", "michi");
- * setCookie("password", "strenggeheim", 10,
- * {path: "/mypath", domain: ".mydomain.org"});</pre>
- *
  * @param {String} key the cookie name
  * @param {String} value the cookie value
  * @param {Number} days optional the number of days to keep the cookie.
@@ -250,6 +249,9 @@ function urlEncode(object) {
  * <li>httpOnly - to make the cookie inaccessible to client side scripts</li></ul>
  * @since 0.8
  * @return {String} the Set-Cookie header value
+ * @example setCookie("username", "michi");
+ * setCookie("password", "strenggeheim", 10,
+ * {path: "/mypath", domain: ".mydomain.org"});
  */
 function setCookie(key, value, days, options) {
     if (value) {

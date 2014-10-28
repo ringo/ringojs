@@ -1,5 +1,5 @@
 /**
- * @fileOverview Low level JSGI adapter implementation.
+ * @fileOverview Low-level JSGI adapter implementation.
  */
 
 var {Headers, getMimeParameter} = require('ringo/utils/http');

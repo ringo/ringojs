@@ -1,5 +1,6 @@
 /**
- * @fileOverview A collection of file related utilities.
+ * @fileOverview A collection of file related utilities not covered by
+ * the <a href="../../../fs/index.html">fs</a> module.
  */
 
 var arrays = require('ringo/utils/arrays');

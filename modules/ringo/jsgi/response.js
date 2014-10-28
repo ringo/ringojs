@@ -8,18 +8,17 @@ var {mimeType} = require("ringo/mime");
 
 /**
  * A wrapper around a JSGI response object. `JsgiResponse` is chainable.
- * <p><code>// Using the constructor<br>
- * var {JsgiResponse} = require('ringo/jsgi/response');<br>
- * return (new JsgiResponse()).text('Hello World!').setCharset('ISO-8859-1');
- * <br><br>
- * // Using a static helper<br>
- * var response = require('ringo/jsgi/response');<br>
- * return response.json({'foo': 'bar'}).error();
- * </code></p>
  * @param {Object} base a base object for the new JSGI response with the
  *                 initial <code>status</code>, <code>headers</code> and
  *                 <code>body</code> properties.
  * @constructor
+ * @example // Using the constructor
+ * var {JsgiResponse} = require('ringo/jsgi/response');
+ * return (new JsgiResponse()).text('Hello World!').setCharset('ISO-8859-1');
+ *
+ * // Using a static helper
+ * var response = require('ringo/jsgi/response');
+ * return response.json({'foo': 'bar'}).error();
  */
 var JsgiResponse = exports.JsgiResponse = function(base) {
     // Internal use only
