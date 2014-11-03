@@ -418,6 +418,20 @@ exports.testIsFloat = function() {
     assert.isFalse(strings.isFloat("0"));
 };
 
+exports.testY64encode = function() {
+    assert.strictEqual("cmluZ29qcw--", strings.y64encode("ringojs", "UTF-8"));
+    assert.strictEqual("NDVFRjkxMzUtOEVGOS00NDFELUIxNDMtQTQ0RTkwOEQxREQ0", strings.y64encode("45EF9135-8EF9-441D-B143-A44E908D1DD4"));
+    assert.strictEqual("PUB.YXNkZg--", strings.y64encode("=@~asdf", "UTF-8"));
+    assert.strictEqual("Pz8_Pw--", strings.y64encode("????", "UTF-8"));
+};
+
+exports.testY64decode = function() {
+    assert.strictEqual("ringojs", strings.y64decode("cmluZ29qcw--", "UTF-8"));
+    assert.strictEqual("45EF9135-8EF9-441D-B143-A44E908D1DD4", strings.y64decode("NDVFRjkxMzUtOEVGOS00NDFELUIxNDMtQTQ0RTkwOEQxREQ0"));
+    assert.strictEqual("=@~asdf", strings.y64decode("PUB.YXNkZg--", "UTF-8"));
+    assert.strictEqual("????", strings.y64decode("Pz8_Pw--", "UTF-8"));
+};
+
 if (require.main == module.id) {
     require("test").run(exports);
 }

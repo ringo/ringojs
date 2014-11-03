@@ -104,6 +104,8 @@ export('isDateFormat',
        'b16decode',
        'b64encode',
        'b64decode',
+       'y64encode',
+       'y64decode',
        'stripTags',
        'escapeHtml',
        'escapeRegExp',
@@ -528,6 +530,30 @@ function b64encode(string, encoding) {
 }
 
 /**
+ * Encode a string or binary to a Y64 encoded string. Y64
+ * is an URL-safe Base64 encoding and prevents any URL escaping.
+ * It replaces the plus (<code>+</code>), slash (<code>/</code>)
+ * and equals (<code>=</code>) with dot (<code>.</code>),
+ * underscore (<code>_</code>) and dash (<code>-</code>).
+ *
+ * @param {String|Binary} string a string or binary
+ * @param {String} encoding optional encoding to use if
+ *     first argument is a string. Defaults to 'utf8'.
+ * @returns the Y64 encoded string
+ * @see <a href="http://www.yuiblog.com/blog/2010/07/06/in-the-yui-3-gallery-base64-and-y64-encoding/">Detailed Y64 description</a>
+ */
+function y64encode(string, encoding) {
+   return b64encode(string, encoding).replace(/[\+\=\/]/g, function(toReplace){
+        switch(toReplace){
+            case '+': return '.';
+            case '=': return '-';
+            case '/': return '_';
+            default: throw "Invalid regex!";
+        }
+    });
+};
+
+/**
  * Decodes a Base64 encoded string to a string or byte array.
  * @param {String} string the Base64 encoded string
  * @param {String} encoding the encoding to use for the return value.
@@ -538,6 +564,24 @@ function b64decode(string, encoding) {
     if (!base64) base64 = require('ringo/base64');
     return base64.decode(string, encoding);
 }
+
+/**
+ * Decodes a Y64 encoded string to a string or byte array.
+ * @param {String} string the Y64 encoded string
+ * @param {String} encoding the encoding to use for the return value.
+ *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
+ * @returns the decoded string or ByteArray
+ */
+function y64decode(string, encoding) {
+   return b64decode(string.replace(/[\.\-\_]/g, function(toReplace){
+        switch(toReplace){
+            case '.': return '+';
+            case '-': return '=';
+            case '_': return '/';
+            default: throw "Invalid regex!";
+        }
+    }), encoding);
+};
 
 /**
  * Encode a string or binary to a Base16 encoded string
