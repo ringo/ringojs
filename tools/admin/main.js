@@ -16,11 +16,11 @@ function main(args) {
 }
 
 function printUsage() {
-    var resources = getRepository("./").getResources();
+    var resources = getRepository(module.resolve("./")).getResources();
     print("Please specify one of the following commands:");
     for each(var res in resources.sort()) {
-        if (res.baseName != "main") {
-            var description = require(res.moduleName).description;
+        if (res.baseName !== "" && res.baseName != "main") {
+            var description = require(module.resolve(res.moduleName)).description;
             print("   ", res.baseName, "\t-", description || "no description available");
         }
     }
