@@ -31,7 +31,7 @@
         -->
 		<init-param>
 			<param-name>optlevel</param-name>
-			<param-value>-1</param-value>
+			<param-value>0</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

@@ -29,7 +29,9 @@ function createApplication(path, options) {
         var symlink = Boolean(options.symlink);
         copyTree(join(skeletons, appTemplate), dest);
         // symlink app source if requested unless it's the skeleton app
-        copyTree(appSource, join(dest, "WEB-INF", "app"), symlink && options.appSource);
+        if (!options.googleAppengine) {
+            copyTree(appSource, join(dest, "WEB-INF", "app"), symlink && options.appSource);
+        }
         copyTree(join(home, "modules"), join(dest, "WEB-INF", "modules"), symlink);
         fixAppEngineDirs(dest);
         copyJars(home, dest, symlink);
