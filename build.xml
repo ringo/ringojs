@@ -61,6 +61,9 @@
             pattern="${ivy.lib.dir}/ivy/[originalname].[ext]"/>
         <get src="https://oss.sonatype.org/content/repositories/snapshots/org/mozilla/rhino/1.7R5-SNAPSHOT/rhino-1.7R5-20120629.144839-4.jar"
              dest="lib/ivy/rhino-1.7R5-SNAPSHOT.jar" usetimestamp="true"/>
+         <get src="http://central.maven.org/maven2/org/eclipse/jetty/orbit/javax.servlet/3.0.0.v201112011016/javax.servlet-3.0.0.v201112011016.jar"
+             dest="lib/ivy/javax.servlet-3.0.0.v201112011016.jar" usetimestamp="true"/>
+
     </target>
 
     <!-- =================================================================== -->
