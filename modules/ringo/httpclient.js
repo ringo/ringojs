@@ -298,7 +298,7 @@ var readResponse = function(connection) {
  */
 var Exchange = function(url, options, callbacks) {
     var reqData = options.data;
-    var connection = null;
+    var connection;
     var responseContent;
     var responseContentBytes;
     var isDone = false;
@@ -413,21 +413,27 @@ var Exchange = function(url, options, callbacks) {
             var content = (options.binary === true) ? this.contentBytes : this.content;
             callbacks.success(content, this.status, this.contentType, this);
         }
-    } catch (e if e.javaException instanceof java.net.SocketTimeoutException) {
-        isException = 'timeout';
-        if (typeof(callbacks.error) === "function") {
-            callbacks.error("timeout", 500, this);
-        }
     } catch (e) {
+        var message;
+        if (e.javaException != undefined) {
+            this.exception = e.javaException;
+            message = e.javaException.toString();
+            try {
+                connection.disconnect();
+                connection = undefined;
+            } catch(e) {}
+        } else {
+            message = this.message;
+        }
         if (typeof(callbacks.error) === "function") {
-            callbacks.error(this.message, this.status, this);
+            callbacks.error(message, this.status, this);
         }
     } finally {
         isDone = true;
         try {
             if (typeof(callbacks.complete) === "function") {
                 if (isException) {
-                    callbacks.complete(isException, 500, undefined, this);
+                    callbacks.complete(isException, this.status, undefined, this);
                 } else {
                     var content = (options.binary === true) ? this.contentBytes : this.content;
                     callbacks.complete(content, this.status, this.contentType, this);
@@ -449,7 +455,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "url": {
         "get": function() {
-            return this.connection.getURL();
+            return this.connection ? this.connection.getURL() : undefined;
         }, "enumerable": true
     },
     /**
@@ -459,7 +465,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "status": {
         "get": function() {
-            return this.connection.getResponseCode();
+            return this.connection ? this.connection.getResponseCode() : 0;
         }, "enumerable": true
     },
     /**
@@ -469,7 +475,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "message": {
         "get": function() {
-            return this.connection.getResponseMessage();
+            return this.connection ? this.connection.getResponseMessage() : undefined;
         }, "enumerable": true
     },
     /**
@@ -478,7 +484,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "headers": {
         "get": function() {
-            return new ScriptableMap(this.connection.getHeaderFields());
+            return this.connection ? new ScriptableMap(this.connection.getHeaderFields()) : undefined;
         }, enumerable: true
     },
     /**
@@ -487,6 +493,9 @@ Object.defineProperties(Exchange.prototype, {
      */
     "cookies": {
         "get": function() {
+            if (!this.connection) {
+                return undefined;
+            }
             var cookies = {};
             var cookieHeaders = this.connection.getHeaderField("Set-Cookie");
             if (cookieHeaders !== null) {
@@ -506,7 +515,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "encoding": {
         "get": function() {
-            return getMimeParameter(this.contentType, "charset") || "utf-8";
+            return this.connection ? (getMimeParameter(this.contentType, "charset") || "utf-8") : undefined;
         }, "enumerable": true
     },
     /**
@@ -516,7 +525,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "contentType": {
         "get": function() {
-            return this.connection.getContentType();
+            return this.connection ? this.connection.getContentType() : undefined;
         }, "enumerable": true
     },
     /**
@@ -526,7 +535,7 @@ Object.defineProperties(Exchange.prototype, {
      */
     "contentLength": {
         "get": function() {
-            return this.connection.getContentLength();
+            return this.connection ? this.connection.getContentLength() : undefined;
         }, "enumerable": true
     }
 });
