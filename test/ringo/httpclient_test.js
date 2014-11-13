@@ -559,6 +559,42 @@ exports.testPostMultipart = function() {
     assert.deepEqual(received.image.value.toArray(), imageByteArray.toArray());
 };
 
+exports.testProxiedRequest = function() {
+    var text = "<h1>This is the Response Text</h1>";
+
+    getResponse = function(req) {
+        return response.html(text);
+    };
+
+    var errorCalled, myData;
+    var exchange = request({
+        url: "http://idontexistandifigetcalledwithoutproxyshouldraiseerror.com",
+        proxy: [host, ":", port].join(""),
+        success: function(data, status, contentType, exchange) {
+            myData = data;
+        },
+        error: function() {
+            errorCalled = true;
+        }
+    });
+    assert.isUndefined(errorCalled);
+    assert.strictEqual(myData, text);
+
+    errorCalled = myData = undefined;
+    var exchange = request({
+        url: "http://idontexistandifigetcalledwithoutproxyshouldraiseerror.com",
+        proxy: {"host": host, "port": port},
+        success: function(data, status, contentType, exchange) {
+            myData = data;
+        },
+        error: function() {
+            errorCalled = true;
+        }
+    });
+    assert.isUndefined(errorCalled);
+    assert.strictEqual(myData, text);
+};
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     var {run} = require("test");
