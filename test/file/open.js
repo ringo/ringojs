@@ -26,6 +26,19 @@ exports.testOpen = function() {
     }
 };
 
+exports.testOpenRaw = function() {
+    assert.isTrue(fs.exists(testFile));
+
+    try {
+        fs.openRaw(testFile, {
+            read: true,
+            write: true
+        });
+    } catch (err) {
+        assert.strictEqual(err.message, "Cannot open a file for reading and writing at the same time");
+    }
+};
+
 exports.tearDown = function() {
     try {
         fs.remove(testFile);
@@ -35,5 +48,5 @@ exports.tearDown = function() {
 };
 
 if (require.main == module.id) {
-    require("test").run(exports);
+    require('system').exit(require("test").run(module.id));
 }

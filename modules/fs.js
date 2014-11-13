@@ -107,7 +107,8 @@ export('absolute',
  *  - __b__ _(string)_ equivalent to binary
  *
  * So an `options` object `{ read: true, binary: true }` and the mode string `'rb'` are
- * functionally equivalent.
+ * functionally equivalent. <em>Note: The options canonical and exclusive proposed by CommonJS are
+ * not supported.</em>
  *
  * @param {String} path the file path
  * @param {Object|String} options options as object properties or as mode string
@@ -154,23 +155,27 @@ function open(path, options) {
 
 /**
  * Opens the file corresponding to `path` for reading or writing in binary
- * mode. This function supports the same options as [open()][#open] except
- * for `binary` and `charset`.
+ * mode. The `options` argument may contain the following properties:
+ *
+ *  - __read__ _(boolean)_ open the file in read-only mode. (default)
+ *  - __write__ _(boolean)_ open the file in write mode starting at the beginning of the file.
+ *  - __append__ _(boolean)_ open the file in write mode starting at the end of the file.
  *
  * @param {String} path the file path
  * @param {Object} options options
- * @param {Object} permissions not yet supported
  * @returns {Stream}
  * @see #open
  */
-function openRaw(path, options, permissions) {
-    // TODO many things missing here
+function openRaw(path, options) {
     var file = resolveFile(path);
     options = options || {};
-    var {read, write, append, create, exclusive, truncate} = options;
+    var {read, write, append} = options;
     if (!read && !write && !append) {
         read = true;
+    } else if (read === true && write === true) {
+        throw new Error("Cannot open a file for reading and writing at the same time");
     }
+
     if (read) {
         return new Stream(new FileInputStream(file));
     } else {
