@@ -15,7 +15,7 @@
  * }
  */
 
-var {URL, URLConnection, HttpCookie} = java.net;
+var {URL, URLConnection, HttpCookie, Proxy, InetSocketAddress} = java.net;
 var {InputStream, BufferedOutputStream, OutputStreamWriter, BufferedWriter,
         ByteArrayOutputStream, PrintWriter, OutputStreamWriter} = java.io;
 var {GZIPInputStream, InflaterInputStream} = java.util.zip;
@@ -353,7 +353,21 @@ var Exchange = function(url, options, callbacks) {
                 url += "?" + reqData;
             }
         }
-        connection = (new URL(url)).openConnection();
+        var url = new URL(url);
+        if (options.proxy) {
+            var host, port;
+            if (typeof(options.proxy) == "string") {
+                [host, port] = options.proxy.split(":");
+            } else {
+                host = options.proxy.host;
+                port = options.proxy.port;
+            }
+            connection = url.openConnection(
+                new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port || 3128))
+            );
+        } else {
+            connection = url.openConnection();
+        }
         connection.setAllowUserInteraction(false);
         connection.setConnectTimeout(options.connectTimeout);
         connection.setReadTimeout(options.readTimeout);
@@ -583,7 +597,8 @@ var request = function(options) {
         "followRedirects": opts.followRedirects,
         "connectTimeout": opts.connectTimeout,
         "readTimeout": opts.readTimeout,
-        "binary": opts.binary
+        "binary": opts.binary,
+        "proxy": opts.proxy
     }, {
         "beforeSend": opts.beforeSend,
         "success": opts.success,
