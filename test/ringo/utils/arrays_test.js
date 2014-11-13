@@ -263,3 +263,6 @@ exports.testArrayIntersection = function() {
    return;
 };
 
+if (require.main == module.id) {
+   require('system').exit(require("test").run(module.id));
+}

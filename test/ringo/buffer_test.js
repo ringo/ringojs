@@ -48,4 +48,8 @@ exports.testLength = function() {
     expectedLength += STRING3.length + EOL.length;
     assert.strictEqual(expectedLength, buffer.length);
     assert.strictEqual(expectedLength, buffer.toString().length);
+};
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }

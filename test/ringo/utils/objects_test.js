@@ -23,3 +23,7 @@ exports.testMerge = function() {
     assert.deepEqual(y,                       {b: 3, c: 4});
     assert.deepEqual(z,                       {c: 5, d: 6});
 };
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}

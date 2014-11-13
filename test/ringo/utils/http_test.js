@@ -10,3 +10,7 @@ exports.testUrlEncode = function() {
     expected = "foo=1&foo=2&foo=3&foo=4&foo=5&bar=baz";
     assert.strictEqual(encoded, expected);
 };
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}

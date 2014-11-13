@@ -20,3 +20,7 @@ exports.testEncodeDecode = function () {
                 new ByteString(test[0], 'utf8').toArray());
     }
 };
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}

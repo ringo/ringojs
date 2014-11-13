@@ -98,3 +98,7 @@ exports.testStreamDecoderReadLineShort = function() {
     assert.strictEqual(null, dec.readLine());
     assert.strictEqual(0, dec.length);
 };
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}

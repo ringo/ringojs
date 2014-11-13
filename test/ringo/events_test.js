@@ -51,4 +51,8 @@ function testEmitter(e) {
     result = e.emit("addTwice", 1);
     assert.equal(result, false);
     assert.equal(7, count);
+};
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }

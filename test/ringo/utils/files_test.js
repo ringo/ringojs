@@ -36,3 +36,7 @@ exports.testCreateTempFile = function () {
     assert.throws(function () files.createTempFile('ri'), java.lang.
             IllegalArgumentException); // Prefix must be at least 3 chars long.
 };
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}

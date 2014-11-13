@@ -25,4 +25,8 @@ exports.testBasic = function () {
     assert.throws(function() {p.parse(['--unknown']);});
     assert.throws(function() {p.parse(['-u']);});
     assert.throws(function() {p.parse(['-squ']);});
+};
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }
