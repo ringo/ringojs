@@ -545,6 +545,7 @@ Object.defineProperties(Exchange.prototype, {
  *  - `headers`: request headers
  *  - `username`: username for HTTP authentication
  *  - `password`: password for HTTP authentication
+ *  - `proxy`: proxy-settings as string ("proxy.host:port") or object {host: "hostname.org", port: 3128}
  *  - `contentType`: the contentType
  *  - `binary`: if true if content should be delivered as binary,
  *     else it will be decoded to string
