@@ -119,6 +119,14 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
          */
         removeListener: {
             value: e.removeListener.bind(e)
+        },
+        /**
+         * Removes all listener functions for a given event.
+         * @param {string} type the event type
+         * @function
+         */
+        removeAllListeners: {
+            value: e.removeAllListeners.bind(e)
         }
     });
     return this;
