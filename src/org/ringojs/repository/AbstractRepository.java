@@ -192,7 +192,7 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Get a resource contained in this repository identified by the given local name.
      * If the name can't be resolved to a resource, a resource object is returned
-     * for which {@link Resource exists()} returns <code>false<code>.
+     * for which {@link Resource exists()} returns <code>false</code>.
      */
     public synchronized Resource getResource(String subpath) throws IOException {
         String[] list = resolve(subpath, false);

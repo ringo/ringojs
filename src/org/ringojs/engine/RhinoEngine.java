@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  * This class provides methods to create JavaScript objects
  * from JavaScript files.
  *
- * @author Hannes Wallnoefer <hannes@helma.at>
+ * @author Hannes Wallnoefer, hannes@helma.at
  */
 public class RhinoEngine implements ScopeProvider {
 
@@ -509,7 +509,7 @@ public class RhinoEngine implements ScopeProvider {
      * and the first term resolves to a package directory, the remaining part
      * of the module id is resolved against the "lib" directory of the package.
      *
-     * @link http://nodejs.org/docs/v0.4.4/api/modules.html#folders_as_Modules
+     * @see <a href="http://nodejs.org/docs/v0.4.4/api/modules.html#folders_as_Modules">NodeJS Modules</a>
      * @param moduleName the name of the package to load
      * @param localPath the path of the resource issuing this call
      * @return the location of the package's main module

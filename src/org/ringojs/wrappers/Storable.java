@@ -117,7 +117,7 @@ public class Storable extends ScriptableObject {
      * <tt>Boolean.TRUE</tt> if this object is equivalent to <tt>value</tt>,
      * <tt>Boolean.FALSE</tt> if this object is not equivalent to
      * <tt>value</tt>.
-     * <p/>
+     *
      * The default implementation returns Boolean.TRUE
      * if <tt>this == value</tt> or {@link org.mozilla.javascript.Scriptable#NOT_FOUND} otherwise.
      * It indicates that by default custom equality is available only if

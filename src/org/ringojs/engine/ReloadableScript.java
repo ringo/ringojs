@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * This class represents a JavaScript Resource.
  *
- * @author Hannes Wallnoefer <hannes@helma.at>
+ * @author Hannes Wallnoefer, hannes@helma.at
  */
 public class ReloadableScript {
 
