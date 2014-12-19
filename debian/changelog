@@ -1,3 +1,9 @@
+ringojs (0.11) unstable; urgency=low
+
+  * Bump version to 0.11
+
+ -- Philipp Naderer <philipp.naderer+ringojs@gmail.com>  Fri, 19 Dec 2014 16:00:00 +0100
+
 ringojs (0.10-1) unstable; urgency=low
 
   * Bump version to 0.10
