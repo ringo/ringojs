@@ -7,7 +7,9 @@
  * The runner treats a module like a test case. A test case defines the fixture
  * to run multiple tests. Test cases can provide optional <code>setUp()</code> and
  * <code>tearDown()</code> functions to initialize and destroy the fixture. The
- * test runner will run these methods prior to / after each test.
+ * test runner will run these methods prior to / after each test. Test functions
+ * must start with a <code>test</code> prefix in their name, otherwise they
+ * are skipped by the runner.
  *
  * The following example test case <code>testDatabase.js</code> starts a
  * new test runner if executed with <code>ringo testDatabase.js</code>
@@ -16,6 +18,7 @@
  * exports.setUp = function() { ... open db connection ... }
  * exports.tearDown = function() { ... close db connection ... }
  *
+ * // Test functions start with the prefix 'test'
  * exports.testCreateTable = function() { ... }
  * exports.testInsertData = function() { ... }
  * exports.testTransactions = function() { ... }
