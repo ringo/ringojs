@@ -61,7 +61,8 @@ var prepareOptions = function(options) {
  * This fn puts the right arguments - depending on their type - into the options object
  * which can be used to call request().
  * @param {Array} Arguments Array
- * @returns {Object<{url, data, success, error}>} Object holding attributes for call to request()
+ * @returns Object holding attributes for call to request()
+ * @type Object<url, data, success, error>
  */
 var extractOptionalArguments = function(args) {
 
@@ -615,7 +616,8 @@ var request = function(options) {
  * @param {String|Object|Stream|Binary} data Optional data to send to the server
  * @param {Function} success Optional success callback
  * @param {Function} error Optional error callback
- * @returns {Object<{method, url, data, success, error}>} An options object
+ * @returns An options object
+ * @type Object<method, url, data, success, error>
  */
 var createOptions = function(method, url, data, success, error) {
     var args = Array.prototype.slice.call(arguments, 1);

@@ -375,8 +375,8 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * @param {String} unit (optional) of time to return. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
  *        <code>week</code>, <code>day</code> (default), <code>hour</code>, <code>minute</code>, <code>second</code>, <code>millisecond</code> and
  *        <code>mixed</code> (returns an object)
- * @returns {Number|Object<{days, hours, minutes, seconds, milliseconds}>}
- *          difference between the given dates in the specified unit of time.
+ * @returns difference between the given dates in the specified unit of time.
+ * @type Number|Object<days, hours, minutes, seconds, milliseconds>
  */
 function diff(a, b, unit) {
     var unit = unit || "day",
