@@ -110,6 +110,7 @@ jsDump.quote = function(str) {
 
 /**
  * Returns the type of the object passed as argument.
+ * @param {Object} obj
  * @returns The type of the object passed as argument
  * @type String
  */

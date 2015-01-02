@@ -117,6 +117,9 @@ function min(array) {
     return Math.min.apply(Math, array);
 }
 
+/**
+ * @param {Function} fn
+ */
 function partition(fn) {
     var trues = [], falses = [];
     for (var i=0; i<this.length; i++) {

@@ -543,6 +543,7 @@ function split(path) {
 /**
  * Normalize a path by removing '.' and simplifying '..' components, wherever
  * possible.
+ * @param {String} path
  * @returns {String} the normalized path
  * @example >> fs.normal('../redundant/../foo/./bar.txt');
  * '../foo/bar.txt'
@@ -1287,6 +1288,7 @@ Path.prototype.resolve = function () {
 /**
  * Return the relative path from this path to the given target path. Equivalent
  * to `fs.Path(fs.relative(this, target))`.
+ * @param {String} target
  */
 Path.prototype.to = function (target) {
     return exports.Path(relative(this.toString(), target));
@@ -1295,6 +1297,7 @@ Path.prototype.to = function (target) {
 /**
  * Return the relative path from the given source path to this path. Equivalent
  * to `fs.Path(fs.relative(source, this))`.
+ * @param {String} target
  */
 Path.prototype.from = function (target) {
     return exports.Path(relative(target, this.toString()));

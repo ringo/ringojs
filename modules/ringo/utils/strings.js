@@ -219,6 +219,7 @@ function toHexColor(string) {
 /**
  * function returns true if the string contains
  * only a-z and 0-9 (case insensitive!)
+ * @param {String} string the string
  * @returns Boolean true in case string is alpha, false otherwise
  */
 function isAlphanumeric(string) {
@@ -228,6 +229,7 @@ function isAlphanumeric(string) {
 /**
  * function cleans a string by throwing away all
  * non-alphanumeric characters
+ * @param {String} string the string
  * @returns cleaned string
  */
 function toAlphanumeric(string) {
@@ -237,6 +239,7 @@ function toAlphanumeric(string) {
 /**
  * function returns true if the string contains
  * only characters a-z
+ * @param {String} string the string
  * @returns Boolean true in case string is alpha, false otherwise
  */
 function isAlpha(string) {
@@ -246,6 +249,7 @@ function isAlpha(string) {
 /**
  * function returns true if the string contains
  * only 0-9
+ * @param {String} string the string
  * @returns Boolean true in case string is numeric, false otherwise
  */
 function isNumeric(string) {

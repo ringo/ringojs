@@ -50,6 +50,10 @@ function Profiler() {
     var frames = {};
     var nanoTime = java.lang.System.nanoTime;
 
+    /**
+     * @param {Object} cx
+     * @param {Function} script
+     */
     this.getScriptFrame = function(cx, script) {
         if (!script.isFunction()) {
             return null;
@@ -63,6 +67,9 @@ function Profiler() {
         return frame;
     };
 
+    /**
+     * @param {Function} script
+     */
     var getScriptName = function(script) {
         if (script.isFunction()) {
             var name = [script.sourceName,  " #", script.lineNumbers[0]];
@@ -87,6 +94,9 @@ function Profiler() {
         return list;
     };
 
+    /**
+     * @param {Number} maxFrames optional maximal number of frames to include
+     */
     this.formatResult = function(maxFrames) {
         var list = this.getFrames();
         // cut list to maxFrames elements
@@ -119,6 +129,9 @@ function Profiler() {
         return this.formatResult(null);
     };
 
+    /**
+     * @param {String} name
+     */
     function Frame(name) {
 
         // The timer for the current invocation of this frame.
@@ -130,6 +143,12 @@ function Profiler() {
         var finishedTimers = []; // Timer list of finished invocations of this frame
         this.name = name;
 
+        /**
+         * @param {Object} cx
+         * @param {Object} activation
+         * @param {Object} thisObj
+         * @param {*...} args...
+         */
         this.onEnter = function(cx, activation, thisObj, args) {
             if (currentTimer) {
                 timerStack.push(currentTimer);
@@ -144,6 +163,10 @@ function Profiler() {
             stack.push(this);
         };
 
+        /**
+         * @param {Object} cx
+         * @param {Object} ex
+         */
         this.onExceptionThrown = function(cx, ex) {
         };
 

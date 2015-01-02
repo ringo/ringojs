@@ -427,6 +427,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  */
 
 // Define helper functions
+/** @ignore */
 ["setStatus", "text", "html", "json", "jsonp", "xml", "setCharset", "addHeaders",
     "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
     "unavailable", "redirect", "notModified"].forEach(function(functionName) {

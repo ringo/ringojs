@@ -487,6 +487,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
     /**
      * Reads from this stream with [readLine](#readLine), writing the results
      * to the target stream and flushing, until the end of this stream is reached.
+     * @param {Stream} output
      * @return {TextStream} this stream
      */
     this.copy = function (output) {
@@ -522,6 +523,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
 
     /**
      * Writes the given line to the stream, followed by a newline.
+     * @param {String} line
      * @return {TextStream} this stream
      */
     this.writeLine = function (line) {
@@ -531,8 +533,9 @@ exports.TextStream = function TextStream(io, options, buflen) {
 
     /**
      * Writes the given lines to the stream, terminating each line with a newline.
-     *
      * This is a non-standard extension, not part of CommonJS IO/A.
+     *
+     * @param {Array} lines
      * @return {TextStream} this stream
      */
     this.writeLines = function (lines) {

@@ -13,6 +13,11 @@ var JavaString = java.lang.String;
 
 var DEFAULTSIZE = 8192;
 
+/**
+ * @param {String} charset
+ * @param {Boolean} strict
+ * @param {Number} capacity
+ */
 function Decoder(charset, strict, capacity) {
 
     if (!(this instanceof Decoder)) {
@@ -199,6 +204,11 @@ function Decoder(charset, strict, capacity) {
     });
 }
 
+/**
+ * @param {String} charset
+ * @param {Boolean} strict
+ * @param {Number} capacity
+ */
 function Encoder(charset, strict, capacity) {
 
     if (!(this instanceof Encoder)) {
@@ -274,6 +284,9 @@ function Encoder(charset, strict, capacity) {
         return encoded.slice(0, output.position());
     };
 
+    /**
+    * @param {Stream} sink
+    */
     this.writeTo = function(sink) {
         stream = sink;
         return this;
