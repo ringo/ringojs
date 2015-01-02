@@ -20,6 +20,7 @@ var options,
  *
  * @param {Object} options A javascript object with any of the following
  * properties (default values in parentheses):
+ *
  * <ul>
  * <li>jettyConfig ('config/jetty.xml')</li>
  * <li>port (8080)</li>
@@ -35,6 +36,7 @@ var options,
  *
  * For convenience, the constructor supports the definition of a JSGI application
  * and static resource mapping in the options object using the following properties:
+ *
  * <ul>
  * <li>virtualHost (undefined)</li>
  * <li>mountpoint ('/')</li>
@@ -57,7 +59,7 @@ function Server(options) {
     var xmlconfig;
 
     /**
-     * Get the server's default [context][#Context]. The default context is the
+     * Get the server's default [context](#Context). The default context is the
      * context that is created when the server is created.
      * @see #Context
      * @since: 0.6
@@ -68,7 +70,7 @@ function Server(options) {
     };
 
     /**
-     * Get a servlet application [context][#Context] for the given path and
+     * Get a servlet application [context](#Context) for the given path and
      * virtual hosts, creating it if it doesn't exist.
      * @param {string} path the context root path such as "/" or "/app"
      * @param {string|array} virtualHosts optional single or multiple virtual host names.

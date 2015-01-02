@@ -87,8 +87,8 @@ export('absolute',
 
 /**
  * Open the file corresponding to `path` for reading or writing,
- * depending on the `options` argument. Returns a [binary stream][io#Stream]
- * or a [text stream][io#TextStream].
+ * depending on the `options` argument. Returns a [binary stream](../io#Stream)
+ * or a [text stream](../io/#TextStream).
  *
  * The `options` argument may contain the following properties:
  *
@@ -186,8 +186,8 @@ function openRaw(path, options) {
 
 /**
  * Read the content of the file corresponding to `path`. Returns a
- * String or [ByteString][binary#ByteString] object depending on the `options`
- * argument. This function supports the same options as [open()][#open].
+ * String or [ByteString](../binary/#ByteString) object depending on the `options`
+ * argument. This function supports the same options as [open()](#open).
  *
  * @param {String} path the file path
  * @param {Object} options optional options

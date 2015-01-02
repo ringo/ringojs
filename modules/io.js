@@ -62,10 +62,10 @@ Stream.prototype.forEach = function(fn, thisObj) {
  * If the constructor is called with a Number argument, a ByteArray with the
  * given length is allocated and the length of the stream is set to zero.
  *
- * If the argument is a [binary object][binary] it will be used as underlying
+ * If the argument is a [binary object](../binary) it will be used as underlying
  * buffer and the stream length set to the length of the binary object.
- * If argument is a [ByteArray][binary#ByteArray], the resulting stream is both
- * readable, writable, and seekable. If it is a [ByteString][binary#ByteString],
+ * If argument is a [ByteArray](../binary#ByteArray), the resulting stream is both
+ * readable, writable, and seekable. If it is a [ByteString](../binary#ByteString),
  * the resulting stream is readable and seekable but not writable.
  *
  * If called without argument, a ByteArray of length 1024 is allocated as buffer.
@@ -485,7 +485,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
 
     /**
-     * Reads from this stream with [readLine][#readLine], writing the results
+     * Reads from this stream with [readLine](#readLine), writing the results
      * to the target stream and flushing, until the end of this stream is reached.
      * @return {TextStream} this stream
      */
@@ -579,7 +579,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
     };
 
     /**
-     * If the wrapped stream is a [MemoryStream][#MemoryStream] this contains its
+     * If the wrapped stream is a [MemoryStream](#MemoryStream) this contains its
      * content decoded to a String with this streams encoding. Otherwise contains
      * an empty String.
      */

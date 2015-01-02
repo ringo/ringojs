@@ -10,8 +10,8 @@ var FAILED = 2;
 
 /**
  * Creates an object representing a deferred value.
- * The deferred object has two properties: a [promise][#Promise]
- * object and a [resolve()][#Deferred.prototype.resolve] function.
+ * The deferred object has two properties: a [promise](#Promise)
+ * object and a [resolve()](#Deferred.prototype.resolve) function.
  *
  * The promise object can be used to [register a callback](#Promise.prototype.then)
  * to be invoked when the promise is eventually resolved.
@@ -190,6 +190,6 @@ function PromiseList(args) {
 
 /**
  * A promise object. This class is not exported, create a
- * [deferred object][#Deferred] to create a promise.
+ * [deferred object](#Deferred) to create a promise.
  * @name Promise
  */

@@ -14,7 +14,7 @@ exports.WorkerPromise = WorkerPromise;
  *
  * The `moduleId` argument must be the fully resolved id of the module
  * to load in the worker. In order to be able to send messages to the worker
- * using the [postMessage][#Worker.prototype.postMessage] method the module must
+ * using the [postMessage](#Worker.prototype.postMessage) method the module must
  * define (though not necessarily export) a `onmessage` function.
  *
  * Workers operate on their own set of modules, so a new instance of the
@@ -27,7 +27,7 @@ exports.WorkerPromise = WorkerPromise;
  * assigning them to the `onmessage` and `onerror` properties of the worker.
  *
  * To free the worker's thread and other resources once the worker is no longer
- * needed its [terminate][#Worker.prototype.terminate] method should be called.
+ * needed its [terminate](#Worker.prototype.terminate) method should be called.
  *
  * @param {String} moduleId the id of the module to load in the worker.
  * @constructor
@@ -126,7 +126,7 @@ function Worker(moduleId) {
 }
 
 /**
- * A [Promise][ringo/promise] backed by a [Worker][#Worker].
+ * A [Promise](../ringo/promise) backed by a [Worker](#Worker).
  *
  * This creates a new Worker with the given `moduleId` and calls its `postMessage`
  * function with the `message` argument. The first message or error received
@@ -169,7 +169,7 @@ function WorkerPromise(moduleId, message, syncCallbacks) {
     /**
      * Registers callback and errback functions that will be invoked when
      * the promise is resolved by the worker. See documentation for
-     * [Promise.then()][ringo/promise#Promise.prototype.then].
+     * [Promise.then()](../ringo/promise#Promise.prototype.then).
      * @name WorkerPromise.prototype.then
      * @param {function} callback called if the promise is resolved as fulfilled
      * @param {function} errback called if the promise is resolved as failed
@@ -179,7 +179,7 @@ function WorkerPromise(moduleId, message, syncCallbacks) {
 
     /**
      * Wait for the worker to resolve the promise. See documentation for
-     * [Promise.wait()][ringo/promise#Promise.prototype.wait].
+     * [Promise.wait()](../ringo/promise#Promise.prototype.wait).
      * @name WorkerPromise.prototype.wait
      * @param {Number} timeout optional time in milliseconds to wait for.
      *                 If timeout is undefined wait() blocks forever.

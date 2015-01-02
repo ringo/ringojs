@@ -45,7 +45,7 @@ Object.defineProperty(this, "global", { value: this });
     /**
      * Takes any number of top-level names to be exported from this module.
      *
-     * This is a non-standard alternative to the [exports][#exports] object
+     * This is a non-standard alternative to the [exports](#exports) object
      * for exporting values in a less verbose and intrusive way.
      *
      * @param name... one or more names of exported properties
@@ -103,7 +103,7 @@ Object.defineProperty(this, "global", { value: this });
     };
 
     /**
-     * Cancel a timeout previously scheduled with [setTimeout()][#setTimeout].
+     * Cancel a timeout previously scheduled with [setTimeout()](#setTimeout).
      * @param {object} id the id object returned by setTimeout()
      * @name clearTimeout
      * @see #setTimeout
@@ -139,7 +139,7 @@ Object.defineProperty(this, "global", { value: this });
     };
 
     /**
-     * Cancel a timeout previously scheduled with [setInterval()][#setInterval].
+     * Cancel a timeout previously scheduled with [setInterval()](#setInterval).
      * @param {object} id the id object returned by setInterval()
      * @name clearInterval
      * @see #setInterval
@@ -200,9 +200,9 @@ Object.defineProperty(this, "global", { value: this });
  *
  * The RingoJS `require` function has the following properties:
  *
- *  - [extensions][#require.extensions]
- *  - [main][#require.main]
- *  - [paths][#require.paths]
+ *  - [extensions](#require.extensions)
+ *  - [main](#require.main)
+ *  - [paths](#require.paths)
  *
  * @param {String} moduleId the id or path of the module to load
  * @return {Object} the exports object of the required module
@@ -211,7 +211,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- *  An object used to extend the way [require][#require] loads modules.
+ *  An object used to extend the way [require](#require) loads modules.
  *
  *  Use a file extension as key and a function as value. The function should
  *  accept a `Resource` object as argument and return either a string to be
@@ -254,13 +254,13 @@ Object.defineProperty(this, "global", { value: this });
  *
  * The RingoJS `module` object has the following properties:
  *
- *   - [directory][#module.directory]
- *   - [exports][#module.exports]
- *   - [id][#module.id]
- *   - [path][#module.path]
- *   - [uri][#module.uri]
- *   - [resolve][#module.resolve]
- *   - [singleton][#module.singleton]
+ *   - [directory](#module.directory)
+ *   - [exports](#module.exports)
+ *   - [id](#module.id)
+ *   - [path](#module.path)
+ *   - [uri](#module.uri)
+ *   - [resolve](#module.resolve)
+ *   - [singleton](#module.singleton)
  *
  * @name module
  * @property module
@@ -272,7 +272,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * By default, `module.exports` refers to [exports][#exports] object. Setting
+ * By default, `module.exports` refers to [exports](#exports) object. Setting
  * this property to a different value will cause that value to be used as
  * `exports` object instead.
  * @name module.exports
@@ -294,7 +294,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Resolve `path` relative to this module, like when calling [require][#require]
+ * Resolve `path` relative to this module, like when calling [require](#require)
  * with a `moduleId` starting with `'./'` or '`../`'.
  *
  * This returns an absolute path if the current module is a regular file.
@@ -340,7 +340,7 @@ Object.defineProperty(this, "global", { value: this });
  * specification.
  *
  * Define properties on the `exports` object to make them available to other
- * modules [requiring][#require] this module.
+ * modules [requiring](#require) this module.
  * @name exports
  * @example exports.multiply = function(x, y) { return x * y; }
  */
@@ -350,7 +350,7 @@ Object.defineProperty(this, "global", { value: this });
  * started with.
  *
  * Note that this variable is shadowed by the `arguments` object inside
- * functions which is why it is usually safer to use [system.args][system#args]
+ * functions which is why it is usually safer to use [system.args](../system#args)
  * instead.
  * @name arguments
  */
@@ -433,7 +433,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Resolve `path` following the same logic [require][#require] uses for
+ * Resolve `path` following the same logic [require](#require) uses for
  * module ids and return an instance of `org.ringojs.repository.Resource`
  * representing the resolved path.
  *
@@ -445,7 +445,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Resolve `path` following the same logic [require][#require] uses for
+ * Resolve `path` following the same logic [require](#require) uses for
  * module ids and return an instance of `org.ringojs.repository.Repository`
  * representing the resolved path.
  *
