@@ -126,7 +126,7 @@ Object.defineProperty(this, "global", { value: this });
      * other code running before it have terminated.
      * @param {Function} callback a function
      * @param {Number} delay the delay in milliseconds
-     * @param {...} args optional arguments to pass to the function
+     * @param {*...} args... optional arguments to pass to the function
      * @returns {Object} an id object useful for cancelling the scheduled invocation
      * @name setInterval
      * @see #clearInterval()
