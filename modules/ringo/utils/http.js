@@ -64,7 +64,7 @@ function Headers(headers) {
     /**
      * Get the value of the header with the given name
      * @param {String} name the header name
-     * @returns the header value
+     * @returns {String} the header value
      * @name Headers.instance.get
      */
     Object.defineProperty(headers, "get", {
@@ -305,7 +305,7 @@ var EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 /**
  * Find out whether the content type denotes a format this module can parse.
  * @param {String} contentType a HTTP request Content-Type header
- * @returns true if the content type can be parsed as form data by this module
+ * @returns {Boolean} true if the content type can be parsed as form data by this module
  */
 function isUrlEncoded(contentType) {
     return contentType && strings.startsWith(
@@ -315,7 +315,7 @@ function isUrlEncoded(contentType) {
 /**
  * Find out whether the content type denotes a format this module can parse.
  * @param {String} contentType a HTTP request Content-Type header
- * @return true if the content type can be parsed as form data by this module
+ * @return {Boolean} true if the content type can be parsed as form data by this module
  */
 function isFileUpload(contentType) {
     return contentType && strings.startsWith(
@@ -331,7 +331,7 @@ function isFileUpload(contentType) {
  * @param {Object} params optional parameter object to parse into. If undefined
  *        a new object is created and returned.
  * @param {String} encoding a valid encoding name, defaults to UTF-8
- * @returns the parsed parameter object
+ * @returns {Object} the parsed parameter object
  */
 function parseParameters(input, params, encoding) {
     if (!input) {

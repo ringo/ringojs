@@ -63,7 +63,7 @@ function Server(options) {
      * context that is created when the server is created.
      * @see #Context
      * @since: 0.6
-     * @returns the default Context
+     * @returns {Context} the default Context
      */
     this.getDefaultContext = function() {
         return defaultContext;
@@ -85,7 +85,7 @@ function Server(options) {
      *   secureCookies: true to enable secure session cookies
      * @see #Context
      * @since: 0.6
-     * @returns a Context object
+     * @returns {Context} a Context object
      */
     this.getContext = function(path, virtualHosts, options) {
         var idMap = xmlconfig.getIdMap();
@@ -316,7 +316,7 @@ function Server(options) {
 
     /**
      * Checks whether this server is currently running.
-     * @returns true if the server is running, false otherwise.
+     * @returns {Boolean} true if the server is running, false otherwise.
      */
     this.isRunning = function() {
         return jetty && jetty.isRunning();
@@ -324,7 +324,7 @@ function Server(options) {
 
     /**
      * Get the Jetty server instance
-     * @returns the Jetty Server instance
+     * @returns {org.eclipse.jetty.server.Server} the Jetty Server instance
      */
     this.getJetty = function() {
         return jetty;

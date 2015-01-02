@@ -81,6 +81,7 @@ function format(date, format, locale, timezone) {
 }
 
 // Helper
+/** @ignore */
 function createGregorianCalender(date, locale) {
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
@@ -162,7 +163,7 @@ function add(date, delta, unit) {
  * Checks if the date's year is a leap year.
  *
  * @param {Date} date to check year
- * @returns Boolean true if the year is a leap year, false if not.
+ * @returns {Boolean} true if the year is a leap year, false if not.
  */
 function isLeapYear(date) {
     var year = date.getFullYear();
@@ -174,7 +175,7 @@ function isLeapYear(date) {
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Boolean true if <code>a</code> is before <code>b</code>, false if not.
+ * @returns {Boolean} true if <code>a</code> is before <code>b</code>, false if not.
  */
 function before(a, b) {
     return a.getTime() < b.getTime();
@@ -185,7 +186,7 @@ function before(a, b) {
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Boolean true if <code>a</code> is after <code>b</code>, false if not.
+ * @returns {Boolean} true if <code>a</code> is after <code>b</code>, false if not.
  */
 function after(a, b) {
     return a.getTime() > b.getTime();
@@ -196,7 +197,7 @@ function after(a, b) {
  *
  * @param {Date} a first date
  * @param {Date} b second date
- * @returns Number -1 if <code>a</code> is before <code>b</code>, 0 if equals and 1 if <code>a</code> is after <code>b</code>.
+ * @returns {Number} -1 if <code>a</code> is before <code>b</code>, 0 if equals and 1 if <code>a</code> is after <code>b</code>.
  * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/Calendar.html#compareTo(java.util.Calendar)
  */
 function compare(a, b) {
@@ -214,7 +215,7 @@ function compare(a, b) {
  *
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
- * @returns Number the first day of the week; 1 = Sunday, 2 = Monday.
+ * @returns {Number} the first day of the week; 1 = Sunday, 2 = Monday.
  * @see http://download.oracle.com/javase/1.5.0/docs/api/constant-values.html#java.util.Calendar.SUNDAY
  */
 function firstDayOfWeek(locale) {
@@ -228,7 +229,7 @@ function firstDayOfWeek(locale) {
 /**
  * Gets the second of the day for the given date.
  * @param {Date} date calculate the second of the day.
- * @returns Number second of the day
+ * @returns {Number} second of the day
  */
 function secondOfDay(date) {
     return (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
@@ -237,7 +238,7 @@ function secondOfDay(date) {
 /**
  * Gets the day of the year for the given date.
  * @param {Date} date calculate the day of the year.
- * @returns Number day of the year
+ * @returns {Number} day of the year
  */
 function dayOfYear(date) {
     return createGregorianCalender(date).get(java.util.Calendar.DAY_OF_YEAR);
@@ -248,7 +249,7 @@ function dayOfYear(date) {
  * @param {Date} date calculate the week of the month.
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
- * @returns Number week of the month
+ * @returns {Number} week of the month
  */
 function weekOfMonth(date, locale) {
     return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_MONTH);
@@ -259,7 +260,7 @@ function weekOfMonth(date, locale) {
  * @param {Date} date calculate the week of the year.
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
- * @returns Number week of the year
+ * @returns {Number} week of the year
  */
 function weekOfYear(date, locale) {
     return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_YEAR);
@@ -268,7 +269,7 @@ function weekOfYear(date, locale) {
 /**
  * Gets the year of the century for the given date. <em>Examples:</em> 1900 returns 0, 2010 returns 10.
  * @param {Date} date calculate the year of the century.
- * @returns Number second of the day
+ * @returns {Number} second of the day
  */
 function yearInCentury(date) {
     var year = date.getFullYear();
@@ -278,7 +279,7 @@ function yearInCentury(date) {
 /**
  * Gets the number of the days in the month.
  * @param {Date} date to find the maximum number of days.
- * @returns Number days in the month, between 28 and 31.
+ * @returns {Number} days in the month, between 28 and 31.
  */
 function daysInMonth(date) {
     return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
@@ -287,7 +288,7 @@ function daysInMonth(date) {
 /**
  * Gets the number of the days in the year.
  * @param {Date} date to find the maximum number of days.
- * @returns Number days in the year, 365 or 366, if it's a leap year.
+ * @returns {Number} days in the year, 365 or 366, if it's a leap year.
  */
 function daysInYear(date) {
     return isLeapYear(date) ? 366 : 365;
@@ -296,7 +297,7 @@ function daysInYear(date) {
 /**
  * Gets the number of the days in february.
  * @param {Date} date of year to find the number of days in february.
- * @returns Number days in the february, 28 or 29, if it's a leap year.
+ * @returns {Number} days in the february, 28 or 29, if it's a leap year.
  */
 function daysInFebruary(date) {
     return isLeapYear(date) ? 29 : 28;
@@ -305,7 +306,7 @@ function daysInFebruary(date) {
 /**
  * Gets the quarter in the year.
  * @param {Date} date to calculate the quarter for.
- * @returns Number quarter of the year, between 1 and 4.
+ * @returns {Number} quarter of the year, between 1 and 4.
  */
 function quarterInYear(date) {
     switch (createGregorianCalender(date).get(java.util.Calendar.MONTH)) {
@@ -334,7 +335,7 @@ function quarterInYear(date) {
  * Gets the quarter in the fiscal year.
  * @param {Date} date to calculate the quarter for.
  * @param {Date} fiscalYearStart first day in the fiscal year, default is the start of the current year
- * @returns Number quarter of the year, between 1 and 4.
+ * @returns {Number} quarter of the year, between 1 and 4.
  */
 function quarterInFiscalYear(date, fiscalYearStart) {
     var firstDay   = fiscalYearStart.getDate(),
@@ -374,7 +375,7 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * @param {String} unit (optional) of time to return. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
  *        <code>week</code>, <code>day</code> (default), <code>hour</code>, <code>minute</code>, <code>second</code>, <code>millisecond</code> and
  *        <code>mixed</code> (returns an object)
- * @returns Number|Object<{days, hours, minutes, seconds, milliseconds}>
+ * @returns {Number|Object<{days, hours, minutes, seconds, milliseconds}>}
  *          difference between the given dates in the specified unit of time.
  */
 function diff(a, b, unit) {
@@ -422,7 +423,7 @@ function diff(a, b, unit) {
  * @param {Date} aEnd first period's end
  * @param {Date} bStart second period's start
  * @param {Date} bEnd second period's end
- * @returns Boolean true if the periods are overlapping at some point, false if not.
+ * @returns {Boolean} true if the periods are overlapping at some point, false if not.
  */
 function overlapping(aStart, aEnd, bStart, bEnd) {
     var aStart = aStart.getTime(),
@@ -464,7 +465,7 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
  * @param {Date} periodEnd the period's end
  * @param {Boolean} periodStartOpen start point is open - default false.
  * @param {Boolean} periodEndOpen end point is open - default false.
- * @returns Boolean true if the date is in the period, false if not.
+ * @returns {Boolean} true if the date is in the period, false if not.
  */
 function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) {
     var pStart = periodStart.getTime(),
@@ -497,7 +498,7 @@ function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) 
 /**
  * Resets the time values to 0, keeping only year, month and day.
  * @param {Date} date to reset
- * @returns Date date without any time values
+ * @returns {Date} date without any time values
  */
 function resetTime(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -506,7 +507,7 @@ function resetTime(date) {
 /**
  * Drops the date values, keeping only hours, minutes, seconds and milliseconds.
  * @param {Date} date to reset
- * @returns Date date with the original time values and 1970-01-01 as date.
+ * @returns {Date} date with the original time values and 1970-01-01 as date.
  */
 function resetDate(date) {
     return new Date(1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
@@ -521,7 +522,7 @@ function resetDate(date) {
  * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
  * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
  * @param {Boolean} withMilliseconds if true, the string will contain also the milliseconds of the date. Default false.
- * @returns String date as ISO 8601 string.
+ * @returns {String} date as ISO 8601 string.
  */
 function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
     var withTime = withTime !== false,

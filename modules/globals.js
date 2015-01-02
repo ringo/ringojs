@@ -91,7 +91,7 @@ Object.defineProperty(this, "global", { value: this });
      * @param {Function} callback a function
      * @param {Number} delay the delay in milliseconds
      * @param {*...} [args...] optional arguments to pass to the function
-     * @returns {object} an id object useful for cancelling the scheduled invocation
+     * @returns {Object} an id object useful for cancelling the scheduled invocation
      * @name setTimeout
      * @see #clearTimeout()
      */
@@ -127,7 +127,7 @@ Object.defineProperty(this, "global", { value: this });
      * @param {Function} callback a function
      * @param {Number} delay the delay in milliseconds
      * @param {...} args optional arguments to pass to the function
-     * @returns {object} an id object useful for cancelling the scheduled invocation
+     * @returns {Object} an id object useful for cancelling the scheduled invocation
      * @name setInterval
      * @see #clearInterval()
      */

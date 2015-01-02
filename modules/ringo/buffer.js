@@ -19,7 +19,7 @@ function Buffer() {
 
     /**
      * Reset the buffer discarding all its content.
-     * @returns this buffer object
+     * @returns {Buffer} this buffer object
      */
     this.reset = function() {
         content = [];
@@ -30,7 +30,7 @@ function Buffer() {
     /**
      * Append all arguments to this buffer.
      * @param {*...} args... variable arguments to append to the buffer
-     * @returns this buffer object
+     * @returns {Buffer} this buffer object
      */
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
@@ -44,7 +44,7 @@ function Buffer() {
     /**
      * Append all arguments to this buffer terminated by a carriage return/newline sequence.
      * @param {*...} args... variable arguments to append to the buffer
-     * @returns this buffer object
+     * @returns {Buffer} this buffer object
      */
     this.writeln = function() {
         this.write.apply(this, arguments);
@@ -55,6 +55,7 @@ function Buffer() {
 
     /**
      * Return the content of this buffer as string.
+     * @returns {String} the buffer as string
      */
     this.toString = function() {
         return content.join('');
@@ -79,6 +80,7 @@ function Buffer() {
     /**
      * Get a message digest on the content of this buffer.
      * @param {String} algorithm the algorithm to use, defaults to MD5
+     * @returns {String} a Base16 encoded digest
      */
     this.digest = function(algorithm) {
         var md = java.security.MessageDigest.getInstance(algorithm || "MD5");

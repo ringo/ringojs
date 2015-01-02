@@ -101,7 +101,7 @@ var TermWriter = exports.TermWriter = function(out) {
 
     /**
      * Returns true if ANSI terminal colors are enabled.
-     * @returns true if ANSI is enabled.
+     * @returns {Boolean} true if ANSI is enabled.
      */
     this.isEnabled = function() {
         return _enabled;

@@ -171,7 +171,7 @@ var emitterImpl = {
      * [addListener()](#EventEmitter.prototype.addListener)
      * @param {String} type the event type
      * @param {Function} listener the listener
-     * @returns this object for chaining
+     * @returns {EventEmitter} this object for chaining
      * @name EventEmitter.prototype.on
      * @function
      */
@@ -183,7 +183,7 @@ var emitterImpl = {
      * [addListener()](#EventEmitter.prototype.addListener)
      * @param {String} type the event type
      * @param {Function} listener the listener
-     * @returns this object for chaining
+     * @returns {EventEmitter} this object for chaining
      * @name EventEmitter.prototype.on
      * @function
      */
@@ -213,7 +213,7 @@ var emitterImpl = {
      * Remove a listener function for the given event.
      * @param {String} type the event type
      * @param {Function} listener the listener
-     * @returns this object for chaining
+     * @returns {EventEmitter} this object for chaining
      * @name EventEmitter.prototype.removeListener
      * @function
      */
@@ -244,7 +244,7 @@ var emitterImpl = {
     /**
      * Remove all listener function for the given event.
      * @param {String} type the event type
-     * @returns this object for chaining
+     * @returns {EventEmitter} this object for chaining
      * @name EventEmitter.prototype.removeAllListeners
      * @function
      */
@@ -259,7 +259,7 @@ var emitterImpl = {
      * If no listeners exist for the given event a new array is created.
      * Changes on the return value will be reflected in the EventEmitter instance.
      * @param {String} type the event type
-     * @returns {array} the lister array
+     * @returns {Array} the lister array
      * @name EventEmitter.prototype.listeners
      * @function
      */

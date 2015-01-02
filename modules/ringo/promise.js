@@ -44,7 +44,7 @@ function Deferred() {
      * @name Deferred.prototype.resolve
      * @param {Object} result the result or error value
      * @param {Boolean} isError if true the promise is resolved as failed
-     * @type function
+     * @type Function
      */
     var resolve = sync(function(result, isError) {
         if (state !== NEW) {

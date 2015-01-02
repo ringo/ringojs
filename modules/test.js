@@ -295,7 +295,7 @@ function executeTest(scope, name, summary, writer, path) {
  * Constructs a new TermWriter instance
  * @class Instances of this class represent a writer for displaying test results
  * in the shell
- * @returns A newly created TermWriter instance
+ * @returns {TermWriter} A newly created TermWriter instance
  * @constructor
  */
 var TermWriter = function() {

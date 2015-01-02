@@ -104,8 +104,7 @@ function createTempFile(prefix, suffix, directory) {
  * Tests whether the file represented by this File object is a hidden file.
  * What constitutes a hidden file may depend on the platform we are running on.
  * @param {String} file
- * @returns Boolean true if this File object is hidden
- * @type Boolean
+ * @returns {Boolean} true if this File object is hidden
  */
 function isHidden(file) {
     return new File(file).isHidden();

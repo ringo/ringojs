@@ -51,7 +51,7 @@ function ScriptRepository(path) {
 
     /**
      * Check whether this script repository exists.
-     * @returns {boolean} true if the repository exists
+     * @returns {Boolean} true if the repository exists
      */
     this.exists = function() {
         return repo.exists();
@@ -59,7 +59,7 @@ function ScriptRepository(path) {
 
     /**
      * Get the absolute path of this script repository.
-     * @returns {string} the absolute repository path
+     * @returns {String} the absolute repository path
      */
     this.getPath = function() {
         return repo.getPath();

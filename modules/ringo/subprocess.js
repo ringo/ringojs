@@ -34,7 +34,7 @@ function parseArguments(args) {
  *   * `encoding` the character encoding to use for text streams
  *
  * @param {Object} args an object containing the process command and options.
- * @returns a Process object
+ * @returns {Process} a Process object
  * @see #Process
  */
 var createProcess = exports.createProcess = function(args) {
@@ -136,7 +136,7 @@ var createProcess = exports.createProcess = function(args) {
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
- * @returns String the standard output of the command
+ * @returns {String} the standard output of the command
  */
 exports.command = function() {
     var args = parseArguments(arguments);
@@ -164,7 +164,7 @@ exports.command = function() {
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
- * @returns Number exit status
+ * @returns {Number} exit status
  */
 exports.system = function() {
     var args = parseArguments(arguments);
@@ -187,7 +187,7 @@ exports.system = function() {
  * @param {Object} [options] options object. This may contain a `dir` string
  * property specifying the directory to run the process in and a `env`
  * object property specifying additional environment variable mappings.
- * @returns Number exit status
+ * @returns {Number} exit status
  * @name status
  */
 exports.status = function() {

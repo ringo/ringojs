@@ -49,7 +49,7 @@ var {Binary, ByteString, ByteArray} = require('binary');
  * @param {String|Binary} str a string or binary
  * @param {String} encoding optional encoding to use if
  *     first argument is a string. Defaults to 'utf8'.
- * @returns the Base64 encoded string
+ * @returns {String} the Base64 encoded string
  */
 exports.encode = function(str, encoding) {
     var c1, c2, c3;
@@ -92,7 +92,7 @@ exports.encode = function(str, encoding) {
  * @param {String} str the Base64 encoded string
  * @param {String} encoding the encoding to use for the return value.
  *     Defaults to 'utf8'. Use 'raw' to get a ByteArray instead of a string.
- * @returns the decoded string or ByteArray
+ * @returns {String|ByteArray} the decoded string or ByteArray
  */
 exports.decode = function (str, encoding) {
     var c1, c2, c3, c4;

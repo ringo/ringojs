@@ -247,7 +247,7 @@ function AsyncResponse(request, timeout, autoflush) {
          * be called once.
          * @param {Number} status the HTTP status code
          * @param {Object} headers the headers
-         * @returns this response object for chaining
+         * @returns {AsyncResponse} this response object for chaining
          * @name AsyncResponse.prototype.start
          */
         start: sync(function(status, headers) {
@@ -264,7 +264,7 @@ function AsyncResponse(request, timeout, autoflush) {
           * Write a chunk of data to the response stream.
           * @param {String|Binary} data a binary or string
           * @param {String} [encoding] the encoding to use
-          * @returns this response object for chaining
+          * @returns {AsyncResponse} this response object for chaining
           * @name AsyncResponse.prototype.write
           */
         write: sync(function(data, encoding) {
@@ -284,7 +284,7 @@ function AsyncResponse(request, timeout, autoflush) {
         /**
           * Flush the response stream, causing all buffered data to be written
           * to the client.
-          * @returns this response object for chaining
+          * @returns {AsyncResponse} this response object for chaining
           * @name AsyncResponse.prototype.flush
           */
         flush: sync(function() {
@@ -342,7 +342,7 @@ function AsyncResponse(request, timeout, autoflush) {
  * exported as "middleware" or "handleRequest".
  * @param {Function|Object|String|Array} app a function, module object, module id, or an array of
  *            any of these
- * @returns the resolved middleware function
+ * @returns {Function} the resolved middleware function
  */
 function resolve(app) {
     if (typeof app == 'string') {
@@ -359,7 +359,7 @@ function resolve(app) {
  * Helper function for wrapping middleware stacks
  * @param {Object|Function} inner an app or middleware module or function wrapped by outer
  * @param {Object|Function} outer a middleware module or function wrapping inner
- * @returns the wrapped middleware function
+ * @returns {Function} the wrapped middleware function
  */
 function middlewareWrapper(inner, outer) {
     return resolve(outer)(inner);

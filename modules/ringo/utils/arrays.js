@@ -26,7 +26,7 @@ export('contains', 'peek', 'remove', 'union', 'intersection', 'max', 'min', 'par
  * a specific value (start from end of array).
  * @param {Array} array the array
  * @param {Object} val the value to check
- * @returns {boolean} true if the value is contained
+ * @returns {Boolean} true if the value is contained
  */
 function contains(array, val) {
        return array.indexOf(val) > -1;
@@ -103,7 +103,7 @@ function intersection(array) {
 
 /**
  * @param {Array} array the array
- * @returns the maximal element in an array obtained by calling Math.max().
+ * @returns {Number} the maximal element in an array obtained by calling Math.max().
  */
 function max(array) {
     return Math.max.apply(Math, array);
@@ -111,7 +111,7 @@ function max(array) {
 
 /**
  * @param {Array} array the array
- * @returns the minimal element in an array obtained by calling Math.min().
+ * @returns {Number} the minimal element in an array obtained by calling Math.min().
  */
 function min(array) {
     return Math.min.apply(Math, array);

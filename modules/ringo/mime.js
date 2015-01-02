@@ -19,7 +19,7 @@
  * function returns "application/octet-stream".
  * @param {String} fileName a file name
  * @param {String} fallback MIME type to return if file extension is unknown
- * @returns {string} the MIME type for the file name
+ * @returns {String} the MIME type for the file name
  */
 exports.mimeType = function(fileName, fallback) {
     var ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
