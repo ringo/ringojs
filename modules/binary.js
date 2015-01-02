@@ -78,7 +78,7 @@ exports.ByteString = ByteString;
 /**
  * Converts the String to a mutable ByteArray using the specified encoding.
  * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns a ByteArray representing the string
+ * @returns {ByteArray} a ByteArray representing the string
  */
 Object.defineProperty(String.prototype, 'toByteArray', {
     value: function(charset) {
@@ -90,7 +90,7 @@ Object.defineProperty(String.prototype, 'toByteArray', {
 /**
  * Converts the String to an immutable ByteString using the specified encoding.
  * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns a ByteArray representing the string
+ * @returns {ByteArray} a ByteArray representing the string
  */
 Object.defineProperty(String.prototype, 'toByteString', {
     value: function(charset) {
