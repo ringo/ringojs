@@ -28,7 +28,7 @@ export("Semaphore");
  * [signal](#Semaphore.prototype.signal) method or, in the case of `tryWait`,
  * the specified timeout expires.
  *
- * @param permits the number of initial permits, defaults to 0
+ * @param {Number} permits the number of initial permits, defaults to 0
  */
 function Semaphore(permits) {
     if (!(this instanceof Semaphore)) {
@@ -40,7 +40,7 @@ function Semaphore(permits) {
 
     /**
      * Wait for one or more permits.
-     * @param permits the number of permits to wait for, defaults to 1
+     * @param {Number} permits the number of permits to wait for, defaults to 1
      */
     this.wait = function(permits) {
         if (typeof permits === "undefined") permits = 1;
@@ -50,8 +50,8 @@ function Semaphore(permits) {
     /**
      * Wait for one or more permits for the given span of time. Returns true
      * if the requested permits could be acquired before the timeout elapsed.
-     * @param timeout The span of time to wait, in milliseconds
-     * @param permits the number of permits to wait for, defaults to 1
+     * @param {Number} timeout The span of time to wait, in milliseconds
+     * @param {Number} permits the number of permits to wait for, defaults to 1
      * @return true if the requested permits could be acquired, false if the
      *   timeout elapsed
      */
@@ -62,7 +62,7 @@ function Semaphore(permits) {
 
     /**
      * Add one or more permits to the semaphore.
-     * @param permits the number of permits to give, defaults to 1
+     * @param {Number} permits the number of permits to give, defaults to 1
      */
     this.signal = function(permits) {
         if (typeof permits === "undefined") permits = 1;

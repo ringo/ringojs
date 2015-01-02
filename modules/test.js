@@ -317,7 +317,7 @@ TermWriter.prototype.writeHeader = function() {
 
 /**
  * Notification that we're entering a new test scope.
- * @param name the name of the test scope
+ * @param {String} name the name of the test scope
  */
 TermWriter.prototype.enterScope = function(name) {
     term.writeln(this.indent, "+ Running", name, "...");
@@ -326,9 +326,8 @@ TermWriter.prototype.enterScope = function(name) {
 
 /**
  * Notification that we're leaving a test scope.
- * @param name the name of the test scope
  */
-TermWriter.prototype.exitScope = function(name) {
+TermWriter.prototype.exitScope = function() {
     this.indent = this.indent.substring(2);
 };
 

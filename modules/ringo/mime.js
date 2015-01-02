@@ -17,8 +17,8 @@
  * Determines the MIME type for the given file extension. If the file extension
  * is unknown, the fallback argument is returned. If that is undefined, the
  * function returns "application/octet-stream".
- * @param {string} fileName a file name
- * @param {string} fallback MIME type to return if file extension is unknown
+ * @param {String} fileName a file name
+ * @param {String} fallback MIME type to return if file extension is unknown
  * @returns {string} the MIME type for the file name
  */
 exports.mimeType = function(fileName, fallback) {

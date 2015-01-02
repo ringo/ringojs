@@ -171,8 +171,8 @@ function WorkerPromise(moduleId, message, syncCallbacks) {
      * the promise is resolved by the worker. See documentation for
      * [Promise.then()](../ringo/promise#Promise.prototype.then).
      * @name WorkerPromise.prototype.then
-     * @param {function} callback called if the promise is resolved as fulfilled
-     * @param {function} errback called if the promise is resolved as failed
+     * @param {Function} callback called if the promise is resolved as fulfilled
+     * @param {Function} errback called if the promise is resolved as failed
      * @return {Object} a new promise that resolves to the return value of the
      *     callback or errback when it is called.
      */

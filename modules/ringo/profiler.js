@@ -13,7 +13,7 @@ export('profile', 'Profiler');
 /**
  * Convenience function for profiling the invocation of a function.
  * @param {Function} func the function to profile
- * @param {number} maxFrames optional maximal number of frames to include
+ * @param {Number} maxFrames optional maximal number of frames to include
  * @returns {Object} an object with the following properties:
  *  <ul><li>result: the value returned by the function, if any</li>
  *  <li>error: the error thrown by the function, if any</li>

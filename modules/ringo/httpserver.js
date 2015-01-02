@@ -72,8 +72,8 @@ function Server(options) {
     /**
      * Get a servlet application [context](#Context) for the given path and
      * virtual hosts, creating it if it doesn't exist.
-     * @param {string} path the context root path such as "/" or "/app"
-     * @param {string|array} virtualHosts optional single or multiple virtual host names.
+     * @param {String} path the context root path such as "/" or "/app"
+     * @param {String|Array} virtualHosts optional single or multiple virtual host names.
      *   A virtual host may start with a "*." wildcard.
      * @param {Object} options may have the following properties:
      *   sessions: true to enable sessions for this context, false otherwise
@@ -133,7 +133,7 @@ function Server(options) {
             },
             /**
              * Map this context to a JSGI application.
-             * @param {function|object} app a JSGI application, either as a function
+             * @param {Function|Object} app a JSGI application, either as a function
              *   or an object with properties <code>appModule</code> and
              *   <code>appName</code> defining the application.
              *   <div><code>{ appModule: 'main', appName: 'app' }</code></div>
@@ -159,7 +159,7 @@ function Server(options) {
             },
             /**
              * Map this context to a directory containing static resources.
-             * @param {string} dir the directory from which to serve static resources
+             * @param {String} dir the directory from which to serve static resources
              * @since: 0.6
              * @name Context.instance.serveStatic
              */
@@ -173,7 +173,7 @@ function Server(options) {
             },
             /**
              * Map a request path within this context to the given servlet.
-             * @param {string} servletPath the servlet path
+             * @param {String} servletPath the servlet path
              * @param {Servlet} servlet a java object implementing the
              *     javax.servlet.Servlet interface.
              * @param {Object} initParams optional object containing servlet
@@ -426,7 +426,7 @@ function parseOptions(args, defaults) {
  * the application at `appPath`. If the application exports a function called
  * `init`, it will be invoked with the new server as argument.
  *
- * @param appPath {string} optional application file name or module id.
+ * @param {String} appPath optional application file name or module id.
  *     If undefined, the first command line argument will be used as application.
  *     If there are no command line arguments, module `main` in the current
  *     working directory is used.

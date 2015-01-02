@@ -26,7 +26,7 @@ export("clone", "merge");
  * a new object
  * @param {Object} object the object to clone
  * @param {Object} cloned optional clone object
- * @param {boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
+ * @param {Boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
  * @returns {Object} the clone object
  */
 function clone(object, cloned, recursive) {
@@ -51,7 +51,7 @@ function clone(object, cloned, recursive) {
  * Creates a new object as the as the keywise union of the provided objects.
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
- * @param {Object} obj... The objects to merge
+ * @param {Object...} obj... The objects to merge
  */
 function merge() {
     var result = {};

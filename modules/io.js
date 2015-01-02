@@ -339,7 +339,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
  *            writeLine() and writeLines(). Defaults to "\n".</li>
  *        <li>delimiter: string containing the delimiter to use in print().
  *            Defaults to " ".</li></ul>
- * @param {number} buflen optional buffer size. Defaults to 8192.
+ * @param {Number} buflen optional buffer size. Defaults to 8192.
  * @constructor
  */
 exports.TextStream = function TextStream(io, options, buflen) {

@@ -25,7 +25,7 @@ function format() {
  *
  * The first argument to log may be a string containing printf-like placeholders.
  * Otherwise, multipel arguments will be concatenated separated by spaces.
- * @param msg... one or more message arguments
+ * @param {*...} msg... one or more message arguments
  * @example >> console.log('Hello World!');
  * Hello World!
  * >> console.log('A: %s, B: %s, C: %s', 'a', 'b', 'c');
@@ -41,7 +41,7 @@ exports.log = function() {
 /**
  * Logs a message with the visual "error" representation, including the file name
  * and line number of the calling code.
- * @param msg... one or more message arguments
+ * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.error('Hello World!');
  * [error] Hello World! (&#60;stdin&#62;:1)
@@ -59,7 +59,7 @@ exports.error = traceHelper.bind(null, function() {
 /**
  * Logs a message with the visual "warn" representation, including the file name
  * and line number of the calling code.
- * @param msg... one or more message arguments
+ * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.warn('Hello World!');
  * [warn] Hello World! (&#60;stdin&#62;:1)
@@ -77,7 +77,7 @@ exports.warn = traceHelper.bind(null, function() {
 /**
  * Logs a message with the visual "info" representation, including the file name
  * and line number of the calling code.
- * @param {...} msg... one or more message arguments
+ * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.info('Hello World!');
  * [info] Hello World! (&#60;stdin&#62;:1)
@@ -94,7 +94,7 @@ exports.info = traceHelper.bind(null, function() {
 
 /**
  * Prints a stack trace of JavaScript execution at the point where it is called.
- * @param {...} msg... optional message arguments
+ * @param {*...} msg... optional message arguments
  * @function
  */
 exports.trace = traceHelper.bind(null, function() {
@@ -106,8 +106,8 @@ exports.trace = traceHelper.bind(null, function() {
 /**
  * Tests that an expression is true and throws an <code>AssertionError</code>
  * exception if not. It uses the ECMAScript <code>toBoolean()</code> convertion.
- * @param expression the expression to test
- * @param {...} msg... one or more error messages
+ * @param {Boolean} expression the expression to test
+ * @param {*...} msg... one or more error messages
  * @function
  * @example >> var x = 10;
  * >> console.assert(x > 0, 'failed!'); // passes

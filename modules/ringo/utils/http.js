@@ -437,9 +437,9 @@ function convertHexDigit(byte) {
  * @param {Object} request the JSGI request object
  * @param {Object} params the parameter object to parse into. If not defined
  *        a new object is created and returned.
- * @param {string} encoding optional encoding to apply to non-file parameters.
+ * @param {String} encoding optional encoding to apply to non-file parameters.
  *        Defaults to "UTF-8".
- * @param {function} streamFactory factory function to create streams for mime parts
+ * @param {Function} streamFactory factory function to create streams for mime parts
  * @returns {Object} the parsed parameter object
  */
 function parseFileUpload(request, params, encoding, streamFactory) {

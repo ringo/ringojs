@@ -48,9 +48,9 @@ var EventEmitter = exports.EventEmitter = function() {
  * called without event mapping the method name is used as event name, except
  * for methods like `onFoo` which will trigger event `foo`.
  *
- * @param classOrInterface a Java class or interface, or an Array containing
+ * @param {java.lang.Class|Array} classOrInterface a Java class or interface, or an Array containing
  *     multiple Java interfaces.
- * @param eventMapping optional object mapping method names to event names.
+ * @param {Object} eventMapping optional object mapping method names to event names.
  *     If this parameter is defined only methods whose name is a property
  *     key in the object will be overridden, and the event type will be
  *     set to the property value instead of the method name.
@@ -70,7 +70,7 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
         },
         /**
          * Emit an event to all listeners registered for this event type
-         * @param {string} type type the event type
+         * @param {String} type type the event type
          * @param {...} [args...] optional arguments to pass to the listeners
          * @return true if the event was handled by at least one listener, false otherwise
          * @throws Error if the event type was "error" and there were no listeners
@@ -82,8 +82,8 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
         /**
          * Add a listener function for the given event. The function will be
          * called asynchronously on the thread of the local event loop.
-         * @param {string} type the event type
-         * @param {function} listener the listener
+         * @param {String} type the event type
+         * @param {Function} listener the listener
          * @function
          */
         addListener: {
@@ -92,8 +92,8 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
         /**
          * Add a listener function for the given event. This is a shortcut for
          * [addListener()](#EventEmitter.prototype.addListener)
-         * @param {string} type the event type
-         * @param {function} listener the listener
+         * @param {String} type the event type
+         * @param {Function} listener the listener
          * @function
          */
         on: {
@@ -104,8 +104,8 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
          * synchronous listener will be called by an outside thread instead
          * of the thread of the local event loop. This means it can be
          * called concurrently while this worker is running other code.
-         * @param {string} type the event type
-         * @param {function} listener the listener
+         * @param {String} type the event type
+         * @param {Function} listener the listener
          * @function
          */
         addSyncListener: {
@@ -113,8 +113,8 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
         },
         /**
          * Remove a listener function for the given event.
-         * @param {string} type the event type
-         * @param {function} listener the listener
+         * @param {String} type the event type
+         * @param {Function} listener the listener
          * @function
          */
         removeListener: {
@@ -122,7 +122,7 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
         },
         /**
          * Removes all listener functions for a given event.
-         * @param {string} type the event type
+         * @param {String} type the event type
          * @function
          */
         removeAllListeners: {
@@ -137,7 +137,7 @@ var isArray = Array.isArray;
 var emitterImpl = {
     /**
      * Emit an event to all listeners registered for this event type
-     * @param {string} type type the event type
+     * @param {String} type type the event type
      * @param {...} [args...] optional arguments to pass to the listeners
      * @name EventEmitter.prototype.emit
      * @return true if the event was handled by at least one listener, false otherwise
@@ -169,8 +169,8 @@ var emitterImpl = {
     /**
      * Add a listener function for the given event. This is a shortcut for
      * [addListener()](#EventEmitter.prototype.addListener)
-     * @param {string} type the event type
-     * @param {function} listener the listener
+     * @param {String} type the event type
+     * @param {Function} listener the listener
      * @returns this object for chaining
      * @name EventEmitter.prototype.on
      * @function
@@ -181,8 +181,8 @@ var emitterImpl = {
     /**
      * Add a listener function for the given event. This is a shortcut for
      * [addListener()](#EventEmitter.prototype.addListener)
-     * @param {string} type the event type
-     * @param {function} listener the listener
+     * @param {String} type the event type
+     * @param {Function} listener the listener
      * @returns this object for chaining
      * @name EventEmitter.prototype.on
      * @function
@@ -211,8 +211,8 @@ var emitterImpl = {
     },
     /**
      * Remove a listener function for the given event.
-     * @param {string} type the event type
-     * @param {function} listener the listener
+     * @param {String} type the event type
+     * @param {Function} listener the listener
      * @returns this object for chaining
      * @name EventEmitter.prototype.removeListener
      * @function
@@ -243,7 +243,7 @@ var emitterImpl = {
     },
     /**
      * Remove all listener function for the given event.
-     * @param {string} type the event type
+     * @param {String} type the event type
      * @returns this object for chaining
      * @name EventEmitter.prototype.removeAllListeners
      * @function
@@ -258,7 +258,7 @@ var emitterImpl = {
      * Get an array containing the listener functions for the given event.
      * If no listeners exist for the given event a new array is created.
      * Changes on the return value will be reflected in the EventEmitter instance.
-     * @param {string} type the event type
+     * @param {String} type the event type
      * @returns {array} the lister array
      * @name EventEmitter.prototype.listeners
      * @function

@@ -165,7 +165,7 @@ function getWorker() {
 
 /**
  * Get the worker instance associated with the current thread or the given scope or function object.
- * @param obj {Object} optional scope or function to get the worker from.
+ * @param {Object} obj optional scope or function to get the worker from.
  * @return {org.ringojs.engine.RingoWorker} the current worker
  */
 function getCurrentWorker(obj) {

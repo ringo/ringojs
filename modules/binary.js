@@ -233,7 +233,7 @@ Object.defineProperty(ByteArray.prototype, 'pop', {
 
 /**
  * Appends the given elements and returns the new length of the array.
- * @param {Number} num... one or more numbers to append
+ * @param {Number...} num... one or more numbers to append
  * @returns {Number} the new length of the ByteArray
  */
 Object.defineProperty(ByteArray.prototype, 'push', {
@@ -256,7 +256,7 @@ Object.defineProperty(ByteArray.prototype, 'shift', {
 /**
  * Adds one or more elements to the beginning of the ByteArray and returns its
  * new length.
- * @param {Number} num... one or more numbers to append
+ * @param {Number...} num... one or more numbers to append
  * @returns {Number} the new length of the ByteArray
  */
 Object.defineProperty(ByteArray.prototype, 'unshift', {
@@ -271,7 +271,7 @@ Object.defineProperty(ByteArray.prototype, 'unshift', {
  * @param {Number} index the index at which to start changing the ByteArray
  * @param {Number} howMany The number of elements to remove at the given
  *        position
- * @param {Number} elements... the new elements to add at the given position
+ * @param {Number...} elements... the new elements to add at the given position
  */
 Object.defineProperty(ByteArray.prototype, 'splice', {
     value: function() {
@@ -340,7 +340,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 /**
  * Returns a ByteArray composed of itself concatenated with the given
  * ByteString, ByteArray, and Array values.
- * @param {Binary|Array} arg... one or more elements to concatenate
+ * @param {Binary...|Array...} arg... one or more elements to concatenate
  * @returns {ByteArray} a new ByteArray
  * @name ByteArray.prototype.concat
  * @function
@@ -614,7 +614,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 /**
  * Returns a ByteString composed of itself concatenated with the given
  * ByteString, ByteArray, and Array values.
- * @param {Binary|Array} arg... one or more elements to concatenate
+ * @param {Binary...|Array...} arg... one or more elements to concatenate
  * @returns {ByteString} a new ByteString
  * @name ByteString.prototype.concat
  * @function

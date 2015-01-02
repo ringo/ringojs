@@ -10,7 +10,7 @@ export('Buffer');
 /**
  * A Buffer class for composing strings. This is implemented
  * as a simple wrapper around a JavaScript array.
- * @param ... initial parts to write to the buffer
+ * @param {*...} args... initial parts to write to the buffer
  */
 function Buffer() {
 
@@ -29,7 +29,7 @@ function Buffer() {
 
     /**
      * Append all arguments to this buffer.
-     * @param ... variable arguments to append to the buffer
+     * @param {*...} args... variable arguments to append to the buffer
      * @returns this buffer object
      */
     this.write = function() {
@@ -43,7 +43,7 @@ function Buffer() {
 
     /**
      * Append all arguments to this buffer terminated by a carriage return/newline sequence.
-     * @param ... variable arguments to append to the buffer
+     * @param {*...} args... variable arguments to append to the buffer
      * @returns this buffer object
      */
     this.writeln = function() {
@@ -62,7 +62,7 @@ function Buffer() {
 
     /**
      * Call function <code>fn</code> with each content part in this buffer.
-     * @param fn a function to apply to each buffer part
+     * @param {Function} fn a function to apply to each buffer part
      */
     this.forEach = function(fn) {
         content.forEach(fn);
@@ -75,10 +75,10 @@ function Buffer() {
     Object.defineProperty(this, "length", {
         get: function() { return length; }
     });
-    
+
     /**
      * Get a message digest on the content of this buffer.
-     * @param algorithm the algorithm to use, defaults to MD5
+     * @param {String} algorithm the algorithm to use, defaults to MD5
      */
     this.digest = function(algorithm) {
         var md = java.security.MessageDigest.getInstance(algorithm || "MD5");

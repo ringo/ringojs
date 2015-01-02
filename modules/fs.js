@@ -302,7 +302,7 @@ function copyTree(from, to) {
  * Create the directory specified by `path` including any missing parent
  * directories.
  *
- * @param path the path of the tree to create
+ * @param {String} path the path of the tree to create
  * @example Before:
  * └── foo
  *
@@ -326,7 +326,7 @@ function makeTree(path) {
  * order within directories. Symbolic links to directories are not traversed
  * into.
  *
- * @param path the path to discover
+ * @param {String} path the path to discover
  * @returns {Array} array of strings with all directories lexically sorted
  * @example // File system tree of the current working directory:
  * .
@@ -361,7 +361,7 @@ function listDirectoryTree(path) {
  * are in lexically sorted order within directories. Symbolic links to
  * directories are returned but not traversed into.
  *
- * @param path the path to list
+ * @param {String} path the path to list
  * @returns {Array} array of strings with all discovered paths
  * @example // File system tree of the current working directory:
  * .
@@ -396,7 +396,7 @@ function listTree(path) {
  * Remove the element pointed to by the given path. If path points to a
  * directory, all members of the directory are removed recursively.
  *
- * @param path the element to delete recursively
+ * @param {String} path the element to delete recursively
  * @example // File system tree of the current working directory:
  * ├── foo
  * │   └── bar
@@ -427,7 +427,7 @@ function removeTree(path) {
  * Check whether the given pathname is absolute. This is a non-standard extension,
  * not part of CommonJS Filesystem/A.
  *
- * @param path the path to check
+ * @param {String} path the path to check
  * @returns {Boolean} true if path is absolute, false if not
  * @example >> fs.isAbsolute('../../');
  * false
@@ -442,7 +442,7 @@ function isAbsolute(path) {
  * Check whether the given pathname is relative (i.e. not absolute). This is a non-standard
  * extension, not part of CommonJS Filesystem/A.
  *
- * @param path the path to check
+ * @param {String} path the path to check
  * @returns {Boolean} true if path is relative, false if not
  */
 function isRelative(path) {
@@ -453,7 +453,7 @@ function isRelative(path) {
  * Make the given path absolute by resolving it against the current working
  * directory.
  *
- * @param path the path to resolve
+ * @param {String} path the path to resolve
  * @returns {String} the absolute path
  * @example >> fs.absolute('foo/bar/test.txt');
  * '/Users/username/Desktop/working-directory/foo/bar/test.txt'
@@ -557,7 +557,7 @@ function normal(path) {
  * "walking" to each path given. Correctly takes into account both relative and
  * absolute paths.
  *
- * @param paths... the paths to resolve
+ * @param {String...} paths... the paths to resolve
  * @return {String} the joined path
  * @example >> fs.resolve('../.././foo/file.txt', 'bar/baz/', 'test.txt');
  * '../../foo/bar/baz/test.txt'
@@ -999,7 +999,7 @@ function iterate(path) {
 /**
  * The Permissions class describes the permissions associated with a file.
  * @param {Number|Object} permissions a number or object representing the permissions.
- * @param constructor
+ * @param {Function} constructor
  */
 function Permissions(permissions, constructor) {
     if (!(this instanceof Permissions)) {

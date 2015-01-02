@@ -16,7 +16,7 @@ export("Token",
  *     Defaults to `180`.
  *  - `parseComments` (boolean) whether to attach jsdoc-style comments to parsed nodes.
  *     Defaults to `false`.
- * 
+ *
  * @param {Object} options the parser options
  */
 function Parser(options) {
@@ -27,7 +27,7 @@ function Parser(options) {
      * Parse a script resource and return its AST tree.
      * @param {Resource|String} script a string or org.ringojs.repository.Resource object representing
      *     the script.
-     * @param {string} [encoding] optional encoding to use, defaults to UTF-8
+     * @param {String} [encoding] optional encoding to use, defaults to UTF-8
      * @return {AstNode} the root node of the AST tree, an instance of org.mozilla.javascript.ast.AstRoot
      */
     this.parse = function(script, encoding) {
@@ -46,7 +46,7 @@ function Parser(options) {
      * @param {Resource|String} script a string or org.ringojs.repository.Resource object representing
      *     the script.
      * @param {Function} visitorFunction the visitor function
-     * @param {string} [encoding] optional encoding to use, defaults to UTF-8
+     * @param {String} [encoding] optional encoding to use, defaults to UTF-8
      */
     this.visit = function(script, visitorFunction, encoding) {
         var name = "<script>";

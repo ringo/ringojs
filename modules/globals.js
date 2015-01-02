@@ -48,7 +48,7 @@ Object.defineProperty(this, "global", { value: this });
      * This is a non-standard alternative to the [exports](#exports) object
      * for exporting values in a less verbose and intrusive way.
      *
-     * @param name... one or more names of exported properties
+     * @param {String...} name... one or more names of exported properties
      * @name export
      * @function
      * @example // equivalent to exports.foo = function() { ... }
@@ -88,9 +88,9 @@ Object.defineProperty(this, "global", { value: this });
      * in the thread of the local event loop. This means it will only run after
      * the currently executing code and other code running before it have
      * terminated.
-     * @param {function} callback a function
-     * @param {number} delay the delay in milliseconds
-     * @param {...} [args] optional arguments to pass to the function
+     * @param {Function} callback a function
+     * @param {Number} delay the delay in milliseconds
+     * @param {*...} [args...] optional arguments to pass to the function
      * @returns {object} an id object useful for cancelling the scheduled invocation
      * @name setTimeout
      * @see #clearTimeout()
@@ -104,7 +104,7 @@ Object.defineProperty(this, "global", { value: this });
 
     /**
      * Cancel a timeout previously scheduled with [setTimeout()](#setTimeout).
-     * @param {object} id the id object returned by setTimeout()
+     * @param {Object} id the id object returned by setTimeout()
      * @name clearTimeout
      * @see #setTimeout
      */
@@ -124,8 +124,8 @@ Object.defineProperty(this, "global", { value: this });
      * that function. The function will be called in the thread of the local event
      * loop. This means it will only run after the currently executing code and
      * other code running before it have terminated.
-     * @param {function} callback a function
-     * @param {number} delay the delay in milliseconds
+     * @param {Function} callback a function
+     * @param {Number} delay the delay in milliseconds
      * @param {...} args optional arguments to pass to the function
      * @returns {object} an id object useful for cancelling the scheduled invocation
      * @name setInterval
@@ -140,7 +140,7 @@ Object.defineProperty(this, "global", { value: this });
 
     /**
      * Cancel a timeout previously scheduled with [setInterval()](#setInterval).
-     * @param {object} id the id object returned by setInterval()
+     * @param {Object} id the id object returned by setInterval()
      * @name clearInterval
      * @see #setInterval
      */
@@ -371,14 +371,14 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * Load JavaScript source files named by string arguments. If multiple
  * arguments are given, each file is read in and executed in turn.
- * @param {String} filename... one or more file names
+ * @param {String...} filename... one or more file names
  * @name load
  * @function
  */
 
 /**
  * Converts each argument to a string and prints it.
- * @param arg... one ore more arguments
+ * @param {*...} arg... one ore more arguments
  * @name print
  * @function
  */

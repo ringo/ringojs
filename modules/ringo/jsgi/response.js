@@ -54,7 +54,7 @@ Object.defineProperty(JsgiResponse.prototype, "setStatus", {
 
 /**
  * Set the JSGI response content-type to 'text/plain' with the string as response body.
- * @param {String} text... a variable number of strings to send as response body
+ * @param {String...} text... a variable number of strings to send as response body
  * @returns JSGI response with content-type 'text/plain'
  */
 Object.defineProperty(JsgiResponse.prototype, "text", {
@@ -67,7 +67,7 @@ Object.defineProperty(JsgiResponse.prototype, "text", {
 
 /**
  * Set the JSGI response content-type to 'text/html' with the string as response body.
- * @param {String} html... a variable number of strings to send as response body
+ * @param {String...} html... a variable number of strings to send as response body
  * @returns JSGI response with content-type 'text/html'
  */
 Object.defineProperty(JsgiResponse.prototype, "html", {
@@ -188,7 +188,7 @@ Object.defineProperty(JsgiResponse.prototype, "bad", {
  * @returns a JSGI response object to send back
  */
 Object.defineProperty(JsgiResponse.prototype, "unauthorized", {
-    value: function() { 
+    value: function() {
         this.status = 401;
         return this;
     }
@@ -265,7 +265,7 @@ Object.defineProperty(JsgiResponse.prototype, "redirect", {
 });
 
 /**
- * Create a response with HTTP status code 304 that indicates the 
+ * Create a response with HTTP status code 304 that indicates the
  * document has not been modified
  * @returns a JSGI response object to send back
  */
@@ -288,20 +288,20 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
 
 /**
  * Set the JSGI response content-type to 'text/plain' with the string as response body.
- * @param {String} text... a variable number of strings to send as response body
+ * @param {String...} text... a variable number of strings to send as response body
  * @returns JSGI response with content-type 'text/plain'
  * @name text
  * @function
  */
- 
+
 /**
  * Set the JSGI response content-type to 'text/html' with the string as response body.
- * @param {String} html... a variable number of strings to send as response body
+ * @param {String...} html... a variable number of strings to send as response body
  * @returns JSGI response with content-type 'text/html'
  * @name html
  * @function
  */
- 
+
 /**
  * Create a JSGI response with content-type 'application/json' with the JSON
  * representation of the given object as response body.
@@ -310,7 +310,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name json
  * @function
  */
- 
+
 /**
  * Create a JSGI response with content-type 'application/javascript' with the JSONP
  * representation of the given object as response body wrapped by the callback name.
@@ -320,7 +320,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name jsonp
  * @function
  */
- 
+
 /**
  * Create a JSGI response with content-type 'application/xml' with the given
  * XML as response body.
@@ -329,7 +329,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name xml
  * @function
  */
- 
+
 /**
  * Set the character encoding used for text responses.
  * @param {String} charsetName the encoding to use.
@@ -337,7 +337,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name setCharset
  * @function
  */
- 
+
 /**
  * Merge the given object into the headers of the JSGI response.
  * @param {Object} headers new header fields to merge with the current ones.
@@ -345,7 +345,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name addHeaders
  * @function
  */
- 
+
 /**
  * Sets the HTTP status to 200.
  * @returns a JSGI response object to send back
@@ -408,7 +408,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name unavailable
  * @function
  */
- 
+
 /**
  * Create a response with HTTP status code 303 that redirects the client
  * to a new location.
@@ -417,9 +417,9 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  * @name redirect
  * @function
  */
- 
+
 /**
- * Create a response with HTTP status code 304 that indicates the 
+ * Create a response with HTTP status code 304 that indicates the
  * document has not been modified
  * @returns a JSGI response object to send back
  * @name notModified

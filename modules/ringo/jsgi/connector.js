@@ -75,8 +75,8 @@ function initRequest(request) {
  * you won't need this unless you're implementing your own servlet
  * based JSGI connector.
  *
- * @param req the JSGI request argument
- * @param result the object returned by a JSGI application
+ * @param {Object} req the JSGI request argument
+ * @param {Object} result the object returned by a JSGI application
  */
 function commitResponse(req, result) {
     var request = req.env.servletRequest;
@@ -340,7 +340,7 @@ function AsyncResponse(request, timeout, autoflush) {
  * Convenience function that resolves a module id or object to a
  * JSGI middleware or application function. This assumes the function is
  * exported as "middleware" or "handleRequest".
- * @param app a function, module object, module id, or an array of
+ * @param {Function|Object|String|Array} app a function, module object, module id, or an array of
  *            any of these
  * @returns the resolved middleware function
  */
@@ -357,8 +357,8 @@ function resolve(app) {
 
 /**
  * Helper function for wrapping middleware stacks
- * @param inner an app or middleware module or function wrapped by outer
- * @param outer a middleware module or function wrapping inner
+ * @param {Object|Function} inner an app or middleware module or function wrapped by outer
+ * @param {Object|Function} outer a middleware module or function wrapping inner
  * @returns the wrapped middleware function
  */
 function middlewareWrapper(inner, outer) {

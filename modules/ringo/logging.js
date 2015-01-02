@@ -43,8 +43,8 @@ EventEmitter.call(exports);
 /**
  * Logger class. This constructor is not exported, use this module's
  * {@link getLogger} to get a logger instance.
- * @param name the Logger name
- * @param impl the logger implementation
+ * @param {String} name the Logger name
+ * @param {Object} impl the logger implementation
  * @constructor
  * @name Logger
  * @see #getLogger()
@@ -158,7 +158,7 @@ function setConfig(resource, watchForUpdates) {
 
 /**
  * Get a logger for the given name.
- * @param {string} name the name of the logger
+ * @param {String} name the name of the logger
  * @returns {Logger} a logger instance for the given name
  */
 function getLogger(name) {
@@ -215,7 +215,7 @@ function getJavaStack(error, prefix) {
 
 /**
  * Logger implementation based on java.util.logging
- * @param name the logger name
+ * @param {String} name the logger name
  */
 function JdkLogger(name) {
 
@@ -265,7 +265,7 @@ function JdkLogger(name) {
 
 /**
  * Logger implementation based on log4j
- * @param name the logger name
+ * @param {String} name the logger name
  */
 function Log4jLogger(name) {
 
@@ -320,7 +320,7 @@ function Log4jLogger(name) {
 
 /**
  * Logger implementation based on SLF4J
- * @param name the logger name
+ * @param {String} name the logger name
  */
 function Slf4jLogger(name) {
 

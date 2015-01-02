@@ -93,7 +93,7 @@ var TermWriter = exports.TermWriter = function(out) {
 
     /**
      * Enable or disable ANSI terminal colors for this writer.
-     * @param {boolean} flag true to enable ANSI colors.
+     * @param {Boolean} flag true to enable ANSI colors.
      */
     this.setEnabled = function(flag) {
         _enabled = flag;
@@ -110,7 +110,7 @@ var TermWriter = exports.TermWriter = function(out) {
     /**
      * Write the arguments to the stream, applying ANSI terminal colors if
      * enabled is true.
-     * @param args... variable number of arguments to write
+     * @param {*...} args... variable number of arguments to write
      */
     this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
@@ -128,7 +128,7 @@ var TermWriter = exports.TermWriter = function(out) {
     /**
      * Write the arguments to the stream followed by a newline character,
      * applying ANSI terminal colors if enabled is true.
-     * @param args... variable number of arguments to write
+     * @param {*...} args... variable number of arguments to write
      */
     this.writeln = function() {
         this.write.apply(this, arguments);
@@ -140,13 +140,13 @@ var stdout = new TermWriter(system.stdout);
 /**
  * Write the arguments to `system.stdout`, applying ANSI terminal colors if
  * support has been detected.
- * @param args... variable number of arguments to write
+ * @param {*...} args... variable number of arguments to write
  */
 exports.write = stdout.write.bind(stdout);
 /**
  * Write the arguments to `system.stdout` followed by a newline character,
  * applying ANSI terminal colors if support has been detected.
- * @param args... variable number of arguments to write
+ * @param {*...} args... variable number of arguments to write
  */
 exports.writeln = stdout.writeln.bind(stdout);
 
