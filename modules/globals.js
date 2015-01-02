@@ -378,7 +378,7 @@ Object.defineProperty(this, "global", { value: this });
 
 /**
  * Converts each argument to a string and prints it.
- * @param {*...} arg... one ore more arguments
+ * @param {*...} args... one ore more arguments
  * @name print
  * @function
  */

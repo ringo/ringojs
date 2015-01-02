@@ -340,7 +340,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 /**
  * Returns a ByteArray composed of itself concatenated with the given
  * ByteString, ByteArray, and Array values.
- * @param {Binary...|Array...} arg... one or more elements to concatenate
+ * @param {Binary...|Array...} args... one or more elements to concatenate
  * @returns {ByteArray} a new ByteArray
  * @name ByteArray.prototype.concat
  * @function
@@ -614,7 +614,7 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
 /**
  * Returns a ByteString composed of itself concatenated with the given
  * ByteString, ByteArray, and Array values.
- * @param {Binary...|Array...} arg... one or more elements to concatenate
+ * @param {Binary...|Array...} args... one or more elements to concatenate
  * @returns {ByteString} a new ByteString
  * @name ByteString.prototype.concat
  * @function
