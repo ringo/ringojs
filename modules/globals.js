@@ -281,6 +281,9 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * The module id of this module.
  * @name module.id
+ * @example // We are inside the foo.js module
+ * // prints /usr/local/ringo-app/lib/foo
+ * console.log(module.id);
  */
 
 /**
@@ -291,6 +294,9 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * This module's URI.
  * @name module.uri
+ * @example // We are inside the foo.js module
+ * // prints: /usr/local/ringo-app/lib/foo.js
+ * console.log(module.uri);
  */
 
 /**
@@ -326,6 +332,17 @@ Object.defineProperty(this, "global", { value: this });
  * undefined if `module.singleton` is called without `factory` argument.
  * In this case `module.singleton` returns `undefined` until it is first called
  * with a `factory` argument.
+ *
+ * @example // db-controller.js
+ * // Create a single cache for all workers
+ * var entityCache = module.singleton("entityCache", function() {
+ *   return new SomeFancyCache(1000);
+ * });
+ *
+ * // All instances of "db-controller" in different workers
+ * // will use the same cache because it's a singleton
+ * entityCache.put("somekey", { ... });
+ * entityCache.get("somekey");
  *
  * @param {String} id the singleton id
  * @param {Function} factory (optional) factory function for the singleton
@@ -369,7 +386,7 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Load JavaScript source files named by string arguments. If multiple
+ * Load JavaScript source files named by string arguments and execute them. If multiple
  * arguments are given, each file is read in and executed in turn.
  * @param {String...} filename... one or more file names
  * @name load
@@ -435,7 +452,22 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * Resolve `path` following the same logic [require](#require) uses for
  * module ids and return an instance of `org.ringojs.repository.Resource`
- * representing the resolved path.
+ * representing the resolved path. It represents an abstract container
+ * for exactly one resources. For file I/O use the [fs](../fs/) module, which
+ * provides fine-grained functions for file and stream manipulation.
+ *
+ * @example // Current working directory: /usr/local/httpd/htdocs/
+ * > var resource = getResource("./someFile.xml");
+ * >
+ * > resource.getChecksum();
+ * 1419793411000
+ * >
+ * > resource.getUrl();
+ * [java.net.URL file:/usr/local/httpd/htdocs/someFile.xml]
+ * >
+ * > // read the content
+ * > resource.getContent();
+ * '&lt;?xml version="1.0" encoding="UTF-8"?> ...
  *
  * @param {String} path the resource path
  * @name getResource
@@ -447,7 +479,15 @@ Object.defineProperty(this, "global", { value: this });
 /**
  * Resolve `path` following the same logic [require](#require) uses for
  * module ids and return an instance of `org.ringojs.repository.Repository`
- * representing the resolved path.
+ * representing the resolved path. A repository provides a unified loading of scripts
+ * and other application resources. It represents an abstract container of resources.
+ * For file I/O use the [fs](../fs/) module, which provides fine-grained functions
+ * for file and stream manipulation.
+ *
+ * @example > var fileRepository = getRepository("/usr/local/httpd/htdocs/");
+ * > var resource = fileRepository.getResource("someFile.xml");
+ * > resource.getUrl();
+ * [java.net.URL file:/usr/local/httpd/htdocs/someFile.xml]
  *
  * @param {String} path the repository path
  * @return {org.ringojs.repository.Repository} a repository
