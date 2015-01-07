@@ -7,6 +7,24 @@
  * Some file system manipulations use a wrapper around standard POSIX functions. Their
  * functionality depends on the concrete file system and operating system. Others use
  * the <code>java.io</code> package and work cross-platform.
+ *
+ * @example // Writes a simple text file
+ * var fs = require('fs');
+ * if (!fs.exists('test.txt')) {
+ *   var textStream = fs.open('test.txt', {
+ *     write: true,
+ *     binary: false
+ *   });
+ *   try {
+ *     textStream.write('Hello World!');
+ *     textStream.flush();
+ *   } finally {
+ *     textStream.close();
+ *   }
+ *   console.log('Wrote test.txt');
+ * } else {
+ *   console.error('test.txt already exists.');
+ * }
  */
 
 var arrays = require('ringo/utils/arrays');
@@ -518,7 +536,8 @@ function extension(path) {
  * Join a list of paths using the local file system's path separator.
  * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
  * @see http://wiki.commonjs.org/wiki/Filesystem/Join
- *
+ * @example // build path to the config.json file
+ * var fullPath = fs.join(configDir, "config.json");
  */
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
@@ -719,9 +738,19 @@ function removeDirectory(path) {
 }
 
 /**
- * Returns an array with all the names of files contained in the direcory `path`.
+ * Returns an array of strings naming the files and directories in
+ * the given directory. There is no guarantee that the strings are in
+ * any specific order.
+ *
+ * @example var names = fs.list('/usr/local/');
+ * names.forEach(function(name) {
+ *   var fullPath = fs.join(dir, name);
+ *   if (fs.isFile(fullPath)) {
+ *     // do something with the file
+ *   }
+ * });
  * @param {String} path the directory path
- * @returns {Array} a list of file names
+ * @returns {Array} an array of strings with the files, directories, or symbolic links
  */
 function list(path) {
     var file = resolveFile(path);
@@ -982,8 +1011,14 @@ function readLink(path) {
 }
 
 /**
- * Returns a generator that produces the file names of a directory.
+ * Returns a Rhino-specific generator that produces the file names of a directory.
+ * There is no guarantee that the produced strings are in any specific order.
  * @param {String} path a directory path
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators">MDN Iterators and Generators</a>
+ * @example // Iterates over the current working directory
+ * for (var name in fs.iterate(".")) {
+ *   console.log(name);
+ * }
  */
 function iterate(path) {
     var iter = function() {

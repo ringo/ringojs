@@ -304,7 +304,7 @@ Object.defineProperty(this, "global", { value: this });
  * with a `moduleId` starting with `'./'` or '`../`'.
  *
  * This returns an absolute path if the current module is a regular file.
- * For other types of modules such as those residing in a .jar file it returs
+ * For other types of modules such as those residing in a .jar file it returns
  * a relative path relative to the module's module path root.
  *
  * @param {String} path

@@ -9,7 +9,7 @@ var stdin, stdout, stderr;
 var System = java.lang.System;
 
 /**
- * A TextStream to read from stdin.
+ * A [TextStream](../io/#TextStream) to read from stdin.
  * @name stdin
  */
 Object.defineProperty(exports, "stdin", {
@@ -26,7 +26,7 @@ Object.defineProperty(exports, "stdin", {
 });
 
 /**
- * A TextStream to write to stdout.
+ * A [TextStream](../io/#TextStream) to write to stdout.
  * @name stdout
  */
 Object.defineProperty(exports, "stdout", {
@@ -43,7 +43,7 @@ Object.defineProperty(exports, "stdout", {
 });
 
 /**
- * A TextStream to write to stderr.
+ * A [TextStream](../io/#TextStream) to write to stderr.
  * @name stderr
  */
 Object.defineProperty(exports, "stderr", {
