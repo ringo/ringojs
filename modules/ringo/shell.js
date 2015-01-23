@@ -1,5 +1,6 @@
 /**
- * @fileOverview Provides functions to work with the Ringo shell.
+ * @fileOverview This module is preloaded in every Ringo REPL. It's functions can be used directly, e.g. you can exit
+ * the REPL by calling `quit()`.
  */
 
 var system = require('system');
