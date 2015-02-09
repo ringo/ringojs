@@ -119,9 +119,17 @@ public class RingoConfig {
         }
 
         if (userModules != null) {
-            for (String pathElem : userModules) {
-                String path = pathElem.trim();
-                addModuleRepository(resolveRepository(path, false));
+            if (userModules.length > 0) {
+                for (String pathElem : userModules) {
+                    String path = pathElem.trim();
+                    addModuleRepository(resolveRepository(path, false));
+                }
+            } else {
+                // load ./packages by default as module path
+                File candidatePath = new File(System.getProperty("user.dir"), "packages");
+                if (candidatePath.isDirectory()) {
+                    addModuleRepository(resolveRepository(candidatePath.toString(), false));
+                }
             }
         }
 
