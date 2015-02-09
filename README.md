@@ -1,7 +1,8 @@
 RingoJS
 =======
 
-RingoJS is a JavaScript runtime written in Java based on Mozilla Rhino.
+Ringo is a JavaScript platform built on the JVM and optimized for server-side applications.
+It's based on the Mozilla Rhino JavaScript engine.
 
 It adds a number of features to Rhino that make it suitable for real-world,
 large-scale application development:
@@ -19,7 +20,7 @@ Building RingoJS
 ----------------
 
 Ringo requires a recent version of [Java]. It uses Apache [Ant] as build tool
-and [Ivy] for managing dependencies.
+and [Ivy] (>= 2.4 is required) for managing dependencies.
 
 [Java]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [Ant]: http://ant.apache.org/
@@ -68,6 +69,20 @@ packages. To create a blank Ringo web app:
 To install a package from a zip URL:
 
     ringo-admin install [packageurl]
+
+Installing a package manager
+----------------------------
+
+Ringo does not ship with a built-in package manager.
+An easy way to manage packages and their dependencies is the evolving Ringo package manager rp.
+The main benefit of rp over `ringo-admin` is that rp downloads dependencies defined in the packages descriptors.
+rp can install any package available in its [online registry](http://packages.ringojs.org).
+
+To install rp itself you can use the ringo-admin tool:
+
+    ringo-admin install grob/rp
+
+For more information visit the [rp documentation wiki](https://github.com/grob/rp/wiki).
 
 Learning more
 -------------
