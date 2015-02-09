@@ -57,13 +57,12 @@
     <!-- Fetches dependencies via Apache Ivy                                 -->
     <!-- =================================================================== -->
     <target name="update">
-        <ivy:retrieve type="jar" sync="true"
-            pattern="${ivy.lib.dir}/ivy/[originalname].[ext]"/>
-        <get src="https://oss.sonatype.org/content/repositories/snapshots/org/mozilla/rhino/1.7R5-SNAPSHOT/rhino-1.7R5-20120629.144839-4.jar"
-             dest="lib/ivy/rhino-1.7R5-SNAPSHOT.jar" usetimestamp="true"/>
-         <get src="http://central.maven.org/maven2/org/eclipse/jetty/orbit/javax.servlet/3.0.0.v201112011016/javax.servlet-3.0.0.v201112011016.jar"
-             dest="lib/ivy/javax.servlet-3.0.0.v201112011016.jar" usetimestamp="true"/>
-
+        <sequential>
+            <!-- normal libs / dependencies -->
+            <ivy:retrieve conf="default" type="jar" sync="true" pattern="${ivy.lib.dir}/ivy/[originalname].[ext]"/>
+            <!-- servlet-api -->
+            <ivy:retrieve conf="servlet" type="orbit" sync="true" pattern="${ivy.lib.dir}/ivy/servlet-api-3.0.jar"/>
+        </sequential>
     </target>
 
     <!-- =================================================================== -->
@@ -334,5 +333,11 @@
         <delete file="lib/ringo.jar"/>
     </target>
 
+    <!-- =================================================================== -->
+    <!-- Clean up the ivy cache                                              -->
+    <!-- =================================================================== -->
+    <target name="clean-cache" depends="init">
+        <ivy:cleancache />
+    </target>
 
 </project>

@@ -1,20 +1,24 @@
 <ivy-module version="2.0">
     <info organisation="org.ringojs" module="ringojs"/>
+
+    <configurations>
+        <conf name="default" description="the default jar libraries"/>
+        <conf name="servlet" description="Jetty's orbit jars"/>
+    </configurations>
+
     <dependencies>
-        <!-- rhino - disabled until we get 1.7R5 rhino release into maven central -->
-        <!-- dependency org="org.mozilla" name="rhino" rev="1.7R4"/-->
-        <!-- jetty -->
+        <dependency org="org.mozilla" name="rhino" rev="1.7R5" />
+
+        <!-- standard jetty libs -->
         <dependency org="org.eclipse.jetty" name="jetty-server" rev="8.1.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="8.1.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-websocket" rev="8.1.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-xml" rev="8.1.+"/>
 
-        <!-- orbit extension https://jira.codehaus.org/browse/JETTY-1493 -->
-        <!-- Moved into direct download since this fails with ivy 2.4
-        <dependency org="org.eclipse.jetty.orbit" name="javax.servlet" rev="3.0.+">
+        <!-- servlet api, require ivy 2.4 -->
+        <dependency org="org.eclipse.jetty.orbit" name="javax.servlet" rev="3.0.0.v201112011016" conf="servlet->default">
             <artifact name="javax.servlet" type="orbit" ext="jar"/>
         </dependency>
-        -->
 
         <!-- logging -->
         <dependency org="org.slf4j" name="slf4j-api" rev="1.6.+"/>
