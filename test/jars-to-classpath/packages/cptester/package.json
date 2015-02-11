@@ -1,0 +1,13 @@
+{
+   "name": "cptester",
+   "version": "0.0.1",
+   "description": "A simple test to see if class path loading works.",
+   "author": "Philipp Naderer",
+   "engines": {
+       "ringojs": ">= 0.11"
+   },
+   "main": "lib/main.js",
+   "jars": [
+       "./jars/cptest.jar"
+   ]
+}

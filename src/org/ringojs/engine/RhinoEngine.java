@@ -543,6 +543,23 @@ public class RhinoEngine implements ScopeProvider {
                 String moduleId;
                 Resource res;
 
+                // Load JAR dependencies
+                Object jars = ScriptableObject.getProperty(obj, "jars");
+                if (jars != null && jars instanceof Scriptable && ScriptRuntime.isArrayObject(jars)) {
+                    Object[] jarsToLoad = ScriptRuntime.getArrayElements((Scriptable) jars);
+                    for (Object jar : jarsToLoad) {
+                        Resource jarResource = parent.getResource(jar.toString());
+                        if (!jarResource.exists()) {
+                            log.warning("Skipping non-existing JAR resource in package.json descriptor for " +
+                                    packageName + ": " + jar.toString() + " - " + jarResource.getUrl());
+                        } else {
+                            log.config("Adding JAR resource from " + packageName +
+                                    " package.json descriptor to classpath: " + jarResource.getUrl());
+                            loader.addURL(jarResource.getUrl());
+                        }
+                    }
+                }
+
                 if (remainingName == null) {
                     // get the main module of this package
                     moduleId = getStringProperty(obj, "main", null);
