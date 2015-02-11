@@ -10,6 +10,7 @@ large-scale application development:
   * A fast, auto-reloading, and CommonJS-compliant module loader.
   * A rich set of modules covering I/O, logging, development tools
     and much more.
+  * Support for blocking and none-blocking I/O.
   * Scalable HTTP server based on the Jetty project.
   * Support for CommonJS packages to install or write additional software
     components.
@@ -61,7 +62,7 @@ to run the Ringo test suite:
 
     ringo test/all.js
 
-Use the ringo-admin command to create a new web application or install
+Use the basic ringo-admin command to create a new web application or install
 packages. To create a blank Ringo web app:
 
     ringo-admin create [appdir]
@@ -87,5 +88,5 @@ For more information visit the [rp documentation wiki](https://github.com/grob/r
 Learning more
 -------------
 
-If you have questions visit <http://ringojs.org/> or join the RingoJS mailing
+If you have questions visit <http://ringojs.org/> or join the mailing
 list at <http://groups.google.com/group/ringojs>.
