@@ -44,8 +44,8 @@ var prepareOptions = function(options) {
         "username": undefined,
         "password": undefined,
         "followRedirects": true,
-        "readTimeout": 0,
-        "connectTimeout": 0,
+        "readTimeout": 30000,
+        "connectTimeout": 60000,
         "binary": false
     };
     var opts = options ? objects.merge(options, defaultValues) : defaultValues;
@@ -553,11 +553,11 @@ Object.defineProperties(Exchange.prototype, {
  *  - `followRedirects`: whether HTTP redirects (response code 3xx) should be
  *     automatically followed; default: true
  *  - `readTimeout`: setting for read timeout in millis. 0 return implies that the option
- *     is disabled (i.e., timeout of infinity); default: 0 (or until impl decides its time)
+ *     is disabled (i.e., timeout of infinity); default: 30000 ms (or until impl decides its time)
  *  - `connectTimeout`: Sets a specified timeout value, in milliseconds, to be used
  *     when opening a communications link to the resource referenced by this
  *     URLConnection. A timeout of zero is interpreted as an infinite timeout.;
- *     default: 0 (or until impl decides its time)
+ *     default: 60000 ms (or until impl decides its time)
  *
  *  #### Callbacks
  *
