@@ -595,6 +595,47 @@ exports.testProxiedRequest = function() {
     assert.strictEqual(myData, text);
 };
 
+exports.testMalformedUrl = function() {
+    var errorCalled, completeCalled, myData;
+    var exchange = request({
+        url: "malformedurl",
+        success: function(data, status, contentType, exchange) {
+            myData = data;
+        },
+        error: function() {
+            errorCalled = true;
+        },
+        complete: function() {
+            completeCalled=true;
+        }
+    });
+    assert.isNotNull(exchange.exception);
+    assert.isTrue(errorCalled);
+    assert.isTrue(completeCalled);
+    assert.equal(exchange.status, 0);
+};
+
+exports.testUnknownHost = function() {
+    var errorCalled, completeCalled, myData;
+    var exchange = request({
+        url: "http://nohostwiththisname.uhrorg",
+        success: function(data, status, contentType, exchange) {
+            myData = data;
+        },
+        error: function() {
+            errorCalled = true;
+        },
+        complete: function() {
+            completeCalled=true;
+        }
+    });
+    assert.isNotNull(exchange.exception);
+    assert.isTrue(errorCalled);
+    assert.isTrue(completeCalled);
+    assert.equal(exchange.status, 0);
+};
+
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     var {run} = require("test");
