@@ -345,15 +345,15 @@ function Server(options) {
                             "onWebSocketBinary": "binary",
                             "onWebSocketError": "error"
                         });
-                        // this is for backwards compatibility
+                        // these events are emitted for backwards compatibility
                         socket.addListener("connect", function(session) {
-                            socket.emit("open", Array.prototype.slice.call(arguments));
+                            socket.emit("open", session);
                         });
                         socket.addListener("text", function(message) {
-                            socket.emit("message", Array.prototype.slice.call(arguments));
+                            socket.emit("message", message);
                         });
                         socket.addListener("binary", function(bytes, offset, length) {
-                            socket.emit("message", Array.prototype.slice.call(arguments));
+                            socket.emit("message", bytes, offset, length);
                         });
 
                         socket.addListener("connect", function(sess) {
@@ -462,7 +462,7 @@ function Server(options) {
     // while start() is called with the user we will actually run as
     var connectors = jetty.getConnectors();
     for each (var connector in connectors) {
-        connector.setHost(options.host || null);
+        connector.setHost(options.host || "localhost");
         connector.setPort(options.port || 8080);
         connector.open();
     }
