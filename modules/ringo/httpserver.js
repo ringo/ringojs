@@ -74,7 +74,7 @@ WebSocket.prototype.send = function(message) {
  * Send a string over the WebSocket. This method
  * blocks until the message has been transmitted
  * @param {String} message a string
- * @name WebSocket.instance.send
+ * @name WebSocket.instance.sendString
  * @function
  */
 WebSocket.prototype.sendString = function(message) {
@@ -88,7 +88,7 @@ WebSocket.prototype.sendString = function(message) {
  * Send a string over the WebSocket. This method
  * does not wait until the message as been transmitted.
  * @param {String} message a string
- * @name WebSocket.instance.send
+ * @name WebSocket.instance.sendStringAsync
  * @function
  */
 WebSocket.prototype.sendStringAsync = function(message) {
@@ -106,30 +106,14 @@ WebSocket.prototype.sendStringAsync = function(message) {
  * @param {Number} length Optional length (defaults to the
  * length of the byte array)
  * @name WebSocket.instance.sendBinary
- * @deprecated
- * @see #sendBytes
  * @function
  */
 WebSocket.prototype.sendBinary = function(byteArray, offset, length) {
-    this.sendBytes(byteArray, offset, length);
-};
-
-/**
- * Send a byte array over the WebSocket. This method
- * blocks until the message as been transmitted.
- * @param {ByteArray} byteArray The byte array to send
- * @param {Number} offset Optional offset (defaults to zero)
- * @param {Number} length Optional length (defaults to the
- * length of the byte array)
- * @name WebSocket.instance.sendBinary
- * @function
- */
-WebSocket.prototype.sendBytes = function(byteArray, offset, length) {
     if (!this.isOpen()) {
         throw new Error("Not connected");
     }
     var buffer = ByteBuffer.wrap(byteArray, parseInt(offset, 10) || 0,
-            parseInt(length, 10) || byteArray.length);
+        parseInt(length, 10) || byteArray.length);
     return this.session.getRemote().sendBytes(buffer);
 };
 
@@ -140,11 +124,11 @@ WebSocket.prototype.sendBytes = function(byteArray, offset, length) {
  * @param {Number} offset Optional offset (defaults to zero)
  * @param {Number} length Optional length (defaults to the
  * length of the byte array)
- * @name WebSocket.instance.sendBinary
+ * @name WebSocket.instance.sendBinaryAsync
  * @returns {java.util.concurrent.Future}
  * @function
  */
-WebSocket.prototype.sendBytesAsync = function(byteArray, offset, length) {
+WebSocket.prototype.sendBinaryAsync = function(byteArray, offset, length) {
     if (!this.isOpen()) {
         throw new Error("Not connected");
     }

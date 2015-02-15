@@ -41,7 +41,7 @@ var onmessage = function(event) {
             socket[isAsync ? "sendString" : "sendStringAsync"](message);
         });
         socket.on("binary", function(bytes, offset, length) {
-            socket[isAsync ? "sendBytes" : "sendBytesAsync"](bytes, offset, length);
+            socket[isAsync ? "sendBinary" : "sendBinaryAsync"](bytes, offset, length);
         });
     });
 

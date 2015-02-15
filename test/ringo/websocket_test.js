@@ -10,6 +10,9 @@ exports.testTextMessage = function() {
     worker.onmessage = function(event) {
         received = event.data;
     };
+    worker.onerror = function(event) {
+        console.error(event.data);
+    };
     for each (let isAsync in [false, true]) {
         var semaphore = new Semaphore();
         var received = null;
