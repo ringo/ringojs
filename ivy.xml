@@ -15,6 +15,7 @@
         <dependency org="org.eclipse.jetty" name="jetty-continuation" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.2.+"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.2.+"/>
 
         <!-- logging -->
