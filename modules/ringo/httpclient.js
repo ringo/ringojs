@@ -479,7 +479,10 @@ Object.defineProperties(Exchange.prototype, {
      */
     "headers": {
         "get": function() {
-            return new ScriptableMap(this.connection.getHeaderFields());
+            var headerFields = new java.util.HashMap(this.connection.getHeaderFields());
+            // drops the HTTP Status-Line with the key null
+            headerFields.remove(null);
+            return new ScriptableMap(headerFields);
         }, enumerable: true
     },
     /**
