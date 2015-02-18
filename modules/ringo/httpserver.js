@@ -26,16 +26,6 @@ var WebSocket = function() {
         "onWebSocketBinary": "binary",
         "onWebSocketError": "error"
     });
-    // these events are emitted for backwards compatibility
-    this.addListener("connect", (function(session) {
-        this.emit("open", session);
-    }).bind(this));
-    this.addListener("text", (function(message) {
-        this.emit("message", message);
-    }).bind(this));
-    this.addListener("binary", (function(bytes, offset, length) {
-        this.emit("message", bytes, offset, length);
-    }).bind(this));
 
     return this;
 };
@@ -326,16 +316,18 @@ function Server(options) {
                 cx.addServlet(servletHolder, servletPath);
             },
             /**
-             * Start accepting WebSocket connections in this context context.
+             * Start accepting WebSocket connections in this context.
              *
              * @param {String} path The URL path on which to accept WebSocket connections
              * @param {Function} onconnect a function called for each new WebSocket connection
              *        with the WebSocket object as argument.
+             * @param {Object} initParams optional object containing servlet
+             *     init parameters
              * @since 0.8
              * @see #WebSocket
              * @name Context.instance.addWebSocket
              */
-            addWebSocket: function(path, onconnect) {
+            addWebSocket: function(path, onconnect, initParams) {
                 log.info("Starting websocket support");
 
                 var webSocketCreator = new WebSocketCreator({
