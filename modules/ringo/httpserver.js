@@ -319,24 +319,32 @@ function Server(options) {
              * Start accepting WebSocket connections in this context.
              *
              * @param {String} path The URL path on which to accept WebSocket connections
-             * @param {Function} onconnect a function called for each new WebSocket connection
-             *        with the WebSocket object as argument.
-             * @param {Object} initParams optional object containing servlet
-             *     init parameters
+             * @param {Function} onConnect A function called for each new WebSocket connection
+             *        with the WebSocket object and the session as arguments.
+             * @param {Function} onCreate Optional function called before a WebSocket
+             *        instance is created. This function receives the request and
+             *        response objects as arguments. Only if the function returns `true`
+             *        the upgrade request is accepted and a WebSocket instance is created.
+             *        Use this function for eg. authorization or authentication checks.
+             * @param {Object} initParams Optional object containing servlet
+             *          initialization parameters
              * @since 0.8
              * @see #WebSocket
              * @name Context.instance.addWebSocket
              */
-            addWebSocket: function(path, onconnect, initParams) {
+            addWebSocket: function(path, onConnect, onCreate, initParams) {
                 log.info("Starting websocket support");
 
                 var webSocketCreator = new WebSocketCreator({
                     "createWebSocket": function(request, response) {
+                        if (typeof(onCreate) === "function" && onCreate(request, response) !== true) {
+                            return null;
+                        }
                         var socket = new WebSocket();
                         socket.addListener("connect", function(session) {
                             socket.session = session;
-                            if (typeof onconnect === "function") {
-                                onconnect(socket, session);
+                            if (typeof onConnect === "function") {
+                                onConnect(socket, session);
                             }
                         });
 
@@ -349,7 +357,7 @@ function Server(options) {
                         // factory.register(webSocketListener.impl);
                         factory.setCreator(webSocketCreator);
                     }
-                }));
+                }), initParams);
             }
         };
     };
