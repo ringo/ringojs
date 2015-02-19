@@ -10,6 +10,7 @@ exports.testEvents         = require('./ringo/events_test');
 exports.testHttpServer     = require('./ringo/httpserver_test');
 exports.testHttpClient     = require('./ringo/httpclient_test');
 exports.testWebSocket      = require('./ringo/websocket_test');
+exports.testEventSource    = require('./ringo/eventsource_test');
 exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
 exports.testSubprocess     = require('./ringo/subprocess_test');

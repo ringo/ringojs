@@ -7,6 +7,8 @@ var system = require('system');
 var {JavaEventEmitter} = require('ringo/events');
 var {WebSocketServlet, WebSocketCreator} = org.eclipse.jetty.websocket.servlet;
 var {WebSocketListener} = org.eclipse.jetty.websocket.api;
+var {EventSourceServlet} = org.eclipse.jetty.servlets;
+var JettyEventSource = org.eclipse.jetty.servlets.EventSource;
 var {ByteBuffer} = java.nio;
 
 export('Server', 'main', 'init', 'start', 'stop', 'destroy');
@@ -147,6 +149,91 @@ WebSocket.prototype.isOpen = function() {
     return this.session !== null && this.session.isOpen();
 };
 
+/**
+ * EventSource is the active half of an event source connection, and allows
+ * applications to operate on the connection by sending events, data or
+ * comments, or by closing the connection.
+ *
+ * An EventSource instance will be created for each new event source connection.
+ * EventSource instances are fully thread safe and can be used from multiple threads.
+ *
+ * An EventSource emits two events: "open" when the event source connection
+ * is ready to be used. And "close" when the connection is closed.
+ *
+ * When trying to send over a closed connection, an exception is thrown.
+ */
+var EventSource = function() {
+    this.emitter = null;
+    JavaEventEmitter.call(this, [JettyEventSource]);
+
+    this.addListener("open", (function(emitter) {
+        this.emitter = emitter;
+    }).bind(this));
+    this.addListener("close", (function(emitter) {
+        this.emitter = null;;
+    }).bind(this));
+
+    return this;
+};
+
+/**
+ * Closes this event source connection.
+ */
+EventSource.prototype.close = function() {
+    if (this.emitter == null) {
+        throw new Error("EventSource connection not open.");
+    }
+    this.emitter.close();
+};
+
+/**
+ * Sends a comment to the client.
+ * When invoked as: comment("foo"), the client will receive the line:
+ *     : foo
+ * @param {String} comment the comment text to send
+ */
+EventSource.prototype.comment = function(comment) {
+    if (this.emitter == null) {
+        throw new Error("EventSource connection not open.");
+    }
+    this.emitter.comment(comment);
+};
+
+/**
+ * Sends a default event with data to the client.
+ * When invoked as: data("baz"), the client will receive the line:
+ *     data: baz
+ *
+ * When invoked as: data("foo\r\nbar\rbaz\nbax"), the client will receive the lines:
+ *     data: foo
+ *     data: bar
+ *     data: baz
+ *     data: bax
+ *
+ * @param {String} data the data to send
+ */
+EventSource.prototype.data = function(data) {
+    if (this.emitter == null) {
+        throw new Error("EventSource connection not open.");
+    }
+    this.emitter.data(data);
+};
+
+/**
+ * Sends a named event with data to the client.
+ * When invoked as: event("foo", "bar"), the client will receive the lines:
+ *
+ *     event: foo
+ *     data: bar
+ * @param {String} name the name of the event
+ * @param {String} data the data of the event
+ */
+EventSource.prototype.event = function(name, data) {
+    if (this.emitter == null) {
+        throw new Error("EventSource connection not open.");
+    }
+    this.emitter.event(name, data);
+};
 
 /**
  * Create a Jetty HTTP server with the given options. The options may
@@ -358,6 +445,18 @@ function Server(options) {
                         factory.setCreator(webSocketCreator);
                     }
                 }));
+            },
+            addEventSource: function(path, onconnect, initParams) {
+                log.info("Starting eventsource support");
+                this.addServlet(path, new EventSourceServlet({
+                    newEventSource: function(request) {
+                        var eventSource = new EventSource();
+                        if (typeof onconnect === "function") {
+                            onconnect(eventSource, request);
+                        }
+                        return eventSource.impl;
+                    }
+                }, initParams));
             }
         };
     };
