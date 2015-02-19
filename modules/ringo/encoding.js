@@ -1,5 +1,19 @@
 /**
  * @fileOverview Low-level support for character encoding and decoding.
+ * It uses the packages java.nio and java.nio.charset for the underlying operations.
+ *
+ * @example var enc = new Encoder('utf-8');
+ * enc.encode('I \u2665 JS').encode('I \u2665 JS');
+ * var bs = enc.toByteString();
+ *
+ * // prints 'I ♥ JSI ♥ JS'
+ * console.log(bs.decodeToString('utf-8'));
+ *
+ * var dec = new Decoder('ISO-8859-1');
+ * var ba = new ByteArray([246, 228, 252]);
+ *
+ * // prints öäü
+ * console.log(dec.decode(ba));
  */
 
 export("Encoder", "Decoder");
@@ -14,9 +28,20 @@ var JavaString = java.lang.String;
 var DEFAULTSIZE = 8192;
 
 /**
- * @param {String} charset
- * @param {Boolean} strict
- * @param {Number} capacity
+ * Creates a new Decoder to transform a ByteString or ByteArray to a string.
+ *
+ * @param {String} charset the charset name
+ * @param {Boolean} strict if true, unmappable characters stop the decoder and throw an exception, otherwise
+ *                         malformed input is replaced with a substitution character
+ * @param {Number} capacity initial capacity for the input byte buffer and output character buffer. The output buffer's
+ *                          size depends on the average bytes used per character by the charset.
+ * @example // throws an Error: MALFORMED[1]
+ * var dec = new Decoder('ASCII', true);
+ * dec.decode(new ByteArray([246, 228, 252, 999999]));
+ *
+ * // replaces 999999 with a substitutions character ���
+ * var dec = new Decoder('ASCII');
+ * dec.decode(new ByteArray([246, 228, 252, 999999]));
  */
 function Decoder(charset, strict, capacity) {
 
@@ -58,9 +83,7 @@ function Decoder(charset, strict, capacity) {
         return this;
     };
 
-    /**
-     * @param {Number} remaining
-     */
+    // Internal function
     function decodeInput(remaining) {
         input.flip();
         var result = decoder.decode(input, output, false);
@@ -81,6 +104,11 @@ function Decoder(charset, strict, capacity) {
         input.compact();
     }
 
+   /**
+    * Closes the decoder for further input. A closed decoder throws a `java.nio.BufferOverflowException`
+    * if `decode()` is called again.
+    * @returns {Decoder} the decoder
+    */
     this.close = function() {
         input.flip();
         var result = decoder.decode(input, output, true);
@@ -92,6 +120,12 @@ function Decoder(charset, strict, capacity) {
         return this;
     };
 
+   /**
+    * Reads the whole stream and returns it as a string.
+    * This method is only useful if the decoder has a connected stream.
+    * @returns {String} the decoded string
+    * @see <a href="#readFrom">readFrom</a>
+    */
     this.read = function() {
         var eof = false;
         while (stream && !eof) {
@@ -117,9 +151,13 @@ function Decoder(charset, strict, capacity) {
                     null : String(output.subSequence(mark, output.limit()));
     };
 
-    /**
-     * @param {Boolean} includeNewline
-     */
+   /**
+    * Reads a stream line by line and returns it as a string.
+    * This method is only useful if the decoder has a connected stream.
+    * @param {Boolean} includeNewline if true, the newline character is included in the result, otherwise not
+    * @returns {String} the decoded string or null if stream is empty
+    * @see <a href="#readFrom">readFrom</a>
+    */
     this.readLine = function(includeNewline) {
         var eof = false;
         var newline = StringUtils.searchNewline(output, mark);
@@ -171,6 +209,10 @@ function Decoder(charset, strict, capacity) {
         return result;
     };
 
+   /**
+    * Returns the decoded string.
+    * @returns {String} the decoded string
+    */
     this.toString = function() {
         if (decoded == null) {
             decoded = JavaString.valueOf(output.array(), mark, output.position() - mark);
@@ -178,18 +220,39 @@ function Decoder(charset, strict, capacity) {
         return decoded;
     };
 
+    /**
+     * Checks if all bytes are already decoded or if there is pending input.
+     * @returns {Boolean} true if there not all bytes are decoded, false otherwise
+     */
     this.hasPendingInput = function() {
         return input.position() > 0;
     };
 
     /**
-     * @param {binary.Binary} source
+     * Sets the source stream to read from. Using io streams is an alternative
+     * to reading from plain binary ByteArray or ByteString objects.
+     * @param {io.Stream} source the source stream
+     * @see <a href="../../io/">io streams</a>
+     * @example var stream = new MemoryStream();
+     * stream.write(...); // write some bytes into the stream
+     * stream.position = 0; // reset the pointer
+     *
+     * var dec = new Decoder('ASCII');
+     * dec.readFrom(stream); // connect the stream with the decoder
+     * dec.read(); // returns the stream's content as string
      */
     this.readFrom = function(source) {
         stream = source;
         return this;
     };
 
+    /**
+     * Clears the character buffer.
+     * @example dec.decode(someByteArray);
+     * dec.toString(); // returns the decoded string
+     * dec.clear();
+     * dec.toString(); // returns ''
+     */
     this.clear = function() {
         decoded = null;
         output.clear();
@@ -197,6 +260,22 @@ function Decoder(charset, strict, capacity) {
         return this;
     };
 
+   /**
+    * The character buffer's length which uses the Java primitive `char` internally.
+    * Each character in the buffer is a 16-bit Unicode character.
+    * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html">java.nio.CharBuffer</a>
+    * @example // an emoji in 4 raw bytes
+    * var ba = new ByteArray([0xF0,0x9F,0x98,0x98]);
+    *
+    * // a UTF-8 based decoder
+    * var dec = new Decoder("UTF-8");
+    *
+    * // prints &#128536;
+    * console.log(dec.decode(ba));
+    *
+    * // prints "2 chars vs. 4 bytes"
+    * console.log(dec.length + " chars vs. " + ba.length + " bytes");
+    */
     Object.defineProperty(this, "length", {
         get: function() {
             return output.position() - mark;
@@ -205,9 +284,12 @@ function Decoder(charset, strict, capacity) {
 }
 
 /**
- * @param {String} charset
- * @param {Boolean} strict
- * @param {Number} capacity
+ * Creates a new Encoder to transform string into a binary ByteString or ByteArray.
+ * @param {String} charset the charset name
+ * @param {Boolean} strict if true, unmappable characters stop the decoder and throw an exception,
+ *                         otherwise malformed input is replaced with a substitution character
+ * @param {Number} capacity initial capacity for the input character buffer and output byte buffer.
+ *                          The binary buffer's size depends on the average bytes used per character by the charset.
  */
 function Encoder(charset, strict, capacity) {
 
@@ -227,9 +309,12 @@ function Encoder(charset, strict, capacity) {
     encoder.onUnmappableCharacter(errorAction);
 
     /**
-     * @param {String} string
-     * @param {Number} start
-     * @param {Number} end
+     * Encodes the given string into the encoder's binary buffer.
+     * @param {String} string the string to encode
+     * @param {Number} start optional index of the first character to encode
+     * @param {Number} end optional index of the character after the last character to encode
+     * @example // this will only encode 'e' and 'f'
+     * enc.encode("abcdef", 4, 6);
      */
     this.encode = function(string, start, end) {
         start = start || 0;
@@ -257,6 +342,10 @@ function Encoder(charset, strict, capacity) {
         return this;
     };
 
+   /**
+    * Closes the encoder.
+    * @returns {Encoder} the now closed encoder
+    */
     this.close = function() {
         var input = CharBuffer.wrap("");
         var result = encoder.encode(input, output, true);
@@ -276,27 +365,45 @@ function Encoder(charset, strict, capacity) {
         return "[Encoder " + output.position() + "]";
     };
 
+   /**
+    * Converts the encoded bytes into a ByteString.
+    * @returns {ByteString} the resulting ByteString
+    */
     this.toByteString = function() {
         return ByteString.wrap(encoded.slice(0, output.position()));
     };
 
+   /**
+    * Converts the encoded bytes into a ByteArray.
+    * @returns {ByteArray} the resulting ByteArray
+    */
     this.toByteArray = function() {
         return encoded.slice(0, output.position());
     };
 
-    /**
-    * @param {Stream} sink
+   /**
+    * Sets the output stream to write into. Using io streams as destination is an alternative to writing
+    * into plain binary ByteArray or ByteString objects.
+    * @param {Stream} sink the destination stream
+    * @see <a href="../../io/">io streams</a>
     */
     this.writeTo = function(sink) {
         stream = sink;
         return this;
     };
 
+   /**
+    * Clears the byte buffer.
+    * @returns {Encoder} the cleared encoder
+    */
     this.clear = function() {
         output.clear();
         return this;
     };
 
+   /**
+    * The underlying byte buffer's length.
+    */
     Object.defineProperty(this, "length", {
         get: function() {
             return output.position();
