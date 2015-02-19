@@ -1,6 +1,20 @@
 /**
- * @fileOverview This module is preloaded in every Ringo REPL. It's functions can be used directly, e.g. you can exit
- * the REPL by calling `quit()`.
+ * @fileOverview Provides functions to deal with the Ringo shell / REPL.
+ * It allows to start a new Ringo shell programmatically.
+ * This module is internally used by every Ringo REPL to interact with the user.
+ * The example shows a simple Ringo shell script which prepares an object and
+ * opens a shell for live interaction.
+ *
+ * @example #!/usr/bin/env ringo
+ * if (require.main == module) {
+ *   var obj = { 'foo': 'bar' };
+ *   require('ringo/shell').start();
+ * }
+ *
+ * // running the script opens a new shell
+ * // with the prepared object available
+ * >> console.log(obj);
+ * { foo: 'bar' }
  */
 
 var system = require('system');
