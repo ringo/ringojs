@@ -479,7 +479,16 @@ Object.defineProperties(Exchange.prototype, {
      */
     "headers": {
         "get": function() {
-            return new ScriptableMap(this.connection.getHeaderFields());
+            // This is required since getHeaderFields() returns an unmodifiable Map
+            // http://hg.openjdk.java.net/jdk8/jdk8/jdk/file/687fd7c7986d/src/share/classes/sun/net/www/protocol/http/HttpURLConnection.java#l2919
+            var headerFields = new java.util.HashMap(this.connection.getHeaderFields());
+
+            // drops the HTTP Status-Line with the key null
+            // null => HTTP/1.1 200 OK
+            // this is required since ScriptableMap cannot deal with null keys!
+            headerFields.remove(null);
+
+           return new ScriptableMap(headerFields);
         }, enumerable: true
     },
     /**

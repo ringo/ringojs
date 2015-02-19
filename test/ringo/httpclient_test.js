@@ -1,4 +1,5 @@
 var assert = require("assert");
+var objects = require("ringo/utils/objects");
 var {Server} = require("ringo/httpserver");
 var response = require("ringo/jsgi/response");
 var {request, post, get, put, del, TextPart, BinaryPart} = require("ringo/httpclient");
@@ -593,6 +594,32 @@ exports.testProxiedRequest = function() {
     });
     assert.isUndefined(errorCalled);
     assert.strictEqual(myData, text);
+};
+
+exports.testIterateExchange_Issue287 = function() {
+   //exchange.headers
+   var text = "<h1>This is the Response Text</h1>";
+
+   getResponse = function(req) {
+      return response.html(text);
+   };
+
+   var errorCalled, myData;
+   var exchange = request({
+      url: baseUri,
+      success: function(data, status, contentType, exchange) {
+         myData = data;
+      },
+      error: function() {
+         errorCalled = true;
+      }
+   });
+   assert.isUndefined(errorCalled);
+   assert.strictEqual(myData, text);
+
+   var clone = objects.clone(exchange.headers);
+   assert.deepEqual(exchange.headers, clone);
+   assert.isUndefined(exchange.headers[null]);
 };
 
 // start the test runner if we're called directly from command line
