@@ -7,6 +7,8 @@ var {Stream} = require('io');
 var {Binary, ByteString} = require('binary');
 var system = require('system');
 var strings = require('ringo/utils/strings');
+var {WriteListener, AsyncListener} = javax.servlet;
+var {ConcurrentLinkedQueue} = java.util.concurrent;
 
 export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
@@ -80,15 +82,14 @@ function initRequest(request) {
  */
 function commitResponse(req, result) {
     var request = req.env.servletRequest;
+    if (request.isAsyncStarted()) {
+        return;
+    }
     var response = req.env.servletResponse;
     var {status, headers, body} = result;
     if (!status || !headers || !body) {
         // Check if this is an asynchronous response. If not throw an Error
-        if (handleAsyncResponse(request, response, result)) {
-            return;
-        } else {
-            throw new Error('No valid JSGI response: ' + result);
-        }
+        throw new Error('No valid JSGI response: ' + result);
     }
     // Allow application/middleware to handle request via Servlet API
     if (!response.isCommitted() && !Headers(headers).contains("X-JSGI-Skip-Response")) {
@@ -135,93 +136,6 @@ function writeBody(response, body, charset) {
     }
 }
 
-function writeAsync(servletResponse, jsgiResponse) {
-    if (!jsgiResponse.status || !jsgiResponse.headers || !jsgiResponse.body) {
-        throw new Error('No valid JSGI response: ' + jsgiResponse);
-    }
-    var {status, headers, body} = jsgiResponse;
-    writeResponse(servletResponse, status, Headers(headers), body);
-}
-
-function handleAsyncResponse(request, response, result) {
-    // support for asynchronous JSGI based on Jetty continuations
-    // If result has a "suspend" method we just call it and return, letting
-    // the response take care of everything
-    if (typeof result.suspend === "function") {
-        result.suspend();
-        return true;
-    }
-    // As a convenient shorthand, allow apps to return the deferred as returned
-    // by ringo.promise.Deferred()
-    if (result.promise && typeof result.promise.then === "function") {
-        result = result.promise;
-    }
-    // Only handle asynchronously if the result has a then() function
-    if (typeof result.then !== "function") {
-        return false;
-    }
-
-    var continuation;
-    var done = false;
-
-    var onFinish = sync(function(value) {
-        if (done) return;
-        done = true;
-        writeAsync(response, value);
-        if (continuation) {
-            continuation.complete();
-        }
-    }, request);
-
-    var onError = sync(function(error) {
-        if (done) return;
-        done = true;
-        var jsgiResponse = {
-            status: 500,
-            headers: {"Content-Type": "text/html"},
-            body: ["<!DOCTYPE html><html><body><h1>Error</h1><p>",
-                strings.escapeHtml(String(error)), "</p></body></html>"]
-        };
-        writeAsync(response, jsgiResponse);
-        if (continuation) {
-            continuation.complete();
-        }
-    }, request);
-
-    result.then(onFinish, onError);
-
-    sync(function() {
-        if (done) return;
-
-        var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
-        continuation = ContinuationSupport.getContinuation(request);
-        if (!continuation) {
-            throw new Error("Jetty continuation support required for " +
-                            "asynchronous response is not available");
-        }
-
-        continuation.addContinuationListener(new ContinuationListener({
-            onTimeout: sync(function() {
-                if (done) return;
-                done = true;
-                var jsgiResponse = {
-                    status: 500,
-                    headers: {"Content-Type": "text/html"},
-                    body: ["<!DOCTYPE html><html><body><h1>Error</h1>" +
-                            "<p>Request timed out</p></body></html>"]
-                };
-                writeAsync(response, jsgiResponse);
-                continuation.complete();
-            }, request)
-        }));
-        // default async request timeout is 30 seconds
-        continuation.setTimeout(result.timeout || 30000);
-        continuation.suspend(response);
-    }, request)();
-
-    return true;
-}
-
 /**
  * Creates a streaming asynchronous response. The returned response object can be used
  * both synchronously from the current thread or asynchronously from another thread,
@@ -229,110 +143,57 @@ function handleAsyncResponse(request, response, result) {
  * threadsafe.
  * @param {Object} request the JSGI request object
  * @param {Number} timeout the response timeout in milliseconds. Defaults to 30 seconds.
- * @param {Boolean} autoflush whether to flush after each write.
+ * @param {Boolean} autoFlush whether to flush after each write.
  */
-function AsyncResponse(request, timeout, autoflush) {
+function AsyncResponse(request, timeout, autoFlush) {
     if (!request || !request.env) {
         throw new Error("Invalid request argument: " + request);
     }
     var req = request.env.servletRequest;
     var res = request.env.servletResponse;
-    var NEW = 0, CONNECTED = 1, CLOSED = 2;
-    var state = NEW;
-    var continuation;
+    var async = req.startAsync();
+    async.setTimeout(timeout);
+    async.addListener(new AsyncListener({
+        "onComplete": function(event) {
+            log.info("AsyncListener.onComplete", event);
+        },
+        "onError": function(event) {
+            log.error("AsyncListener.onError", event);
+        },
+        "onTimeout": function(event) {
+            log.info("AsyncListener.onTimeout", event);
+            async.complete();
+        }
+    }));
 
+    var writeListener = null;
     return {
-        /**
-         * Set the HTTP status code and headers of the response. This method must only
-         * be called once.
-         * @param {Number} status the HTTP status code
-         * @param {Object} headers the headers
-         * @returns {AsyncResponse} this response object for chaining
-         * @name AsyncResponse.prototype.start
-         */
-        start: sync(function(status, headers) {
-            if (state > NEW) {
-                throw new Error("start() must only be called once");
-            }
-            state = CONNECTED;
+        "start": function(status, headers) {
             res.setStatus(status);
             writeHeaders(res, headers || {});
             return this;
-        }, request),
-
-        /**
-          * Write a chunk of data to the response stream.
-          * @param {String|Binary} data a binary or string
-          * @param {String} [encoding] the encoding to use
-          * @returns {AsyncResponse} this response object for chaining
-          * @name AsyncResponse.prototype.write
-          */
-        write: sync(function(data, encoding) {
-            if (state == CLOSED) {
-                throw new Error("Response has been closed");
+        },
+        "write": function(data, encoding) {
+            data = (data instanceof Binary) ? data : String(data).toByteArray(encoding);
+            if (writeListener === null) {
+                writeListener = new WriteListenerImpl(async,
+                        res.getOutputStream(), autoFlush === true);
+                writeListener.queue.add(data);
+                res.getOutputStream().setWriteListener(writeListener);
+            } else {
+                writeListener.queue.add(data);
+                writeListener.onWritePossible();
             }
-            state = CONNECTED;
-            var out = res.getOutputStream();
-            data = data instanceof Binary ? data : String(data).toByteArray(encoding);
-            out.write(data);
-            if (autoflush) {
+            return this;
+        },
+        "flush": function() {
+            if (out.isReady()) {
                 out.flush();
             }
-            return this;
-        }, request),
-
-        /**
-          * Flush the response stream, causing all buffered data to be written
-          * to the client.
-          * @returns {AsyncResponse} this response object for chaining
-          * @name AsyncResponse.prototype.flush
-          */
-        flush: sync(function() {
-            if (state == CLOSED) {
-                throw new Error("Response has been closed");
-            }
-            state = CONNECTED;
-            res.getOutputStream().flush();
-            return this;
-        }, request),
-
-        /**
-          * Close the response stream, causing all buffered data to be written
-          * to the client.
-          * @function
-          * @name AsyncResponse.prototype.close
-          */
-        close: sync(function() {
-            if (state == CLOSED) {
-                throw new Error("close() must only be called once");
-            }
-            state = CLOSED;
-            res.getOutputStream().close();
-            if (continuation) {
-                continuation.complete();
-            }
-        }, request),
-
-        // Used internally by ringo/jsgi
-        suspend: sync(function() {
-            if (state < CLOSED) {
-                var {ContinuationSupport, ContinuationListener} = org.eclipse.jetty.continuation;
-                continuation = ContinuationSupport.getContinuation(req);
-                if (!continuation) {
-                    throw new Error("Jetty continuation support required for " +
-                                    "asynchronous response is not available");
-                }
-                continuation.setTimeout(timeout || 30000);
-                continuation.addContinuationListener(new ContinuationListener({
-                    onTimeout: sync(function() {
-                        if (state < CLOSED) {
-                            log.error("AsyncResponse timed out");
-                        }
-                    }, request)
-                }));
-                continuation.suspend(res);
-            }
-        }, request)
+        },
+        "close": function() {
+            async.complete();
+        }
     };
 }
 
@@ -364,3 +225,47 @@ function resolve(app) {
 function middlewareWrapper(inner, outer) {
     return resolve(outer)(inner);
 }
+
+/**
+ * Creates a new WriteListener instance
+ * @param {javax.servlet.AsyncContext} asyncContext The async context of the request
+ * @param {javax.servlet.ServletOutputStream} outStream The output stream to write to
+ * @param {boolean} autoFlush If true flush after every write to the output stream
+ * @returns {javax.servlet.WriteListener}
+ * @constructor
+ */
+var WriteListenerImpl = function(asyncContext, outStream, autoFlush) {
+    this.queue = new ConcurrentLinkedQueue();
+    this.asyncContext = asyncContext;
+    this.outStream = outStream;
+    this.autoFlush = autoFlush === true;
+    return new WriteListener(this);
+};
+
+/**
+ * Called by the servlet container or directly. Polls all byte arrays from
+ * the internal queue and writes the to the response's output stream, possibly
+ * flushing after each write (if the constructor's `autoFlush` argument is true)
+ */
+WriteListenerImpl.prototype.onWritePossible = function() {
+    while (!this.queue.isEmpty() && this.outStream.isReady()) {
+        var data = this.queue.poll();
+        if (!data) {
+            break;
+        }
+        this.outStream.write(data);
+    }
+    if (this.autoFlush === true && this.outStream.isReady()) {
+        this.outStream.flush();
+    }
+};
+
+/**
+ * Called on every write listener error
+ * @param {java.lang.Throwable} error The error
+ */
+WriteListenerImpl.prototype.onError = function(error) {
+    log.error("WriteListener.onError", error);
+    error.printStackTrace();
+    this.asyncContext.complete();
+};
