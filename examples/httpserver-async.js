@@ -2,7 +2,7 @@ var {AsyncResponse} = require('ringo/jsgi/connector');
 var {Worker} = require("ringo/worker");
 
 exports.app = function(request) {
-    var response = new AsyncResponse(request, 2000, true);
+    var response = new AsyncResponse(request, 20000, true);
     response.start(200, {'Content-Type': 'text/plain'});
     var worker = new Worker(module.resolve("./httpserver-async-worker"));
     worker.onmessage = function(event) {
