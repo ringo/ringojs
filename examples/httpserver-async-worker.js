@@ -15,7 +15,6 @@ var onmessage = function(event) {
             }
         } catch (e) {
             clearInterval(intervalId);
-            event.source.postMessage(e);
         }
     }, 1000);
 };

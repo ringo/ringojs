@@ -149,37 +149,42 @@ function AsyncResponse(request, timeout, autoFlush) {
     if (!request || !request.env) {
         throw new Error("Invalid request argument: " + request);
     }
-    var req = request.env.servletRequest;
-    var res = request.env.servletResponse;
-    var async = req.startAsync();
-    async.setTimeout(timeout);
-    async.addListener(new AsyncListener({
+    var {servletRequest, servletResponse} = request.env;
+    var asyncContext = servletRequest.startAsync();
+    if (timeout != null && isFinite(timeout)) {
+        asyncContext.setTimeout(timeout);
+    }
+    asyncContext.addListener(new AsyncListener({
         "onComplete": function(event) {
-            log.info("AsyncListener.onComplete", event);
+            log.debug("AsyncListener.onComplete", event);
         },
         "onError": function(event) {
-            log.error("AsyncListener.onError", event);
+            log.debug("AsyncListener.onError", event);
+        },
+        "onStartAsync": function(event) {
+            log.debug("AsyncListener.onStartAsync", event);
         },
         "onTimeout": function(event) {
-            log.info("AsyncListener.onTimeout", event);
-            async.complete();
+            log.debug("AsyncListener.onTimeout", event);
+            asyncContext.complete();
         }
     }));
 
+    var out = servletResponse.getOutputStream();
     var writeListener = null;
     return {
         "start": function(status, headers) {
-            res.setStatus(status);
-            writeHeaders(res, headers || {});
+            servletResponse.setStatus(status);
+            writeHeaders(servletResponse, headers || {});
             return this;
         },
         "write": function(data, encoding) {
             data = (data instanceof Binary) ? data : String(data).toByteArray(encoding);
             if (writeListener === null) {
-                writeListener = new WriteListenerImpl(async,
-                        res.getOutputStream(), autoFlush === true);
+                writeListener = new WriteListenerImpl(asyncContext,
+                        autoFlush === true);
                 writeListener.queue.add(data);
-                res.getOutputStream().setWriteListener(writeListener);
+                out.setWriteListener(writeListener);
             } else {
                 writeListener.queue.add(data);
                 writeListener.onWritePossible();
@@ -192,7 +197,7 @@ function AsyncResponse(request, timeout, autoFlush) {
             }
         },
         "close": function() {
-            async.complete();
+            asyncContext.complete();
         }
     };
 }
@@ -234,10 +239,9 @@ function middlewareWrapper(inner, outer) {
  * @returns {javax.servlet.WriteListener}
  * @constructor
  */
-var WriteListenerImpl = function(asyncContext, outStream, autoFlush) {
+var WriteListenerImpl = function(asyncContext, autoFlush) {
     this.queue = new ConcurrentLinkedQueue();
     this.asyncContext = asyncContext;
-    this.outStream = outStream;
     this.autoFlush = autoFlush === true;
     return new WriteListener(this);
 };
@@ -248,15 +252,16 @@ var WriteListenerImpl = function(asyncContext, outStream, autoFlush) {
  * flushing after each write (if the constructor's `autoFlush` argument is true)
  */
 WriteListenerImpl.prototype.onWritePossible = function() {
-    while (!this.queue.isEmpty() && this.outStream.isReady()) {
+    var outStream = this.asyncContext.getResponse().getOutputStream();
+    while (!this.queue.isEmpty() && outStream.isReady()) {
         var data = this.queue.poll();
         if (!data) {
             break;
         }
-        this.outStream.write(data);
+        outStream.write(data);
     }
-    if (this.autoFlush === true && this.outStream.isReady()) {
-        this.outStream.flush();
+    if (this.autoFlush === true && outStream.isReady()) {
+        outStream.flush();
     }
 };
 
