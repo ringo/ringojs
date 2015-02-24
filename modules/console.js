@@ -1,11 +1,13 @@
 /**
- * @fileOverview This module provides functions to write on the standard error stream
- * <code>stderr</code> for error logging and quick debugging. It’s similar to the console
- * object implemented in most web browsers.
+ * @fileOverview This module provides functions to write on the standard output stream <code>stdout</code>
+ * and error stream <code>stderr</code> for error logging and quick debugging.
+ * It’s similar to the console object implemented in most web browsers.
  */
 var {TermWriter, BOLD, ONRED, ONYELLOW, RESET} = require("ringo/term");
 
-var writer = new TermWriter(require("system").stderr);
+var writer = new TermWriter(require("system").stdout);
+var errWriter = new TermWriter(require("system").stderr);
+
 var timers = {};
 var {traceHelper, assertHelper} = org.ringojs.util.ScriptUtils;
 
@@ -21,7 +23,7 @@ function format() {
 }
 
 /**
- * Logs a message to the console.
+ * Logs a message to the console on <code>stdout</code>.
  *
  * The first argument to log may be a string containing printf-like placeholders.
  * Otherwise, multipel arguments will be concatenated separated by spaces.
@@ -40,7 +42,7 @@ exports.log = function() {
 
 /**
  * Logs a message with the visual "error" representation, including the file name
- * and line number of the calling code.
+ * and line number of the calling code. Prints on <code>stderr</code>.
  * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.error('Hello World!');
@@ -53,12 +55,12 @@ exports.log = function() {
 exports.error = traceHelper.bind(null, function() {
     var msg = format.apply(null, arguments);
     var location = format("(%s:%d)", this.sourceName(), this.lineNumber());
-    writer.writeln(ONRED, BOLD, "[error]" + RESET, BOLD, msg, RESET, location);
+    errWriter.writeln(ONRED, BOLD, "[error]" + RESET, BOLD, msg, RESET, location);
 });
 
 /**
  * Logs a message with the visual "warn" representation, including the file name
- * and line number of the calling code.
+ * and line number of the calling code. Prints on <code>stderr</code>.
  * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.warn('Hello World!');
@@ -71,12 +73,12 @@ exports.error = traceHelper.bind(null, function() {
 exports.warn = traceHelper.bind(null, function() {
     var msg = format.apply(null, arguments);
     var location = format("(%s:%d)", this.sourceName(), this.lineNumber());
-    writer.writeln(ONYELLOW, BOLD, "[warn]" + RESET, BOLD, msg, RESET, location);
+    errWriter.writeln(ONYELLOW, BOLD, "[warn]" + RESET, BOLD, msg, RESET, location);
 });
 
 /**
  * Logs a message with the visual "info" representation, including the file name
- * and line number of the calling code.
+ * and line number of the calling code. Prints on <code>stdout</code>.
  * @param {*...} msg... one or more message arguments
  * @function
  * @example >> console.info('Hello World!');
@@ -94,6 +96,7 @@ exports.info = traceHelper.bind(null, function() {
 
 /**
  * Prints a stack trace of JavaScript execution at the point where it is called.
+ * Prints on <code>stdout</code>.
  * @param {*...} msg... optional message arguments
  * @function
  */
@@ -157,7 +160,7 @@ exports.timeEnd = function(name) {
 };
 
 /**
- * Prints a list of all properties of an object.
+ * Prints a list of all properties of an object on <code>stdout</code>.
  * @param {Object} obj the object whose properties should be output
  * @example >> var obj = { foo: "bar", baz: 12345 };
  * >> console.dir(obj);
