@@ -265,8 +265,8 @@
     <!-- =================================================================== -->
     <target name="package" depends="packages-empty,jar,javadoc,test">
         <!-- These files need chmod 755 -->
-        <property name="package-binaries" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/ringo-doc"/>
-        <property name="package-excludes" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/ringo-doc,bin/rp,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**,bin/rp" />
+        <property name="package-binaries" value="bin/ringo,bin/ringo-admin,bin/ringo-web"/>
+        <property name="package-excludes" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/rp,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**,bin/rp" />
 
         <zip zipfile="../${project}-${version}.zip">
             <zipfileset dir="${home}" prefix="${project}-${version}" filemode="755" includes="${package-binaries}" />
