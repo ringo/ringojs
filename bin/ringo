@@ -89,8 +89,6 @@ case "$(basename $0)" in
         app_args=("$RINGO_HOME/tools/admin/main.js" "${app_args[@]}") ;;
     ringo-web)
         app_args=("ringo/httpserver" "${app_args[@]}") ;;
-    ringo-doc)
-        app_args=("$RINGO_HOME/tools/jsdoc/main.js" "${app_args[@]}") ;;
 esac
 
 # To put $app_args back into the position arguments $1, $2 etc

@@ -11,8 +11,7 @@
         <echo message=" jar        --> generates the ./lib/ringo.jar file"/>
         <echo message=" test       --> run JUnit and RingoJS tests"/>
         <echo message=" test-dates --> runs ringo/utils/dates test in different timezones"/>
-        <echo message=" docs       --> generates the API docs"/>
-        <echo message=" jsdocs     --> generates only the JS module API docs"/>
+        <echo message=" javadoc    --> generates the Javadoc for Ringo's core"/>
         <echo message=" package    --> creates RingoJS distribution"/>
         <echo message=" dpkg       --> creates RingoJS debian package"/>
         <echo message=" clean      --> clean up compiled resources"/>
@@ -31,9 +30,7 @@
         <property name="lib" value="${home}/lib"/>
         <property name="build" value="${home}/build"/>
         <property name="classes" value="${build}/classes"/>
-        <property name="docs" value="${home}/docs"/>
-        <property name="jsdocs" value="${home}/docs/modules"/>
-        <property name="javadocs" value="${home}/docs/java"/>
+        <property name="javadoc" value="${home}/docs/java/"/>
 
         <property name="ringo-core.jar" value="${lib}/ringo-core.jar"/>
         <property name="ringo-modules.jar" value="${lib}/ringo-modules.jar"/>
@@ -239,38 +236,15 @@
     <!-- =================================================================== -->
     <!-- Creates the API documentation                                       -->
     <!-- =================================================================== -->
-    <target name="docs" depends="jar">
-        <mkdir dir="${javadocs}"/>
+    <target name="javadoc" depends="jar">
+        <mkdir dir="${javadoc}"/>
         <javadoc packagenames="org.ringojs.*"
-            destdir="${javadocs}"
+            destdir="${javadoc}"
             windowtitle="RingoJS Java API"
             doctitle="RingoJS Java API">
             <fileset dir="${src}" includes="**/*.java" />
             <classpath refid="classpath"/>
        </javadoc>
-       <delete dir="${jsdocs}"/>
-       <java jar="run.jar" fork="true">
-           <arg value="${home}/tools/jsdoc/main.js"/>
-           <arg  value="--file-urls"/>
-           <arg  value="--source=${home}/modules"/>
-           <arg  value="--directory=${jsdocs}"/>
-           <arg  value="--name=Ringo Modules"/>
-       </java>
-    </target>
-
-    <!-- =================================================================== -->
-    <!-- Creates only the JS modules API documentation                       -->
-    <!-- =================================================================== -->
-    <target name="jsdocs" depends="jar">
-        <delete dir="${jsdocs}"/>
-        <mkdir dir="${jsdocs}"/>
-        <java jar="run.jar" fork="true">
-            <arg value="${home}/tools/jsdoc/main.js"/>
-            <arg  value="--file-urls"/>
-            <arg  value="--source=${home}/modules"/>
-            <arg  value="--directory=${jsdocs}"/>
-            <arg  value="--name=Ringo Modules"/>
-        </java>
     </target>
 
     <!-- =================================================================== -->
@@ -289,10 +263,10 @@
     <!-- =================================================================== -->
     <!-- Create zipped files for distribution                                -->
     <!-- =================================================================== -->
-    <target name="package" depends="packages-empty,jar,docs,test">
+    <target name="package" depends="packages-empty,jar,javadoc,test">
         <!-- These files need chmod 755 -->
-        <property name="package-binaries" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/ringo-doc"/>
-        <property name="package-excludes" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/ringo-doc,bin/rp,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**,bin/rp" />
+        <property name="package-binaries" value="bin/ringo,bin/ringo-admin,bin/ringo-web"/>
+        <property name="package-excludes" value="bin/ringo,bin/ringo-admin,bin/ringo-web,bin/rp,build/**,*.zip,*.o,*.tar,*.tar.gz,.*/**,bin/rp" />
 
         <zip zipfile="../${project}-${version}.zip">
             <zipfileset dir="${home}" prefix="${project}-${version}" filemode="755" includes="${package-binaries}" />
