@@ -9,6 +9,9 @@ var system = require('system');
 var strings = require('ringo/utils/strings');
 var {WriteListener, AsyncListener} = javax.servlet;
 var {ConcurrentLinkedQueue} = java.util.concurrent;
+var {EofException} = org.eclipse.jetty.io;
+var {AtomicBoolean} = java.util.concurrent.atomic;
+var {ByteBuffer} = java.nio;
 
 export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
@@ -143,9 +146,8 @@ function writeBody(response, body, charset) {
  * threadsafe.
  * @param {Object} request the JSGI request object
  * @param {Number} timeout the response timeout in milliseconds. Defaults to 30 seconds.
- * @param {Boolean} autoFlush whether to flush after each write.
  */
-function AsyncResponse(request, timeout, autoFlush) {
+function AsyncResponse(request, timeout) {
     if (!request || !request.env) {
         throw new Error("Invalid request argument: " + request);
     }
@@ -166,7 +168,7 @@ function AsyncResponse(request, timeout, autoFlush) {
         },
         "onTimeout": function(event) {
             log.debug("AsyncListener.onTimeout", event);
-            asyncContext.complete();
+            event.getAsyncContext().complete();
         }
     }));
 
@@ -179,10 +181,9 @@ function AsyncResponse(request, timeout, autoFlush) {
             return this;
         },
         "write": function(data, encoding) {
-            data = (data instanceof Binary) ? data : String(data).toByteArray(encoding);
+            data = ByteBuffer.wrap((data instanceof Binary) ? data : String(data).toByteArray(encoding));
             if (writeListener === null) {
-                writeListener = new WriteListenerImpl(asyncContext,
-                        autoFlush === true);
+                writeListener = new WriteListenerImpl(asyncContext);
                 writeListener.queue.add(data);
                 out.setWriteListener(writeListener);
             } else {
@@ -197,7 +198,10 @@ function AsyncResponse(request, timeout, autoFlush) {
             }
         },
         "close": function() {
-            asyncContext.complete();
+            if (writeListener !== null) {
+                return writeListener.close();
+            }
+            return asyncContext.complete();
         }
     };
 }
@@ -235,33 +239,42 @@ function middlewareWrapper(inner, outer) {
  * Creates a new WriteListener instance
  * @param {javax.servlet.AsyncContext} asyncContext The async context of the request
  * @param {javax.servlet.ServletOutputStream} outStream The output stream to write to
- * @param {boolean} autoFlush If true flush after every write to the output stream
  * @returns {javax.servlet.WriteListener}
  * @constructor
  */
-var WriteListenerImpl = function(asyncContext, autoFlush) {
+var WriteListenerImpl = function(asyncContext) {
+    this.isReady = new AtomicBoolean(true);
+    this.isFinished = false;
     this.queue = new ConcurrentLinkedQueue();
     this.asyncContext = asyncContext;
-    this.autoFlush = autoFlush === true;
     return new WriteListener(this);
 };
 
 /**
- * Called by the servlet container or directly. Polls all byte arrays from
- * the internal queue and writes the to the response's output stream, possibly
- * flushing after each write (if the constructor's `autoFlush` argument is true)
+ * Called by the servlet container or directly. Polls all byte buffers from
+ * the internal queue and writes them to the response's output stream.
  */
 WriteListenerImpl.prototype.onWritePossible = function() {
     var outStream = this.asyncContext.getResponse().getOutputStream();
-    while (!this.queue.isEmpty() && outStream.isReady()) {
-        var data = this.queue.poll();
-        if (!data) {
-            break;
+    if (this.isReady.compareAndSet(true, false)) {
+        // Note: .isReady() schedules a call for onWritePossible
+        // if it returns false
+        while (outStream.isReady() && !this.queue.isEmpty()) {
+            let data = this.queue.poll();
+            if (data) {
+                outStream.write(data);
+            }
+            if (!outStream.isReady()) {
+                this.isReady.set(true);
+                return;
+            }
         }
-        outStream.write(data);
-    }
-    if (this.autoFlush === true && outStream.isReady()) {
-        outStream.flush();
+        // at this point the queue is empty: mark this listener as ready
+        // and close the response if we're finished
+        this.isReady.set(true);
+        if (this.isFinished === true) {
+            this.asyncContext.complete();
+        }
     }
 };
 
@@ -270,7 +283,21 @@ WriteListenerImpl.prototype.onWritePossible = function() {
  * @param {java.lang.Throwable} error The error
  */
 WriteListenerImpl.prototype.onError = function(error) {
-    log.error("WriteListener.onError", error);
-    error.printStackTrace();
-    this.asyncContext.complete();
+    if (!(error instanceof EofException)) {
+        log.error("WriteListener.onError", error);
+    }
+    try {
+        this.asyncContext.complete();
+    } catch (e) {
+        // ignore, what else could we do?
+    }
+};
+
+/**
+ * Marks this write listener as finished and calls onWritePossible().
+ * This will finish the queue and then complete the async context.
+ */
+WriteListenerImpl.prototype.close = function() {
+    this.isFinished = true;
+    this.onWritePossible();
 };

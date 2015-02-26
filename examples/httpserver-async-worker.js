@@ -2,13 +2,16 @@ var strings = require("ringo/utils/strings");
 
 var onmessage = function(event) {
     var {max, response} = event.data;
-    response.write("starting...\n");
+    response.write("starting...");
     var cnt = 0;
     var intervalId = setInterval(function() {
         try {
-            response.write(strings.repeat("hello ", 100) + "\n-------\n");
+            // console.log(java.lang.Thread.currentThread().getName(), "worker writing to response...");
+            response.write("\n-------\n");
+            response.write(strings.repeat("hello ", 100));
             if (++cnt === max) {
                 clearInterval(intervalId);
+                response.write("\n-------\n");
                 response.write("finished!");
                 response.close();
                 event.source.postMessage("finished");
@@ -16,6 +19,6 @@ var onmessage = function(event) {
         } catch (e) {
             clearInterval(intervalId);
         }
-    }, 1000);
+    }, 500);
 };
 
