@@ -14,10 +14,10 @@ var worker = module.singleton("worker", function() {
 
 exports.app = function(request) {
     var response = new AsyncResponse(request, 20000, true);
-    response.start(200, {'Content-Type': 'text/plain'});
+    response.start(200, {'Content-Type': 'image/png'});
     worker.postMessage({
         "response": response,
-        "max": 5
+        "file": module.resolve("./img/ringo-drums.png")
     });
     return response;
 };

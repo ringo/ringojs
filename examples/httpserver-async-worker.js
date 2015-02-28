@@ -1,19 +1,17 @@
-var strings = require("ringo/utils/strings");
+var fs = require("fs");
 
 var onmessage = function(event) {
-    var {max, response} = event.data;
-    response.write("starting...");
-    var cnt = 0;
+    var {response, file} = event.data;
+    var stream = fs.openRaw(file);
     var intervalId = setInterval(function() {
         try {
-            // console.log(java.lang.Thread.currentThread().getName(), "worker writing to response...");
-            response.write("\n-------\n");
-            response.write(strings.repeat("hello ", 100));
-            if (++cnt === max) {
+            var buf = stream.read(4096);
+            if (buf.length > 0) {
+                response.write(buf);
+            } else {
                 clearInterval(intervalId);
-                response.write("\n-------\n");
-                response.write("finished!");
                 response.close();
+                stream.close();
                 event.source.postMessage("finished");
             }
         } catch (e) {
