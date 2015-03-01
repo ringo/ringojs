@@ -3,7 +3,6 @@
 
     <configurations>
         <conf name="default" description="the default jar libraries"/>
-        <conf name="servlet" description="Jetty's orbit jars"/>
     </configurations>
 
     <dependencies>
@@ -12,7 +11,6 @@
         <!-- standard jetty libs -->
         <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="9.2.+"/>
-        <dependency org="org.eclipse.jetty" name="jetty-continuation" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.2.+"/>
         <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.2.+"/>
