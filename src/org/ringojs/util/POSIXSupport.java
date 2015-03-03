@@ -1,9 +1,9 @@
 package org.ringojs.util;
 
-import com.kenai.constantine.platform.Errno;
-import org.jruby.ext.posix.POSIX;
-import org.jruby.ext.posix.POSIXFactory;
-import org.jruby.ext.posix.POSIXHandler;
+import jnr.constants.platform.Errno;
+import jnr.posix.POSIX;
+import jnr.posix.POSIXFactory;
+import jnr.posix.POSIXHandler;
 import org.mozilla.javascript.Context;
 
 import java.io.File;
@@ -23,6 +23,10 @@ public class POSIXSupport {
 
         public void error(Errno errno, String s) {
             throw Context.reportRuntimeError(errno + " - " + s);
+        }
+
+        public void error(Errno errno, String s, String s1) {
+            throw Context.reportRuntimeError(errno + " - " + s + " / " + s1);
         }
 
         public void unimplementedError(String s) {

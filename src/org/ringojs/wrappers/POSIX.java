@@ -15,7 +15,7 @@ public class POSIX {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 try {
-                    org.jruby.ext.posix.POSIX posix = POSIXSupport.getPOSIX();
+                    jnr.posix.POSIX posix = POSIXSupport.getPOSIX();
                     // call some method to make sure native library gets loaded
                     posix.getuid();
                     return posix;
