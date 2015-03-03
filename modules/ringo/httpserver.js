@@ -471,12 +471,6 @@ function init(appPath) {
         options.appModule = fs.join(appDir, "main");
     }
 
-    // logging module is already loaded and configured, check if app provides
-    // its own log4j configuration file and apply it if so.
-    var logConfig = getResource(fs.join(appDir, "config/log4j.properties"));
-    if (logConfig.exists()) {
-        require("./logging").setConfig(logConfig);
-    }
     log.info("Set app module:", options.appModule);
 
     server = new Server(options);
