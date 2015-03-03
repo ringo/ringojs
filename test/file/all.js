@@ -8,3 +8,7 @@ exports.testRelative = require('./relative');
 exports.testResolve = require('./resolve');
 exports.testTouch = require("./touch");
 exports.testOpen = require("./open");
+
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
+}
