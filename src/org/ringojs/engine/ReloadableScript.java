@@ -28,6 +28,7 @@ import java.util.*;
 import java.security.CodeSource;
 import java.security.CodeSigner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,7 +57,7 @@ public class ReloadableScript {
     Exception exception = null;
     List<ScriptError> errors;
     // Set of direct module dependencies
-    HashSet<ReloadableScript> dependencies = new HashSet<ReloadableScript>();
+    private final CopyOnWriteArraySet<ReloadableScript> dependencies = new CopyOnWriteArraySet<ReloadableScript>();
     // the static script cache
     static ScriptCache cache = new ScriptCache();
 
