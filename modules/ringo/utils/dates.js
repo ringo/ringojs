@@ -20,32 +20,35 @@
  */
 
 var strings = require('ringo/utils/strings');
- export( "format",
-        "checkDate",
-        "add",
-        "isLeapYear",
-        "before",
-        "after",
-        "compare",
-        "firstDayOfWeek",
-        "secondOfDay",
-        "dayOfYear",
-        "weekOfMonth",
-        "weekOfYear",
-        "quarterInYear",
-        "quarterInFiscalYear",
-        "yearInCentury",
-        "daysInMonth",
-        "daysInYear",
-        "daysInFebruary",
-        "diff",
-        "overlapping",
-        "inPeriod",
-        "resetTime",
-        "resetDate",
-        "toISOString",
-        "fromUTCDate",
-        "parse" );
+
+export(
+    "format",
+    "checkDate",
+    "add",
+    "isLeapYear",
+    "before",
+    "after",
+    "compare",
+    "firstDayOfWeek",
+    "secondOfDay",
+    "dayOfYear",
+    "weekOfMonth",
+    "weekOfYear",
+    "quarterInYear",
+    "quarterInFiscalYear",
+    "yearInCentury",
+    "daysInMonth",
+    "daysInYear",
+    "daysInFebruary",
+    "diff",
+    "overlapping",
+    "inPeriod",
+    "resetTime",
+    "resetDate",
+    "toISOString",
+    "fromUTCDate",
+    "parse"
+);
 
 /**
  * Format a Date to a string.
@@ -627,7 +630,7 @@ function parse(str) {
 
             // Check if the given date is valid
             if (date.getUTCMonth() != month || date.getUTCDate() != day) {
-                return new Date("invalid");
+                return NaN;
             }
 
             // optional time
@@ -656,7 +659,7 @@ function parse(str) {
                     date.setUTCHours(hours, minutes, seconds, milliseconds);
                     if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
                         if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                     }
 
@@ -668,7 +671,7 @@ function parse(str) {
 
                         // check maximal timezone offset (24 hours)
                         if (Math.abs(offset) >= 86400000) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                         date = new Date(date.getTime() + offset);
                     }
@@ -676,13 +679,13 @@ function parse(str) {
                     date.setHours(hours, minutes, seconds, milliseconds);
                     if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
                         if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                     }
                 }
             }
         } else {
-            date = new Date("invalid");
+            date = NaN;
         }
     }
     return date;
