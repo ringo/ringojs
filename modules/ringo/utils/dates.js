@@ -606,11 +606,12 @@ function fromUTCDate(year, month, date, hour, minute, second) {
  * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
  * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
  *
- * @param {String} str The date string.  This follows the format specified for timestamps
+ * @param {String} str The date string. This follows the format specified for timestamps
  *        on the internet described in RFC 3339.
- * @returns {Date} a date representing the given string
+ * @returns {Date|NaN} a date representing the given string, or <code>NaN</code> for unrecognizable strings
  * @see http://tools.ietf.org/html/rfc3339
  * @see http://www.w3.org/TR/NOTE-datetime
+ * @see https://es5.github.io/#x15.9.4.2
  */
 function parse(str) {
     var date;
