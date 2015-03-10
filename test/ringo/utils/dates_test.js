@@ -625,15 +625,23 @@ exports.testParse = function() {
     assert.strictEqual((dates.parse("2010-10-26T00:00:00.00Z")).getTime(), 1288051200000);
     assert.strictEqual((dates.parse("2010-10-26T00:00:00.000Z")).getTime(), 1288051200000);
 
-    // NaN
+    // NaN and not instance of Date
     assert.isNaN(dates.parse("asdf"));
+    assert.isFalse(dates.parse("asdf") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-"));
+    assert.isFalse(dates.parse("2010-") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-99"));
+    assert.isFalse(dates.parse("2010-99") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-99"));
+    assert.isFalse(dates.parse("2010-01-99") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01T24:59Z"));
+    assert.isFalse(dates.parse("2010-01-01T24:59Z") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01T25:00Z"));
+    assert.isFalse(dates.parse("2010-01-01T25:00Z") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01TT25:00Z"));
+    assert.isFalse(dates.parse("2010-01-01TT25:00Z") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01T23:00-25:00"));
+    assert.isFalse(dates.parse("2010-01-01T23:00-25:00") instanceof Date, "parse should return NaN and not an invalid Date");
 
     // Check for not NaN
     // FIXME no exact checks because of local time...

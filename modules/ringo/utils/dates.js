@@ -20,32 +20,35 @@
  */
 
 var strings = require('ringo/utils/strings');
- export( "format",
-        "checkDate",
-        "add",
-        "isLeapYear",
-        "before",
-        "after",
-        "compare",
-        "firstDayOfWeek",
-        "secondOfDay",
-        "dayOfYear",
-        "weekOfMonth",
-        "weekOfYear",
-        "quarterInYear",
-        "quarterInFiscalYear",
-        "yearInCentury",
-        "daysInMonth",
-        "daysInYear",
-        "daysInFebruary",
-        "diff",
-        "overlapping",
-        "inPeriod",
-        "resetTime",
-        "resetDate",
-        "toISOString",
-        "fromUTCDate",
-        "parse" );
+
+export(
+    "format",
+    "checkDate",
+    "add",
+    "isLeapYear",
+    "before",
+    "after",
+    "compare",
+    "firstDayOfWeek",
+    "secondOfDay",
+    "dayOfYear",
+    "weekOfMonth",
+    "weekOfYear",
+    "quarterInYear",
+    "quarterInFiscalYear",
+    "yearInCentury",
+    "daysInMonth",
+    "daysInYear",
+    "daysInFebruary",
+    "diff",
+    "overlapping",
+    "inPeriod",
+    "resetTime",
+    "resetDate",
+    "toISOString",
+    "fromUTCDate",
+    "parse"
+);
 
 /**
  * Format a Date to a string.
@@ -603,11 +606,12 @@ function fromUTCDate(year, month, date, hour, minute, second) {
  * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
  * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
  *
- * @param {String} str The date string.  This follows the format specified for timestamps
+ * @param {String} str The date string. This follows the format specified for timestamps
  *        on the internet described in RFC 3339.
- * @returns {Date} a date representing the given string
+ * @returns {Date|NaN} a date representing the given string, or <code>NaN</code> for unrecognizable strings
  * @see http://tools.ietf.org/html/rfc3339
  * @see http://www.w3.org/TR/NOTE-datetime
+ * @see https://es5.github.io/#x15.9.4.2
  */
 function parse(str) {
     var date;
@@ -627,7 +631,7 @@ function parse(str) {
 
             // Check if the given date is valid
             if (date.getUTCMonth() != month || date.getUTCDate() != day) {
-                return new Date("invalid");
+                return NaN;
             }
 
             // optional time
@@ -656,7 +660,7 @@ function parse(str) {
                     date.setUTCHours(hours, minutes, seconds, milliseconds);
                     if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
                         if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                     }
 
@@ -668,7 +672,7 @@ function parse(str) {
 
                         // check maximal timezone offset (24 hours)
                         if (Math.abs(offset) >= 86400000) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                         date = new Date(date.getTime() + offset);
                     }
@@ -676,13 +680,13 @@ function parse(str) {
                     date.setHours(hours, minutes, seconds, milliseconds);
                     if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
                         if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return new Date("invalid");
+                            return NaN;
                         }
                     }
                 }
             }
         } else {
-            date = new Date("invalid");
+            date = NaN;
         }
     }
     return date;
