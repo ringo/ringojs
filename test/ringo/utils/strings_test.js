@@ -297,8 +297,13 @@ exports.testStripTags = function () {
 };
 
 exports.testEscapeHtml = function () {
-    assert.strictEqual('&lt;p&gt;Some text.&lt;/p&gt;',
-            strings.escapeHtml('<p>Some text.</p>'));
+    assert.strictEqual(strings.escapeHtml("<p>\'Some\' \"text\".</p>"), "&lt;p&gt;&#39;Some&#39; &quot;text&quot;.&lt;/p&gt;");
+    assert.strictEqual(strings.escapeHtml("nothing to escape"), "nothing to escape");
+    assert.strictEqual(strings.escapeHtml("one&two&three&"), "one&amp;two&amp;three&amp;");
+    assert.strictEqual(strings.escapeHtml("<tag>"), "&lt;tag&gt;");
+    assert.strictEqual(strings.escapeHtml("attr=\'foo\'"), "attr=&#39;foo&#39;");
+    assert.strictEqual(strings.escapeHtml("attr=\"foo\""), "attr=&quot;foo&quot;");
+    assert.strictEqual(strings.escapeHtml("a mixed <ta'&g\">"), "a mixed &lt;ta&#39;&amp;g&quot;&gt;");
 };
 
 exports.testEscapeRegExp = function() {

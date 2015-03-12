@@ -649,8 +649,10 @@ function stripTags(string) {
  * @return {String} the escaped string
  */
 function escapeHtml(string) {
-    return string.replace(/&/g, '&amp;')
+    return String((string === null || string === undefined) ? '' : string)
+            .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
             .replace(/>/g, '&gt;')
             .replace(/</g, '&lt;');
 }
