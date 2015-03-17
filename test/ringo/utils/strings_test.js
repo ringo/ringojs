@@ -300,10 +300,14 @@ exports.testEscapeHtml = function () {
     assert.strictEqual(strings.escapeHtml("<p>\'Some\' \"text\".</p>"), "&lt;p&gt;&#39;Some&#39; &quot;text&quot;.&lt;/p&gt;");
     assert.strictEqual(strings.escapeHtml("nothing to escape"), "nothing to escape");
     assert.strictEqual(strings.escapeHtml("one&two&three&"), "one&amp;two&amp;three&amp;");
-    assert.strictEqual(strings.escapeHtml("<tag>"), "&lt;tag&gt;");
-    assert.strictEqual(strings.escapeHtml("attr=\'foo\'"), "attr=&#39;foo&#39;");
-    assert.strictEqual(strings.escapeHtml("attr=\"foo\""), "attr=&quot;foo&quot;");
+    assert.strictEqual(strings.escapeHtml("<tag> <tag> <tag>"), "&lt;tag&gt; &lt;tag&gt; &lt;tag&gt;");
+    assert.strictEqual(strings.escapeHtml("attr=\'foo\' attr=\'foo\'"), "attr=&#39;foo&#39; attr=&#39;foo&#39;");
+    assert.strictEqual(strings.escapeHtml("attr=\"foo\" attr=\"foo\""), "attr=&quot;foo&quot; attr=&quot;foo&quot;");
     assert.strictEqual(strings.escapeHtml("a mixed <ta'&g\">"), "a mixed &lt;ta&#39;&amp;g&quot;&gt;");
+
+    // see https://github.com/mathiasbynens/he/blob/364b80262c54e7af0c8ff6910b10d872ae0c68c9/src/he.js#L45-L49
+    // http://html5sec.org/#102, http://html5sec.org/#108, http://html5sec.org/#133
+    assert.strictEqual(strings.escapeHtml("OldIE trick <`>`"), "OldIE trick &lt;&#96;&gt;&#96;")
 };
 
 exports.testEscapeRegExp = function() {

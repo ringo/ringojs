@@ -645,6 +645,8 @@ function stripTags(string) {
 
 /**
  * Escape the string to make it safe for use within an HTML document.
+ * Unsafe characters are <code>&amp;</code>, <code>&quot;</code>, <code>&#39;</code>,
+ * <code>&#96;</code>, <code>&lt;</code>, and <code>&gt;</code>.
  * @param {String} string the string to escape
  * @return {String} the escaped string
  */
@@ -653,6 +655,7 @@ function escapeHtml(string) {
             .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;')
+            .replace(/`/g, '&#96;')
             .replace(/>/g, '&gt;')
             .replace(/</g, '&lt;');
 }
