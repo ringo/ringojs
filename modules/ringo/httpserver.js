@@ -5,13 +5,138 @@
 var log = require('ringo/logging').getLogger(module.id);
 var system = require('system');
 var {JavaEventEmitter} = require('ringo/events');
-var {WebSocket, WebSocketServlet} = org.eclipse.jetty.websocket;
+var {WebSocketServlet, WebSocketCreator} = org.eclipse.jetty.websocket.servlet;
+var {WebSocketListener} = org.eclipse.jetty.websocket.api;
+var {ByteBuffer} = java.nio;
 
 export('Server', 'main', 'init', 'start', 'stop', 'destroy');
 
 var options,
     server,
     started = false;
+
+var WebSocket = function() {
+    this.session = null;
+
+    // make WebSocket a java event-emitter (mixin)
+    JavaEventEmitter.call(this, [WebSocketListener], {
+        "onWebSocketConnect": "connect",
+        "onWebSocketClose": "close",
+        "onWebSocketText": "text",
+        "onWebSocketBinary": "binary",
+        "onWebSocketError": "error"
+    });
+
+    return this;
+};
+
+/** @ignore */
+WebSocket.prototype.toString = function() {
+    return "[WebSocket]";
+};
+
+/**
+ * Closes the WebSocket connection.
+ * @name WebSocket.instance.close
+ * @function
+ */
+WebSocket.prototype.close = function() {
+    if (!this.isOpen()) {
+        throw new Error("Not connected");
+    }
+    this.session.close();
+    this.session = null;
+};
+
+/**
+ * Send a string over the WebSocket.
+ * @param {String} message a string
+ * @name WebSocket.instance.send
+ * @deprecated
+ * @see #sendString
+ * @function
+ */
+WebSocket.prototype.send = function(message) {
+    return this.sendString(message);
+};
+
+/**
+ * Send a string over the WebSocket. This method
+ * blocks until the message has been transmitted
+ * @param {String} message a string
+ * @name WebSocket.instance.sendString
+ * @function
+ */
+WebSocket.prototype.sendString = function(message) {
+    if (!this.isOpen()) {
+        throw new Error("Not connected");
+    }
+    this.session.getRemote().sendString(message);
+};
+
+/**
+ * Send a string over the WebSocket. This method
+ * does not wait until the message as been transmitted.
+ * @param {String} message a string
+ * @name WebSocket.instance.sendStringAsync
+ * @function
+ */
+WebSocket.prototype.sendStringAsync = function(message) {
+    if (!this.isOpen()) {
+        throw new Error("Not connected");
+    }
+    return this.session.getRemote().sendStringByFuture(message);
+};
+
+/**
+ * Send a byte array over the WebSocket. This method
+ * blocks until the message as been transmitted.
+ * @param {ByteArray} byteArray The byte array to send
+ * @param {Number} offset Optional offset (defaults to zero)
+ * @param {Number} length Optional length (defaults to the
+ * length of the byte array)
+ * @name WebSocket.instance.sendBinary
+ * @function
+ */
+WebSocket.prototype.sendBinary = function(byteArray, offset, length) {
+    if (!this.isOpen()) {
+        throw new Error("Not connected");
+    }
+    var buffer = ByteBuffer.wrap(byteArray, parseInt(offset, 10) || 0,
+        parseInt(length, 10) || byteArray.length);
+    return this.session.getRemote().sendBytes(buffer);
+};
+
+/**
+ * Send a byte array over the WebSocket. This method
+ * does not wait until the message as been transmitted.
+ * @param {ByteArray} byteArray The byte array to send
+ * @param {Number} offset Optional offset (defaults to zero)
+ * @param {Number} length Optional length (defaults to the
+ * length of the byte array)
+ * @name WebSocket.instance.sendBinaryAsync
+ * @returns {java.util.concurrent.Future}
+ * @function
+ */
+WebSocket.prototype.sendBinaryAsync = function(byteArray, offset, length) {
+    if (!this.isOpen()) {
+        throw new Error("Not connected");
+    }
+    var buffer = ByteBuffer.wrap(byteArray, parseInt(offset, 10) || 0,
+            parseInt(length, 10) || byteArray.length);
+    return this.session.getRemote().sendBytesByFuture(buffer);
+};
+
+/**
+ * Check whether the WebSocket is open.
+ * @name WebSocket.instance.isOpen
+ * @return {Boolean} true if the connection is open
+ * @function
+ */
+WebSocket.prototype.isOpen = function() {
+    return this.session !== null && this.session.isOpen();
+};
+
 
 /**
  * Create a Jetty HTTP server with the given options. The options may
@@ -191,101 +316,48 @@ function Server(options) {
                 cx.addServlet(servletHolder, servletPath);
             },
             /**
-             * Start accepting WebSocket connections in this context context.
+             * Start accepting WebSocket connections in this context.
              *
              * @param {String} path The URL path on which to accept WebSocket connections
-             * @param {Function} onconnect a function called for each new WebSocket connection
-             *        with the WebSocket object as argument.
+             * @param {Function} onConnect A function called for each new WebSocket connection
+             *        with the WebSocket object and the session as arguments.
+             * @param {Function} onCreate Optional function called before a WebSocket
+             *        instance is created. This function receives the request and
+             *        response objects as arguments. Only if the function returns `true`
+             *        the upgrade request is accepted and a WebSocket instance is created.
+             *        Use this function for eg. authorization or authentication checks.
+             * @param {Object} initParams Optional object containing servlet
+             *          initialization parameters
              * @since 0.8
              * @see #WebSocket
              * @name Context.instance.addWebSocket
              */
-            addWebSocket: function(path, onconnect) {
+            addWebSocket: function(path, onConnect, onCreate, initParams) {
                 log.info("Starting websocket support");
-                this.addServlet(path, new WebSocketServlet({
-                    doWebSocketConnect : function(request, protocol) {
-                        log.debug("new websocket");
 
-                        var conn;
-                        /**
-                         * Provides support for WebSockets in the HTTP server.
-                         *
-                         * WebSocket is an event emitter that supports the
-                         * following events:
-                         *
-                         *  * **open**: called when a new websocket connection is accepted
-                         *  * **message**: Called with a complete text message when all fragments have been received.
-                         *  * **close**: called when an established websocket connection closes
-                         *
-                         * @name WebSocket
-                         */
-                        var socket = {
-                            /**
-                             * Closes the WebSocket connection.
-                             * @name WebSocket.instance.close
-                             * @function
-                             */
-                            close: function() {
-                                if (conn) {
-                                    conn.disconnect();
-                                }
-                            },
-                            /**
-                             * Send a string over the WebSocket.
-                             * @param {String} msg a string
-                             * @name WebSocket.instance.send
-                             * @function
-                             */
-                            send: function(msg) {
-                                if (conn) {
-                                    conn.sendMessage(msg);
-                                }
-                            },
-
-                            /**
-                             * Send a byte array over the WebSocket.
-                             * @param {ByteArray} bytearray The byte array to send
-                             * @param {Number} offset Optional offset (defaults to zero)
-                             * @param {Number} length Optional length (defaults to the
-                             * length of the byte array)
-                             * @name WebSocket.instance.sendBinary
-                             * @function
-                             */
-                            sendBinary: function(bytearray, offset, length) {
-                                if (conn) {
-                                    offset = parseInt(offset, 10) || 0;
-                                    length = parseInt(length, 10) || bytearray.length;
-                                    conn.sendMessage(bytearray, offset, length);
-                                }
-                            },
-
-                            /**
-                             * Check whether the WebSocket is open.
-                             * @name WebSocket.instance.isOpen
-                             * @return {Boolean} true if the connection is open
-                             * @function
-                             */
-                            isOpen: function() {
-                                return conn && conn.isOpen();
-                            }
-
-                        };
-
-                        // make socket a java event-emitter (mixin)
-                        JavaEventEmitter.call(socket, [WebSocket.OnTextMessage,
-                                                       WebSocket.OnBinaryMessage]);
-
-                        socket.addListener("open", function(connection) {
-                            conn = connection;
-                        });
-
-                        if (typeof onconnect === "function") {
-                            onconnect(socket, request, protocol);
+                var webSocketCreator = new WebSocketCreator({
+                    "createWebSocket": function(request, response) {
+                        if (typeof(onCreate) === "function" && onCreate(request, response) !== true) {
+                            return null;
                         }
+                        var socket = new WebSocket();
+                        socket.addListener("connect", function(session) {
+                            socket.session = session;
+                            if (typeof onConnect === "function") {
+                                onConnect(socket, session);
+                            }
+                        });
 
                         return socket.impl;
                     }
-                }));
+                });
+
+                this.addServlet(path, new WebSocketServlet({
+                    "configure": function(factory) {
+                        // factory.register(webSocketListener.impl);
+                        factory.setCreator(webSocketCreator);
+                    }
+                }), initParams);
             }
         };
     };
@@ -295,8 +367,10 @@ function Server(options) {
      */
     this.start = function() {
         jetty.start();
-        log.info('Server on http://' + (props.get('host') || 'localhost') +
-                ':' + props.get('port') + ' started.');
+        for each (let connector in jetty.getConnectors()) {
+            log.info('Server on http://' + connector.getHost() + ':' +
+                    connector.getPort() + ' started.');
+        }
     };
 
     /**
@@ -341,11 +415,6 @@ function Server(options) {
     var JsgiServlet = org.ringojs.jsgi.JsgiServlet;
     jetty = new org.eclipse.jetty.server.Server();
     xmlconfig = new XmlConfiguration(jettyConfig.inputStream);
-
-    // port config is done via properties
-    var props = xmlconfig.getProperties();
-    props.put('port', (options.port || 8080).toString());
-    if (options.host) props.put('host', options.host);
     xmlconfig.configure(jetty);
 
     // create default context
@@ -378,6 +447,8 @@ function Server(options) {
     // while start() is called with the user we will actually run as
     var connectors = jetty.getConnectors();
     for each (var connector in connectors) {
+        connector.setHost(options.host || "localhost");
+        connector.setPort(options.port || 8080);
         connector.open();
     }
 

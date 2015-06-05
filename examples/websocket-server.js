@@ -9,11 +9,9 @@ exports.app = function(req) {
 };
 
 function onconnect(conn) {
-    conn.addListener("open", function() {
-        connections.push(conn);
-        console.info("Opening connection, " + connections.length + " open");
-    });
-    conn.addListener("message", function(message) {
+    connections.push(conn);
+    console.info("Opening connection, " + connections.length + " open");
+    conn.addListener("text", function(message) {
         connections.forEach(function(conn) {
             conn.send(message);
         });
