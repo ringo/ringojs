@@ -34,7 +34,7 @@ public class JsgiRequest extends ScriptableObject {
     /**
      * Prototype constructor
      */
-    public JsgiRequest(Scriptable scope, boolean asyncSupport) {
+    public JsgiRequest(Scriptable scope) {
         setParentScope(scope);
         setPrototype(getObjectPrototype(scope));
         try {
@@ -44,6 +44,7 @@ public class JsgiRequest extends ScriptableObject {
             defineProperty("version", null, getMethod("getHttpVersion"), null, readonly);
             defineProperty("remoteAddress", null, getMethod("getRemoteHost"), null, readonly);
             defineProperty("scheme", null, getMethod("getUrlScheme"), null, readonly);
+            defineProperty("async", null, getMethod("isAsyncSupported"), null, readonly);
         } catch (NoSuchMethodException nsm) {
             throw new RuntimeException(nsm);
         }
@@ -54,7 +55,6 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(jsgi, "version", version, readonly);
         defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
         defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
-        defineProperty(jsgi, "async", Boolean.valueOf(asyncSupport), readonly);
         defineProperty(jsgi, "runOnce", Boolean.FALSE, readonly);
         defineProperty(jsgi, "cgi", Boolean.FALSE, readonly);
     }
@@ -139,6 +139,10 @@ public class JsgiRequest extends ScriptableObject {
 
     public String getUrlScheme() {
         return request.isSecure() ? "https" : "http";
+    }
+
+    public boolean isAsyncSupported() {
+        return request.isAsyncSupported();
     }
 
     private static Method getMethod(String name) throws NoSuchMethodException {
