@@ -16,7 +16,6 @@
 
 package org.ringojs.jsgi;
 
-import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.mozilla.javascript.RhinoException;
 import org.ringojs.engine.RingoConfig;
 import org.ringojs.engine.RingoWorker;
@@ -46,7 +45,6 @@ public class JsgiServlet extends HttpServlet {
     Object function;
     RhinoEngine engine;
     JsgiRequest requestProto;
-    boolean hasContinuation = false;
 
     public JsgiServlet() {}
 
@@ -110,30 +108,12 @@ public class JsgiServlet extends HttpServlet {
             }
         }
 
-        try {
-            hasContinuation = ContinuationSupport.class != null;
-        } catch (NoClassDefFoundError ignore) {
-            hasContinuation = false;
-        }
-
-        requestProto = new JsgiRequest(engine.getScope(), hasContinuation);
+        requestProto = new JsgiRequest(engine.getScope());
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            if (hasContinuation && ContinuationSupport
-                    .getContinuation(request).isExpired()) {
-                return; // continuation timeouts are handled by ringo/jsgi module
-            }
-        } catch (Exception x) {
-            // Continuations may not be set up even if class is available.
-            // Set flag to false and ignore otherwise.
-            log("Caught exception, disabling continuation support", x);
-            hasContinuation = false;
-            requestProto = new JsgiRequest(engine.getScope(), false);
-        }
         JsgiRequest req = new JsgiRequest(request, response, requestProto,
                 engine.getScope(), this);
         RingoWorker worker = engine.getWorker();
