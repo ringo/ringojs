@@ -1,8 +1,9 @@
 var assert = require("assert");
 var fs = require("fs");
-var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest" + Date.now());
 
 exports.testMkdir = function() {
+    var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest" + Date.now());
+
     assert.isFalse(fs.exists(testDir));
 
     try {
