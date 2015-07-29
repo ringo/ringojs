@@ -85,7 +85,7 @@ function initRequest(request) {
  */
 function commitResponse(req, result) {
     var request = req.env.servletRequest;
-    if (request.isAsyncStarted()) {
+    if (typeof request.isAsyncStarted === "function" && request.isAsyncStarted()) {
         return;
     }
     var response = req.env.servletResponse;
