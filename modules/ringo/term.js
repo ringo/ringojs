@@ -30,7 +30,7 @@ var supportedTerminals = {
     'gnome-terminal': 1
 };
 
-var javaConsole = System.console();
+var javaConsole = System.console() || System.out;
 var enabled = env.TERM && env.TERM in supportedTerminals;
 
 exports.RESET =     "\u001B[0m";
