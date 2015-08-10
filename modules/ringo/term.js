@@ -105,7 +105,7 @@ var TermWriter = exports.TermWriter = function() {
             if (!_enabled) {
                 arg = arg.replace(cleaner, '');
             }
-            javaConsole.printf(arg);
+            javaConsole.printf("%s", arg);
             if (arg && !matcher.test(arg) && i < arguments.length - 1) {
                 javaConsole.printf(" ");
             }
