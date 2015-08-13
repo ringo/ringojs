@@ -17,7 +17,6 @@
 
 var system = require('system');
 var {Stream, TextStream} = require('io');
-var {AnsiConsole} = org.fusesource.jansi;
 var System = java.lang.System;
 
 var env = system.env;
@@ -30,25 +29,9 @@ var supportedTerminals = {
     'xterm-256color': 1,
     'gnome-terminal': 1
 };
-var jansiInstalled = typeof AnsiConsole === "function";
 
-// enable if java.lang.System.console() is available and either
-// TERM has a supported value or Jansi is installed.
-try {
-    var javaConsole = System.console;
-} catch (error) {
-    // java.lang.System.console() is not available in JDK < 1.6
-}
-var enabled = (!javaConsole || javaConsole())
-        && ((env.TERM && env.TERM in supportedTerminals) || jansiInstalled);
-
-if (jansiInstalled) {
-    // Jansi wraps System.out and System.err so we need to
-    // reset stdout and stderr in the system module
-    AnsiConsole.systemInstall();
-    system.stdout = new TextStream(new Stream(System.out));
-    system.stderr = new TextStream(new Stream(System.err));
-}
+var javaConsole = System.console() || System.out;
+var enabled = env.TERM && env.TERM in supportedTerminals;
 
 exports.RESET =     "\u001B[0m";
 exports.BOLD =      "\u001B[1m";
@@ -79,17 +62,21 @@ var cleaner = /\u001B\[\d*(?:;\d+)?[a-zA-Z]/g;
 var matcher = /^(?:\u001B\[\d*(?:;\d+)?[a-zA-Z])+$/;
 
 /**
- * Creates a terminal writer that writes to the given text output stream.
+ * Creates a terminal writer that writes to the Java console.
  * @param {Stream} out a TextStream
  */
-var TermWriter = exports.TermWriter = function(out) {
+var TermWriter = exports.TermWriter = function() {
 
     if (!(this instanceof TermWriter)) {
-        return new TermWriter(out);
+        return new TermWriter();
+    }
+
+    // edge case: a JVM can exist without a console
+    if (javaConsole === null) {
+        throw "No console associated with the current JVM.";
     }
 
     var _enabled = enabled;
-    out = out || system.stdout;
 
     /**
      * Enable or disable ANSI terminal colors for this writer.
@@ -97,7 +84,7 @@ var TermWriter = exports.TermWriter = function(out) {
      */
     this.setEnabled = function(flag) {
         _enabled = flag;
-    }
+    };
 
     /**
      * Returns true if ANSI terminal colors are enabled.
@@ -105,7 +92,7 @@ var TermWriter = exports.TermWriter = function(out) {
      */
     this.isEnabled = function() {
         return _enabled;
-    }
+    };
 
     /**
      * Write the arguments to the stream, applying ANSI terminal colors if
@@ -118,9 +105,9 @@ var TermWriter = exports.TermWriter = function(out) {
             if (!_enabled) {
                 arg = arg.replace(cleaner, '');
             }
-            out.write(arg);
+            javaConsole.printf("%s", arg);
             if (arg && !matcher.test(arg) && i < arguments.length - 1) {
-                out.write(" ");
+                javaConsole.printf(" ");
             }
         }
     };
@@ -132,22 +119,22 @@ var TermWriter = exports.TermWriter = function(out) {
      */
     this.writeln = function() {
         this.write.apply(this, arguments);
-        out.writeLine(_enabled ? exports.RESET : "");
+        javaConsole.printf((_enabled ? exports.RESET : "") + "\n");
     };
-}
+};
 
-var stdout = new TermWriter(system.stdout);
+var tw = new TermWriter();
 /**
  * Write the arguments to `system.stdout`, applying ANSI terminal colors if
  * support has been detected.
  * @param {*...} args... variable number of arguments to write
  */
-exports.write = stdout.write.bind(stdout);
+exports.write = tw.write;
 /**
  * Write the arguments to `system.stdout` followed by a newline character,
  * applying ANSI terminal colors if support has been detected.
  * @param {*...} args... variable number of arguments to write
  */
-exports.writeln = stdout.writeln.bind(stdout);
+exports.writeln = tw.writeln;
 
 

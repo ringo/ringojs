@@ -16,9 +16,9 @@
 
 package org.ringojs.tools;
 
-import jline.Completor;
-import jline.ConsoleReader;
-import jline.History;
+import jline.console.completer.Completer;
+import jline.console.ConsoleReader;
+import jline.console.history.FileHistory;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
@@ -83,11 +83,11 @@ public class RingoShell {
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
         // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
-        reader.addCompletor(new JSCompletor());
+        reader.addCompleter(new JSCompleter());
         if (history == null) {
             history = new File(System.getProperty("user.home"), ".ringo-history");
         }
-        reader.setHistory(new History(history));
+        reader.setHistory(new FileHistory(history));
         PrintStream out = System.out;
         int lineno = 0;
         repl: while (true) {
@@ -215,7 +215,7 @@ public class RingoShell {
         t.start();
     }
 
-    class JSCompletor implements Completor {
+    class JSCompleter implements Completer {
 
         Pattern variables = Pattern.compile(
                 "(^|\\s|[^\\w\\.'\"])([\\w\\.]+)$");
