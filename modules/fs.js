@@ -1034,64 +1034,6 @@ function iterate(path) {
 }
 
 /**
- * The Permissions class describes the permissions associated with a file.
- * @param {Number|Object} permissions a number or object representing the permissions.
- * @param {Function} constructor
- */
-function Permissions(permissions, constructor) {
-    if (!(this instanceof Permissions)) {
-        return new Permissions(permissions, constructor);
-    }
-    this.update(Permissions['default']);
-    this.update(permissions);
-    /** @ignore */
-    this.constructor = constructor;
-}
-
-/**
- * @param {Number|Object} permissions
- */
-Permissions.prototype.update = function(permissions) {
-    var fromNumber = typeof permissions == 'number';
-    if (!fromNumber && !(permissions instanceof Object)) {
-        return;
-    }
-    for each (var user in ['owner', 'group', 'other']) {
-        this[user] = this[user] || {};
-        for each (var perm in ['read', 'write', 'execute']) {
-            this[user][perm] = fromNumber ?
-                Boolean((permissions <<= 1) & 512) :
-                Boolean(permissions[user] && permissions[user][perm]);
-        }
-    }
-};
-
-Permissions.prototype.toNumber = function() {
-    var result = 0;
-    for each (var user in ['owner', 'group', 'other']) {
-        for each (var perm in ['read', 'write', 'execute']) {
-            result <<= 1;
-            result |= +this[user][perm];
-        }
-    }
-    return result;
-};
-
-if (!Permissions['default']) {
-    try {
-        var POSIX = getPOSIX();
-        // FIXME: no way to get umask without setting it?
-        var umask = POSIX.umask(0022);
-        if (umask != 0022) {
-            POSIX.umask(umask);
-        }
-        Permissions['default'] = new Permissions(~umask & 0777);
-    } catch (error) {
-        Permissions['default'] = new Permissions(0755);
-    }
-}
-
-/**
  * @param {String} path
  */
 function permissions(path) {
