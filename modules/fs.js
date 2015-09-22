@@ -28,6 +28,7 @@
  */
 
 var arrays = require('ringo/utils/arrays');
+var {PosixPermissions} = require('ringo/utils/files');
 include('io');
 include('binary');
 
@@ -798,19 +799,17 @@ function lastModified(path) {
  * to this function it is used to create a Permissions instance which is
  * applied to the given path during directory creation.
  *
- * This function wraps the POSIX <code>mkdir()</code> function.
- *
  * @param {String} path the file path
  * @param {Number|Object} permissions optional permissions
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/mkdir.html">POSIX <code>mkdir</code></a>
  */
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
-    permissions = permissions != null ?
-            new Permissions(permissions) : Permissions["default"];
-    var POSIX = getPOSIX();
-    if (POSIX.mkdir(path, permissions.toNumber()) != 0) {
-        throw new Error("failed to make directory " + path);
+
+    // to respect the current umask
+    if (permissions == null) {
+        Files.createDirectory(getPath(path));
+    } else {
+        Files.createDirectory(getPath(path), (new PosixPermissions(permissions)).toJavaFilePermissions());
     }
 }
 
