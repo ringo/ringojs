@@ -37,6 +37,30 @@ exports.testCreateTempFile = function () {
             IllegalArgumentException); // Prefix must be at least 3 chars long.
 };
 
+exports.testPosixPermissions = function() {
+    var permissions = new files.PosixPermissions(0777);
+    assert.strictEqual(0777, permissions.value);
+
+    permissions.value = 0;
+    assert.strictEqual(0, permissions.value);
+
+    assert.throws(function () {
+       permissions.value = 1000;
+    });
+
+    var tempPath = java.nio.file.Files.createTempFile(new java.lang.String("ringotest" + Math.random() + Date.now()), null);
+    var permissionAttributes = java.nio.file.Files.getPosixFilePermissions(tempPath);
+
+    permissions = new files.PosixPermissions(permissionAttributes);
+
+    assert.strictEqual(
+        "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(permissionAttributes) + "]",
+        permissions.toString()
+    );
+
+    java.nio.file.Files.delete(tempPath);
+};
+
 if (require.main == module.id) {
     require('system').exit(require("test").run(module.id));
 }
