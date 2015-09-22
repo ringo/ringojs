@@ -32,21 +32,22 @@ include('io');
 include('binary');
 
 var File = java.io.File,
+    Files = java.nio.file.Files,
+    FileSystems = java.nio.file.FileSystems,
     FileInputStream = java.io.FileInputStream,
     FileOutputStream = java.io.FileOutputStream;
 
-var SEPARATOR = File.separator;
-var SEPARATOR_RE = SEPARATOR == '/' ?
+const FS = FileSystems.getDefault();
+const getPath = function(path) {
+    return FS.getPath(path);
+};
+
+const SEPARATOR = FS.getSeparator();
+const SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
-var POSIX;
-var security = java.lang.System.getSecurityManager();
-
-function getPOSIX() {
-    POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
-    return POSIX;
-}
+const security = java.lang.System.getSecurityManager();
 
 export('absolute',
        'base',
