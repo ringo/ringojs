@@ -861,19 +861,7 @@ function isDirectory(path) {
  */
 function isLink(path) {
     if (security) security.checkRead(path);
-    try {
-        var POSIX = getPOSIX();
-        var stat = POSIX.lstat(path);
-        return stat.isSymlink();
-    } catch (error) {
-        // fallback if POSIX is no available
-        path = resolveFile(path);
-        var parent = path.getParentFile();
-        if (!parent) return false;
-        parent = parent.getCanonicalFile();
-        path = new File(parent, path.getName());
-        return !path.equals(path.getCanonicalFile())
-    }
+    return Files.isSymbolicLink(getPath(path));
 }
 
 /**
@@ -881,13 +869,9 @@ function isLink(path) {
  * either by virtue of symbolic or hard links, such that modifying one would
  * modify the other.
  *
- * This function uses the POSIX <code>stat()</code> function to compare two
- * files or links.
- *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
- * @returns {Boolean} true if identical, otherwise false
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
+ * @returns {Boolean} true iff the two paths locate the same file
  */
 function same(pathA, pathB) {
     if (security) {
@@ -895,25 +879,18 @@ function same(pathA, pathB) {
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    pathA = canonical(pathA);
-    pathB = canonical(pathB);
-    // check inode to test hard links
-    var POSIX = getPOSIX();
-    var stat1 = POSIX.stat(pathA);
-    var stat2 = POSIX.stat(pathB);
-    return stat1.isIdentical(stat2);
+    let nioPathA = getPath(canonical(pathA));
+    let nioPathB = getPath(canonical(pathB));
+
+    return Files.isSameFile(nioPathA, nioPathB);
 }
 
 /**
  * Returns whether two paths refer to an entity of the same file system.
  *
- * This function uses the POSIX <code>stat()</code> function to compare two
- * paths by checking if the associated devices are identical.
- *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
  * @returns {Boolean} true if same file system, otherwise false
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function sameFilesystem(pathA, pathB) {
     if (security) {
@@ -921,12 +898,10 @@ function sameFilesystem(pathA, pathB) {
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    pathA = canonical(pathA);
-    pathB = canonical(pathB);
-    var POSIX = getPOSIX();
-    var stat1 = POSIX.stat(pathA);
-    var stat2 = POSIX.stat(pathB);
-    return stat1.dev() == stat2.dev();
+    let nioPathA = getPath(canonical(pathA));
+    let nioPathB = getPath(canonical(pathB));
+
+    return nioPathA.getFileSystem().equals(nioPathB.getFileSystem());
 }
 
 /**
@@ -959,20 +934,16 @@ function touch(path, mtime) {
  * Creates a symbolic link at the target path that refers to the source path.
  * The concrete implementation depends on the file system and the operating system.
  *
- * This function wraps the POSIX <code>symlink()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
- * @param {String} source the source file
- * @param {String} target the target link
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html">POSIX <code>symlink</code></a>
+ * @param {String} target the target of the link, normally a hardlink file
+ * @param {String} link the link to the target
  */
-function symbolicLink(source, target) {
+function symbolicLink(target, link) {
     if (security) {
-        security.checkRead(source);
-        security.checkWrite(target);
+        security.checkRead(target);
+        security.checkWrite(link);
     }
-    var POSIX = getPOSIX();
-    return POSIX.symlink(source, target);
+
+    return Files.createSymbolicLink(getPath(link), getPath(target));
 }
 
 /**
