@@ -852,12 +852,8 @@ function isDirectory(path) {
 /**
  * Return true if target file is a symbolic link, false otherwise.
  *
- * This function wraps the POSIX <code>lstat()</code> function to get the
- * symbolic link status.
- *
  * @param {String} path the file path
  * @returns {Boolean} true if the given file exists and is a symbolic link
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/lstat.html">POSIX <code>lstat</code></a>
  */
 function isLink(path) {
     if (security) security.checkRead(path);
@@ -965,11 +961,7 @@ function hardLink(existing, link) {
 /**
  * Returns the immediate target of the symbolic link at the given `path`.
  *
- * This function wraps the POSIX <code>readlink()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
  * @param {String} path a file path
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html">POSIX <code>readlink</code></a>
  */
 function readLink(path) {
     if (security) security.checkRead(path);
