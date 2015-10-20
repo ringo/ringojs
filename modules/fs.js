@@ -692,12 +692,12 @@ function move(source, target) {
  */
 function remove(path) {
     var file = resolveFile(path);
-    if (!file.isFile()) {
+
+    if (file.isDirectory()) {
         throw new Error(path + " is not a file");
     }
-    if (!file['delete']()) {
-        throw new Error("failed to remove file " + path);
-    }
+
+    Files.delete(file.toPath());
 }
 
 /**
@@ -973,8 +973,13 @@ function hardLink(existing, link) {
  */
 function readLink(path) {
     if (security) security.checkRead(path);
-    var POSIX = getPOSIX();
-    return POSIX.readlink(path);
+
+    // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
+    if (!Files.isReadable(getPath(path))) {
+        throw new Error("Path " + path + " is not readable!");
+    }
+
+    return Files.readSymbolicLink(getPath(path)).toString();
 }
 
 /**
