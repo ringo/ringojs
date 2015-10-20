@@ -1059,35 +1059,40 @@ function changePermissions(path, permissions) {
 }
 
 /**
- * Changes the owner of the specified file. This function wraps the
- * POSIX <code>chown()</code> function. Supports user name string as well
- * as uid number input.
+ * Changes the owner of the specified file.
  *
  * @param {String} path
- * @param {String|Number} owner the user name string or uid number
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
+ * @param {String} owner the user name string
  */
 function changeOwner(path, user) {
     if (security) security.checkWrite(path);
-    var POSIX = getPOSIX();
-    return POSIX.chown(path, typeof user === 'string' ?
-            POSIX.getpwnam(user).pw_uid : user, -1);
+
+    var lookupService = FS.getUserPrincipalLookupService();
+    var userPrincipal = lookupService.lookupPrincipalByName(user);
+
+    return Files.setOwner(getPath(path), userPrincipal);
 }
 
 /**
- * Changes the group of the specified file. This function wraps the
- * POSIX <code>chown()</code> function. Supports group name string
- * as well as gid number input.
+ * Changes the group of the specified file.
  *
  * @param {String} path
- * @param {String|Number} group group name string or gid number
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
+ * @param {String} group group name string
  */
 function changeGroup(path, group) {
     if (security) security.checkWrite(path);
-    var POSIX = getPOSIX();
-    return POSIX.chown(path, -1, typeof group === 'string' ?
-            POSIX.getgrnam(group).gr_gid : group);
+
+    var lookupService = FS.getUserPrincipalLookupService();
+    var groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+
+    var attributes = Files.getFileAttributeView(
+        getPath(path),
+        java.nio.file.attribute.PosixFileAttributeView,
+        java.nio.file.LinkOption.NOFOLLOW_LINKS
+    );
+    attributes.setGroup(groupPrincipal);
+
+    return true;
 }
 
 var optionsMask = {
