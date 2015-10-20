@@ -247,9 +247,19 @@ function PosixPermissions(permissions) {
 }
 
 /**
- * Returns a Java set representing the POSIX permissions suitable for NIO.2 methods.
+ * Returns a Java file attribute representing the POSIX permissions suitable for NIO.2 methods.
+ * @returns {java.nio.file.attribute.FileAttribute} an object that encapsulates PosixFilePermissions
+ */
+PosixPermissions.prototype.toJavaFileAttribute = function() {
+    return java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+        java.nio.file.attribute.PosixFilePermissions.fromString(octalToSymbolicNotation(this.value))
+    );
+};
+
+/**
+ * Returns a set of Java POSIX permissions suitable for NIO.2 methods.
  * @returns {java.util.Set<PosixFilePermission>} a set of permissions
  */
-PosixPermissions.prototype.toJavaFilePermissions = function() {
+PosixPermissions.prototype.toJavaPosixFilePermissionSet = function() {
     return java.nio.file.attribute.PosixFilePermissions.fromString(octalToSymbolicNotation(this.value));
 };

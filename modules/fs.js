@@ -800,7 +800,7 @@ function lastModified(path) {
  * applied to the given path during directory creation.
  *
  * @param {String} path the file path
- * @param {Number|Object} permissions optional permissions
+ * @param {Number|String|java.util.Set<PosixFilePermission>} permissions optional the POSIX permissions
  */
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
@@ -809,7 +809,7 @@ function makeDirectory(path, permissions) {
     if (permissions == null) {
         Files.createDirectory(getPath(path));
     } else {
-        Files.createDirectory(getPath(path), (new PosixPermissions(permissions)).toJavaFilePermissions());
+        Files.createDirectory(getPath(path), (new PosixPermissions(permissions)).toJavaFileAttribute());
     }
 }
 
@@ -934,36 +934,32 @@ function touch(path, mtime) {
  * Creates a symbolic link at the target path that refers to the source path.
  * The concrete implementation depends on the file system and the operating system.
  *
- * @param {String} target the target of the link, normally a hardlink file
- * @param {String} link the link to the target
+ * @param {String} existing path to an existing file, therefore the target of the link
+ * @param {String} link the link to create pointing to an existing path
  */
-function symbolicLink(target, link) {
+function symbolicLink(existing, link) {
     if (security) {
-        security.checkRead(target);
+        security.checkRead(existing);
         security.checkWrite(link);
     }
 
-    return Files.createSymbolicLink(getPath(link), getPath(target));
+    return Files.createSymbolicLink(getPath(link), getPath(existing));
 }
 
 /**
  * Creates a hard link at the target path that refers to the source path.
  * The concrete implementation depends on the file system and the operating system.
  *
- * This function wraps the POSIX <code>link()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
- * @param {String} source the source file
- * @param {String} target the target file
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/link.html">POSIX <code>link</code></a>
+ * @param {String} existing path to an existing file, therefore the target of the link
+ * @param {String} link the link to create pointing to an existing path
  */
-function hardLink(source, target) {
+function hardLink(existing, link) {
     if (security) {
-        security.checkRead(source);
-        security.checkWrite(target);
+        security.checkRead(existing);
+        security.checkWrite(link);
     }
-    var POSIX = getPOSIX();
-    return POSIX.link(source, target);
+
+    return Files.createLink(getPath(link), getPath(existing));
 }
 
 /**
@@ -1004,13 +1000,13 @@ function iterate(path) {
 }
 
 /**
+ * Returns the POSIX file permissions for the given path, if the filesystem supports POSIX.
  * @param {String} path
+ * @returns PosixFilePermission the POSIX permissions for the given path
  */
 function permissions(path) {
     if (security) security.checkRead(path);
-    var POSIX = getPOSIX();
-    var stat = POSIX.stat(path);
-    return new Permissions(stat.mode() & 0777);
+    return new PosixPermissions(Files.getPosixFilePermissions(getPath(path)));
 }
 
 /**
@@ -1044,21 +1040,14 @@ function group(path) {
 }
 
 /**
- * Changes the permissions of the specified file. This function wraps the
- * POSIX <code>chmod()</code> function.
+ * Changes the permissions of the specified file.
  * @param {String} path
- * @param {Number|Object} permissions
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chmod.html">POSIX <code>chmod</code></a>
+ * @param {Number|String|java.util.Set<PosixFilePermission>} permissions the POSIX permissions
  */
 function changePermissions(path, permissions) {
     if (security) security.checkWrite(path);
-    permissions = new Permissions(permissions);
-    var POSIX = getPOSIX();
-    var stat = POSIX.stat(path);
-    // do not overwrite set-UID bits etc
-    var preservedBits = stat.mode() & 07000;
-    var newBits = permissions.toNumber();
-    POSIX.chmod(path, preservedBits | newBits);
+    permissions = new PosixPermissions(permissions);
+    return Files.setPosixFilePermissions(getPath(path), permissions.toJavaPosixFilePermissionSet());
 }
 
 /**
