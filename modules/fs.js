@@ -1015,33 +1015,36 @@ function permissions(path) {
 }
 
 /**
+ * Returns the username of the owner of the given file.
  * @param {String} path
+ * @returns {String} the username of the owner, or null if not possible to determine
  */
 function owner(path) {
     if (security) security.checkRead(path);
     try {
-        var POSIX = getPOSIX();
-        var uid = POSIX.stat(path).uid();
-        var owner = POSIX.getpwuid(uid);
-        return owner ? String(owner.pw_name) : uid;
+        return Files.getOwner(getPath(path)).getName();
     } catch (error) {
-        return null;
+        // do nothing
     }
+
+    return null;
 }
 
 /**
+ * Returns the group name for the given file.
  * @param {String} path
+ * @returns {String} the group's name, or null if not possible to determine
  */
 function group(path) {
     if (security) security.checkRead(path);
     try {
-        var POSIX = getPOSIX();
-        var gid = POSIX.stat(path).gid();
-        var group = POSIX.getgrgid(gid);
-        return group ? String(group.gr_name) : gid;
+        let attributes = Files.getFileAttributeView(getPath(path), java.nio.file.attribute.PosixFileAttributeView);
+        return attributes.readAttributes().group().getName();
     } catch (error) {
-        return null;
+        // do nothing
     }
+
+    return null;
 }
 
 /**
