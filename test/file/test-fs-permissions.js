@@ -21,15 +21,18 @@ exports.testDirectoryPermissions = function() {
         // test permissions
         assert.isTrue(Files.exists(nioPath));
         assert.isTrue(Files.isDirectory(nioPath));
-        assert.equal("r-xr-xr-x", permissionString(Files.getPosixFilePermissions(nioPath)));
+        assert.equal(permissionString(Files.getPosixFilePermissions(nioPath)), "r-xr-xr-x");
+        assert.equal(fs.permissions(path).toString(), "[PosixPermissions r-xr-xr-x]");
 
         // change permissions
         fs.changePermissions(path, 0000);
-        assert.equal("---------", permissionString(Files.getPosixFilePermissions(nioPath)));
+        assert.equal(permissionString(Files.getPosixFilePermissions(nioPath)), "---------");
+        assert.equal(fs.permissions(path).toString(), "[PosixPermissions ---------]");
 
         // change permissions
         fs.changePermissions(path, 0700);
-        assert.equal("rwx------", permissionString(Files.getPosixFilePermissions(nioPath)));
+        assert.equal(permissionString(Files.getPosixFilePermissions(nioPath)), "rwx------");
+        assert.equal(fs.permissions(path).toString(), "[PosixPermissions rwx------]");
 
         // clean up
         fs.removeDirectory(path);
