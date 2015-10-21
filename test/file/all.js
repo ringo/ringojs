@@ -1,3 +1,4 @@
+exports.testChangeWorkingDirectory = require("./test-fs-changeWorkingDirectory");
 exports.testDirname = require("./test-fs-dirname");
 exports.testExtension = require("./test-fs-extension");
 exports.testIsAbsolute = require("./test-fs-isAbsolute");

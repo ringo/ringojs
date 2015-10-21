@@ -714,7 +714,7 @@ function exists(path) {
  * @returns {String} the current working directory
  */
 function workingDirectory() {
-    return java.lang.System.getProperty('user.dir') + SEPARATOR;
+    return getPath(java.lang.System.getProperty('user.dir')).toString();
 }
 
 /**
@@ -722,7 +722,7 @@ function workingDirectory() {
  * @param {String} path the new working directory
  */
 function changeWorkingDirectory(path) {
-    path = new File(path).getCanonicalPath();
+    path = getPath(path).normalize().toString();
     java.lang.System.setProperty('user.dir', path);
 }
 
