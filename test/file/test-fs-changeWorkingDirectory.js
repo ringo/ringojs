@@ -15,7 +15,7 @@ exports.testChangeWorkingDirectory = function () {
     assert.equal(fs.workingDirectory(), currentWorkingDirectory);
 
     // clean up
-    fs.delete(tempWorkingDirectory);
+    fs.removeTree(tempWorkingDirectory);
     assert.isFalse(fs.exists(tempWorkingDirectory));
 };
 
