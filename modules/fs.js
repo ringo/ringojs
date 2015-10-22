@@ -4,10 +4,6 @@
  * the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS Filesystem/A</a>
  * proposal.
  *
- * Some file system manipulations use a wrapper around standard POSIX functions. Their
- * functionality depends on the concrete file system and operating system. Others use
- * the <code>java.io</code> package and work cross-platform.
- *
  * @example // Writes a simple text file
  * var fs = require('fs');
  * if (!fs.exists('test.txt')) {
@@ -32,11 +28,8 @@ var {PosixPermissions} = require('ringo/utils/files');
 include('io');
 include('binary');
 
-var File = java.io.File,
-    Files = java.nio.file.Files,
-    FileSystems = java.nio.file.FileSystems,
-    FileInputStream = java.io.FileInputStream,
-    FileOutputStream = java.io.FileOutputStream;
+var Files = java.nio.file.Files,
+    FileSystems = java.nio.file.FileSystems;
 
 const FS = FileSystems.getDefault();
 const getPath = function(path) {
@@ -207,8 +200,9 @@ function open(path, options) {
  * @see #open
  */
 function openRaw(path, options) {
-    var file = resolveFile(path);
-    options = options || {};
+    var nioPath = resolvePath(path);
+    options = checkOptions(options || {});
+
     var {read, write, append} = options;
     if (!read && !write && !append) {
         read = true;
@@ -216,11 +210,26 @@ function openRaw(path, options) {
         throw new Error("Cannot open a file for reading and writing at the same time");
     }
 
-    if (read) {
-        return new Stream(new FileInputStream(file));
-    } else {
-        return new Stream(FileOutputStream(file, Boolean(append)));
+    // configure the NIO options
+    var nioOptions = new java.util.ArrayList();
+    if (append === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.APPEND);
     }
+    if (read === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.READ);
+    }
+    if (write === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.WRITE);
+        nioOptions.add(java.nio.file.StandardOpenOption.CREATE);
+        nioOptions.add(java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    // needed to generate a valid varargs argument for the Java NIO API
+    var javaVarArgs = nioOptions.toArray(
+        java.lang.reflect.Array.newInstance(java.nio.file.OpenOption, nioOptions.size())
+    );
+
+    return new Stream(read ? Files.newInputStream(nioPath, javaVarArgs) : Files.newOutputStream(nioPath, javaVarArgs));
 }
 
 
@@ -269,23 +278,28 @@ function write(path, content, options) {
 
 /**
  * Read data from one file and write it into another using binary mode.
+ * Replaces an existing file if it exists.
  * @param {String} from original file
  * @param {String} to copy to create
  * @example // Copies file from a temporary upload directory into /var/www
  * fs.copy('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function copy(from, to) {
-    var source = resolveFile(from);
-    var target = resolveFile(to);
-    var input = new FileInputStream(source).getChannel();
-    var output = new FileOutputStream(target).getChannel();
-    var size = source.length();
-    try {
-        input.transferTo(0, size, output);
-    } finally {
-        input.close();
-        output.close();
+    var sourcePath = resolvePath(from);
+    var targetPath = resolvePath(to);
+
+    if (!Files.exists(sourcePath) || Files.isDirectory(sourcePath)) {
+        throw new Error(sourcePath + " does not exist!");
     }
+
+    var nioOptions = new java.util.ArrayList();
+    nioOptions.add(java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+    var javaVarArgs = nioOptions.toArray(
+        java.lang.reflect.Array.newInstance(java.nio.file.StandardCopyOption, nioOptions.size())
+    );
+
+    Files.copy(sourcePath, targetPath, javaVarArgs);
 }
 
 /**
@@ -314,16 +328,19 @@ function copy(from, to) {
  *     └── baz
  */
 function copyTree(from, to) {
-    var source = resolveFile(from).getCanonicalFile();
-    var target = resolveFile(to).getCanonicalFile();
+    var source = resolvePath(from);
+    var target = resolvePath(to);
+
     if (String(target) == String(source)) {
         throw new Error("Source and target files are equal in copyTree.");
     } else if (String(target).indexOf(String(source) + SEPARATOR) == 0) {
         throw new Error("Target is a child of source in copyTree");
     }
-    if (source.isDirectory()) {
+
+    if (Files.isDirectory(source)) {
         makeTree(target);
-        var files = source.list();
+
+        var files = list(source);
         for each (var file in files) {
             var s = join(source, file);
             var t = join(target, file);
@@ -354,10 +371,13 @@ function copyTree(from, to) {
  *       └── baz
  */
 function makeTree(path) {
-    var file = resolveFile(path);
-    if (!file.isDirectory() && !file.mkdirs()) {
-        throw new Error("failed to make tree " + path);
+    var fullPath = resolvePath(path);
+
+    if (Files.isDirectory(fullPath)) {
+        throw new Error("Tree already exists " + path);
     }
+
+    Files.createDirectories(fullPath);
 }
 
 /**
@@ -451,16 +471,14 @@ function listTree(path) {
  * └── test.txt
  */
 function removeTree(path) {
-    var file = resolveFile(path);
+    var nioPath = resolvePath(path);
     // do not follow symlinks
-    if (file.isDirectory() && !isLink(file.getPath())) {
-        for each (var child in file.list()) {
-            removeTree(join(file, child));
+    if (Files.isDirectory(nioPath) && !isLink(nioPath)) {
+        for each (var child in list(nioPath)) {
+            removeTree(join(nioPath, child));
         }
     }
-    if (!file['delete']()) {
-        throw new Error("failed to remove " + path);
-    }
+    Files.delete(nioPath);
 }
 
 /**
@@ -475,7 +493,7 @@ function removeTree(path) {
  * true
  */
 function isAbsolute(path) {
-    return new File(path).isAbsolute();
+    return getPath(path).isAbsolute();
 }
 
 /**
@@ -532,7 +550,7 @@ function base(path, ext) {
  * '/Users/username/Desktop/example'
  */
 function directory(path) {
-    return new File(path).getParent() || '.';
+    return (getPath(path).getParent() || getPath('.')).toString();
 }
 
 /**
@@ -622,7 +640,7 @@ function resolve() {
             // path is absolute, throw away everyting we have so far.
             // We still need to explicitly make absolute for the quasi-absolute
             // Windows paths mentioned above.
-            root = new File(parts.shift() + SEPARATOR).getAbsolutePath();
+            root = String(getPath(parts.shift() + SEPARATOR).toAbsolutePath());
             elements = [];
         }
         leaf = parts.pop();
@@ -689,7 +707,8 @@ function relative(source, target) {
 }
 
 /**
- * Move a file from `source` to `target`.
+ * Move a file from `source` to `target`. If `target` already exists,
+ * it is replaced by the `source` file.
  * @param {String} source the source path
  * @param {String} target the target path
  * @throws Error
@@ -697,11 +716,19 @@ function relative(source, target) {
  * fs.move('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function move(source, target) {
-    var from = resolveFile(source);
-    var to = resolveFile(target);
-    if (!from.renameTo(to)) {
-        throw new Error("Failed to move file from " + source + " to " + target);
-    }
+    var from = resolvePath(source);
+    var to = resolvePath(target);
+
+    // configure the NIO options
+    var nioOptions = new java.util.ArrayList();
+    nioOptions.add(java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+    // needed to generate a valid varargs argument for the Java NIO API
+    var javaVarArgs = nioOptions.toArray(
+        java.lang.reflect.Array.newInstance(java.nio.file.CopyOption, 0)
+    );
+
+    return String(Files.move(from, to, javaVarArgs));
 }
 
 /**
@@ -711,13 +738,13 @@ function move(source, target) {
  * @throws Error if path is not a file or could not be removed.
  */
 function remove(path) {
-    var file = resolveFile(path);
+    var nioPath = resolvePath(path);
 
-    if (file.isDirectory()) {
+    if (Files.isDirectory(nioPath)) {
         throw new Error(path + " is not a file");
     }
 
-    Files.delete(file.toPath());
+    Files.delete(nioPath);
 }
 
 /**
@@ -725,8 +752,7 @@ function remove(path) {
  * @param {String} path the file path.
  */
 function exists(path) {
-    var file = resolveFile(path);
-    return file.exists();
+    return Files.exists(resolvePath(path));
 }
 
 /**
@@ -734,7 +760,7 @@ function exists(path) {
  * @returns {String} the current working directory
  */
 function workingDirectory() {
-    return getPath(java.lang.System.getProperty('user.dir')).toString();
+    return resolvePath(java.lang.System.getProperty('user.dir')) + SEPARATOR;
 }
 
 /**
@@ -747,7 +773,7 @@ function workingDirectory() {
  */
 function changeWorkingDirectory(path) {
     log.warn("fs.changeWorkingDirectory() is deprecated! https://github.com/ringo/ringojs/issues/305");
-    path = String(getPath(path).normalize());
+    path = String(resolvePath(path));
     java.lang.System.setProperty('user.dir', path);
 }
 
@@ -758,10 +784,7 @@ function changeWorkingDirectory(path) {
  * @throws Error if the file or directory could not be removed.
  */
 function removeDirectory(path) {
-    var file = resolveFile(path);
-    if (!file['delete']()) {
-        throw new Error("failed to remove directory " + path);
-    }
+    Files.delete(resolvePath(path));
 }
 
 /**
@@ -780,16 +803,19 @@ function removeDirectory(path) {
  * @returns {Array} an array of strings with the files, directories, or symbolic links
  */
 function list(path) {
-    var file = resolveFile(path);
-    var list = file.list();
-    if (list == null) {
+    var nioPath = resolvePath(path);
+
+    if (!Files.isDirectory(nioPath)) {
         throw new Error("failed to list directory " + path);
     }
-    var result = [];
-    for (var i = 0; i < list.length; i++) {
-        result[i] = list[i];
+
+    var files = [];
+    var directoryStream = (Files.newDirectoryStream(nioPath)).iterator();
+    while (directoryStream.hasNext()) {
+        files.push(String(directoryStream.next().getFileName()));
     }
-    return result;
+
+    return files;
 }
 
 /**
@@ -800,11 +826,11 @@ function list(path) {
  * @throws Error if path is not a file
  */
 function size(path) {
-    var file = resolveFile(path);
-    if (!file.isFile()) {
+    var nioPath = resolvePath(path);
+    if (!Files.isRegularFile(nioPath)) {
         throw new Error(path + " is not a file");
     }
-    return file.length();
+    return Files.size(nioPath);
 }
 
 /**
@@ -813,8 +839,9 @@ function size(path) {
  * @returns {Date} the date the file was last modified
  */
 function lastModified(path) {
-    var file = resolveFile(path);
-    return new Date(file.lastModified());
+    var nioPath = resolvePath(path);
+    var fileTime = Files.getLastModifiedTime(nioPath);
+    return new Date(fileTime.toMillis());
 }
 
 /**
@@ -844,7 +871,7 @@ function makeDirectory(path, permissions) {
  * @returns {Boolean} whether the file exists and is readable
  */
 function isReadable(path) {
-    return resolveFile(path).canRead();
+    return Files.isReadable(resolvePath(path));
 }
 
 /**
@@ -853,7 +880,7 @@ function isReadable(path) {
  * @returns {Boolean} whether the file exists and is writable
  */
 function isWritable(path) {
-    return resolveFile(path).canWrite();
+    return Files.isWritable(resolvePath(path));
 }
 
 /**
@@ -862,7 +889,7 @@ function isWritable(path) {
  * @returns {Boolean} whether the file exists and is a file
  */
 function isFile(path) {
-    return resolveFile(path).isFile();
+    return Files.isRegularFile(resolvePath(path));
 }
 
 /**
@@ -871,7 +898,7 @@ function isFile(path) {
  * @returns {Boolean} whether the file exists and is a directory
  */
 function isDirectory(path) {
-    return resolveFile(path).isDirectory();
+    return Files.isDirectory(resolvePath(path));
 }
 
 /**
@@ -882,7 +909,7 @@ function isDirectory(path) {
  */
 function isLink(path) {
     if (security) security.checkRead(path);
-    return Files.isSymbolicLink(getPath(path));
+    return Files.isSymbolicLink(resolvePath(path));
 }
 
 /**
@@ -933,7 +960,7 @@ function sameFilesystem(pathA, pathB) {
  * @returns {String} the canonical path
  */
 function canonical(path) {
-    return resolveFile(path).getCanonicalPath();
+    return resolvePath(path).toRealPath().normalize();
 }
 
 /**
@@ -944,11 +971,14 @@ function canonical(path) {
  * @param {Date} mtime optional date
  */
 function touch(path, mtime) {
-    var file = resolveFile(path);
-    if (!file.exists()) {
-        return file.createNewFile();
+    var nioPath = resolvePath(path);
+    if (!Files.exists(nioPath)) {
+        Files.createFile(nioPath);
+    } else {
+        Files.setLastModifiedTime(nioPath, java.nio.file.attribute.FileTime.fromMillis(mtime || Date.now()));
     }
-    return file.setLastModified(mtime || Date.now());
+
+    return true;
 }
 
 /**
@@ -964,7 +994,7 @@ function symbolicLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createSymbolicLink(getPath(link), getPath(existing));
+    return Files.createSymbolicLink(resolvePath(link), resolvePath(existing));
 }
 
 /**
@@ -980,7 +1010,7 @@ function hardLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createLink(getPath(link), getPath(existing));
+    return Files.createLink(resolvePath(link), resolvePath(existing));
 }
 
 /**
@@ -992,11 +1022,11 @@ function readLink(path) {
     if (security) security.checkRead(path);
 
     // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
-    if (!Files.isReadable(getPath(path))) {
+    if (!Files.isReadable(resolvePath(path))) {
         throw new Error("Path " + path + " is not readable!");
     }
 
-    return Files.readSymbolicLink(getPath(path)).toString();
+    return Files.readSymbolicLink(resolvePath(path)).toString();
 }
 
 /**
@@ -1189,17 +1219,13 @@ function applyMode(mode) {
 /**
  * Internal.
  */
-function resolveFile(path) {
-    // Fix for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-    // relative files are not resolved against workingDirectory/user.dir in java,
-    // making the file absolute makes sure it is resolved correctly.
+function resolvePath(path) {
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
-    var file = path instanceof File ? path : new File(String(path));
-    return file.isAbsolute() ? file : file.getAbsoluteFile();
-}
 
+    return (path instanceof Path ? path : getPath(String(path))).toAbsolutePath().normalize();
+}
 
 // Path object
 
