@@ -26,7 +26,7 @@
  *   console.error('test.txt already exists.');
  * }
  */
-
+var log = require("ringo/logging").getLogger(module.id);
 var arrays = require('ringo/utils/arrays');
 var {PosixPermissions} = require('ringo/utils/files');
 include('io');
@@ -720,9 +720,14 @@ function workingDirectory() {
 /**
  * Set the current working directory to `path`.
  * @param {String} path the new working directory
+ * @deprecated The working directory is always related to the JVM process.
+ * Therefore, the working directory cannot be changed during runtime.
+ * This function is deprecated and may be removed in future versions of RingoJS.
+ * @see https://github.com/ringo/ringojs/issues/305
  */
 function changeWorkingDirectory(path) {
-    path = getPath(path).normalize().toString();
+    log.warn("fs.changeWorkingDirectory() is deprecated! https://github.com/ringo/ringojs/issues/305");
+    path = String(getPath(path).normalize());
     java.lang.System.setProperty('user.dir', path);
 }
 
