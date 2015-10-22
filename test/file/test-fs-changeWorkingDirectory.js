@@ -1,9 +1,11 @@
 var assert = require("assert");
 var fs = require('fs');
 
+const SEPARATOR = require("ringo/utils/files").separator;
+
 exports.testChangeWorkingDirectory = function () {
-    var currentWorkingDirectory = java.lang.System.getProperty("user.dir");
-    var tempWorkingDirectory = (java.nio.file.Files.createTempDirectory("ringo-wkdir-test")).toString();
+    var currentWorkingDirectory = java.lang.System.getProperty("user.dir") + SEPARATOR;
+    var tempWorkingDirectory = java.nio.file.Files.createTempDirectory("ringo-wkdir-test") + SEPARATOR;
 
     // change the working directory
     assert.equal(fs.workingDirectory(), currentWorkingDirectory);
