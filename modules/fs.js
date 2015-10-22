@@ -150,7 +150,7 @@ export('absolute',
  */
 function open(path, options) {
     options = checkOptions(options);
-    var file = resolveFile(path);
+    var nioPath = resolvePath(path);
     var {read, write, append, update, binary, charset} = options;
 
     if (read === true && write === true) {
@@ -160,8 +160,28 @@ function open(path, options) {
     if (!read && !write && !append && !update) {
         read = true;
     }
+
+    // configure the NIO options
+    var nioOptions = new java.util.ArrayList();
+    if (append === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.APPEND);
+    }
+    if (read === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.READ);
+    }
+    if (write === true) {
+        nioOptions.add(java.nio.file.StandardOpenOption.WRITE);
+        nioOptions.add(java.nio.file.StandardOpenOption.CREATE);
+        nioOptions.add(java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    // needed to generate a valid varargs argument for the Java NIO API
+    var javaVarArgs = nioOptions.toArray(
+        java.lang.reflect.Array.newInstance(java.nio.file.OpenOption, nioOptions.size())
+    );
+
     var stream = new Stream(read ?
-            new FileInputStream(file) : new FileOutputStream(file, Boolean(append)));
+        Files.newInputStream(nioPath, javaVarArgs) : Files.newOutputStream(nioPath, javaVarArgs));
     if (binary) {
         return stream;
     } else if (read || write || append) {
