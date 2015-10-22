@@ -1,6 +1,9 @@
 var assert = require("assert");
 var fs = require("fs");
 
+var Files = java.nio.file.Files,
+    Paths = java.nio.file.Paths;
+
 exports.testMkdir = function() {
     var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest" + Date.now());
 
@@ -37,6 +40,21 @@ exports.testSymbolicLink = function() {
     fs.removeDirectory(testDir);
     fs.removeDirectory(symLink);
     assert.isFalse(java.nio.file.Files.exists(nioPath));
+};
+
+exports.testMakeTree = function() {
+    var tempDir = java.lang.System.getProperty("java.io.tmpdir");
+    var root = fs.join(tempDir, "tree-" + Date.now());
+    var tree = fs.join(root, "level1", "level2", "level3");
+    fs.makeTree(tree);
+
+    assert.isTrue(Files.exists(Paths.get(tree)));
+    assert.isTrue(Files.isDirectory(Paths.get(tree)));
+
+    fs.remove(root);
+    assert.isFalse(Files.exists(Paths.get(tree)));
+    assert.isFalse(Files.isDirectory(Paths.get(tree)));
+    assert.isFalse(Files.exists(Paths.get(root)));
 };
 
 if (require.main == module.id) {
