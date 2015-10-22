@@ -22,6 +22,6 @@ exports.testTouch = function() {
     assert.strictEqual(fs.lastModified(path).getTime(), mtime.getTime());
 };
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }

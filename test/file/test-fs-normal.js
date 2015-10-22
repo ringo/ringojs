@@ -27,6 +27,6 @@ function localize(path) {
     return path.replace(/\//g, separator);
 }
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }
