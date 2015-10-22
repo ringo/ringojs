@@ -607,6 +607,7 @@ public class RhinoEngine implements ScopeProvider {
             }
             return (Scriptable) result;
         } catch (JsonParser.ParseException px) {
+            log.severe("Could not parse package.json " + resource.getUrl());
             throw new RuntimeException(px);
         }
     }
