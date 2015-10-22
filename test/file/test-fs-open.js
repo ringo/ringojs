@@ -38,6 +38,32 @@ exports.testOpenRaw = function() {
     } catch (err) {
         assert.strictEqual(err.message, "Cannot open a file for reading and writing at the same time");
     }
+
+    var stream = fs.openRaw(testFile, "w");
+
+    var ba = new ByteArray([0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+
+    try {
+        stream.write(ba);
+        stream.flush();
+    } finally {
+        stream.close();
+        assert.isTrue(stream.closed());
+    }
+
+    stream = fs.openRaw(testFile, "r");
+    try {
+        var buff = new ByteArray(10);
+        assert.equal(stream.readInto(buff), 10);
+
+        // Check the content
+        for (var i = 0; i < buff.length; i++) {
+            assert.equal(buff.charCodeAt(i), ba.charCodeAt(i));
+        }
+    } finally {
+        stream.close();
+        assert.isTrue(stream.closed());
+    }
 };
 
 exports.testOpenAndWrite = function() {
