@@ -1,5 +1,4 @@
 // Run complete RingoJS test suite.
-
 exports.testAssert         = require('./assert');
 exports.testAssertCommonJs = require('./assert_commonjs');
 exports.testArgs           = require('./ringo/args_test');
@@ -20,6 +19,9 @@ exports.testBinary         = require('./binary/all');
 exports.testRepository     = require('./repository/all');
 exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
+
+// Also include integration tests
+exports.testIntegration    = require('./integration-tests/all');
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
