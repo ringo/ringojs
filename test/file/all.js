@@ -5,6 +5,7 @@ exports.test_isAbsolute = require("./test-fs-isAbsolute");
 exports.test_iterator = require("./test-fs-iterator");
 exports.test_links = require("./test-fs-links");
 exports.test_mkdir = require("./test-fs-mkdir");
+exports.test_move = require("./test-fs-move");
 exports.test_normal = require("./test-fs-normal");
 exports.test_open = require("./test-fs-open");
 exports.test_ownergroup = require("./test-fs-ownergroup");
