@@ -21,6 +21,10 @@ exports.testChangeWorkingDirectory = function () {
     assert.isFalse(fs.exists(tempWorkingDirectory));
 };
 
+exports.testDirectory = function() {
+    assert.equal(fs.workingDirectory(), java.lang.System.getProperty("user.dir") + SEPARATOR);
+};
+
 if (require.main == module.id) {
     require('system').exit(require("test").run(module.id));
 }

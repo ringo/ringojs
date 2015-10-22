@@ -1,18 +1,19 @@
-exports.testChangeWorkingDirectory = require("./test-fs-changeWorkingDirectory");
-exports.testDirname = require("./test-fs-dirname");
-exports.testExtension = require("./test-fs-extension");
-exports.testIsAbsolute = require("./test-fs-isAbsolute");
-exports.testIterator = require("./test-fs-iterator");
-exports.testLinks = require("./test-fs-links");
-exports.testMkdir = require("./test-fs-mkdir");
-exports.testNormal = require("./test-fs-normal");
-exports.testOpen = require("./test-fs-open");
-exports.testPermissions = require("./test-fs-permissions");
-exports.testRelative = require("./test-fs-relative");
-exports.testResolve = require("./test-fs-resolve");
-exports.testSameFilesystem = require("./test-fs-sameFilesystem");
-exports.testTouch = require("./test-fs-touch");
-exports.testOwnerGroup = require("./test-fs-ownergroup");
+exports.test_copy = require("./test-fs-copy");
+exports.test_dirname = require("./test-fs-dirname");
+exports.test_extension = require("./test-fs-extension");
+exports.test_isAbsolute = require("./test-fs-isAbsolute");
+exports.test_iterator = require("./test-fs-iterator");
+exports.test_links = require("./test-fs-links");
+exports.test_mkdir = require("./test-fs-mkdir");
+exports.test_normal = require("./test-fs-normal");
+exports.test_open = require("./test-fs-open");
+exports.test_ownergroup = require("./test-fs-ownergroup");
+exports.test_permissions = require("./test-fs-permissions");
+exports.test_relative = require("./test-fs-relative");
+exports.test_resolve = require("./test-fs-resolve");
+exports.test_sameFilesystem = require("./test-fs-sameFilesystem");
+exports.test_touch = require("./test-fs-touch");
+exports.test_workingDirectory = require("./test-fs-workingDirectory");
 
 if (require.main == module.id) {
     require('system').exit(require("test").run(module.id));

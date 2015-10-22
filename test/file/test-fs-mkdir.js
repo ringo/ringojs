@@ -51,7 +51,7 @@ exports.testMakeTree = function() {
     assert.isTrue(Files.exists(Paths.get(tree)));
     assert.isTrue(Files.isDirectory(Paths.get(tree)));
 
-    fs.remove(root);
+    fs.removeTree(root);
     assert.isFalse(Files.exists(Paths.get(tree)));
     assert.isFalse(Files.isDirectory(Paths.get(tree)));
     assert.isFalse(Files.exists(Paths.get(root)));
