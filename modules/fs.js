@@ -994,7 +994,7 @@ function symbolicLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createSymbolicLink(resolvePath(link), resolvePath(existing));
+    return Files.createSymbolicLink(getPath(link), getPath(existing));
 }
 
 /**
@@ -1010,7 +1010,7 @@ function hardLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createLink(resolvePath(link), resolvePath(existing));
+    return Files.createLink(getPath(link), getPath(existing));
 }
 
 /**
@@ -1022,7 +1022,7 @@ function readLink(path) {
     if (security) security.checkRead(path);
 
     // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
-    if (!Files.isReadable(resolvePath(path))) {
+    if (!Files.isReadable(getPath(path))) {
         throw new Error("Path " + path + " is not readable!");
     }
 
