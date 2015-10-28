@@ -38,6 +38,10 @@ exports.testCreateTempFile = function () {
 };
 
 exports.testPosixPermissions = function() {
+    if (!java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+        return;
+    }
+    
     var permissions = new files.PosixPermissions(0777);
     assert.strictEqual(0777, permissions.value);
 
