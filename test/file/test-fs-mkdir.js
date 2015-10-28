@@ -4,6 +4,22 @@ var fs = require("fs");
 var Files = java.nio.file.Files,
     Paths = java.nio.file.Paths;
 
+var log = require("ringo/logging").getLogger(module.id);
+
+var supportLinks = (function() {
+    var file = java.nio.file.Files.createTempFile("foo", ".txt");
+    var link = java.nio.file.Paths.get(file.getParent(), "pseudolink" + Date.now());
+
+    try {
+        java.nio.file.Files.createSymbolicLink(link, file);
+        java.nio.file.Files.delete(link);
+        java.nio.file.Files.delete(file);
+        return true;
+    } catch (ex) {
+        return false;
+    }
+})();
+
 exports.testMkdir = function() {
     var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest" + Date.now());
 
@@ -24,6 +40,11 @@ exports.testMkdir = function() {
 };
 
 exports.testSymbolicLink = function() {
+    if (!supportLinks) {
+        log.info("Skipping test, symbolic links not supported");
+        return;
+    }
+
     var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest-hard-" + Date.now()),
         symLink = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirtest-symlinkk-" + Date.now());
 
@@ -43,8 +64,7 @@ exports.testSymbolicLink = function() {
 };
 
 exports.testMakeTree = function() {
-    var tempDir = java.lang.System.getProperty("java.io.tmpdir");
-    var root = fs.join(tempDir, "tree-" + Date.now());
+    var root = java.nio.file.Files.createTempDirectory("root-test");
     var tree = fs.join(root, "level1", "level2", "level3");
     fs.makeTree(tree);
 

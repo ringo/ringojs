@@ -472,13 +472,20 @@ function listTree(path) {
  */
 function removeTree(path) {
     var nioPath = resolvePath(path);
-    // do not follow symlinks
-    if (Files.isDirectory(nioPath) && !isLink(nioPath)) {
-        for each (var child in list(nioPath)) {
-            removeTree(join(nioPath, child));
+    Files.walkFileTree(nioPath, new JavaAdapter(java.nio.file.SimpleFileVisitor, {
+        visitFile: function (file, attrs) {
+            Files.delete(file);
+            return java.nio.file.FileVisitResult.CONTINUE;
+        },
+        postVisitDirectory: function (dir, exc) {
+            if (exc == null) {
+                Files.delete(dir);
+                return java.nio.file.FileVisitResult.CONTINUE;
+            } else {
+                throw exc;
+            }
         }
-    }
-    Files.delete(nioPath);
+    }));
 }
 
 /**
