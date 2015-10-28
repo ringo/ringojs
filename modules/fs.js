@@ -477,12 +477,12 @@ function removeTree(path) {
             Files.delete(file);
             return java.nio.file.FileVisitResult.CONTINUE;
         },
-        postVisitDirectory: function (dir, exc) {
-            if (exc == null) {
+        postVisitDirectory: function (dir, e) {
+            if (e == null) {
                 Files.delete(dir);
                 return java.nio.file.FileVisitResult.CONTINUE;
             } else {
-                throw exc;
+                throw e;
             }
         }
     }));
@@ -817,10 +817,12 @@ function list(path) {
     }
 
     var files = [];
-    var directoryStream = (Files.newDirectoryStream(nioPath)).iterator();
-    while (directoryStream.hasNext()) {
-        files.push(String(directoryStream.next().getFileName()));
+    var dirStream = Files.newDirectoryStream(nioPath);
+    var dirIterator = dirStream.iterator();
+    while (dirIterator.hasNext()) {
+        files.push(String(dirIterator.next().getFileName()));
     }
+    dirStream.close();
 
     return files;
 }
