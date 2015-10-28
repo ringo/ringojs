@@ -1,7 +1,29 @@
 var assert = require("assert");
 var fs = require("fs");
 
+var log = require("ringo/logging").getLogger(module.id);
+
+var supportLinks = (function() {
+    var file = java.nio.file.Files.createTempFile("foo", ".txt");
+    var link = java.nio.file.Paths.get(file.getParent(), "pseudolink" + Date.now());
+
+    try {
+        java.nio.file.Files.createSymbolicLink(link, file);
+        java.nio.file.Files.delete(link);
+        java.nio.file.Files.delete(file);
+        return true;
+    } catch (ex) {
+        return false;
+    }
+})();
+
+
 exports.testSymbolicLink = function() {
+    if (!supportLinks) {
+        log.info("Skipping test, symbolic links not supported");
+        return;
+    }
+
     var hard = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "hard-" + Date.now()),
         symbolic = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "symlinkk-" + Date.now());
 
@@ -49,6 +71,11 @@ exports.testHardLink = function() {
 };
 
 exports.testReadLink = function() {
+    if (!supportLinks) {
+        log.info("Skipping test, symbolic links not supported");
+        return;
+    }
+
     var source = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "source-" + Date.now()),
         symbolic = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "symlinkk-" + Date.now());
 

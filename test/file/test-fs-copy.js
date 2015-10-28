@@ -5,9 +5,10 @@ var {ByteArray} = require("binary");
 var Files = java.nio.file.Files,
     Paths = java.nio.file.Paths;
 
-var testFile = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "copytest.txt");
+var testFile;
 
 exports.setUp = function() {
+    testFile = String(Files.createTempFile("copytest", ".txt").toAbsolutePath());
     fs.touch(testFile);
 };
 
@@ -43,7 +44,7 @@ exports.testCopy = function() {
     }
 
     // create a second file
-    var copyFile = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "copytest-copy.txt");
+    var copyFile = String(Files.createTempFile("copyofcopytest", ".txt").toAbsolutePath());
     fs.copy(testFile, copyFile);
 
     stream = fs.open(copyFile, "rb");
@@ -59,10 +60,13 @@ exports.testCopy = function() {
         stream.close();
         assert.isTrue(stream.closed());
     }
+
+    fs.remove(copyFile);
+    assert.isFalse(Files.exists(Paths.get(copyFile)));
 };
 
 exports.testCopyTree = function() {
-    var tempDir = java.lang.System.getProperty("java.io.tmpdir");
+    var tempDir = Files.createTempDirectory("tmp-copytree-test");
 
     var rootTree1 = fs.join(tempDir, "tree1-" + Date.now());
     var rootTree2 = fs.join(tempDir, "tree2-" + Date.now());
@@ -80,13 +84,16 @@ exports.testCopyTree = function() {
 
     assert.isFalse(Files.exists(Paths.get(rootTree1)));
     assert.isFalse(Files.exists(Paths.get(rootTree2)));
+
+    fs.removeDirectory(tempDir);
+    assert.isFalse(Files.exists(Paths.get(tempDir)));
 };
 
 exports.testCopyComplexTree = function() {
-    var tempDir = java.lang.System.getProperty("java.io.tmpdir");
+    var tempDir = Files.createTempDirectory("tmp-copytree-test");
 
-    var rootTree1 = fs.join(tempDir, "tree1-" + Date.now());
-    var rootTree2 = fs.join(tempDir, "tree2-" + Date.now());
+    var rootTree1 = fs.join(tempDir, "tree1");
+    var rootTree2 = fs.join(tempDir, "tree2");
 
     fs.makeTree(fs.join(rootTree1, "level1", "level2", "level3"));
 
@@ -112,6 +119,9 @@ exports.testCopyComplexTree = function() {
 
     assert.isFalse(Files.exists(Paths.get(rootTree1)));
     assert.isFalse(Files.exists(Paths.get(rootTree2)));
+
+    fs.removeDirectory(tempDir);
+    assert.isFalse(Files.exists(Paths.get(tempDir)));
 };
 
 exports.testCopyTreeAsFiles = function() {
@@ -127,7 +137,7 @@ exports.testCopyTreeAsFiles = function() {
         assert.isTrue(stream.closed());
     }
 
-    var file2 = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "file2" + Date.now());
+    var file2 = String(Files.createTempFile("copyofcopytest", ".txt").toAbsolutePath());
     fs.copyTree(testFile, file2);
 
     assert.isTrue(Files.exists(Paths.get(testFile)));

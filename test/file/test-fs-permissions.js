@@ -1,14 +1,22 @@
 importPackage(java.nio.file);
 importPackage(java.nio.file.attribute);
 
-var assert = require("assert");
 var fs = require("fs");
+var assert = require("assert");
+var log = require("ringo/logging").getLogger(module.id);
 
 var permissionString = function(permissionSet) {
     return PosixFilePermissions.toString(permissionSet);
 };
 
+var supportsPosix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+
 exports.testDirectoryPermissions = function() {
+    if (!supportsPosix) {
+        log.info("Skipping test, PosixFileAttributeView not supported");
+        return;
+    }
+
     var path = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "mkdirpermissions" + Date.now());
 
     assert.isFalse(fs.exists(path));
@@ -43,6 +51,11 @@ exports.testDirectoryPermissions = function() {
 };
 
 exports.testFilePermissions = function() {
+    if (!supportsPosix) {
+        log.info("Skipping test, PosixFileAttributeView not supported");
+        return;
+    }
+
     var path = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "tmpfile" + Date.now());
 
     assert.isFalse(fs.exists(path));
