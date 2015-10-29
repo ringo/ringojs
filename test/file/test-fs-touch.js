@@ -1,10 +1,10 @@
 var assert = require("assert");
 var fs = require("fs");
 
-var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "touchtest");
+var testDir;
 
 exports.setUp = function() {
-    fs.makeTree(testDir);
+    testDir = String(java.nio.file.Files.createTempDirectory("touchtest"))
 };
 
 exports.tearDown = function() {
