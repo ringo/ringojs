@@ -44,9 +44,9 @@ var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
 
 var getPath = java.nio.file.Paths.get;
 
-const FS = FileSystems.getDefault();
-const SEPARATOR = FS.getSeparator();
-const SEPARATOR_RE = SEPARATOR == '/' ?
+var FS = FileSystems.getDefault();
+var SEPARATOR = FS.getSeparator();
+var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
