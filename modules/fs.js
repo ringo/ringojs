@@ -22,26 +22,33 @@
  *   console.error('test.txt already exists.');
  * }
  */
-var log = require("ringo/logging").getLogger(module.id);
-var arrays = require('ringo/utils/arrays');
-var {PosixPermissions} = require('ringo/utils/files');
+
 include('io');
 include('binary');
 
-var Files = java.nio.file.Files,
-    FileSystems = java.nio.file.FileSystems;
+var security = java.lang.System.getSecurityManager();
+
+var log = require("ringo/logging").getLogger(module.id);
+var arrays = require('ringo/utils/arrays');
+var {PosixPermissions} = require('ringo/utils/files');
+
+var {Files,
+    FileSystems,
+    LinkOption,
+    StandardOpenOption,
+    StandardCopyOption,
+    FileVisitor,
+    FileVisitResult} = java.nio.file;
+
+var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
+
+var getPath = java.nio.file.Paths.get;
 
 const FS = FileSystems.getDefault();
-const getPath = function(path) {
-    return FS.getPath(path);
-};
-
 const SEPARATOR = FS.getSeparator();
 const SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
-
-const security = java.lang.System.getSecurityManager();
 
 export('absolute',
        'base',
@@ -155,26 +162,21 @@ function open(path, options) {
     }
 
     // configure the NIO options
-    var nioOptions = new java.util.ArrayList();
+    var nioOptions = [];
     if (append === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.APPEND);
+        nioOptions.push(StandardOpenOption.APPEND);
     }
     if (read === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.READ);
+        nioOptions.push(StandardOpenOption.READ);
     }
     if (write === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.WRITE);
-        nioOptions.add(java.nio.file.StandardOpenOption.CREATE);
-        nioOptions.add(java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     // needed to generate a valid varargs argument for the Java NIO API
-    var javaVarArgs = nioOptions.toArray(
-        java.lang.reflect.Array.newInstance(java.nio.file.OpenOption, nioOptions.size())
-    );
 
     var stream = new Stream(read ?
-        Files.newInputStream(nioPath, javaVarArgs) : Files.newOutputStream(nioPath, javaVarArgs));
+        Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
     if (binary) {
         return stream;
     } else if (read || write || append) {
@@ -211,25 +213,18 @@ function openRaw(path, options) {
     }
 
     // configure the NIO options
-    var nioOptions = new java.util.ArrayList();
+    var nioOptions = [];
     if (append === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.APPEND);
+        nioOptions.push(StandardOpenOption.APPEND);
     }
     if (read === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.READ);
+        nioOptions.push(StandardOpenOption.READ);
     }
     if (write === true) {
-        nioOptions.add(java.nio.file.StandardOpenOption.WRITE);
-        nioOptions.add(java.nio.file.StandardOpenOption.CREATE);
-        nioOptions.add(java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    // needed to generate a valid varargs argument for the Java NIO API
-    var javaVarArgs = nioOptions.toArray(
-        java.lang.reflect.Array.newInstance(java.nio.file.OpenOption, nioOptions.size())
-    );
-
-    return new Stream(read ? Files.newInputStream(nioPath, javaVarArgs) : Files.newOutputStream(nioPath, javaVarArgs));
+    return new Stream(read ? Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
 }
 
 
@@ -292,14 +287,7 @@ function copy(from, to) {
         throw new Error(sourcePath + " does not exist!");
     }
 
-    var nioOptions = new java.util.ArrayList();
-    nioOptions.add(java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-    var javaVarArgs = nioOptions.toArray(
-        java.lang.reflect.Array.newInstance(java.nio.file.StandardCopyOption, nioOptions.size())
-    );
-
-    Files.copy(sourcePath, targetPath, javaVarArgs);
+    Files.copy(sourcePath, targetPath, [StandardCopyOption.REPLACE_EXISTING]);
 }
 
 /**
@@ -472,15 +460,21 @@ function listTree(path) {
  */
 function removeTree(path) {
     var nioPath = resolvePath(path);
-    Files.walkFileTree(nioPath, new JavaAdapter(java.nio.file.SimpleFileVisitor, {
+    Files.walkFileTree(nioPath, new FileVisitor({
         visitFile: function (file, attrs) {
             Files.delete(file);
-            return java.nio.file.FileVisitResult.CONTINUE;
+            return FileVisitResult.CONTINUE;
+        },
+        visitFileFailed: function(file, e) {
+            throw e;
+        },
+        preVisitDirectory: function() {
+            return FileVisitResult.CONTINUE;
         },
         postVisitDirectory: function (dir, e) {
             if (e == null) {
                 Files.delete(dir);
-                return java.nio.file.FileVisitResult.CONTINUE;
+                return FileVisitResult.CONTINUE;
             } else {
                 throw e;
             }
@@ -726,16 +720,7 @@ function move(source, target) {
     var from = resolvePath(source);
     var to = resolvePath(target);
 
-    // configure the NIO options
-    var nioOptions = new java.util.ArrayList();
-    nioOptions.add(java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-    // needed to generate a valid varargs argument for the Java NIO API
-    var javaVarArgs = nioOptions.toArray(
-        java.lang.reflect.Array.newInstance(java.nio.file.CopyOption, 0)
-    );
-
-    return String(Files.move(from, to, javaVarArgs));
+    return String(Files.move(from, to, [StandardCopyOption.REPLACE_EXISTING]));
 }
 
 /**
@@ -984,7 +969,7 @@ function touch(path, mtime) {
     if (!Files.exists(nioPath)) {
         Files.createFile(nioPath);
     } else {
-        Files.setLastModifiedTime(nioPath, java.nio.file.attribute.FileTime.fromMillis(mtime || Date.now()));
+        Files.setLastModifiedTime(nioPath, FileTime.fromMillis(mtime || Date.now()));
     }
 
     return true;
@@ -1094,7 +1079,7 @@ function owner(path) {
 function group(path) {
     if (security) security.checkRead(path);
     try {
-        let attributes = Files.getFileAttributeView(getPath(path), java.nio.file.attribute.PosixFileAttributeView);
+        let attributes = Files.getFileAttributeView(getPath(path), PosixFileAttributeView);
         return attributes.readAttributes().group().getName();
     } catch (error) {
         // do nothing
@@ -1143,8 +1128,8 @@ function changeGroup(path, group) {
 
     var attributes = Files.getFileAttributeView(
         getPath(path),
-        java.nio.file.attribute.PosixFileAttributeView,
-        java.nio.file.LinkOption.NOFOLLOW_LINKS
+        PosixFileAttributeView,
+        LinkOption.NOFOLLOW_LINKS
     );
     attributes.setGroup(groupPrincipal);
 
