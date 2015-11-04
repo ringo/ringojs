@@ -1,5 +1,13 @@
 /**
- * @fileOverview A wrapper for the Jetty HTTP server.
+ * @fileOverview This module provides methods to start and control a HTTP web server.
+ * It is a wrapper for the Jetty web server and has support for the WebSocket protocol.
+ *
+ * @see <a href="http://www.eclipse.org/jetty/">Jetty – Servlet Engine and Http Server</a>
+ * @example // starts the current module via module.id as web application
+ * require("ringo/httpserver").main(module.id);
+ *
+ * // starts the module "./app/actions" as web application
+ * require("ringo/httpserver").main(module.resolve('./app/actions'));
  */
 
 var log = require('ringo/logging').getLogger(module.id);
@@ -147,28 +155,28 @@ WebSocket.prototype.isOpen = function() {
  * properties (default values in parentheses):
  *
  * <ul>
- * <li>jettyConfig ('config/jetty.xml')</li>
- * <li>port (8080)</li>
- * <li>host (undefined)</li>
- * <li>sessions (true)</li>
- * <li>security (true)</li>
- * <li>cookieName (null)</li>
- * <li>cookieDomain (null)</li>
- * <li>cookiePath (null)</li>
- * <li>httpOnlyCookies (false)</li>
- * <li>secureCookies (false)</li>
+ * <li><code>jettyConfig</code> ('config/jetty.xml')</li>
+ * <li><code>port</code> (8080)</li>
+ * <li><code>host</code> (undefined)</li>
+ * <li><code>sessions</code> (true)</li>
+ * <li><code>security</code> (true)</li>
+ * <li><code>cookieName</code> (null)</li>
+ * <li><code>cookieDomain</code> (null)</li>
+ * <li><code>cookiePath</code> (null)</li>
+ * <li><code>httpOnlyCookies</code> (false)</li>
+ * <li><code>secureCookies</code> (false)</li>
  * </ul>
  *
  * For convenience, the constructor supports the definition of a JSGI application
  * and static resource mapping in the options object using the following properties:
  *
  * <ul>
- * <li>virtualHost (undefined)</li>
- * <li>mountpoint ('/')</li>
- * <li>staticDir ('static')</li>
- * <li>staticMountpoint ('/static')</li>
- * <li>appModule ('main')</li>
- * <li>appName ('app')</li>
+ * <li><code>virtualHost</code> (undefined)</li>
+ * <li><code>mountpoint</code> ('/')</li>
+ * <li><code>staticDir</code> ('static')</li>
+ * <li><code>staticMountpoint</code> ('/static')</li>
+ * <li><code>appModule</code> ('main')</li>
+ * <li><code>appName</code> ('app')</li>
  * </ul>
  */
 function Server(options) {
@@ -197,17 +205,19 @@ function Server(options) {
     /**
      * Get a servlet application [context](#Context) for the given path and
      * virtual hosts, creating it if it doesn't exist.
-     * @param {String} path the context root path such as "/" or "/app"
+     * @param {String} path the context root path such as <code>"/"</code> or <code>"/app"</code>
      * @param {String|Array} virtualHosts optional single or multiple virtual host names.
-     *   A virtual host may start with a "*." wildcard.
+     *   A virtual host may start with a <code>"*."</code> wildcard.
      * @param {Object} options may have the following properties:
-     *   sessions: true to enable sessions for this context, false otherwise
-     *   security: true to enable security for this context, false otherwise
-     *   cookieName: optional cookie name
-     *   cookieDomain: optional cookie domain
-     *   cookiePath: optional cookie path
-     *   httpOnlyCookies: true to enable http-only session cookies
-     *   secureCookies: true to enable secure session cookies
+     * <ul>
+     *   <li><code>sessions</code>: true to enable sessions for this context, false otherwise
+     *   <li><code>security</code>: true to enable security for this context, false otherwise
+     *   <li><code>cookieName</code>: optional cookie name
+     *   <li><code>cookieDomain</code>: optional cookie domain
+     *   <li><code>cookiePath</code>: optional cookie path
+     *   <li><code>httpOnlyCookies</code>: true to enable http-only session cookies
+     *   <li><code>secureCookies</code>: true to enable secure session cookies
+     * </ul>
      * @see #Context
      * @since: 0.6
      * @returns {Context} a Context object
@@ -259,13 +269,38 @@ function Server(options) {
             /**
              * Map this context to a JSGI application.
              * @param {Function|Object} app a JSGI application, either as a function
-             *   or an object with properties <code>appModule</code> and
-             *   <code>appName</code> defining the application.
-             *   <div><code>{ appModule: 'main', appName: 'app' }</code></div>
+             *   or an object with the properties
+             *   <ul>
+             *       <li><code>appModule</code> - the application module containing the application function
+             *       <li><code>appName</code> - the property's name that is exported by the application module and
+             *           which is a valid JSGI application.
+             *   </ul> defining the application.
              * @param {RhinoEngine} engine optional RhinoEngine instance for
              *   multi-engine setups
              * @since: 0.6
              * @name Context.instance.serveApplication
+             * @see <a href="https://gist.github.com/botic/e59e57022e6f59505315">Full example on Github</a>
+             * @example
+             * var server = new Server({ ... config ... });
+             *
+             * // 1st way: app argument is a JSGI application function
+             * server.getDefaultContext().serveApplication(function(req) {
+             *   return {
+             *     status: 200,
+             *     headers: {},
+             *     body: ["Hello World!"]
+             *   };
+             * });
+             *
+             * // 2nd way: app argument is an object
+             * server.getDefaultContext().serveApplication({
+             *   appModule: module.resolve("./myWebapp"),
+             *   // myWebapp exports a function called 'app'
+             *   appName: "app"
+             * });
+             *
+             * // since serveApplication() doesn't start the server:
+             * server.start();
              */
             serveApplication: function(app, engine) {
                 log.debug("Adding JSGI application:", cx, "->", app);
@@ -331,6 +366,22 @@ function Server(options) {
              * @since 0.8
              * @see #WebSocket
              * @name Context.instance.addWebSocket
+             * @example
+             * var context = server.getDefaultContext();
+             * context.addWebSocket("/chat", function (socket) {
+             *   // reacts on an incoming message fromt the client
+             *   socket.onmessage = function(msg) {
+             *      // ...
+             *   };
+             *
+             *   // client closed the connection
+             *   socket.onclose = function() {
+             *      // ...
+             *   };
+             *
+             *   // sends a string to the client
+             *   socket.sendString("...");
+             *});
              */
             addWebSocket: function(path, onConnect, onCreate, initParams) {
                 log.info("Starting websocket support");
@@ -618,8 +669,15 @@ function destroy() {
 
 /**
  * Main function to start an HTTP server from the command line.
+ * It automatically adds a shutdown hook which will stop and destroy the server at the JVM termination.
+ *
  * @param {String} appPath optional application file name or module id.
  * @returns {Server} the Server instance.
+ * @example // starts the current module via module.id as web application
+ * require("ringo/httpserver").main(module.id);
+ *
+ * // starts the module "./app/actions" as web application
+ * require("ringo/httpserver").main(module.resolve('./app/actions'));
  */
 function main(appPath) {
     init(appPath);
