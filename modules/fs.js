@@ -578,7 +578,7 @@ function extension(path) {
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
     var args = Array.filter(arguments, function(p) p != "");
-    return String(Paths.get.apply(this, args));
+    return String(Paths.get.apply(this, (args.length > 0 ? args : ["."])));
 }
 
 /**
