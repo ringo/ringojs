@@ -713,7 +713,7 @@ function move(source, target) {
     var from = resolvePath(source);
     var to = resolvePath(target);
 
-    return String(Files.move(from, to, [StandardCopyOption.REPLACE_EXISTING]));
+    Files.move(from, to, [StandardCopyOption.REPLACE_EXISTING]);
 }
 
 /**
@@ -973,6 +973,7 @@ function touch(path, mtime) {
  *
  * @param {String} existing path to an existing file, therefore the target of the link
  * @param {String} link the link to create pointing to an existing path
+ * @returns {String} the path to the symbolic link
  */
 function symbolicLink(existing, link) {
     if (security) {
@@ -980,7 +981,7 @@ function symbolicLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createSymbolicLink(getPath(link), getPath(existing));
+    return String(Files.createSymbolicLink(getPath(link), getPath(existing)));
 }
 
 /**
@@ -989,6 +990,7 @@ function symbolicLink(existing, link) {
  *
  * @param {String} existing path to an existing file, therefore the target of the link
  * @param {String} link the link to create pointing to an existing path
+ * @returns {String} the path to the link
  */
 function hardLink(existing, link) {
     if (security) {
@@ -996,7 +998,7 @@ function hardLink(existing, link) {
         security.checkWrite(link);
     }
 
-    return Files.createLink(getPath(link), getPath(existing));
+    return String(Files.createLink(getPath(link), getPath(existing)));
 }
 
 /**

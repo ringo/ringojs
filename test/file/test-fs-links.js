@@ -34,7 +34,7 @@ exports.testSymbolicLink = function() {
     assert.isTrue(java.nio.file.Files.exists(hardPath));
     assert.isFalse(java.nio.file.Files.isSymbolicLink(hardPath));
 
-    fs.symbolicLink(hard, symbolic);
+    assert.equal(fs.symbolicLink(hard, symbolic), symbolic);
 
     assert.isTrue(java.nio.file.Files.exists(hardPath));
     assert.isFalse(java.nio.file.Files.isSymbolicLink(hardPath));
