@@ -173,8 +173,6 @@ function open(path, options) {
         nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    // needed to generate a valid varargs argument for the Java NIO API
-
     var stream = new Stream(read ?
         Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
     if (binary) {
@@ -845,7 +843,7 @@ function lastModified(path) {
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
 
-    // to respect the current umask
+    // single-argument Files.createDirectory() respects the current umask
     if (permissions == null) {
         Files.createDirectory(getPath(path));
     } else {
