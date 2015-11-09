@@ -3,6 +3,7 @@ exports.test_dirname = require("./test-fs-dirname");
 exports.test_extension = require("./test-fs-extension");
 exports.test_isAbsolute = require("./test-fs-isAbsolute");
 exports.test_iterator = require("./test-fs-iterator");
+exports.test_join = require("./test-fs-join");
 exports.test_links = require("./test-fs-links");
 exports.test_mkdir = require("./test-fs-mkdir");
 exports.test_move = require("./test-fs-move");

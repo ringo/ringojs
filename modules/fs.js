@@ -32,7 +32,8 @@ var log = require("ringo/logging").getLogger(module.id);
 var arrays = require('ringo/utils/arrays');
 var {PosixPermissions} = require('ringo/utils/files');
 
-var {Files,
+var {Paths,
+    Files,
     FileSystems,
     LinkOption,
     StandardOpenOption,
@@ -42,7 +43,7 @@ var {Files,
 
 var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
 
-var getPath = java.nio.file.Paths.get;
+var getPath = Paths.get;
 
 var FS = FileSystems.getDefault();
 var SEPARATOR = FS.getSeparator();
@@ -569,14 +570,15 @@ function extension(path) {
 /**
  * Join a list of paths using the local file system's path separator.
  * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
- * @see http://wiki.commonjs.org/wiki/Filesystem/Join
+ * @returns {String} the joined path
+ * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
  * @example // build path to the config.json file
  * var fullPath = fs.join(configDir, "config.json");
  */
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
-    var args = Array.filter(arguments, function(p) p != "")
-    return args.join(SEPARATOR);
+    var args = Array.filter(arguments, function(p) p != "");
+    return String(Paths.get.apply(this, args));
 }
 
 /**
