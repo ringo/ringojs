@@ -12,7 +12,6 @@ exports.testHttpServer     = require('./ringo/httpserver_test');
 exports.testJsgi           = require('./ringo/jsgi/all');
 exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
-exports.testSubprocess     = require('./ringo/subprocess_test');
 exports.testWebSocket      = require('./ringo/websocket_test');
 exports.testUtils          = require('./ringo/utils/all');
 exports.testFile           = require('./file/all');
