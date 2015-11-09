@@ -360,11 +360,6 @@ function copyTree(from, to) {
  */
 function makeTree(path) {
     var fullPath = resolvePath(path);
-
-    if (Files.isDirectory(fullPath)) {
-        throw new Error("Tree already exists " + path);
-    }
-
     Files.createDirectories(fullPath);
 }
 
