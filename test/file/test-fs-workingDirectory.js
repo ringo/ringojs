@@ -9,12 +9,10 @@ exports.testChangeWorkingDirectory = function () {
 
     // change the working directory
     assert.equal(fs.workingDirectory(), currentWorkingDirectory);
-    fs.changeWorkingDirectory(tempWorkingDirectory);
-    assert.equal(fs.workingDirectory(), tempWorkingDirectory);
 
-    // switch back
-    fs.changeWorkingDirectory(currentWorkingDirectory);
-    assert.equal(fs.workingDirectory(), currentWorkingDirectory);
+    assert.throws(function() {
+        fs.changeWorkingDirectory(tempWorkingDirectory);
+    });
 
     // clean up
     fs.removeTree(tempWorkingDirectory);

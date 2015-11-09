@@ -751,7 +751,7 @@ function workingDirectory() {
 }
 
 /**
- * Set the current working directory to `path`.
+ * <strong>Using changeWorkingDirectory() throws an exception and logs an error.</strong>
  * @param {String} path the new working directory
  * @deprecated The working directory is always related to the JVM process.
  * Therefore, the working directory cannot be changed during runtime.
@@ -759,9 +759,8 @@ function workingDirectory() {
  * @see https://github.com/ringo/ringojs/issues/305
  */
 function changeWorkingDirectory(path) {
-    log.warn("fs.changeWorkingDirectory() is deprecated! https://github.com/ringo/ringojs/issues/305");
-    path = String(resolvePath(path));
-    java.lang.System.setProperty('user.dir', path);
+    log.error("fs.changeWorkingDirectory() has been removed! https://github.com/ringo/ringojs/issues/305");
+    throw new Error("fs.changeWorkingDirectory() has been removed!");
 }
 
 /**
