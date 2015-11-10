@@ -577,7 +577,15 @@ function extension(path) {
  */
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
-    var args = Array.filter(arguments, function(p) p != "");
+    var args = Array.prototype.filter.call(arguments, function(p) {
+        return p !== "";
+    });
+
+    // ensure all path elements are strings
+    if (args.some(function(p) { return typeof p !== "string"; })) {
+        throw new Error("All path elements must be strings");
+    }
+
     return String(Paths.get.apply(this, (args.length > 0 ? args : ["."])));
 }
 

@@ -61,6 +61,24 @@ var testHelper = function(item, index, arr) {
     }
 };
 
+exports.testInvalidInput = function() {
+    assert.throws(function() {
+        fs.join("foo", {}, "baz.js");
+    });
+
+    assert.throws(function() {
+        fs.join("foo", [], "baz.js");
+    });
+
+    assert.throws(function() {
+        fs.join("foo", null, "baz.js");
+    });
+
+    assert.throws(function() {
+        fs.join("foo", undefined, "baz.js");
+    });
+};
+
 // common test for all OS
 tests.forEach(testHelper);
 
