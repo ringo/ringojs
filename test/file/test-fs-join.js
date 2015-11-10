@@ -3,7 +3,7 @@ var fs = require('fs');
 var SEP = require('ringo/utils/files').separator;
 
 var POSIX = java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
-var WIN32 = java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("dos");
+var WIN32 = !POSIX && java.lang.System.getenv("SystemRoot") != null;
 
 var tests = [
     // actual value                             expected
