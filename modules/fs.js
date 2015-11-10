@@ -568,7 +568,9 @@ function extension(path) {
 }
 
 /**
- * Join a list of paths using the local file system's path separator.
+ * Join a list of path elements using the local file system's path separator.
+ * Empty path elements (null, undefined and empty strings) will be skipped.
+ * All non-string path elements will be converted to strings.
  * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
  * @returns {String} the joined path
  * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
@@ -578,13 +580,8 @@ function extension(path) {
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
     var args = Array.prototype.filter.call(arguments, function(p) {
-        return p !== "";
+        return p !== "" && p !== null && p !== undefined;
     });
-
-    // ensure all path elements are strings
-    if (args.some(function(p) { return typeof p !== "string"; })) {
-        throw new Error("All path elements must be strings");
-    }
 
     return String(Paths.get.apply(this, (args.length > 0 ? args : ["."])));
 }

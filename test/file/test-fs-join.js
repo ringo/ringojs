@@ -2,6 +2,9 @@ var assert = require("assert");
 var fs = require('fs');
 var SEP = require('ringo/utils/files').separator;
 
+var File = java.io.File;
+var Paths = java.nio.file.Paths;
+
 var POSIX = java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
 var WIN32 = !POSIX && java.lang.System.getenv("SystemRoot") != null;
 
@@ -20,7 +23,10 @@ var tests = [
     ["." + SEP, "..", SEP + "foo"],             ("." + SEP + ".." + SEP + "foo"),
     ["." + SEP, "..", "..", SEP + "foo"],       ("." + SEP + ".." + SEP + ".." + SEP + "foo"),
     [".", "..", "..", SEP + "foo"],             ("." + SEP + ".." + SEP + ".." + SEP + "foo"),
-    ["", "", "", ""],                           (".")
+    [".", null],                                ("."),
+    ["", "", "", ""],                           ("."),
+    [Paths.get("." + SEP + "foo")],             ("." + SEP + "foo"),
+    [new File("." + SEP + "foo")],              ("." + SEP + "foo")
 ];
 
 var posixSpecific = [
@@ -61,22 +67,14 @@ var testHelper = function(item, index, arr) {
     }
 };
 
-exports.testInvalidInput = function() {
-    assert.throws(function() {
-        fs.join("foo", {}, "baz.js");
-    });
-
-    assert.throws(function() {
-        fs.join("foo", [], "baz.js");
-    });
-
-    assert.throws(function() {
-        fs.join("foo", null, "baz.js");
-    });
-
-    assert.throws(function() {
-        fs.join("foo", undefined, "baz.js");
-    });
+// questionable, but kept for compatibility
+exports.testNonStringInput = function() {
+    assert.equal(fs.join("foo", {}, "baz.js"), "foo" + SEP + "[object Object]" + SEP + "baz.js");
+    assert.equal(fs.join("foo", [], "baz.js"), "foo" + SEP + "baz.js");
+    assert.equal(fs.join("foo", null, "baz.js"), "foo" + SEP + "baz.js");
+    assert.equal(fs.join("foo", undefined, "baz.js"), "foo" + SEP + "baz.js");
+    assert.equal(fs.join(".", 10), "." + SEP + "10");
+    assert.equal(fs.join(".", new Date(2010, 10, 10)), "." + SEP + new Date(2010, 10, 10));
 };
 
 // common test for all OS
