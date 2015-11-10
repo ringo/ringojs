@@ -329,8 +329,8 @@ function copyTree(from, to) {
 
         var files = list(source);
         for each (var file in files) {
-            var s = join(source, file);
-            var t = join(target, file);
+            var s = join(source.toString(), file);
+            var t = join(target.toString(), file);
             if (isLink(s)) {
                 symbolicLink(readLink(s), t);
             } else {
@@ -338,7 +338,7 @@ function copyTree(from, to) {
             }
         }
     } else {
-        copy(source, target);
+        copy(source.toString(), target.toString());
     }
 }
 

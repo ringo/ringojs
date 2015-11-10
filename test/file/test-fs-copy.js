@@ -66,7 +66,7 @@ exports.testCopy = function() {
 };
 
 exports.testCopyTree = function() {
-    var tempDir = Files.createTempDirectory("tmp-copytree-test");
+    var tempDir = String(Files.createTempDirectory("tmp-copytree-test"));
 
     var rootTree1 = fs.join(tempDir, "tree1-" + Date.now());
     var rootTree2 = fs.join(tempDir, "tree2-" + Date.now());
@@ -90,7 +90,7 @@ exports.testCopyTree = function() {
 };
 
 exports.testCopyComplexTree = function() {
-    var tempDir = Files.createTempDirectory("tmp-copytree-test");
+    var tempDir = String(Files.createTempDirectory("tmp-copytree-test"));
 
     var rootTree1 = fs.join(tempDir, "tree1");
     var rootTree2 = fs.join(tempDir, "tree2");

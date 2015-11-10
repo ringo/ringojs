@@ -64,7 +64,7 @@ exports.testSymbolicLink = function() {
 };
 
 exports.testMakeTree = function() {
-    var root = java.nio.file.Files.createTempDirectory("root-test");
+    var root = String(java.nio.file.Files.createTempDirectory("root-test"));
     var tree = fs.join(root, "level1", "level2", "level3");
     fs.makeTree(tree);
 
