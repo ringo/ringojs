@@ -105,7 +105,7 @@ Object.defineProperty(String.prototype, 'toByteString', {
  */
 Object.defineProperty(ByteArray.prototype, 'reverse', {
     value: function() {
-        return Array.reverse(this);
+        return Array.prototype.reverse.call(this);
     }, writable: true
 });
 
@@ -117,7 +117,7 @@ Object.defineProperty(ByteArray.prototype, 'reverse', {
 Object.defineProperty(ByteArray.prototype, 'sort', {
     value: function(fn) {
         fn = fn || function(a, b) a - b;
-        return Array.sort(this, fn);
+        return Array.prototype.sort.call(this, fn);
     }, writable: true
 });
 
@@ -128,7 +128,7 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
  */
 Object.defineProperty(ByteArray.prototype, 'forEach', {
     value: function(fn, thisObj) {
-        Array.forEach(this, fn, thisObj);
+        Array.prototype.forEach.call(this, fn, thisObj);
     }, writable: true
 });
 
@@ -141,7 +141,7 @@ Object.defineProperty(ByteArray.prototype, 'forEach', {
  */
 Object.defineProperty(ByteArray.prototype, 'filter', {
     value: function(fn, thisObj) {
-        return new ByteArray(Array.filter(this, fn, thisObj));
+        return new ByteArray(Array.prototype.filter.call(this, fn, thisObj));
     }, writable: true
 });
 
@@ -154,7 +154,7 @@ Object.defineProperty(ByteArray.prototype, 'filter', {
  */
 Object.defineProperty(ByteArray.prototype, 'some', {
     value: function(fn, thisObj) {
-        return Array.some(this, fn, thisObj);
+        return Array.prototype.some.call(this, fn, thisObj);
     }, writable: true
 });
 
@@ -167,7 +167,7 @@ Object.defineProperty(ByteArray.prototype, 'some', {
  */
 Object.defineProperty(ByteArray.prototype, 'every', {
     value: function(fn, thisObj) {
-        return Array.every(this, fn, thisObj);
+        return Array.prototype.every.call(this, fn, thisObj);
     }, writable: true
 });
 
@@ -180,7 +180,7 @@ Object.defineProperty(ByteArray.prototype, 'every', {
  */
 Object.defineProperty(ByteArray.prototype, 'map', {
     value: function(fn, thisObj) {
-        return new ByteArray(Array.map(this, fn, thisObj));
+        return new ByteArray(Array.prototype.map.call(this, fn, thisObj));
     }, writable: true
 });
 
@@ -197,8 +197,8 @@ Object.defineProperty(ByteArray.prototype, 'map', {
 Object.defineProperty(ByteArray.prototype, 'reduce', {
     value: function(fn, initialValue) {
         return initialValue === undefined ?
-               Array.reduce(this, fn) :
-               Array.reduce(this, fn, initialValue);
+               Array.prototype.reduce.call(this, fn) :
+               Array.prototype.reduce.call(this, fn, initialValue);
     }, writable: true
 });
 
@@ -216,8 +216,8 @@ Object.defineProperty(ByteArray.prototype, 'reduce', {
 Object.defineProperty(ByteArray.prototype, 'reduceRight', {
     value: function(fn, initialValue) {
         return initialValue === undefined ?
-               Array.reduceRight(this, fn) :
-               Array.reduceRight(this, fn, initialValue);
+               Array.prototype.reduceRight.call(this, fn) :
+               Array.prototype.reduceRight.call(this, fn, initialValue);
     }, writable: true
 });
 
@@ -227,7 +227,7 @@ Object.defineProperty(ByteArray.prototype, 'reduceRight', {
  */
 Object.defineProperty(ByteArray.prototype, 'pop', {
     value: function() {
-        return Array.pop(this);
+        return Array.prototype.pop.call(this);
     }, writable: true
 });
 
@@ -249,7 +249,7 @@ Object.defineProperty(ByteArray.prototype, 'push', {
  */
 Object.defineProperty(ByteArray.prototype, 'shift', {
     value: function() {
-        return Array.shift(this);
+        return Array.prototype.shift.call(this);
     }, writable: true
 });
 

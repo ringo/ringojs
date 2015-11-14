@@ -698,7 +698,7 @@ function Sorter(field, order) {
  * @returns {String} the resulting string
  */
 function compose() {
-    return Array.join(arguments, '');
+    return Array.prototype.join.call(arguments, '');
 }
 
 /**
@@ -782,7 +782,7 @@ function format() {
     }
     // append remaining arguments separated by " "
     if (index < arguments.length) {
-        return [format].concat(Array.slice(arguments, index).map(String)).join(" ");
+        return [format].concat(Array.prototype.slice.call(arguments, index).map(String)).join(" ");
     } else {
         return format;
     }
