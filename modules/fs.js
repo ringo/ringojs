@@ -4,10 +4,6 @@
  * the <a href="http://wiki.commonjs.org/wiki/Filesystem/A">CommonJS Filesystem/A</a>
  * proposal.
  *
- * Some file system manipulations use a wrapper around standard POSIX functions. Their
- * functionality depends on the concrete file system and operating system. Others use
- * the <code>java.io</code> package and work cross-platform.
- *
  * @example // Writes a simple text file
  * var fs = require('fs');
  * if (!fs.exists('test.txt')) {
@@ -27,26 +23,33 @@
  * }
  */
 
-var arrays = require('ringo/utils/arrays');
 include('io');
 include('binary');
 
-var File = java.io.File,
-    FileInputStream = java.io.FileInputStream,
-    FileOutputStream = java.io.FileOutputStream;
+var security = java.lang.System.getSecurityManager();
 
-var SEPARATOR = File.separator;
+var log = require("ringo/logging").getLogger(module.id);
+var arrays = require('ringo/utils/arrays');
+var {PosixPermissions} = require('ringo/utils/files');
+
+var {Paths,
+    Files,
+    FileSystems,
+    LinkOption,
+    StandardOpenOption,
+    StandardCopyOption,
+    FileVisitor,
+    FileVisitResult} = java.nio.file;
+
+var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
+
+var getPath = Paths.get;
+
+var FS = FileSystems.getDefault();
+var SEPARATOR = FS.getSeparator();
 var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
-
-var POSIX;
-var security = java.lang.System.getSecurityManager();
-
-function getPOSIX() {
-    POSIX = POSIX || org.ringojs.wrappers.POSIX.getPOSIX();
-    return POSIX;
-}
 
 export('absolute',
        'base',
@@ -148,7 +151,7 @@ export('absolute',
  */
 function open(path, options) {
     options = checkOptions(options);
-    var file = resolveFile(path);
+    var nioPath = resolvePath(path);
     var {read, write, append, update, binary, charset} = options;
 
     if (read === true && write === true) {
@@ -158,8 +161,21 @@ function open(path, options) {
     if (!read && !write && !append && !update) {
         read = true;
     }
+
+    // configure the NIO options
+    var nioOptions = [];
+    if (append === true) {
+        nioOptions.push(StandardOpenOption.APPEND);
+    }
+    if (read === true) {
+        nioOptions.push(StandardOpenOption.READ);
+    }
+    if (write === true) {
+        nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
     var stream = new Stream(read ?
-            new FileInputStream(file) : new FileOutputStream(file, Boolean(append)));
+        Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
     if (binary) {
         return stream;
     } else if (read || write || append) {
@@ -185,8 +201,9 @@ function open(path, options) {
  * @see #open
  */
 function openRaw(path, options) {
-    var file = resolveFile(path);
-    options = options || {};
+    var nioPath = resolvePath(path);
+    options = checkOptions(options || {});
+
     var {read, write, append} = options;
     if (!read && !write && !append) {
         read = true;
@@ -194,11 +211,19 @@ function openRaw(path, options) {
         throw new Error("Cannot open a file for reading and writing at the same time");
     }
 
-    if (read) {
-        return new Stream(new FileInputStream(file));
-    } else {
-        return new Stream(FileOutputStream(file, Boolean(append)));
+    // configure the NIO options
+    var nioOptions = [];
+    if (append === true) {
+        nioOptions.push(StandardOpenOption.APPEND);
     }
+    if (read === true) {
+        nioOptions.push(StandardOpenOption.READ);
+    }
+    if (write === true) {
+        nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    return new Stream(read ? Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
 }
 
 
@@ -247,23 +272,21 @@ function write(path, content, options) {
 
 /**
  * Read data from one file and write it into another using binary mode.
+ * Replaces an existing file if it exists.
  * @param {String} from original file
  * @param {String} to copy to create
  * @example // Copies file from a temporary upload directory into /var/www
  * fs.copy('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function copy(from, to) {
-    var source = resolveFile(from);
-    var target = resolveFile(to);
-    var input = new FileInputStream(source).getChannel();
-    var output = new FileOutputStream(target).getChannel();
-    var size = source.length();
-    try {
-        input.transferTo(0, size, output);
-    } finally {
-        input.close();
-        output.close();
+    var sourcePath = resolvePath(from);
+    var targetPath = resolvePath(to);
+
+    if (!Files.exists(sourcePath) || Files.isDirectory(sourcePath)) {
+        throw new Error(sourcePath + " does not exist!");
     }
+
+    Files.copy(sourcePath, targetPath, [StandardCopyOption.REPLACE_EXISTING]);
 }
 
 /**
@@ -292,19 +315,22 @@ function copy(from, to) {
  *     └── baz
  */
 function copyTree(from, to) {
-    var source = resolveFile(from).getCanonicalFile();
-    var target = resolveFile(to).getCanonicalFile();
+    var source = resolvePath(from);
+    var target = resolvePath(to);
+
     if (String(target) == String(source)) {
         throw new Error("Source and target files are equal in copyTree.");
     } else if (String(target).indexOf(String(source) + SEPARATOR) == 0) {
         throw new Error("Target is a child of source in copyTree");
     }
-    if (source.isDirectory()) {
+
+    if (Files.isDirectory(source)) {
         makeTree(target);
-        var files = source.list();
+
+        var files = list(source);
         for each (var file in files) {
-            var s = join(source, file);
-            var t = join(target, file);
+            var s = join(source.toString(), file);
+            var t = join(target.toString(), file);
             if (isLink(s)) {
                 symbolicLink(readLink(s), t);
             } else {
@@ -312,7 +338,7 @@ function copyTree(from, to) {
             }
         }
     } else {
-        copy(source, target);
+        copy(source.toString(), target.toString());
     }
 }
 
@@ -332,10 +358,8 @@ function copyTree(from, to) {
  *       └── baz
  */
 function makeTree(path) {
-    var file = resolveFile(path);
-    if (!file.isDirectory() && !file.mkdirs()) {
-        throw new Error("failed to make tree " + path);
-    }
+    var fullPath = resolvePath(path);
+    Files.createDirectories(fullPath);
 }
 
 /**
@@ -429,16 +453,27 @@ function listTree(path) {
  * └── test.txt
  */
 function removeTree(path) {
-    var file = resolveFile(path);
-    // do not follow symlinks
-    if (file.isDirectory() && !isLink(file.getPath())) {
-        for each (var child in file.list()) {
-            removeTree(join(file, child));
+    var nioPath = resolvePath(path);
+    Files.walkFileTree(nioPath, new FileVisitor({
+        visitFile: function (file, attrs) {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+        },
+        visitFileFailed: function(file, e) {
+            throw e;
+        },
+        preVisitDirectory: function() {
+            return FileVisitResult.CONTINUE;
+        },
+        postVisitDirectory: function (dir, e) {
+            if (e == null) {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            } else {
+                throw e;
+            }
         }
-    }
-    if (!file['delete']()) {
-        throw new Error("failed to remove " + path);
-    }
+    }));
 }
 
 /**
@@ -453,7 +488,7 @@ function removeTree(path) {
  * true
  */
 function isAbsolute(path) {
-    return new File(path).isAbsolute();
+    return getPath(path).isAbsolute();
 }
 
 /**
@@ -510,7 +545,7 @@ function base(path, ext) {
  * '/Users/username/Desktop/example'
  */
 function directory(path) {
-    return new File(path).getParent() || '.';
+    return (getPath(path).getParent() || getPath('.')).toString();
 }
 
 /**
@@ -533,16 +568,22 @@ function extension(path) {
 }
 
 /**
- * Join a list of paths using the local file system's path separator.
+ * Join a list of path elements using the local file system's path separator.
+ * Empty path elements (null, undefined and empty strings) will be skipped.
+ * All non-string path elements will be converted to strings.
  * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
- * @see http://wiki.commonjs.org/wiki/Filesystem/Join
+ * @returns {String} the joined path
+ * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
  * @example // build path to the config.json file
  * var fullPath = fs.join(configDir, "config.json");
  */
 function join() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
-    var args = Array.filter(arguments, function(p) p != "")
-    return args.join(SEPARATOR);
+    var args = Array.prototype.filter.call(arguments, function(p) {
+        return p !== "" && p !== null && p !== undefined;
+    });
+
+    return String(Paths.get.apply(this, (args.length > 0 ? args : ["."])));
 }
 
 /**
@@ -600,7 +641,7 @@ function resolve() {
             // path is absolute, throw away everyting we have so far.
             // We still need to explicitly make absolute for the quasi-absolute
             // Windows paths mentioned above.
-            root = new File(parts.shift() + SEPARATOR).getAbsolutePath();
+            root = String(getPath(parts.shift() + SEPARATOR).toAbsolutePath());
             elements = [];
         }
         leaf = parts.pop();
@@ -667,7 +708,8 @@ function relative(source, target) {
 }
 
 /**
- * Move a file from `source` to `target`.
+ * Move a file from `source` to `target`. If `target` already exists,
+ * it is replaced by the `source` file.
  * @param {String} source the source path
  * @param {String} target the target path
  * @throws Error
@@ -675,11 +717,10 @@ function relative(source, target) {
  * fs.move('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
 function move(source, target) {
-    var from = resolveFile(source);
-    var to = resolveFile(target);
-    if (!from.renameTo(to)) {
-        throw new Error("Failed to move file from " + source + " to " + target);
-    }
+    var from = resolvePath(source);
+    var to = resolvePath(target);
+
+    Files.move(from, to, [StandardCopyOption.REPLACE_EXISTING]);
 }
 
 /**
@@ -689,13 +730,13 @@ function move(source, target) {
  * @throws Error if path is not a file or could not be removed.
  */
 function remove(path) {
-    var file = resolveFile(path);
-    if (!file.isFile()) {
+    var nioPath = resolvePath(path);
+
+    if (Files.isDirectory(nioPath)) {
         throw new Error(path + " is not a file");
     }
-    if (!file['delete']()) {
-        throw new Error("failed to remove file " + path);
-    }
+
+    Files.delete(nioPath);
 }
 
 /**
@@ -703,8 +744,7 @@ function remove(path) {
  * @param {String} path the file path.
  */
 function exists(path) {
-    var file = resolveFile(path);
-    return file.exists();
+    return Files.exists(resolvePath(path));
 }
 
 /**
@@ -712,16 +752,20 @@ function exists(path) {
  * @returns {String} the current working directory
  */
 function workingDirectory() {
-    return java.lang.System.getProperty('user.dir') + SEPARATOR;
+    return resolvePath(java.lang.System.getProperty('user.dir')) + SEPARATOR;
 }
 
 /**
- * Set the current working directory to `path`.
+ * <strong>Using changeWorkingDirectory() throws an exception and logs an error.</strong>
  * @param {String} path the new working directory
+ * @deprecated The working directory is always related to the JVM process.
+ * Therefore, the working directory cannot be changed during runtime.
+ * This function is deprecated and may be removed in future versions of RingoJS.
+ * @see https://github.com/ringo/ringojs/issues/305
  */
 function changeWorkingDirectory(path) {
-    path = new File(path).getCanonicalPath();
-    java.lang.System.setProperty('user.dir', path);
+    log.error("fs.changeWorkingDirectory() has been removed! https://github.com/ringo/ringojs/issues/305");
+    throw new Error("fs.changeWorkingDirectory() has been removed!");
 }
 
 /**
@@ -731,10 +775,7 @@ function changeWorkingDirectory(path) {
  * @throws Error if the file or directory could not be removed.
  */
 function removeDirectory(path) {
-    var file = resolveFile(path);
-    if (!file['delete']()) {
-        throw new Error("failed to remove directory " + path);
-    }
+    Files.delete(resolvePath(path));
 }
 
 /**
@@ -753,16 +794,21 @@ function removeDirectory(path) {
  * @returns {Array} an array of strings with the files, directories, or symbolic links
  */
 function list(path) {
-    var file = resolveFile(path);
-    var list = file.list();
-    if (list == null) {
+    var nioPath = resolvePath(path);
+
+    if (!Files.isDirectory(nioPath)) {
         throw new Error("failed to list directory " + path);
     }
-    var result = [];
-    for (var i = 0; i < list.length; i++) {
-        result[i] = list[i];
+
+    var files = [];
+    var dirStream = Files.newDirectoryStream(nioPath);
+    var dirIterator = dirStream.iterator();
+    while (dirIterator.hasNext()) {
+        files.push(String(dirIterator.next().getFileName()));
     }
-    return result;
+    dirStream.close();
+
+    return files;
 }
 
 /**
@@ -773,11 +819,11 @@ function list(path) {
  * @throws Error if path is not a file
  */
 function size(path) {
-    var file = resolveFile(path);
-    if (!file.isFile()) {
+    var nioPath = resolvePath(path);
+    if (!Files.isRegularFile(nioPath)) {
         throw new Error(path + " is not a file");
     }
-    return file.length();
+    return Files.size(nioPath);
 }
 
 /**
@@ -786,8 +832,9 @@ function size(path) {
  * @returns {Date} the date the file was last modified
  */
 function lastModified(path) {
-    var file = resolveFile(path);
-    return new Date(file.lastModified());
+    var nioPath = resolvePath(path);
+    var fileTime = Files.getLastModifiedTime(nioPath);
+    return new Date(fileTime.toMillis());
 }
 
 /**
@@ -797,19 +844,17 @@ function lastModified(path) {
  * to this function it is used to create a Permissions instance which is
  * applied to the given path during directory creation.
  *
- * This function wraps the POSIX <code>mkdir()</code> function.
- *
  * @param {String} path the file path
- * @param {Number|Object} permissions optional permissions
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/mkdir.html">POSIX <code>mkdir</code></a>
+ * @param {Number|String|java.util.Set<PosixFilePermission>} permissions optional the POSIX permissions
  */
 function makeDirectory(path, permissions) {
     if (security) security.checkWrite(path);
-    permissions = permissions != null ?
-            new Permissions(permissions) : Permissions["default"];
-    var POSIX = getPOSIX();
-    if (POSIX.mkdir(path, permissions.toNumber()) != 0) {
-        throw new Error("failed to make directory " + path);
+
+    // single-argument Files.createDirectory() respects the current umask
+    if (permissions == null) {
+        Files.createDirectory(getPath(path));
+    } else {
+        Files.createDirectory(getPath(path), (new PosixPermissions(permissions)).toJavaFileAttribute());
     }
 }
 
@@ -819,7 +864,7 @@ function makeDirectory(path, permissions) {
  * @returns {Boolean} whether the file exists and is readable
  */
 function isReadable(path) {
-    return resolveFile(path).canRead();
+    return Files.isReadable(resolvePath(path));
 }
 
 /**
@@ -828,7 +873,7 @@ function isReadable(path) {
  * @returns {Boolean} whether the file exists and is writable
  */
 function isWritable(path) {
-    return resolveFile(path).canWrite();
+    return Files.isWritable(resolvePath(path));
 }
 
 /**
@@ -837,7 +882,7 @@ function isWritable(path) {
  * @returns {Boolean} whether the file exists and is a file
  */
 function isFile(path) {
-    return resolveFile(path).isFile();
+    return Files.isRegularFile(resolvePath(path));
 }
 
 /**
@@ -846,34 +891,18 @@ function isFile(path) {
  * @returns {Boolean} whether the file exists and is a directory
  */
 function isDirectory(path) {
-    return resolveFile(path).isDirectory();
+    return Files.isDirectory(resolvePath(path));
 }
 
 /**
  * Return true if target file is a symbolic link, false otherwise.
  *
- * This function wraps the POSIX <code>lstat()</code> function to get the
- * symbolic link status.
- *
  * @param {String} path the file path
  * @returns {Boolean} true if the given file exists and is a symbolic link
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/lstat.html">POSIX <code>lstat</code></a>
  */
 function isLink(path) {
     if (security) security.checkRead(path);
-    try {
-        var POSIX = getPOSIX();
-        var stat = POSIX.lstat(path);
-        return stat.isSymlink();
-    } catch (error) {
-        // fallback if POSIX is no available
-        path = resolveFile(path);
-        var parent = path.getParentFile();
-        if (!parent) return false;
-        parent = parent.getCanonicalFile();
-        path = new File(parent, path.getName());
-        return !path.equals(path.getCanonicalFile())
-    }
+    return Files.isSymbolicLink(resolvePath(path));
 }
 
 /**
@@ -881,13 +910,9 @@ function isLink(path) {
  * either by virtue of symbolic or hard links, such that modifying one would
  * modify the other.
  *
- * This function uses the POSIX <code>stat()</code> function to compare two
- * files or links.
- *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
- * @returns {Boolean} true if identical, otherwise false
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
+ * @returns {Boolean} true iff the two paths locate the same file
  */
 function same(pathA, pathB) {
     if (security) {
@@ -895,25 +920,18 @@ function same(pathA, pathB) {
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    pathA = canonical(pathA);
-    pathB = canonical(pathB);
-    // check inode to test hard links
-    var POSIX = getPOSIX();
-    var stat1 = POSIX.stat(pathA);
-    var stat2 = POSIX.stat(pathB);
-    return stat1.isIdentical(stat2);
+    let nioPathA = getPath(canonical(pathA));
+    let nioPathB = getPath(canonical(pathB));
+
+    return Files.isSameFile(nioPathA, nioPathB);
 }
 
 /**
  * Returns whether two paths refer to an entity of the same file system.
  *
- * This function uses the POSIX <code>stat()</code> function to compare two
- * paths by checking if the associated devices are identical.
- *
  * @param {String} pathA the first path
  * @param {String} pathB the second path
  * @returns {Boolean} true if same file system, otherwise false
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/stat.html">POSIX <code>stat</code></a>
  */
 function sameFilesystem(pathA, pathB) {
     if (security) {
@@ -921,12 +939,10 @@ function sameFilesystem(pathA, pathB) {
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    pathA = canonical(pathA);
-    pathB = canonical(pathB);
-    var POSIX = getPOSIX();
-    var stat1 = POSIX.stat(pathA);
-    var stat2 = POSIX.stat(pathB);
-    return stat1.dev() == stat2.dev();
+    let nioPathA = getPath(canonical(pathA));
+    let nioPathB = getPath(canonical(pathB));
+
+    return nioPathA.getFileSystem().equals(nioPathB.getFileSystem());
 }
 
 /**
@@ -937,7 +953,7 @@ function sameFilesystem(pathA, pathB) {
  * @returns {String} the canonical path
  */
 function canonical(path) {
-    return resolveFile(path).getCanonicalPath();
+    return resolvePath(path).toRealPath().normalize();
 }
 
 /**
@@ -948,66 +964,64 @@ function canonical(path) {
  * @param {Date} mtime optional date
  */
 function touch(path, mtime) {
-    var file = resolveFile(path);
-    if (!file.exists()) {
-        return file.createNewFile();
+    var nioPath = resolvePath(path);
+    if (!Files.exists(nioPath)) {
+        Files.createFile(nioPath);
+    } else {
+        Files.setLastModifiedTime(nioPath, FileTime.fromMillis(mtime || Date.now()));
     }
-    return file.setLastModified(mtime || Date.now());
+
+    return true;
 }
 
 /**
  * Creates a symbolic link at the target path that refers to the source path.
  * The concrete implementation depends on the file system and the operating system.
  *
- * This function wraps the POSIX <code>symlink()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
- * @param {String} source the source file
- * @param {String} target the target link
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html">POSIX <code>symlink</code></a>
+ * @param {String} existing path to an existing file, therefore the target of the link
+ * @param {String} link the link to create pointing to an existing path
+ * @returns {String} the path to the symbolic link
  */
-function symbolicLink(source, target) {
+function symbolicLink(existing, link) {
     if (security) {
-        security.checkRead(source);
-        security.checkWrite(target);
+        security.checkRead(existing);
+        security.checkWrite(link);
     }
-    var POSIX = getPOSIX();
-    return POSIX.symlink(source, target);
+
+    return String(Files.createSymbolicLink(getPath(link), getPath(existing)));
 }
 
 /**
  * Creates a hard link at the target path that refers to the source path.
  * The concrete implementation depends on the file system and the operating system.
  *
- * This function wraps the POSIX <code>link()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
- * @param {String} source the source file
- * @param {String} target the target file
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/link.html">POSIX <code>link</code></a>
+ * @param {String} existing path to an existing file, therefore the target of the link
+ * @param {String} link the link to create pointing to an existing path
+ * @returns {String} the path to the link
  */
-function hardLink(source, target) {
+function hardLink(existing, link) {
     if (security) {
-        security.checkRead(source);
-        security.checkWrite(target);
+        security.checkRead(existing);
+        security.checkWrite(link);
     }
-    var POSIX = getPOSIX();
-    return POSIX.link(source, target);
+
+    return String(Files.createLink(getPath(link), getPath(existing)));
 }
 
 /**
  * Returns the immediate target of the symbolic link at the given `path`.
  *
- * This function wraps the POSIX <code>readlink()</code> function, which may not work
- * on Microsoft Windows platforms.
- *
  * @param {String} path a file path
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html">POSIX <code>readlink</code></a>
  */
 function readLink(path) {
     if (security) security.checkRead(path);
-    var POSIX = getPOSIX();
-    return POSIX.readlink(path);
+
+    // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
+    if (!Files.isReadable(getPath(path))) {
+        throw new Error("Path " + path + " is not readable!");
+    }
+
+    return Files.readSymbolicLink(resolvePath(path)).toString();
 }
 
 /**
@@ -1033,151 +1047,94 @@ function iterate(path) {
 }
 
 /**
- * The Permissions class describes the permissions associated with a file.
- * @param {Number|Object} permissions a number or object representing the permissions.
- * @param {Function} constructor
- */
-function Permissions(permissions, constructor) {
-    if (!(this instanceof Permissions)) {
-        return new Permissions(permissions, constructor);
-    }
-    this.update(Permissions['default']);
-    this.update(permissions);
-    /** @ignore */
-    this.constructor = constructor;
-}
-
-/**
- * @param {Number|Object} permissions
- */
-Permissions.prototype.update = function(permissions) {
-    var fromNumber = typeof permissions == 'number';
-    if (!fromNumber && !(permissions instanceof Object)) {
-        return;
-    }
-    for each (var user in ['owner', 'group', 'other']) {
-        this[user] = this[user] || {};
-        for each (var perm in ['read', 'write', 'execute']) {
-            this[user][perm] = fromNumber ?
-                Boolean((permissions <<= 1) & 512) :
-                Boolean(permissions[user] && permissions[user][perm]);
-        }
-    }
-};
-
-Permissions.prototype.toNumber = function() {
-    var result = 0;
-    for each (var user in ['owner', 'group', 'other']) {
-        for each (var perm in ['read', 'write', 'execute']) {
-            result <<= 1;
-            result |= +this[user][perm];
-        }
-    }
-    return result;
-};
-
-if (!Permissions['default']) {
-    try {
-        var POSIX = getPOSIX();
-        // FIXME: no way to get umask without setting it?
-        var umask = POSIX.umask(0022);
-        if (umask != 0022) {
-            POSIX.umask(umask);
-        }
-        Permissions['default'] = new Permissions(~umask & 0777);
-    } catch (error) {
-        Permissions['default'] = new Permissions(0755);
-    }
-}
-
-/**
+ * Returns the POSIX file permissions for the given path, if the filesystem supports POSIX.
  * @param {String} path
+ * @returns PosixFilePermission the POSIX permissions for the given path
  */
 function permissions(path) {
     if (security) security.checkRead(path);
-    var POSIX = getPOSIX();
-    var stat = POSIX.stat(path);
-    return new Permissions(stat.mode() & 0777);
+    return new PosixPermissions(Files.getPosixFilePermissions(getPath(path)));
 }
 
 /**
+ * Returns the username of the owner of the given file.
  * @param {String} path
+ * @returns {String} the username of the owner, or null if not possible to determine
  */
 function owner(path) {
     if (security) security.checkRead(path);
     try {
-        var POSIX = getPOSIX();
-        var uid = POSIX.stat(path).uid();
-        var owner = POSIX.getpwuid(uid);
-        return owner ? String(owner.pw_name) : uid;
+        return Files.getOwner(getPath(path)).getName();
     } catch (error) {
-        return null;
+        // do nothing
     }
+
+    return null;
 }
 
 /**
+ * Returns the group name for the given file.
  * @param {String} path
+ * @returns {String} the group's name, or null if not possible to determine
  */
 function group(path) {
     if (security) security.checkRead(path);
     try {
-        var POSIX = getPOSIX();
-        var gid = POSIX.stat(path).gid();
-        var group = POSIX.getgrgid(gid);
-        return group ? String(group.gr_name) : gid;
+        let attributes = Files.getFileAttributeView(getPath(path), PosixFileAttributeView);
+        return attributes.readAttributes().group().getName();
     } catch (error) {
-        return null;
+        // do nothing
     }
+
+    return null;
 }
 
 /**
- * Changes the permissions of the specified file. This function wraps the
- * POSIX <code>chmod()</code> function.
+ * Changes the permissions of the specified file.
  * @param {String} path
- * @param {Number|Object} permissions
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chmod.html">POSIX <code>chmod</code></a>
+ * @param {Number|String|java.util.Set<PosixFilePermission>} permissions the POSIX permissions
  */
 function changePermissions(path, permissions) {
     if (security) security.checkWrite(path);
-    permissions = new Permissions(permissions);
-    var POSIX = getPOSIX();
-    var stat = POSIX.stat(path);
-    // do not overwrite set-UID bits etc
-    var preservedBits = stat.mode() & 07000;
-    var newBits = permissions.toNumber();
-    POSIX.chmod(path, preservedBits | newBits);
+    permissions = new PosixPermissions(permissions);
+    return Files.setPosixFilePermissions(getPath(path), permissions.toJavaPosixFilePermissionSet());
 }
 
 /**
- * Changes the owner of the specified file. This function wraps the
- * POSIX <code>chown()</code> function. Supports user name string as well
- * as uid number input.
+ * Changes the owner of the specified file.
  *
  * @param {String} path
- * @param {String|Number} owner the user name string or uid number
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
+ * @param {String} owner the user name string
  */
 function changeOwner(path, user) {
     if (security) security.checkWrite(path);
-    var POSIX = getPOSIX();
-    return POSIX.chown(path, typeof user === 'string' ?
-            POSIX.getpwnam(user).pw_uid : user, -1);
+
+    var lookupService = FS.getUserPrincipalLookupService();
+    var userPrincipal = lookupService.lookupPrincipalByName(user);
+
+    return Files.setOwner(getPath(path), userPrincipal);
 }
 
 /**
- * Changes the group of the specified file. This function wraps the
- * POSIX <code>chown()</code> function. Supports group name string
- * as well as gid number input.
+ * Changes the group of the specified file.
  *
  * @param {String} path
- * @param {String|Number} group group name string or gid number
- * @see <a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">POSIX <code>chown</code></a>
+ * @param {String} group group name string
  */
 function changeGroup(path, group) {
     if (security) security.checkWrite(path);
-    var POSIX = getPOSIX();
-    return POSIX.chown(path, -1, typeof group === 'string' ?
-            POSIX.getgrnam(group).gr_gid : group);
+
+    var lookupService = FS.getUserPrincipalLookupService();
+    var groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+
+    var attributes = Files.getFileAttributeView(
+        getPath(path),
+        PosixFileAttributeView,
+        LinkOption.NOFOLLOW_LINKS
+    );
+    attributes.setGroup(groupPrincipal);
+
+    return true;
 }
 
 var optionsMask = {
@@ -1257,17 +1214,13 @@ function applyMode(mode) {
 /**
  * Internal.
  */
-function resolveFile(path) {
-    // Fix for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4117557
-    // relative files are not resolved against workingDirectory/user.dir in java,
-    // making the file absolute makes sure it is resolved correctly.
+function resolvePath(path) {
     if (path == undefined) {
         throw new Error('undefined path argument');
     }
-    var file = path instanceof File ? path : new File(String(path));
-    return file.isAbsolute() ? file : file.getAbsoluteFile();
-}
 
+    return (path instanceof Path ? path : getPath(String(path))).toAbsolutePath().normalize();
+}
 
 // Path object
 

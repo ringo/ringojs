@@ -1,10 +1,10 @@
 var assert = require("assert");
 var fs = require("fs");
 
-var testDir = fs.join(java.lang.System.getProperty("java.io.tmpdir"), "touchtest");
+var testDir;
 
 exports.setUp = function() {
-    fs.makeTree(testDir);
+    testDir = String(java.nio.file.Files.createTempDirectory("touchtest"))
 };
 
 exports.tearDown = function() {
@@ -22,6 +22,6 @@ exports.testTouch = function() {
     assert.strictEqual(fs.lastModified(path).getTime(), mtime.getTime());
 };
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }

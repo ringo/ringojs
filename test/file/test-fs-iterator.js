@@ -99,6 +99,6 @@ exports.testIterator = Test(function (path) {
     iterator.close();
 });
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require("test").run(module.id));
 }

@@ -23,13 +23,6 @@
         </dependency>
         <dependency org="log4j" name="log4j" rev="1.2.14"/>
 
-        <!-- jnr-posix -->
-        <dependency org="org.jruby.extras" name="jaffl" rev="0.5.+"/>
-        <dependency org="com.github.jnr" name="jnr-posix" rev="3.0.+"/>
-        <dependency org="com.github.jnr" name="jffi" rev="1.2.+">
-            <artifact name="jffi" type="jar"/>
-        </dependency>
-
         <!-- junit -->
         <dependency org="junit" name="junit" rev="3.8.+"/>
         <!-- jline -->
