@@ -24,6 +24,8 @@ exports.testJarsToClasspath = function() {
    assert.equal(process.wait(), 0);
 };
 
+exports.testRequireMain = require("./require-index/main").testCalculator;
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
    system.exit(require('test').run(exports));
