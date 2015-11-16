@@ -62,6 +62,6 @@ exports.testDecodeToString = function() {
     assert.strictEqual("\u10ABCD", new ByteArray("\u10ABCD", "UTF-16").decodeToString("UTF-16"));
 };
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require('test').run(module.id));
 }

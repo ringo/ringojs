@@ -66,6 +66,6 @@ exports.testStringToByteString = function() {
     assert.strictEqual("I ♥ JS", "I ♥ JS".toByteString("UTF-8").decodeToString("UTF-8"));
 };
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require('test').run(module.id));
 }

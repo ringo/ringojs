@@ -197,6 +197,8 @@ exports.testByteArrayReverse = function() {
     assert.strictEqual(b1.length, b2.length);
     for (var i = 0; i < testArray.length; i++)
         assert.strictEqual(testArray[i], b2.get(testArray.length-i-1));
+
+    assert.strictEqual(new ByteArray("hello world", "US-ASCII").reverse().decodeToString("US-ASCII"), "dlrow olleh");
 };
 
 exports.testByteArraySort = function() {
@@ -316,7 +318,6 @@ exports.testByteArrayConcat = function() {
 
 };
 
-
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require('test').run(module.id));
 }

@@ -1,7 +1,6 @@
 var assert = require("assert");
 include("binary");
 
-
 exports.testByteStringConstructor = function() {
     var testArray = [1,2,3,4];
 
@@ -258,6 +257,6 @@ exports.testByteStringNewless = function () {
     // assert.strictEqual(2, ByteString([0, 1], 0, 2).length);
 };
 
-if (require.main === module.id) {
-    run(exports);
+if (require.main == module.id) {
+    require('system').exit(require('test').run(module.id));
 }
