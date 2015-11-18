@@ -247,8 +247,7 @@ function isHexColor(string) {
  * convert a color string like "rgb (255, 204, 51)".
  * @param {String} string the string
  * @returns {String} the resulting hex color (w/o "#")
- * @deprecated This function is unreliable and a remnant from
- * <a href="http://helma.serverjs.org/reference/String.html>Helma's String module</a>
+ * @deprecated This function is unreliable and a remnant from Helma's String module.
  * @example strings.toHexColor("rgb(255, 204, 51)"); // --> ffcc33
  * strings.toHexColor("rgb (255, 204, 51)"); // --> ffcc33
  * strings.toHexColor("rgba(255, 204, 51)"); // --> ffcc33
