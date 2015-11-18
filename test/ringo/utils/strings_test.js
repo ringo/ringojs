@@ -184,6 +184,8 @@ exports.testCapitalize = function () {
 
 exports.testTitleize = function () {
     assert.strictEqual('Titleize Me', strings.titleize('titleize me'));
+    assert.strictEqual('TItleize ME', strings.titleize('titleize me', 2));
+    assert.strictEqual('TITleize ME', strings.titleize('titleize me', 3));
 };
 
 exports.testEntitize = function () {

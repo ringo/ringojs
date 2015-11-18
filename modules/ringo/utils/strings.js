@@ -303,16 +303,19 @@ function capitalize(string, limit) {
 }
 
 /**
- * Transforms the first n characters of each
- * word in a string to uppercase.
+ * Transforms the first n characters of each word in a string to uppercase.
  * @param {String} string the string
+ * @param {Number} amount optional number of characters to transform
  * @returns {String} the resulting string
+ * @example strings.titleize("the bar is foo"); // --> "The Bar Is Foo"
+ * strings.titleize("the bar is foo", 2); // --> "THe BAr IS FOo"
+ * strings.titleize("the bar is foo", 3); // --> "THE BAR IS FOO"
  */
-function titleize(string) {
+function titleize(string, amount) {
     var parts = string.split(" ");
     var buffer = [];
     for (var i in parts) {
-        buffer.push(capitalize(parts[i]));
+        buffer.push(capitalize(parts[i], amount));
     }
     return buffer.join(" ");
 }
