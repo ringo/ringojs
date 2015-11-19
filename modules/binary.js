@@ -33,6 +33,11 @@
  * // the method getEncoded() returns a Java byte[]
  * fs.write("id_dsa.pub", ByteArray.wrap(publicKey.getEncoded()));
  *
+ * // Generates a salt for hashing
+ * var random = java.security.SecureRandom.getInstance("SHA1PRNG");
+ * var salt = new ByteArray(8);
+ * random.nextBytes(salt); // fills up salt with random bytes
+ *
  * @see http://wiki.commonjs.org/wiki/Binary/B
  */
 
@@ -79,6 +84,7 @@ exports.ByteString = ByteString;
  * Converts the String to a mutable ByteArray using the specified encoding.
  * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
  * @returns {ByteArray} a ByteArray representing the string
+ * @example var ba = "hello world".toByteArray();
  */
 Object.defineProperty(String.prototype, 'toByteArray', {
     value: function(charset) {
@@ -90,7 +96,8 @@ Object.defineProperty(String.prototype, 'toByteArray', {
 /**
  * Converts the String to an immutable ByteString using the specified encoding.
  * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns {ByteArray} a ByteArray representing the string
+ * @returns {ByteString} a ByteString representing the string
+ * @example var bs = "hello world".toByteString();
  */
 Object.defineProperty(String.prototype, 'toByteString', {
     value: function(charset) {
@@ -100,8 +107,11 @@ Object.defineProperty(String.prototype, 'toByteString', {
 });
 
 /**
- * Reverses the content of the ByteArray in-place
+ * Reverses the content of the ByteArray in-place.
  * @returns {ByteArray} this ByteArray with its elements reversed
+ * @example var ba = new ByteArray([0,1,2,3,4,5,6,7,8]);
+ * ba.reverse();
+ * print(ba[0] == 8); // --> true
  */
 Object.defineProperty(ByteArray.prototype, 'reverse', {
     value: function() {
@@ -113,6 +123,9 @@ Object.defineProperty(ByteArray.prototype, 'reverse', {
  * Sorts the content of the ByteArray in-place.
  * @param {Function} comparator the function to compare entries
  * @returns {ByteArray} this ByteArray with its elements sorted
+ * @example var ba = "hello world".toByteArray();
+ * ba.sort();
+ * ba.decodeToString() // --> "dehllloorw"
  */
 Object.defineProperty(ByteArray.prototype, 'sort', {
     value: function(fn) {
@@ -125,6 +138,9 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
  * Apply a function for each element in the ByteArray.
  * @param {Function} fn the function to call for each element
  * @param {Object} thisObj optional this-object for callback
+ * @example var ba = "hello world".toByteArray();
+ * // prints 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100
+ * ba.forEach(function(byte) { console.log(byte) });
  */
 Object.defineProperty(ByteArray.prototype, 'forEach', {
     value: function(fn, thisObj) {
@@ -138,6 +154,9 @@ Object.defineProperty(ByteArray.prototype, 'forEach', {
  * @param {Function} callback the filter function
  * @param {Object} thisObj optional this-object for callback
  * @returns {ByteArray} a new ByteArray
+ * @example var ba = "hello world".toByteArray();
+ * var bf = ba.filter(function(byte) { return byte > 110 });
+ * bf.decodeToString(); // returns "owor"
  */
 Object.defineProperty(ByteArray.prototype, 'filter', {
     value: function(fn, thisObj) {
@@ -151,6 +170,9 @@ Object.defineProperty(ByteArray.prototype, 'filter', {
  * @param {Function} callback the callback function
  * @param {Object} thisObj optional this-object for callback
  * @returns {Boolean} true if at least one invocation of callback returns true
+ * @example var ba = new ByteArray([0,1,2,3,4,5,6,7,8]);
+ * ba.some(function(byte) { return byte > 10; }); // --> false
+ * ba.some(function(byte) { return byte < 10; }); // --> true
  */
 Object.defineProperty(ByteArray.prototype, 'some', {
     value: function(fn, thisObj) {
@@ -164,6 +186,9 @@ Object.defineProperty(ByteArray.prototype, 'some', {
  * @param {Function} callback the callback function
  * @param {Object} thisObj optional this-object for callback
  * @returns {Boolean} true if every invocation of callback returns true
+ * @example var ba = new ByteArray([0,1,2,3,4,5,6,7,8]);
+ * ba.every(function(byte) { return byte > 5; }); // --> false
+ * ba.every(function(byte) { return byte < 10; }); // --> true
  */
 Object.defineProperty(ByteArray.prototype, 'every', {
     value: function(fn, thisObj) {
@@ -173,10 +198,13 @@ Object.defineProperty(ByteArray.prototype, 'every', {
 
 /**
  * Returns a new ByteArray whose content is the result of calling the provided
- * function with every element of the original ByteArray
+ * function with every element of the original ByteArray.
  * @param {Function} callback the callback
  * @param {Object} thisObj optional this-object for callback
  * @returns {ByteArray} a new ByteArray
+ * @example var ba1 = new ByteArray([0,1,2,3,4,5,6,7,8]);
+ * var ba2 = ba1.map(function(byte) { return 2 * byte; });
+ * console.log(ba2.toArray()); // prints [0, 2, 4, 6, 8, 10, 12, 14, 16]
  */
 Object.defineProperty(ByteArray.prototype, 'map', {
     value: function(fn, thisObj) {
@@ -185,14 +213,13 @@ Object.defineProperty(ByteArray.prototype, 'map', {
 });
 
 /**
- * Apply a function to each element in this ByteArray as to reduce its content
- * to a single value.
- * @param {Function} callback the function to call with each element of the
- *        ByteArray
- * @param {Object} initialValue optional argument to be used as the first argument to
- *        the first call to the callback
+ * Apply a function to each element in this ByteArray from left-to-right as to reduce its content to a single value.
+ * @param {Function} callback the function to call with each element of the ByteArray
+ * @param {Object} initialValue optional argument to be used as the first argument to the first call to the callback
  * @returns the return value of the last callback invocation
- * @see https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Array/reduce
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce">Array.prototype.reduce()</a>
+ * @example var ba = new ByteArray([0,1,2,3,4,5,6,7,8]);
+ * ba.reduce(function(prev, curr) { return prev + curr; }); // --> 36
  */
 Object.defineProperty(ByteArray.prototype, 'reduce', {
     value: function(fn, initialValue) {
@@ -205,13 +232,10 @@ Object.defineProperty(ByteArray.prototype, 'reduce', {
 /**
  * Apply a function to each element in this ByteArray starting at the last
  * element as to reduce its content to a single value.
- * @param {Function} callback the function to call with each element of the
- *        ByteArray
- * @param {Object} initialValue optional argument to be used as the first argument to
- *        the first call to the callback
+ * @param {Function} callback the function to call with each element of the ByteArray
+ * @param {Object} initialValue optional argument to be used as the first argument to the first call to the callback
  * @returns the return value of the last callback invocation
- * @see #ByteArray.prototype.reduce
- * @see https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Array/reduceRight
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/ReduceRight">Array.prototype.reduceRight()</a>
  */
 Object.defineProperty(ByteArray.prototype, 'reduceRight', {
     value: function(fn, initialValue) {
@@ -224,6 +248,8 @@ Object.defineProperty(ByteArray.prototype, 'reduceRight', {
 /**
  * Removes the last element from an array and returns that element.
  * @returns {Number}
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.pop() === 8; // --> true
  */
 Object.defineProperty(ByteArray.prototype, 'pop', {
     value: function() {
@@ -235,6 +261,9 @@ Object.defineProperty(ByteArray.prototype, 'pop', {
  * Appends the given elements and returns the new length of the array.
  * @param {Number...} num... one or more numbers to append
  * @returns {Number} the new length of the ByteArray
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.push(16);
+ * console.log(ba.toArray()); // [0, 1, 2, 4, 8, 16]
  */
 Object.defineProperty(ByteArray.prototype, 'push', {
     value: function() {
@@ -246,6 +275,9 @@ Object.defineProperty(ByteArray.prototype, 'push', {
  * Removes the first element from the ByteArray and returns that element.
  * This method changes the length of the ByteArray
  * @returns {Number} the removed first element
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.shift();
+ * console.log(ba.toArray()); // [1, 2, 4, 8]
  */
 Object.defineProperty(ByteArray.prototype, 'shift', {
     value: function() {
@@ -258,6 +290,9 @@ Object.defineProperty(ByteArray.prototype, 'shift', {
  * new length.
  * @param {Number...} num... one or more numbers to append
  * @returns {Number} the new length of the ByteArray
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.unshift(-8, -4, -2, -1);
+ * console.log(ba.toArray()); // [248, 252, 254, 255, 0, 1, 2, 4, 8]
  */
 Object.defineProperty(ByteArray.prototype, 'unshift', {
     value: function() {
@@ -272,6 +307,9 @@ Object.defineProperty(ByteArray.prototype, 'unshift', {
  * @param {Number} howMany The number of elements to remove at the given
  *        position
  * @param {Number...} elements... the new elements to add at the given position
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.splice(2,2);
+ * console.log(ba.toArray()); // [0, 1, 8]
  */
 Object.defineProperty(ByteArray.prototype, 'splice', {
     value: function() {
@@ -285,6 +323,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @param {Number} offset
  * @returns {ByteArray}
  * @function
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.byteAt(0); // --> [ByteArray 1]
  */
 
 /**
@@ -293,6 +333,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @param {Number} offset
  * @returns {ByteArray}
  * @function
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.charAt(0); // --> [ByteArray 1]
  */
 
 /**
@@ -301,6 +343,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @param {Number} offset
  * @returns {Number}
  * @function
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * ba.charCodeAt(0); // --> 0
  */
 
 /**
@@ -366,6 +410,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * Returns a String representation of the ByteArray.
  * @name ByteArray.prototype.toString
  * @function
+ * @example var ba = new ByteArray([0,1,2,4,8]);
+ * console.log(ba.toString()); // prints '[ByteArray 5]'
  */
 
 /**
@@ -373,6 +419,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @param {String} encoding the name of the encoding to use
  * @name ByteArray.prototype.decodeToString
  * @function
+ * @example var ba = new ByteArray([240, 159, 152, 130]);
+ * console.log(ba.decodeToString("UTF-8")); // prints &#128514;
  */
 
 /**
@@ -425,6 +473,8 @@ Object.defineProperty(ByteArray.prototype, 'splice', {
  * @returns {ByteArray} a ByteArray wrapping the argument
  * @function
  * @since 0.5
+ * @example  // writes a java.security.Key byte[] to a file;
+ * fs.write("id_dsa.pub", ByteArray.wrap(publicKey.getEncoded()));
  */
 
  /**
