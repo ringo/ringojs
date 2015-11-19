@@ -88,7 +88,9 @@ public class RingoShell {
         if (history == null) {
             history = new File(System.getProperty("user.home"), ".ringo-history");
         }
-        reader.setHistory(new FileHistory(history));
+        FileHistory fileHistory = new FileHistory(history);
+        reader.setHistory(fileHistory);
+        Runtime.getRuntime().addShutdownHook(new ShutdownHook(fileHistory));
         PrintStream out = System.out;
         int lineno = 0;
         repl: while (true) {
@@ -291,6 +293,22 @@ public class RingoShell {
             }
         }
 
+    }
+
+    private class ShutdownHook extends Thread {
+        FileHistory fileHistory;
+
+        public ShutdownHook(FileHistory fileHistory) {
+            this.fileHistory = fileHistory;
+        }
+
+        public void run() {
+            try {
+                fileHistory.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     static String[] jsKeywords =
