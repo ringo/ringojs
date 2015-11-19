@@ -70,7 +70,7 @@ Object.defineProperty(this, "global", { value: this });
                 exports = {};
                 Object.defineProperty(module, "exports", { value: exports });
             }
-            Array.forEach(arguments, function(name) {
+            Array.prototype.forEach.call(arguments, function(name) {
                 Object.defineProperty(exports, name, {
                     get: function() {
                         return module[name];
@@ -96,7 +96,7 @@ Object.defineProperty(this, "global", { value: this });
      * @see #clearTimeout()
      */
     this.setTimeout = function(callback, delay) {
-        var args = Array.slice(arguments, 2);
+        var args = Array.prototype.slice.call(arguments, 2);
         delay = parseInt(delay, 10) || 0;
         var worker = engine.getCurrentWorker(callback);
         return worker.schedule(delay, this, callback, args);
@@ -132,7 +132,7 @@ Object.defineProperty(this, "global", { value: this });
      * @see #clearInterval()
      */
     global.setInterval =  function(callback, delay) {
-        var args = Array.slice(arguments, 2);
+        var args = Array.prototype.slice.call(arguments, 2);
         delay = Math.max(parseInt(delay, 10) || 0, 1);
         var worker = engine.getCurrentWorker(callback);
         return worker.scheduleInterval(delay, this, callback, args);

@@ -1259,7 +1259,7 @@ Path.prototype.valueOf = function() {
  */
 Path.prototype.join = function() {
     return new Path(join.apply(null,
-            [this.toString()].concat(Array.slice(arguments))));
+            [this.toString()].concat(Array.prototype.slice.call(arguments))));
 };
 
 /**
@@ -1268,7 +1268,7 @@ Path.prototype.join = function() {
 Path.prototype.resolve = function () {
     return new Path(resolve.apply(
             null,
-            [this.toString()].concat(Array.slice(arguments))
+            [this.toString()].concat(Array.prototype.slice.call(arguments))
         )
     );
 };
@@ -1314,7 +1314,7 @@ for (var i = 0; i < pathed.length; i++) {
         return function () {
             return new Path(exports[name].apply(
                 this,
-                [this.toString()].concat(Array.slice(arguments))
+                [this.toString()].concat(Array.prototype.slice.call(arguments))
             ));
         };
     })(name);
@@ -1359,7 +1359,7 @@ for (i = 0; i < trivia.length; i++) {
             if (!fn) throw new Error("Not found: " + name);
             var result = exports[name].apply(
                 this,
-                [this.toString()].concat(Array.slice(arguments))
+                [this.toString()].concat(Array.prototype.slice.call(arguments))
             );
             if (result === undefined)
                 result = this;

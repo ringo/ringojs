@@ -152,11 +152,11 @@ var emitterImpl = {
                 listeners = null; // normalize empty listener array
             }
             if (typeof listeners === "function") {
-                args = Array.slice(arguments, 1);
+                args = Array.prototype.slice.call(arguments, 1);
                 listeners.apply(this, args);
                 return true;
             } else if (isArray(listeners)) {
-                args = Array.slice(arguments, 1);
+                args = Array.prototype.slice.call(arguments, 1);
                 for (var i = 0; i < listeners.length; i++) {
                     listeners[i].apply(this, args);
                 }

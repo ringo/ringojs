@@ -60,7 +60,7 @@ Object.defineProperty(JsgiResponse.prototype, "setStatus", {
 Object.defineProperty(JsgiResponse.prototype, "text", {
     value: function() {
         this.headers["content-type"] = "text/plain; charset=" + this._charset;
-        this.body = Array.slice(arguments).map(String);
+        this.body = Array.prototype.slice.call(arguments).map(String);
         return this;
     }
 });
@@ -73,7 +73,7 @@ Object.defineProperty(JsgiResponse.prototype, "text", {
 Object.defineProperty(JsgiResponse.prototype, "html", {
     value: function() {
         this.headers["content-type"] = "text/html; charset=" + this._charset;
-        this.body = Array.slice(arguments).map(String);
+        this.body = Array.prototype.slice.call(arguments).map(String);
         return this;
     }
 });

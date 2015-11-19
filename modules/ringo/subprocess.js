@@ -15,7 +15,7 @@ function parseArguments(args) {
     var opts = (args.length > 1 && arrays.peek(args) instanceof Object) ?
             Array.pop(args) : {};
     // make command either a single string or an array of strings
-    opts.command = args.length == 1 ? String(args[0]) : Array.map(args, String);
+    opts.command = args.length == 1 ? String(args[0]) : Array.prototype.map.call(args, String);
     return opts;
 }
 
