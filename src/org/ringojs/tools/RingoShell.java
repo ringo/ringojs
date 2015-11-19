@@ -82,6 +82,7 @@ public class RingoShell {
         preloadShellModule();
         ConsoleReader reader = new ConsoleReader();
         reader.setBellEnabled(false);
+        reader.setExpandEvents(false);
         // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
         reader.addCompleter(new JSCompleter());
         if (history == null) {
