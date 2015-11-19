@@ -1,6 +1,13 @@
 /**
- * @fileoverview A Worker API based on the
- * [W3C Web Workers](http://www.w3.org/TR/workers/).
+ * @fileoverview A Worker API based on the [W3C Web Workers](http://www.w3.org/TR/workers/).
+ * Ringo offers "shared-nothing" workers for parallel execution and abstract JVM threads.
+ * A worker has its own private set of modules and an isolated scope, tied together in a single JVM thread.
+ * Each worker gets its own single-threaded event loop that behaves just like the event loop in a browser or in Node.
+ * Communication between workers uses the <code>postMessage()</code> method and the <code>onmessage</code> event handler.
+ * To improve performance Ringo keeps free workers in a queue and only allocates a new one if all existing workers are busy.
+ * Workers help to keep multi-threaded JavaScript free from any common threading pitfalls, like synchronization or locking.
+ *
+ * @see <a href="http://ringojs.org/documentation/workers/">RingoJS: Workers and Multithreading</a>
  */
 var engine = require("ringo/engine");
 var Deferred = require("ringo/promise").Deferred;
@@ -31,6 +38,7 @@ exports.WorkerPromise = WorkerPromise;
  *
  * @param {String} moduleId the id of the module to load in the worker.
  * @constructor
+ * @see <a href="http://ringojs.org/documentation/workers/">RingoJS: Workers and Multithreading</a>
  */
 function Worker(moduleId) {
     if (!(this instanceof Worker)) {
