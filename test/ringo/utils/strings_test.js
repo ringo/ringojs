@@ -197,10 +197,6 @@ exports.testGroup = function () {
             NUM, strings.group(FOO, 1, NUM));
 };
 
-exports.testUnwrap = function () {
-    assert.strictEqual(FOO + FOO + FOO, strings.unwrap(FOO + '\n' + FOO, true, FOO));
-};
-
 exports.testDigest = function () {
     assert.strictEqual('ACBD18DB4CC2F85CEDEF654FCCC4A4D8', strings.digest(FOO));
 };
@@ -292,10 +288,6 @@ exports.testB64EncodeDecode = function() {
                 strings.b16encode(test[0]), 'raw').toArray(),
                 new ByteString(test[0], 'utf8').toArray());
     }
-};
-
-exports.testStripTags = function () {
-    assert.strictEqual('content', strings.stripTags('<tag>content</tag>'));
 };
 
 exports.testEscapeHtml = function () {

@@ -90,7 +90,6 @@ export('isDateFormat',
        'titleize',
        'entitize',
        'group',
-       'unwrap',
        'digest',
        'repeat',
        'startsWith',
@@ -106,7 +105,6 @@ export('isDateFormat',
        'b64decode',
        'y64encode',
        'y64decode',
-       'stripTags',
        'escapeHtml',
        'escapeRegExp',
        'Sorter',
@@ -436,20 +434,6 @@ function group(string, interval, str, ignoreWhiteSpace) {
 }
 
 /**
- * Replaces all linebreaks and optionally all w/br tags.
- * @param {Boolean} flag indicating if html tags should be replaced
- * @param {String} replacement for the linebreaks / html tags
- * @returns {String} the unwrapped string
- * @example strings.unwrap("foo\nbar\n\nbar"); // --> "foobarbar"
- */
-function unwrap(string, removeTags, replacement) {
-    if (replacement == null)
-        replacement = '';
-    string = string.replace(/[\n|\r]/g, replacement);
-    return removeTags ? string.replace(/<[w]?br *\/?>/g, replacement) : string;
-}
-
-/**
  * Calculates a message digest of a string. If no argument is passed, the MD5 algorithm is used.
  * All algorithms supported by <code>java.security.MessageDigest</code> can be requested.
  * Every Java platform must provide an implementation of MD5, SHA-1, and SHA-256.
@@ -755,17 +739,6 @@ function b16decode(str, encoding) {
     }
     encoding = encoding || 'utf8';
     return encoding == 'raw' ? output : output.decodeToString(encoding);
-}
-
-/**
- * Remove all potential HTML/XML tags from this string.
- * @param {String} string the string
- * @return {String} the processed string
- * @example strings.stripTags("&lt;a&gt;bar&lt;/a&gt;"); // --> "bar"
- * strings.stripTags("&lt;a&gt;bar&lt;strong&gt;b&lt;/a&gt;"); // --> "barb"
- */
-function stripTags(string) {
-    return string.replace(/<\/?[^>]+>/gi, '');
 }
 
 /**
