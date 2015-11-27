@@ -236,6 +236,15 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "minute"), 1440);
     assert.equal(dates.diff(a, b, "second"), 86400);
     assert.equal(dates.diff(a, b, "millisecond"), 86400000);
+    assert.equal(dates.diff(a, b, "years"), 0);
+    assert.equal(dates.diff(a, b, "quarters"), 0);
+    assert.equal(dates.diff(a, b, "months"), 0);
+    assert.equal(dates.diff(a, b, "weeks"), 0);
+    assert.equal(dates.diff(a, b, "days"), 1);
+    assert.equal(dates.diff(a, b, "hours"), 24);
+    assert.equal(dates.diff(a, b, "minutes"), 1440);
+    assert.equal(dates.diff(a, b, "seconds"), 86400);
+    assert.equal(dates.diff(a, b, "milliseconds"), 86400000);
     assert.deepEqual(dates.diff(a, b, "mixed"), {
         "days": 1,
         "hours": 0,
@@ -315,6 +324,15 @@ exports.testDiff = function() {
     assert.equal(dates.diff(a, b, "minute"), 0);
     assert.equal(dates.diff(a, b, "second"), 0);
     assert.equal(dates.diff(a, b, "millisecond"), 1);
+    assert.equal(dates.diff(a, b, "years"), 0);
+    assert.equal(dates.diff(a, b, "quarters"), 0);
+    assert.equal(dates.diff(a, b, "months"), 0);
+    assert.equal(dates.diff(a, b, "weeks"), 0);
+    assert.equal(dates.diff(a, b, "days"), 0);
+    assert.equal(dates.diff(a, b, "hours"), 0);
+    assert.equal(dates.diff(a, b, "minutes"), 0);
+    assert.equal(dates.diff(a, b, "seconds"), 0);
+    assert.equal(dates.diff(a, b, "milliseconds"), 1);
     assert.deepEqual(dates.diff(a, b, "mixed"), {
         "days": 0,
         "hours": 0,
@@ -579,6 +597,42 @@ exports.testFromUTCDate = function() {
     assert.equal(d.getUTCMinutes(), 0);
     assert.equal(d.getUTCSeconds(), 0);
     assert.equal(d.getTime(), 0);
+
+    d = dates.fromUTCDate(1970, 0, 1, 0, 0, 0, 910);
+    assert.equal(d.getUTCFullYear(), 1970);
+    assert.equal(d.getUTCMonth(), 0);
+    assert.equal(d.getUTCDate(), 1);
+    assert.equal(d.getUTCHours(), 0);
+    assert.equal(d.getUTCMinutes(), 0);
+    assert.equal(d.getUTCSeconds(), 0);
+    assert.equal(d.getTime(), 910);
+
+    d = dates.fromUTCDate(1970, 0, 1, 0, 0, 10, 910);
+    assert.equal(d.getUTCFullYear(), 1970);
+    assert.equal(d.getUTCMonth(), 0);
+    assert.equal(d.getUTCDate(), 1);
+    assert.equal(d.getUTCHours(), 0);
+    assert.equal(d.getUTCMinutes(), 0);
+    assert.equal(d.getUTCSeconds(), 10);
+    assert.equal(d.getTime(), 10910);
+
+    d = dates.fromUTCDate(1970, 0, 1, 0, 11, 10, 910);
+    assert.equal(d.getUTCFullYear(), 1970);
+    assert.equal(d.getUTCMonth(), 0);
+    assert.equal(d.getUTCDate(), 1);
+    assert.equal(d.getUTCHours(), 0);
+    assert.equal(d.getUTCMinutes(), 11);
+    assert.equal(d.getUTCSeconds(), 10);
+    assert.equal(d.getTime(), (11 * 60000) + 10910);
+
+    d = dates.fromUTCDate(1970, 0, 1, 12, 11, 10, 910);
+    assert.equal(d.getUTCFullYear(), 1970);
+    assert.equal(d.getUTCMonth(), 0);
+    assert.equal(d.getUTCDate(), 1);
+    assert.equal(d.getUTCHours(), 12);
+    assert.equal(d.getUTCMinutes(), 11);
+    assert.equal(d.getUTCSeconds(), 10);
+    assert.equal(d.getTime(), (12 * 60 * 60000) + (11 * 60000) + 10910);
 };
 
 exports.testCheckDate = function() {

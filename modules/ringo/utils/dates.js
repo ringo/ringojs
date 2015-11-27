@@ -17,6 +17,17 @@
 
 /**
  * @fileoverview Adds useful functions for working with JavaScript Date objects.
+ * @example var dates = require("ringo/utils/dates");
+ * var now = new Date(2016, 0, 1);
+ * var y2k = new Date(2000, 0, 1);
+ *
+ * dates.after(now, y2k); // --> true
+ * dates.before(now, y2k); // --> false
+ * dates.isLeapYear(y2k); // --> true
+ * dates.weekOfYear(y2k); // --> 52 (1st week starts at 3rd)
+ * dates.yearInCentury(y2k); // --> 0
+ * dates.diff(y2k, now); // --> 5844
+ * dates.diff(y2k, now, "mixed"); // { days: 5844, hours: 0, ... }
  */
 
 var strings = require('ringo/utils/strings');
@@ -51,9 +62,11 @@ export(
 );
 
 /**
- * Format a Date to a string.
+ * Format a Date to a string in a locale-sensitive manner.
  * For details on the format pattern, see
- * http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
+ * <a href="http://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html">
+ *     java.text.SimpleDateFormat
+ * </a>.
  *
  * @param {Date} the Date to format
  * @param {String} format the format pattern
@@ -65,7 +78,18 @@ export(
  *        is used. If the timezone id is provided but cannot be understood, the "GMT" timezone
  *        is used.
  * @returns {String} the formatted Date
- * @see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html">java.text.SimpleDateFormat</a>
+ * @example var y2k = new Date(Date.UTC(2000, 0, 1));
+ * // "year 2000"
+ * dates.format(y2k, "'year' yyyy");
+ * // "Samstag, Januar 1, '00"
+ * dates.format(y2k, "EEEE, MMMM d, ''yy", "de");
+ * // "1999-12-31"
+ * dates.format(y2k, "yyyy-MM-dd", "de", "GMT-1");
+ * // "2000-01-01 00:00:00 GMT-00:00"
+ * dates.format(y2k, "yyyy-MM-dd HH:mm:ss z", "de", "GMT-0");
+ * // "1999-12-31 14:00:00 GMT-10:00"
+ * dates.format(y2k, "yyyy-MM-dd HH:mm:ss z", "de", "GMT-10");
  */
 function format(date, format, locale, timezone) {
     if (!format)
@@ -98,7 +122,10 @@ function createGregorianCalender(date, locale) {
 }
 
 /**
- * Checks if the date is a valid date. Example: 2007 is no leap year, so <code>checkDate(2007, 1, 29)</code> returns false.
+ * Checks if the date is a valid date.
+ *
+ * @example // 2007 is no leap year, so no 29th February
+ * dates.checkDate(2007, 1, 29); // --> false
  *
  * @param {Number} fullYear
  * @param {Number} month between 0 and 11
@@ -124,7 +151,7 @@ function checkDate(fullYear, month, day) {
  *        <code>week</code>, <code>day</code> (default), <code>hour</code> (24-hour clock), <code>minute</code>, <code>second</code>,
  *        <code>millisecond</code>.
  * @returns {Date} date with the calculated date and time
- * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/GregorianCalendar.html#add(int,%20int)
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html#add-int-int-">java.util.GregorianCalendar add()</a>
  */
 function add(date, delta, unit) {
     var cal = createGregorianCalender(date),
@@ -201,7 +228,7 @@ function after(a, b) {
  * @param {Date} a first date
  * @param {Date} b second date
  * @returns {Number} -1 if <code>a</code> is before <code>b</code>, 0 if equals and 1 if <code>a</code> is after <code>b</code>.
- * @see http://download.oracle.com/javase/1.5.0/docs/api/java/util/Calendar.html#compareTo(java.util.Calendar)
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html#compareTo-java.util.Calendar-">java.util.Calendar compareTo()</a>
  */
 function compare(a, b) {
     if (a.getTime() === b.getTime()) {
@@ -219,7 +246,7 @@ function compare(a, b) {
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
  * @returns {Number} the first day of the week; 1 = Sunday, 2 = Monday.
- * @see http://download.oracle.com/javase/1.5.0/docs/api/constant-values.html#java.util.Calendar.SUNDAY
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/constant-values.html#java.util">java.util.Calendar constant field values</a>
  */
 function firstDayOfWeek(locale) {
     if (typeof locale == "string") {
@@ -270,9 +297,11 @@ function weekOfYear(date, locale) {
 }
 
 /**
- * Gets the year of the century for the given date. <em>Examples:</em> 1900 returns 0, 2010 returns 10.
+ * Gets the year of the century for the given date.
  * @param {Date} date calculate the year of the century.
  * @returns {Number} second of the day
+ * @example dates.yearInCentury(new Date(1900, 0, 1)); // --> 0
+ * dates.yearInCentury(new Date(2016, 0, 1)); // --> 16
  */
 function yearInCentury(date) {
     var year = date.getFullYear();
@@ -339,6 +368,9 @@ function quarterInYear(date) {
  * @param {Date} date to calculate the quarter for.
  * @param {Date} fiscalYearStart first day in the fiscal year, default is the start of the current year
  * @returns {Number} quarter of the year, between 1 and 4.
+ * @example // Farmers (grassland calendar starts with 1st May)
+ * // returns 4th quarter
+ * dates.quarterInFiscalYear(new Date(2016, 3, 30), new Date(0, 4, 1));
  */
 function quarterInFiscalYear(date, fiscalYearStart) {
     var firstDay   = fiscalYearStart.getDate(),
@@ -397,23 +429,37 @@ function diff(a, b, unit) {
                 "milliseconds":   Math.floor((((delta % 86400000) % 3600000) % 60000) % 1000)
             };
         case "year":
+        case "years":
             delta = Math.abs(yDiff); // just return the yDiff
             break;
         case "quarter":
+        case "quarters":
             delta = Math.abs((yDiff * 4) + quarterInYear(a) - quarterInYear(b));
             break;
         case "month":
+        case "months":
             delta = Math.abs((yDiff * 12) + a.getMonth() - b.getMonth());
             break;
         case "week":
+        case "weeks":
             delta = Math.floor(diff(a, b, "day") / 7);
             break;
-        case "day":     delta /= 24;
-        case "hour":    delta /= 60;
-        case "minute":  delta /= 60;
-        case "second":  delta /= 1000;
-                        break;
-        case "millisecond": break; // delta is by default the diff in millis
+        case "day":
+        case "days":
+            delta /= 24;
+        case "hour":
+        case "hours":
+            delta /= 60;
+        case "minute":
+        case "minutes":
+            delta /= 60;
+        case "second":
+        case "seconds":
+            delta /= 1000;
+            break;
+        case "millisecond":
+        case "milliseconds":
+            break; // delta is by default the diff in millis
     }
 
     return Math.floor(delta);
@@ -502,6 +548,10 @@ function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) 
  * Resets the time values to 0, keeping only year, month and day.
  * @param {Date} date to reset
  * @returns {Date} date without any time values
+ * @example var d = new Date(2016, 5, 10, 10, 20, 30);
+ *
+ * // Fri Jun 10 2016 00:00:00 GMT+0200 (MESZ)
+ * dates.resetTime(d);
  */
 function resetTime(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -511,6 +561,10 @@ function resetTime(date) {
  * Drops the date values, keeping only hours, minutes, seconds and milliseconds.
  * @param {Date} date to reset
  * @returns {Date} date with the original time values and 1970-01-01 as date.
+ * @example var d = new Date(2016, 5, 10, 10, 20, 30);
+ *
+ * // Thu Jan 01 1970 10:20:30 GMT+0100 (MEZ)
+ * dates.resetDate(d);
  */
 function resetDate(date) {
     return new Date(1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
@@ -526,6 +580,8 @@ function resetDate(date) {
  * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
  * @param {Boolean} withMilliseconds if true, the string will contain also the milliseconds of the date. Default false.
  * @returns {String} date as ISO 8601 string.
+ * @example // "2015-11-27T17:52:12+01:00"
+ * dates.toISOString(new Date());
  */
 function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
     var withTime = withTime !== false,
@@ -589,29 +645,42 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
 
 /**
  * Create new Date from UTC timestamp.
+ * This is an alternative to <code>new Date(Date.UTC(…));</code>
  * @param {Number} year
  * @param {Number} month
  * @param {Number} date
- * @param {Number} hour
- * @param {Number} minute
- * @param {Number} second
+ * @param {Number} hour (optional, default 0)
+ * @param {Number} minute (optional, default 0)
+ * @param {Number} second (optional, default 0)
+ * @param {Number} millisecond (optional, default 0)
  * @returns {Date}
  */
-function fromUTCDate(year, month, date, hour, minute, second) {
-    return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0));
+function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
+    return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0, millisecond || 0));
 }
 
 /**
- * Parse a string representing a date.
- * For details on the string format, see http://tools.ietf.org/html/rfc3339.  Examples
- * include "2010", "2010-08-06", "2010-08-06T22:04:30Z", "2010-08-06T16:04:30-06".
+ * Parse a string to a date.
+ * The date string follows the format specified for timestamps
+ * on the internet described in RFC 3339.
  *
- * @param {String} str The date string. This follows the format specified for timestamps
- *        on the internet described in RFC 3339.
+ * @example // Fri Jan 01 2016 01:00:00 GMT+0100 (MEZ)
+ * dates.parse("2016");
+ *
+ * // Sat Aug 06 2016 02:00:00 GMT+0200 (MESZ)
+ * dates.parse("2016-08-06");
+ *
+ * // Sun Aug 07 2016 00:04:30 GMT+0200 (MESZ)
+ * dates.parse("2016-08-06T22:04:30Z");
+ *
+ * // Sun Aug 07 2016 00:04:30 GMT+0200 (MESZ)
+ * dates.parse("2016-08-06T16:04:30-06");
+ *
+ * @param {String} str The date string.
  * @returns {Date|NaN} a date representing the given string, or <code>NaN</code> for unrecognizable strings
- * @see http://tools.ietf.org/html/rfc3339
- * @see http://www.w3.org/TR/NOTE-datetime
- * @see https://es5.github.io/#x15.9.4.2
+ * @see <a href="http://tools.ietf.org/html/rfc3339">RFC 3339: Date and Time on the Internet: Timestamps</a>
+ * @see <a href="http://www.w3.org/TR/NOTE-datetime">W3C Note: Date and Time Formats</a>
+ * @see <a href="https://es5.github.io/#x15.9.4.2">ES5 Date.parse()</a>
  */
 function parse(str) {
     var date;
