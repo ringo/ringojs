@@ -2,13 +2,13 @@ var assert = require("assert");
 var {join} = require("fs");
 var SEPARATOR = require('ringo/utils/files').separator;
 
-// the old implementation
+// the old naive implementation from RingoJS 0.11
 var join_011 = function() {
     var args = Array.prototype.filter.call(arguments, function(p) p != "");
     return args.join(SEPARATOR);
 };
 
-// these tests should work as in 0.11
+// these tests should work as in RingoJS 0.11
 var positiveTests = [
     ["foo", "bar", "baz.js"],
     ["foo", "bar", ".baz.js"],
@@ -21,6 +21,7 @@ var positiveTests = [
     ["." + SEPARATOR + "foo"]
 ];
 
+// Paths.get() changed the behavior of these tests >= RingoJS 0.12
 var negativeTests = [
     ["foo" + SEPARATOR, ""],
     ["foo" + SEPARATOR, "bar" + SEPARATOR + SEPARATOR, "baz"],
