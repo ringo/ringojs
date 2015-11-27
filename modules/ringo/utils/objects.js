@@ -22,12 +22,41 @@
 export("clone", "merge");
 
 /**
- * copy the properties of an object into
- * a new object
+ * Copies the properties of an object into a target object.
  * @param {Object} object the object to clone
  * @param {Object} cloned optional clone object
  * @param {Boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
  * @returns {Object} the clone object
+ * @example var objects = require("ringo/utils/objects");
+ * var a = [1, 2, 3];
+ * var b = {"a": a};
+ * var c = {};
+ *
+ * // shallow clone: b.a and c.a will share the same array
+ * objects.clone(b, c);
+ *
+ * // this modifies all three: a, b.a, and c.a
+ * b.a[0] = 99;
+ * console.dir(a); // --> [ 99, 2, 3 ]
+ * console.dir(b); // --> { a: [ 99, 2, 3 ] }
+ * console.dir(c); // --> { a: [ 99, 2, 3 ] }
+ *
+ * // reset to original values
+ * var a = [1, 2, 3];
+ * var b = {"a": a};
+ * var c = {};
+ *
+ * // c is now a deep clone of b
+ * objects.clone(b, c, true);
+ *
+ * // this modifies only a and b.a
+ * b.a[0] = 99;
+ *
+ * console.dir(a); // --> [ 99, 2, 3 ]
+ * console.dir(b); // --> { a: [ 99, 2, 3 ] }
+ *
+ * // c.a stays untouched, holds the original values
+ * console.dir(c); // --> { a: [ 1, 2, 3 ] }
  */
 function clone(object, cloned, recursive) {
     if (!cloned) {
@@ -52,6 +81,12 @@ function clone(object, cloned, recursive) {
  * Whenever a key exists in a later object that already existed in an earlier
  * object, the according value of the earlier object takes precedence.
  * @param {Object...} obj... The objects to merge
+ * @example var a = { "k1": "val-A" };
+ * var b = { "k1": "val-B", "k2": "val-B" };
+ * var c = { "k1": "val-C", "k2": "val-C" };
+ *
+ * // result: { k1: 'val-A', k2: 'val-C' }
+ * objects.merge(a,b,c);
  */
 function merge() {
     var result = {};
