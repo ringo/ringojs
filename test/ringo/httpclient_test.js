@@ -498,6 +498,26 @@ exports.testIterateExchange_Issue287 = function() {
    assert.isUndefined(exchange.headers[null]);
 };
 
+exports.testTimeoutResponse_Issue267 = function() {
+    getResponse = function(req) {
+        var loops = 0;
+        var started = Date.now();
+        while (Date.now() - started < 100) {
+            loops++;
+        }
+        return response.text("did " + loops + " loops in " + (Date.now() - started) + " milliseconds.");
+    };
+
+    assert.throws(function() {
+        var exchange = request({
+            readTimeout: 1,
+            url: baseUri
+        });
+        assert.fail("This should not be reachable!");
+    }, java.net.SocketTimeoutException, "A timeout request should throw an exception!");
+};
+
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     var {run} = require("test");
