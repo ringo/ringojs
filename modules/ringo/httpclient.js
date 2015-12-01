@@ -26,6 +26,7 @@ var objects = require("ringo/utils/objects");
 var base64 = require("ringo/base64");
 var {Buffer} = require("ringo/buffer");
 var {Random} = java.util;
+var log = require("ringo/logging").getLogger(module.id);
 
 export("request", "get", "post", "put", "del", "TextPart", "BinaryPart");
 
@@ -477,6 +478,11 @@ Object.defineProperties(Exchange.prototype, {
  * @see #del
  */
 var request = function(options) {
+    if (options.beforeSend != null || options.complete != null ||
+        options.success != null || options.error != null) {
+        log.warn("ringo/httpclient does not support callbacks anymore!");
+    }
+
     var opts = prepareOptions(options);
     return new Exchange(opts.url, {
         "method": opts.method,

@@ -517,6 +517,31 @@ exports.testTimeoutResponse_Issue267 = function() {
     }, java.net.SocketTimeoutException, "A timeout request should throw an exception!");
 };
 
+exports.testNoCallbacks = function() {
+    getResponse = function(req) {
+        return response.text("foo");
+    };
+
+    var anyCallbackCalled = false;
+    var exchange = request({
+        "url": baseUri,
+        "beforeSend": function() {
+            anyCallbackCalled = true;
+        },
+        "success": function() {
+            anyCallbackCalled = true;
+        },
+        "complete": function() {
+            anyCallbackCalled = true;
+        },
+        "error": function() {
+            anyCallbackCalled = true;
+        }
+    });
+
+    assert.isFalse(anyCallbackCalled, "Callback has been called!");
+    assert.strictEqual(exchange.status, 200);
+};
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
