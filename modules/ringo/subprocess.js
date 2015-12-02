@@ -9,6 +9,7 @@
 var {Stream, MemoryStream, TextStream} = require('io');
 var fs = require('fs');
 var arrays = require('ringo/utils/arrays');
+var sys = require("system");
 
 function parseArguments(args) {
     // arguments may end with a {dir: "", env: {}} object
@@ -169,8 +170,8 @@ exports.command = function() {
 exports.system = function() {
     var args = parseArguments(arguments);
     var process = createProcess(args);
-    var output = system.stdout,
-        errput = system.stderr;
+    var output = sys.stdout,
+        errput = sys.stderr;
     if (args.binary) {
         output = output.raw;
         errput = errput.raw;
