@@ -149,42 +149,56 @@ function checkDate(fullYear, month, day) {
  * @param {Number} delta amount of time to add (positive delta) or remove (negative delta).
  * @param {String} unit (optional) field to change. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
  *        <code>week</code>, <code>day</code> (default), <code>hour</code> (24-hour clock), <code>minute</code>, <code>second</code>,
- *        <code>millisecond</code>.
+ *        <code>millisecond</code>, and their respective plural form.
  * @returns {Date} date with the calculated date and time
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html#add-int-int-">java.util.GregorianCalendar add()</a>
+ * @example var d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
+ * var d2 = dates.add(d1, 1, "hour");
+ * dates.diff(d1, d2, "hours"); // --> 1
  */
 function add(date, delta, unit) {
-    var cal = createGregorianCalender(date),
-    delta = delta || 0,
-    unit = unit || "day";
+    var unit = (typeof unit === 'undefined') ? "day" : unit,
+    cal = createGregorianCalender(date),
+    delta = delta || 0;
 
     switch (unit) {
         case "year":
+        case "years":
             cal.add(java.util.Calendar.YEAR, delta);
             break;
         case "quarter":
+        case "quarters":
             cal.add(java.util.Calendar.MONTH, delta * 3);
             break;
         case "month":
+        case "months":
             cal.add(java.util.Calendar.MONTH, delta);
             break;
         case "week":
+        case "weeks":
             cal.add(java.util.Calendar.WEEK_OF_YEAR, delta);
             break;
         case "day":
+        case "days":
             cal.add(java.util.Calendar.DATE, delta);
             break;
         case "hour":
+        case "hours":
             cal.add(java.util.Calendar.HOUR_OF_DAY, delta);
             break;
         case "minute":
+        case "minutes":
             cal.add(java.util.Calendar.MINUTE, delta);
             break;
         case "second":
+        case "seconds":
             cal.add(java.util.Calendar.SECOND, delta);
             break;
         case "millisecond":
+        case "milliseconds":
             return new Date(date.getTime() + delta);
+        default:
+            throw new Error("Invalid unit: " + unit);
     }
     return new Date(cal.getTimeInMillis());
 }
@@ -409,12 +423,18 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  * @param {Date} b second date
  * @param {String} unit (optional) of time to return. Possible values: <code>year</code>, <code>quarter</code>, <code>month</code>,
  *        <code>week</code>, <code>day</code> (default), <code>hour</code>, <code>minute</code>, <code>second</code>, <code>millisecond</code> and
- *        <code>mixed</code> (returns an object)
+ *        <code>mixed</code> (returns an object); and their respective plural form.
  * @returns difference between the given dates in the specified unit of time.
  * @type Number|Object<days, hours, minutes, seconds, milliseconds>
+ * @example var d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
+ * var d2 = new Date(Date.UTC(2017, 0, 1));
+ * dates.diff(d1, d2, "years"); // --> 1
+ * dates.diff(d1, d2, "year"); // --> 1
+ * dates.diff(d1, d2, "minutes"); // --> 527040
+ * dates.diff(d1, d2, "mixed"); // --> { days: 366, hours: 0, … }
  */
 function diff(a, b, unit) {
-    var unit = unit || "day",
+    var unit = (typeof unit === 'undefined') ? "day" : unit,
     mDiff = Math.abs(a.getTime() - b.getTime()),
     yDiff = a.getFullYear() - b.getFullYear(),
     delta = mDiff;
@@ -460,6 +480,8 @@ function diff(a, b, unit) {
         case "millisecond":
         case "milliseconds":
             break; // delta is by default the diff in millis
+        default:
+            throw new Error("Invalid unit: " + unit)
     }
 
     return Math.floor(delta);

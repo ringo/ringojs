@@ -39,6 +39,15 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
 };
 
 exports.testAdd = function () {
+    // invalid units
+    assert.throws(function() {
+        dates.add(new Date(), 1, "yeard")
+    });
+    assert.throws(function() {
+        dates.add(new Date(), 1, "")
+    });
+
+
     var d = new Date(Date.UTC(2010, 10, 10, 10, 10, 10, 10)); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
 
     assert.equal(d.getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
@@ -58,21 +67,32 @@ exports.testAdd = function () {
 
     // To avoid time zone and daylight saving time problems, month and quarter are tested with full circles
     assert.equal((dates.add(d, 12, "month")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
+    assert.equal((dates.add(d, 12, "months")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
     assert.equal((dates.add(d, 4, "quarter")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
+    assert.equal((dates.add(d, 4, "quarters")).getTime(), new Date(Date.UTC(2011, 10, 10, 10, 10, 10, 10)).getTime());
 
     // Add nothing
     assert.equal(dates.add(d, 0, 'millisecond').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'milliseconds').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'second').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'seconds').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'minute').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'minutes').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'hour').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'hours').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
     assert.equal(dates.add(d, 0, 'day').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'days').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0).getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
     assert.equal(dates.add(d, 0, 'week').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'weeks').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'month').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'months').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'quarter').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'quarters').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
     assert.equal(dates.add(d, 0, 'year').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
+    assert.equal(dates.add(d, 0, 'years').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
     // Remove 1
     var removeOne = {
@@ -82,6 +102,20 @@ exports.testAdd = function () {
         "hour":         Date.UTC(2010, 10, 10, 9, 10, 10, 10),
         "day":          Date.UTC(2010, 10, 9, 10, 10, 10, 10),
         "year":         Date.UTC(2009, 10, 10, 10, 10, 10, 10)
+    };
+
+    for (var tUnit in removeOne) {
+        assert.equal((dates.add(d, -1, tUnit)).getTime(), new Date(removeOne[tUnit]).getTime(), tUnit);
+    }
+
+    // plural form
+    removeOne = {
+        "milliseconds":  Date.UTC(2010, 10, 10, 10, 10, 10, 9),
+        "seconds":       Date.UTC(2010, 10, 10, 10, 10, 9, 10),
+        "minutes":       Date.UTC(2010, 10, 10, 10, 9, 10, 10),
+        "hours":         Date.UTC(2010, 10, 10, 9, 10, 10, 10),
+        "days":          Date.UTC(2010, 10, 9, 10, 10, 10, 10),
+        "years":         Date.UTC(2009, 10, 10, 10, 10, 10, 10)
     };
 
     for (var tUnit in removeOne) {
@@ -227,10 +261,18 @@ exports.testDiff = function() {
     var a = new Date(2010, 0, 1),
     b = new Date(2010, 0, 2);
 
+    assert.throws(function() {
+        dates.diff(a, b, "yeard")
+    });
+    assert.throws(function() {
+        dates.diff(a, b, "")
+    });
+
     assert.equal(dates.diff(a, b, "year"), 0);
     assert.equal(dates.diff(a, b, "quarter"), 0);
     assert.equal(dates.diff(a, b, "month"), 0);
     assert.equal(dates.diff(a, b, "week"), 0);
+    assert.equal(dates.diff(a, b), 1);
     assert.equal(dates.diff(a, b, "day"), 1);
     assert.equal(dates.diff(a, b, "hour"), 24);
     assert.equal(dates.diff(a, b, "minute"), 1440);
