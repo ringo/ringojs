@@ -2,15 +2,15 @@ var assert = require("assert");
 var subprocess = require("ringo/subprocess");
 
 var OS_NAME = java.lang.System.getProperty("os.name").toLowerCase();
-var BASH = function() {
+var BASH = (function() {
     return ["linux", "mac os", "solaris", "hp-ux"].some(function(candidate) {
         return OS_NAME.indexOf(candidate) >= 0;
     });
-};
+})();
 
-var CMD = function() {
+var CMD = (function() {
     return OS_NAME.indexOf("windows") >= 0;
-};
+})();
 
 if (CMD === BASH === true) {
     throw new Error("Windows and Linux / Unix detected at the same time!");
@@ -76,11 +76,11 @@ var cmdTests = {
     }
 };
 
-if (BASH) {
+if (BASH === true) {
     for (var testName in bashTests) {
         exports[testName] = bashTests[testName];
     }
-} else if (CMD) {
+} else if (CMD  === true) {
     for (var testName in cmdTests) {
         exports[testName] = cmdTests[testName];
     }
