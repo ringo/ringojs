@@ -157,8 +157,9 @@ exports.command = function() {
 };
 
 /**
- * Executes a given command, attached to this process's
- * output and error streams, and returns the exit status.
+ * Executes a given command, attached to the JVM process's
+ * output and error streams <code>System.stdout</code> and <code>System.stderr</code>,
+ * and returns the exit status.
  * @param {String} command command to call in the runtime environment
  * @param {String} [arguments...] optional arguments as single or multiple string parameters.
  *                 Each argument is analogous to a quoted argument on the command line.
