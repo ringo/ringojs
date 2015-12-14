@@ -26,6 +26,6 @@ tests.forEach(function ([source, target, expected]) {
     };
 });
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

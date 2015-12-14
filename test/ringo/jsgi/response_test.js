@@ -12,7 +12,7 @@ exports.testHttpStatus = function () {
         headers: { "content-type": "text/plain; charset=utf-8" },
         body: [""]
     });
-    
+
     // test initial state
     assert.deepEqual(res, expected);
 
@@ -171,7 +171,7 @@ exports.testHelpers = function() {
         headers: { "content-type": "text/plain; charset=utf-8" },
         body: ["Hello World!"]
     });
-    
+
     assert.deepEqual(response.text("Hello World!").setStatus(123), expected);
 
     expected = new JsgiResponse({
@@ -264,7 +264,7 @@ exports.testHelpers = function() {
 };
 
 // start the test runner if we're called directly from command line
-if (require.main == module.id) {
+if (require.main === module) {
     var {run} = require("test");
     require("system").exit(run(exports));
 }

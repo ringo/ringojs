@@ -125,20 +125,20 @@ exports.testAdd = function () {
     // Remove 13 hours
     var fullHourDate = new Date(Date.UTC(2010, 10, 10, 23, 10, 10, 10)); // Wed Nov 10 2010 23:10:10 GMT+0100 (MEZ)
     assert.equal(dates.add(fullHourDate, -13, 'hour').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
-    
+
     // Add 13 hours
     fullHourDate = new Date(Date.UTC(2010, 10, 10, 0, 10, 10, 10)); // Wed Nov 10 2010 00:10:10 GMT+0100 (MEZ)
     assert.equal(dates.add(fullHourDate, 13, 'hour').getTime(), Date.UTC(2010, 10, 10, 13, 10, 10, 10));
-    
+
     // Remove 48 hours
     assert.equal(dates.add(d, -48, 'hour').getTime(), Date.UTC(2010, 10, 8, 10, 10, 10, 10));
-    
+
     // Add 48 hours
     assert.equal(dates.add(d, 48, 'hour').getTime(), Date.UTC(2010, 10, 12, 10, 10, 10, 10));
-    
+
     // Add 61 hours
     assert.equal(dates.add(d, 61, 'hour').getTime(), Date.UTC(2010, 10, 12, 23, 10, 10, 10));
-    
+
     // Remove 61 hours
     assert.equal(dates.add(d, -61, 'hour').getTime(), Date.UTC(2010, 10, 7, 21, 10, 10, 10));
 
@@ -895,12 +895,12 @@ exports.testToISOString = function() {
     var sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     var formatted = sdf.format(d);
     assert.strictEqual(dates.toISOString(d, true, true), formatted.substr(0,22) + ":" + formatted.substr(-2));
-    
+
     sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     formatted = sdf.format(d);
     assert.strictEqual(dates.toISOString(d, true, true, true, true), formatted.substr(0,26) + ":" + formatted.substr(-2));;
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

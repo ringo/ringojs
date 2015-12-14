@@ -23,6 +23,6 @@ exports.testModules        = require('./modules/all');
 exports.testIntegration    = require('./integration-tests/all');
 
 // start the test runner if we're called directly from command line
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require('test').run(exports));
 }

@@ -46,6 +46,6 @@ exports.testMove = function() {
     assert.isFalse(Files.exists(Paths.get(movedTestFile)));
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

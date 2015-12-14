@@ -23,6 +23,6 @@ exports.testDirectory = function() {
     assert.equal(fs.workingDirectory(), java.lang.System.getProperty("user.dir") + SEPARATOR);
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

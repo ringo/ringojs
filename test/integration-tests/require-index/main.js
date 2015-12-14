@@ -7,6 +7,6 @@ exports.testCalculator = function() {
     assert.equal(calc.substract(5,3), 2);
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

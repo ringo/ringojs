@@ -233,7 +233,7 @@ Object.defineProperty(this, "global", { value: this });
  *
  * @name require.main
  * @example // is the current module is the main module?
- *  if (require.main == module.id) {
+ *  if (require.main === module) {
  *   // Start up actions like in a Java public static void main() method
  *   var server = new Server();
  *   server.start();

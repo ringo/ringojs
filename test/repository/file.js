@@ -6,6 +6,6 @@ var repo = new FileRepository(path);
 
 require("./common").setup(exports, path, repo);
 
-if (require.main == module.id) {
+if (require.main === module) {
     require("test").run(exports);
 }

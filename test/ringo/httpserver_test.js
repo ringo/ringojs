@@ -13,7 +13,7 @@ var port = "8282";
 var baseUri = "http://" + host + ":" + port + "/";
 
 /**
- * tests overwrite checkRequest() to control the 
+ * tests overwrite checkRequest() to control the
  */
 var checkRequest = function(req) { return; };
 
@@ -175,10 +175,10 @@ exports.testMultipleHeaders = function () {
     checkRequest = function(req) {
         assert.equal(req.method, "GET");
         assert.equal(req.scheme, "http");
-        
+
         assert.equal(req.headers.host, host + ":" + port); // This follows RFC 2616!
         assert.equal(req.headers["x-foo"], "bar");
-        
+
         var headersArray = [];
         for (var headers = req.env.servletRequest.getHeaders("x-foo"); headers.hasMoreElements(); ) {
             headersArray.push(headers.nextElement());
@@ -248,7 +248,7 @@ exports.testOptions = function() {
 };
 
 // start the test runner if we're called directly from command line
-if (require.main == module.id) {
+if (require.main === module) {
     var {run} = require("test");
     require("system").exit(run(exports));
 }

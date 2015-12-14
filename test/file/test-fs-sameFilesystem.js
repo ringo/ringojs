@@ -23,6 +23,6 @@ exports.testSameFilesystem = function() {
     assert.isFalse(fs.exists(b));
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

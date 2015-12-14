@@ -435,6 +435,6 @@ exports.testY64decode = function() {
     assert.strictEqual("????", strings.y64decode("Pz8_Pw--", "UTF-8"));
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

@@ -41,7 +41,7 @@ exports.testPosixPermissions = function() {
     if (!java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
         return;
     }
-    
+
     var permissions = new files.PosixPermissions(0777);
     assert.strictEqual(0777, permissions.value);
 
@@ -65,6 +65,6 @@ exports.testPosixPermissions = function() {
     java.nio.file.Files.delete(tempPath);
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

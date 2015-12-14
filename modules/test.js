@@ -24,7 +24,7 @@
  * exports.testTransactions = function() { ... }
  * exports.testDeleteTable = function() { ... }
  *
- * if (require.main == module.id) {
+ * if (require.main === module) {
  *   // Get a runner and run on the current module
  *   require("test").run(exports);
  * }
@@ -457,7 +457,7 @@ EvaluationError.prototype = new Error();
 /**
  * Executed when called from the command line
  */
-if (require.main == module.id) {
+if (require.main === module) {
     var system = require("system");
     if (system.args.length == 1) {
         term.writeln("Usage: bin/ringo test test/file1 test/file2");

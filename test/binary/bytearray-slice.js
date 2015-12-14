@@ -65,6 +65,6 @@ exports.testByteArraySlice = function() {
     assert.deepEqual(a.slice("foo", "bar"), s.toArray());
 };
 
-if (require.main == module.id) {
+if (require.main === module) {
     require('system').exit(require('test').run(module.id));
 }
