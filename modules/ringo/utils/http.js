@@ -1,5 +1,8 @@
 /**
  * @fileoverview Provides utility functions to work with HTTP requests and responses.
+ * Most methods are useful for low-level operations only.
+ * To develop a full-featured web application it’s recommended to use a dedicated
+ * web framework like <a href="https://github.com/ringo/stick">stick</a>.
  */
 
 var dates = require('ringo/utils/dates');
