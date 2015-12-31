@@ -24,7 +24,7 @@ export('write', 'writeln', 'read', 'readln', 'start', 'quit',
        'printResult', 'printError');
 
 try {
-    var input = new Packages.jline.ConsoleReader();
+    var input = new Packages.jline.console.ConsoleReader();
 } catch (x) {
     // fall back to plain standard input
 }
