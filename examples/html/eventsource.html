@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Ringo EventSource Demo</title>
+</head>
+
+<body>
+    <h1>Ringo EventSource Demo</h1>
+
+</body>
+
+<script type="text/javascript">
+
+    if (typeof EventSource === "function") {
+        var url = location.href;
+
+        var socket = new EventSource(url);
+        socket.onopen = function(evt){
+            append("[Connection opened]");
+        };
+        socket.onmessage = function(evt) {
+            append(evt.data);
+        };
+        socket.onerror = function(evt) {
+            append("[Connection error]");
+        };
+    } else {
+        append("Sorry, your browser does not seem to support EventSource.");
+    }
+
+    function append(text) {
+        var p = document.createElement("p");
+        p.appendChild(document.createTextNode(text));
+        document.body.appendChild(p);
+    }
+</script>
+
+</html>
