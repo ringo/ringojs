@@ -8,6 +8,7 @@ var onmessage = function(event) {
             var buf = stream.read(4096);
             if (buf.length > 0) {
                 response.write(buf);
+                response.flush();
             } else {
                 clearInterval(intervalId);
                 response.close();

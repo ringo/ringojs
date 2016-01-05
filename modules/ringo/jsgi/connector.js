@@ -16,6 +16,8 @@ var {ByteBuffer} = java.nio;
 export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
 
+const FLUSH = new ByteArray(0);
+
 /**
  * Handle a JSGI request.
  * @param {String} moduleId the module id. Ignored if functionObj is already a function.
@@ -181,7 +183,9 @@ function AsyncResponse(request, timeout) {
             return this;
         },
         "write": function(data, encoding) {
-            data = ByteBuffer.wrap((data instanceof Binary) ? data : String(data).toByteArray(encoding));
+            if (!(data instanceof Binary)) {
+                data = String(data).toByteArray(encoding);
+            }
             if (writeListener === null) {
                 writeListener = new WriteListenerImpl(asyncContext);
                 writeListener.queue.add(data);
@@ -193,9 +197,7 @@ function AsyncResponse(request, timeout) {
             return this;
         },
         "flush": function() {
-            if (out.isReady()) {
-                out.flush();
-            }
+            this.write(FLUSH);
         },
         "close": function() {
             if (writeListener !== null) {
@@ -261,8 +263,10 @@ WriteListenerImpl.prototype.onWritePossible = function() {
         // if it returns false
         while (outStream.isReady() && !this.queue.isEmpty()) {
             let data = this.queue.poll();
-            if (data) {
-                outStream.write(data);
+            if (data === FLUSH) {
+                outStream.flush();
+            } else {
+                outStream.write(ByteBuffer.wrap(data));
             }
             if (!outStream.isReady()) {
                 this.isReady.set(true);

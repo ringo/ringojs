@@ -13,7 +13,7 @@ var worker = module.singleton("worker", function() {
 });
 
 exports.app = function(request) {
-    var response = new AsyncResponse(request, 20000, true);
+    var response = new AsyncResponse(request, 0, true);
     response.start(200, {'Content-Type': 'image/png'});
     worker.postMessage({
         "response": response,
