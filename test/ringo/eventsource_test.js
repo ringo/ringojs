@@ -3,6 +3,7 @@ var {EventSource} = require('ringo/jsgi/eventsource');
 var httpclient = require('ringo/httpclient');
 var {Server} = require("ringo/httpserver");
 var objects = require('ringo/utils/objects');
+require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
 
 var config = {
    host: '127.0.0.1',
