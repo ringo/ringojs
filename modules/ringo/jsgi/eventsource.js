@@ -95,7 +95,7 @@ exports.EventSource = function(request) {
     * @param {Object} additional headers (optional)
     */
    this.start = function(headers) {
-      //heartBeat = setInterval(ping.bind(this), 15 * 1000);
+      heartBeat = setInterval(ping.bind(this), 15 * 1000);
       this.response = new AsyncResponse(request, 0);
       this.response.start(200, objects.merge(headers || {}, {
          'Content-Type': 'text/event-stream; charset=utf-8',
