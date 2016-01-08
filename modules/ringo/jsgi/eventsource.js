@@ -100,10 +100,15 @@ exports.EventSource = function(request) {
    /**
     * Start the async response. Optionally set additional headers here.
     * @param {Object} additional headers (optional)
+    * @param {Number} heartBeatInterval in seconds (optional. default: 15)
     */
-   this.start = function(headers) {
-      heartBeat = setInterval(ping.bind(this), 15 * 1000);
+   this.start = function(headers, heartBeatInterval) {
       if (this.response !== null) throw new Error('Connection already open');
+
+      if (heartBeatInterval === undefined || isNaN(heartBeatInterval)) {
+         heartBeatInterval = 15;
+      }
+      heartBeat = setInterval(ping.bind(this), heartBeatInterval * 1000);
       this.response = new AsyncResponse(request, 0);
       this.response.start(200, objects.merge(headers || {}, {
          'Content-Type': 'text/event-stream; charset=utf-8',
