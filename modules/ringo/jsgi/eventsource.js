@@ -45,12 +45,15 @@ const COMMENT_FIELD = ": ".toByteArray('utf-8');
  */
 exports.EventSource = function(request) {
    var heartBeat = null;
+   this.response = null;
 
    /**
     * Send a named event
-    * @throws {java.io.IOException}
+    * @throws {Error}
     */
    this.event = sync(function(name, data) {
+      if (this.response === null) throw new Error('Connection not open');
+
       this.response.write(EVENT_FIELD);
       this.response.write(name);
       this.response.write(CRLF);
@@ -59,9 +62,11 @@ exports.EventSource = function(request) {
 
    /**
     * Send data
-    * @throws {java.io.IOException}
+    * @throws {Error}
     */
    this.data = sync(function(data) {
+      if (this.response === null) throw new Error('Connection not open');
+
       this.response.write(DATA_FIELD);
       this.response.write(data);
       this.response.write(CRLF);
@@ -71,9 +76,11 @@ exports.EventSource = function(request) {
 
    /**
     * Send a comment.
-    * @throws {java.io.IOException}
+    * @throws {Error}
     */
    this.comment = sync(function(comment) {
+      if (this.response === null) throw new Error('Connection not open');
+
       this.response.write(COMMENT_FIELD);
       this.response.write(comment);
       this.response.write(CRLF);
@@ -83,7 +90,7 @@ exports.EventSource = function(request) {
 
    /**
     * Close the event source.
-    * @throws {java.io.IOException}
+    * @throws {Error}
     */
    this.close = sync(function() {
       clearInterval(heartBeat);
@@ -96,6 +103,7 @@ exports.EventSource = function(request) {
     */
    this.start = function(headers) {
       heartBeat = setInterval(ping.bind(this), 15 * 1000);
+      if (this.response !== null) throw new Error('Connection already open');
       this.response = new AsyncResponse(request, 0);
       this.response.start(200, objects.merge(headers || {}, {
          'Content-Type': 'text/event-stream; charset=utf-8',
