@@ -1,6 +1,10 @@
 var {AsyncResponse} = require('ringo/jsgi/connector');
 var objects = require('ringo/utils/objects');
 
+const CRLF = "\r\n".toByteArray('utf-8');
+const EVENT_FIELD = "event: ".toByteArray('utf-8');
+const DATA_FIELD = "data: ".toByteArray('utf-8');
+const COMMENT_FIELD = ": ".toByteArray('utf-8');
 /**
  * EventSource (or Server-Sent-Events) is a server push technology utilizing
  * plain HTTP responses. The event stream format defines three types of messages:
@@ -40,10 +44,6 @@ var objects = require('ringo/utils/objects');
  *
  */
 exports.EventSource = function(request) {
-   var CRLF = String("\r\n").toByteArray('utf-8');
-   var EVENT_FIELD = String("event: ").toByteArray('utf-8');
-   var DATA_FIELD = String("data: ").toByteArray('utf-8');
-   var COMMENT_FIELD = String(": ").toByteArray('utf-8');
    var heartBeat = null;
 
    /**
