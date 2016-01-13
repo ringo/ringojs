@@ -108,7 +108,13 @@ exports.EventSource = function(request) {
       if (heartBeatInterval === undefined || isNaN(heartBeatInterval)) {
          heartBeatInterval = 15;
       }
-      heartBeat = setInterval(ping.bind(this), heartBeatInterval * 1000);
+      heartBeat = setInterval((function() {
+            try {
+               this.ping();
+            } catch (e) {
+               clearInterval(heartBeat);
+            }
+         }).bind(this), heartBeatInterval * 1000);
       this.response = new AsyncResponse(request, 0);
       this.response.start(200, objects.merge(headers || {}, {
          'Content-Type': 'text/event-stream; charset=utf-8',
@@ -118,9 +124,10 @@ exports.EventSource = function(request) {
    };
 
    /**
-    * @ignore
+    * Sends a ping to the client
+    * @throws {Error}
     */
-   var ping = sync(function() {
+   this.ping = sync(function() {
       this.response.write('\r');
       this.response.flush();
    }, this);
@@ -136,4 +143,4 @@ exports.EventSource = function(request) {
  */
 exports.isEventSourceRequest = function(request) {
    return request.headers.accept.indexOf('text/event-stream') > -1;
-}
+};
