@@ -47,7 +47,8 @@ var prepareOptions = function(options) {
         "followRedirects": true,
         "readTimeout": 30000,
         "connectTimeout": 60000,
-        "binary": false
+        "binary": false,
+        "beforeSend": null
     };
     var opts = options ? objects.merge(options, defaultValues) : defaultValues;
     Headers(opts.headers);
@@ -215,7 +216,10 @@ var readResponse = function(connection) {
     try {
         inStream = connection[(status >= 200 && status < 400) ?
                 "getInputStream" : "getErrorStream"]();
-
+        // return null in case of responses with an empty body
+        if (inStream === null) {
+            return null;
+        }
         var encoding = connection.getContentEncoding();
         if (encoding != null) {
             if (encoding === "gzip") {
@@ -325,6 +329,9 @@ var Exchange = function(url, options) {
         // set header keys specified in options
         for (let key in options.headers) {
             connection.setRequestProperty(key, options.headers[key]);
+        }
+        if (typeof(options.beforeSend) === "function") {
+            options.beforeSend(this);
         }
 
         if (options.method === "POST" || options.method === "PUT") {
@@ -478,8 +485,7 @@ Object.defineProperties(Exchange.prototype, {
  * @see #del
  */
 var request = function(options) {
-    if (options.beforeSend != null || options.complete != null ||
-        options.success != null || options.error != null) {
+    if (options.complete != null || options.success != null || options.error != null) {
         log.warn("ringo/httpclient does not support callbacks anymore!");
     }
 
@@ -495,7 +501,8 @@ var request = function(options) {
         "connectTimeout": opts.connectTimeout,
         "readTimeout": opts.readTimeout,
         "binary": opts.binary,
-        "proxy": opts.proxy
+        "proxy": opts.proxy,
+        "beforeSend": opts.beforeSend
     });
 };
 

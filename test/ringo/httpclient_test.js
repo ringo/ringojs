@@ -62,12 +62,23 @@ exports.testBasic = function() {
         return response.html(text);
     };
 
-    var errorCalled, myData;
     var exchange = request({
         url: baseUri
     });
 
     assert.strictEqual(exchange.content, text);
+};
+
+exports.testNullContent = function() {
+    getResponse = function(req) {
+        return response.notFound();
+    };
+
+    var exchange = request({
+        url: baseUri
+    });
+
+    assert.isNull(exchange.content);
 };
 
 /**
@@ -525,9 +536,6 @@ exports.testNoCallbacks = function() {
     var anyCallbackCalled = false;
     var exchange = request({
         "url": baseUri,
-        "beforeSend": function() {
-            anyCallbackCalled = true;
-        },
         "success": function() {
             anyCallbackCalled = true;
         },
