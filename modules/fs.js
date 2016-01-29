@@ -953,7 +953,7 @@ function sameFilesystem(pathA, pathB) {
  * @returns {String} the canonical path
  */
 function canonical(path) {
-    return resolvePath(path).toRealPath().normalize();
+    return String(resolvePath(path).toRealPath().normalize());
 }
 
 /**
