@@ -160,6 +160,7 @@ WebSocket.prototype.isOpen = function() {
  * <li><code>host</code> (undefined)</li>
  * <li><code>sessions</code> (true)</li>
  * <li><code>security</code> (true)</li>
+ * <li><code>statistics</code> (false)</li>
  * <li><code>cookieName</code> (null)</li>
  * <li><code>cookieDomain</code> (null)</li>
  * <li><code>cookiePath</code> (null)</li>
@@ -212,6 +213,7 @@ function Server(options) {
      * <ul>
      *   <li><code>sessions</code>: true to enable sessions for this context, false otherwise
      *   <li><code>security</code>: true to enable security for this context, false otherwise
+     *   <li><code>statistics</code>: true to enable statistics for this context, false otherwise
      *   <li><code>cookieName</code>: optional cookie name
      *   <li><code>cookieDomain</code>: optional cookie domain
      *   <li><code>cookiePath</code>: optional cookie path
@@ -227,11 +229,20 @@ function Server(options) {
         options = options || {};
         var contextKey = virtualHosts ? String(virtualHosts) + path : path;
         var cx = contextMap[contextKey];
+        var statsHandler = null;
         if (!cx) {
-            var contexts = idMap.get("Contexts");
+            var parentContainer = idMap.get("Contexts");
             var sessions = Boolean(options.sessions);
             var security = Boolean(options.security);
-            cx = new org.eclipse.jetty.servlet.ServletContextHandler(contexts, path, sessions, security);
+            var statistics = Boolean(options.statistics);
+            if (statistics === true) {
+                // add statistics handler and use it as parent container for
+                // the context handler created below
+                statsHandler = new org.eclipse.jetty.server.handler.StatisticsHandler();
+                parentContainer.addHandler(statsHandler);
+                parentContainer = statsHandler;
+            }
+            cx = new org.eclipse.jetty.servlet.ServletContextHandler(parentContainer, path, sessions, security);
             if (virtualHosts) {
                 cx.setVirtualHosts(Array.isArray(virtualHosts) ? virtualHosts : [String(virtualHosts)]);
             }
@@ -265,6 +276,14 @@ function Server(options) {
              */
             getHandler: function() {
                 return cx;
+            },
+            /**
+             * Returns the statistics handler wrapping the servlet context handler,
+             * or null if statistics are disabled
+             * @returns {org.eclipse.jetty.server.handler.StatisticsHandler}
+             */
+            getStatisticsHandler: function() {
+                return statsHandler;
             },
             /**
              * Map this context to a JSGI application.
@@ -476,7 +495,8 @@ function Server(options) {
         cookieDomain: options.cookieDomain || null,
         cookiePath: options.cookiePath || null,
         httpOnlyCookies: options.httpOnlyCookies === true,
-        secureCookies: options.secureCookies === true
+        secureCookies: options.secureCookies === true,
+        statistics: options.statistics === true
     });
 
     // If options defines an application mount it
