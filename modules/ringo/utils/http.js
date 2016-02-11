@@ -327,14 +327,23 @@ function isFileUpload(contentType) {
 
 
 /**
- * Parse a string or binary object representing a query string or post data into
- * a JavaScript object structure using the specified encoding.
+ * Parses a string or binary object representing a query string via an URL or post data into
+ * a JavaScript object structure using the specified encoding. It uses the <code>"&amp;"</code>
+ * as separator between parameters and <code>"="</code> for assignments.
  * @param {Binary|String} input a Binary object or string containing the
  *        URL-encoded parameters
  * @param {Object} params optional parameter object to parse into. If undefined
  *        a new object is created and returned.
  * @param {String} encoding a valid encoding name, defaults to UTF-8
  * @returns {Object} the parsed parameter object
+ * @example parseParameters("a=1&b=2&b=3&c");
+ * // returns { a: "1", b: ["2","3"], c: ""}
+ *
+ * parseParameters("a[]=1&a[]=2&a[]=3");
+ * // returns { a: ["1", "2","3"]}
+ *
+ * parseParameters("foo[bar][baz]=hello&foo[bar][boo]=world");
+ * // returns {foo: {bar: {baz: "hello", boo: "world"}}}
  */
 function parseParameters(input, params, encoding) {
     if (!input) {
@@ -346,11 +355,22 @@ function parseParameters(input, params, encoding) {
     params = params || {};
     encoding = encoding || "UTF-8";
     for each (var param in input.split(AMPERSAND)) {
-        var [name, value] = param.split(EQUALS);
-        if (name && value) {
-            name = decodeToString(name, encoding);
-            value = decodeToString(value, encoding);
-            mergeParameter(params, name.trim(), value);
+        var name, value;
+
+        // single parameter without any value
+        if (param.indexOf(EQUALS) < 0) {
+            name = param;
+            value = new ByteString("", encoding);
+        } else {
+            [name, value] = param.split(EQUALS);
+        }
+
+        name = decodeToString(name, encoding);
+        value = decodeToString(value, encoding);
+
+        // only empty keys are not allowed
+        if (name !== "") {
+            mergeParameter(params, name, value);
         }
     }
     return params;
@@ -371,7 +391,18 @@ function mergeParameter(params, name, value) {
         mergeParameterInternal(params, names, value);
     } else {
         // not matching the foo[bar] pattern, add param as is
-        params[name] = value;
+        if (!params.hasOwnProperty(name)) {
+            params[name] = value;
+        } else {
+            // is parameter a single-key param?
+            if (!Array.isArray(params[name])) {
+                // convert the parameter to a value array
+                params[name] = [params[name], value];
+            } else {
+                // push to the existing value array
+                params[name].push(value);
+            }
+        }
     }
 }
 
