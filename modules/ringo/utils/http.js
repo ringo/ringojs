@@ -362,7 +362,7 @@ function parseParameters(input, params, encoding) {
             name = param;
             value = new ByteString("", encoding);
         } else {
-            [name, value] = param.split(EQUALS);
+            [name, value] = param.split(EQUALS, { count: 2 });
         }
 
         name = decodeToString(name, encoding);
