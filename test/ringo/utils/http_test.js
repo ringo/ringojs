@@ -14,30 +14,74 @@ exports.testUrlEncode = function() {
 exports.testParseParameters = function() {
     // [test, expectedResult]
     const testCases = [
+        ["a", { a: ""}],
+        ["a&", { a: ""}],
+        ["&a&", { a: ""}],
+        ["a&&", { a: ""}],
+        ["a=", { a: ""}],
+        ["a=&", { a: ""}],
+        ["a=&&", { a: ""}],
         ["a=1", { a: "1"}],
-        ["a=1&a=1", { a: "1"}],
-        ["a=1&a=2", { a: "2"}],
+        ["a=1&", { a: "1"}],
+        ["a=1&&", { a: "1"}],
+        ["a=1&a=1", { a: ["1", "1"]}],
+        ["a=1&&a=1", { a: ["1", "1"]}],
+        ["a=b=&&c=d&e=f&&&g=h", { a: "b=", c: "d", e: "f", g: "h" }],
+        ["a=b=c=d&e=f=g=h", { a: "b=c=d", e: "f=g=h" }],
+        ["a=1&a=2", { a: ["1", "2"]}],
+
+        // +
+        ["+a+", { " a ": ""}],
+        ["+a+=1", { " a ": "1"}],
+        ["+a=1+", { " a": "1 "}],
+        ["+a+=+1+&+b+=+1+", { " a ": " 1 ", " b ": " 1 "}],
+
+        // junk params
+        ["", {}],
+        ["=", {}],
+        ["&", {}],
+        ["=&", {}],
+        ["=&=", {}],
+        ["&&", {}],
+        ["&=", {}],
+        ["&=1", {}],
+
+        // It's not the job of parseParameters() to separate link hashes
+        ["a=1&a=2#a=3", { a: ["1", "2#a=3"]}],
+        ["a=1&a=2%23a=3", { a: ["1", "2#a=3"]}],
+
         ["a%20b=c%20d", { "a b": "c d"}],
+        ["a=1&b=2&c=b%26c%3Dd", { "a": "1", "b": "2", c: "b&c=d"}],
+        ["%20a%20b%20=%20c%20d%20", { " a b ": " c d "}],
         ["a=b&c=d", { a: "b", c: "d"}],
-        ["a[]=b&a[]=c&a[]=d", { a: ["b", "c", "d"]}],
+        ["a[]=1&a[]=2&a[]=3", { a: ["1", "2","3"]}],
         ["a=日本語0123456789日本語カタカナひらがな", { a: "日本語0123456789日本語カタカナひらがな"}],
         [
             "a=http%3A%2F%2Fringojs.org%2F%20foo%20bar%20buzz%2F!a%26b%3Dc",
             { a: "http://ringojs.org/ foo bar buzz/!a&b=c"}
         ],
+        ["a=%3Db=", { "a": "=b=" }],
         ["a%3D=b", { "a=": "b" }],
         ["a=a%3Db", { a: "a=b" }],
         ["a=1&empty1=&empty2=", { a: "1", empty1: "", empty2: ""}],
-        ["a=1&empty1=&undefined", { a: "1", empty1: ""}],
+        ["a=1&empty1=&empty2", { a: "1", empty1: "", empty2: ""}],
 
-        // note: this is different to node, which parses it as { a: "", b: "1" }
-        // ringojs drops empty parameters!
-        ["a&b=1", { b: "1"}],
+        ["a&b=1", { a: "", b: "1"}],
+        ["a&b=1&c", { a: "", b: "1", c: ""}],
+        ["&&&", {}],
 
         ["foo[bar][baz]=hello", {foo: {bar: {baz: "hello"}}}],
         [
             "foo[bar][baz]=hello&foo[bor][baz]=world",
             {foo: {bar: {baz: "hello"}, bor: {baz: "world"}}}
+        ],
+        [
+            "foo[bar][baz]=hello&foo[bar][boo]=world",
+            {foo: {bar: {baz: "hello", boo: "world"}}}
+        ],
+        [
+            "foo[bar][baz]=hello&foo[bar][baz]=world",
+            {foo: {bar: {baz: "world"}}}
         ],
         [
             "foo[bar][baz]=http%3A%2F%2Fringojs.org%2F%20foo%20bar%20buzz%2F!a%26b%3Dc",
@@ -56,7 +100,7 @@ exports.testParseParameters = function() {
     ];
 
     testCases.forEach(function(test, index) {
-        assert.deepEqual(http.parseParameters(test[0]), test[1], "testCase[" + index + "] failed!");
+        assert.deepEqual(http.parseParameters(test[0]), test[1], "testCase[" + index + "] failed! " + test[0]);
     });
 };
 
