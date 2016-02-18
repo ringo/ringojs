@@ -156,8 +156,8 @@ WebSocket.prototype.isOpen = function() {
  *
  * <ul>
  * <li><code>jettyConfig</code> ('config/jetty.xml')</li>
- * <li><code>port</code> (8080)</li>
- * <li><code>host</code> (undefined)</li>
+ * <li><code>port</code> (8080); overrides port of the default jetty.xml</li>
+ * <li><code>host</code> (localhost); overrides host of the default jetty.xml</li>
  * <li><code>sessions</code> (true)</li>
  * <li><code>security</code> (true)</li>
  * <li><code>statistics</code> (false)</li>
@@ -518,8 +518,19 @@ function Server(options) {
     // while start() is called with the user we will actually run as
     var connectors = jetty.getConnectors();
     for each (var connector in connectors) {
-        connector.setHost(options.host || "localhost");
-        connector.setPort(options.port || 8080);
+        // Only set the host and port if exactly one connector is active.
+        // This is very likely the default HTTP connector from the
+        // modules/config/jetty.xml configuration, which has no connector name set
+        if (connectors.length == 1 && connector.getName() === null) {
+            if (options.host !== undefined) {
+                connector.setHost(options.host);
+            }
+
+            if (options.port > 0) {
+                connector.setPort(options.port);
+            }
+        }
+
         connector.open();
     }
 
