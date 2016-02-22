@@ -193,10 +193,18 @@ function getMimeParameter(headerValue, paramName) {
         var eq = headerValue.indexOf("=", start);
         if (eq > start && eq < end) {
             var name = headerValue.slice(start, eq);
+
+            // RFC 2231: Specifically, an asterisk at the end of a parameter name acts as an
+            // indicator that character set and language information may appear at
+            // the beginning of the parameter value.
+            if (name.length > 1 && name.charAt(name.length - 1) === "*") {
+                name = name.substr(0, name.length - 1);
+            }
+
             if (name.toLowerCase().trim() == paramName) {
                 var value = headerValue.slice(eq + 1, end).trim();
                 if (strings.startsWith(value, '"') && strings.endsWith(value, '"')) {
-                    return value.slice(1, -1).replace('\\\\', '\\').replace('\\"', '"');
+                    return value.slice(1, -1).replace(/\\\\/g, '\\').replace(/\\\"/g, '"');
                 } else if (strings.startsWith(value, '<') && strings.endsWith(value, '>')) {
                     return value.slice(1, -1);
                 }

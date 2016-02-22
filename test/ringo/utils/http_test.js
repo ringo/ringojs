@@ -1,6 +1,51 @@
 var assert = require("assert");
 var http = require("ringo/utils/http");
 
+exports.testGetMimeParameter = function() {
+    // [test, expectedResult]
+    const testCases = [
+        ["Content-Type: text/plain; charset=UTF-8", "charset", "UTF-8"],
+        ["Content-Type: text/plain; charset=UTF-8; foo=bar", "foo", "bar"],
+        ["Content-Type: text/plain; charset=UTF-8; FOO=bar", "foo", "bar"],
+        ["Content-Type: text/plain; charset=UTF-8; FOO=BAR", "foo", "BAR"],
+        ["Content-Type: text/plain; charset=UTF-8; FOO=BAR", "charset", "UTF-8"],
+
+        ["Content-Type: text/weird; weird*=us-ascii'en-us'This%20is%20wierd.", "weird", "us-ascii'en-us'This%20is%20wierd."],
+
+        // RFC 2231: Note that quotes around parameter values are part of the value
+        // syntax; they are NOT part of the value itself.
+        [
+            "Content-Type: message/external-body; access-type=URL; URL=\"ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar\"",
+            "URL",
+            "ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar"
+        ],
+        [
+            "Content-Type: message/external-body;\r\naccess-type=URL;\r\nURL=\"ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar\"",
+            "access-type",
+            "URL"
+        ],
+        [
+            'Content-Type: text/plain; foo="bar and \\\\baz\\\\ bar"',
+            'foo',
+            'bar and \\baz\\ bar'
+        ],
+        [
+            'Content-Type: text/plain; foo="bar and \\"baz\\" bar"',
+            'foo',
+            'bar and "baz" bar'
+        ],
+        [
+            'Content-Type: text/plain; foo="<bar>\\"bar\\"@"',
+            'foo',
+            '<bar>"bar"@'
+        ]
+    ];
+
+    testCases.forEach(function(test, index) {
+        assert.deepEqual(http.getMimeParameter(test[0], test[1]), test[2], "testCase[" + index + "] failed! " + test[0]);
+    });
+};
+
 exports.testUrlEncode = function() {
     var encoded, expected;
     encoded = http.urlEncode({foo: 1, bar: "baz"});
