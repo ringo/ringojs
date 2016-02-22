@@ -1,16 +1,11 @@
 var {HttpServer} = require("../lib/main");
 
-// instantiate the http server
-var httpServer = new HttpServer({
-    // pass a "null" config to avoid loading the default jetty.xml
-    "config": null
-});
-// enable sessions
+var httpServer = new HttpServer();
 httpServer.enableSessions();
 
 // init the application context
 var appContext = httpServer.serveApplication("/", module.resolve("./app"));
-// add a websocket to it
+// and add a websocket to it
 appContext.addWebSocket("/events", function() {});
 
 // initialize static file serving

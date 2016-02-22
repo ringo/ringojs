@@ -1,8 +1,5 @@
 var httpServer = require("../lib/main");
-var builder = httpServer.build({
-        // pass null config to avoid loading the default jetty.xml
-        "config": null
-    })
+var builder = httpServer.build()
         // enable sessions with a custom node name
         .enableSessions({
             "name": "test1"

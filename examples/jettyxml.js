@@ -1,5 +1,5 @@
 var httpServer = require("../lib/main");
-var builder = httpServer.build()
+var builder = httpServer.build("config/jetty.xml")
         // serve application
         .serveApplication("/", module.resolve("./app"))
         // static file serving
