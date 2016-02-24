@@ -47,13 +47,23 @@ exports.testGetMimeParameter = function() {
 };
 
 exports.testUrlEncode = function() {
-    var encoded, expected;
-    encoded = http.urlEncode({foo: 1, bar: "baz"});
-    expected = "foo=1&bar=baz";
-    assert.strictEqual(encoded, expected);
-    encoded = http.urlEncode({foo: [1, 2, 3, 4, 5], bar: "baz"});
-    expected = "foo=1&foo=2&foo=3&foo=4&foo=5&bar=baz";
-    assert.strictEqual(encoded, expected);
+    // [test, expectedResult]
+    const testCases = [
+        [{foo: 1, bar: "baz"}, "foo=1&bar=baz"],
+        [{foo: 1, bar: "baz baz \uD83D\uDE00"}, "foo=1&bar=baz%20baz%20%F0%9F%98%80"],
+        [{foo: [1, 2, 3, 4, 5], bar: "baz"}, "foo=1&foo=2&foo=3&foo=4&foo=5&bar=baz"],
+        [{foo: ["1 2 3", "baz baz \uD83D\uDE00"], bar: "baz"}, "foo=1%202%203&foo=baz%20baz%20%F0%9F%98%80&bar=baz"],
+        [{foo: { bar: { baz: "1234"}}}, "foo%5Bbar%5D%5Bbaz%5D=1234"],
+        [{foo: { bar: { baz: "1234"}, buz: "56 78"}}, "foo%5Bbar%5D%5Bbaz%5D=1234&foo%5Bbuz%5D=56%2078"],
+        [{foo: {bar: [""]}}, "foo%5Bbar%5D%5B%5D="],
+        [{foo: {bar: [{baz: "hello"}]}}, "foo%5Bbar%5D%5B%5D%5Bbaz%5D=hello"],
+        [{foo: {bar: [{baz: "hello", buz: "world"}]}}, "foo%5Bbar%5D%5B%5D%5Bbaz%5D=hello&foo%5Bbar%5D%5B%5D%5Bbuz%5D=world"],
+        [{"foo[bar]asdf[baz]": "hello"}, "foo%5Bbar%5Dasdf%5Bbaz%5D=hello"]
+    ];
+
+    testCases.forEach(function(test, index) {
+        assert.deepEqual(http.urlEncode(test[0]), test[1], "testCase[" + index + "] failed! " + test[0]);
+    });
 };
 
 exports.testParseParameters = function() {
@@ -133,6 +143,7 @@ exports.testParseParameters = function() {
             {foo: {bar: {baz: "http://ringojs.org/ foo bar buzz/!a&b=c"}}}
         ],
         ["foo[bar][][baz]=hello", {foo: {bar: [{baz: "hello"}]}}],
+        ["foo[bar][]=", {foo: {bar: [""]}}],
         ["foo[bar]asdf[baz]=hello", {"foo[bar]asdf[baz]": "hello"}],
         ["foo=%F0%9D%8C%86-%E2%98%83%F0%9F%98%80", { foo: "\uD834\uDF06-\u2603\uD83D\uDE00" }],
 

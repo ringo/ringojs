@@ -216,21 +216,44 @@ function getMimeParameter(headerValue, paramName) {
     return null;
 }
 
+function encodeObjectComponent(object, prefix, buffer) {
+    for (var key in object) {
+        let value = object[key];
+        let keyStr = Array.isArray(object) ? "" : key;
+        if (Array.isArray(value)) {
+            encodeObjectComponent(value, prefix + "[" + keyStr + "]", buffer);
+        } else if (typeof value === "object") {
+            encodeObjectComponent(value, prefix + "[" + keyStr + "]", buffer);
+        } else {
+            if (buffer.length) buffer.write("&");
+            buffer.write(encodeURIComponent(prefix + "[" + keyStr + "]"), "=", encodeURIComponent(value));
+        }
+    }
+}
+
 /**
- * Encode an object's properties into an URL encoded string.
+ * Encode an object's properties into an URL encoded string. If a property contains an array as value,
+ * the array will be serialized.
  * @param {Object} object an object
  * @returns {String} a string containing the URL encoded properties of the object
+ * @example // "foo=bar%20baz"
+ * http.urlEncode({ foo: "bar baz" });
+ *
+ * // "foo=bar%20baz&foo=2&foo=3"
+ * http.urlEncode({ foo: ["bar baz", 2, 3] });
  */
 function urlEncode(object) {
     var buf = new Buffer();
     var key, value;
     for (key in object) {
         value = object[key];
-        if (value instanceof Array) {
+        if (Array.isArray(value)) {
             for (var i = 0; i < value.length; i++) {
                 if (buf.length) buf.write("&");
                 buf.write(encodeURIComponent(key), "=", encodeURIComponent(value[i]));
             }
+        } else if (typeof value === "object") {
+            encodeObjectComponent(value, key, buf);
         } else {
             if (buf.length) buf.write("&");
             buf.write(encodeURIComponent(key), "=", encodeURIComponent(value));
