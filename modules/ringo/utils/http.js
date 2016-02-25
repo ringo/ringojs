@@ -241,6 +241,9 @@ function encodeObjectComponent(object, prefix, buffer) {
  *
  * // "foo=bar%20baz&foo=2&foo=3"
  * http.urlEncode({ foo: ["bar baz", 2, 3] });
+ *
+ * // "foo%5Bbar%5D%5B%5D%5Bbaz%5D=hello"
+ * http.urlEncode({foo: {bar: [{baz: "hello"}]}});
  */
 function urlEncode(object) {
     var buf = new Buffer();
