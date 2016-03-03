@@ -4,14 +4,13 @@
 
 var {Headers, getMimeParameter} = require('ringo/utils/http');
 var {Stream} = require('io');
-var {Binary, ByteString} = require('binary');
+var {Binary} = require('binary');
 var system = require('system');
 var strings = require('ringo/utils/strings');
 var {WriteListener, AsyncListener} = javax.servlet;
 var {ConcurrentLinkedQueue} = java.util.concurrent;
 var {EofException} = org.eclipse.jetty.io;
 var {AtomicBoolean} = java.util.concurrent.atomic;
-var {ByteBuffer} = java.nio;
 
 export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
@@ -266,7 +265,7 @@ WriteListenerImpl.prototype.onWritePossible = function() {
             if (data === FLUSH) {
                 outStream.flush();
             } else {
-                outStream.write(ByteBuffer.wrap(data));
+                outStream.write(data, 0, data.length);
             }
             if (!outStream.isReady()) {
                 this.isReady.set(true);
