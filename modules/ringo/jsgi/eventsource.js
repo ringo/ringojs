@@ -1,3 +1,7 @@
+/**
+ * @fileOverview This module provides the constructor for EventSource
+ * response objects, which allow pushing messages to connected clients.
+ */
 var {AsyncResponse} = require('ringo/jsgi/connector');
 var objects = require('ringo/utils/objects');
 
@@ -49,6 +53,8 @@ exports.EventSource = function(request) {
 
    /**
     * Send a named event
+    * @param {String} name The event name
+    * @param {String} data The event data
     * @throws {Error}
     */
    this.event = sync(function(name, data) {
@@ -62,6 +68,7 @@ exports.EventSource = function(request) {
 
    /**
     * Send data
+    * @param {String} data The event data
     * @throws {Error}
     */
    this.data = sync(function(data) {
@@ -76,6 +83,7 @@ exports.EventSource = function(request) {
 
    /**
     * Send a comment.
+    * @param {String} comment The comment
     * @throws {Error}
     */
    this.comment = sync(function(comment) {
@@ -99,7 +107,7 @@ exports.EventSource = function(request) {
 
    /**
     * Start the async response. Optionally set additional headers here.
-    * @param {Object} additional headers (optional)
+    * @param {Object} headers Additional headers (optional)
     * @param {Number} heartBeatInterval in seconds (optional. default: 15)
     */
    this.start = function(headers, heartBeatInterval) {
