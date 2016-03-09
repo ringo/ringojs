@@ -20,8 +20,8 @@ const FLUSH = new ByteArray(0);
 /**
  * Handle a JSGI request.
  * @param {String} moduleId the module id. Ignored if functionObj is already a function.
- * @param {Function} functionObj the function, either as function object or function name to be
- *             imported from the module moduleId.
+ * @param {Function|String} functionObj the function, either as function
+ * object or function name to be imported from the module moduleId.
  * @param {Object} request the JSGI request object
  * @returns {Object} the JSGI response object
  */
@@ -31,11 +31,11 @@ function handleRequest(moduleId, functionObj, request) {
     if (typeof(functionObj) === 'function') {
         app = functionObj;
     } else {
-        var module = require(moduleId);
-        app = module[functionObj];
-        var middleware = module.middleware || [];
+        app = require(moduleId);
+        if (typeof(app) !== 'function') {
+            app = app[functionObj];
+        }
         request.env.app = moduleId;
-        app = middleware.reduceRight(middlewareWrapper, resolve(app));
     }
     // if RINGO_ENV environment variable is set and application supports
     // modular JSGI environment feature use the proper environment
@@ -205,35 +205,6 @@ function AsyncResponse(request, timeout) {
             return asyncContext.complete();
         }
     };
-}
-
-/**
- * Convenience function that resolves a module id or object to a
- * JSGI middleware or application function. This assumes the function is
- * exported as "middleware" or "handleRequest".
- * @param {Function|Object|String|Array} app a function, module object, module id, or an array of
- *            any of these
- * @returns {Function} the resolved middleware function
- */
-function resolve(app) {
-    if (typeof app == 'string') {
-        var module = require(app);
-        return module.middleware || module.handleRequest;
-    } else if (Array.isArray(app)) {
-        // allow an app or middleware item to be itself a list of middlewares
-        return app.reduceRight(middlewareWrapper);
-    }
-    return app;
-}
-
-/**
- * Helper function for wrapping middleware stacks
- * @param {Object|Function} inner an app or middleware module or function wrapped by outer
- * @param {Object|Function} outer a middleware module or function wrapping inner
- * @returns {Function} the wrapped middleware function
- */
-function middlewareWrapper(inner, outer) {
-    return resolve(outer)(inner);
 }
 
 /**
