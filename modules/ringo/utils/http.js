@@ -276,7 +276,8 @@ function urlEncode(object) {
  *
  * @param {String} key the cookie name
  * @param {String} value the cookie value
- * @param {Number} days optional the number of days to keep the cookie.
+ * @param {Number|Date} days optional the number of days to keep the cookie, or a Date object
+ * with the exact expiry date.
  * If this is undefined or -1, the cookie is set for the current session.
  * If this is 0, the cookie will be deleted immediately.
  * @param {Object} options optional options argument which may contain the following properties:
@@ -296,21 +297,28 @@ function setCookie(key, value, days, options) {
         value = value.replace(/[\r\n]/g, "");
     }
     var buffer = new Buffer(key, "=", value);
-    if (typeof days == "number" && days > -1) {
-        var expires = days == 0 ?
+
+    if (days !== undefined) {
+        var expires;
+        if (typeof days == "number" && days > -1) {
+            expires = days == 0 ?
                 new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
-        var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
-        buffer.write("; expires=");
-        buffer.write(dates.format(expires, cookieDateFormat, "en", "GMT"));
+        } else if (days instanceof Date) {
+            expires = days;
+        } else {
+            throw new Error("Invalid expiration date! ", days);
+        }
+        buffer.write("; Expires=");
+        buffer.write(dates.format(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT"));
     }
     options = options || {};
     var path = options.path || "/";
-    buffer.write("; path=", encodeURI(path));
+    buffer.write("; Path=", encodeURI(path));
     if (options.domain) {
-        buffer.write("; domain=", options.domain.toLowerCase());
+        buffer.write("; Domain=", options.domain.toLowerCase());
     }
     if (options.secure) {
-        buffer.write("; secure");
+        buffer.write("; Secure");
     }
     if (options.httpOnly) {
         buffer.write("; HttpOnly");

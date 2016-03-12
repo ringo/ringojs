@@ -1,5 +1,7 @@
-var assert = require("assert");
-var http = require("ringo/utils/http");
+const assert = require("assert");
+const dates = require("ringo/utils/dates");
+const strings = require("ringo/utils/strings");
+const http = require("ringo/utils/http");
 
 exports.testGetMimeParameter = function() {
     // [test, expectedResult]
@@ -158,6 +160,63 @@ exports.testParseParameters = function() {
     testCases.forEach(function(test, index) {
         assert.deepEqual(http.parseParameters(test[0]), test[1], "testCase[" + index + "] failed! " + test[0]);
     });
+};
+
+exports.testSetCookie = function() {
+    // a simple cookie
+    assert.equal(http.setCookie("foo", "bar"), "foo=bar; Path=/");
+
+    // test cookie with expiration date
+    let endDate = new Date(Date.now() + 86400000);
+    let dateStr = dates.format(endDate, "EEE, dd-MMM-yyyy HH:mm:", "en", "GMT");
+    let headerStr = http.setCookie("foo", "bar", 1);
+    assert.isTrue(headerStr.indexOf("foo=bar; Expires=") === 0, "Invalid cookie date string!");
+    assert.equal(headerStr.indexOf(dateStr), 17, "Date starts at wrong position! " + headerStr);
+    assert.equal(headerStr.indexOf(" GMT;"), 42, "Timezone information missing! " + headerStr);
+    assert.isTrue(strings.endsWith(headerStr, "; Path=/"), "Cookie must end with path!");
+
+    // expires as Date
+    endDate = new Date();
+    dateStr = dates.format(endDate, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT");
+    headerStr = http.setCookie("foo", "bar", endDate);
+    assert.isTrue(headerStr.indexOf("foo=bar; Expires=") === 0, "Invalid cookie date string!");
+    assert.equal(headerStr.indexOf(dateStr), 17, "Date starts at wrong position! " + headerStr);
+    assert.equal(headerStr.indexOf(" GMT;"), 42, "Timezone information missing! " + headerStr);
+    assert.isTrue(strings.endsWith(headerStr, "; Path=/"), "Cookie must end with path!");
+
+    assert.throws(function() {
+        http.setCookie("foo", "bar", "invalid");
+    });
+
+    assert.throws(function() {
+        http.setCookie("foo", "bar", NaN);
+    });
+
+    // reset cookie
+    assert.equal(http.setCookie("foo", "bar", 0), "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/");
+
+    // options
+    assert.equal(
+        http.setCookie("foo", "bar", 0, { path: "/1/2/3" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/2/3"
+    );
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3"
+    );
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; HttpOnly"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, domain: "EXample.org" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Domain=example.org; Secure; HttpOnly"
+    );
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, domain: "org" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Domain=org; Secure; HttpOnly"
+    );
 };
 
 if (require.main === module) {
