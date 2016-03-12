@@ -122,6 +122,30 @@ Object.defineProperty(JsgiResponse.prototype, "xml", {
 });
 
 /**
+ * Create a JSGI response with a stream as response body.
+ * @param {Stream} stream the stream to write
+ * @param {String} contentType optional MIME type. If not defined,
+ *         the MIME type is <code>application/octet-stream</code>.
+ * @returns {JsgiResponse} JSGI response
+ */
+Object.defineProperty(JsgiResponse.prototype, "stream", {
+    value: function (stream, contentType) {
+        if (!(stream instanceof Stream)) {
+            throw Error("Wrong argument for stream response: " + typeof(resource));
+        }
+
+        if (!stream.readable()) {
+            throw Error("Stream is not readable!");
+        }
+
+        this.headers["content-type"] = contentType || "application/octet-stream";
+        this.body = stream;
+
+        return this;
+    }
+});
+
+/**
  * Set the character encoding used for text responses.
  * @param {String} charsetName the encoding to use.
  * @returns {JsgiResponse} JSGI response with the given charset
@@ -428,7 +452,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
 
 // Define helper functions
 /** @ignore */
-["setStatus", "text", "html", "json", "jsonp", "xml", "setCharset", "addHeaders",
+["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "setCharset", "addHeaders",
     "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
     "unavailable", "redirect", "notModified"].forEach(function(functionName) {
     exports[functionName] = function() {

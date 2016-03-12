@@ -1,3 +1,5 @@
+var io = require("io");
+var binary = require("binary");
 var assert = require("assert");
 
 var {JsgiResponse} = require("ringo/jsgi/response");
@@ -131,6 +133,26 @@ exports.testXml = function () {
 
     assert.deepEqual(res.xml("<xml>this is xml</xml>"), expected);
     assert.deepEqual(res.xml(new XML("<xml>this is xml</xml>")), expected);
+};
+
+exports.testStream = function () {
+    var stream = new io.MemoryStream(8);
+    var ba = new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]);
+    stream.write(ba);
+    var res = new JsgiResponse().stream(stream);
+
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.headers, { "content-type": "application/octet-stream" });
+    assert.equal(res.body.length, 8);
+
+    res.body.readInto(ba);
+    assert.deepEqual(ba.toArray(), [0, 1, 2, 3, 4, 5, 6, 7]);
+
+    res = new JsgiResponse().stream(stream, "application/pdf");
+    stream.write(ba);
+    assert.deepEqual(res.headers, { "content-type": "application/pdf" });
+    res.body.readInto(ba);
+    assert.deepEqual(ba.toArray(), [0, 1, 2, 3, 4, 5, 6, 7]);
 };
 
 exports.testSetCharset = function () {
