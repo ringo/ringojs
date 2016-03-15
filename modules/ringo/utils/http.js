@@ -286,7 +286,9 @@ const PATH_CTL = java.util.regex.Pattern.compile("[\x00-\x1F\x7F\x3B]");
  * <ul><li>path - the path on which to set the cookie (defaults to /)</li>
  * <li>domain - the domain on which to set the cookie (defaults to current domain)</li>
  * <li>secure - to only use this cookie for secure connections</li>
- * <li>httpOnly - to make the cookie inaccessible to client side scripts</li></ul>
+ * <li>httpOnly - to make the cookie inaccessible to client side scripts</li>
+ * <li>sameSite - first-party-only cookie; asserts browsers not to send cookies along with cross-site requests</li>
+ * </ul>
  * @since 0.8
  * @return {String} the Set-Cookie header value
  * @example setCookie("username", "michi");
@@ -327,6 +329,9 @@ function setCookie(key, value, days, options) {
     }
     if (options.httpOnly) {
         buffer.write("; HttpOnly");
+    }
+    if (options.sameSite) {
+        buffer.write("; SameSite");
     }
     return buffer.toString();
 }

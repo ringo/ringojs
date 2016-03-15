@@ -229,6 +229,10 @@ exports.testSetCookie = function() {
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly"
     );
 
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: true }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite"
+    );
+
     assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, domain: "EXample.org" }),
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Domain=example.org; Secure; HttpOnly"
     );
