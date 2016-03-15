@@ -229,8 +229,32 @@ exports.testSetCookie = function() {
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly"
     );
 
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: "Strict" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=Strict"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: "Lax" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=Lax"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: "strict" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=strict"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: "futureval" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=futureval"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: {} }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=Strict"
+    );
+
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: new Date() }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=Strict"
+    );
+
     assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, sameSite: true }),
-        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite"
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; Secure; HttpOnly; SameSite=Strict"
     );
 
     assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true, secure: true, domain: "EXample.org" }),

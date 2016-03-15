@@ -287,13 +287,20 @@ const PATH_CTL = java.util.regex.Pattern.compile("[\x00-\x1F\x7F\x3B]");
  * <li>domain - the domain on which to set the cookie (defaults to current domain)</li>
  * <li>secure - to only use this cookie for secure connections</li>
  * <li>httpOnly - to make the cookie inaccessible to client side scripts</li>
- * <li>sameSite - first-party-only cookie; asserts browsers not to send cookies along with cross-site requests</li>
+ * <li>sameSite - first-party-only cookie; asserts browsers not to send cookies along with cross-site requests;
+ * default is strict enforcement, any other enforcement can be provided as string.</li>
  * </ul>
  * @since 0.8
  * @return {String} the Set-Cookie header value
  * @example setCookie("username", "michi");
  * setCookie("password", "strenggeheim", 10,
- * {path: "/mypath", domain: ".mydomain.org"});
+ *   {path: "/mypath", domain: ".mydomain.org"});
+ *
+ * setCookie("foo", "bar", 10,
+ *   { httpOnly: true, secure: true, sameSite: true });
+ *
+ * setCookie("foo", "bar", 10,
+ *   { httpOnly: true, secure: true, sameSite: "Lax" })
  */
 function setCookie(key, value, days, options) {
     if (value) {
@@ -331,7 +338,12 @@ function setCookie(key, value, days, options) {
         buffer.write("; HttpOnly");
     }
     if (options.sameSite) {
-        buffer.write("; SameSite");
+        // https://tools.ietf.org/html/draft-west-first-party-cookies-06#section-4.1
+        if (typeof options.sameSite === "string") {
+            buffer.write("; SameSite=" + options.sameSite);
+        } else {
+            buffer.write("; SameSite=Strict");
+        }
     }
     return buffer.toString();
 }
