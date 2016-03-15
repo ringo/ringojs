@@ -195,14 +195,32 @@ exports.testSetCookie = function() {
     // reset cookie
     assert.equal(http.setCookie("foo", "bar", 0), "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/");
 
-    // options
+    // paths
     assert.equal(
         http.setCookie("foo", "bar", 0, { path: "/1/2/3" }),
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/2/3"
     );
+    assert.equal(
+        http.setCookie("foo", "bar", 0, { path: "/123456789/abcdefghijklmnopqrstuvwxyz/\uD83C\uDFCC" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/123456789/abcdefghijklmnopqrstuvwxyz/%F0%9F%8F%8C"
+    );
+    assert.throws(function() {
+        http.setCookie("foo", "bar", 0, { path: "/1/\n/3" });
+    });
+    assert.throws(function() {
+        http.setCookie("foo", "bar", 0, { path: "/1/foo\tbar/3" });
+    });
+    assert.throws(function() {
+        http.setCookie("foo", "bar", 0, { path: "/1/;/3" });
+    });
     assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3" }),
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3"
     );
+    assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/öäü/3" }),
+        "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%C3%B6%C3%A4%C3%BC/3"
+    );
+
+    // options
     assert.equal(http.setCookie("foo", "bar", 0, { path: "/1/ /3", httpOnly: true }),
         "foo=bar; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Path=/1/%20/3; HttpOnly"
     );

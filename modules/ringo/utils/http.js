@@ -265,6 +265,8 @@ function urlEncode(object) {
     return buf.toString();
 }
 
+const PATH_CTL = java.util.regex.Pattern.compile("[\x00-\x1F\x7F\x3B]");
+
 /**
  * Creates value for the Set-Cookie header for creating a cookie with the given
  * name, value, and attributes.
@@ -312,6 +314,9 @@ function setCookie(key, value, days, options) {
         buffer.write(dates.format(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT"));
     }
     options = options || {};
+    if (options.path && (typeof options.path !== "string" || PATH_CTL.matcher(options.path).find())) {
+        throw new Error("Cookie path not a string or contains CTL characters (%x00-1F;%x7F)");
+    }
     var path = options.path || "/";
     buffer.write("; Path=", encodeURI(path));
     if (options.domain) {
