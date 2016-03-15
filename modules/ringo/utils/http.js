@@ -265,6 +265,8 @@ function urlEncode(object) {
     return buf.toString();
 }
 
+const PATH_CTL = java.util.regex.Pattern.compile("[\x00-\x1F\x7F\x3B]");
+
 /**
  * Creates value for the Set-Cookie header for creating a cookie with the given
  * name, value, and attributes.
@@ -276,14 +278,17 @@ function urlEncode(object) {
  *
  * @param {String} key the cookie name
  * @param {String} value the cookie value
- * @param {Number} days optional the number of days to keep the cookie.
+ * @param {Number|Date} days optional the number of days to keep the cookie, or a Date object
+ * with the exact expiry date.
  * If this is undefined or -1, the cookie is set for the current session.
  * If this is 0, the cookie will be deleted immediately.
  * @param {Object} options optional options argument which may contain the following properties:
  * <ul><li>path - the path on which to set the cookie (defaults to /)</li>
  * <li>domain - the domain on which to set the cookie (defaults to current domain)</li>
  * <li>secure - to only use this cookie for secure connections</li>
- * <li>httpOnly - to make the cookie inaccessible to client side scripts</li></ul>
+ * <li>httpOnly - to make the cookie inaccessible to client side scripts</li>
+ * <li>sameSite - first-party-only cookie; asserts browsers not to send cookies along with cross-site requests</li>
+ * </ul>
  * @since 0.8
  * @return {String} the Set-Cookie header value
  * @example setCookie("username", "michi");
@@ -296,24 +301,37 @@ function setCookie(key, value, days, options) {
         value = value.replace(/[\r\n]/g, "");
     }
     var buffer = new Buffer(key, "=", value);
-    if (typeof days == "number" && days > -1) {
-        var expires = days == 0 ?
+
+    if (days !== undefined) {
+        var expires;
+        if (typeof days == "number" && days > -1) {
+            expires = days == 0 ?
                 new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
-        var cookieDateFormat = "EEE, dd-MMM-yyyy HH:mm:ss zzz";
-        buffer.write("; expires=");
-        buffer.write(dates.format(expires, cookieDateFormat, "en", "GMT"));
+        } else if (days instanceof Date) {
+            expires = days;
+        } else {
+            throw new Error("Invalid expiration date! ", days);
+        }
+        buffer.write("; Expires=");
+        buffer.write(dates.format(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT"));
     }
     options = options || {};
+    if (options.path && (typeof options.path !== "string" || PATH_CTL.matcher(options.path).find())) {
+        throw new Error("Cookie path not a string or contains CTL characters (%x00-1F;%x7F)");
+    }
     var path = options.path || "/";
-    buffer.write("; path=", encodeURI(path));
+    buffer.write("; Path=", encodeURI(path));
     if (options.domain) {
-        buffer.write("; domain=", options.domain.toLowerCase());
+        buffer.write("; Domain=", options.domain.toLowerCase());
     }
     if (options.secure) {
-        buffer.write("; secure");
+        buffer.write("; Secure");
     }
     if (options.httpOnly) {
         buffer.write("; HttpOnly");
+    }
+    if (options.sameSite) {
+        buffer.write("; SameSite");
     }
     return buffer.toString();
 }
