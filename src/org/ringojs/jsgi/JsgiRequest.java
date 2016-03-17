@@ -73,12 +73,26 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(this, "jsgi", jsgi, PERMANENT);
         Scriptable headers = newObject(scope);
         defineProperty(this, "headers", headers, PERMANENT);
-        for (Enumeration e = request.getHeaderNames(); e.hasMoreElements(); ) {
-            String name = (String) e.nextElement();
-            String value = request.getHeader(name);
+        for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames.hasMoreElements(); ) {
+            String name = headerNames.nextElement();
+
+            // initial size base on http://www.chmod777self.com/2013/01/http-20-header-stats.html
+            StringBuilder sb = new StringBuilder(64);
+            boolean multipleHeaders = false;
+
+            Enumeration<String> headerValues = request.getHeaders(name);
+            while (headerValues.hasMoreElements()) {
+                // following RFC 2616
+                // see: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+                if (multipleHeaders) {
+                    sb.append(",");
+                }
+                sb.append(headerValues.nextElement());
+                multipleHeaders = true;
+            }
 
             name = name.toLowerCase();
-            headers.put(name, headers, value);
+            headers.put(name, headers, sb.toString());
         }
         put("scriptName", this, checkString(request.getContextPath()
                 + request.getServletPath()));

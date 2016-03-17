@@ -177,13 +177,8 @@ exports.testMultipleHeaders = function () {
         assert.equal(req.scheme, "http");
 
         assert.equal(req.headers.host, host + ":" + port); // This follows RFC 2616!
-        assert.equal(req.headers["x-foo"], "bar");
-
-        var headersArray = [];
-        for (var headers = req.env.servletRequest.getHeaders("x-foo"); headers.hasMoreElements(); ) {
-            headersArray.push(headers.nextElement());
-        }
-        assert.equal("bar, baz, 012345;q=15", headersArray.join(", "));
+        assert.equal(req.headers["x-foo-single"], "single-bar");
+        assert.equal(req.headers["x-foo"], "bar,baz,012345;q=15");
     };
 
     var connection = (new java.net.URL(baseUri)).openConnection();

@@ -25,6 +25,7 @@ exports.testJarsToClasspath = function() {
 };
 
 exports.testRequireMain = require("./require-index/main").testCalculator;
+exports.testHttpJsgiBinding = require("./http-jsgi-binding/simple").testHttpJsgiBinding;
 
 // start the test runner if we're called directly from command line
 if (require.main === module) {

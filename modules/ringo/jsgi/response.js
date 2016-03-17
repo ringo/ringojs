@@ -168,8 +168,29 @@ Object.defineProperty(JsgiResponse.prototype, "setCharset", {
  * @returns {JsgiResponse} JSGI response with the new headers
  */
 Object.defineProperty(JsgiResponse.prototype, "addHeaders", {
-    value: function(headers) {
-        this.headers = merge(headers, this.headers);
+    value: function(additionalHeaders) {
+        for (let fieldName in additionalHeaders) {
+            let existingValues = this.headers[fieldName];
+
+            // check if the header is already set
+            if (existingValues === undefined) {
+                if (additionalHeaders[fieldName] instanceof Array) {
+                    // add multiple header values as an array of strings
+                    this.headers[fieldName] = additionalHeaders[fieldName].map(function(headerValue) {
+                        return String(headerValue);
+                    });
+                } else {
+                    // single-valued header as arbitrary string
+                    this.headers[fieldName] = String(additionalHeaders[fieldName]);
+                }
+            } else if (typeof existingValues === "string") {
+                // the header has been set already exactly once, so expand it to an array
+                this.headers[fieldName] = [existingValues, String(additionalHeaders[fieldName])];
+            } else {
+                // the header is already an array of multiple values --> push new value
+                this.headers[fieldName].push(String(additionalHeaders[fieldName]));
+            }
+        }
         return this;
     }
 });
