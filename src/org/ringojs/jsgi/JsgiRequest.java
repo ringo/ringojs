@@ -73,17 +73,26 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(this, "jsgi", jsgi, PERMANENT);
         Scriptable headers = newObject(scope);
         defineProperty(this, "headers", headers, PERMANENT);
-        for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames.hasMoreElements(); ) {
-            String name = headerNames.nextElement();
 
-            // initial size base on http://www.chmod777self.com/2013/01/http-20-header-stats.html
-            StringBuilder sb = new StringBuilder(64);
+        // the buffer to write header values in.  most header values (including user agents etc.)
+        // will fit into the builder's default capacity
+        StringBuilder sb = new StringBuilder(160);
+
+        for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames.hasMoreElements(); ) {
+            sb.setLength(0);
             boolean multipleHeaders = false;
 
+            String name = headerNames.nextElement();
             Enumeration<String> headerValues = request.getHeaders(name);
+
             while (headerValues.hasMoreElements()) {
-                // following RFC 2616
+                // Following RFC 2616 and RFC 7230:
+                // A recipient MAY combine multiple header fields with the same field
+                // name into one "field-name: field-value" pair, without changing the
+                // semantics of the message, by appending each subsequent field value to
+                // the combined field value in order, separated by a comma.
                 // see: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+                // see: https://tools.ietf.org/html/rfc7230
                 if (multipleHeaders) {
                     sb.append(",");
                 }
