@@ -131,6 +131,15 @@ function Worker(moduleId) {
         }
     };
 
+    /**
+     * @ignore
+     */
+    this.toString = function () {
+        if (worker) {
+            return "[Worker " + worker.toString() + "]";
+        }
+        return "[Worker empty]";
+    }
 }
 
 /**
