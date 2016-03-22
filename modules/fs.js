@@ -1219,7 +1219,7 @@ function resolvePath(path) {
         throw new Error('undefined path argument');
     }
 
-    return (path instanceof Path ? path : getPath(String(path))).toAbsolutePath().normalize();
+    return getPath(path instanceof Path ? path : String(path)).toAbsolutePath().normalize();
 }
 
 // Path object
