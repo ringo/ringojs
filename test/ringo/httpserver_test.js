@@ -200,6 +200,30 @@ exports.testMultipleHeaders = function () {
     connection.getResponseCode();
 };
 
+exports.testServletEnvironment = function () {
+    checkRequest = function(req) {
+        assert.equal(req.method, "GET");
+        assert.equal(req.scheme, "http");
+
+        assert.isNotUndefined(req.env.servlet);
+        assert.isNotUndefined(req.env.servletContext);
+        assert.isNotUndefined(req.env.servletRequest);
+        assert.isNotUndefined(req.env.servletResponse);
+
+        assert.isTrue(typeof req.env.servlet.getServletConfig === "function");
+        assert.isTrue(typeof req.env.servletContext.getRealPath === "function");
+        assert.isTrue(typeof req.env.servletRequest.getPathInfo === "function");
+        assert.isTrue(typeof req.env.servletResponse.getStatus === "function");
+    };
+
+    var connection = (new java.net.URL(baseUri)).openConnection();
+    connection.setRequestMethod("GET");
+
+    // addRequestProperty() does not override existing header pairs!
+    connection.connect();
+    connection.getResponseCode();
+};
+
 exports.testOptions = function() {
     server.stop();
     var config = {
