@@ -25,6 +25,7 @@ import org.mozilla.javascript.SecurityController;
 import org.mozilla.javascript.json.JsonParser;
 import org.ringojs.repository.Resource;
 
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.AccessController;
@@ -60,12 +61,27 @@ class JsModuleLoader extends ModuleLoader {
             throws Exception {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
+                InputStream aStream = null;
+                InputStreamReader aReader = null;
                 try {
-                    return cx.compileReader(resource.getReader(charset),
+                    aStream = resource.getInputStream();
+                    aReader = new InputStreamReader(aStream, charset);
+                    return cx.compileReader(aReader,
                             resource.getRelativePath(),
                             resource.getLineNumber(), securityDomain);
                 } catch (IOException iox) {
                     throw new RuntimeException(iox);
+                } finally {
+                    if( aReader != null ) {
+                        try{
+                            aReader.close();    
+                        }catch(IOException iox){}
+                    }
+                    if( aStream != null ) {
+                        try{
+                            aStream.close();
+                        }catch(IOException iox){}
+                    }
                 }
             }
         });
@@ -105,18 +121,25 @@ class ClassModuleLoader extends ModuleLoader {
         int length = (int) l;
         byte[] bytes = new byte[length];
         InputStream input = resource.getInputStream();
-        int offset = 0, read;
+        try{
+            int offset = 0, read;
 
-        while (offset < length) {
-            read = input.read(bytes, offset, length - offset);
-            if (read < 0) break;
-            offset += read;
-        }
+            while (offset < length) {
+                read = input.read(bytes, offset, length - offset);
+                if (read < 0) break;
+                offset += read;
+            }
 
-        if (offset < length) {
-            throw new IOException("Could not read file completely");
+            if (offset < length) {
+                throw new IOException("Could not read file completely");
+            }
+        }catch(IOException e){
+            throw e;
+        }finally{
+            if(input != null)
+                input.close();
         }
-        input.close();
+        
 
         String className = moduleName.replaceAll("/", ".");
         ClassLoader rhinoLoader = getClass().getClassLoader();
