@@ -61,12 +61,11 @@ class JsModuleLoader extends ModuleLoader {
             throws Exception {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-				InputStream aStream = null;
+                InputStream aStream = null;
                 InputStreamReader aReader = null;
                 try {
-					aStream = resource.getInputStream();
+                    aStream = resource.getInputStream();
                     aReader = new InputStreamReader(aStream, charset);
-					
                     return cx.compileReader(aReader,
                             resource.getRelativePath(),
                             resource.getLineNumber(), securityDomain);
@@ -122,25 +121,24 @@ class ClassModuleLoader extends ModuleLoader {
         int length = (int) l;
         byte[] bytes = new byte[length];
         InputStream input = resource.getInputStream();
-		try{
-			int offset = 0, read;
+        try{
+            int offset = 0, read;
 
-			while (offset < length) {	
-				read = input.read(bytes, offset, length - offset);
-				if (read < 0) break;
-				offset += read;
-			}
+            while (offset < length) {
+                read = input.read(bytes, offset, length - offset);
+                if (read < 0) break;
+                offset += read;
+            }
 
-			if (offset < length) {
-				throw new IOException("Could not read file completely");
-			}
-		}catch(IOException e){
-			throw e;
-		}finally{
-			// releases system resources associated with this stream
-			if(input != null)
-				input.close();
-		}
+            if (offset < length) {
+                throw new IOException("Could not read file completely");
+            }
+        }catch(IOException e){
+            throw e;
+        }finally{
+            if(input != null)
+                input.close();
+        }
         
 
         String className = moduleName.replaceAll("/", ".");
