@@ -92,8 +92,6 @@ public class JsgiRequest extends ScriptableObject {
         defineProperty(this, "env", env, PERMANENT);
         defineProperty(env, "servlet",
                 new NativeJavaObject(scope, servlet, null), PERMANENT);
-        defineProperty(env, "servletContext",
-                new NativeJavaObject(scope, servlet.getServletContext(), null), PERMANENT);
         defineProperty(env, "servletRequest",
                 new NativeJavaObject(scope, request, null), PERMANENT);
         defineProperty(env, "servletResponse",

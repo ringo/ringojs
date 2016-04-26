@@ -206,12 +206,10 @@ exports.testServletEnvironment = function () {
         assert.equal(req.scheme, "http");
 
         assert.isNotUndefined(req.env.servlet);
-        assert.isNotUndefined(req.env.servletContext);
         assert.isNotUndefined(req.env.servletRequest);
         assert.isNotUndefined(req.env.servletResponse);
 
         assert.isTrue(typeof req.env.servlet.getServletConfig === "function");
-        assert.isTrue(typeof req.env.servletContext.getRealPath === "function");
         assert.isTrue(typeof req.env.servletRequest.getPathInfo === "function");
         assert.isTrue(typeof req.env.servletResponse.getStatus === "function");
     };
