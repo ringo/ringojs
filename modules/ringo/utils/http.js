@@ -42,6 +42,13 @@ function ResponseFilter(body, filter) {
 }
 
 /**
+ * @ignore interal function, following RFC 7230 section 3.2.2. field order
+ */
+function sanitizeHeaderValue(fieldValue) {
+    return fieldValue.replace(/\n/g, "").trim();
+}
+
+/**
  * Returns an object for use as a HTTP header collection. The returned object
  * provides methods for setting, getting, and deleting its properties in a
  * case-insensitive and case-preserving way.
@@ -76,7 +83,8 @@ function Headers(headers) {
             if (value === undefined) {
                 value = (key = keys[key.toLowerCase()]) && this[key];
             }
-            return value;
+
+            return (typeof value === "string" ? sanitizeHeaderValue(value) : value);
         }
     });
 
@@ -88,8 +96,7 @@ function Headers(headers) {
      */
     Object.defineProperty(headers, "set", {
         value: function(key, value) {
-            // JSGI uses \n as separator for mulitple headers
-            value = value.replace(/\n/g, "");
+            value = sanitizeHeaderValue(value);
             var oldkey = keys[key.toLowerCase()];
             if (oldkey) {
                 delete this[oldkey];
@@ -107,17 +114,16 @@ function Headers(headers) {
      */
     Object.defineProperty(headers, "add", {
         value: function(key, value) {
-            // JSGI uses \n as separator for mulitple headers
-            value = value.replace(/\n/g, "");
+            value = sanitizeHeaderValue(value);
             if (this[key]) {
                 // shortcut
-                this[key] = this[key] + "\n" + value;
+                this[key] = this[key] + "," + value;
                 return;
             }
             var lowerkey = key.toLowerCase();
             var oldkey = keys[lowerkey];
             if (oldkey) {
-                value = this[oldkey] + "\n" + value;
+                value = this[oldkey] + "," + value;
                 if (key !== oldkey)
                     delete this[oldkey];
             }
@@ -149,7 +155,7 @@ function Headers(headers) {
         value: function(key) {
            key = key.toLowerCase();
             if (key in keys) {
-                delete this[keys[key]]
+                delete this[keys[key]];
                 delete keys[key];
             }
         }
