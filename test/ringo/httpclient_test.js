@@ -3,7 +3,7 @@ var objects = require("ringo/utils/objects");
 var {Server} = require("ringo/httpserver");
 var response = require("ringo/jsgi/response");
 var {request, post, get, put, del, TextPart, BinaryPart} = require("ringo/httpclient");
-var {parseParameters, parseFileUpload, setCookie} = require("ringo/utils/http");
+var {parseParameters, parseFileUpload, setCookie, Headers} = require("ringo/utils/http");
 var {MemoryStream, TextStream} = require("io");
 var fs = require("fs");
 var base64 = require("ringo/base64");
@@ -549,6 +549,24 @@ exports.testNoCallbacks = function() {
 
     assert.isFalse(anyCallbackCalled, "Callback has been called!");
     assert.strictEqual(exchange.status, 200);
+};
+
+exports.testMultipleHeaders_Issue225 = function() {
+    getResponse = function(req) {
+        assert.equal(req.env.servletRequest.getHeader("single-header"), "one", "Header not present");
+        assert.equal(req.env.servletRequest.getHeader("multiple-header"), "one,two", "Multiple headers not merged into one");
+        return response.text("done");
+    };
+
+    let preparedHeaders = Headers({});
+    preparedHeaders.set("single-header", "one");
+    preparedHeaders.add("multiple-header", "one");
+    preparedHeaders.add("multiple-header", "two");
+
+    var exchange = request({
+        url: baseUri,
+        headers: preparedHeaders
+    });
 };
 
 // start the test runner if we're called directly from command line
