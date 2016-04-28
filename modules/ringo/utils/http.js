@@ -49,9 +49,11 @@ function sanitizeHeaderValue(fieldValue) {
 }
 
 /**
- * Returns an object for use as a HTTP header collection. The returned object
+ * Returns an object for use as a HTTP request header collection. The returned object
  * provides methods for setting, getting, and deleting its properties in a
- * case-insensitive and case-preserving way.
+ * case-insensitive and case-preserving way. Multiple headers with the same
+ * field name will be merged into a comma-separated string. Therefore the
+ * <code>Set-Cookie</code> header is not supported by this function.
  *
  * This function can be used as mixin for an existing JavaScript object or as a
  * constructor.
