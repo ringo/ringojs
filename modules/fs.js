@@ -573,7 +573,7 @@ function extension(path) {
  * All non-string path elements will be converted to strings.
  * The result is not normalized, so `join("..", "foo")` returns `"../foo"`.
  * @returns {String} the joined path
- * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
  * @example // build path to the config.json file
  * var fullPath = fs.join(configDir, "config.json");
  */

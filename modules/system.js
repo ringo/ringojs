@@ -77,7 +77,7 @@ exports.args = global.arguments || [];
  * An object containing of the current system environment.
  * @example {
  *   USERPROFILE: 'C:\Users\username',
- *   JAVA_HOME: 'C:\Program Files\Java\jdk1.7.0_07\',
+ *   JAVA_HOME: 'C:\Program Files\Java\jdk\',
  *   SystemDrive: 'C:',
  *   Path: '%System%/...',
  *   PROCESSOR_REVISION: '1a05',
@@ -89,7 +89,7 @@ exports.args = global.arguments || [];
  *   LOCALAPPDATA: 'C:\Local',
  *   ...
  * }
- * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#getenv()">java.lang.System.getenv()</a>
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/System.html#getenv()">java.lang.System.getenv()</a>
  */
 exports.env = new ScriptableMap(System.getenv());
 

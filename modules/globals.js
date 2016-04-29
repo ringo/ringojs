@@ -382,7 +382,7 @@ Object.defineProperty(this, "global", { value: this });
  * Runs the garbage collector.
  * @name gc
  * @function
- * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Runtime.html#gc()">java.lang.Runtime.gc()</a>
+ * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#gc()">java.lang.Runtime.gc()</a>
  */
 
 /**
