@@ -183,6 +183,36 @@ exports.testAddHeaders = function () {
     });
 
     assert.deepEqual(res.addHeaders({"x-foo": "bar", boo: "far", "x-limit": "100"}), expected);
+
+    // multiple headers chained
+    res = new JsgiResponse();
+    res.addHeaders({ foo: "bar" }).addHeaders({ foo: "baz" }).addHeaders({ foo: 12345 });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": ["bar", "baz", "12345"]
+    });
+    assert.isTrue(Array.isArray(res.headers.foo));
+    assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
+    assert.isTrue(res.headers.foo.every(function(val) {
+        return typeof val === "string";
+    }))
+
+    // multiple headers as array
+    res = new JsgiResponse();
+    res.addHeaders({ foo: ["bar", "baz", 12345] });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": ["bar", "baz", "12345"]
+    });
+    assert.isTrue(Array.isArray(res.headers.foo));
+    assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
+    assert.isTrue(res.headers.foo.every(function(val) {
+        return typeof val === "string";
+    }))
 };
 
 exports.testHelpers = function() {

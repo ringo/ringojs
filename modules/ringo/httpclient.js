@@ -397,7 +397,7 @@ Object.defineProperties(Exchange.prototype, {
             // this is required since ScriptableMap cannot deal with null keys!
             headerFields.remove(null);
 
-           return new ScriptableMap(headerFields);
+            return new ScriptableMap(headerFields);
         }, enumerable: true
     },
     /**

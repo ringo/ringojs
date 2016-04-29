@@ -265,6 +265,49 @@ exports.testSetCookie = function() {
     );
 };
 
+exports.testHeadersOnObject = function() {
+    let obj = {
+        "One": "ValueOne",
+        "two": "ValueTwo",
+        "THREE": "  Value\nThree  "
+    };
+
+    http.Headers(obj);
+    assert.equal(obj.get("one"), "ValueOne", "Unexpected value returned by header");
+    assert.equal(obj.get("One"), "ValueOne", "Unexpected value returned by header");
+    assert.equal(obj.get("two"), "ValueTwo", "Unexpected value returned by header");
+    assert.equal(obj.get("three"), "ValueThree", "Unexpected value returned by header");
+    assert.equal(obj.get("THREE"), "ValueThree", "Unexpected value returned by header");
+    assert.equal(obj.get("ThReE"), "ValueThree", "Unexpected value returned by header");
+
+    obj.set("ONE", "SecondValue");
+    assert.equal(obj.get("one"), "SecondValue", "Unexpected value returned by header");
+
+    obj.add("Four", "ValueFour");
+    assert.equal(obj.get("four"), "ValueFour", "Unexpected value returned by header");
+
+    assert.isTrue(obj.contains("ONE"), "Headers should contain one");
+    assert.isTrue(obj.contains("TWO"), "Headers should contain two");
+    assert.isTrue(obj.contains("three"), "Headers should contain three");
+    assert.isTrue(obj.contains("four"), "Headers should contain four");
+
+    obj.unset("ONE");
+    assert.isUndefined(obj.get("one"), "Header value not unset");
+};
+
+exports.testHeadersMultipleNames = function() {
+    let obj = {
+        "single": "simplevalue",
+        "multiple": "first"
+    };
+
+    http.Headers(obj);
+    obj.add("multiple", "second");
+    assert.equal(obj.get("multiple"), "first,second", "Multiple headers not merged!");
+    obj.add("multiple", "third");
+    assert.equal(obj.get("multiple"), "first,second,third", "Multiple headers not merged!");
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }
