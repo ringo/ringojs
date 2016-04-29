@@ -25,8 +25,8 @@
         <property name="version" value="0.12"/>
 
         <!-- javac default targets for cross compilation on newer JDKs -->
-        <property name="ant.build.javac.source" value="1.7"/>
-        <property name="ant.build.javac.target" value="1.7"/>
+        <property name="ant.build.javac.source" value="1.8"/>
+        <property name="ant.build.javac.target" value="1.8"/>
 
         <property name="home" value="."/>
 
