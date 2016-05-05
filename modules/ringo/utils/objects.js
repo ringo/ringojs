@@ -85,7 +85,7 @@ function clone(object, cloned, recursive) {
  * const b = { "k1": "val-B", "k2": "val-B" };
  * const c = { "k1": "val-C", "k2": "val-C" };
  *
- * // result: { k1: 'val-A', k2: 'val-C' }
+ * // result: { k1: 'val-A', k2: 'val-B' }
  * const result = objects.merge(a, b, c);
  */
 function merge() {
