@@ -68,7 +68,7 @@ export(
  *     java.text.SimpleDateFormat
  * </a>.
  *
- * @param {Date} the Date to format
+ * @param {Date} date the Date to format
  * @param {String} format the format pattern
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
