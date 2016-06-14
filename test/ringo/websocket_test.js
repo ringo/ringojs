@@ -22,8 +22,8 @@ exports.testTextMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(2000)) {
-            assert.fail("timed out");
+        if (!semaphore.tryWait(10000)) {
+            assert.fail("web socket timed out");
         }
         assert.equal(received, message);
     }
