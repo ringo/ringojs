@@ -13,10 +13,9 @@
 # where RingoJS will look for modules.
 #RINGO_MODULE_PATH=
 
-# The home directory of the Java development kit (JDK). You need at least
-# JDK version 1.5. If JAVA_HOME is not set, some common directories for
-# OpenJDK, the Sun JDK, and various J2SE 1.5 versions are tried.
-#JAVA_HOME=/usr/lib/jvm/java-6-openjdk
+# The home directory of the Java development kit (JDK).
+# You need at least Java 8.
+#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 # Working directory, usually containing the per-instance application and
 # configuration files.

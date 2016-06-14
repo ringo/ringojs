@@ -2,16 +2,17 @@ Source: ringojs
 Section: web
 Priority: optional
 Maintainer: Hannes Wallnoefer <hannes@helma.at>
-Build-Depends: debhelper (>= 7), cdbs, default-jdk | java5-sdk | java6-sdk | openjdk-7-jdk
+Build-Depends: debhelper (>= 7), cdbs, openjdk-8-jdk
 Build-Depends-Indep: ant
 Standards-Version: 3.8.0
 Homepage: http://ringojs.org/
 
 Package: ringojs
 Architecture: all
-Depends: default-jre-headless | system-java (>= 1.5) |
-  java5-runtime-headless | java6-runtime-headless | openjdk-7-jre-headless,
-  jsvc, adduser, lsb-base (>= 3)
+Depends:    openjdk-8-jre-headless | openjdk-8-jre | openjdk-8-jdk,
+            jsvc,
+            adduser,
+            lsb-base (>= 3)
 Description: JavaScript runtime and shell written in Java.
  .
  RingoJS is a cross-platform, general purpose JavaScript platform. It is

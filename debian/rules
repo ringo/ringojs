@@ -10,13 +10,8 @@ include /usr/share/cdbs/1/class/ant.mk
 #include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
 JAVA_HOME_DIRS       := /usr/lib/jvm/default-java \
-                        /usr/lib/jvm/java-5-openjdk \
-                        /usr/lib/jvm/java-5-sun \
-                        /usr/lib/jvm/java-6-openjdk \
-                        /usr/lib/jvm/java-6-sun \
-                        /usr/lib/jvm/java-7-openjdk \
-                        /usr/lib/jvm/java-7-openjdk-amd64 \
-                        /usr/lib/jvm/java-gcj
+                        /usr/lib/jvm/java-8-openjdk-arm64
+
 DEB_ANT_BUILD_TARGET := jar
 
 install: build

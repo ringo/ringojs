@@ -282,7 +282,7 @@
     <!-- =================================================================== -->
     <!-- Create a debian package                                             -->
     <!-- =================================================================== -->
-    <target name="dpkg" depends="packages-empty">
+    <target name="dpkg" depends="packages-empty,package">
         <exec executable="dpkg-buildpackage">
             <arg value="-rfakeroot"/>
             <arg value="-b"/>
