@@ -45,7 +45,7 @@ exports.testBinaryMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(2000)) {
+        if (!semaphore.tryWait(10000)) {
             assert.fail("timed out");
         }
         assert.isTrue(Arrays.equals(received, message));
