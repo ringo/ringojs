@@ -8,7 +8,7 @@ var {Server} = require("ringo/httpserver");
 require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
 
 var host = "127.0.0.1";
-var port = "8282";
+var port = "4400";
 var path = "/websocket";
 var uri = "ws://" + host + ":" + port + path;
 

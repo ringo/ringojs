@@ -22,7 +22,7 @@ exports.testTextMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(20000)) {
+        if (!semaphore.tryWait(2000)) {
             assert.fail("web socket text timed out");
         }
         assert.equal(received, message);
@@ -45,7 +45,7 @@ exports.testBinaryMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(20000)) {
+        if (!semaphore.tryWait(2000)) {
             assert.fail("web socket binary timed out");
         }
         assert.isTrue(Arrays.equals(received, message));
