@@ -1,11 +1,9 @@
 var response = require('ringo/jsgi/response');
-var mustache = require('ringo/mustache');
 
 exports.index = function (req) {
-    var template = getResource("./templates/index.html").content;
-    return response.html(
-        mustache.to_html(template, {
-            title: "It's working!"
-        })
-    );
+    // We don't use a real template parser in the skeleton.
+    // Our recommended package for templating: reinhardt
+    // See: https://github.com/orfon/reinhardt
+    var rawTemplate = getResource("./templates/index.html").content;
+    return response.html(rawTemplate);
 };
