@@ -20,7 +20,7 @@ For more information, visit the RingoJS web site: <http://ringojs.org/>
 Building RingoJS
 ----------------
 
-![Current Build Status on Codeship](https://codeship.com/projects/99719ba0-9407-0132-8e26-62884ab53cb9/status?branch=master)
+![Current Build Status on Codeship](https://codeship.com/projects/b5d80b20-15d7-0134-6e68-2e1718fe265e/status?branch=master)
 
 Ringo requires a recent version of [Java]. It uses Apache [Ant] as build tool
 and [Ivy] (>= 2.4 is required) for managing dependencies.
