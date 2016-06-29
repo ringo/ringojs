@@ -14,20 +14,20 @@
  * $Date: 2007-12-13 13:21:48 +0100 (Don, 13 Dez 2007) $
  */
 
-var ANUMPATTERN = /[^a-zA-Z0-9]/;
-var APATTERN = /[^a-zA-Z]/;
-var NUMPATTERN = /[^0-9]/;
-var FILEPATTERN = /[^a-zA-Z0-9-_\. ]/;
-var HEXPATTERN = /[^a-fA-F0-9]/;
+const ANUMPATTERN = /[^a-zA-Z0-9]/;
+const APATTERN = /[^a-zA-Z]/;
+const NUMPATTERN = /[^0-9]/;
+const FILEPATTERN = /[^a-zA-Z0-9-_\. ]/;
+const HEXPATTERN = /[^a-fA-F0-9]/;
 
 // Email RegExp contributed by Scott Gonzalez (http://projects.scottsplayground.com/email_address_validation/)
 // licensed unter MIT license - http://www.opensource.org/licenses/mit-license.php
-var EMAILPATTERN = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
+const EMAILPATTERN = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
 
 // URL RegExp contributed by Diego Perini
 // licensed unter MIT license - https://gist.github.com/dperini/729294
 // Copyright (c) 2010-2013 Diego Perini (http://www.iport.it)
-var URLPATTERN = java.util.regex.Pattern.compile("^" +
+const URLPATTERN = java.util.regex.Pattern.compile("^" +
     // protocol identifier
     "(?:(?:https?|ftp)://)" +
     // user:pass authentication
@@ -62,11 +62,12 @@ var URLPATTERN = java.util.regex.Pattern.compile("^" +
 
 // Copyright (c) 2014 Chris O'Hara cohara87@gmail.com
 // licensed unter MIT license - https://github.com/chriso/validator.js/blob/master/LICENSE
-var INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
-var FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
+const INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
+const FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
 
-var {Binary, ByteArray, ByteString} = require('binary');
-var base64;
+const {Binary, ByteArray, ByteString} = require('binary');
+const base64 = require('ringo/base64');
+const dates = require('ringo/utils/dates');
 
 /**
  * @fileoverview Adds useful methods to the JavaScript String type.
@@ -115,7 +116,8 @@ export('isDateFormat',
        'isUpperCase',
        'isLowerCase',
        'isInt',
-       'isFloat');
+       'isFloat',
+       'isDate');
 
 /**
  * Checks if a date format pattern is correct and a valid string to create a
@@ -625,7 +627,6 @@ function count(string, pattern) {
  * @example strings.b64encode("foob"); // --> "Zm9vYg=="
  */
 function b64encode(string, encoding) {
-    if (!base64) base64 = require('ringo/base64');
     return base64.encode(string, encoding);
 }
 
@@ -963,4 +964,29 @@ function isInt(string) {
  */
 function isFloat(string) {
     return string !== '' && FLOAT.test(string) && !INT.test(string);
+};
+
+/**
+ * Returns true if the string is matching a date format.
+ * By default the parser matches the pattern against the string with lenient parsing: Even if the input
+ * is not strictly in the form of the pattern, but can be parsed with heuristics, then the parse succeeds.
+ * For details on the format pattern, see
+ * <a href="http://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html">
+ *     java.text.SimpleDateFormat
+ * </a>.
+ * @param {String} string
+ * @param {String} format date format pattern
+ * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
+ *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @param {String|java.util.TimeZone} timezone (optional) the timezone as java TimeZone
+ *        object or  an abbreviation such as "PST", a full name such as "America/Los_Angeles",
+ *        or a custom ID such as "GMT-8:00". If the id is not provided, the default timezone
+ *        is used. If the timezone id is provided but cannot be understood, the "GMT" timezone
+ *        is used.
+ * @param {Boolean} lenient (optional) disables lenient parsing if set to false.
+ * @returns {Boolean} true if valid date string, false otherwise
+ * @example FIXME
+ */
+function isDate(string, format, locale, timezone, lenient) {
+    return !isNaN(dates.parse(string, format, locale, timezone, lenient));
 };
