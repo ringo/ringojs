@@ -690,6 +690,8 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
 /**
  * Parse a string to a date using date and time patterns from Java's <code>SimpleDateFormat</code>.
  * If no format is provided, the default follows RFC 3339 for timestamps on the internet described.
+ * The parser matches the pattern against the string with lenient parsing: Even if the input is not
+ * strictly in the form of the pattern, but can be parsed with heuristics, then the parse succeeds.
  *
  * @example  // parses input string as local time:
  * // Wed Jun 29 2016 12:11:10 GMT+0200 (MESZ)
@@ -723,12 +725,13 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
  *        object or  an abbreviation such as "PST", a full name such as "America/Los_Angeles",
  *        or a custom ID such as "GMT-8:00". If the id is not provided, the default timezone is used.
  *        If the timezone id is provided but cannot be understood, the "GMT" timezone is used.
+ * @param {Boolean} lenient (optional) disables lenient parsing if set to false.
  * @returns {Date|NaN} a date representing the given string, or <code>NaN</code> for unrecognizable strings
  * @see <a href="http://tools.ietf.org/html/rfc3339">RFC 3339: Date and Time on the Internet: Timestamps</a>
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">W3C Note: Date and Time Formats</a>
  * @see <a href="https://es5.github.io/#x15.9.4.2">ES5 Date.parse()</a>
  */
-function parse(str, format, locale, timezone) {
+function parse(str, format, locale, timezone, lenient) {
     var date;
     // if a format is provided, use java.text.SimpleDateFormat
     if (typeof format === "string") {
@@ -741,14 +744,25 @@ function parse(str, format, locale, timezone) {
         }
 
         var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
-        sdf.setLenient(false);
 
         if (timezone && timezone != sdf.getTimeZone()) {
             sdf.setTimeZone(timezone);
         }
 
         try {
-            var javaDate = sdf.parse(str);
+            // disables lenient mode, switches to strict parsing
+            if (lenient === false) {
+                sdf.setLenient(false);
+            }
+
+            var ppos = new java.text.ParsePosition(0);
+            var javaDate = sdf.parse(str, ppos);
+
+            // strict parsing & error during parsing --> return NaN
+            if (lenient === false && ppos.getErrorIndex() >= 0) {
+                return NaN;
+            }
+
             date = javaDate != null ? new Date(javaDate.getTime()) : NaN;
         } catch (e if e.javaException instanceof java.text.ParseException) {
             date = NaN;
