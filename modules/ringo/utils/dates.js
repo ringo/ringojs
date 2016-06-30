@@ -689,7 +689,7 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
 
 /**
  * Parse a string to a date using date and time patterns from Java's <code>SimpleDateFormat</code>.
- * If no format is provided, the default follows RFC 3339 for timestamps on the internet described.
+ * If no format is provided, the default follows RFC 3339 for timestamps on the internet.
  * The parser matches the pattern against the string with lenient parsing: Even if the input is not
  * strictly in the form of the pattern, but can be parsed with heuristics, then the parse succeeds.
  *

@@ -973,8 +973,9 @@ function isFloat(string) {
  * <a href="http://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html">
  *     java.text.SimpleDateFormat
  * </a>.
+ * If no format is provided, the check uses a patter matching RFC 3339 (timestamps on the internet).
  * @param {String} string
- * @param {String} format date format pattern
+ * @param {String} format (optional) date format pattern
  * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
  *        lowercase two-letter ISO-639 code (e.g. "en")
  * @param {String|java.util.TimeZone} timezone (optional) the timezone as java TimeZone
@@ -984,7 +985,15 @@ function isFloat(string) {
  *        is used.
  * @param {Boolean} lenient (optional) disables lenient parsing if set to false.
  * @returns {Boolean} true if valid date string, false otherwise
- * @example FIXME
+ * @example // true
+ * strings.isDate("2016");
+ * strings.isDate("01-01-2016", "MM-dd-yyyy");
+ *
+ * // true, since lenient parsing
+ * strings.isDate("20-40-2016", "MM-dd-yyyy");
+ *
+ * // false, since strict parsing with lenient=false
+ * strings.isDate("20-40-2016", "MM-dd-yyyy", "en", "UTC", false);
  */
 function isDate(string, format, locale, timezone, lenient) {
     return !isNaN(dates.parse(string, format, locale, timezone, lenient));
