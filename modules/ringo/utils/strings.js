@@ -65,7 +65,6 @@ const URLPATTERN = java.util.regex.Pattern.compile("^" +
 const INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
 const FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/;
 
-const {Binary, ByteArray, ByteString} = require('binary');
 const base64 = require('ringo/base64');
 const dates = require('ringo/utils/dates');
 
