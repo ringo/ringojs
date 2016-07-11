@@ -52,3 +52,7 @@ exports.testBinaryMessage = function() {
     }
     worker.terminate();
 };
+
+if (require.main === module) {
+    require('system').exit(require("test").run(module.id));
+}
