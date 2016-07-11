@@ -248,7 +248,7 @@ function Server(options) {
             }
             var sessionHandler = cx.getSessionHandler();
             if (sessionHandler != null) {
-                var sessionCookieConfig = sessionHandler.getSessionManager().getSessionCookieConfig();
+                var sessionCookieConfig = sessionHandler.getSessionCookieConfig();
                 sessionCookieConfig.setHttpOnly(options.httpOnlyCookies);
                 sessionCookieConfig.setSecure(options.secureCookies);
                 if (typeof(options.cookieName) === "string") {

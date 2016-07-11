@@ -240,12 +240,11 @@ exports.testOptions = function() {
     assert.isNotNull(cx.getHandler().getSecurityHandler());
     var sessionHandler = cx.getHandler().getSessionHandler();
     assert.isNotNull(sessionHandler);
-    var sessionManager = sessionHandler.getSessionManager();
-    assert.strictEqual(sessionManager.getSessionCookie(), "JSESSIONID");
-    assert.strictEqual(sessionManager.getSessionDomain(), null);
-    assert.strictEqual(sessionManager.getSessionPath(), null);
-    assert.isFalse(sessionManager.getHttpOnly());
-    assert.isFalse(sessionManager.getSecureCookies());
+    assert.strictEqual(sessionHandler.getSessionCookie(), "JSESSIONID");
+    assert.strictEqual(sessionHandler.getSessionDomain(), null);
+    assert.strictEqual(sessionHandler.getSessionPath(), null);
+    assert.isFalse(sessionHandler.getHttpOnly());
+    assert.isFalse(sessionHandler.getSecureCookies());
     server.stop();
     // configure session cookies
     config.cookieName = "ringosession";
@@ -256,12 +255,12 @@ exports.testOptions = function() {
     server = new Server(config);
     server.start();
     cx = server.getDefaultContext();
-    sessionManager = cx.getHandler().getSessionHandler().getSessionManager();
-    assert.strictEqual(sessionManager.getSessionCookie(), config.cookieName);
-    assert.strictEqual(sessionManager.getSessionDomain(), config.cookieDomain);
-    assert.strictEqual(sessionManager.getSessionPath(), config.cookiePath);
-    assert.isTrue(sessionManager.getHttpOnly());
-    assert.isTrue(sessionManager.getSecureCookies());
+    sessionHandler = cx.getHandler().getSessionHandler();
+    assert.strictEqual(sessionHandler.getSessionCookie(), config.cookieName);
+    assert.strictEqual(sessionHandler.getSessionDomain(), config.cookieDomain);
+    assert.strictEqual(sessionHandler.getSessionPath(), config.cookiePath);
+    assert.isTrue(sessionHandler.getHttpOnly());
+    assert.isTrue(sessionHandler.getSecureCookies());
 };
 
 // start the test runner if we're called directly from command line
