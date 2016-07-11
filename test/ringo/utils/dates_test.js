@@ -725,10 +725,15 @@ exports.testParse = function() {
     assert.isNaN(dates.parse("asdf"));
     assert.isFalse(dates.parse("asdf") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-"));
+    assert.isNaN(dates.parse("2010-", "yyyy-MM-dd"));
     assert.isFalse(dates.parse("2010-") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-99"));
+    assert.isNaN(dates.parse("2010-99", "yyyy-MM-dd"));
     assert.isFalse(dates.parse("2010-99") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-99"));
+    assert.isNotNaN(dates.parse("2010-01-99", "yyyy-MM-dd"));
+    assert.isNotNaN(dates.parse("2010-01-99", "yyyy-MM-dd", null, null, true));
+    assert.isNaN(dates.parse("2010-01-99", "yyyy-MM-dd", null, null, false));
     assert.isFalse(dates.parse("2010-01-99") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01T24:59Z"));
     assert.isFalse(dates.parse("2010-01-01T24:59Z") instanceof Date, "parse should return NaN and not an invalid Date");
@@ -738,6 +743,15 @@ exports.testParse = function() {
     assert.isFalse(dates.parse("2010-01-01TT25:00Z") instanceof Date, "parse should return NaN and not an invalid Date");
     assert.isNaN(dates.parse("2010-01-01T23:00-25:00"));
     assert.isFalse(dates.parse("2010-01-01T23:00-25:00") instanceof Date, "parse should return NaN and not an invalid Date");
+
+    // java date format tests
+    assert.strictEqual(dates.parse("2016-06-29T12:11:10.001", "yyyy-MM-dd'T'HH:mm:ss.SSS").getTime(), (new Date(2016,05,29,12,11,10,1)).getTime());
+    assert.strictEqual(dates.parse("2016-06-29T12:11:10.001", "yyyy-MM-dd'T'HH:mm:ss.SSS", "en", "UTC").getTime(), 1467202270001);
+    assert.strictEqual(dates.parse("2016-06-29T12:11:10.001-01:00", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "en", "UTC").getTime(), 1467205870001);
+    assert.strictEqual(dates.parse("29. Juni 2016", "dd. MMM yyyy", "de", "UTC").getTime(), 1467158400000);
+
+    // this might be a JDK bug?! Time zone given, but not in pattern --> should return NaN, but doesn't
+    assert.isNotNaN(dates.parse("2016-06-30T12:11:10.001-24:00", "yyyy-MM-dd'T'HH:mm:ss.SSS", "en", "UTC", false));
 
     // Check for not NaN
     // FIXME no exact checks because of local time...

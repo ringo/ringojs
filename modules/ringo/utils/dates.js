@@ -92,18 +92,24 @@ export(
  * dates.format(y2k, "yyyy-MM-dd HH:mm:ss z", "de", "GMT-10");
  */
 function format(date, format, locale, timezone) {
-    if (!format)
+    if (!format) {
         return date.toString();
+    }
+
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
     }
+
     if (typeof timezone == "string") {
         timezone = java.util.TimeZone.getTimeZone(timezone);
     }
-    var sdf = locale ? new java.text.SimpleDateFormat(format, locale)
-            : new java.text.SimpleDateFormat(format);
-    if (timezone && timezone != sdf.getTimeZone())
+
+    var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
+
+    if (timezone && timezone != sdf.getTimeZone()) {
         sdf.setTimeZone(timezone);
+    }
+
     return sdf.format(date);
 }
 
@@ -682,11 +688,24 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
 }
 
 /**
- * Parse a string to a date.
- * The date string follows the format specified for timestamps
- * on the internet described in RFC 3339.
+ * Parse a string to a date using date and time patterns from Java's <code>SimpleDateFormat</code>.
+ * If no format is provided, the default follows RFC 3339 for timestamps on the internet.
+ * The parser matches the pattern against the string with lenient parsing: Even if the input is not
+ * strictly in the form of the pattern, but can be parsed with heuristics, then the parse succeeds.
  *
- * @example // Fri Jan 01 2016 01:00:00 GMT+0100 (MEZ)
+ * @example  // parses input string as local time:
+ * // Wed Jun 29 2016 12:11:10 GMT+0200 (MESZ)
+ * let pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+ * dates.parse("2016-06-29T12:11:10.001", pattern);
+ *
+ * // enforces UTC on the input date string
+ * // Wed Jun 29 2016 14:11:10 GMT+0200 (MESZ)
+ * dates.parse("2016-06-29T12:11:10.001", pattern, "en", "UTC");
+ *
+ * // accepting month names in German
+ * dates.parse("29. Juni 2016", "dd. MMM yyyy", "de", "UTC");
+ *
+ * // Fri Jan 01 2016 01:00:00 GMT+0100 (MEZ)
  * dates.parse("2016");
  *
  * // Sat Aug 06 2016 02:00:00 GMT+0200 (MESZ)
@@ -699,85 +718,130 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
  * dates.parse("2016-08-06T16:04:30-06");
  *
  * @param {String} str The date string.
+ * @param {String} format (optional) a specific format pattern for the parser
+ * @param {String|java.util.Locale} locale (optional) the locale as <code>java.util.Locale</code> object or
+ *        an ISO-639 alpha-2 code (e.g. "en", "de") as string
+ * @param {String|java.util.TimeZone} timezone (optional) the timezone as java TimeZone
+ *        object or  an abbreviation such as "PST", a full name such as "America/Los_Angeles",
+ *        or a custom ID such as "GMT-8:00". If the id is not provided, the default timezone is used.
+ *        If the timezone id is provided but cannot be understood, the "GMT" timezone is used.
+ * @param {Boolean} lenient (optional) disables lenient parsing if set to false.
  * @returns {Date|NaN} a date representing the given string, or <code>NaN</code> for unrecognizable strings
  * @see <a href="http://tools.ietf.org/html/rfc3339">RFC 3339: Date and Time on the Internet: Timestamps</a>
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">W3C Note: Date and Time Formats</a>
  * @see <a href="https://es5.github.io/#x15.9.4.2">ES5 Date.parse()</a>
  */
-function parse(str) {
+function parse(str, format, locale, timezone, lenient) {
     var date;
-    // first check if the native parse method can parse it
-    var elapsed = Date.parse(str);
-    if (!isNaN(elapsed)) {
-        date = new Date(elapsed);
-    } else {
-        var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?))?)?$/);
-        var date;
-        if (match && (match[1] || match[7])) { // must have at least year or time
-            var year = parseInt(match[1], 10) || 0;
-            var month = (parseInt(match[2], 10) - 1) || 0;
-            var day = parseInt(match[3], 10) || 1;
+    // if a format is provided, use java.text.SimpleDateFormat
+    if (typeof format === "string") {
+        if (typeof locale === "string") {
+            locale = new java.util.Locale(locale);
+        }
 
-            date = new Date(Date.UTC(year, month, day));
+        if (typeof timezone === "string") {
+            timezone = java.util.TimeZone.getTimeZone(timezone);
+        }
 
-            // Check if the given date is valid
-            if (date.getUTCMonth() != month || date.getUTCDate() != day) {
+        var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
+
+        if (timezone && timezone != sdf.getTimeZone()) {
+            sdf.setTimeZone(timezone);
+        }
+
+        try {
+            // disables lenient mode, switches to strict parsing
+            if (lenient === false) {
+                sdf.setLenient(false);
+            }
+
+            var ppos = new java.text.ParsePosition(0);
+            var javaDate = sdf.parse(str, ppos);
+
+            // strict parsing & error during parsing --> return NaN
+            if (lenient === false && ppos.getErrorIndex() >= 0) {
                 return NaN;
             }
 
-            // optional time
-            if (match[4] !== undefined) {
-                var type = match[7];
-                var hours = parseInt(match[4], 10);
-                var minutes = parseInt(match[5], 10);
-                var secFrac = parseFloat(match[6]) || 0;
-                var seconds = secFrac | 0;
-                var milliseconds = Math.round(1000 * (secFrac - seconds));
+            date = javaDate != null ? new Date(javaDate.getTime()) : NaN;
+        } catch (e if e.javaException instanceof java.text.ParseException) {
+            date = NaN;
+        }
+    } else {
+        // no date format provided, fall back to RFC 3339
+        // first check if the native parse method can parse it
+        var elapsed = Date.parse(str);
+        if (!isNaN(elapsed)) {
+            date = new Date(elapsed);
+        } else {
+            var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?))?)?$/);
+            var date;
+            if (match && (match[1] || match[7])) { // must have at least year or time
+                var year = parseInt(match[1], 10) || 0;
+                var month = (parseInt(match[2], 10) - 1) || 0;
+                var day = parseInt(match[3], 10) || 1;
 
-                // Checks if the time string is a valid time.
-                var validTimeValues = function(hours, minutes, seconds) {
-                    if (hours === 24) {
-                        if (minutes !== 0 || seconds !== 0 || milliseconds !== 0) {
+                date = new Date(Date.UTC(year, month, day));
+
+                // Check if the given date is valid
+                if (date.getUTCMonth() != month || date.getUTCDate() != day) {
+                    return NaN;
+                }
+
+                // optional time
+                if (match[4] !== undefined) {
+                    var type = match[7];
+                    var hours = parseInt(match[4], 10);
+                    var minutes = parseInt(match[5], 10);
+                    var secFrac = parseFloat(match[6]) || 0;
+                    var seconds = secFrac | 0;
+                    var milliseconds = Math.round(1000 * (secFrac - seconds));
+
+                    // Checks if the time string is a valid time.
+                    var validTimeValues = function (hours, minutes, seconds) {
+                        if (hours === 24) {
+                            if (minutes !== 0 || seconds !== 0 || milliseconds !== 0) {
+                                return false;
+                            }
+                        } else {
                             return false;
                         }
+                        return true;
+                    };
+
+                    // Use UTC or local time
+                    if (type !== undefined) {
+                        date.setUTCHours(hours, minutes, seconds, milliseconds);
+                        if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
+                            if (!validTimeValues(hours, minutes, seconds, milliseconds)) {
+                                return NaN;
+                            }
+                        }
+
+                        // Check offset
+                        if (type !== "Z") {
+                            var hoursOffset = parseInt(type, 10);
+                            var minutesOffset = parseInt(match[8]) || 0;
+                            var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
+
+                            // check maximal timezone offset (24 hours)
+                            if (Math.abs(offset) >= 86400000) {
+                                return NaN;
+                            }
+                            date = new Date(date.getTime() + offset);
+                        }
                     } else {
-                        return false;
-                    }
-                    return true;
-                };
-
-                // Use UTC or local time
-                if (type !== undefined) {
-                    date.setUTCHours(hours, minutes, seconds, milliseconds);
-                    if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
-                        if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return NaN;
-                        }
-                    }
-
-                    // Check offset
-                    if (type !== "Z") {
-                        var hoursOffset = parseInt(type, 10);
-                        var minutesOffset = parseInt(match[8]) || 0;
-                        var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
-
-                        // check maximal timezone offset (24 hours)
-                        if (Math.abs(offset) >= 86400000) {
-                            return NaN;
-                        }
-                        date = new Date(date.getTime() + offset);
-                    }
-                } else {
-                    date.setHours(hours, minutes, seconds, milliseconds);
-                    if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
-                        if(!validTimeValues(hours, minutes, seconds, milliseconds)) {
-                            return NaN;
+                        date.setHours(hours, minutes, seconds, milliseconds);
+                        if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
+                            if (!validTimeValues(hours, minutes, seconds, milliseconds)) {
+                                return NaN;
+                            }
                         }
                     }
                 }
+            } else {
+                date = NaN;
             }
-        } else {
-            date = NaN;
         }
     }
     return date;

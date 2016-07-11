@@ -435,6 +435,25 @@ exports.testY64decode = function() {
     assert.strictEqual("????", strings.y64decode("Pz8_Pw--", "UTF-8"));
 };
 
+exports.testIsDate = function() {
+    assert.isTrue(strings.isDate("1.1.2016", "d.M.yyyy"));
+    assert.isTrue(strings.isDate("1.1.16", "d.M.yy"));
+    assert.isTrue(strings.isDate("01.01.2016", "dd.MM.yyyy"));
+    assert.isTrue(strings.isDate("10.10.2016", "d.M.yyyy"));
+    assert.isTrue(strings.isDate("10.10.16", "d.M.yy"));
+    assert.isTrue(strings.isDate("29. Juni 2016", "dd. MMM yyyy", "de", "UTC"));
+    assert.isTrue(strings.isDate("2016-06-29T12:11:10.001Zasdfasdf", "yyyy-MM-dd'T'HH:mm:ss.SSS", "en", "UTC"));
+    assert.isTrue(strings.isDate("31.09.16", "d.M.yy"));
+    assert.isTrue(strings.isDate("32.10.16", "d.M.yy"));
+    assert.isTrue(strings.isDate("1.13.16", "d.M.yy"));
+
+    assert.isFalse(strings.isDate("31.09.16", "d.M.yy", null, null, false));
+    assert.isFalse(strings.isDate("a.b.c", "d.M.yy"));
+    assert.isFalse(strings.isDate("32.10.16", "d.M.yy", null, null, false));
+    assert.isFalse(strings.isDate("1.13.16", "d.M.yy", null, null, false));
+    assert.isFalse(strings.isDate("29. June 2016", "dd. MMM yyyy", "de", "UTC"));
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }
