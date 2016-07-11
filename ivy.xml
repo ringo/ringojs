@@ -7,7 +7,7 @@
     </configurations>
 
     <dependencies>
-        <dependency org="org.mozilla" name="rhino" rev="1.7.7" />
+        <dependency org="org.mozilla" name="rhino" rev="1.7.7.1" />
 
         <!-- standard jetty libs -->
         <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.3.8.v20160314"/>
