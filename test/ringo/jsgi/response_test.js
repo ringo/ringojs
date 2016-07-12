@@ -155,6 +155,45 @@ exports.testStream = function () {
     assert.deepEqual(ba.toArray(), [0, 1, 2, 3, 4, 5, 6, 7]);
 };
 
+exports.testBinary = function () {
+    var res = new JsgiResponse().binary(new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]));
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.headers, { "content-type": "application/octet-stream" });
+    assert.strictEqual(typeof res.body.forEach, "function");
+    var arr = [];
+    res.body.forEach(function (ba) {
+        arr = arr.concat(ba.toArray());
+    });
+    assert.deepEqual(arr, [0, 1, 2, 3, 4, 5, 6, 7]);
+
+    res = new JsgiResponse().binary(new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]), "application/pdf");
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.headers, { "content-type": "application/pdf" });
+    assert.strictEqual(typeof res.body.forEach, "function");
+    arr = [];
+    res.body.forEach(function (ba) {
+        arr = arr.concat(ba.toArray());
+    });
+    assert.deepEqual(arr, [0, 1, 2, 3, 4, 5, 6, 7]);
+
+    res.setStatus(400);
+    assert.equal(res.status, 400);
+
+    res = new JsgiResponse().binary(new binary.ByteString("\r\n", "ASCII"), "application/asciistuff");
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.headers, { "content-type": "application/asciistuff" });
+    assert.strictEqual(typeof res.body.forEach, "function");
+    arr = [];
+    res.body.forEach(function (ba) {
+        arr = arr.concat(ba.toArray());
+    });
+    assert.deepEqual(arr, [13,10]);
+
+    assert.throws(function() {
+        new JsgiResponse().binary("i am not a binary object");
+    }, Error);
+};
+
 exports.testSetCharset = function () {
     var res = new JsgiResponse();
 
@@ -197,7 +236,7 @@ exports.testAddHeaders = function () {
     assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
     assert.isTrue(res.headers.foo.every(function(val) {
         return typeof val === "string";
-    }))
+    }));
 
     // multiple headers as array
     res = new JsgiResponse();

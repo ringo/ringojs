@@ -5,6 +5,7 @@
 
 var {merge} = require("ringo/utils/objects");
 var {mimeType} = require("ringo/mime");
+var {MemoryStream, Stream} = require("io");
 
 /**
  * A wrapper around a JSGI response object. `JsgiResponse` is chainable.
@@ -130,8 +131,8 @@ Object.defineProperty(JsgiResponse.prototype, "xml", {
  */
 Object.defineProperty(JsgiResponse.prototype, "stream", {
     value: function (stream, contentType) {
-        if (!(stream instanceof Stream)) {
-            throw Error("Wrong argument for stream response: " + typeof(resource));
+        if (typeof stream.readable !== "function" || typeof stream.forEach !== "function") {
+            throw Error("Wrong argument for stream response!");
         }
 
         if (!stream.readable()) {
@@ -140,6 +141,30 @@ Object.defineProperty(JsgiResponse.prototype, "stream", {
 
         this.headers["content-type"] = contentType || "application/octet-stream";
         this.body = stream;
+
+        return this;
+    }
+});
+
+/**
+ * Create a JSGI response with a <code>Binary</code> object as response body.
+ * @param {ByteString|ByteArray} binary the binary object to write
+ * @param {String} contentType optional MIME type. If not defined,
+ *         the MIME type is <code>application/octet-stream</code>.
+ * @returns {JsgiResponse} JSGI response
+ */
+Object.defineProperty(JsgiResponse.prototype, "binary", {
+    value: function (binary, contentType) {
+        if (!(binary instanceof Binary)) {
+            throw Error("Wrong argument for binary response!");
+        }
+
+        this.headers["content-type"] = contentType || "application/octet-stream";
+        this.body = {
+            forEach: function(fn) {
+                fn(binary);
+            }
+        };
 
         return this;
     }
@@ -473,7 +498,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
 
 // Define helper functions
 /** @ignore */
-["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "setCharset", "addHeaders",
+["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "binary", "setCharset", "addHeaders",
     "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
     "unavailable", "redirect", "notModified"].forEach(function(functionName) {
     exports[functionName] = function() {

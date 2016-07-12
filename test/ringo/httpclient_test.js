@@ -7,7 +7,7 @@ var {parseParameters, parseFileUpload, setCookie, Headers} = require("ringo/util
 var {MemoryStream, TextStream} = require("io");
 var fs = require("fs");
 var base64 = require("ringo/base64");
-var {ByteArray} = require("binary");
+var {ByteArray, ByteString} = require("binary");
 
 var server;
 var host = "127.0.0.1";
@@ -568,6 +568,35 @@ exports.testMultipleHeaders_Issue225 = function() {
         headers: preparedHeaders
     });
 };
+
+exports.testStreamResponse = function() {
+    getResponse = function(req) {
+        var bs = new MemoryStream(3);
+        bs.write(new ByteString("\t\r\n", "ASCII"));
+        bs.position = 0;
+        return response.stream(bs);
+    };
+
+    var exchange = request({
+        url: baseUri
+    });
+
+    assert.strictEqual(exchange.content, "\t\r\n");
+};
+
+exports.testBinaryResponse = function() {
+    getResponse = function(req) {
+        return response.binary(new ByteArray([35, 114, 105, 110, 103, 111, 106, 115]));
+    };
+
+    var exchange = request({
+        url: baseUri,
+        binary: true
+    });
+
+    assert.strictEqual(exchange.contentBytes.toArray().join(""), [35, 114, 105, 110, 103, 111, 106, 115].join(""));
+};
+
 
 // start the test runner if we're called directly from command line
 if (require.main === module) {
