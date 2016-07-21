@@ -21,60 +21,172 @@
 
 export("clone", "merge");
 
+// clone() ported from the node-clone module
+// Copyright 2011-2015 Paul Vorbach and contributors.
+// http://paul.vorba.ch/ and https://github.com/pvorb/node-clone/graphs/contributors
+
 /**
- * Copies the properties of an object into a target object.
+ * Creates a deep clone (full copy) of the given object.
+ *
+ * It supports cloning objects with circular references by tracking visited properties.
+ * Only if the object to clone cannot hold any circular reference by foreknowledge,
+ * tracking can be turned off to save CPU and memory.
+ *
  * @param {Object} object the object to clone
- * @param {Object} cloned optional clone object
- * @param {Boolean} recursive pass true to create a deep clone. Otherwise a shallow clone is created.
+ * @param {Boolean} circular (optional, default true) true if the object to be cloned may contain circular references
+ * @param {Number} depth (optional, default Infinity) limits the non-shallow clone of an object to a particular depth
+ * @param {Object} prototype (optional) sets the prototype to be used when cloning an object
  * @returns {Object} the clone object
+ * @see <a href="https://github.com/pvorb/node-clone/">node-clone</a>
  * @example let objects = require("ringo/utils/objects");
  * let a = [1, 2, 3];
- * let b = {"a": a};
- * let c = {};
  *
  * // shallow clone: b.a and c.a will share the same array
- * objects.clone(b, c);
+ * let b = objects.clone(a);
+ * a[0] = 100;
  *
- * // this modifies all three: a, b.a, and c.a
- * b.a[0] = 99;
- * console.dir(a); // --> [ 99, 2, 3 ]
- * console.dir(b); // --> { a: [ 99, 2, 3 ] }
- * console.dir(c); // --> { a: [ 99, 2, 3 ] }
+ * console.dir(a); // -> [ 100, 2, 3 ]
+ * console.dir(b); // -> [ 1, 2, 3 ]
  *
- * // reset to original values
- * a = [1, 2, 3];
- * b = {"a": a};
- * c = {};
+ * let root = { simple: 1 };
+ * let circle = { circ: root };
+ * root.circle = circle;
  *
- * // c is now a deep clone of b
- * objects.clone(b, c, true);
+ * let copy = objects.clone(root);
+ * console.dir(root); // -> { simple: 1, circle: { circ: [CyclicRef] }}
+ * console.dir(copy); // -> { simple: 1, circle: { circ: [CyclicRef] }}
  *
- * // this modifies only a and b.a
- * b.a[0] = 99;
+ * // endless loop, throws a java.lang.StackOverflowError
+ * let danger = objects.clone(root, false);
  *
- * console.dir(a); // --> [ 99, 2, 3 ]
- * console.dir(b); // --> { a: [ 99, 2, 3 ] }
+ * // limiting the depth might lead to shallow clones!
+ * let tree = { root: 1, a: { b: { c: { d: { e: "foo" } } } } };
+ * let fullClone = objects.clone(tree);
+ * let shallowClone = objects.clone(tree, true, 1);
  *
- * // c.a stays untouched, holds the original values
- * console.dir(c); // --> { a: [ 1, 2, 3 ] }
+ * tree.root = 2; // depth = 1
+ * tree.a.b.c.d.e = "bar"; // depth = 5
+ *
+ * console.log(tree.root); // --> 2
+ * console.dir(tree.a.b.c.d); // --> { e: 'bar' }
+ *
+ * console.log(fullClone.root); // --> 1
+ * console.dir(fullClone.a.b.c.d); // --> { e: 'foo' }
+ *
+ * console.log(shallowClone.root); // --> 1
+ * console.dir(shallowClone.a.b.c.d); // --> { e: 'bar' }
  */
-function clone(object, cloned, recursive) {
-    if (!cloned) {
-        cloned = new object.constructor();
+function clone(object, circular, depth, prototype) {
+    if (typeof circular === 'object') {
+        throw new Error("Old function signature used for objects.clone()!");
     }
-    var value;
-    for (var id in object) {
-        if (!object.hasOwnProperty(id)) continue;
-        value = object[id];
-        if (recursive && value &&
-                (value.constructor == Object || value.constructor == Array)) {
-            cloned[id] = clone(value, new value.constructor(), recursive);
-        } else {
-            cloned[id] = value;
+    // maintain two arrays for circular references, where corresponding parents
+    // and children have the same index
+    var allParents = [];
+    var allChildren = [];
+
+    if (typeof circular == 'undefined') {
+        circular = true;
+    }
+
+    if (typeof depth == 'undefined') {
+        depth = Infinity;
+    }
+
+    // recurse this function so we don't reset allParents and allChildren
+    function _clone(parent, depth) {
+        // cloning null always returns null
+        if (parent === null) {
+            return null;
         }
+
+        if (depth === 0) {
+            return parent;
+        }
+
+        var child;
+        var proto;
+        if (typeof parent != 'object') {
+            return parent;
+        }
+
+        if (clone.__isArray(parent)) {
+            child = [];
+        } else if (clone.__isRegExp(parent)) {
+            child = new RegExp(parent.source, __getRegExpFlags(parent));
+            if (parent.lastIndex) child.lastIndex = parent.lastIndex;
+        } else if (clone.__isDate(parent)) {
+            child = new Date(parent.getTime());
+        } else {
+            if (typeof prototype == 'undefined') {
+                proto = Object.getPrototypeOf(parent);
+                child = Object.create(proto);
+            }
+            else {
+                child = Object.create(prototype);
+                proto = prototype;
+            }
+        }
+
+        if (circular) {
+            var index = allParents.indexOf(parent);
+
+            if (index != -1) {
+                return allChildren[index];
+            }
+            allParents.push(parent);
+            allChildren.push(child);
+        }
+
+        for (var i in parent) {
+            var attrs;
+            if (proto) {
+                attrs = Object.getOwnPropertyDescriptor(proto, i);
+            }
+
+            if (attrs && attrs.set == null) {
+                continue;
+            }
+            child[i] = _clone(parent[i], depth - 1);
+        }
+
+        return child;
     }
-    return cloned;
+
+    return _clone(object, depth);
 }
+
+// private utility functions
+
+function __objToStr(o) {
+    return Object.prototype.toString.call(o);
+}
+clone.__objToStr = __objToStr;
+
+function __isDate(o) {
+    return typeof o === 'object' && __objToStr(o) === '[object Date]';
+}
+clone.__isDate = __isDate;
+
+function __isArray(o) {
+    return typeof o === 'object' && __objToStr(o) === '[object Array]';
+}
+clone.__isArray = __isArray;
+
+function __isRegExp(o) {
+    return typeof o === 'object' && __objToStr(o) === '[object RegExp]';
+}
+clone.__isRegExp = __isRegExp;
+
+function __getRegExpFlags(re) {
+    var flags = '';
+    if (re.global) flags += 'g';
+    if (re.ignoreCase) flags += 'i';
+    if (re.multiline) flags += 'm';
+    return flags;
+}
+clone.__getRegExpFlags = __getRegExpFlags;
+
 
 /**
  * Creates a new object as the as the keywise union of the provided objects.
