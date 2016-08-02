@@ -128,12 +128,23 @@ function clone(object, circular, depth, prototype) {
             return parent;
         }
 
-        if (clone.__isArray(parent)) {
+        if (Array.isArray(parent)) {
             child = [];
-        } else if (clone.__isRegExp(parent)) {
-            child = new RegExp(parent.source, __getRegExpFlags(parent));
+        } else if (parent instanceof RegExp) {
+            var flags = "";
+            if (parent.global) {
+                flags += 'g';
+            }
+            if (parent.ignoreCase) {
+                flags += 'i';
+            }
+            if (parent.multiline) {
+                flags += 'm';
+            }
+
+            child = new RegExp(parent.source, flags);
             if (parent.lastIndex) child.lastIndex = parent.lastIndex;
-        } else if (clone.__isDate(parent)) {
+        } else if (parent instanceof Date) {
             child = new Date(parent.getTime());
         } else {
             if (typeof prototype == 'undefined') {
@@ -173,38 +184,6 @@ function clone(object, circular, depth, prototype) {
 
     return _clone(object, depth);
 }
-
-// private utility functions
-
-function __objToStr(o) {
-    return Object.prototype.toString.call(o);
-}
-clone.__objToStr = __objToStr;
-
-function __isDate(o) {
-    return typeof o === 'object' && __objToStr(o) === '[object Date]';
-}
-clone.__isDate = __isDate;
-
-function __isArray(o) {
-    return typeof o === 'object' && __objToStr(o) === '[object Array]';
-}
-clone.__isArray = __isArray;
-
-function __isRegExp(o) {
-    return typeof o === 'object' && __objToStr(o) === '[object RegExp]';
-}
-clone.__isRegExp = __isRegExp;
-
-function __getRegExpFlags(re) {
-    var flags = '';
-    if (re.global) flags += 'g';
-    if (re.ignoreCase) flags += 'i';
-    if (re.multiline) flags += 'm';
-    return flags;
-}
-clone.__getRegExpFlags = __getRegExpFlags;
-
 
 /**
  * Creates a new object as the as the keywise union of the provided objects.
