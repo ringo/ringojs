@@ -57,16 +57,29 @@ public class ModuleObject extends ScriptableObject {
                     "singleton() requires a string id as first argument");
         }
         Function factoryFunction = null;
+        ScriptableObject singletonObject = null;
+
         if (factory instanceof Function) {
             factoryFunction = (Function)factory;
+        } else if (factory instanceof ScriptableObject) {
+            singletonObject = (ScriptableObject) factory;
         } else if (factory != Undefined.instance && factory != null) {
             throw ScriptRuntime.constructError("Error",
-                    "Expected function as second argument");
+                    "Expected function or plain object as second argument");
         }
         Scriptable scope = ScriptableObject.getTopLevelScope(getParentScope());
         RhinoEngine engine = RhinoEngine.getEngine(scope);
         Singleton singleton = engine.getSingleton(new Singleton(source, id.toString()));
-        return singleton.getValue(factoryFunction, scope, this);
+
+        if (factoryFunction != null || factory == Undefined.instance) {
+            return singleton.getValue(factoryFunction, scope, this);
+        } else if (singletonObject != null) {
+            return singleton.getValue(singletonObject);
+        }
+
+        // this should never happen
+        throw ScriptRuntime.constructError("Error",
+                "Internal state error: singleton neither function nor object!");
     }
 
     @JSGetter
@@ -126,6 +139,14 @@ class Singleton {
             Context cx = Context.getCurrentContext();
             value = function.call(cx, scope, obj, ScriptRuntime.emptyArgs);
             evaluated = true; // only if evaluation was successful
+        }
+        return value;
+    }
+
+    synchronized Object getValue(ScriptableObject singletonObject) {
+        if (!evaluated && singletonObject != null) {
+            value = singletonObject;
+            evaluated = true;
         }
         return value;
     }
