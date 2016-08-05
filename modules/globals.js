@@ -338,14 +338,17 @@ Object.defineProperty(this, "global", { value: this });
  * var entityCache = module.singleton("entityCache", function() {
  *   return new SomeFancyCache(1000);
  * });
+ * var modConfig = module.singleton("config", { foo: "bar" });
  *
  * // All instances of "db-controller" in different workers
  * // will use the same cache because it's a singleton
  * entityCache.put("somekey", { ... });
  * entityCache.get("somekey");
  *
+ * console.log(modConfig.foo); // prints 'bar'
+ *
  * @param {String} id the singleton id
- * @param {Function} factory (optional) factory function for the singleton
+ * @param {Function|Object} factory (optional) factory function for the singleton or an singleton object
  * @return the singleton value
  * @name module.singleton
  * @function
