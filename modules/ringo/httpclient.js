@@ -466,8 +466,10 @@ Object.defineProperties(Exchange.prototype, {
  *
  *  - `url`: the request URL
  *  - `method`: request method such as GET or POST
- *  - `data`: request parameters as string, object, or, for POST or PUT requests, the body as
- *     string, object, <code>Stream</code>, or <code>Binary</code>.
+ *  - `data`: request parameters as string or object for GET, DELETE, and similar methods. For POST or PUT requests,
+ *     the body must be string, object, <code>Stream</code>, or <code>Binary</code>. For a multipart form POST requests,
+ *     all parameter values must be instances of <a href="#TextPart"><code>TextPart</code></a> or
+ *     <a href="#BinaryPart"><code>BinaryPart</code></a>.
  *  - `headers`: request headers
  *  - `username`: username for HTTP authentication
  *  - `password`: password for HTTP authentication
@@ -578,6 +580,17 @@ var put = function(url, data) {
  * @param {String} filename An optional file name
  * @returns {TextPart} A newly constructed TextPart instance
  * @constructor
+ * @example request({
+ *   url: "http://example.org/post-multipart",
+ *   method: "POST",
+ *   contentType: "multipart/form-data",
+ *   data: {
+ *     "simple": new TextPart(title, "utf-8"),
+ *     "text": new TextPart(textStream, "utf-8"),
+ *     "txtFile": new TextPart(txtStream, "utf-8", "test.txt"),
+ *     "image": new BinaryPart(binaryStream, "image.png")
+ *   }
+ * });
  */
 var TextPart = function(data, charset, filename) {
 
@@ -619,6 +632,16 @@ var TextPart = function(data, charset, filename) {
  * @param {String} filename An optional file name
  * @returns {BinaryPart} A newly constructed BinaryPart instance
  * @constructor
+ * @example request({
+ *   url: "http://example.org/post-multipart",
+ *   method: "POST",
+ *   contentType: "multipart/form-data",
+ *   data: {
+ *     "simple": new TextPart(title, "utf-8"),
+ *     "txtFile": new TextPart(txtStream, "utf-8", "test.txt"),
+ *     "image": new BinaryPart(binaryStream, "image.png")
+ *   }
+ * });
  */
 var BinaryPart = function(data, filename) {
 
