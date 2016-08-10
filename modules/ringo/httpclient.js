@@ -338,6 +338,13 @@ var Exchange = function(url, options) {
             connection.setDoOutput(true);
             var charset = getMimeParameter(options.contentType, "charset") || "utf-8";
             if (options.method === "POST" && options.contentType === "multipart/form-data") {
+                // all parts must be instances of text or binary parts
+                for (let [name, part] in Iterator(reqData)) {
+                    if (!(part instanceof TextPart) && !(part instanceof BinaryPart)) {
+                        throw new Error("Multipart form data parts must be either TextPart or BinaryPart, but " + name + "isn't.");
+                    }
+                }
+
                 writeMultipartData(reqData, connection, charset, generateBoundary());
             } else {
                 writeData(reqData, connection, charset, options.contentType);

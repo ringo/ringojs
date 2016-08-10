@@ -468,6 +468,18 @@ exports.testPostMultipart = function() {
     assert.isNotUndefined(received.image);
     assert.strictEqual(received.image.value.length, imageByteArray.length);
     assert.deepEqual(received.image.value.toArray(), imageByteArray.toArray());
+
+    // invalid request
+    assert.throws(function() {
+        request({
+            url: baseUri,
+            method: "POST",
+            contentType: "multipart/form-data",
+            data: {
+                "invalid": "Invalid"
+            }
+        });
+    }, Error);
 };
 
 exports.testProxiedRequest = function() {
