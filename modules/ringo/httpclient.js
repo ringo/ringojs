@@ -459,13 +459,15 @@ Object.defineProperties(Exchange.prototype, {
  *
  *  - `url`: the request URL
  *  - `method`: request method such as GET or POST
- *  - `data`: request data as string, object, or, for POST or PUT requests,
- *     Stream or Binary.
+ *  - `data`: request parameters as string, object, or, for POST or PUT requests, the body as
+ *     string, object, <code>Stream</code>, or <code>Binary</code>.
  *  - `headers`: request headers
  *  - `username`: username for HTTP authentication
  *  - `password`: password for HTTP authentication
- *  - `proxy`: proxy-settings as string ("proxy.host:port") or object {host: "hostname.org", port: 3128}
- *  - `contentType`: the contentType
+ *  - `proxy`: proxy-settings as string (<code>http://proxy-hostname:port</code>)
+ *     or object <code>{host: "proxy-hostname", port: 3128}</code>
+ *  - `contentType`: the contentType. If set to <code>multipart/form-data</code>, PUT and POST request's <code>data</code>
+ *     will be treated as multipart form uploads.
  *  - `binary`: if true if content should be delivered as binary,
  *     else it will be decoded to string
  *  - `followRedirects`: whether HTTP redirects (response code 3xx) should be
