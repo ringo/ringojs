@@ -609,6 +609,33 @@ exports.testBinaryResponse = function() {
     assert.strictEqual(exchange.contentBytes.toArray().join(""), [35, 114, 105, 110, 103, 111, 106, 115].join(""));
 };
 
+exports.testBinaryPart = function() {
+    let bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "foo.txt", "text/superplain");
+    let sw = new java.io.StringWriter();
+    let bos = new java.io.ByteArrayOutputStream();
+    bin.write("testname.txt", sw, bos);
+
+    let result = sw.toString().split("\r\n");
+    assert.equal(result[0], "Content-Disposition: form-data; name=\"testname.txt\"; filename=\"foo.txt\"");
+    assert.equal(result[1], "Content-Type: text/superplain");
+    assert.equal(result[2], "Content-Transfer-Encoding: binary");
+
+    sw.close();
+    bos.close();
+
+    bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "bar.txt");
+    sw = new java.io.StringWriter();
+    bos = new java.io.ByteArrayOutputStream();
+    bin.write("paramname", sw, bos);
+
+    result = sw.toString().split("\r\n");
+    assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"; filename=\"bar.txt\"");
+    assert.equal(result[1], "Content-Type: text/plain");
+    assert.equal(result[2], "Content-Transfer-Encoding: binary");
+
+    sw.close();
+    bos.close();
+};
 
 // start the test runner if we're called directly from command line
 if (require.main === module) {

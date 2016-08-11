@@ -627,9 +627,9 @@ var TextPart = function(data, charset, filename) {
 
 /**
  * @name BinaryPart
- * @param {String} data The data
- * @param {String} charset The charset
- * @param {String} filename An optional file name
+ * @param {String} data the data
+ * @param {String} fileName (optional) file name
+ * @param {String} contentType (optional) content type of the file
  * @returns {BinaryPart} A newly constructed BinaryPart instance
  * @constructor
  * @example request({
@@ -637,30 +637,29 @@ var TextPart = function(data, charset, filename) {
  *   method: "POST",
  *   contentType: "multipart/form-data",
  *   data: {
- *     "simple": new TextPart(title, "utf-8"),
- *     "txtFile": new TextPart(txtStream, "utf-8", "test.txt"),
- *     "image": new BinaryPart(binaryStream, "image.png")
+ *     "image": new BinaryPart(binaryStream, "image.png"),
+ *     "document": new BinaryPart(binaryStream, "invoce.doc", "application/msword")
  *   }
  * });
  */
-var BinaryPart = function(data, filename) {
+var BinaryPart = function(data, fileName, contentType) {
 
     /**
      * Writes this BinaryPart's data
-     * @param {String} name The name of the text part
-     * @param {java.io.PrintWriter} writer The writer
-     * @param {java.io.OutputStream} outStream The output stream
+     * @param {String} name form parameter name of the text part
+     * @param {java.io.PrintWriter} writer print writer
+     * @param {java.io.OutputStream} outStream binary output stream
      * @ignore
      */
     this.write = function(name, writer, outStream) {
         writer.append("Content-Disposition: form-data; name=\"")
                 .append(name).append("\"");
-        if (filename != null) {
-            writer.append("; filename=\"").append(filename).append("\"");
+        if (fileName != null) {
+            writer.append("; filename=\"").append(fileName).append("\"");
         }
         writer.append(CRLF);
         writer.append("Content-Type: ")
-                .append(URLConnection.guessContentTypeFromName(filename))
+                .append(contentType || URLConnection.guessContentTypeFromName(fileName))
                 .append(CRLF);
         writer.append("Content-Transfer-Encoding: binary").append(CRLF);
         writer.append(CRLF).flush();
