@@ -575,9 +575,9 @@ var put = function(url, data) {
 
 /**
  * @name TextPart
- * @param {String|TextStream} data The data
- * @param {String} charset The charset
- * @param {String} filename An optional file name
+ * @param {String|TextStream} data text data to write
+ * @param {String} charset the charset
+ * @param {String} fileName (optional) file name
  * @returns {TextPart} A newly constructed TextPart instance
  * @constructor
  * @example request({
@@ -585,14 +585,13 @@ var put = function(url, data) {
  *   method: "POST",
  *   contentType: "multipart/form-data",
  *   data: {
- *     "simple": new TextPart(title, "utf-8"),
+ *     "simple": new TextPart("my string", "utf-8"),
  *     "text": new TextPart(textStream, "utf-8"),
- *     "txtFile": new TextPart(txtStream, "utf-8", "test.txt"),
- *     "image": new BinaryPart(binaryStream, "image.png")
+ *     "txtFile": new TextPart(txtStream, "utf-8", "test.txt")
  *   }
  * });
  */
-var TextPart = function(data, charset, filename) {
+var TextPart = function(data, charset, fileName) {
 
     /**
      * Writes this TextPart's data.
@@ -604,8 +603,8 @@ var TextPart = function(data, charset, filename) {
     this.write = function(name, writer, outStream) {
         writer.append("Content-Disposition: form-data; name=\"")
                 .append(name).append("\"");
-        if (filename != null) {
-            writer.append("; filename=\"").append(filename).append("\"");
+        if (fileName != null) {
+            writer.append("; filename=\"").append(fileName).append("\"");
         }
         writer.append(CRLF);
         writer.append("Content-Type: text/plain; charset=")

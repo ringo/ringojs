@@ -610,31 +610,89 @@ exports.testBinaryResponse = function() {
 };
 
 exports.testBinaryPart = function() {
-    let bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "foo.txt", "text/superplain");
+    let bin, result;
     let sw = new java.io.StringWriter();
     let bos = new java.io.ByteArrayOutputStream();
-    bin.write("testname.txt", sw, bos);
 
-    let result = sw.toString().split("\r\n");
-    assert.equal(result[0], "Content-Disposition: form-data; name=\"testname.txt\"; filename=\"foo.txt\"");
-    assert.equal(result[1], "Content-Type: text/superplain");
-    assert.equal(result[2], "Content-Transfer-Encoding: binary");
+    try {
+        bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "foo.txt", "text/superplain");
+        bin.write("testname.txt", sw, bos);
 
-    sw.close();
-    bos.close();
+        result = sw.toString().split("\r\n");
+        assert.equal(result[0], "Content-Disposition: form-data; name=\"testname.txt\"; filename=\"foo.txt\"");
+        assert.equal(result[1], "Content-Type: text/superplain");
+        assert.equal(result[2], "Content-Transfer-Encoding: binary");
+    } finally {
+        sw.close();
+        bos.close();
+    }
 
-    bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "bar.txt");
+    try {
+        bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "bar.txt");
+        sw = new java.io.StringWriter();
+        bos = new java.io.ByteArrayOutputStream();
+        bin.write("paramname", sw, bos);
+
+        result = sw.toString().split("\r\n");
+        assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"; filename=\"bar.txt\"");
+        assert.equal(result[1], "Content-Type: text/plain");
+        assert.equal(result[2], "Content-Transfer-Encoding: binary");
+    } finally {
+        sw.close();
+        bos.close();
+    }
+};
+
+exports.testTextPart = function() {
+    let tp, result;
+    let sw = new java.io.StringWriter();
+    let bos = new java.io.ByteArrayOutputStream();
+
+    try {
+        tp = new TextPart("asdfasdfasdf", "ISO-8859-15", "foo.txt");
+        tp.write("paramname", sw, bos);
+
+        result = sw.toString().split("\r\n");
+        assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"; filename=\"foo.txt\"");
+        assert.equal(result[1], "Content-Type: text/plain; charset=ISO-8859-15");
+    } finally {
+        sw.close();
+        bos.close();
+    }
+
+    let stream = fs.open(module.resolve("./text_test.txt"));
+    let mem = new MemoryStream(1000);
     sw = new java.io.StringWriter();
-    bos = new java.io.ByteArrayOutputStream();
-    bin.write("paramname", sw, bos);
 
-    result = sw.toString().split("\r\n");
-    assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"; filename=\"bar.txt\"");
-    assert.equal(result[1], "Content-Type: text/plain");
-    assert.equal(result[2], "Content-Transfer-Encoding: binary");
+    try {
+        tp = new TextPart(stream, "ISO-8859-15", "foo.txt");
+        tp.write("paramname", sw, mem);
 
-    sw.close();
-    bos.close();
+        result = sw.toString().split("\r\n");
+        assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"; filename=\"foo.txt\"");
+        assert.equal(result[1], "Content-Type: text/plain; charset=ISO-8859-15");
+    } finally {
+        sw.close();
+        mem.close();
+        stream.close();
+    }
+
+    stream = fs.open(module.resolve("./text_test.txt"));
+    mem = new MemoryStream(1000);
+    sw = new java.io.StringWriter();
+
+    try {
+        tp = new TextPart(stream);
+        tp.write("paramname", sw, mem);
+
+        result = sw.toString().split("\r\n");
+        assert.equal(result[0], "Content-Disposition: form-data; name=\"paramname\"");
+        assert.equal(result[1], "Content-Type: text/plain; charset=utf-8");
+    } finally {
+        sw.close();
+        mem.close();
+        stream.close();
+    }
 };
 
 // start the test runner if we're called directly from command line
