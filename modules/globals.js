@@ -503,7 +503,9 @@ Object.defineProperty(this, "global", { value: this });
  * Calling `addToClasspath()` will invoke an `org.ringojs.engine.AppClassLoader`,
  * which is a subclass of `java.net.URLClassLoader`. It checks if the URL has been
  * already loaded and if not, adds it to the resource search path. If the given URL ends
- * with `/`, it will be treated as directory, otherwise it's assumed to refer to a jar file.
+ * with `/`, it will be treated as resource directory, otherwise it's assumed to refer to a .jar file.
+ * .jar files encapsulate various .class files in different packages, whereas resource directories
+ * are the starting point for the JVM's arbitrary .class lookup.
  * The function throws an exception if it could not load a path or if it fails.
  *
  * @param {String|Resource|Repository} path a directory or jar path; or a single resource; or a repository
@@ -512,6 +514,7 @@ Object.defineProperty(this, "global", { value: this });
  * @example // Adds Apache Lucene text search engine to the classpath
  * addToClasspath("../jars/lucene-core.jar");
  * @see <a href="http://ringojs.org/documentation/java_integration">Ringo Java Integration</a>
+ * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/tools/windows/findingclasses.html#sthref6">Java 8 - How Classes are Found</a>
  */
 
 /**
