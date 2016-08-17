@@ -20,6 +20,7 @@ var {InputStream, BufferedOutputStream, OutputStreamWriter, BufferedWriter,
         ByteArrayOutputStream, PrintWriter, OutputStreamWriter} = java.io;
 var {GZIPInputStream, InflaterInputStream} = java.util.zip;
 var {TextStream, MemoryStream} = require("io");
+var {mimeType} = require("ringo/mime");
 var {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
 var {ByteArray} = require("binary");
 var objects = require("ringo/utils/objects");
@@ -658,7 +659,7 @@ var BinaryPart = function(data, fileName, contentType) {
         }
         writer.append(CRLF);
         writer.append("Content-Type: ")
-                .append(contentType || URLConnection.guessContentTypeFromName(fileName))
+                .append(contentType || (fileName != null ? mimeType(fileName) : "application/octet-stream"))
                 .append(CRLF);
         writer.append("Content-Transfer-Encoding: binary").append(CRLF);
         writer.append(CRLF).flush();
