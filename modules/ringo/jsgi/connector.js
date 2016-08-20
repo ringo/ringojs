@@ -69,9 +69,10 @@ function initRequest(request) {
             return input;
         },
         set: function(stream) {
-            if (stream instanceof Stream) {
-               input = stream;
+            if (!stream instanceof Stream) {
+               throw new Error("Input must be a Stream!");
             }
+            input = stream;
         },
         enumerable: true
     });
