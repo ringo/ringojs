@@ -10,7 +10,7 @@ large-scale application development:
   * A fast, auto-reloading, and CommonJS-compliant module loader.
   * A rich set of modules covering I/O, logging, development tools
     and much more.
-  * Support for blocking and none-blocking I/O.
+  * Support for blocking and non-blocking I/O.
   * Scalable HTTP server based on the Jetty project.
   * Support for CommonJS packages to install or write additional software
     components.
