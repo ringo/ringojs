@@ -176,27 +176,24 @@
 
    END OF TERMS AND CONDITIONS
 
-   APPENDIX: How to apply the Apache License to your work.
+   --- APPENDIX ---
 
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
+   Parts of RingoJS may use other compatible open source licenses.
+   These are:
 
-   Copyright [yyyy] [name of copyright owner]
+   * node-clone (MIT)
+     Copyright (C) 2011-2016 Paul Vorbach and contributors.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+   * base64 (free/MIT)
+     Copyright (C) 1999 Masanao Izumo "free"
+     Kris Kowal Copyright (C) 2009-2010 MIT
+     Christoph Dorn / Hannes Wallnoefer for RingoJS
 
-       http://www.apache.org/licenses/LICENSE-2.0
+   * Email RegExp in ringo/utils/strings (MIT)
+     Copyright (c) Scott Gonzalez
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+   * URL RegExp in ringo/utils/strings (MIT)
+     Copyright (c) 2010-2013 Diego Perini
+
+   * Integer validation in ringo/utils/strings (MIT)
+     Copyright (c) 2014 Chris O'Hara

@@ -503,22 +503,22 @@ exports.testProxiedRequest = function() {
 };
 
 exports.testIterateExchange_Issue287 = function() {
-   //exchange.headers
-   var text = "<h1>This is the Response Text</h1>";
+    //exchange.headers
+    var text = "<h1>This is the Response Text</h1>";
 
-   getResponse = function(req) {
-      return response.html(text);
-   };
+    getResponse = function(req) {
+        return response.html(text);
+    };
 
-   var errorCalled, myData;
-   var exchange = request({
-      url: baseUri
-   });
-   assert.strictEqual(exchange.content, text);
+    var errorCalled, myData;
+    var exchange = request({
+        url: baseUri
+    });
+    assert.strictEqual(exchange.content, text);
 
-   var clone = objects.clone(exchange.headers);
-   assert.deepEqual(exchange.headers, clone);
-   assert.isUndefined(exchange.headers[null]);
+    var clone = objects.clone(exchange.headers, false, 0);
+    assert.deepEqual(exchange.headers, clone);
+    assert.isUndefined(exchange.headers[null]);
 };
 
 exports.testTimeoutResponse_Issue267 = function() {
