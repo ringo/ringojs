@@ -8,6 +8,8 @@ var {MemoryStream, TextStream} = require("io");
 var fs = require("fs");
 var base64 = require("ringo/base64");
 var {ByteArray, ByteString} = require("binary");
+var {ByteArrayOutputStream} = java.io;
+var {GZIPOutputStream, DeflaterOutputStream} = java.util.zip;
 
 var server;
 var host = "127.0.0.1";
@@ -330,6 +332,58 @@ exports.testStreamRequest = function() {
     assert.strictEqual(exchange.contentBytes.length, inputByteArray.length);
     assert.deepEqual(exchange.contentBytes.toArray(), inputByteArray.toArray());
     assert.strictEqual(exchange.contentType, "image/png");
+};
+
+exports.testContentDecoding = function() {
+    var unzipped = "abcdefghijklmnop";
+
+    var compress = function(CompressorOutputStream) {
+        var bos = new ByteArrayOutputStream();
+        var cos = new CompressorOutputStream(bos, true);
+        cos.write(unzipped.toByteArray());
+        cos.finish();
+        var bytes = ByteArray.wrap(bos.toByteArray());
+        cos.close();
+        return bytes;
+    };
+    
+    var compressions = [
+        {
+            encodings: ['deflate', 'dEfLaTe'],
+            CompressorOutputStream: DeflaterOutputStream
+        },
+        {
+            encodings: ['gzip', 'gZiP'],
+            CompressorOutputStream: GZIPOutputStream
+        }
+    ];
+
+    for each (let {encodings, CompressorOutputStream} in compressions) {
+        let compressed = compress(CompressorOutputStream);
+        for each (let encoding in encodings) {
+            getResponse = function(req) {
+                return {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'image/png',
+                        'Content-Encoding': encoding
+                    },
+                    body: {
+                        forEach: function(fn) {
+                            return fn(compressed);
+                        }
+                    }
+                };
+            };
+
+            let exchange = request({
+                url: baseUri,
+                method: 'GET'
+            });
+            assert.isNotNull(exchange, 'Content-Encoding: ' + encoding);
+            assert.strictEqual(exchange.content, unzipped, 'Content-Encoding: ' + encoding);
+        }
+    }
 };
 
 exports.testPost = function() {

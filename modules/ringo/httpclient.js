@@ -223,9 +223,9 @@ var readResponse = function(connection) {
         }
         var encoding = connection.getContentEncoding();
         if (encoding != null) {
-            if (encoding === "gzip") {
+            if (encoding.equalsIgnoreCase("gzip")) {
                 inStream = new GZIPInputStream(inStream);
-            } else if (encoding === "deflate") {
+            } else if (encoding.equalsIgnoreCase("deflate")) {
                 inStream = new InflaterInputStream(inStream);
             }
         }
