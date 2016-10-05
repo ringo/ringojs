@@ -68,6 +68,12 @@ function initRequest(request) {
                 input = new Stream(request.env.servletRequest.getInputStream());
             return input;
         },
+        set: function(stream) {
+            if (!stream instanceof Stream) {
+               throw new Error("Input must be a Stream!");
+            }
+            input = stream;
+        },
         enumerable: true
     });
     Object.defineProperty(request.jsgi, "errors", {
