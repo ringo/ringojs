@@ -22,7 +22,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="ringojs"/>
-        <property name="version" value="0.12"/>
+        <property name="version" value="1.0.0"/>
 
         <!-- javac default targets for cross compilation on newer JDKs -->
         <property name="ant.build.javac.source" value="1.8"/>
