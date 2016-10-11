@@ -79,7 +79,7 @@ function fixAppEngineDirs(dest) {
 function copyJars(home, dest, symlink) {
     var jars = [
         "ringo-core.jar",
-        "ivy/rhino-1.7.7.jar"
+        "ivy/rhino-1.7.7.1.jar"
     ];
     var libsrc = join(home, "lib");
     var libdest = join(dest, "WEB-INF", "lib");
