@@ -323,26 +323,31 @@ function setCookie(key, value, days, options) {
         // remove newline chars to prevent response splitting attack as value may be user-provided
         value = value.replace(/[\r\n]/g, "");
     }
-    var buffer = new Buffer(key, "=", value);
+    let buffer = new Buffer(key, "=", value);
 
     if (days !== undefined) {
-        var expires;
-        if (typeof days == "number" && days > -1) {
-            expires = days == 0 ?
-                new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
-        } else if (days instanceof Date) {
+        let expires;
+        if (typeof days == "number" && !Number.isNaN(days)) {
+            if (days > -1) {
+                expires = days == 0 ?
+                    new Date(0) : new Date(Date.now() + days * 1000 * 60 * 60 * 24);
+            }
+        } else if (days instanceof Date && !Number.isNaN(days.getTime())) {
             expires = days;
         } else {
-            throw new Error("Invalid expiration date! ", days);
+            throw new Error("Invalid cookie expiration date!");
         }
-        buffer.write("; Expires=");
-        buffer.write(dates.format(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT"));
+
+        if (expires !== undefined) {
+            buffer.write("; Expires=");
+            buffer.write(dates.format(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz", "en", "GMT"));
+        }
     }
     options = options || {};
     if (options.path && (typeof options.path !== "string" || PATH_CTL.matcher(options.path).find())) {
         throw new Error("Cookie path not a string or contains CTL characters (%x00-1F;%x7F)");
     }
-    var path = options.path || "/";
+    let path = options.path || "/";
     buffer.write("; Path=", encodeURI(path));
     if (options.domain) {
         buffer.write("; Domain=", options.domain.toLowerCase());

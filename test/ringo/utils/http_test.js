@@ -184,6 +184,13 @@ exports.testSetCookie = function() {
     assert.equal(headerStr.indexOf(" GMT;"), 42, "Timezone information missing! " + headerStr);
     assert.isTrue(strings.endsWith(headerStr, "; Path=/"), "Cookie must end with path!");
 
+    // expires -1
+    assert.equal(http.setCookie("foo", "bar", -1), "foo=bar; Path=/");
+
+    assert.throws(function() {
+        http.setCookie("foo", "bar", new Date("asdfasdfasdfsdfasdf"));
+    });
+
     assert.throws(function() {
         http.setCookie("foo", "bar", "invalid");
     });
