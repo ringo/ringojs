@@ -300,11 +300,11 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Resolve `path` relative to this module. The resolving itself is equivalent to calling [require](#require)
- * with a strict relative path starting with `'./'`. If an absolute path is provided as argument, the function
+ * Resolve `path` relative to this module. Resolving itself is equivalent to calling [require](#require)
+ * with a strict relative path starting with `'./'`. If an absolute path is provided, the function
  * will still resolve relative to the current module and never to the filesystem root.
  *
- * This returns an absolute path if the current module is located inside a regular file repository.
+ * `module.resolve()` returns an absolute path if the current module is located inside a regular file repository.
  * For other types of modules such as those residing in a .jar file it returns
  * a relative path relative to the module's module path root.
  *
