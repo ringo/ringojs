@@ -300,10 +300,11 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * Resolve `path` relative to this module, like when calling [require](#require)
- * with a `moduleId` starting with `'./'` or '`../`'.
+ * Resolve `path` relative to this module. The resolving itself is equivalent to calling [require](#require)
+ * with a strict relative path starting with `'./'`. If an absolute path is provided as argument, the function
+ * will still resolve relative to the current module and never to the filesystem root.
  *
- * This returns an absolute path if the current module is a regular file.
+ * This returns an absolute path if the current module is located inside a regular file repository.
  * For other types of modules such as those residing in a .jar file it returns
  * a relative path relative to the module's module path root.
  *
@@ -311,6 +312,11 @@ Object.defineProperty(this, "global", { value: this });
  * @return {String} the resolved path
  * @name module.resolve
  * @function
+ * @example // current module is located at /usr/local/a/b/module.js
+ * module.resolve('.')          // -> /usr/local/a/b/
+ * module.resolve('./other.js') // -> /usr/local/a/b/other.js
+ * module.resolve('../c/d')     // -> /usr/local/a/c/d
+ * module.resolve('/etc/hosts') // -> /usr/local/a/b/etc/hosts
  */
 
 /**
