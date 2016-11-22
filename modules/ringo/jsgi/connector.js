@@ -151,8 +151,15 @@ function writeBody(response, body, charset) {
  * both synchronously from the current thread or asynchronously from another thread,
  * even after the original thread has finished execution. AsyncResponse objects are
  * threadsafe.
+ *
+ * To enable async support inside a Servlet 3.0+ container, an additional
+ * <code>&lt;async-supported&gt;true&lt;/async-supported&gt;</code> element in
+ * the <code>web.xml</code> deployment descriptor might be required.
+ * This indicates that Ringo's JsgiServlet supports asynchronous request processing.
+ *
  * @param {Object} request the JSGI request object
  * @param {Number} timeout the response timeout in milliseconds. Defaults to 30 seconds.
+ * @see <a href="http://download.oracle.com/otndocs/jcp/servlet-3.0-fr-oth-JSpec/">Servlet 3.0 specification - &lt;async-supported&gt;</a>
  */
 function AsyncResponse(request, timeout) {
     if (!request || !request.env) {
