@@ -1,8 +1,8 @@
 {
     "name": "httpserver",
-    "version": "0.1alpha1",
+    "version": "0.1",
     "author": "Robert Gaggl <robert@nomatic.org>",
-    "description": "An experimental alternative to the built-in RingoJS httpserver module, based on Eclipse Jetty as well",
+    "description": "An alternative to the built-in RingoJS httpserver module, based on Eclipse Jetty as well",
     "keywords": ["ringo", "httpserver", "http", "https", "jetty"],
     "bugs": "http://github.com/grob/httpserver/issues",
     "licenses": [{
@@ -13,6 +13,8 @@
         "type": "git",
         "url": "https://github.com/grob/httpserver.git"
     }],
-    "engine": "rhino",
+    "engines": {
+        "ringojs": ">= 0.12"
+    },
     "main": "./lib/main"
 }
