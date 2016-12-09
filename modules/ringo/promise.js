@@ -172,6 +172,30 @@ function Deferred() {
  *
  * @param {Promise...} promise... any number of promise arguments.
  * @constructor
+ * @example
+ * // --- sample output ---
+ * // Done!
+ * // { value: 'i am ok' }
+ * // { value: 1 }
+ * // { error: 'some error' }
+ *
+ * let d1 = Deferred(), d2 = Deferred(), d3 = Deferred();
+ *
+ * // PromiseList accepts a promise or deferred object
+ * let list = PromiseList(d1.promise, d2, d3);
+ *
+ * list.then(function(results) {
+ *   console.log("Done!");
+ *   results.forEach(function(result) {
+ *     console.dir(result);
+ *   });
+ * }, function(error) {
+ *    console.error("Error :-(");
+ * });
+ *
+ * d2.resolve(1);
+ * d3.resolve("some error", true);
+ * d1.resolve("i am ok");
  */
 function PromiseList(args) {
     var promises = Array.isArray(args) ? args : Array.prototype.slice.call(arguments);
