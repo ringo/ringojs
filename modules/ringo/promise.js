@@ -21,17 +21,32 @@ var FAILED = 2;
  *
  * @constructor
  * @example
- * // Example for an asynchronous JSGI response.
- * // The response is generated after a one second delay.
- * exports.asyncAction = function(request) {
- *   var response = new Deferred();
+ * // --- sample output ---
+ * // getDeferredValue() ...
+ * // getDeferredValue() finished after 396 ms
+ * // Resolved promise, got foo
+ * // Total time:  2400 ms
+ *
+ * const getDeferredValue = function () {
+ *   const deferred = new Deferred();
  *   setTimeout(function() {
- *       response.resolve({
- *           status: 200, headers: {}, body: ["Delayed"]
- *       });
- *   }, 1000);
- *   return response.promise;
- * }
+ *     deferred.resolve("foo");
+ *   }, 2000);
+ *
+ *   return deferred;
+ * };
+ *
+ * const start = Date.now();
+ * console.log("getDeferredValue() ... ");
+ *
+ * const def = getDeferredValue();
+ * console.log("getDeferredValue() finished after",
+ *   Date.now() - start, "ms");
+ *
+ * def.promise.then(function(value) {
+ *   console.log("Resolved promise, got", value);
+ *   console.log("Total time: ", Date.now() - start, "ms");
+ * });
  */
 function Deferred() {
     var value;
