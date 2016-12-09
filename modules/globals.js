@@ -471,6 +471,12 @@ Object.defineProperty(this, "global", { value: this });
  * > resource.getUrl();
  * [java.net.URL file:/usr/local/httpd/htdocs/someFile.xml]
  * >
+ * > resource.getBaseName();
+ * someFile
+ * >
+ * > resource.exists();
+ * true
+ * >
  * > // read the content
  * > resource.getContent();
  * '&lt;?xml version="1.0" encoding="UTF-8"?> ...
