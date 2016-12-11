@@ -18,14 +18,14 @@ For more information, visit the RingoJS web site: <http://ringojs.org/>
 
 ## Download and Installation
 
-This is the recommended and straight forward way to install Ringo. Download the latest precompiled release from the [download page](http://ringojs.org/download/). For convinience, you should add the `/bin` directory to your local `PATH`.
+Download the latest precompiled release from the [download page](http://ringojs.org/download/). Extract the archive and add the `ringojs/bin` directory to your local `PATH` for convinience.
 
 If you use the Homebrew package manager on MacOS, you can use the ringojs formula: `brew install ringojs`
 
 ### Verify Releases
 Releases of RingoJS will be signed with one of the following GPG keys:
 
-* Philipp Naderer <philipp.naderer@gmail.com> `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
+* Philipp Naderer &lt;philipp.naderer@gmail.com&gt; `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
 
 ## Building from Source
 
