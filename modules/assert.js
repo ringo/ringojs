@@ -1,12 +1,16 @@
 /**
  * @fileOverview Assertion library for unit testing.
  * It implements the [CommonJS Unit Testing](http://wiki.commonjs.org/wiki/Unit_Testing/1.0)
- * specification and adds some additional convenience methods.
+ * specification and adds some additional convenience methods. All methods allow an additional
+ * argument: `comment`. This comment will be appended to the error message if an assertion fails.
  *
- * @example var assert = require('assert');
+ * @example const assert = require("assert");
  * assert.deepEqual({b: 2, a: 1}, {a: 1, b: 2});
+ * assert.deepEqual({b: 2, a: 1}, {a: 1, b: 2}, "optional comment");
  * assert.isFalse(100 != 100);
+ * assert.isFalse(100 != 100, "optional comment");
  * assert.isNotNull(undefined);
+ * assert.isNotNull(undefined, "optional comment");
  *
  * @see The <code><a href="../test/index.html">test</a></code> module is a test runner for unit tests.
  * It manages the execution of tests and provides the outcome to the user.
