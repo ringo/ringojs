@@ -1,5 +1,4 @@
-RingoJS
-=======
+# RingoJS
 
 Ringo is a JavaScript platform built on the JVM and optimized for server-side applications.
 It's based on the Mozilla Rhino JavaScript engine.
@@ -17,8 +16,18 @@ large-scale application development:
 
 For more information, visit the RingoJS web site: <http://ringojs.org/>
 
-Building RingoJS
-----------------
+## Download and Installation
+
+This is the recommended and straight forward way to install Ringo. Download the latest precompiled release from the [download page](http://ringojs.org/download/). For convinience, you should add the `/bin` directory to your local `PATH`.
+
+If you use the Homebrew package manager on MacOS, you can use the ringojs formula: `brew install ringojs`
+
+### Verify Releases
+Releases of RingoJS will be signed with one of the following GPG keys:
+
+* Philipp Naderer <philipp.naderer@gmail.com> `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
+
+## Building from Source
 
 ![Current Build Status on Codeship](https://codeship.com/projects/b5d80b20-15d7-0134-6e68-2e1718fe265e/status?branch=master)
 
@@ -48,8 +57,7 @@ Run the `docs` task to build the documentation:
 
     ant docs
 
-Running RingoJS
----------------
+## Running RingoJS
 
 It is recommended but not strictly required to add the ringojs bin directory to
 your PATH environment variable. If you don't you'll have to type the full path
@@ -73,8 +81,7 @@ To install a package from a zip URL:
 
     ringo-admin install [packageurl]
 
-Installing a package manager
-----------------------------
+## Installing a package manager
 
 Ringo does not ship with a built-in package manager.
 An easy way to manage packages and their dependencies is the evolving Ringo package manager rp.
@@ -87,8 +94,7 @@ To install rp itself you can use the ringo-admin tool:
 
 For more information visit the [rp documentation wiki](https://github.com/grob/rp/wiki).
 
-Learning more
--------------
+## Learning more
 
 If you have questions visit <http://ringojs.org/> or join the mailing
 list at <http://groups.google.com/group/ringojs>.
