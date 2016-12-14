@@ -441,7 +441,7 @@ public class RingoRunner {
 
     public static void printVersion() {
         out.print("RingoJS version ");
-        out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1));
+        out.println(RhinoEngine.VERSION.get(0) + "." + RhinoEngine.VERSION.get(1) + "." + RhinoEngine.VERSION.get(2));
     }
 
 }
