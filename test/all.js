@@ -19,6 +19,7 @@ exports.testBinary         = require('./binary/all');
 exports.testRepository     = require('./repository/all');
 exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
+exports.testSingletons     = require('./singletons/all');
 
 // Also include integration tests
 exports.testIntegration    = require('./integration-tests/all');
