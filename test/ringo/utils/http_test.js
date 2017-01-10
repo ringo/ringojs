@@ -377,6 +377,42 @@ exports.testRangeParser = function() {
     assert.isNull(http.parseRange("some=0-123-499,0-10", 10000));
 };
 
+exports.testCanonicalRanges = function() {
+    // invalid inputs
+    assert.throws(function() { http.canonicalRanges([]); });
+    assert.throws(function() { http.canonicalRanges([1,2,3]); });
+    assert.throws(function() { http.canonicalRanges([[1]]); });
+    assert.throws(function() { http.canonicalRanges([[1,2,3]]); });
+    assert.throws(function() { http.canonicalRanges([[0,100], [1]]); });
+    assert.throws(function() { http.canonicalRanges([[1], [0,100]]); });
+    assert.throws(function() { http.canonicalRanges([[0, "b"]]); });
+    assert.throws(function() { http.canonicalRanges([["a", 100]]); });
+    assert.throws(function() { http.canonicalRanges([["a", "b"]]); });
+
+    // invalid ranges
+    assert.throws(function() { http.canonicalRanges([[-1, 0]]); });
+    assert.throws(function() { http.canonicalRanges([[0, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[2, 1]]); });
+    assert.throws(function() { http.canonicalRanges([[2, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[-1, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[1.5, 2]]); });
+    assert.throws(function() { http.canonicalRanges([[0, 1.5]]); });
+
+    // simple
+    assert.deepEqual(http.canonicalRanges([[0,100]]), [[0, 100]]); // nothing to do
+    assert.deepEqual(http.canonicalRanges([[0,100], [150, 200]]), [[0, 100], [150, 200]]); // nothing to do
+    assert.deepEqual(http.canonicalRanges([[0,200], [50, 200]]), [[0, 200]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,100], [50, 200]]), [[0, 200]]); // overlapping
+
+    // more complex
+    assert.deepEqual(http.canonicalRanges([[0,200], [50, 200], [200, 250], [245, 300]]), [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[245, 300], [200, 250], [50, 200],[0,200]]),  [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[50, 200], [245, 300], [200, 250], [0,200]]), [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,400], [50, 200], [200, 250], [245, 300]]), [[0, 400]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,100], [50, 200], [400,400], [401,401]]), [[0, 200], [400,401]]); // overlapping
+    assert.deepEqual(http.canonicalRanges([[0,4], [90,99], [5,75], [100,199], [101,102]]), [[0, 75], [90,199]]); // overlapping
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

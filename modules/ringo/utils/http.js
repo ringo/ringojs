@@ -23,7 +23,7 @@ if (java.lang.System.getProperty("com.google.appengine.runtime.version") == null
 
 export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
         'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
-        'parseFileUpload', 'parseRange', 'BufferFactory', 'TempFileFactory');
+        'parseFileUpload', 'parseRange', 'canonicalRanges', 'BufferFactory', 'TempFileFactory');
 
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -769,6 +769,75 @@ function parseRange(rangeStr, size) {
     } catch (e) {
         return null;
     }
+}
+
+/**
+ * Creates the canonical form of a range array.
+ * @param {Array} ranges array in the form <code>[[startOffset, endOffset], ...]</code>; offsets start at zero
+ * @returns {Array} the input array in the canonical form without overlapping ranges
+ * @example // returns [[0,100], [150, 200]]
+ * canonicalRanges([[0,100], [150, 200]]);
+ *
+ * // returns [[0,200]]
+ * canonicalRanges([[0,100], [50, 200]]);
+ *
+ * // returns [[0, 300]]
+ * canonicalRanges([[0,200], [50, 200], [200, 250], [245, 300]]);
+ */
+function canonicalRanges(ranges) {
+    if (!Array.isArray(ranges) || ranges.length === 0) {
+        throw new Error("Ranges must be an array of at least one range!");
+    }
+
+    const validRanges = ranges.every(function(range) {
+        return Array.isArray(range) && range.length == 2 && range[0] >= 0 && range[1] >= 0
+            && range[0] <= range[1] && Number.isInteger(range[0]) && Number.isInteger(range[1]);
+    });
+    if (!validRanges) {
+        throw new Error("Ranges are not in the form [start, end] or contain invalid offsets!");
+    }
+
+    const sortedByStart = ranges.sort(function(a, b) {
+        return a[0] - b[0];
+    });
+
+    const resultStack = [];
+    resultStack.push(sortedByStart.shift());
+
+    sortedByStart.forEach(function(range, index) {
+        const stackPointer = resultStack.length - 1;
+        const highestRangeOnStack = resultStack[stackPointer];
+
+        // does the current range end after the highest one?
+        if (range[0] > highestRangeOnStack[1]) {
+            // do we have subsequent ranges?
+            // |----last----|++++++++++++v
+            //              |---range----|
+            if (highestRangeOnStack[1] + 1 === range[0]) {
+                // extend
+                highestRangeOnStack[1] = range[1];
+            } else {
+                // |----last----|
+                //                 |---range----|
+                resultStack.push(range);
+            }
+        } else {
+            // we have overlapping starts
+            // do we have included ranges?
+            // |-----last---------------|
+            //      |----range----|
+            if (range[1] <= highestRangeOnStack[1]) {
+                return; // do nothing
+            } else {
+                // we must extend the latest range on the stack
+                // |-----last-------|+++++++v
+                //              |---range---|
+                highestRangeOnStack[1] = range[1];
+            }
+        }
+    });
+
+    return resultStack;
 }
 
 /**
