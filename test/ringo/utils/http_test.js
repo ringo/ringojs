@@ -315,6 +315,68 @@ exports.testHeadersMultipleNames = function() {
     assert.equal(obj.get("multiple"), "first,second,third", "Multiple headers not merged!");
 };
 
+exports.testRangeParser = function() {
+    assert.throws(function() {http.parseRange("bytes=0-499");});
+    assert.deepEqual(http.parseRange("bytes=0-499", 500), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=0-500", 500), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=0-1500", 500), [[0,499]]);
+
+    // from the RFC
+    assert.deepEqual(http.parseRange("bytes=0-499", 10000), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=500-999", 10000), [[500,999]]);
+    assert.deepEqual(http.parseRange("bytes=500-999,0-499", 10000), [[500,999],[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=-500", 10000), [[9500,9999]]);
+    assert.deepEqual(http.parseRange("bytes=9500-", 10000), [[9500,9999]]);
+    assert.deepEqual(http.parseRange("bytes=0-0,-1", 10000), [[0,0], [9999,9999]]);
+    assert.deepEqual(http.parseRange("bytes=500-600,601-999", 10000), [[500,600], [601,999]]);
+    assert.deepEqual(http.parseRange("bytes=500-700,601-999", 10000), [[500,700], [601,999]]);
+
+    // invalid ranges
+    assert.isNull(http.parseRange("bytes", 10000));
+    assert.isNull(http.parseRange("bytes 0-100", 10000));
+    assert.isNull(http.parseRange("bytes=", 10000));
+    assert.isNull(http.parseRange("bytes=--499", 10000));
+    assert.isNull(http.parseRange("bytes=0--499", 10000));
+    assert.isNull(http.parseRange("bytes=-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-123-499", 10000));
+    assert.isNull(http.parseRange("=0-123-499", 10000));
+    assert.isNull(http.parseRange("0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-123", 10000));
+    assert.isNull(http.parseRange("=0-123", 10000));
+    assert.isNull(http.parseRange("0-123", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-10,0-123-499", 10000));
+    assert.isNull(http.parseRange("bytes=,", 10000));
+    assert.isNull(http.parseRange("bytes=,--499", 10000));
+    assert.isNull(http.parseRange("bytes=,0--499", 10000));
+    assert.isNull(http.parseRange("bytes=,-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=,-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=,-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=,0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=,0-123-499", 10000));
+    assert.isNull(http.parseRange("some=,0-123-499", 10000));
+    assert.isNull(http.parseRange("bytes=,", 10000));
+    assert.isNull(http.parseRange("bytes=--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-0--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-0-499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-1-499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0-499-,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0-123-499,0-10", 10000));
+    assert.isNull(http.parseRange("some=0-123-499,0-10", 10000));
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

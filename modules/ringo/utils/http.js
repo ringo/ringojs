@@ -23,7 +23,7 @@ if (java.lang.System.getProperty("com.google.appengine.runtime.version") == null
 
 export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
         'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
-        'parseFileUpload', 'BufferFactory', 'TempFileFactory');
+        'parseFileUpload', 'parseRange', 'BufferFactory', 'TempFileFactory');
 
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -679,6 +679,96 @@ function parseFileUpload(request, params, encoding, streamFactory) {
         }
     }
     return params;
+}
+
+/**
+ * Parses the HTTP header and returns a list of ranges to serve. Returns an array of range arrays,
+ * iff a valid byte range has been requested, <code>null</code> otherwise.
+ * @param {String} rangeStr value of the <code>Range</code> header field
+ * @param {Number} size length of the requested data in bytes
+ * @see <a href="http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7233.html">RFC 7233 - HTTP/1.1 Range Requests</a>
+ * @returns {Array} parsed ranges as array in the form <code>[[startOffset, endOffset], ...]</code>; offsets start at zero
+ * @example // returns [[0,499]]
+ * parseRange("bytes=0-499", 10000);
+ *
+ * // returns [[500,999], [0,499]]
+ * parseRange("bytes=500-999,0-499", 10000);
+ *
+ * // returns [[9500,9999]]
+ * parseRange("bytes=-500", 10000);
+ */
+function parseRange(rangeStr, size) {
+    if (typeof rangeStr !== "string") {
+        throw new Error("Could not parse range, must be a string, but is " + typeof rangeStr);
+    } else if (!Number.isInteger(size) || size < 0) {
+        throw new Error("Could not parse range, invalid size: " + size);
+    }
+
+    const rangeSpecifier = rangeStr.split("=");
+    if (rangeSpecifier.length !== 2) {
+        return null;
+    }
+
+    // HTTP Range Unit Registry only allows bytes at the moment
+    // http://www.iana.org/assignments/http-parameters/http-parameters.xhtml#range-units
+    if (rangeSpecifier[0] !== "bytes") {
+        return null;
+    }
+
+    const byteRangeSet = rangeSpecifier[1];
+
+    // a byte range has at least 2 characters, since you cannot address a single byte directly without
+    // using a suffix-spec range
+    if (byteRangeSet.length <= 1) {
+        return null;
+    }
+
+    try {
+        const rangeSpecs = byteRangeSet.split(",");
+        return rangeSpecs.map(function (rangeSpec) {
+            const rangeParts = rangeSpec.split("-");
+            if (rangeParts.length !== 2) {
+                throw new Error("Invalid range");
+            }
+
+            let start = parseInt(rangeParts[0], 10);
+            let end = parseInt(rangeParts[1], 10);
+
+            if (rangeParts[0] === "" && !isNaN(end)) {
+                if (end <= 0) {
+                    throw new Error("Invalid range");
+                }
+
+                // https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-21.html#byte.ranges
+                // A suffix-byte-range-spec is used to specify the suffix of the representation data,
+                // of a length given by the suffix-length value.
+                start = Math.max(0, size - end);
+                end = size - 1;
+            } else if (!isNaN(start) && rangeParts[1] === "") {
+                if (start < 0) {
+                    throw new Error("Invalid range");
+                }
+
+                // https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-21.html#byte.ranges
+                // If the last-byte-pos value is absent, or if the value is greater than or equal to the
+                // current length of the representation data, last-byte-pos is taken to be equal to
+                // one less than the current length of the representation in bytes.
+                end = size - 1;
+            } else if (!isNaN(start) && !isNaN(end) && start >= 0 && start <= end) {
+                // if the value is greater than or equal to the current length of the representation data,
+                // last-byte-pos is taken to be equal to one less than the current length of the representation in bytes
+                if (end >= size) {
+                    end = size - 1;
+                }
+            } else {
+                throw new Error("Invalid range");
+            }
+
+            return [start, end];
+        });
+    } catch (e) {
+        return null;
+    }
 }
 
 /**
