@@ -158,7 +158,9 @@ function writeBody(response, body, charset) {
  * This indicates that Ringo's JsgiServlet supports asynchronous request processing.
  *
  * @param {Object} request the JSGI request object
- * @param {Number} timeout the response timeout in milliseconds. Defaults to 30 seconds.
+ * @param {Number} timeout time in milliseconds in which the async operation has to be completed;
+ *                 otherwise the request is aborted by the Servlet container.
+ *                 A negative value lets the async operation never time out. Defaults to 30 seconds.
  * @see <a href="http://download.oracle.com/otndocs/jcp/servlet-3.0-fr-oth-JSpec/">Servlet 3.0 specification - &lt;async-supported&gt;</a>
  */
 function AsyncResponse(request, timeout) {
