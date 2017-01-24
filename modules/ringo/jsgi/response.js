@@ -4,8 +4,16 @@
  */
 
 var {merge} = require("ringo/utils/objects");
+var {parseRange, canonicalRanges} = require("ringo/utils/http");
 var {mimeType} = require("ringo/mime");
 var {MemoryStream, Stream} = require("io");
+var {AsyncResponse} = require("./connector");
+
+const BOUNDARY = new ByteString("THIS_STRING_SEPARATES", "ASCII");
+const HYPHEN  = new ByteString("-", "ASCII");
+const CR = new ByteString("\r", "ASCII");
+const CRLF = new ByteString("\r\n", "ASCII");
+const EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 
 /**
  * A wrapper around a JSGI response object. `JsgiResponse` is chainable.
@@ -541,4 +549,135 @@ exports.static = function (resource, contentType) {
             }
         }
     };
+};
+
+/**
+ * An async response representing a resource as a single or multiple part response.
+ * Multiple or overlapping byte ranges are coalesced into a canonical response range.
+ *
+ * @param {Object} request a JSGI request object
+ * @param {String|Resource|Stream} representation path of a file as string, a resource, or a readable <a href="../../../io/">io.Stream</a>
+ * @param {Number} size optional size of the resource in bytes, -1 indicates an unknown size.
+ * @param {String} contentType optional content type to send for single range responses
+ * @param {Number} timeout optional timeout to send back the ranges, -1 indicates an infinite timeout.
+ * @param {Number} maxRanges optional maximum number of ranges in a request, defaults to 20. Similar to Apache's <code>MaxRanges</code> directive.
+ * @returns {AsyncResponse} async response filled with the give ranges
+ * @see <a href="https://tools.ietf.org/html/rfc7233">RFC 7233 - Range Requests</a>
+ * @see <a href="https://tools.ietf.org/html/rfc7233#section-6">Range Requests - Security Considerations</a>
+ */
+exports.range = function (request, representation, size, contentType, timeout, maxRanges) {
+    // this would be an application error --> throw an exception
+    if (!request || !request.headers || !request.headers["range"]) {
+        throw new Error("Request is not a range request!");
+    }
+
+    // only GET is allowed
+    // https://tools.ietf.org/html/rfc7233#section-3.1
+    if (request.method !== "GET") {
+        return new JsgiResponse().setStatus(400).text("Method not allowed.");
+    }
+
+    let stream;
+    if (typeof representation == "string") {
+        const repResource = getResource(representation);
+        if (!repResource.exists()) {
+            throw new Error("Resource does not exist, cannot load a representation to read.");
+        }
+        if (size == null && repResource.getLength != null) {
+            size = repResource.getLength();
+        }
+        stream = new Stream(repResource.getInputStream());
+    } else if (representation instanceof org.ringojs.repository.Resource) {
+        stream = new Stream(representation.getInputStream());
+        if (size == null && representation.getLength != null) {
+            size = representation.getLength();
+        }
+    } else if (representation instanceof Stream) {
+        stream = representation;
+    } else {
+        throw new Error("Invalid representation! Must be a path to a file, a resource, or a stream.");
+    }
+
+    if (!stream.readable() || !stream.seekable()) {
+        throw new Error("Stream must be readable and seekable!");
+    }
+
+    contentType = contentType || "application/octet-stream";
+    maxRanges = (maxRanges != null && Number.isSafeInteger(maxRanges) && maxRanges >= 0 ? maxRanges : 20);
+
+    // returns the raw ranges; might be overlapping / invalid
+    let ranges = parseRange(request.headers["range"], size);
+    if (ranges == null || ranges.length === 0 || ranges.length > maxRanges) {
+        return new JsgiResponse().setStatus(416).text("Invalid Range header!");
+    }
+
+    // make ranges canonical and check their validity
+    // https://tools.ietf.org/html/rfc7233#section-4.3
+    try {
+        ranges = canonicalRanges(ranges);
+    } catch (e) {
+        console.log(e);
+        let invalidRangeResponse = new JsgiResponse().setStatus(416).text("Range Not Satisfiable");
+        if (size != null) {
+            invalidRangeResponse.addHeaders({
+                "Content-Range": "bytes */" + size
+            });
+        }
+        return invalidRangeResponse;
+    }
+
+    // check if range can be fulfilled
+    if(size != null && ranges[ranges.length - 1][1] > size) {
+        return new JsgiResponse().setStatus(416).addHeaders({
+            "Content-Range": "bytes */" + size
+        }).text("Range Not Satisfiable");
+    }
+
+    const headers = {};
+    if (ranges.length > 1) {
+        headers["Content-Type"] = "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII");
+    } else {
+        headers["Content-Type"] = contentType;
+        headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
+    }
+
+    const response = new AsyncResponse(request, timeout);
+    response.start(206, headers);
+
+    spawn(function() {
+        let currentBytePos = 0;
+        ranges.forEach(function(range, index, arr) {
+            const [start, end] = range;
+            const num = end - start + 1;
+
+            stream.skip(start - currentBytePos);
+            if (arr.length > 1) {
+                if (index > 0) {
+                    response.write(CRLF);
+                }
+                response.write(HYPHEN);
+                response.write(HYPHEN);
+                response.write(BOUNDARY);
+                response.write(CRLF);
+                response.write("Content-Type: " + contentType);
+                response.write(CRLF);
+                response.write("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"));
+                response.write(EMPTY_LINE);
+            }
+            response.write(stream.read(num));
+            currentBytePos = end + 1;
+        });
+
+        // final boundary
+        if (ranges.length > 1) {
+            response.write(CRLF);
+            response.write(HYPHEN);
+            response.write(HYPHEN);
+            response.write(BOUNDARY);
+            response.write(HYPHEN);
+            response.write(HYPHEN);
+        }
+        response.close();
+    });
+    return response;
 };

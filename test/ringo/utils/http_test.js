@@ -316,7 +316,7 @@ exports.testHeadersMultipleNames = function() {
 };
 
 exports.testRangeParser = function() {
-    assert.throws(function() {http.parseRange("bytes=0-499");});
+    assert.throws(function() {http.parseRange("bytes=0-499", "bar");});
     assert.deepEqual(http.parseRange("bytes=0-499", 500), [[0,499]]);
     assert.deepEqual(http.parseRange("bytes=0-500", 500), [[0,499]]);
     assert.deepEqual(http.parseRange("bytes=0-1500", 500), [[0,499]]);
@@ -330,6 +330,11 @@ exports.testRangeParser = function() {
     assert.deepEqual(http.parseRange("bytes=0-0,-1", 10000), [[0,0], [9999,9999]]);
     assert.deepEqual(http.parseRange("bytes=500-600,601-999", 10000), [[500,600], [601,999]]);
     assert.deepEqual(http.parseRange("bytes=500-700,601-999", 10000), [[500,700], [601,999]]);
+
+    // a suffix range for an unknown size --> we cannot do this
+    assert.isNull(http.parseRange("bytes=-500"));
+    assert.isNull(http.parseRange("bytes=0-0,-1"));
+    assert.isNull(http.parseRange("bytes=9500-"));
 
     // invalid ranges
     assert.isNull(http.parseRange("bytes", 10000));

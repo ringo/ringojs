@@ -685,9 +685,10 @@ function parseFileUpload(request, params, encoding, streamFactory) {
  * Parses the HTTP header and returns a list of ranges to serve. Returns an array of range arrays,
  * iff a valid byte range has been requested, <code>null</code> otherwise.
  * @param {String} rangeStr value of the <code>Range</code> header field
- * @param {Number} size length of the requested data in bytes
+ * @param {Number} size optional length of the requested data in bytes; -1 indicates an unknown size
  * @see <a href="http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7233.html">RFC 7233 - HTTP/1.1 Range Requests</a>
- * @returns {Array} parsed ranges as array in the form <code>[[startOffset, endOffset], ...]</code>; offsets start at zero
+ * @returns {Array} parsed ranges as array in the form <code>[[startOffset, endOffset], ...]</code>, offsets start at zero;
+ *                  or <code>null</code> for invalid header values.
  * @example // returns [[0,499]]
  * parseRange("bytes=0-499", 10000);
  *
@@ -700,7 +701,13 @@ function parseFileUpload(request, params, encoding, streamFactory) {
 function parseRange(rangeStr, size) {
     if (typeof rangeStr !== "string") {
         throw new Error("Could not parse range, must be a string, but is " + typeof rangeStr);
-    } else if (!Number.isInteger(size) || size < 0) {
+    }
+
+    // it's not necessary to know the size of the resource
+    // a size
+    if (size == null) {
+        size = -1
+    } else if (!Number.isSafeInteger(size) || size < -1) {
         throw new Error("Could not parse range, invalid size: " + size);
     }
 
@@ -734,6 +741,12 @@ function parseRange(rangeStr, size) {
             let start = parseInt(rangeParts[0], 10);
             let end = parseInt(rangeParts[1], 10);
 
+            // if the size of an resource is unknown or 0,
+            // start and end are required to be a number
+            if (size < 1 && (isNaN(start) || isNaN(end))) {
+                throw new Error("Invalid range");
+            }
+
             if (rangeParts[0] === "" && !isNaN(end)) {
                 if (end <= 0) {
                     throw new Error("Invalid range");
@@ -741,7 +754,8 @@ function parseRange(rangeStr, size) {
 
                 // https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-21.html#byte.ranges
                 // A suffix-byte-range-spec is used to specify the suffix of the representation data,
-                // of a length given by the suffix-length value.
+                // of a length given by the suffix-length value. This requires the size of the resource
+                // to be known and at least 1!
                 start = Math.max(0, size - end);
                 end = size - 1;
             } else if (!isNaN(start) && rangeParts[1] === "") {
@@ -772,7 +786,7 @@ function parseRange(rangeStr, size) {
 }
 
 /**
- * Creates the canonical form of a range array.
+ * Creates the canonical form of a range array. Also checks if all ranges are valid, otherwise throws an exception.
  * @param {Array} ranges array in the form <code>[[startOffset, endOffset], ...]</code>; offsets start at zero
  * @returns {Array} the input array in the canonical form without overlapping ranges
  * @example // returns [[0,100], [150, 200]]
