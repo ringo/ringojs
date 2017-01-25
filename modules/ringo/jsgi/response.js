@@ -9,9 +9,7 @@ var {mimeType} = require("ringo/mime");
 var {MemoryStream, Stream} = require("io");
 var {AsyncResponse} = require("./connector");
 
-const BOUNDARY = new ByteString("THIS_STRING_SEPARATES", "ASCII");
 const HYPHEN  = new ByteString("-", "ASCII");
-const CR = new ByteString("\r", "ASCII");
 const CRLF = new ByteString("\r\n", "ASCII");
 const EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
 
@@ -602,6 +600,13 @@ exports.range = function (request, representation, size, contentType, timeout, m
         throw new Error("Stream must be readable and seekable!");
     }
 
+    const BOUNDARY = new ByteString("sjognir_doro_" +
+        java.lang.System.identityHashCode(this).toString(36) +
+        java.lang.System.identityHashCode(request).toString(36) +
+        java.lang.System.identityHashCode(stream).toString(36) +
+        (java.lang.System.currentTimeMillis() % 100000).toString(36) +
+        (Math.random().toFixed(10).slice(2)), "ASCII");
+
     contentType = contentType || "application/octet-stream";
     maxRanges = (maxRanges != null && Number.isSafeInteger(maxRanges) && maxRanges >= 0 ? maxRanges : 20);
 
@@ -616,7 +621,6 @@ exports.range = function (request, representation, size, contentType, timeout, m
     try {
         ranges = canonicalRanges(ranges);
     } catch (e) {
-        console.log(e);
         let invalidRangeResponse = new JsgiResponse().setStatus(416).text("Range Not Satisfiable");
         if (size != null) {
             invalidRangeResponse.addHeaders({
@@ -679,5 +683,6 @@ exports.range = function (request, representation, size, contentType, timeout, m
         }
         response.close();
     });
+
     return response;
 };
