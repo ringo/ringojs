@@ -8,7 +8,7 @@ require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
 var config = {
    host: '127.0.0.1',
    port: '8282',
-   appModule: module.id,
+   appModule: module.id
 };
 var baseUrl = 'http://' + config.host + ':' + config.port + '/';
 var acceptHeader = {'Accept': 'text/event-stream'};
@@ -17,7 +17,7 @@ var server = null;
 exports.tearDown = function() {
    server.stop();
    server.destroy();
-}
+};
 
 exports.jsgiAppEvents = function(req) {
    var ev = new EventSource(req);
@@ -31,7 +31,7 @@ exports.jsgiAppEvents = function(req) {
       ev.close();
    }, 100);
    return ev.response;
-}
+};
 
 exports.testEvents = function() {
    server = new Server(objects.merge({
@@ -66,13 +66,13 @@ exports.jsgiAppExceptions = function(req) {
    // can't write after close
    assert.throws(function() {
       ev.data('zar');
-   }, java.lang.IllegalStateException);
+   }, Error);
    // cant close if already closed
    assert.throws(function() {
       ev.close();
-   }, java.lang.IllegalStateException);
+   }, Error);
    return ev.response;
-}
+};
 
 exports.testExceptions = function() {
    server = new Server(objects.merge({
@@ -83,7 +83,7 @@ exports.testExceptions = function() {
       url: baseUrl,
       headers: acceptHeader
    });
-}
+};
 
 // start the test runner if we're called directly from command line
 if (require.main === module) {

@@ -231,7 +231,7 @@ exports.testStatusCodes = function() {
         url: baseUri + 'success',
         method: 'GET'
     });
-    assert.strictEqual('application/json; charset=utf-8', exchange.contentType);
+    assert.strictEqual(exchange.contentType, 'application/json;charset=utf-8');
     assert.strictEqual(exchange.status, 200);
 
     exchange = request({
