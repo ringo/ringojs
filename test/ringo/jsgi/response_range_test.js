@@ -69,6 +69,62 @@ exports.testSimpleRange = function() {
     assert.strictEqual(exchange.status, 206);
 };
 
+exports.testCombinedRequests = function() {
+    server = new Server({
+        "host": "localhost",
+        "port": 8484,
+        "app": function(request) {
+            const res = response.range(request, new MemoryStream(DATA.concat(DATA, DATA, DATA)), 4 * DATA.length, "text/plain");
+            return res;
+        }
+    });
+    server.start();
+
+    const blockEnd = DATA.length - 1;
+    let exchange = httpClient.request({
+        method: "GET",
+        url: "http://localhost:8484",
+        headers: {
+            "Range": "bytes=0-" + blockEnd
+        }
+    });
+    assert.strictEqual(exchange.status, 206);
+    assert.strictEqual(exchange.content, DATA.decodeToString("ASCII"));
+
+    exchange = httpClient.request({
+        method: "GET",
+        url: "http://localhost:8484",
+        headers: {
+            "Range": "bytes=" + (blockEnd + 1) +"-" + ((2 * blockEnd) + 1)
+        }
+    });
+    assert.strictEqual(exchange.status, 206);
+    assert.strictEqual(exchange.content, DATA.decodeToString("ASCII"));
+
+    exchange = httpClient.request({
+        method: "GET",
+        url: "http://localhost:8484",
+        headers: {
+            "Range": "bytes=" + (blockEnd + 1) +"-" + ((2 * blockEnd) - 4) + "," +
+                ((2 * blockEnd) - 3) +"-" + ((2 * blockEnd) + 1)
+        }
+    });
+    assert.strictEqual(exchange.status, 206);
+    assert.strictEqual(exchange.content, DATA.decodeToString("ASCII"));
+
+    exchange = httpClient.request({
+        method: "GET",
+        url: "http://localhost:8484",
+        headers: {
+            "Range": "bytes=-" + (2 * DATA.length) + ",0-" + (2 * DATA.length)
+        }
+    });
+    assert.strictEqual(exchange.status, 206);
+    assert.strictEqual(exchange.content, (DATA.concat(DATA, DATA, DATA)).decodeToString("ASCII"));
+    assert.strictEqual(exchange.headers["Content-Range"].length, 1);
+    assert.strictEqual(exchange.headers["Content-Range"][0], "bytes 0-" + ((4 * DATA.length) - 1) + "/" + (4 * DATA.length));
+};
+
 exports.testInvalidRanges = function() {
     server = new Server({
         "host": "localhost",
