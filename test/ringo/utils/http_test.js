@@ -315,6 +315,121 @@ exports.testHeadersMultipleNames = function() {
     assert.equal(obj.get("multiple"), "first,second,third", "Multiple headers not merged!");
 };
 
+exports.testRangeParser = function() {
+    assert.throws(function() {http.parseRange("bytes=0-499", "bar");});
+
+    assert.deepEqual(http.parseRange("bytes=0-499", 500), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=0-500", 500), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=0-1500", 500), [[0,499]]);
+
+    // from the RFC
+    assert.deepEqual(http.parseRange("bytes=0-499", 10000), [[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=500-999", 10000), [[500,999]]);
+    assert.deepEqual(http.parseRange("bytes=500-999,0-499", 10000), [[500,999],[0,499]]);
+    assert.deepEqual(http.parseRange("bytes=-500", 10000), [[9500,9999]]);
+    assert.deepEqual(http.parseRange("bytes=9500-", 10000), [[9500,9999]]);
+    assert.deepEqual(http.parseRange("bytes=0-0,-1", 10000), [[0,0], [9999,9999]]);
+    assert.deepEqual(http.parseRange("bytes=500-600,601-999", 10000), [[500,600], [601,999]]);
+    assert.deepEqual(http.parseRange("bytes=500-700,601-999", 10000), [[500,700], [601,999]]);
+
+    // from Jetty
+    assert.deepEqual(http.parseRange("bytes=5-10", 200), [[5,10]]);
+    assert.deepEqual(http.parseRange("bytes=50-150", 120), [[50,119]]);
+    assert.deepEqual(http.parseRange("bytes=50-", 120), [[50,119]]);
+    assert.deepEqual(http.parseRange("bytes=-5", 200), [[195,199]]);
+
+    // a suffix range for an unknown size --> we cannot do this
+    assert.isNull(http.parseRange("bytes=-500"));
+    assert.isNull(http.parseRange("bytes=0-0,-1"));
+    assert.isNull(http.parseRange("bytes=9500-"));
+
+    // invalid ranges
+    assert.isNull(http.parseRange("bytes", 10000));
+    assert.isNull(http.parseRange("bytes=a-b", 10000));
+    assert.isNull(http.parseRange("byte=10-3", 10000));
+    assert.isNull(http.parseRange("wunderbar=1-100", 10000));
+    assert.isNull(http.parseRange("bytes=300-301-2000", 10000));
+    assert.isNull(http.parseRange("bytes=300-301,,-2000", 10000));
+    assert.isNull(http.parseRange("bytes 0-100", 10000));
+    assert.isNull(http.parseRange("bytes=", 10000));
+    assert.isNull(http.parseRange("bytes=--499", 10000));
+    assert.isNull(http.parseRange("bytes=0--499", 10000));
+    assert.isNull(http.parseRange("bytes=-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-123-499", 10000));
+    assert.isNull(http.parseRange("=0-123-499", 10000));
+    assert.isNull(http.parseRange("0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-123", 10000));
+    assert.isNull(http.parseRange("=0-123", 10000));
+    assert.isNull(http.parseRange("0-123", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=0-10,0-123-499", 10000));
+    assert.isNull(http.parseRange("some=0-10,0-123-499", 10000));
+    assert.isNull(http.parseRange("bytes=,", 10000));
+    assert.isNull(http.parseRange("bytes=,--499", 10000));
+    assert.isNull(http.parseRange("bytes=,0--499", 10000));
+    assert.isNull(http.parseRange("bytes=,-0--499", 10000));
+    assert.isNull(http.parseRange("bytes=,-0-499", 10000));
+    assert.isNull(http.parseRange("bytes=,-1-499", 10000));
+    assert.isNull(http.parseRange("bytes=,0-499-", 10000));
+    assert.isNull(http.parseRange("bytes=,0-123-499", 10000));
+    assert.isNull(http.parseRange("some=,0-123-499", 10000));
+    assert.isNull(http.parseRange("bytes=,", 10000));
+    assert.isNull(http.parseRange("bytes=--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-0--499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-0-499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=-1-499,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0-499-,0-10", 10000));
+    assert.isNull(http.parseRange("bytes=0-123-499,0-10", 10000));
+    assert.isNull(http.parseRange("some=0-123-499,0-10", 10000));
+};
+
+exports.testCanonicalRanges = function() {
+    // invalid inputs
+    assert.throws(function() { http.canonicalRanges([]); });
+    assert.throws(function() { http.canonicalRanges([1,2,3]); });
+    assert.throws(function() { http.canonicalRanges([[1]]); });
+    assert.throws(function() { http.canonicalRanges([[1,2,3]]); });
+    assert.throws(function() { http.canonicalRanges([[0,100], [1]]); });
+    assert.throws(function() { http.canonicalRanges([[1], [0,100]]); });
+    assert.throws(function() { http.canonicalRanges([[0, "b"]]); });
+    assert.throws(function() { http.canonicalRanges([["a", 100]]); });
+    assert.throws(function() { http.canonicalRanges([["a", "b"]]); });
+
+    // invalid ranges
+    assert.throws(function() { http.canonicalRanges([[-1, 0]]); });
+    assert.throws(function() { http.canonicalRanges([[0, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[2, 1]]); });
+    assert.throws(function() { http.canonicalRanges([[2, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[-1, -1]]); });
+    assert.throws(function() { http.canonicalRanges([[1.5, 2]]); });
+    assert.throws(function() { http.canonicalRanges([[0, 1.5]]); });
+
+    // simple
+    assert.deepEqual(http.canonicalRanges([[0,100]]), [[0, 100]]); // nothing to do
+    assert.deepEqual(http.canonicalRanges([[0,100], [150, 200]]), [[0, 100], [150, 200]]); // nothing to do
+    assert.deepEqual(http.canonicalRanges([[0,200], [50, 200]]), [[0, 200]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,100], [50, 200]]), [[0, 200]]); // overlapping
+
+    // more complex
+    assert.deepEqual(http.canonicalRanges([[0,200], [50, 200], [200, 250], [245, 300]]), [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[245, 300], [200, 250], [50, 200],[0,200]]),  [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[50, 200], [245, 300], [200, 250], [0,200]]), [[0, 300]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,400], [50, 200], [200, 250], [245, 300]]), [[0, 400]]); // totally overlapping
+    assert.deepEqual(http.canonicalRanges([[0,100], [50, 200], [400,400], [401,401]]), [[0, 200], [400,401]]); // overlapping
+    assert.deepEqual(http.canonicalRanges([[0,4], [90,99], [5,75], [100,199], [101,102]]), [[0, 75], [90,199]]); // overlapping
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

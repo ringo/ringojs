@@ -23,7 +23,7 @@ if (java.lang.System.getProperty("com.google.appengine.runtime.version") == null
 
 export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
         'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
-        'parseFileUpload', 'BufferFactory', 'TempFileFactory');
+        'parseFileUpload', 'parseRange', 'canonicalRanges', 'BufferFactory', 'TempFileFactory');
 
 var log = require('ringo/logging').getLogger(module.id);
 
@@ -679,6 +679,179 @@ function parseFileUpload(request, params, encoding, streamFactory) {
         }
     }
     return params;
+}
+
+/**
+ * Parses the HTTP header and returns a list of ranges to serve. Returns an array of range arrays,
+ * iff a valid byte range has been requested, <code>null</code> otherwise.
+ * @param {String} rangeStr value of the <code>Range</code> header field
+ * @param {Number} size optional length of the requested data in bytes; -1 indicates an unknown size
+ * @see <a href="http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7233.html">RFC 7233 - HTTP/1.1 Range Requests</a>
+ * @returns {Array} parsed ranges as array in the form <code>[[startOffset, endOffset], ...]</code>, offsets start at zero;
+ *                  or <code>null</code> for invalid header values.
+ * @example // returns [[0,499]]
+ * parseRange("bytes=0-499", 10000);
+ *
+ * // returns [[500,999], [0,499]]
+ * parseRange("bytes=500-999,0-499", 10000);
+ *
+ * // returns [[9500,9999]]
+ * parseRange("bytes=-500", 10000);
+ */
+function parseRange(rangeStr, size) {
+    if (typeof rangeStr !== "string") {
+        throw new Error("Could not parse range, must be a string, but is " + typeof rangeStr);
+    }
+
+    // it's not necessary to know the size of the resource
+    // a size
+    if (size == null) {
+        size = -1
+    } else if (!Number.isSafeInteger(size) || size < -1) {
+        throw new Error("Could not parse range, invalid size: " + size);
+    }
+
+    const rangeSpecifier = rangeStr.split("=");
+    if (rangeSpecifier.length !== 2) {
+        return null;
+    }
+
+    // HTTP Range Unit Registry only allows bytes at the moment
+    // http://www.iana.org/assignments/http-parameters/http-parameters.xhtml#range-units
+    if (rangeSpecifier[0] !== "bytes") {
+        return null;
+    }
+
+    const byteRangeSet = rangeSpecifier[1];
+
+    // a byte range has at least 2 characters, since you cannot address a single byte directly without
+    // using a suffix-spec range
+    if (byteRangeSet.length <= 1) {
+        return null;
+    }
+
+    try {
+        const rangeSpecs = byteRangeSet.split(",");
+        return rangeSpecs.map(function (rangeSpec) {
+            const rangeParts = rangeSpec.split("-");
+            if (rangeParts.length !== 2) {
+                throw new Error("Invalid range");
+            }
+
+            let start = parseInt(rangeParts[0], 10);
+            let end = parseInt(rangeParts[1], 10);
+
+            // if the size of an resource is unknown or 0,
+            // start and end are required to be a number
+            if (size < 1 && (isNaN(start) || isNaN(end))) {
+                throw new Error("Invalid range");
+            }
+
+            if (rangeParts[0] === "" && !isNaN(end)) {
+                if (end <= 0) {
+                    throw new Error("Invalid range");
+                }
+
+                // https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-21.html#byte.ranges
+                // A suffix-byte-range-spec is used to specify the suffix of the representation data,
+                // of a length given by the suffix-length value. This requires the size of the resource
+                // to be known and at least 1!
+                start = Math.max(0, size - end);
+                end = size - 1;
+            } else if (!isNaN(start) && rangeParts[1] === "") {
+                if (start < 0) {
+                    throw new Error("Invalid range");
+                }
+
+                // https://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-21.html#byte.ranges
+                // If the last-byte-pos value is absent, or if the value is greater than or equal to the
+                // current length of the representation data, last-byte-pos is taken to be equal to
+                // one less than the current length of the representation in bytes.
+                end = size - 1;
+            } else if (!isNaN(start) && !isNaN(end) && start >= 0 && start <= end) {
+                // if the value is greater than or equal to the current length of the representation data,
+                // last-byte-pos is taken to be equal to one less than the current length of the representation in bytes
+                if (end >= size) {
+                    end = size - 1;
+                }
+            } else {
+                throw new Error("Invalid range");
+            }
+
+            return [start, end];
+        });
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Creates the canonical form of a range array. Also checks if all ranges are valid, otherwise throws an exception.
+ * @param {Array} ranges array in the form <code>[[startOffset, endOffset], ...]</code>; offsets start at zero
+ * @returns {Array} the input array in the canonical form without overlapping ranges
+ * @example // returns [[0,100], [150, 200]]
+ * canonicalRanges([[0,100], [150, 200]]);
+ *
+ * // returns [[0,200]]
+ * canonicalRanges([[0,100], [50, 200]]);
+ *
+ * // returns [[0, 300]]
+ * canonicalRanges([[0,200], [50, 200], [200, 250], [245, 300]]);
+ */
+function canonicalRanges(ranges) {
+    if (!Array.isArray(ranges) || ranges.length === 0) {
+        throw new Error("Ranges must be an array of at least one range!");
+    }
+
+    const validRanges = ranges.every(function(range) {
+        return Array.isArray(range) && range.length == 2 && range[0] >= 0 && range[1] >= 0
+            && range[0] <= range[1] && Number.isInteger(range[0]) && Number.isInteger(range[1]);
+    });
+    if (!validRanges) {
+        throw new Error("Ranges are not in the form [start, end] or contain invalid offsets!");
+    }
+
+    const sortedByStart = ranges.sort(function(a, b) {
+        return a[0] - b[0];
+    });
+
+    const resultStack = [];
+    resultStack.push(sortedByStart.shift());
+
+    sortedByStart.forEach(function(range, index) {
+        const stackPointer = resultStack.length - 1;
+        const highestRangeOnStack = resultStack[stackPointer];
+
+        // does the current range end after the highest one?
+        if (range[0] > highestRangeOnStack[1]) {
+            // do we have subsequent ranges?
+            // |----last----|++++++++++++v
+            //              |---range----|
+            if (highestRangeOnStack[1] + 1 === range[0]) {
+                // extend
+                highestRangeOnStack[1] = range[1];
+            } else {
+                // |----last----|
+                //                 |---range----|
+                resultStack.push(range);
+            }
+        } else {
+            // we have overlapping starts
+            // do we have included ranges?
+            // |-----last---------------|
+            //      |----range----|
+            if (range[1] <= highestRangeOnStack[1]) {
+                return; // do nothing
+            } else {
+                // we must extend the latest range on the stack
+                // |-----last-------|+++++++v
+                //              |---range---|
+                highestRangeOnStack[1] = range[1];
+            }
+        }
+    });
+
+    return resultStack;
 }
 
 /**
