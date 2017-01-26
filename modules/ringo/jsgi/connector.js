@@ -174,7 +174,8 @@ function AsyncResponse(request, timeout) {
     }));
 
     var out = servletResponse.getOutputStream();
-    var writeListener = null;
+    var writeListener = new WriteListenerImpl(asyncContext);
+    out.setWriteListener(writeListener);
     return {
         "start": function(status, headers) {
             servletResponse.setStatus(status);
@@ -182,27 +183,24 @@ function AsyncResponse(request, timeout) {
             return this;
         },
         "write": function(data, encoding) {
+            if (asyncContext.getHttpChannelState().isAsyncComplete()) {
+                throw new Error("AsyncResponse already closed");
+            }
             if (!(data instanceof Binary)) {
                 data = String(data).toByteArray(encoding);
             }
-            if (writeListener === null) {
-                writeListener = new WriteListenerImpl(asyncContext);
-                writeListener.queue.add(data);
-                out.setWriteListener(writeListener);
-            } else {
-                writeListener.queue.add(data);
-                writeListener.onWritePossible();
-            }
+            writeListener.queue.add(data);
+            writeListener.onWritePossible();
             return this;
         },
         "flush": function() {
             this.write(FLUSH);
         },
         "close": function() {
-            if (writeListener !== null) {
-                return writeListener.close();
+            if (asyncContext.getHttpChannelState().isAsyncComplete()) {
+                throw new Error("AsyncResponse already closed");
             }
-            return asyncContext.complete();
+            return writeListener.close();
         }
     };
 }
@@ -246,7 +244,8 @@ WriteListenerImpl.prototype.onWritePossible = function() {
         // at this point the queue is empty: mark this listener as ready
         // and close the response if we're finished
         this.isReady.set(true);
-        if (this.isFinished === true) {
+        if (this.isFinished === true &&
+                !this.asyncContext.getHttpChannelState().isAsyncComplete()) {
             this.asyncContext.complete();
         }
     }
