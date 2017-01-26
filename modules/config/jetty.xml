@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_3.dtd">
 
 <!-- =============================================================== -->
 <!-- Configure the Jetty Server                                      -->
@@ -101,7 +101,11 @@
     <Set name="sessionIdManager">
         <New id="idMgr" class="org.eclipse.jetty.server.session.DefaultSessionIdManager">
             <Arg><Ref refid="Server"/></Arg>
-            <Set name="workerName"><Property name="jetty.sessionIdManager.workerName"><Default>node<Env name="JETTY_WORKER_INSTANCE" default="0"/></Default></Property></Set>
+            <Set name="workerName">
+                <Property name="jetty.sessionIdManager.workerName">
+                    <Default>node<Env name="JETTY_WORKER_INSTANCE" default="0"/></Default>
+                </Property>
+            </Set>
 
             <!-- ===================================================================== -->
             <!-- Configure a session housekeeper to help with scavenging               -->
