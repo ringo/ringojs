@@ -3,10 +3,10 @@
  * JSGI response objects. For more flexibility the `JsgiResponse` is chainable.
  */
 
-var {merge} = require("ringo/utils/objects");
+const fs = require("fs");
 var {parseRange, canonicalRanges} = require("ringo/utils/http");
 var {mimeType} = require("ringo/mime");
-var {MemoryStream, Stream} = require("io");
+var {Stream} = require("io");
 var {AsyncResponse} = require("./connector");
 
 const HYPHEN  = new ByteString("-", "ASCII");
@@ -557,7 +557,7 @@ exports.static = function (resource, contentType) {
  * @param {String|Resource|Stream} representation path of a file as string, a resource, or a readable <a href="../../../io/">io.Stream</a>
  * @param {Number} size optional size of the resource in bytes, -1 indicates an unknown size.
  * @param {String} contentType optional content type to send for single range responses
- * @param {Number} timeout optional timeout to send back the ranges, -1 indicates an infinite timeout.
+ * @param {Number} timeout optional timeout to send back the ranges, defaults to 30 seconds, -1 indicates an infinite timeout.
  * @param {Number} maxRanges optional maximum number of ranges in a request, defaults to 20. Similar to Apache's <code>MaxRanges</code> directive.
  * @returns {AsyncResponse} async response filled with the give ranges
  * @see <a href="https://tools.ietf.org/html/rfc7233">RFC 7233 - Range Requests</a>
@@ -577,14 +577,20 @@ exports.range = function (request, representation, size, contentType, timeout, m
 
     let stream;
     if (typeof representation == "string") {
-        const repResource = getResource(representation);
-        if (!repResource.exists()) {
-            throw new Error("Resource does not exist, cannot load a representation to read.");
+        let localPath = fs.absolute(representation);
+        if (!fs.exists(localPath) || !fs.isReadable(localPath)) {
+            throw new Error("Resource does not exist or is not readable.");
         }
-        if (size == null && repResource.getLength != null) {
-            size = repResource.getLength();
+
+        if (size == null) {
+            try {
+                size = fs.size(localPath);
+            } catch (e) {
+                // ignore --> use -1 at the end
+            }
         }
-        stream = new Stream(repResource.getInputStream());
+
+        stream = fs.openRaw(localPath, "r");
     } else if (representation instanceof org.ringojs.repository.Resource) {
         stream = new Stream(representation.getInputStream());
         if (size == null && representation.getLength != null) {
@@ -596,8 +602,8 @@ exports.range = function (request, representation, size, contentType, timeout, m
         throw new Error("Invalid representation! Must be a path to a file, a resource, or a stream.");
     }
 
-    if (!stream.readable() || !stream.seekable()) {
-        throw new Error("Stream must be readable and seekable!");
+    if (!stream.readable()) {
+        throw new Error("Stream must be readable!");
     }
 
     const BOUNDARY = new ByteString("sjognir_doro_" +
@@ -645,7 +651,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
-    const response = new AsyncResponse(request, timeout);
+    const response = new AsyncResponse(request, (timeout || 30));
     response.start(206, headers);
 
     spawn(function() {
@@ -681,6 +687,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
             response.write(HYPHEN);
             response.write(HYPHEN);
         }
+        response.flush();
         response.close();
     });
 
