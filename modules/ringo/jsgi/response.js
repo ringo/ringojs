@@ -660,9 +660,8 @@ exports.range = function (request, representation, size, contentType, timeout, m
         let currentBytePos = 0;
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
-            const num = end - start + 1;
-            
             stream.skip(start - currentBytePos);
+
             if (arr.length > 1) {
                 if (index > 0) {
                     response.write(CRLF);
