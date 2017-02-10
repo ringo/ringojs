@@ -655,10 +655,14 @@ exports.range = function (request, representation, size, contentType, timeout, m
     response.start(206, headers);
 
     spawn(function() {
+        const responseBufferSize = request.env.servletResponse.getBufferSize();
+
         let currentBytePos = 0;
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
             const num = end - start + 1;
+            const rounds = Math.floor(num / responseBufferSize);
+            const rest = num % responseBufferSize;
 
             stream.skip(start - currentBytePos);
             if (arr.length > 1) {
@@ -673,8 +677,18 @@ exports.range = function (request, representation, size, contentType, timeout, m
                 response.write(CRLF);
                 response.write("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"));
                 response.write(EMPTY_LINE);
+                response.flush();
             }
-            response.write(stream.read(num));
+
+            let bsBuffer;
+            do {
+                bsBuffer = stream.read(responseBufferSize);
+                if (bsBuffer.length > 0) {
+                    response.write(bsBuffer);
+                    response.flush();
+                }
+            } while (bs.length > 0);
+
             currentBytePos = end + 1;
         });
 
