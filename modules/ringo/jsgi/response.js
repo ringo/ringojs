@@ -661,9 +661,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
             const num = end - start + 1;
-            const rounds = Math.floor(num / responseBufferSize);
-            const rest = num % responseBufferSize;
-
+            
             stream.skip(start - currentBytePos);
             if (arr.length > 1) {
                 if (index > 0) {
