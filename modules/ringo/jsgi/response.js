@@ -660,6 +660,10 @@ exports.range = function (request, representation, size, contentType, timeout, m
         let currentBytePos = 0;
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
+            const numBytes = end - start + 1;
+            const rounds = Math.floor(numBytes / responseBufferSize);
+            const restBytes = numBytes % responseBufferSize;
+
             stream.skip(start - currentBytePos);
 
             if (arr.length > 1) {
@@ -677,14 +681,12 @@ exports.range = function (request, representation, size, contentType, timeout, m
                 response.flush();
             }
 
-            let bsBuffer;
-            do {
-                bsBuffer = stream.read(responseBufferSize);
-                if (bsBuffer.length > 0) {
-                    response.write(bsBuffer);
-                    response.flush();
-                }
-            } while (bs.length > 0);
+            for (let i = 0; i < rounds; i++) {
+                response.write(stream.read(responseBufferSize));
+                response.flush();
+            }
+            response.write(stream.read(restBytes));
+            response.flush();
 
             currentBytePos = end + 1;
         });
