@@ -685,8 +685,11 @@ exports.range = function (request, representation, size, contentType, timeout, m
                 response.write(stream.read(responseBufferSize));
                 response.flush();
             }
-            response.write(stream.read(restBytes));
-            response.flush();
+            
+            if (restBytes > 0) {
+                response.write(stream.read(restBytes));
+                response.flush();
+            }
 
             currentBytePos = end + 1;
         });
