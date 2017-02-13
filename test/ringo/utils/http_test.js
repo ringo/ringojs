@@ -318,6 +318,7 @@ exports.testHeadersMultipleNames = function() {
 exports.testRangeParser = function() {
     assert.throws(function() {http.parseRange("bytes=0-499", "bar");});
 
+    assert.deepEqual(http.parseRange("bytes=0-", 500),    [[0,499]]);
     assert.deepEqual(http.parseRange("bytes=0-499", 500), [[0,499]]);
     assert.deepEqual(http.parseRange("bytes=0-500", 500), [[0,499]]);
     assert.deepEqual(http.parseRange("bytes=0-1500", 500), [[0,499]]);
