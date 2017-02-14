@@ -651,7 +651,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
-    const {servletRequest, servletResponse} = request.env;
+    const {servletResponse} = request.env;
     servletResponse.setStatus(206);
     if (ranges.length > 1) {
         servletResponse.setHeader("Content-Type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
@@ -662,20 +662,19 @@ exports.range = function (request, representation, size, contentType, timeout, m
     }
 
     const outStream = servletResponse.getOutputStream();
+    const responseBufferSize = Math.max(request.env.servletResponse.getBufferSize() - 70, 8192);
 
     try {
-        if (ranges.length === 1) {
-            const [start, end] = ranges[0];
+        let currentBytePos = 0;
+        ranges.forEach(function(range, index, arr) {
+            const [start, end] = range;
             const numBytes = end - start + 1;
-            stream.skip(start);
-            outStream.write(stream.read(numBytes).unwrap());
-        } else {
-            let currentBytePos = 0;
-            ranges.forEach(function (range, index, arr) {
-                const [start, end] = range;
-                const numBytes = end - start + 1;
-                stream.skip(start - currentBytePos);
+            const rounds = Math.floor(numBytes / responseBufferSize);
+            const restBytes = numBytes % responseBufferSize;
 
+            stream.skip(start - currentBytePos);
+
+            if (arr.length > 1) {
                 const boundary = new MemoryStream(70);
                 if (index > 0) {
                     boundary.write(CRLF);
@@ -692,23 +691,31 @@ exports.range = function (request, representation, size, contentType, timeout, m
                 boundary.position = 0;
                 outStream.write(boundary.read().unwrap());
                 boundary.close();
-                outStream.write(stream.read(numBytes).unwrap());
+            }
 
-                currentBytePos = end + 1;
-            });
+            for (let i = 0; i < rounds; i++) {
+                outStream.write(stream.read(responseBufferSize).unwrap());
+            }
+            if (restBytes > 0) {
+                outStream.write(stream.read(restBytes).unwrap());
+            }
 
-            // final boundary
-            const eofBoundary = new MemoryStream(70);
-            eofBoundary.write(CRLF);
-            eofBoundary.write(HYPHEN);
-            eofBoundary.write(HYPHEN);
-            eofBoundary.write(BOUNDARY);
-            eofBoundary.write(HYPHEN);
-            eofBoundary.write(HYPHEN);
-            eofBoundary.position = 0;
-            outStream.write(eofBoundary.read().unwrap());
-            eofBoundary.close();
-        }
+            if (arr.length > 1 && index === arr.length - 1) {
+                // final boundary
+                const eofBoundary = new MemoryStream(70);
+                eofBoundary.write(CRLF);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(BOUNDARY);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.position = 0;
+                outStream.write(eofBoundary.read().unwrap());
+                eofBoundary.close();
+            }
+
+            currentBytePos = end + 1;
+        });
 
         // commit response
         servletResponse.flushBuffer();
