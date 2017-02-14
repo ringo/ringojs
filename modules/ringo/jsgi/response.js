@@ -651,7 +651,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
-    const response = new AsyncResponse(request, (timeout || 30));
+    const response = new AsyncResponse(request, (timeout || 30000));
     response.start(206, headers);
 
     spawn(function() {
