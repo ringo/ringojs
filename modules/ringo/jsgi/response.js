@@ -6,7 +6,7 @@
 const fs = require("fs");
 var {parseRange, canonicalRanges} = require("ringo/utils/http");
 var {mimeType} = require("ringo/mime");
-var {Stream} = require("io");
+var {Stream, MemoryStream} = require("io");
 var {AsyncResponse} = require("./connector");
 
 const HYPHEN  = new ByteString("-", "ASCII");
@@ -651,61 +651,76 @@ exports.range = function (request, representation, size, contentType, timeout, m
         headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
-    const response = new AsyncResponse(request, (timeout || 30000));
-    response.start(206, headers);
+    const {servletRequest, servletResponse} = request.env;
+    servletResponse.setStatus(206);
+    if (ranges.length > 1) {
+        servletResponse.setHeader("Content-Type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
+    } else {
+        servletResponse.setHeader("Content-Type", contentType);
+        servletResponse.setHeader("Content-Range", "bytes " + ranges[0].join("-") + "/" + size);
+        servletResponse.setContentLengthLong(ranges[0][1] - ranges[0][0] + 1);
+    }
 
-    spawn(function() {
-        const responseBufferSize = request.env.servletResponse.getBufferSize();
+    const outStream = servletResponse.getOutputStream();
 
-        let currentBytePos = 0;
-        ranges.forEach(function(range, index, arr) {
-            const [start, end] = range;
+    try {
+        if (ranges.length === 1) {
+            const [start, end] = ranges[0];
             const numBytes = end - start + 1;
-            const rounds = Math.floor(numBytes / responseBufferSize);
-            const restBytes = numBytes % responseBufferSize;
+            stream.skip(start);
+            outStream.write(stream.read(numBytes).unwrap());
+        } else {
+            let currentBytePos = 0;
+            ranges.forEach(function (range, index, arr) {
+                const [start, end] = range;
+                const numBytes = end - start + 1;
+                stream.skip(start - currentBytePos);
 
-            stream.skip(start - currentBytePos);
-
-            if (arr.length > 1) {
+                const boundary = new MemoryStream(70);
                 if (index > 0) {
-                    response.write(CRLF);
+                    boundary.write(CRLF);
                 }
-                response.write(HYPHEN);
-                response.write(HYPHEN);
-                response.write(BOUNDARY);
-                response.write(CRLF);
-                response.write("Content-Type: " + contentType);
-                response.write(CRLF);
-                response.write("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"));
-                response.write(EMPTY_LINE);
-                response.flush();
-            }
+                boundary.write(HYPHEN);
+                boundary.write(HYPHEN);
+                boundary.write(BOUNDARY);
+                boundary.write(CRLF);
+                boundary.write(new ByteString("Content-Type: " + contentType, "ASCII"));
+                boundary.write(CRLF);
+                boundary.write(new ByteString("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"), "ASCII"));
+                boundary.write(EMPTY_LINE);
 
-            for (let i = 0; i < rounds; i++) {
-                response.write(stream.read(responseBufferSize));
-                response.flush();
-            }
-            
-            if (restBytes > 0) {
-                response.write(stream.read(restBytes));
-                response.flush();
-            }
+                boundary.position = 0;
+                outStream.write(boundary.read().unwrap());
+                boundary.close();
+                outStream.write(stream.read(numBytes).unwrap());
 
-            currentBytePos = end + 1;
-        });
+                currentBytePos = end + 1;
+            });
 
-        // final boundary
-        if (ranges.length > 1) {
-            response.write(CRLF);
-            response.write(HYPHEN);
-            response.write(HYPHEN);
-            response.write(BOUNDARY);
-            response.write(HYPHEN);
-            response.write(HYPHEN);
+            // final boundary
+            const eofBoundary = new MemoryStream(70);
+            eofBoundary.write(CRLF);
+            eofBoundary.write(HYPHEN);
+            eofBoundary.write(HYPHEN);
+            eofBoundary.write(BOUNDARY);
+            eofBoundary.write(HYPHEN);
+            eofBoundary.write(HYPHEN);
+            eofBoundary.position = 0;
+            outStream.write(eofBoundary.read().unwrap());
+            eofBoundary.close();
         }
-        response.flush();
-        response.close();
-    });
 
-    return response;
+        // commit response
+        servletResponse.flushBuffer();
+    } catch (e if e.javaException instanceof org.eclipse.jetty.io.EofException) {
+        // no problem, remote client closed connection ...
+    }
+
+    return {
+        status: -1,
+        headers: {
+            "X-JSGI-Skip-Response": "true"
+        },
+        body: {}
+    };
 };
