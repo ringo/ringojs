@@ -45,6 +45,7 @@
         <property name="build" value="${home}/build"/>
         <property name="classes" value="${build}/classes"/>
         <property name="javadoc" value="${home}/docs/java/"/>
+        <property name="pom.templatefile" value="${home}/tools/pom-template.xml" />
 
         <property name="ringo-core.jar" value="${lib}/ringo-core.jar"/>
         <property name="ringo-modules.jar" value="${lib}/ringo-modules.jar"/>
@@ -294,7 +295,7 @@
     <!-- Creates a POM                                                       -->
     <!-- =================================================================== -->
     <target name="pom" depends="init">
-        <ivy:makepom ivyfile="ivy.xml" pomfile="pom.xml">
+        <ivy:makepom ivyfile="ivy.xml" pomfile="pom.xml" templatefile="${pom.templatefile}" conf="default">
             <mapping conf="default" scope="compile"/>
         </ivy:makepom>
     </target>

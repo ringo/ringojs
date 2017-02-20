@@ -3,7 +3,8 @@
     <info organisation="org.ringojs" module="ringojs"/>
 
     <configurations>
-        <conf name="default" description="the default jar libraries"/>
+        <conf name="default" visibility="public" description="the default jar libraries"/>
+        <conf name="test" visibility="public" />
     </configurations>
 
     <dependencies>
@@ -24,9 +25,10 @@
         </dependency>
         <dependency org="log4j" name="log4j" rev="1.2.14"/>
 
-        <!-- junit -->
-        <dependency org="junit" name="junit" rev="3.8.+"/>
         <!-- jline -->
         <dependency org="jline" name="jline" rev="2.12.1"/>
+
+        <!-- junit -->
+        <dependency org="junit" name="junit" rev="3.8.+" conf="test->*"/>
     </dependencies>
 </ivy-module>
