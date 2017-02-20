@@ -24,6 +24,16 @@
         <property name="project" value="ringojs"/>
         <property name="version" value="1.1.0"/>
 
+        <!-- pom.xml generation -->
+        <property name="ivy.pom.name" value="RingoJS" />
+        <property name="ivy.pom.description" value="RingoJS is a JavaScript platform built on the JVM and optimized for server-side applications." />
+        <property name="ivy.pom.url" value="https://ringojs.org/" />
+        <property name="ivy.pom.header" value="" />
+        <property name="ivy.pom.license" value="&lt;!-- RingoJS is licensed under Apache License Version 2.0 --&gt;" />
+        <property name="ivy.pom.groupId" value="org.ringojs" />
+        <property name="ivy.pom.artifactId" value="ringojs" />
+        <property name="ivy.pom.version" value="${version}" />
+
         <!-- javac default targets for cross compilation on newer JDKs -->
         <property name="ant.build.javac.source" value="7"/>
         <property name="ant.build.javac.target" value="7"/>
@@ -216,8 +226,9 @@
     <!-- =================================================================== -->
     <!-- Creates a jar file in the lib-directory                             -->
     <!-- =================================================================== -->
-    <target name="jar" depends="compile">
+    <target name="jar" depends="pom, compile">
         <jar jarfile="${ringo-core.jar}">
+            <fileset dir="${home}" includes="pom.xml"/>
             <fileset dir="${classes}"/>
             <fileset dir="${src}" excludes="**/*.java,**/package.html"/>
         </jar>
@@ -277,6 +288,15 @@
         <gzip src="../${project}-${version}.tar" destfile="../${project}-${version}.tar.gz"/>
         <delete file="../${project}-${version}.tar"/>
 
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- Creates a POM                                                       -->
+    <!-- =================================================================== -->
+    <target name="pom" depends="init">
+        <ivy:makepom ivyfile="ivy.xml" pomfile="pom.xml">
+            <mapping conf="default" scope="compile"/>
+        </ivy:makepom>
     </target>
 
     <!-- =================================================================== -->
