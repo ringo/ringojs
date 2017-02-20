@@ -227,7 +227,7 @@
     <!-- =================================================================== -->
     <!-- Creates a jar file in the lib-directory                             -->
     <!-- =================================================================== -->
-    <target name="jar" depends="pom, compile">
+    <target name="jar" depends="compile">
         <jar jarfile="${ringo-core.jar}">
             <fileset dir="${home}" includes="pom.xml"/>
             <fileset dir="${classes}"/>
