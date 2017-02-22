@@ -30,8 +30,6 @@
  * dates.diff(y2k, now, "mixed"); // { days: 5844, hours: 0, ... }
  */
 
-var strings = require('ringo/utils/strings');
-
 export(
     "format",
     "checkDate",
@@ -637,16 +635,16 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
         milliseconds = date.getUTCMilliseconds();
     }
 
-    str = year + "-" + strings.pad((month + 1), "0", 2, -1) + "-" + strings.pad(day, "0", 2, -1);
+    str = year + "-" + ("0".repeat(2) + (month + 1)).slice(-2) + "-" + ("0".repeat(2) + day).slice(-2);
 
     // Append the time
     if (withTime) {
-        str += "T" + strings.pad(hours, "0", 2, -1) + ":" + strings.pad(minutes, "0", 2, -1);
+        str += "T" + ("0".repeat(2) + hours).slice(-2) + ":" + ("0".repeat(2) + minutes).slice(-2);
         if (withSeconds) {
-            str += ":" + strings.pad(seconds, "0", 2, -1);
+            str += ":" + ("0".repeat(2) + seconds).slice(-2);
 
             if (withMilliseconds) {
-                str += "." + strings.pad(milliseconds, "0", 3, -1);
+                str += "." + ("0".repeat(3) + milliseconds).slice(-3);
             }
         }
     }
@@ -663,7 +661,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
         } else {
             str += "-";
         }
-        str += strings.pad(inHours, "0", 2, -1) + ":" + strings.pad(inMinutes, "0", 2, -1);
+        str += ("0".repeat(2) + inHours).slice(-2) + ":" + ("0".repeat(2) + inMinutes).slice(-2);
     } else if(withTime) {
         str += "Z"; // UTC indicator
     }
