@@ -146,7 +146,15 @@ Object.defineProperty(JsgiResponse.prototype, "stream", {
         }
 
         this.headers["content-type"] = contentType || "application/octet-stream";
-        this.body = stream;
+        this.body = {
+            forEach: function(fn) {
+                try {
+                    stream.forEach(fn);
+                } finally {
+                    stream.close();
+                }
+            }
+        };
 
         return this;
     }
