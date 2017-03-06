@@ -904,6 +904,14 @@ exports.testToISOString = function() {
     assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:00:00Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:00:00.000Z");
 
+    d = new Date(Date.UTC(2010, 0, 2, 12, 1, 2, 3));
+    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:01:02Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:01:02.003Z");
+
+    d = new Date(Date.UTC(2010, 0, 2, 12, 1, 2, 99));
+    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:01:02Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:01:02.099Z");
+
     // Test for local time using current time to prevent nasty timzone/dst jumps
     d = new Date();
     var sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
@@ -912,7 +920,7 @@ exports.testToISOString = function() {
 
     sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     formatted = sdf.format(d);
-    assert.strictEqual(dates.toISOString(d, true, true, true, true), formatted.substr(0,26) + ":" + formatted.substr(-2));;
+    assert.strictEqual(dates.toISOString(d, true, true, true, true), formatted.substr(0,26) + ":" + formatted.substr(-2));
 };
 
 if (require.main === module) {

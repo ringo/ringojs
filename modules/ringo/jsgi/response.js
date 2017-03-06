@@ -3,10 +3,10 @@
  * JSGI response objects. For more flexibility the `JsgiResponse` is chainable.
  */
 
-var {merge} = require("ringo/utils/objects");
+const fs = require("fs");
 var {parseRange, canonicalRanges} = require("ringo/utils/http");
 var {mimeType} = require("ringo/mime");
-var {MemoryStream, Stream} = require("io");
+var {Stream, MemoryStream} = require("io");
 var {AsyncResponse} = require("./connector");
 
 const HYPHEN  = new ByteString("-", "ASCII");
@@ -565,7 +565,7 @@ exports.static = function (resource, contentType) {
  * @param {String|Resource|Stream} representation path of a file as string, a resource, or a readable <a href="../../../io/">io.Stream</a>
  * @param {Number} size optional size of the resource in bytes, -1 indicates an unknown size.
  * @param {String} contentType optional content type to send for single range responses
- * @param {Number} timeout optional timeout to send back the ranges, -1 indicates an infinite timeout.
+ * @param {Number} timeout optional timeout to send back the ranges, defaults to 30 seconds, -1 indicates an infinite timeout.
  * @param {Number} maxRanges optional maximum number of ranges in a request, defaults to 20. Similar to Apache's <code>MaxRanges</code> directive.
  * @returns {AsyncResponse} async response filled with the give ranges
  * @see <a href="https://tools.ietf.org/html/rfc7233">RFC 7233 - Range Requests</a>
@@ -585,14 +585,20 @@ exports.range = function (request, representation, size, contentType, timeout, m
 
     let stream;
     if (typeof representation == "string") {
-        const repResource = getResource(representation);
-        if (!repResource.exists()) {
-            throw new Error("Resource does not exist, cannot load a representation to read.");
+        let localPath = fs.absolute(representation);
+        if (!fs.exists(localPath) || !fs.isReadable(localPath)) {
+            throw new Error("Resource does not exist or is not readable.");
         }
-        if (size == null && repResource.getLength != null) {
-            size = repResource.getLength();
+
+        if (size == null) {
+            try {
+                size = fs.size(localPath);
+            } catch (e) {
+                // ignore --> use -1 at the end
+            }
         }
-        stream = new Stream(repResource.getInputStream());
+
+        stream = fs.openRaw(localPath, "r");
     } else if (representation instanceof org.ringojs.repository.Resource) {
         stream = new Stream(representation.getInputStream());
         if (size == null && representation.getLength != null) {
@@ -604,8 +610,8 @@ exports.range = function (request, representation, size, contentType, timeout, m
         throw new Error("Invalid representation! Must be a path to a file, a resource, or a stream.");
     }
 
-    if (!stream.readable() || !stream.seekable()) {
-        throw new Error("Stream must be readable and seekable!");
+    if (!stream.readable()) {
+        throw new Error("Stream must be readable!");
     }
 
     const BOUNDARY = new ByteString("sjognir_doro_" +
@@ -653,44 +659,83 @@ exports.range = function (request, representation, size, contentType, timeout, m
         headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
-    const response = new AsyncResponse(request, timeout);
-    response.start(206, headers);
+    const {servletResponse} = request.env;
+    servletResponse.setStatus(206);
+    if (ranges.length > 1) {
+        servletResponse.setHeader("Content-Type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
+    } else {
+        servletResponse.setHeader("Content-Type", contentType);
+        servletResponse.setHeader("Content-Range", "bytes " + ranges[0].join("-") + "/" + size);
+        servletResponse.setContentLengthLong(ranges[0][1] - ranges[0][0] + 1);
+    }
 
-    spawn(function() {
+    const outStream = servletResponse.getOutputStream();
+    const responseBufferSize = Math.max(request.env.servletResponse.getBufferSize() - 70, 8192);
+
+    try {
         let currentBytePos = 0;
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
-            const num = end - start + 1;
+            const numBytes = end - start + 1;
+            const rounds = Math.floor(numBytes / responseBufferSize);
+            const restBytes = numBytes % responseBufferSize;
 
             stream.skip(start - currentBytePos);
+
             if (arr.length > 1) {
+                const boundary = new MemoryStream(70);
                 if (index > 0) {
-                    response.write(CRLF);
+                    boundary.write(CRLF);
                 }
-                response.write(HYPHEN);
-                response.write(HYPHEN);
-                response.write(BOUNDARY);
-                response.write(CRLF);
-                response.write("Content-Type: " + contentType);
-                response.write(CRLF);
-                response.write("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"));
-                response.write(EMPTY_LINE);
+                boundary.write(HYPHEN);
+                boundary.write(HYPHEN);
+                boundary.write(BOUNDARY);
+                boundary.write(CRLF);
+                boundary.write(new ByteString("Content-Type: " + contentType, "ASCII"));
+                boundary.write(CRLF);
+                boundary.write(new ByteString("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"), "ASCII"));
+                boundary.write(EMPTY_LINE);
+
+                boundary.position = 0;
+                outStream.write(boundary.read().unwrap());
+                boundary.close();
             }
-            response.write(stream.read(num));
+
+            for (let i = 0; i < rounds; i++) {
+                outStream.write(stream.read(responseBufferSize).unwrap());
+            }
+            if (restBytes > 0) {
+                outStream.write(stream.read(restBytes).unwrap());
+            }
+
+            if (arr.length > 1 && index === arr.length - 1) {
+                // final boundary
+                const eofBoundary = new MemoryStream(70);
+                eofBoundary.write(CRLF);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(BOUNDARY);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.write(HYPHEN);
+                eofBoundary.position = 0;
+                outStream.write(eofBoundary.read().unwrap());
+                eofBoundary.close();
+            }
+
             currentBytePos = end + 1;
         });
 
-        // final boundary
-        if (ranges.length > 1) {
-            response.write(CRLF);
-            response.write(HYPHEN);
-            response.write(HYPHEN);
-            response.write(BOUNDARY);
-            response.write(HYPHEN);
-            response.write(HYPHEN);
-        }
-        response.close();
-    });
+        // commit response
+        servletResponse.flushBuffer();
+    } catch (e if e.javaException instanceof org.eclipse.jetty.io.EofException) {
+        // no problem, remote client closed connection ...
+    }
 
-    return response;
+    return {
+        status: -1,
+        headers: {
+            "X-JSGI-Skip-Response": "true"
+        },
+        body: {}
+    };
 };

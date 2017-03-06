@@ -14,3 +14,4 @@ docs/modules
 docs/java
 bin/ringo-doc.cmd
 bin/ringo-doc
+/pom.xml
