@@ -136,23 +136,27 @@ exports.testXml = function () {
 };
 
 exports.testStream = function () {
-    var stream = new io.MemoryStream(8);
-    var ba = new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]);
-    stream.write(ba);
+    var source = [0, 1, 2, 3, 4, 5, 6, 7];
+    var stream = new io.MemoryStream(new binary.ByteArray(source));
     var res = new JsgiResponse().stream(stream);
+    var readStream = function(body) {
+        var input = new io.MemoryStream();
+        body.forEach(function(buffer) {
+            input.write(buffer);
+        });
+        return input.content.toArray();
+    };
 
     assert.equal(res.status, 200);
     assert.deepEqual(res.headers, { "content-type": "application/octet-stream" });
-    assert.equal(res.body.length, 8);
+    var bytes = readStream(res.body);
+    assert.equal(bytes.length, 8);
+    assert.deepEqual(bytes, source);
 
-    res.body.readInto(ba);
-    assert.deepEqual(ba.toArray(), [0, 1, 2, 3, 4, 5, 6, 7]);
-
+    stream = new io.MemoryStream(new binary.ByteArray(bytes));
     res = new JsgiResponse().stream(stream, "application/pdf");
-    stream.write(ba);
     assert.deepEqual(res.headers, { "content-type": "application/pdf" });
-    res.body.readInto(ba);
-    assert.deepEqual(ba.toArray(), [0, 1, 2, 3, 4, 5, 6, 7]);
+    assert.deepEqual(readStream(res.body), source);
 };
 
 exports.testBinary = function () {
