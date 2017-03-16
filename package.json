@@ -1,6 +1,6 @@
 {
     "name": "httpserver",
-    "version": "0.2",
+    "version": "0.3",
     "author": "Robert Gaggl <robert@nomatic.org>",
     "description": "An alternative to the built-in RingoJS httpserver module, based on Eclipse Jetty as well",
     "keywords": ["ringo", "httpserver", "http", "https", "jetty"],
