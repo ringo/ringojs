@@ -14,11 +14,11 @@ large-scale application development:
   * Support for CommonJS packages to install or write additional software
     components.
 
-For more information, visit the RingoJS web site: <http://ringojs.org/>
+For more information, visit the RingoJS web site: <https://ringojs.org/>
 
 ## Download and Installation
 
-Download the latest precompiled release from the [download page](http://ringojs.org/download/). Extract the archive and add the `ringojs/bin` directory to your local `PATH` for convinience.
+Download the latest precompiled release from the [download page](https://ringojs.org/download/). Extract the archive and add the `ringojs/bin` directory to your local `PATH` for convinience.
 
 If you use the Homebrew package manager on MacOS, you can use the ringojs formula: `brew install ringojs`
 
@@ -97,4 +97,4 @@ For more information visit the [rp documentation wiki](https://github.com/grob/r
 ## Learning more
 
 If you have questions visit <http://ringojs.org/> or join the mailing
-list at <http://groups.google.com/group/ringojs>.
+list at <https://groups.google.com/group/ringojs>.
