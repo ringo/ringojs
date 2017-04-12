@@ -538,7 +538,7 @@ exports.static = function (resource, contentType) {
     return {
         status: 200,
         headers: {
-            "Content-Type": contentType || mimeType(resource.name)
+            "content-type": contentType || mimeType(resource.name)
         },
         body: {
             digest: function() {
@@ -638,7 +638,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         let invalidRangeResponse = new JsgiResponse().setStatus(416).text("Range Not Satisfiable");
         if (size != null) {
             invalidRangeResponse.addHeaders({
-                "Content-Range": "bytes */" + size
+                "content-range": "bytes */" + size
             });
         }
         return invalidRangeResponse;
@@ -647,25 +647,17 @@ exports.range = function (request, representation, size, contentType, timeout, m
     // check if range can be fulfilled
     if(size != null && ranges[ranges.length - 1][1] > size) {
         return new JsgiResponse().setStatus(416).addHeaders({
-            "Content-Range": "bytes */" + size
+            "content-range": "bytes */" + size
         }).text("Range Not Satisfiable");
-    }
-
-    const headers = {};
-    if (ranges.length > 1) {
-        headers["Content-Type"] = "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII");
-    } else {
-        headers["Content-Type"] = contentType;
-        headers["Content-Range"] = "bytes " + ranges[0].join("-") + "/" + (size >= 0 ? size : "*");
     }
 
     const {servletResponse} = request.env;
     servletResponse.setStatus(206);
     if (ranges.length > 1) {
-        servletResponse.setHeader("Content-Type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
+        servletResponse.setHeader("content-type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
     } else {
-        servletResponse.setHeader("Content-Type", contentType);
-        servletResponse.setHeader("Content-Range", "bytes " + ranges[0].join("-") + "/" + size);
+        servletResponse.setHeader("content-type", contentType);
+        servletResponse.setHeader("content-range", "bytes " + ranges[0].join("-") + "/" + size);
         servletResponse.setContentLengthLong(ranges[0][1] - ranges[0][0] + 1);
     }
 
@@ -734,7 +726,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
     return {
         status: -1,
         headers: {
-            "X-JSGI-Skip-Response": "true"
+            "x-jsgi-skip-response": "true"
         },
         body: {}
     };
