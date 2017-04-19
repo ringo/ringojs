@@ -310,7 +310,7 @@ var Exchange = function(url, options) {
         connection.setAllowUserInteraction(false);
         connection.setConnectTimeout(options.connectTimeout);
         connection.setReadTimeout(options.readTimeout);
-        connection.setFollowRedirects(options.followRedirects);
+        connection.setInstanceFollowRedirects(options.followRedirects);
         connection.setRequestMethod(options.method);
         connection.setRequestProperty("User-Agent", "RingoJS HttpClient " + VERSION);
         connection.setRequestProperty("Accept-Encoding", "gzip,deflate");
