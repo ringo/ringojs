@@ -34,9 +34,9 @@ Releases of RingoJS will be signed with one of the following GPG keys:
 Ringo requires a recent version of [Java]. It uses Apache [Ant] as build tool
 and [Ivy] (>= 2.4 is required) for managing dependencies.
 
-[Java]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
-[Ant]: http://ant.apache.org/
-[Ivy]: http://ant.apache.org/ivy/
+[Java]: https://www.oracle.com/technetwork/java/javase/downloads/index.html
+[Ant]: https://ant.apache.org/
+[Ivy]: https://ant.apache.org/ivy/
 
 If you have these installed, building Ringo is straightforward:
 
@@ -96,5 +96,5 @@ For more information visit the [rp documentation wiki](https://github.com/grob/r
 
 ## Learning more
 
-If you have questions visit <http://ringojs.org/> or join the mailing
+If you have questions visit <https://ringojs.org/> or join the mailing
 list at <https://groups.google.com/group/ringojs>.
