@@ -203,6 +203,8 @@ Object.defineProperty(JsgiResponse.prototype, "setCharset", {
 
 /**
  * Merge the given object into the headers of the JSGI response.
+ * Note that header field names are case-sensitive in the `JsgiResponse` object, whereas
+ * they are not in the final HTTP response message sent out by Jetty.
  * @param {Object} headers new header fields to merge with the current ones.
  * @returns {JsgiResponse} JSGI response with the new headers
  */
@@ -230,6 +232,27 @@ Object.defineProperty(JsgiResponse.prototype, "addHeaders", {
                 this.headers[fieldName].push(String(additionalHeaders[fieldName]));
             }
         }
+        return this;
+    }
+});
+
+/**
+ * Merge the given object into the headers of the JSGI response.
+ * Existing headers in the to-be-sent headers will be replaced with the new ones.
+ * Note that header field names are case-sensitive in the `JsgiResponse` object, whereas
+ * they are not in the final HTTP response message sent out by Jetty.
+ * @param {Object} headers new headers to be set
+ * @returns {JsgiResponse} JSGI response with the new headers
+ */
+Object.defineProperty(JsgiResponse.prototype, "setHeaders", {
+    value: function(headersToSet) {
+        // delete already existing headers
+        for (let fieldName in headersToSet) {
+            if (this.headers[fieldName] !== undefined) {
+                delete this.headers[fieldName];
+            }
+        }
+        this.addHeaders(headersToSet);
         return this;
     }
 });
@@ -512,7 +535,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
 
 // Define helper functions
 /** @ignore */
-["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "binary", "setCharset", "addHeaders",
+["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "binary", "setCharset", "addHeaders", "setHeaders",
     "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
     "unavailable", "redirect", "notModified"].forEach(function(functionName) {
     exports[functionName] = function() {

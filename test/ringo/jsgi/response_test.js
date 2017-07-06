@@ -255,7 +255,77 @@ exports.testAddHeaders = function () {
     assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
     assert.isTrue(res.headers.foo.every(function(val) {
         return typeof val === "string";
-    }))
+    }));
+
+    // case test
+    res = new JsgiResponse();
+    res.addHeaders({ foo: "bar" }).addHeaders({ FOO: "baz" }).addHeaders({ Foo: 12345 });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": "bar",
+        "FOO": "baz",
+        "Foo": 12345
+    });
+    assert.isTrue(typeof res.headers.Foo === "string");
+};
+
+exports.testSetHeaders = function () {
+    var res = new JsgiResponse();
+
+    var expected = new JsgiResponse({
+        status: 200,
+        headers: {
+            "content-type": "text/plain; charset=utf-8",
+            "x-foo": "bar",
+            "boo": "far",
+            "x-limit": "100"
+        },
+        body: [""]
+    });
+
+    assert.deepEqual(res.setHeaders({"x-foo": "bar", boo: "far", "x-limit": "100"}), expected);
+    assert.deepEqual(res.setHeaders({"x-foo": "bar", boo: "far", "x-limit": "100"}), expected);
+
+    // multiple headers chained
+    res = new JsgiResponse();
+    res.setHeaders({ foo: "bar" }).setHeaders({ foo: "baz" }).setHeaders({ foo: 12345 });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": "12345"
+    });
+    assert.isTrue(typeof res.headers.foo === "string");
+
+    // multiple headers as array
+    res = new JsgiResponse();
+    res.setHeaders({ foo: ["bar", "baz", 12345] });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": ["bar", "baz", "12345"]
+    });
+    assert.isTrue(Array.isArray(res.headers.foo));
+    assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
+    assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
+    assert.isTrue(res.headers.foo.every(function(val) {
+        return typeof val === "string";
+    }));
+
+    res.setHeaders({ foo: ["moo", "maa", 67890] });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": ["moo", "maa", "67890"]
+    });
+
+    // case test
+    res = new JsgiResponse();
+    res.setHeaders({ foo: "bar" }).setHeaders({ FOO: "baz" }).setHeaders({ Foo: 12345 });
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/plain; charset=utf-8",
+        "foo": "bar",
+        "FOO": "baz",
+        "Foo": 12345
+    });
+    assert.isTrue(typeof res.headers.Foo === "string");
 };
 
 exports.testHelpers = function() {
