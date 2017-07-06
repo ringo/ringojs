@@ -202,6 +202,18 @@ Object.defineProperty(JsgiResponse.prototype, "setCharset", {
 });
 
 /**
+ * Set the content type for the current response.
+ * @param {String} contentType the content type header value.
+ * @returns {JsgiResponse} JSGI response with the given charset
+ */
+Object.defineProperty(JsgiResponse.prototype, "setContentType", {
+    value: function(contentType) {
+        this.headers["content-type"] = String(contentType);
+        return this;
+    }
+});
+
+/**
  * Merge the given object into the headers of the JSGI response.
  * Note that header field names are case-sensitive in the `JsgiResponse` object, whereas
  * they are not in the final HTTP response message sent out by Jetty.
@@ -446,10 +458,27 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
  */
 
 /**
+ * Set the content type for the current response.
+ * @param {String} contentType the content type header value.
+ * @returns {JsgiResponse} JSGI response with the given charset
+ * @name setContentType
+ * @function
+ */
+
+/**
  * Merge the given object into the headers of the JSGI response.
  * @param {Object} headers new header fields to merge with the current ones.
  * @returns {JsgiResponse} JSGI response with the new headers
  * @name addHeaders
+ * @function
+ */
+
+/**
+ * Merge the given object into the headers of the JSGI response.
+ * Existing headers in the to-be-sent headers will be replaced with the new ones.
+ * @param {Object} headers new headers to be set
+ * @returns {JsgiResponse} JSGI response with the new headers
+ * @name setHeaders
  * @function
  */
 
@@ -536,7 +565,7 @@ Object.defineProperty(JsgiResponse.prototype, "notModified", {
 // Define helper functions
 /** @ignore */
 ["setStatus", "text", "html", "json", "jsonp", "xml", "stream", "binary", "setCharset", "addHeaders", "setHeaders",
-    "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
+    "setContentType", "ok", "created", "bad", "unauthorized", "forbidden", "notFound", "gone", "error",
     "unavailable", "redirect", "notModified"].forEach(function(functionName) {
     exports[functionName] = function() {
         return JsgiResponse.prototype[functionName].apply((new JsgiResponse()), arguments);

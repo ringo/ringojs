@@ -328,6 +328,27 @@ exports.testSetHeaders = function () {
     assert.isTrue(typeof res.headers.Foo === "string");
 };
 
+exports.testSetContentType = function () {
+    var res = new JsgiResponse();
+
+    var expected = new JsgiResponse({
+        status: 200,
+        headers: {
+            "content-type": "foo/bar; charset=utf-16"
+        },
+        body: [""]
+    });
+
+    assert.deepEqual(res.setContentType("foo/bar; charset=utf-16"), expected);
+
+    res = new JsgiResponse();
+    res.html("<h1>Hello World!</h1>").setContentType("text/myplain; charset=utf-16");
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/myplain; charset=utf-16"
+    });
+    assert.deepEqual(res.body, ["<h1>Hello World!</h1>"]);
+};
+
 exports.testHelpers = function() {
     var response = require("ringo/jsgi/response");
 
