@@ -347,6 +347,12 @@ exports.testSetContentType = function () {
         "content-type": "text/myplain; charset=utf-16"
     });
     assert.deepEqual(res.body, ["<h1>Hello World!</h1>"]);
+
+    res = new JsgiResponse();
+    res.html("<h1>Hello World!</h1>").setContentType("text/myplain; charset=utf-16").setCharset("utf-8");
+    assert.deepEqual(res.headers,  {
+        "content-type": "text/myplain; charset=utf-8"
+    });
 };
 
 exports.testHelpers = function() {
