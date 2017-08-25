@@ -248,8 +248,8 @@ function encodeObjectComponent(object, prefix, buffer) {
 }
 
 /**
- * Encode an object's properties into an URL encoded string. If a property contains an array as value,
- * the array will be serialized.
+ * Serializes an object's properties into an URL-encoded query string.
+ * If a property contains an array as value, the array will be serialized.
  * @param {Object} object an object
  * @returns {String} a string containing the URL encoded properties of the object
  * @example // "foo=bar%20baz"
