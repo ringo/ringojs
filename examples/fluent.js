@@ -5,7 +5,9 @@ var builder = httpServer.build()
             "name": "test1"
         })
         // serve application
-        .serveApplication("/", module.resolve("./app"))
+        .serveApplication("/", module.resolve("./app"), {
+            "sessions": true
+        })
         // add websocket - this must be called after serveApplication
         // as it operates on the current context of the builder
         .addWebSocket("/websocket", function() {})

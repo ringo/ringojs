@@ -1,10 +1,14 @@
 var {HttpServer} = require("../lib/main");
 
 var httpServer = new HttpServer();
-httpServer.enableSessions();
+httpServer.enableSessions({
+    "name": "myapp"
+});
 
 // init the application context
-var appContext = httpServer.serveApplication("/", module.resolve("./app"));
+var appContext = httpServer.serveApplication("/", module.resolve("./app"), {
+    "sessions": true
+});
 // and add a websocket to it
 appContext.addWebSocket("/events", function() {});
 
