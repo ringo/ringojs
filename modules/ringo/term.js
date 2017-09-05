@@ -15,12 +15,12 @@
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
 
-var system = require('system');
-var {Stream, TextStream} = require('io');
-var System = java.lang.System;
+const system = require('system');
+const {Stream, TextStream} = require('io');
+const System = java.lang.System;
 
-var env = system.env;
-var supportedTerminals = {
+const env = system.env;
+const supportedTerminals = {
     'ansi': 1,
     'vt100': 1,
     'xterm': 1,
@@ -30,8 +30,8 @@ var supportedTerminals = {
     'gnome-terminal': 1
 };
 
-var javaConsole = System.console() || System.out;
-var enabled = env.TERM && env.TERM in supportedTerminals;
+const javaConsole = System.console() || System.out;
+const enabled = env.TERM && env.TERM in supportedTerminals;
 
 exports.RESET =     "\u001B[0m";
 exports.BOLD =      "\u001B[1m";
@@ -57,15 +57,15 @@ exports.ONCYAN =    "\u001B[46m";
 exports.ONWHITE =   "\u001B[47m";
 
 // used to remove ANSI control sequences if disabled
-var cleaner = /\u001B\[\d*(?:;\d+)?[a-zA-Z]/g;
+const cleaner = /\u001B\[\d*(?:;\d+)?[a-zA-Z]/g;
 // used to check if a string consists only of ANSI control sequences
-var matcher = /^(?:\u001B\[\d*(?:;\d+)?[a-zA-Z])+$/;
+const matcher = /^(?:\u001B\[\d*(?:;\d+)?[a-zA-Z])+$/;
 
 /**
  * Creates a terminal writer that writes to the Java console.
  * @param {Stream} out a TextStream
  */
-var TermWriter = exports.TermWriter = function() {
+const TermWriter = exports.TermWriter = function() {
 
     if (!(this instanceof TermWriter)) {
         return new TermWriter();
@@ -73,10 +73,10 @@ var TermWriter = exports.TermWriter = function() {
 
     // edge case: a JVM can exist without a console
     if (javaConsole === null) {
-        throw "No console associated with the current JVM.";
+        throw new Error("No console associated with the current JVM.");
     }
 
-    var _enabled = enabled;
+    let _enabled = enabled;
 
     /**
      * Enable or disable ANSI terminal colors for this writer.
@@ -99,9 +99,9 @@ var TermWriter = exports.TermWriter = function() {
      * enabled is true.
      * @param {*...} args... variable number of arguments to write
      */
-    this.write = function() {
+    const write = this.write = function() {
         for (var i = 0; i < arguments.length; i++) {
-            var arg = String(arguments[i]);
+            let arg = String(arguments[i]);
             if (!_enabled) {
                 arg = arg.replace(cleaner, '');
             }
@@ -118,12 +118,12 @@ var TermWriter = exports.TermWriter = function() {
      * @param {*...} args... variable number of arguments to write
      */
     this.writeln = function() {
-        this.write.apply(this, arguments);
+        write.apply(this, arguments);
         javaConsole.printf((_enabled ? exports.RESET : "") + "\n");
     };
 };
 
-var tw = new TermWriter();
+const tw = new TermWriter();
 /**
  * Write the arguments to `system.stdout`, applying ANSI terminal colors if
  * support has been detected.
