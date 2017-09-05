@@ -22,7 +22,7 @@ exports.testAsync = function() {
         "host": "localhost",
         "port": 8282,
         "app": function(request) {
-            var response = new AsyncResponse(request, 2000, true);
+            var response = new AsyncResponse(request, 2000);
             response.start(200, {"Content-Type": "text/plain"});
             spawn(function() {
                 var max = 5;

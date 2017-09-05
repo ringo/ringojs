@@ -90,7 +90,7 @@ function resolveId(parent, child) {
  * @param {String} suffix the suffix of the temporary file; may be undefined or null
  * @param {String} directory optional directory in which to create the file. Pass undefined
  *                 to use the system's default location for temporary files
- * @returns {File} the temporary file
+ * @returns {String} the temporary file's path
  */
 function createTempFile(prefix, suffix, directory) {
     suffix = suffix || null;

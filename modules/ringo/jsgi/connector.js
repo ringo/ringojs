@@ -162,6 +162,20 @@ function writeBody(response, body, charset) {
  *                 otherwise the request is aborted by the Servlet container.
  *                 A negative value lets the async operation never time out. Defaults to 30 seconds.
  * @see <a href="http://download.oracle.com/otndocs/jcp/servlet-3.0-fr-oth-JSpec/">Servlet 3.0 specification - &lt;async-supported&gt;</a>
+ * @example const response = new AsyncResponse(request, 10000);
+ * response.start(200, {"Content-Type": "text/plain"});
+ *
+ * // this functions returns a ringo promise
+ * doSomeAsyncStuff().then(function(data) {
+ *   // write out result
+ *   response.write(data);
+ *   response.close();
+ * }, function() {
+ *   // just close the connection in case of an error
+ *   response.close();
+ * });
+ *
+ * return response;
  */
 function AsyncResponse(request, timeout) {
     if (!request || !request.env) {

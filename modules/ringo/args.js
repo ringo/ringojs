@@ -57,7 +57,7 @@ exports.Parser = function() {
      * Add an option to the parser.
      * @param {String} shortName the short option name (without leading hyphen)
      * @param {String} longName the long option name (without leading hyphens)
-     * @param {String} argument the name of the argument if the option requires one, or null
+     * @param {String} argument display name of the option's value, or null if the argument is a singular switch
      * @param {String} helpText the help text to display for the option
      * @returns {Object} this parser for chained invocation
      */
