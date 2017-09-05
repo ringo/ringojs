@@ -28,13 +28,46 @@ exports.testCreateTempFile = function () {
     var tempFile = files.createTempFile('ringo');
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
+    assert.isTrue(typeof tempFile === "string", "Result must be string!");
     fs.remove(tempFile);
     tempFile = files.createTempFile('ringo', '.js');
     assert.isNotNull(tempFile); // Creation incl. suffix.
     assert.isTrue(/[\/\\]ringo\w*\.js$/.test(tempFile));
     fs.remove(tempFile);
-    assert.throws(function () files.createTempFile('ri'), java.lang.
-            IllegalArgumentException); // Prefix must be at least 3 chars long.
+
+    const sysTempDir = java.lang.System.getProperty("java.io.tmpdir");
+    tempFile = files.createTempFile('ringo', '.js', sysTempDir);
+    assert.isNotNull(tempFile); // Creation incl. suffix.
+    assert.isTrue(/[\/\\]ringo\w*\.js$/.test(tempFile));
+    assert.isTrue(tempFile.indexOf(sysTempDir) === 0);
+    fs.remove(tempFile);
+};
+
+// fixme: test for roots, separator
+exports.testHidden = function () {
+    let tempFile = (java.nio.file.Files.createTempFile(".testHidden", ".test")).toString();
+    assert.isNotNull(tempFile);
+    assert.isTrue(files.isHidden(tempFile));
+    fs.remove(tempFile);
+
+    tempFile = (java.nio.file.Files.createTempFile("testNotHidden", ".test")).toString();
+    assert.isNotNull(tempFile);
+    assert.isFalse(files.isHidden(tempFile));
+    fs.remove(tempFile);
+};
+
+exports.testConstants = function() {
+    assert.isTrue(files.roots.length >= 1);
+    files.roots.forEach(function(root) {
+        assert.isTrue(typeof root === "string");
+    });
+
+    // this is a 99.999999999% valid test ...
+    if (files.roots.length === 1) {
+        assert.isTrue(files.roots[0] === "/");
+    }
+
+    assert.isTrue(files.separator === String(java.nio.file.FileSystems.getDefault().getSeparator()));
 };
 
 exports.testPosixPermissions = function() {

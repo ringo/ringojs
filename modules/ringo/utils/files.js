@@ -3,12 +3,21 @@
  * the CommonJS standard <a href="../../../fs/index.html">fs</a> module.
  */
 
-var arrays = require('ringo/utils/arrays');
-var fs = require('fs');
+const arrays = require('ringo/utils/arrays');
+const fs = require('fs');
 
 export ('resolveUri', 'resolveId', 'isHidden', 'createTempFile', 'roots', 'separator', 'PosixPermissions');
 
-var File = java.io.File;
+const {
+    Paths,
+    Files,
+    FileSystems
+} = java.nio.file;
+
+const {PosixFilePermissions} = java.nio.file.attribute;
+
+const getPath = Paths.get;
+const FS = FileSystems.getDefault();
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
@@ -19,18 +28,18 @@ var File = java.io.File;
  * @param {...} arbitrary number of path elements
  */
 function resolveUri() {
-    var root = '';
-    var elements = [];
-    var leaf = '';
-    var path;
-    var SEPARATOR = '/';
-    var SEPARATOR_RE = /\//;
-    for (var i = 0; i < arguments.length; i++) {
+    let root = '';
+    let elements = [];
+    let leaf = '';
+    let path;
+    const SEPARATOR = '/';
+    const SEPARATOR_RE = /\//;
+    for (let i = 0; i < arguments.length; i++) {
         path = String(arguments[i]);
         if (path.trim() == '') {
             continue;
         }
-        var parts = path.split(SEPARATOR_RE);
+        let parts = path.split(SEPARATOR_RE);
         if (path[0] == '/') {
             // path is absolute, throw away everyting we have so far
             root = parts.shift() + SEPARATOR;
@@ -41,8 +50,8 @@ function resolveUri() {
             parts.push(leaf);
             leaf = '';
         }
-        for (var j = 0; j < parts.length; j++) {
-            var part = parts[j];
+        for (let j = 0; j < parts.length; j++) {
+            let part = parts[j];
             if (part == '..') {
                 if (elements.length > 0 && arrays.peek(elements) != '..') {
                     elements.pop();
@@ -72,7 +81,7 @@ function resolveUri() {
  */
 function resolveId(parent, child) {
     // only paths starting with "." or ".." are relative according to module spec
-    var path = child.split("/");
+    const path = child.split("/");
     if (path[0] == "." || path[0] == "..") {
         // we support absolute paths for module ids. Since absolute
         // paths are platform dependent, use the file module's version
@@ -94,10 +103,13 @@ function resolveId(parent, child) {
  */
 function createTempFile(prefix, suffix, directory) {
     suffix = suffix || null;
-    directory = directory ? new File(directory) : null;
-    return File
-        .createTempFile(prefix, suffix, directory)
-        .getPath();
+    directory = directory ? getPath(directory) : null;
+
+    return (
+        directory !== null ?
+            Files.createTempFile(directory, prefix, suffix) :
+            Files.createTempFile(prefix, suffix)
+    ).toString();
 }
 
 /**
@@ -107,7 +119,7 @@ function createTempFile(prefix, suffix, directory) {
  * @returns {Boolean} true if this File object is hidden
  */
 function isHidden(file) {
-    return new File(file).isHidden();
+    return Files.isHidden(getPath(file));
 }
 
 /**
@@ -116,21 +128,26 @@ function isHidden(file) {
  * contains an element for each mounted drive.
  * @type Array
  */
-var roots = File.listRoots().map(String);
+const roots = (function(rootsIterator) {
+    let rootDirs = [];
+    while(rootsIterator.hasNext()) {
+        rootDirs.push(rootsIterator.next().toString());
+    }
+    return rootDirs;
+})(FS.getRootDirectories().iterator());
 
 /**
  * The system-dependent file system separator character.
  * @type String
  */
-var separator = File.separator;
-
+const separator = FS.getSeparator();
 
 /**
  * Internal use only!
  * Converts a octal digit into a string in symbolic notation.
  * @ignore
  */
-var octalDigitToSymbolic = function(octalPart) {
+const octalDigitToSymbolic = function(octalPart) {
     switch (octalPart) {
         case 0: return "---";
         case 1: return "--x";
@@ -150,7 +167,7 @@ var octalDigitToSymbolic = function(octalPart) {
  * Converts a symbolic notation string into an octal digit.
  * @ignore
  */
-var symbolicToOctalDigit = function(stringPart) {
+const symbolicToOctalDigit = function(stringPart) {
     switch (stringPart) {
         case "---": return 0;
         case "--x": return 1;
@@ -170,7 +187,7 @@ var symbolicToOctalDigit = function(stringPart) {
  * Converts octal number permissions into the symbolic representation.
  * @ignore
  */
-var octalToSymbolicNotation = function(octal) {
+const octalToSymbolicNotation = function(octal) {
     return [
         octalDigitToSymbolic(octal >> 6),
         octalDigitToSymbolic((octal >> 3) & 0007),
@@ -183,7 +200,7 @@ var octalToSymbolicNotation = function(octal) {
  * Converts symbolic represented permissions into the octal notation.
  * @ignore
  */
-var symbolicToOctalNotation = function(symbolic) {
+const symbolicToOctalNotation = function(symbolic) {
     if (symbolic.length !== 9) {
         throw "Invalid POSIX permission string: " + symbolic;
     }
@@ -197,8 +214,8 @@ var symbolicToOctalNotation = function(symbolic) {
  * Internal use only!
  * @ignore
  */
-var enumToOctalNotation = function(javaEnumSet) {
-    return symbolicToOctalNotation(java.nio.file.attribute.PosixFilePermissions.toString(javaEnumSet));
+const enumToOctalNotation = function(javaEnumSet) {
+    return symbolicToOctalNotation(PosixFilePermissions.toString(javaEnumSet));
 };
 
 /**
@@ -214,7 +231,7 @@ function PosixPermissions(permissions) {
     }
 
     // internal holder of the value
-    var _octalValue;
+    let _octalValue;
 
     Object.defineProperty(this, "value", {
         configurable: false,
@@ -251,8 +268,8 @@ function PosixPermissions(permissions) {
  * @returns {java.nio.file.attribute.FileAttribute} an object that encapsulates PosixFilePermissions
  */
 PosixPermissions.prototype.toJavaFileAttribute = function() {
-    return java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
-        java.nio.file.attribute.PosixFilePermissions.fromString(octalToSymbolicNotation(this.value))
+    return PosixFilePermissions.asFileAttribute(
+        PosixFilePermissions.fromString(octalToSymbolicNotation(this.value))
     );
 };
 
@@ -261,5 +278,5 @@ PosixPermissions.prototype.toJavaFileAttribute = function() {
  * @returns {java.util.Set<PosixFilePermission>} a set of permissions
  */
 PosixPermissions.prototype.toJavaPosixFilePermissionSet = function() {
-    return java.nio.file.attribute.PosixFilePermissions.fromString(octalToSymbolicNotation(this.value));
+    return PosixFilePermissions.fromString(octalToSymbolicNotation(this.value));
 };
