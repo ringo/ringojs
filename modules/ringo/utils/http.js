@@ -251,6 +251,8 @@ function encodeObjectComponent(object, prefix, buffer) {
  * Encode an object's properties into an URL encoded string. If a property contains an array as value,
  * the array will be serialized.
  * @param {Object} object an object
+ * @param {String} separator optional string delimiting key-value pairs in the URL, defaults to `&`
+ * @param {String} equals optional string delimiting a key from its value, defaults to `=`
  * @returns {String} a string containing the URL encoded properties of the object
  * @example // "foo=bar%20baz"
  * http.urlEncode({ foo: "bar baz" });
@@ -261,21 +263,24 @@ function encodeObjectComponent(object, prefix, buffer) {
  * // "foo%5Bbar%5D%5B%5D%5Bbaz%5D=hello"
  * http.urlEncode({foo: {bar: [{baz: "hello"}]}});
  */
-function urlEncode(object) {
+function urlEncode(object, separator, equals) {
+    separator = typeof separator === "string" ? separator : "&";
+    equals = typeof equals === "string" ? equals : "=";
+
     var buf = new Buffer();
     var key, value;
     for (key in object) {
         value = object[key];
         if (Array.isArray(value)) {
             for (var i = 0; i < value.length; i++) {
-                if (buf.length) buf.write("&");
-                buf.write(encodeURIComponent(key), "=", encodeURIComponent(value[i]));
+                if (buf.length) buf.write(separator);
+                buf.write(encodeURIComponent(key), equals, encodeURIComponent(value[i]));
             }
         } else if (typeof value === "object") {
             encodeObjectComponent(value, key, buf);
         } else {
-            if (buf.length) buf.write("&");
-            buf.write(encodeURIComponent(key), "=", encodeURIComponent(value));
+            if (buf.length) buf.write(separator);
+            buf.write(encodeURIComponent(key), equals, encodeURIComponent(value));
         }
     }
     return buf.toString();

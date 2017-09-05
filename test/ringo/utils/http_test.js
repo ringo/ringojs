@@ -66,6 +66,19 @@ exports.testUrlEncode = function() {
     testCases.forEach(function(test, index) {
         assert.deepEqual(http.urlEncode(test[0]), test[1], "testCase[" + index + "] failed! " + test[0]);
     });
+
+    // custom separators and equals
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, "+"), "foo=1+bar=baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz baz \uD83D\uDE00"}, "+"), "foo=1+bar=baz%20baz%20%F0%9F%98%80");
+    assert.deepEqual(http.urlEncode({foo: [1, 2, 3, 4, 5], bar: "baz"}, "+"), "foo=1+foo=2+foo=3+foo=4+foo=5+bar=baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, "+++"), "foo=1+++bar=baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, ""), "foo=1bar=baz");
+
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, "+", "<=>"), "foo<=>1+bar<=>baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz baz \uD83D\uDE00"}, "+", "<=>"), "foo<=>1+bar<=>baz%20baz%20%F0%9F%98%80");
+    assert.deepEqual(http.urlEncode({foo: [1, 2, 3, 4, 5], bar: "baz"}, "+", "<=>"), "foo<=>1+foo<=>2+foo<=>3+foo<=>4+foo<=>5+bar<=>baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, "+++", "<=>"), "foo<=>1+++bar<=>baz");
+    assert.deepEqual(http.urlEncode({foo: 1, bar: "baz"}, "", "<=>"), "foo<=>1bar<=>baz");
 };
 
 exports.testParseParameters = function() {
