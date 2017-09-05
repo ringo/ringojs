@@ -14,9 +14,8 @@
  *
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
-
+let {Stream, TextStream} = require('io');
 const system = require('system');
-const {Stream, TextStream} = require('io');
 const System = java.lang.System;
 
 const env = system.env;
