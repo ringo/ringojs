@@ -47,7 +47,13 @@ exports.testCreateTempFile = function () {
 exports.testHidden = function () {
     let tempFile = (java.nio.file.Files.createTempFile(".testHidden", ".test")).toString();
     assert.isNotNull(tempFile);
-    assert.isTrue(files.isHidden(tempFile));
+
+    if (java.lang.System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0) {
+        // skip this ...
+    } else {
+        assert.isTrue(files.isHidden(tempFile));
+    }
+
     fs.remove(tempFile);
 
     tempFile = (java.nio.file.Files.createTempFile("testNotHidden", ".test")).toString();
