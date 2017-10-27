@@ -104,6 +104,51 @@ exports.testPosixPermissions = function() {
     java.nio.file.Files.delete(tempPath);
 };
 
+exports.testCreateTempFileWithPermissions = function () {
+    let tempFile = files.createTempFile("ringo", null, null, 0000);
+    assert.isNotNull(tempFile); // Creation w/ prefix only.
+    assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
+    assert.isTrue(typeof tempFile === "string", "Result must be string!");
+
+    let nativePermissions = java.nio.file.Files.getPosixFilePermissions(
+        java.nio.file.FileSystems.getDefault().getPath(tempFile)
+    );
+    assert.strictEqual(
+        "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
+        (new files.PosixPermissions(0000)).toString()
+    );
+    fs.remove(tempFile);
+
+    tempFile = files.createTempFile("ringo", ".js", null, 0000);
+    assert.isNotNull(tempFile); // Creation w/ prefix only.
+    assert.isTrue(/[\/\\]ringo\w*\.js$/.test(tempFile));
+    assert.isTrue(typeof tempFile === "string", "Result must be string!");
+
+    nativePermissions = java.nio.file.Files.getPosixFilePermissions(
+        java.nio.file.FileSystems.getDefault().getPath(tempFile)
+    );
+    assert.strictEqual(
+        "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
+        (new files.PosixPermissions(0000)).toString()
+    );
+    fs.remove(tempFile);
+
+    tempFile = files.createTempFile("ringo", ".js", java.lang.System.getProperty("java.io.tmpdir"), 0111);
+    assert.isNotNull(tempFile); // Creation w/ prefix only.
+    assert.isTrue(/[[\/\\]ringo\w*\.js$/.test(tempFile));
+    assert.isTrue(typeof tempFile === "string", "Result must be string!");
+    assert.isTrue(tempFile.indexOf(java.lang.System.getProperty("java.io.tmpdir")) === 0);
+
+    nativePermissions = java.nio.file.Files.getPosixFilePermissions(
+        java.nio.file.FileSystems.getDefault().getPath(tempFile)
+    );
+    assert.strictEqual(
+        "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
+        (new files.PosixPermissions(0111)).toString()
+    );
+    fs.remove(tempFile);
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

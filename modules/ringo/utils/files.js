@@ -97,19 +97,30 @@ function resolveId(parent, child) {
  * Create a new empty temporary file in the default directory for temporary files.
  * @param {String} prefix the prefix of the temporary file; must be at least three characters long
  * @param {String} suffix the suffix of the temporary file; may be undefined or null
- * @param {String} directory optional directory in which to create the file. Pass undefined
- *                 to use the system's default location for temporary files
+ * @param {String} directory optional directory in which to create the file. Omit to use the system's temp file directory.
+ * @param {Number|String|java.util.Set<PosixFilePermission>} permissions optional POSIX permissions to apply
+ *
  * @returns {String} the temporary file's path
  */
-function createTempFile(prefix, suffix, directory) {
+function createTempFile(prefix, suffix, directory, permissions) {
     suffix = suffix || null;
     directory = directory ? getPath(directory) : null;
 
-    return (
-        directory !== null ?
-            Files.createTempFile(directory, prefix, suffix) :
-            Files.createTempFile(prefix, suffix)
-    ).toString();
+    const posixPermissions = (permissions !== undefined ? new PosixPermissions(permissions) : null);
+
+    if (posixPermissions !== null) {
+        return (
+            directory !== null ?
+                Files.createTempFile(directory, prefix, suffix, posixPermissions.toJavaFileAttribute()) :
+                Files.createTempFile(prefix, suffix, posixPermissions.toJavaFileAttribute())
+        ).toString();
+    } else {
+        return (
+            directory !== null ?
+                Files.createTempFile(directory, prefix, suffix) :
+                Files.createTempFile(prefix, suffix)
+        ).toString();
+    }
 }
 
 /**
