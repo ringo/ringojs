@@ -32,7 +32,7 @@ DEFAULT=/etc/default/$NAME
 RINGO_OUT=/var/log/ringojs/${NAME}-out.log
 RINGO_ERR="&1"
 # fix for Rhino on bootclasspath in OpenJDK
-RHINO_CLASSPATH=-Xbootclasspath/p:${RINGO_HOME}lib/js.jar
+RHINO_CLASSPATH=-Xbootclasspath/a:${RINGO_HOME}lib/js.jar
 
 if [ `id -u` -ne 0 ]; then
     echo "You need root privileges to run this script"
