@@ -1,3 +1,9 @@
+ringojs (1.2.1) stable; urgency=low
+
+  * Bump version to 1.2.1
+
+ -- Philipp Naderer <philipp.naderer+ringojs@gmail.com>  Sat, 04 Nov 2017 12:15:00 +0100
+
 ringojs (1.2.0) stable; urgency=low
 
   * Bump version to 1.2.0
