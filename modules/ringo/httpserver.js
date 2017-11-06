@@ -2,12 +2,18 @@
  * @fileOverview This module provides methods to start and control a HTTP web server.
  * It is a wrapper for the Jetty web server and has support for the WebSocket protocol.
  *
+ * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/httpserver.js">Simple HTTP-Server example</a>
+ * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/httpserver-async.js">Async HTTP-Server example</a>
+ * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/eventsource-server.js">Eventsource example</a>
+ * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/websocket-server.js">Websocket example</a>
+ *
  * @see <a href="http://www.eclipse.org/jetty/">Jetty – Servlet Engine and Http Server</a>
  * @example // starts the current module via module.id as web application
  * require("ringo/httpserver").main(module.id);
  *
  * // starts the module "./app/actions" as web application
  * require("ringo/httpserver").main(module.resolve('./app/actions'));
+ *
  */
 
 var log = require('ringo/logging').getLogger(module.id);

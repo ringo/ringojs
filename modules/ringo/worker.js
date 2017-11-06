@@ -7,6 +7,7 @@
  * To improve performance Ringo keeps free workers in a queue and only allocates a new one if all existing workers are busy.
  * Workers help to keep multi-threaded JavaScript free from any common threading pitfalls, like synchronization or locking.
  *
+ * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/worker.js">Simple worker example</a>
  * @see <a href="http://ringojs.org/documentation/workers/">RingoJS: Workers and Multithreading</a>
  */
 var engine = require("ringo/engine");
