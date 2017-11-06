@@ -85,8 +85,6 @@
             includeAntRuntime="false">
                 <compilerarg value="-Xlint:unchecked"/>
                 <classpath refid="classpath"/>
-                <!-- fix for openjdk rhino bootclasspath bug -->
-                <compilerarg value="-Xbootclasspath/a:${lib}/js.jar"/>
         </javac>
     </target>
 

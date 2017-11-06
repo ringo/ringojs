@@ -94,8 +94,6 @@ esac
 # To put $app_args back into the position arguments $1, $2 etc
 # set -- "${app_args[@]}"
 
-# prepend rhino to bootclasspath to work around openjdk bug
-java_args=("${java_args[@]}" "-Xbootclasspath/a:$RINGO_HOME/lib/js.jar")
 
 # echo "java_args ${java_args[@]}"
 # echo "ringo_args ${ringo_args[@]}"
