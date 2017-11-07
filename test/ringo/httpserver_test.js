@@ -4,7 +4,7 @@ var {Server} = require("ringo/httpserver");
 var response = require("ringo/jsgi/response");
 var {request} = require("ringo/httpclient");
 
-require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
+require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
 // Basic test configuration
 var server;

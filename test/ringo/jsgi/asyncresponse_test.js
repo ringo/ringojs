@@ -4,7 +4,7 @@ var {Server} = require("ringo/httpserver");
 var httpClient = require("ringo/httpclient");
 var strings = require("ringo/utils/strings");
 
-require('ringo/logging').setConfig(getResource('../httptest_log4j.properties'));
+require('ringo/logging').setConfig(getResource('../httptest_log4j2.properties'));
 var server = null;
 
 exports.setUp = function() {

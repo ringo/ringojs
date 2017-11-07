@@ -5,7 +5,7 @@ var {ByteBuffer} = java.nio;
 var {JavaEventEmitter} = require("ringo/events");
 var {Server} = require("ringo/httpserver");
 
-require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
+require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
 var host = "127.0.0.1";
 var port = "4400";
