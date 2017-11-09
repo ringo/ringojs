@@ -161,6 +161,18 @@ function writeBody(response, body, charset) {
  * @param {Number} timeout time in milliseconds in which the async operation has to be completed;
  *                 otherwise the request is aborted by the Servlet container.
  *                 A negative value lets the async operation never time out. Defaults to 30 seconds.
+ * @returns {Object} <code>AsyncResponse</code> object with helpers to control the response's <code>WriteListener</code>. Contains the following methods:
+ *                   <dl>
+ *                       <dt><code>start(status, headers)</code>
+ *                       <dd>sends the status code and HTTP headers object, must be called before any write
+ *                       <dt><code>write(data, encoding)</code>
+ *                       <dd>adds the given data (instance of <code>String</code> or <code>Binary</code>) to output queue to be written back to the client
+ *                       <dt><code>flush()</code>
+ *                       <dd>forces any queued data to be written out
+ *                       <dt><code>close()</code>
+ *                       <dd>completes the async response and closes the write listener
+ *                   </dl>
+ *
  * @see <a href="http://download.oracle.com/otndocs/jcp/servlet-3.0-fr-oth-JSpec/">Servlet 3.0 specification - &lt;async-supported&gt;</a>
  * @example const response = new AsyncResponse(request, 10000);
  * response.start(200, {"Content-Type": "text/plain"});
