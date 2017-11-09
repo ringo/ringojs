@@ -25,7 +25,8 @@ If you use the Homebrew package manager on MacOS, you can use the ringojs formul
 ### Verify Releases
 Releases of RingoJS will be signed with one of the following GPG keys:
 
-* Philipp Naderer &lt;philipp.naderer@gmail.com&gt; `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
+* 1.2.1 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; `DE2A A9A1 B018 6C2F 622F  D9EF 3F47 C28B 23EB 3072`
+* 1.2.0 and older: Philipp Naderer &lt;philipp.naderer@gmail.com&gt; `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
 
 ## Building from Source
 
