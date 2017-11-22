@@ -58,17 +58,17 @@ exports.tearDown = function() {
  * test basic get
  */
 exports.testBasic = function() {
-    var text = "<h1>This is the Response Text</h1>";
+    const text = "This is the Response Text";
 
     getResponse = function(req) {
-        return response.html(text);
+        return response.html(text + " - " + req.headers["user-agent"]);
     };
 
     var exchange = request({
         url: baseUri
     });
 
-    assert.strictEqual(exchange.content, text);
+    assert.strictEqual(exchange.content, text + " - " + "RingoJS HttpClient " + require("ringo/engine").version.join("."));
 };
 
 exports.testNullContent = function() {

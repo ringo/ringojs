@@ -31,7 +31,7 @@ var log = require("ringo/logging").getLogger(module.id);
 
 export("request", "get", "post", "put", "del", "TextPart", "BinaryPart");
 
-const VERSION = "0.1";
+const VERSION = require("ringo/engine").version.join(".");
 const CRLF = "\r\n";
 const BOUNDARY_CHARS = "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
