@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+  "name": "ringo : A java Implementation",
+  "short_name": "Java Runtime",
+  "description": "ChromeCraft - Minecraft.js using THREE.js",
+
+  "version": "0.0.4",
+
+  "icons": {
+    "16": "assets/cube/grass_side.png"
+  },
+
+  "permissions" : [
+    "pointerLock"
+  ],
+
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  }
+}
