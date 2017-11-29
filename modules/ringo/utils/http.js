@@ -157,7 +157,7 @@ function Headers(headers) {
     });
 
     /**
-     * Unsets any cookies with the given name
+     * Unsets any header with the given name
      * @param {String} name the header name
      * @name Headers.instance.unset
      */
