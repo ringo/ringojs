@@ -38,10 +38,10 @@ public class ModuleScope extends ImporterTopLevel {
                        Scriptable prototype, RingoWorker worker) {
         setParentScope(null);
         setPrototype(prototype);
-        // for activating the ImporterTopLevel import* functions
-        activatePrototypeMap(3);
         // prototype properties include constructor property which we don't need
         delete("constructor");
+        // for activating the ImporterTopLevel import* functions
+        activatePrototypeMap(3);
         try {
             cacheBuiltins();
         } catch (NoSuchMethodError e) {
