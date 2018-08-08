@@ -1,9 +1,9 @@
-var assert = require('assert');
-var dates = require('ringo/utils/dates');
+let assert = require('assert');
+let dates = require('ringo/utils/dates');
 
 // list of years taken from http://en.wikipedia.org/wiki/List_of_leap_years
 exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
-    var leapYears = [
+    let leapYears = [
         1896, 1904, 1908, 1912, 1916, 1920,
         1924, 1928, 1932, 1936, 1940, 1944,
         1948, 1952, 1956, 1960, 1964, 1968,
@@ -20,7 +20,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     ];
 
     leapYears.forEach(function(year) {
-        var d = new Date(year, 1, 1);
+        let d = new Date(year, 1, 1);
         assert.isTrue(dates.isLeapYear(d), "Leap Year " + year);
         assert.equal(dates.daysInYear(d), 366, "Leap Year " + year);
         assert.equal(dates.daysInFebruary(d), 29, "Leap Year " + year);
@@ -29,7 +29,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     });
 
     noLeapYears.forEach(function(year) {
-        var d = new Date(year, 0, 1);
+        let d = new Date(year, 0, 1);
         assert.isFalse(dates.isLeapYear(d), "No Leap Year " + year);
         assert.equal(dates.daysInYear(d), 365, "No Leap Year " + year);
         assert.equal(dates.daysInFebruary(d), 28, "No Leap Year " + year);
@@ -48,11 +48,11 @@ exports.testAdd = function () {
     });
 
 
-    var d = new Date(Date.UTC(2010, 10, 10, 10, 10, 10, 10)); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
+    let d = new Date(Date.UTC(2010, 10, 10, 10, 10, 10, 10)); // Wed Nov 10 2010 10:10:10 GMT+0100 (MEZ)
 
     assert.equal(d.getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
-    var addOne = {
+    let addOne = {
         "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 11),
         "second":       Date.UTC(2010, 10, 10, 10, 10, 11, 10),
         "minute":       Date.UTC(2010, 10, 10, 10, 11, 10, 10),
@@ -61,7 +61,7 @@ exports.testAdd = function () {
         "year":         Date.UTC(2011, 10, 10, 10, 10, 10, 10)
     };
 
-    for (var tUnit in addOne) {
+    for (let tUnit in addOne) {
         assert.equal((dates.add(d, 1, tUnit)).getTime(), new Date(addOne[tUnit]).getTime(), tUnit);
     }
 
@@ -95,7 +95,7 @@ exports.testAdd = function () {
     assert.equal(dates.add(d, 0, 'years').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
     // Remove 1
-    var removeOne = {
+    let removeOne = {
         "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 9),
         "second":       Date.UTC(2010, 10, 10, 10, 10, 9, 10),
         "minute":       Date.UTC(2010, 10, 10, 10, 9, 10, 10),
@@ -104,7 +104,7 @@ exports.testAdd = function () {
         "year":         Date.UTC(2009, 10, 10, 10, 10, 10, 10)
     };
 
-    for (var tUnit in removeOne) {
+    for (let tUnit in removeOne) {
         assert.equal((dates.add(d, -1, tUnit)).getTime(), new Date(removeOne[tUnit]).getTime(), tUnit);
     }
 
@@ -118,12 +118,12 @@ exports.testAdd = function () {
         "years":         Date.UTC(2009, 10, 10, 10, 10, 10, 10)
     };
 
-    for (var tUnit in removeOne) {
+    for (let tUnit in removeOne) {
         assert.equal((dates.add(d, -1, tUnit)).getTime(), new Date(removeOne[tUnit]).getTime(), tUnit);
     }
 
     // Remove 13 hours
-    var fullHourDate = new Date(Date.UTC(2010, 10, 10, 23, 10, 10, 10)); // Wed Nov 10 2010 23:10:10 GMT+0100 (MEZ)
+    let fullHourDate = new Date(Date.UTC(2010, 10, 10, 23, 10, 10, 10)); // Wed Nov 10 2010 23:10:10 GMT+0100 (MEZ)
     assert.equal(dates.add(fullHourDate, -13, 'hour').getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
     // Add 13 hours
@@ -155,7 +155,7 @@ exports.testAdd = function () {
 };
 
 exports.testBefore_After_Compare = function () {
-    var a = new Date(2010, 0, 2), b = new Date(2010, 0, 1);
+    let a = new Date(2010, 0, 2), b = new Date(2010, 0, 1);
 
     assert.isFalse(dates.before(a, b));
     assert.isTrue(dates.after(a, b));
@@ -258,7 +258,7 @@ exports.testQuarterInFiscalYear = function() {
 };
 
 exports.testDiff = function() {
-    var a = new Date(2010, 0, 1),
+    let a = new Date(2010, 0, 1),
     b = new Date(2010, 0, 2);
 
     assert.throws(function() {
@@ -434,7 +434,7 @@ exports.testDiff = function() {
 };
 
 exports.testOverlapping = function() {
-    var aStart = new Date(2010, 0, 1),
+    let aStart = new Date(2010, 0, 1),
     aEnd = new Date(2010, 0, 10),
     bStart = new Date(2010, 0, 2),
     bEnd = new Date(2010, 0, 3);
@@ -480,7 +480,7 @@ exports.testOverlapping = function() {
 };
 
 exports.testInPeriod = function() {
-    var pStart = new Date(2010, 0, 10),
+    let pStart = new Date(2010, 0, 10),
     pEnd = new Date(2010, 0, 20);
 
     //  Period   [--------]
@@ -533,7 +533,7 @@ exports.testInPeriod = function() {
 };
 
 exports.testResetTime = function() {
-    var d = new Date(2010, 0, 1, 20, 20, 20);
+    let d = new Date(2010, 0, 1, 20, 20, 20);
     assert.equal(dates.resetTime(d).getFullYear(), 2010);
     assert.equal(dates.resetTime(d).getMonth(), 0);
     assert.equal(dates.resetTime(d).getDate(), 1);
@@ -543,7 +543,7 @@ exports.testResetTime = function() {
 };
 
 exports.testResetDate = function() {
-    var d = new Date(2010, 0, 1, 20, 20, 20);
+    let d = new Date(2010, 0, 1, 20, 20, 20);
     assert.equal(dates.resetDate(d).getFullYear(), 1970);
     assert.equal(dates.resetDate(d).getMonth(), 0);
     assert.equal(dates.resetDate(d).getDate(), 1);
@@ -631,7 +631,7 @@ exports.testDaysInMonth = function() {
 };
 
 exports.testFromUTCDate = function() {
-    var d = dates.fromUTCDate(1970, 0, 1, 0, 0, 0);
+    let d = dates.fromUTCDate(1970, 0, 1, 0, 0, 0);
     assert.equal(d.getUTCFullYear(), 1970);
     assert.equal(d.getUTCMonth(), 0);
     assert.equal(d.getUTCDate(), 1);
@@ -760,7 +760,7 @@ exports.testParse = function() {
     assert.isNotNaN(dates.parse("2010-01-01T01:01:01.001").getTime());
 
     // cases map datestrings to objects with corresponding UTC date properties
-    var cases = {
+    let cases = {
         "2000": {
             year: 2000,
             month: 0,
@@ -874,8 +874,8 @@ exports.testParse = function() {
         }
     };
 
-    var o, got, exp;
-    for (var str in cases) {
+    let o, got, exp;
+    for (let str in cases) {
         o = cases[str];
         got = dates.parse(str);
         exp = new Date(Date.UTC(o.year || 0, o.month || 0, o.date || 1, o.hour || 0, o.minutes || 0, o.seconds || 0, o.milliseconds || 0));
@@ -889,38 +889,43 @@ exports.testParse = function() {
         assert.strictEqual(got.getUTCSeconds(), exp.getUTCSeconds(), str + ": correct UTCSeconds");
         assert.strictEqual(got.getUTCMilliseconds(), exp.getUTCMilliseconds(), str + ": correct UTCMilliseconds");
     }
-
-    return;
 };
 
 exports.testToISOString = function() {
-    var d = new Date(Date.UTC(2010, 0, 2, 2, 3, 4, 5));
+    let d = new Date(Date.UTC(2010, 0, 2, 2, 3, 4, 5));
     assert.strictEqual(dates.toISOString(d, false, false), "2010-01-02");
     assert.strictEqual(dates.toISOString(d, true, false, false), "2010-01-02T02:03Z");
-    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T02:03:04Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, false), "2010-01-02T02:03:04Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T02:03:04.005Z");
 
     d = new Date(Date.UTC(2010, 0, 2, 12, 0, 0, 0));
-    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:00:00Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, false), "2010-01-02T12:00:00Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:00:00.000Z");
 
     d = new Date(Date.UTC(2010, 0, 2, 12, 1, 2, 3));
-    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:01:02Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, false), "2010-01-02T12:01:02Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:01:02.003Z");
 
     d = new Date(Date.UTC(2010, 0, 2, 12, 1, 2, 99));
-    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:01:02Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true, false), "2010-01-02T12:01:02Z");
+    assert.strictEqual(dates.toISOString(d, true, false, true), "2010-01-02T12:01:02.099Z");
     assert.strictEqual(dates.toISOString(d, true, false, true, true), "2010-01-02T12:01:02.099Z");
 
     // Test for local time using current time to prevent nasty timzone/dst jumps
     d = new Date();
-    var sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-    var formatted = sdf.format(d);
-    assert.strictEqual(dates.toISOString(d, true, true), formatted.substr(0,22) + ":" + formatted.substr(-2));
+    assert.strictEqual(dates.toISOString(d), d.toISOString());
+
+    let sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    let formatted = sdf.format(d);
+    assert.strictEqual(dates.toISOString(d, true, true, true, false), formatted.substr(0,22) + ":" + formatted.substr(-2));
 
     sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     formatted = sdf.format(d);
     assert.strictEqual(dates.toISOString(d, true, true, true, true), formatted.substr(0,26) + ":" + formatted.substr(-2));
+
+    // default should be UTC and not local time
+    d = new Date(Date.UTC(2010, 0, 2, 2, 3, 4, 5));
+    assert.strictEqual(dates.toISOString(d), "2010-01-02T02:03:04.005Z")
 };
 
 if (require.main === module) {

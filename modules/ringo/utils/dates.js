@@ -597,24 +597,27 @@ function resetDate(date) {
 }
 
 /**
- * Create a ISO 8601 compatible string from the date. Note: This is quite similar to <code>Date.toISOString()</code>, which only returns
- * an UTC-based string without the local timezone. If you don't need timezones, <code>Date.toISOString()</code> will be the better choice.
+ * Creates an ISO 8601 compatible string from the date. This is similar to <code>Date.toISOString()</code>, which
+ * only returns an UTC-based string. If you don't need a timezone, <code>Date.toISOString()</code> will be the better
+ * choice. Use this function only if you need to include the timezone offset in your string, or if you need to control
+ * the granularity of the output fields.
  *
  * @param {Date} date to format
  * @param {Boolean} withTime if true, the string will contain the time, if false only the date. Default is true.
- * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is true.
- * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default true.
- * @param {Boolean} withMilliseconds if true, the string will contain also the milliseconds of the date. Default false.
+ * @param {Boolean} withTimeZone if true, the string will be in local time, if false it's in UTC. Default is false.
+ * @param {Boolean} withSeconds if true, the string will contain also the seconds of the date. Default is true.
+ * @param {Boolean} withMilliseconds if true, the string will contain the millisecond part of the date. Default is true.
  * @returns {String} date as ISO 8601 string.
- * @example // "2015-11-27T17:52:12+01:00"
- * dates.toISOString(new Date());
+ * @example // "2018-08-08T17:16:44.926+02:00"
+ * dates.toISOString(new Date(), true, true);
  */
 function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
-    var withTime = withTime !== false,
-    withTimeZone = withTimeZone !== false,
-    withSeconds = withSeconds !== false,
-    withMilliseconds = withMilliseconds === true,
-    year, month, day, hours, minutes, seconds, milliseconds, str;
+    let year, month, day, hours, minutes, seconds, milliseconds, str;
+
+    withTime = withTime !== false;
+    withTimeZone = withTimeZone === true;
+    withSeconds = withSeconds !== false;
+    withMilliseconds = withMilliseconds !== false;
 
     // use local time if output is not in UTC
     if (withTimeZone) {
@@ -651,7 +654,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
 
     // Append the timezone offset
     if (withTime && withTimeZone) {
-        var offset  = date.getTimezoneOffset(),
+        const offset  = date.getTimezoneOffset(),
         inHours   = Math.floor(Math.abs(offset / 60)),
         inMinutes = Math.abs(offset) - (inHours * 60);
 
