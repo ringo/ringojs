@@ -105,6 +105,10 @@ exports.testPosixPermissions = function() {
 };
 
 exports.testCreateTempFileWithPermissions = function () {
+    if (!java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+        return;
+    }
+
     let tempFile = files.createTempFile("ringo", null, null, 0000);
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
