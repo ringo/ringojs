@@ -161,27 +161,31 @@ public class Main {
                 launcherUrl = findUrl(ClassLoader.getSystemClassLoader());
             }
 
-            // this is a  JAR URL of the form
-            //    jar:<url>!/{entry}
-            // we strip away the jar: prefix and the !/{entry} suffix
-            // to get the original jar file URL
-
-            String jarUrl = launcherUrl.toString();
-            // decode installDir in case it is URL-encoded
-            jarUrl = URLDecoder.decode(jarUrl, Charset.defaultCharset().name());
-
-            if (!jarUrl.startsWith("jar:") || !jarUrl.contains("!")) {
-                ringoHome = System.getProperty("user.dir");
-                System.err.println("Warning: ringo.home system property is not set ");
-                System.err.println("         and not started from launcher.jar. Using ");
-                System.err.println("         current working directory as install dir.");
+            // Since Java 9 none of the above class loaders must be an instance of URLClassLoader
+            if (launcherUrl == null) {
+                ringoHome = ".";
             } else {
-                int excl = jarUrl.indexOf("!");
-                jarUrl = jarUrl.substring(4, excl);
-                launcherUrl = new URL(jarUrl);
-                ringoHome = new File(launcherUrl.getPath()).getParent();
-                if (ringoHome == null) {
-                    ringoHome = ".";
+                // this is a  JAR URL of the form
+                //    jar:<url>!/{entry}
+                // we strip away the jar: prefix and the !/{entry} suffix
+                // to get the original jar file URL
+                String jarUrl = launcherUrl.toString();
+                // decode installDir in case it is URL-encoded
+                jarUrl = URLDecoder.decode(jarUrl, Charset.defaultCharset().name());
+
+                if (!jarUrl.startsWith("jar:") || !jarUrl.contains("!")) {
+                    ringoHome = System.getProperty("user.dir");
+                    System.err.println("Warning: ringo.home system property is not set ");
+                    System.err.println("         and not started from launcher.jar. Using ");
+                    System.err.println("         current working directory as install dir.");
+                } else {
+                    int excl = jarUrl.indexOf("!");
+                    jarUrl = jarUrl.substring(4, excl);
+                    launcherUrl = new URL(jarUrl);
+                    ringoHome = new File(launcherUrl.getPath()).getParent();
+                    if (ringoHome == null) {
+                        ringoHome = ".";
+                    }
                 }
             }
         }
