@@ -76,6 +76,11 @@ exports.testConstants = function() {
     assert.isTrue(files.separator === String(java.nio.file.FileSystems.getDefault().getSeparator()));
 };
 
+exports.testFileAttributeViews = function() {
+    assert.isTrue(files.supportsFileAttributeView("basic"));
+    assert.isFalse(files.supportsFileAttributeView("nonexistingstuff"));
+};
+
 exports.testPosixPermissions = function() {
     if (!java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
         return;

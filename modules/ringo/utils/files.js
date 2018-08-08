@@ -6,7 +6,16 @@
 const arrays = require('ringo/utils/arrays');
 const fs = require('fs');
 
-export ('resolveUri', 'resolveId', 'isHidden', 'createTempFile', 'roots', 'separator', 'PosixPermissions');
+export(
+    'resolveUri',
+    'resolveId',
+    'isHidden',
+    'createTempFile',
+    'roots',
+    'separator',
+    'supportsFileAttributeView',
+    'PosixPermissions'
+);
 
 const {
     Paths,
@@ -18,6 +27,16 @@ const {PosixFilePermissions} = java.nio.file.attribute;
 
 const getPath = Paths.get;
 const FS = FileSystems.getDefault();
+
+/**
+ * Checks if the default `FileSystem` supports the given file attribute view.
+ * @param attribute the attribute to check
+ * @return {boolean} true if the attribute is supported; false otherwise
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#supportedFileAttributeViews--">Java File Attribute View</a>
+ */
+function supportsFileAttributeView(attribute) {
+    return FS.supportedFileAttributeViews().contains(attribute) === true;
+}
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
