@@ -99,3 +99,17 @@ For more information visit the [rp documentation wiki](https://github.com/grob/r
 
 If you have questions visit <https://ringojs.org/> or join the mailing
 list at <https://groups.google.com/group/ringojs>.
+
+## Supporters
+
+### JetBrains
+
+JetBrains sponsored an Open Source license for IntelliJ IDEA to create and maintain Ringo. Thanks for your continuous support!
+
+<img src="https://ringojs.org/static/intellij.svg" height="70" alt="">
+
+### ORF.at
+
+A huge salute to ORF.at for supporting this projects over the years!
+
+<img src="https://orf.at/mojo/1_4_1/storyserver//news/news/images/target_news.svg" height="65" alt="">
