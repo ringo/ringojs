@@ -76,7 +76,7 @@ public class RhinoEngine implements ScopeProvider {
     private static Logger log = Logger.getLogger(RhinoEngine.class.getName());
 
     public static final List<Integer> VERSION =
-            Collections.unmodifiableList(Arrays.asList(1, 3, 0));
+            Collections.unmodifiableList(Arrays.asList(2, 0, 0));
 
     /**
      * Create a RhinoEngine with the given configuration. If <code>globals</code>
