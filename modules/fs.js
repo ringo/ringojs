@@ -75,7 +75,6 @@ export('absolute',
        'split',
        // previously in fs-base
        'canonical',
-       'changeWorkingDirectory',
        'workingDirectory',
        'exists',
        'isDirectory',
@@ -753,19 +752,6 @@ function exists(path) {
  */
 function workingDirectory() {
     return resolvePath(java.lang.System.getProperty('user.dir')) + SEPARATOR;
-}
-
-/**
- * <strong>Using changeWorkingDirectory() throws an exception and logs an error.</strong>
- * @param {String} path the new working directory
- * @deprecated The working directory is always related to the JVM process.
- * Therefore, the working directory cannot be changed during runtime.
- * This function is deprecated and may be removed in future versions of RingoJS.
- * @see https://github.com/ringo/ringojs/issues/305
- */
-function changeWorkingDirectory(path) {
-    log.error("fs.changeWorkingDirectory() has been removed! https://github.com/ringo/ringojs/issues/305");
-    throw new Error("fs.changeWorkingDirectory() has been removed!");
 }
 
 /**
