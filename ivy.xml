@@ -11,12 +11,12 @@
         <dependency org="org.mozilla" name="rhino" rev="1.7.10" />
 
         <!-- standard jetty libs -->
-        <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.4.12.v20180830"/>
-        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="9.4.12.v20180830"/>
-        <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.4.12.v20180830"/>
-        <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.4.12.v20180830"/>
-        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.4.12.v20180830"/>
-        <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.4.12.v20180830"/>
+        <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.4.15.v20190215"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="9.4.15.v20190215"/>
+        <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.4.15.v20190215"/>
+        <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.4.15.v20190215"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.4.15.v20190215"/>
+        <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.4.15.v20190215"/>
 
         <!-- logging -->
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.+"/>
