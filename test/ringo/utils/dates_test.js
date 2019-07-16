@@ -936,7 +936,7 @@ exports.testJavaTime = function() {
     const dt = java.time.ZonedDateTime.ofInstant(instant, java.time.ZoneId.of("+02:30"));
     assert.strictEqual(dt.format(formatter), "2010-01-02T14:30:00+02:30");
 
-    assert.strictEqual(dates.toOffsetDateTime(d).getOffset().getTotalSeconds() / -60, (new Date()).getTimezoneOffset());
+    assert.strictEqual(dates.toOffsetDateTime(new Date()).getOffset().getTotalSeconds() / -60, (new Date()).getTimezoneOffset());
 };
 
 if (require.main === module) {
