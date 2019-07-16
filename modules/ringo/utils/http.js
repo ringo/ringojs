@@ -11,15 +11,8 @@ var {Buffer} = require('ringo/buffer');
 var {Binary, ByteArray, ByteString} = require('binary');
 var {MemoryStream} = require('io');
 
-// prevents illegal access exceptions in App Engine since
-// App Engine doesn't allow any filesystem-related operations
-var open = null,
-    createTempFile = null;
-
-if (java.lang.System.getProperty("com.google.appengine.runtime.version") == null) {
-    open = require('fs').open;
+var open = require('fs').open,
     createTempFile = require('ringo/utils/files').createTempFile;
-}
 
 export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
         'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
