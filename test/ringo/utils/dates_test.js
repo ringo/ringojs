@@ -928,6 +928,17 @@ exports.testToISOString = function() {
     assert.strictEqual(dates.toISOString(d), "2010-01-02T02:03:04.005Z")
 };
 
+exports.testJavaTime = function() {
+    const d = new Date(Date.UTC(2010, 0, 2, 12, 0, 0, 0));
+    const formatter = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    const instant = dates.toInstant(d);
+
+    const dt = java.time.ZonedDateTime.ofInstant(instant, java.time.ZoneId.of("+02:30"));
+    assert.strictEqual(dt.format(formatter), "2010-01-02T14:30:00+02:30");
+
+    assert.strictEqual(dates.toOffsetDateTime(d).getOffset().getTotalSeconds() / -60, (new Date()).getTimezoneOffset());
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

@@ -56,7 +56,9 @@ export(
     "resetDate",
     "toISOString",
     "fromUTCDate",
-    "parse"
+    "parse",
+    "toInstant",
+    "toOffsetDateTime"
 );
 
 /**
@@ -846,4 +848,30 @@ function parse(str, format, locale, timezone, lenient) {
         }
     }
     return date;
+}
+
+/**
+ * Converts the given date to a <code>java.time.Instant</code> instance. Helps to interact with the
+ * <code>java.time</code> API for dates, times, and durations.
+ *
+ * @param date {Date} the JavaScript Date object to convert
+ * @return {java.time.Instant} instant instance at the given point in time
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html">java.time</a>
+ */
+function toInstant(date) {
+    return java.time.Instant.ofEpochMilli(date.getTime());
+}
+
+/**
+ * Converts the given date to a <code>java.time.OffsetDateTime</code> instance using the date's offset.
+ * Helps to interact with the <code>java.time</code> API for dates, times, and durations.
+ *
+ * @param date {Date} the JavaScript Date object to convert
+ * @return {java.time.OffsetDateTime} time instance with offset representing the given date
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html">java.time</a>
+ */
+function toOffsetDateTime(date) {
+    return java.time.Instant.ofEpochMilli(date.getTime()).atOffset(
+        java.time.ZoneOffset.ofTotalSeconds(date.getTimezoneOffset() * -60)
+    );
 }
