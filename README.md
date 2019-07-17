@@ -95,11 +95,6 @@ To install rp itself you can use the ringo-admin tool:
 
 For more information visit the [rp documentation wiki](https://github.com/grob/rp/wiki).
 
-## Learning more
-
-If you have questions visit <https://ringojs.org/> or join the mailing
-list at <https://groups.google.com/group/ringojs>.
-
 ## Supporters
 
 ### JetBrains
