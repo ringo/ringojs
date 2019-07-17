@@ -937,6 +937,10 @@ exports.testJavaTime = function() {
     assert.strictEqual(dt.format(formatter), "2010-01-02T14:30:00+02:30");
 
     assert.strictEqual(dates.toOffsetDateTime(new Date()).getOffset().getTotalSeconds() / -60, (new Date()).getTimezoneOffset());
+
+    const odtNow = dates.toOffsetDateTime(new Date());
+    const zdtNow = java.time.OffsetDateTime.now();
+    assert.strictEqual(odtNow.getOffset().getTotalSeconds(), zdtNow.getOffset().getTotalSeconds());
 };
 
 if (require.main === module) {
