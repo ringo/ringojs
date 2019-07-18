@@ -1,7 +1,7 @@
 const assert = require("assert");
 
 const {get, request} = require("ringo/httpclient");
-const {Server} = require("ringo/httpserver");
+const {HttpServer} = require("ringo/httpserver");
 
 const {JsgiResponse} = require("ringo/jsgi/response");
 
@@ -11,11 +11,6 @@ const PORT = 8088;
 exports.testHttpJsgiBinding = function() {
     let server;
     try {
-        server = new Server({
-            "host": HOST,
-            "port": PORT
-        });
-
         const app = function (req) {
             if (req.pathInfo === "/") {
                 return {
@@ -36,7 +31,13 @@ exports.testHttpJsgiBinding = function() {
             }
         };
 
-        server.getDefaultContext().serveApplication(app);
+        server = new HttpServer();
+        server.serveApplication("/", app);
+
+        server.createHttpListener({
+            "host": HOST,
+            "port": PORT
+        });
         server.start();
 
         let exchange = get("http://" + HOST + ":" + PORT + "/");

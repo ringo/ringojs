@@ -3,7 +3,7 @@ var {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client
 var {WebSocketListener, StatusCode} = org.eclipse.jetty.websocket.api;
 var {ByteBuffer} = java.nio;
 var {JavaEventEmitter} = require("ringo/events");
-var {Server} = require("ringo/httpserver");
+var {HttpServer} = require("ringo/httpserver");
 
 require('ringo/logging').setConfig(getResource('./httptest_log4j.properties'));
 
@@ -14,8 +14,7 @@ var uri = "ws://" + host + ":" + port + path;
 
 var config = {
     host: host,
-    port: port,
-    app: function() {}
+    port: port
 };
 
 var Listener = function() {
@@ -34,9 +33,14 @@ var Listener = function() {
 var onmessage = function(event) {
     var {message, semaphore, isAsync} = event.data;
     var isBinary = (typeof message === "string");
-    var server = new Server(config);
-    server.start();
-    server.getDefaultContext().addWebSocket(path, function(socket, session) {
+    var server = new HttpServer();
+    var appContext = server.serveApplication("/", function(req) {
+        req.charset = 'utf8';
+        req.pathInfo = decodeURI(req.pathInfo);
+        return getResponse(req);
+    });
+
+    appContext.addWebSocket(path, function(socket, session) {
         socket.on("text", function(message) {
             socket[isAsync ? "sendString" : "sendStringAsync"](message);
         });
@@ -44,6 +48,9 @@ var onmessage = function(event) {
             socket[isAsync ? "sendBinary" : "sendBinaryAsync"](bytes, offset, length);
         });
     });
+
+    server.createHttpListener(config);
+    server.start();
 
     var client = new WebSocketClient();
     client.start();

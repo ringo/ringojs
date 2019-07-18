@@ -1,6 +1,6 @@
 var assert = require("assert");
 var objects = require("ringo/utils/objects");
-var {Server} = require("ringo/httpserver");
+var {HttpServer} = require("ringo/httpserver");
 var response = require("ringo/jsgi/response");
 var {request, post, get, put, del, TextPart, BinaryPart} = require("ringo/httpclient");
 var {parseParameters, parseFileUpload, setCookie, Headers} = require("ringo/utils/http");
@@ -38,8 +38,9 @@ exports.setUp = function() {
         port: port
     };
 
-    server = new Server(config);
-    server.getDefaultContext().serveApplication(handleRequest);
+    server = new HttpServer();
+    server.serveApplication("/", handleRequest);
+    server.createHttpListener(config);
     server.start();
     // test used to hang without this, but seems no longer the case
     // java.lang.Thread.currentThread().sleep(1000);
@@ -346,7 +347,7 @@ exports.testContentDecoding = function() {
         cos.close();
         return bytes;
     };
-    
+
     var compressions = [
         {
             encodings: ['deflate', 'dEfLaTe'],

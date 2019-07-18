@@ -1,6 +1,6 @@
 const assert = require("assert");
 const {MemoryStream} = require("io");
-const {Server} = require("ringo/httpserver");
+const {HttpServer} = require("ringo/httpserver");
 const httpClient = require("ringo/httpclient");
 const strings = require("ringo/utils/strings");
 const response = require("ringo/jsgi/response");
@@ -20,12 +20,13 @@ exports.tearDown = function() {
 };
 
 exports.testSimpleRange = function() {
-    server = new Server({
+    server = new HttpServer();
+    server.serveApplication("/", function(request) {
+        return response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
+    });
+    server.createHttpListener({
         "host": "localhost",
         "port": 8484,
-        "app": function(request) {
-            return response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
-        }
     });
     server.start();
 
@@ -70,13 +71,14 @@ exports.testSimpleRange = function() {
 };
 
 exports.testCombinedRequests = function() {
-    server = new Server({
+    server = new HttpServer();
+    server.serveApplication("/", function(request) {
+        const res = response.range(request, new MemoryStream(DATA.concat(DATA, DATA, DATA)), 4 * DATA.length, "text/plain");
+        return res;
+    });
+    server.createHttpListener({
         "host": "localhost",
         "port": 8484,
-        "app": function(request) {
-            const res = response.range(request, new MemoryStream(DATA.concat(DATA, DATA, DATA)), 4 * DATA.length, "text/plain");
-            return res;
-        }
     });
     server.start();
 
@@ -126,15 +128,17 @@ exports.testCombinedRequests = function() {
 };
 
 exports.testInvalidRanges = function() {
-    server = new Server({
+    server = new HttpServer();
+    server.serveApplication("/", function(request) {
+        const res = response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
+        return res;
+    });
+    server.createHttpListener({
         "host": "localhost",
         "port": 8484,
-        "app": function(request) {
-            const res = response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
-            return res;
-        }
     });
     server.start();
+
     let exchange = httpClient.request({
         method: "GET",
         url: "http://localhost:8484",

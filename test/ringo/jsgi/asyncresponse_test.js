@@ -1,6 +1,6 @@
 var assert = require("assert");
 var {AsyncResponse} = require("ringo/jsgi/connector");
-var {Server} = require("ringo/httpserver");
+var {HttpServer} = require("ringo/httpserver");
 var httpClient = require("ringo/httpclient");
 var strings = require("ringo/utils/strings");
 
@@ -18,28 +18,31 @@ exports.tearDown = function() {
 
 exports.testAsync = function() {
     var line = "test\n";
-    server = new Server({
-        "host": "localhost",
-        "port": 8282,
-        "app": function(request) {
-            var response = new AsyncResponse(request, 2000);
-            response.start(200, {"Content-Type": "text/plain"});
-            spawn(function() {
-                var max = 5;
-                for (let cnt = 0; cnt < max; cnt += 1) {
-                    try {
-                        response.write(line);
-                    } catch (e) {
-                        print(e);
-                    }
+
+    server = new HttpServer();
+    server.serveApplication("/", function(request) {
+        var response = new AsyncResponse(request, 2000);
+        response.start(200, {"Content-Type": "text/plain"});
+        spawn(function() {
+            var max = 5;
+            for (let cnt = 0; cnt < max; cnt += 1) {
+                try {
+                    response.write(line);
+                } catch (e) {
+                    print(e);
                 }
-                java.lang.Thread.sleep(Math.floor(Math.random() * 300));
-                response.close();
-            });
-            return response;
-        }
+            }
+            java.lang.Thread.sleep(Math.floor(Math.random() * 300));
+            response.close();
+        });
+        return response;
+    });
+    server.createHttpListener({
+        host: "localhost",
+        port: 8282
     });
     server.start();
+
     var exchange = httpClient.get("http://localhost:8282");
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(exchange.content, strings.repeat(line, 5));
