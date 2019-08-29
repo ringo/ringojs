@@ -60,6 +60,7 @@ public class RingoConfig {
     private boolean policyEnabled = false;
     private boolean reloading = true;
     private String charset = "UTF-8";
+    private RingoContextFactory.ContextClassLoader contextClassLoader = null;
 
     /**
      * Create a new Ringo configuration and sets up its module search path.
@@ -507,6 +508,14 @@ public class RingoConfig {
 
     public void setClassShutter(ClassShutter classShutter) {
         this.classShutter = classShutter;
+    }
+
+    public RingoContextFactory.ContextClassLoader getContextClassLoader() {
+        return contextClassLoader;
+    }
+
+    public void setContextClassLoader(RingoContextFactory.ContextClassLoader contextClassLoader) {
+        this.contextClassLoader = contextClassLoader;
     }
 
     public WrapFactory getWrapFactory() {

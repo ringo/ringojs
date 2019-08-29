@@ -18,6 +18,10 @@ import java.security.PrivilegedAction;
 
 public class RingoContextFactory extends ContextFactory {
 
+    public interface ContextClassLoader {
+        GeneratedClassLoader createClassLoader(ClassLoader parent);
+    }
+
     RhinoEngine engine;
 
     int languageVersion = Context.VERSION_ES6;
@@ -28,6 +32,7 @@ public class RingoContextFactory extends ContextFactory {
     int optimizationLevel = 0;
     boolean generatingDebug = true;
     ClassShutter classShutter;
+    ContextClassLoader contextClassLoader = null;
 
     static int instructionLimit = 0xfffffff;
 
@@ -38,6 +43,19 @@ public class RingoContextFactory extends ContextFactory {
         parentProtoProperties = config.hasParentProtoProperties();
         classShutter = config.getClassShutter();
         strictVars = config.getStrictVars();
+        contextClassLoader = config.getContextClassLoader();
+    }
+
+    @Override
+    protected GeneratedClassLoader createClassLoader(ClassLoader parent) {
+        GeneratedClassLoader loader = null;
+        if (contextClassLoader != null) {
+            loader = contextClassLoader.createClassLoader(parent);
+        }
+        if (loader == null) {
+            loader = super.createClassLoader(parent);
+        }
+        return loader;
     }
 
     @Override
