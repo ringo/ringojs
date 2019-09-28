@@ -36,7 +36,7 @@ exports.init = function(path) {
     }
 
     options.path = path;
-    if (options.path == undefined) {
+    if (options.path === undefined) {
         if (args[0]) {
             // take app module from command line
             options.path = fs.resolve(fs.workingDirectory(), args[0]);
@@ -47,9 +47,6 @@ exports.init = function(path) {
     // if argument is a directory assume app in main.js
     if (fs.isDirectory(options.path)) {
         options.path = fs.join(options.path, "main");
-    }
-    if (!fs.exists(options.path)) {
-        throw new Error("Module " + options.path + " does not exist");
     }
 
     log.info("Start app module at", options.path);
