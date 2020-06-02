@@ -224,7 +224,7 @@ function AsyncResponse(request, timeout) {
             return this;
         },
         "write": function(data, encoding) {
-            if (asyncContext.getHttpChannelState().isAsyncComplete()) {
+            if (asyncContext.getHttpChannelState().isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
             if (!(data instanceof Binary)) {
@@ -238,7 +238,7 @@ function AsyncResponse(request, timeout) {
             this.write(FLUSH);
         },
         "close": function() {
-            if (asyncContext.getHttpChannelState().isAsyncComplete()) {
+            if (asyncContext.getHttpChannelState().isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
             return writeListener.close();
@@ -286,7 +286,7 @@ WriteListenerImpl.prototype.onWritePossible = function() {
         // and close the response if we're finished
         this.isReady.set(true);
         if (this.isFinished === true &&
-                !this.asyncContext.getHttpChannelState().isAsyncComplete()) {
+                !this.asyncContext.getHttpChannelState().isResponseCompleted()) {
             this.asyncContext.complete();
         }
     }
