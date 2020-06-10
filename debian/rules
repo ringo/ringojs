@@ -10,6 +10,7 @@ include /usr/share/cdbs/1/class/ant.mk
 #include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
 JAVA_HOME_DIRS       := /usr/lib/jvm/default-java \
+                        /usr/lib/jvm/adoptopenjdk-8-jdk-hotspot \
                         /usr/lib/jvm/java-8-openjdk-arm64
 
 DEB_ANT_BUILD_TARGET := jar
