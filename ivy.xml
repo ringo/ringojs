@@ -8,6 +8,7 @@
     </configurations>
 
     <dependencies>
+        <!-- full rhino, we need some additional tools not included in the smaller rhino-runtime artifact -->
         <dependency org="org.mozilla" name="rhino" rev="1.7.12" />
 
         <!-- standard jetty libs -->
