@@ -5,6 +5,14 @@ const {EnumSet} = java.util;
 const {DispatcherType} = javax.servlet;
 const {HttpCookie} = org.eclipse.jetty.http;
 
+/**
+ * Base context handler constructor
+ * @param {org.eclipse.jetty.server.handler.ContextHandlerCollection} The parent container of this context handler
+ * @param {String} The mountpoint of this context handler
+ * @param {Object} An options object to pass to the extending context (see
+ * <a href="./application.html">ApplicationContext</a> and <a href="./static.html">StaticContext</a>)
+ * @constructor
+ */
 const Context = module.exports = function Context(parentContainer, mountpoint, options) {
     let statisticsHandler = null;
     if (options.statistics === true) {
@@ -53,6 +61,10 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
     return this;
 };
 
+/**
+ * Returns the key of this context handler
+ * @returns {String} The key
+ */
 Context.prototype.getKey = function() {
     const mountpoint = this.contextHandler.getContextPath();
     const virtualHosts = this.contextHandler.getVirtualHosts();
@@ -62,6 +74,14 @@ Context.prototype.getKey = function() {
     return mountpoint;
 };
 
+/**
+ * Adds a servlet at the give path to this context handler
+ * @param {String} path The mountpoint
+ * @param {javax.servlet.Servlet} servlet The servlet to add
+ * @param {Object} initParams An object containing init parameters to pass to
+ * <a href="https://www.eclipse.org/jetty/javadoc/current/org/eclipse/jetty/servlet/ServletContextHandler.html">org.eclipse.jetty.servlet.ServletContextHandler</a>
+ * @returns {org.eclipse.jetty.servlet.ServletHolder} The servlet holder of this servlet
+ */
 Context.prototype.addServlet = function(path, servlet, initParams) {
     log.debug("Adding servlet {} -> {}", path, "->", servlet);
     const servletHolder = new ServletHolder(servlet);
@@ -74,6 +94,14 @@ Context.prototype.addServlet = function(path, servlet, initParams) {
     return servletHolder;
 };
 
+/**
+ * Adds a servlet filter at the give path to this context handler
+ * @param {String} path The path spec of this filter
+ * @param {javax.servlet.Filter} filter The servlet filter to add
+ * @param {Object} initParams An object containing init parameters to pass to
+ * <a href="https://www.eclipse.org/jetty/javadoc/current/org/eclipse/jetty/servlet/FilterHolder.html">org.eclipse.jetty.servlet.FilterHolder</a>
+ * @returns {org.eclipse.jetty.servlet.FilterHolder} The filter holder of this servlet filter
+ */
 Context.prototype.addFilter = function(path, filter, initParams) {
     log.debug("Adding filter {} -> {}", path, "->", filter);
     const filterHolder = new FilterHolder(filter);

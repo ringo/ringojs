@@ -1,13 +1,30 @@
+/**
+ * @fileoverview A module containing build and daemon lifecycle methods for http server
+ */
 const log = require("ringo/logging").getLogger(module.id);
 const system = require("system");
 const fs = require("fs");
 
 const HttpServerBuilder = require("./builder");
-const HttpServer = exports.HttpServer = require("./httpserver");
+const HttpServer = require("./httpserver");
 const utils = require("./utils");
+
 let httpServer = null;
 let options = null;
 
+/**
+ * Returns a new HttpServerBuilder instance
+ * @param {String|Object} options Either the path to the jetty.xml configuration
+ * file, or an object containing the following properties:
+ * <ul>
+ * <li>stopAtShutdown: (boolean, default: true)</li>
+ * <li>stopTimeout: (Number, default: 1000 millis)</li>
+ * <li>dumpBeforeStart: (boolean, default: false)</li>
+ * <li>dumpBeforeStop: (boolean, default: false)</li>
+ * </ul>
+ *
+ * @returns {HttpServerBuilder} A newly created <a href="../builder/index.html">HttpServerBuilder</a> instance
+ */
 exports.build = function(options) {
     return new HttpServerBuilder(options);
 };

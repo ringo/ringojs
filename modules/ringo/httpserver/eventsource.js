@@ -25,7 +25,7 @@ const EventSourceWrapper = module.exports = function() {
             log.debug("Closed connection", conn);
         }
     };
-    
+
     /**
      * Send a default event to the client
      * @param {String} msg a string

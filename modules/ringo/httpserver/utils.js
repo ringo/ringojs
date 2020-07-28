@@ -1,3 +1,6 @@
+/**
+ * @ignore
+ */
 const {Parser} = require("ringo/args");
 const system = require("system");
 

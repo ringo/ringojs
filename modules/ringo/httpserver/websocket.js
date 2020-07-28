@@ -2,6 +2,19 @@ const {JavaEventEmitter} = require('ringo/events');
 const {WebSocketListener} = org.eclipse.jetty.websocket.api;
 const {ByteBuffer} = java.nio;
 
+/**
+ * Provides support for WebSocket connections in the HTTP server.
+ *
+ * WebSocket is an event emitter that supports the
+ * following events:
+ *
+ *  * **connect**: called when a new websocket connection is accepted
+ *  * **close**: called when an established websocket connection closes
+ *  * **text**: called when a text message arrived
+ *  * **binary**: called when a binary message arrived
+ *  * **error**: called when an error occurred
+ * @name EventSource
+ */
 const WebSocket = module.exports = function() {
     this.session = null;
 
