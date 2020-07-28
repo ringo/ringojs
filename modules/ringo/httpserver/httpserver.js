@@ -5,7 +5,7 @@ const {Server, HttpConfiguration, HttpConnectionFactory,
         SecureRequestCustomizer, ServerConnectionStatistics} = org.eclipse.jetty.server;
 const {HandlerCollection, ContextHandlerCollection} = org.eclipse.jetty.server.handler;
 const {ConnectionStatistics} = org.eclipse.jetty.io;
-const {HTTP_1_1} = org.eclipse.jetty.http.HttpVersion;
+const {HttpVersion, HttpCookie} = org.eclipse.jetty.http;
 const {DefaultSessionIdManager} = org.eclipse.jetty.server.session;
 const {SslContextFactory} = org.eclipse.jetty.util.ssl;
 
@@ -156,7 +156,7 @@ HttpServer.prototype.createHttpsConnector = function(options) {
     });
     const sslContextFactory = this.createSslContextFactory(options);
     const sslConnectionFactory = new SslConnectionFactory(sslContextFactory,
-            HTTP_1_1.toString());
+            HttpVersion.HTTP_1_1.toString());
     const httpsConfig = this.createHttpConfig(options);
     const customizer = new SecureRequestCustomizer();
     customizer.setSniHostCheck(options.sniHostCheck === true);
@@ -224,6 +224,13 @@ HttpServer.prototype.serveApplication = function(mountpoint, app, options) {
         throw new Error("Missing mountpoint argument");
     }
     options || (options = {});
+    if (typeof(options.sameSiteCookies) === "string") {
+        options.sameSiteCookies = options.sameSiteCookies.toUpperCase();
+        const allowedValues = Array.from(HttpCookie.SameSite.values()).map(value => value.toString());
+        if (!allowedValues.includes(options.sameSiteCookies)) {
+            throw new Error("Invalid sameSiteCookies option, must be one of " + allowedValues.join(", "));
+        }
+    }
     options = {
         "security": options.security !== false,
         "sessions": options.sessions !== false,
@@ -234,6 +241,7 @@ HttpServer.prototype.serveApplication = function(mountpoint, app, options) {
         "cookieMaxAge": options.cookieMaxAge || -1,
         "httpOnlyCookies": options.httpOnlyCookies !== false,
         "secureCookies": options.secureCookies === true,
+        "sameSiteCookies": options.sameSiteCookies || null,
         "statistics": options.statistics === true,
         "virtualHosts": options.virtualHosts
     };

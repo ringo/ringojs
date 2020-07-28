@@ -3,6 +3,7 @@ const {ServletContextHandler, ServletHolder, FilterHolder} = org.eclipse.jetty.s
 const {StatisticsHandler} = org.eclipse.jetty.server.handler;
 const {EnumSet} = java.util;
 const {DispatcherType} = javax.servlet;
+const {HttpCookie} = org.eclipse.jetty.http;
 
 const Context = module.exports = function Context(parentContainer, mountpoint, options) {
     let statisticsHandler = null;
@@ -23,6 +24,9 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
     if (sessionHandler !== null) {
         if (Number.isInteger(options.sessionsMaxInactiveInterval)) {
             sessionHandler.setMaxInactiveInterval(options.sessionsMaxInactiveInterval);
+        }
+        if (typeof(options.sameSiteCookies) === "string") {
+            sessionHandler.setSameSite(HttpCookie.SameSite.valueOf(options.sameSiteCookies));
         }
         const sessionCookieConfig = sessionHandler.getSessionCookieConfig();
         sessionCookieConfig.setHttpOnly(options.httpOnlyCookies);
@@ -62,9 +66,9 @@ Context.prototype.addServlet = function(path, servlet, initParams) {
     log.debug("Adding servlet {} -> {}", path, "->", servlet);
     const servletHolder = new ServletHolder(servlet);
     if (initParams != null && initParams.constructor === Object) {
-        for each (let [key, value] in Iterator(initParams)) {
-            servletHolder.setInitParameter(key, value);
-        }
+        Object.keys(initParams).forEach(function(key) {
+            servletHolder.setInitParameter(key, initParams[key]);
+        });
     }
     this.contextHandler.addServlet(servletHolder, path);
     return servletHolder;
@@ -75,9 +79,9 @@ Context.prototype.addFilter = function(path, filter, initParams) {
     const filterHolder = new FilterHolder(filter);
     filterHolder.setName(filter.getClass().getName());
     if (initParams != null && initParams.constructor === Object) {
-        for each (let [key, value] in Iterator(initParams)) {
-            filterHolder.setInitParameter(key, value);
-        }
+        Object.keys(initParams).forEach(function(key) {
+            filterHolder.setInitParameter(key, initParams[key]);
+        });
     }
     this.contextHandler.addFilter(filterHolder, path,
             EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
