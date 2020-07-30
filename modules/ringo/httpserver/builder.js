@@ -145,7 +145,6 @@ HttpServerBuilder.prototype.http = function(options) {
  * <li>includeProtocols: (Array, default: ["TLSv1.2"]) An array containing protocols to support</li>
  * <li>excludeProtocols: (Array, default: null) An array of protocols to exclude</li>
  * <li>allowRenegotiation: (boolean, default: false) Enables TLS renegotiation</li>
- * <li></li>
  * </ul>
  *
  * @returns {HttpServerBuilder}
