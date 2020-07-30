@@ -6,7 +6,11 @@ const system = require("system");
 const fs = require("fs");
 
 const HttpServerBuilder = require("./builder");
-const HttpServer = require("./httpserver");
+
+/**
+ * A named export of the <a href="../httpserver">HttpServer</a> module.
+ */
+const HttpServer = exports.HttpServer = require("./httpserver");
 const utils = require("./utils");
 
 let httpServer = null;
