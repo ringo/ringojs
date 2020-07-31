@@ -1,6 +1,6 @@
 // Example policy file for RingoJS
-// Run RingoJS with the -p or --policy option to activate this:
-//    ringo -p file:/.../ringo.policy
+// Run RingoJS with the -P or --policy option to activate this:
+//    ringo -P file:/.../ringo.policy
 // replacing "..." with the absolute path of the policy file.
 // 
 // The following URLs provide more information:
