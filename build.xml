@@ -35,8 +35,8 @@
         <property name="ivy.pom.version" value="${version}" />
 
         <!-- javac default targets for cross compilation on newer JDKs -->
-        <property name="ant.build.javac.source" value="7"/>
-        <property name="ant.build.javac.target" value="7"/>
+        <property name="ant.build.javac.source" value="8"/>
+        <property name="ant.build.javac.target" value="8"/>
 
         <property name="home" value="."/>
 
