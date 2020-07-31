@@ -46,9 +46,9 @@ import java.security.CodeSigner;
  */
 public class RingoShell {
 
-    RingoConfig config;
-    RhinoEngine engine;
-    RingoWorker worker;
+    final RingoConfig config;
+    final RhinoEngine engine;
+    final RingoWorker worker;
     Scriptable scope;
     boolean silent;
     File history;
@@ -159,7 +159,7 @@ public class RingoShell {
         List<ScriptError> errors = worker.getErrors();
         try {
             worker.invoke("ringo/shell", "printError", ex,
-                    new ScriptableList(scope, errors), Boolean.valueOf(verbose));
+                    new ScriptableList(scope, errors), verbose);
         } catch (Exception x) {
             // fall back to RingoRunner.reportError()
             RingoRunner.reportError(ex, out, errors, verbose);
@@ -173,7 +173,7 @@ public class RingoShell {
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             String source = "";
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            while (true) {
+            do {
                 String line = reader.readLine();
                 if (line == null) {
                     // reached EOF
@@ -181,9 +181,7 @@ public class RingoShell {
                 }
                 source = source + line + "\n";
                 lineno++;
-                if (cx.stringIsCompilableUnit(source))
-                    break;
-            }
+            } while (!cx.stringIsCompilableUnit(source));
             try {
                 Resource res = new StringResource("<stdin>", source, lineno);
                 ReloadableScript script = new ReloadableScript(res, engine);
@@ -220,9 +218,9 @@ public class RingoShell {
 
     class JSCompleter implements Completer {
 
-        Pattern variables = Pattern.compile(
+        final Pattern variables = Pattern.compile(
                 "(^|\\s|[^\\w\\.'\"])([\\w\\.]+)$");
-        Pattern keywords = Pattern.compile(
+        final Pattern keywords = Pattern.compile(
                 "(^|\\s)([\\w]+)$");
 
         @SuppressWarnings("unchecked")
@@ -295,8 +293,8 @@ public class RingoShell {
 
     }
 
-    private class ShutdownHook extends Thread {
-        FileHistory fileHistory;
+    private static class ShutdownHook extends Thread {
+        final FileHistory fileHistory;
 
         public ShutdownHook(FileHistory fileHistory) {
             this.fileHistory = fileHistory;
@@ -311,7 +309,7 @@ public class RingoShell {
         }
     }
 
-    static String[] jsKeywords =
+    static final String[] jsKeywords =
         new String[] {
             "break",
             "case",

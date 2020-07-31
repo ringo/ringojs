@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class WebappRepository extends AbstractRepository {
 
-    ServletContext context;
+    final ServletContext context;
 
     private int exists = -1;
 
@@ -89,7 +89,7 @@ public class WebappRepository extends AbstractRepository {
 
     protected void getResources(List<Resource> list, boolean recursive)
             throws IOException {
-        Set paths = context.getResourcePaths(path);
+        Set<String> paths = context.getResourcePaths(path);
 
         if (paths != null) {
             for (Object obj: paths) {
@@ -109,8 +109,8 @@ public class WebappRepository extends AbstractRepository {
     }
 
     public Repository[] getRepositories() throws IOException {
-        Set paths = context.getResourcePaths(path);
-        List<Repository> list = new ArrayList<Repository>();
+        Set<String> paths = context.getResourcePaths(path);
+        List<Repository> list = new ArrayList<>();
 
         if (paths != null) {
             for (Object obj: paths) {

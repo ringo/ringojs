@@ -28,7 +28,7 @@ public class JsgiRequest extends ScriptableObject {
     Scriptable jsgiObject;
     HttpServletRequest request;
     HttpServletResponse response;
-    int readonly = PERMANENT | READONLY;
+    final int readonly = PERMANENT | READONLY;
     Object httpVersion;
 
     /**
@@ -51,7 +51,7 @@ public class JsgiRequest extends ScriptableObject {
         // JSGI spec and Jack's lint require env.constructor to be Object
         defineProperty("constructor", getProperty(scope, "Object"), DONTENUM);
         Scriptable jsgi = jsgiObject = newObject(scope);
-        Scriptable version = newArray(scope, new Object[] {Integer.valueOf(0), Integer.valueOf(3)});
+        Scriptable version = newArray(scope, new Object[] {0, 3});
         defineProperty(jsgi, "version", version, readonly);
         defineProperty(jsgi, "multithread", Boolean.TRUE, readonly);
         defineProperty(jsgi, "multiprocess", Boolean.FALSE, readonly);
@@ -146,7 +146,7 @@ public class JsgiRequest extends ScriptableObject {
                     major = Integer.parseInt(protocol.substring(major + 1, minor));
                     minor = Integer.parseInt(protocol.substring(minor + 1));
                     httpVersion =  newArray(scope, new Object[] {
-                            Integer.valueOf(major), Integer.valueOf(minor)});
+                        major, minor});
                 }
             }
             if (httpVersion == null) {

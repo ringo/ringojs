@@ -18,18 +18,18 @@ import java.security.PrivilegedAction;
 
 public class RingoContextFactory extends ContextFactory {
 
-    RhinoEngine engine;
+    final RhinoEngine engine;
 
-    int languageVersion = Context.VERSION_ES6;
+    int languageVersion;
     boolean strictMode = false;
-    boolean strictVars = true;
+    boolean strictVars;
     boolean warningAsError = false;
-    boolean parentProtoProperties = true;
-    int optimizationLevel = 0;
+    boolean parentProtoProperties;
+    int optimizationLevel;
     boolean generatingDebug = true;
-    ClassShutter classShutter;
+    final ClassShutter classShutter;
 
-    static int instructionLimit = 0xfffffff;
+    static final int instructionLimit = 0xfffffff;
 
     public RingoContextFactory(RhinoEngine engine, RingoConfig config) {
         this.engine = engine;

@@ -24,7 +24,7 @@ import java.util.zip.ZipFile;
 
 public final class ZipResource extends AbstractResource {
 
-    private String entryName;
+    private final String entryName;
     private boolean exists;
     long length;
     long lastModified;

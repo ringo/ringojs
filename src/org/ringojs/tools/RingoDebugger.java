@@ -38,14 +38,14 @@ import java.awt.event.KeyEvent;
 
 public class RingoDebugger extends Dim implements TreeSelectionListener {
 
-    RingoConfig config;
-    DebugGui gui;
+    final RingoConfig config;
+    final DebugGui gui;
     JTree tree;
     JList list;
     DebuggerTreeNode treeRoot;
     DefaultTreeModel treeModel;
-    HashMap treeNodes = new HashMap();
-    HashMap scriptNames = new HashMap();
+    final HashMap<String, DebuggerTreeNode> treeNodes = new HashMap<>();
+    final HashMap<DebuggerTreeNode, String> scriptNames = new HashMap<>();
 
 
     public RingoDebugger(RingoConfig config) {
@@ -61,10 +61,10 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         String[] path = StringUtils.split(sourceName, ":/\\");
         DebuggerTreeNode node = treeRoot;
         DebuggerTreeNode newNode = null;
-        for (int i = 0; i < path.length; i++) {
-            DebuggerTreeNode n = node.get(path[i]);
+        for (String s : path) {
+            DebuggerTreeNode n = node.get(s);
             if (n == null) {
-                n = new DebuggerTreeNode(path[i]);
+                n = new DebuggerTreeNode(s);
                 node.add(n);
                 if (newNode == null) newNode = n;
             }
@@ -83,7 +83,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         Object node = path.getLastPathComponent();
         if (node == null)
             return;
-        String sourceName = (String) scriptNames.get(node);
+        String sourceName = scriptNames.get(node);
         if (sourceName == null)
             return;
         gui.showFileWindow(sourceName, -1);
@@ -135,14 +135,14 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         // gui.dispose();
     }
 
-    class DebuggerTreeNode extends DefaultMutableTreeNode {
+    static class DebuggerTreeNode extends DefaultMutableTreeNode {
 
         public DebuggerTreeNode(Object obj) {
             super(obj);
         }
 
         public DebuggerTreeNode get(String name) {
-            Enumeration children = this.children();
+            Enumeration<TreeNode> children = this.children();
             while (children.hasMoreElements()) {
                 DebuggerTreeNode node = (DebuggerTreeNode) children.nextElement();
                 if (node != null && name.equals(node.getUserObject()))
@@ -153,7 +153,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
     }
 
     class NodeInserter implements Runnable {
-        MutableTreeNode node;
+        final MutableTreeNode node;
 
         NodeInserter(MutableTreeNode node) {
             this.node = node;
@@ -249,7 +249,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
                 setVisible(true);
             if (!sourceName.equals(currentSourceUrl)) {
                 updateFunctionList(sourceName);
-                DebuggerTreeNode node = (DebuggerTreeNode) treeNodes.get(sourceName);
+                DebuggerTreeNode node = treeNodes.get(sourceName);
                 if (node != null) {
                     TreePath path = new TreePath(node.getPath());
                     tree.setSelectionPath(path);
@@ -263,7 +263,7 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         private void updateFunctionList(String sourceName) {
             // display functions for opened script file
             currentSourceUrl = sourceName;
-            Vector functions = new Vector();
+            Vector<FunctionItem> functions = new Vector<>();
             SourceInfo si = sourceInfo(sourceName);
             String[] lines = si.source().split("\\r\\n|\\r|\\n");
             int length = si.functionSourcesTop();
@@ -278,9 +278,9 @@ public class RingoDebugger extends Dim implements TreeSelectionListener {
         }
     }
 
-    class FunctionItem implements Comparable {
+    static class FunctionItem implements Comparable {
 
-        FunctionSource src;
+        final FunctionSource src;
         String name;
         String line = "";
 

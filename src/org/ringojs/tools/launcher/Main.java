@@ -30,7 +30,7 @@ import java.nio.charset.Charset;
  */
 public class Main {
 
-    private Class runnerClass;
+    private Class<?> runnerClass;
     private Object runnerInstance;
 
     /**
@@ -51,7 +51,7 @@ public class Main {
             ClassLoader loader = createClassLoader(home);
 
             runnerClass = loader.loadClass("org.ringojs.tools.RingoRunner");
-            runnerInstance = runnerClass.newInstance();
+            runnerInstance = runnerClass.getDeclaredConstructor().newInstance();
         } catch (Exception x) {
             System.err.println("Uncaught exception: ");
             x.printStackTrace();

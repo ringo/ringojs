@@ -25,12 +25,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class StringResource implements Resource {
-    
-    private String name;
-    private int lineNumber;
-    private String content;
-    private long lastModified;
-    
+
+    private final String name;
+    private final int lineNumber;
+    private final String content;
+    private final long lastModified;
+
     public StringResource(String name, String content) {
         this(name, content, 1);
     }
@@ -41,7 +41,7 @@ public class StringResource implements Resource {
         this.lineNumber = lineNumber;
         lastModified = System.currentTimeMillis();
     }
-       
+
     public String getBaseName() {
         return name;
     }

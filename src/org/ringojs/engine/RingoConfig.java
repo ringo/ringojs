@@ -41,9 +41,9 @@ import java.util.logging.Logger;
  */
 public class RingoConfig {
 
-    private Repository ringoHome;
+    private final Repository ringoHome;
     private Repository appHome;
-    private List<Repository> repositories;
+    private final List<Repository> repositories;
     private Resource mainResource;
     private String[] arguments;
     private int optimizationLevel = 0;
@@ -97,7 +97,7 @@ public class RingoConfig {
     public RingoConfig(Repository ringoHome, Repository appHome,
                        String[] userModules, String[] systemModules)
             throws IOException {
-        repositories = new ArrayList<Repository>();
+        repositories = new ArrayList<>();
         this.ringoHome = ringoHome;
         ringoHome.setAbsolute(true);
         if (appHome != null) {
@@ -486,7 +486,7 @@ public class RingoConfig {
      * @throws IOException an I/O error occurred
      */
     public List<Resource> getResources(String path, boolean recursive) throws IOException {
-        List<Resource> list = new ArrayList<Resource>();
+        List<Resource> list = new ArrayList<>();
         for (Repository repo: repositories) {
             Collections.addAll(list, repo.getResources(path, recursive));
         }

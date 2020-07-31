@@ -62,7 +62,7 @@ public class RingoRunner {
     boolean legacyMode = false;
     boolean productionMode = false;
     List<String> bootScripts;
-    List<String> userModules = new ArrayList<String>();
+    final List<String> userModules = new ArrayList<>();
 
     static final String[][] options = {
         {"b", "bootscript", "Run additional bootstrap script", "FILE"},
@@ -271,7 +271,7 @@ public class RingoRunner {
                 }
             }
             if (def == null) {
-                unknownOptionError("-" + Character.toString(c));
+                unknownOptionError("-" + c);
             }
             String optarg = null;
             int consumedNext = 0;
@@ -358,7 +358,7 @@ public class RingoRunner {
             System.setSecurityManager(new RingoSecurityManager());
         } else if ("java-property".equals(option)) {
             if (arg.contains("=")) {
-                String property[] = arg.split("=", 2);
+                String[] property = arg.split("=", 2);
                 System.setProperty(property[0], property[1]);
             }
         } else if ("bootscript".equals(option)) {

@@ -39,7 +39,6 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
@@ -53,19 +52,20 @@ import java.util.logging.Logger;
  */
 public class RhinoEngine implements ScopeProvider {
 
-    private RingoConfig config;
-    private List<Repository> repositories;
-    private RingoGlobal globalScope;
+    private final RingoConfig config;
+    private final List<Repository> repositories;
+    private final RingoGlobal globalScope;
     private List<String> commandLineArgs;
-    private Map<Trackable, ReloadableScript> compiledScripts, interpretedScripts;
+    private final Map<Trackable, ReloadableScript> compiledScripts;
+    private final Map<Trackable, ReloadableScript> interpretedScripts;
     private final Map<Singleton, Singleton> singletons;
-    private AppClassLoader loader = new AppClassLoader();
-    private WrapFactory wrapFactory;
-    private Set<Class> hostClasses;
+    private final AppClassLoader loader = new AppClassLoader();
+    private final WrapFactory wrapFactory;
+    private Set<Class<Scriptable>> hostClasses;
     private ModuleLoader[] loaders;
     private List<Callback> shutdownHooks;
 
-    private RingoContextFactory contextFactory = null;
+    private final RingoContextFactory contextFactory;
     private ModuleScope mainScope = null;
 
     private final RingoWorker mainWorker;
@@ -73,7 +73,7 @@ public class RhinoEngine implements ScopeProvider {
     private final ThreadLocal<RingoWorker> currentWorker;
     private final AsyncTaskCounter asyncCounter = new AsyncTaskCounter();
 
-    private static Logger log = Logger.getLogger(RhinoEngine.class.getName());
+    private static final Logger log = Logger.getLogger(RhinoEngine.class.getName());
 
     public static final List<Integer> VERSION =
             Collections.unmodifiableList(Arrays.asList(2, 0, 0));
@@ -89,12 +89,12 @@ public class RhinoEngine implements ScopeProvider {
     public RhinoEngine(RingoConfig config, Map<String, Object> globals)
             throws Exception {
         this.config = config;
-        workers = new LinkedBlockingDeque<RingoWorker>();
-        currentWorker = new ThreadLocal<RingoWorker>();
+        workers = new LinkedBlockingDeque<>();
+        currentWorker = new ThreadLocal<>();
         mainWorker = new RingoWorker(this);
-        compiledScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        interpretedScripts = new ConcurrentHashMap<Trackable, ReloadableScript>();
-        singletons = new HashMap<Singleton, Singleton>();
+        compiledScripts = new ConcurrentHashMap<>();
+        interpretedScripts = new ConcurrentHashMap<>();
+        singletons = new HashMap<>();
         contextFactory = new RingoContextFactory(this, config);
         repositories = config.getRepositories();
         wrapFactory = config.getWrapFactory();
@@ -171,7 +171,7 @@ public class RhinoEngine implements ScopeProvider {
         }
         synchronized (this) {
             if (hostClasses == null) {
-                hostClasses = new HashSet<Class>();
+                hostClasses = new HashSet<>();
             }
             hostClasses.add(clazz);
             ScriptableObject.defineClass(globalScope, clazz);
@@ -257,8 +257,7 @@ public class RhinoEngine implements ScopeProvider {
      * @throws IOException an I/O related error occurred
      */
     public Object invoke(Object module, String method, Object... args)
-            throws IOException, NoSuchMethodException, ExecutionException,
-                    InterruptedException {
+            throws IOException, NoSuchMethodException {
         return mainWorker.invoke(module, method, args);
     }
 
@@ -364,7 +363,7 @@ public class RhinoEngine implements ScopeProvider {
     public synchronized void addShutdownHook(Scriptable callback, boolean sync) {
         List<Callback> hooks = shutdownHooks;
         if (hooks == null) {
-            hooks = shutdownHooks = new ArrayList<Callback>();
+            hooks = shutdownHooks = new ArrayList<>();
         }
         hooks.add(new Callback(callback, this, sync));
     }
@@ -545,7 +544,7 @@ public class RhinoEngine implements ScopeProvider {
 
                 // Load JAR dependencies
                 Object jars = ScriptableObject.getProperty(obj, "jars");
-                if (jars != null && jars instanceof Scriptable && ScriptRuntime.isArrayObject(jars)) {
+                if (jars instanceof Scriptable && ScriptRuntime.isArrayObject(jars)) {
                     Object[] jarsToLoad = ScriptRuntime.getArrayElements((Scriptable) jars);
                     for (Object jar : jarsToLoad) {
                         Resource jarResource = parent.getResource(jar.toString());
@@ -934,7 +933,7 @@ public class RhinoEngine implements ScopeProvider {
         }
         boolean absolute = path.startsWith("/");
         String[] elements = StringUtils.split(path, Repository.SEPARATOR);
-        LinkedList<String> list = new LinkedList<String>();
+        LinkedList<String> list = new LinkedList<>();
         for (String e : elements) {
             if ("..".equals(e)) {
                 if (list.isEmpty() || "..".equals(list.getLast())) {
@@ -1047,7 +1046,7 @@ public class RhinoEngine implements ScopeProvider {
 
 class AppClassLoader extends RingoClassLoader {
 
-    HashSet<URL> urls = new HashSet<URL>();
+    final HashSet<URL> urls = new HashSet<>();
 
     public AppClassLoader() {
         super(new URL[0], RhinoEngine.class.getClassLoader());

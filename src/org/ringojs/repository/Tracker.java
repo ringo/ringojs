@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 public class Tracker {
 
-    Trackable source;
+    final Trackable source;
     long lastModified;
 
     public Tracker(Trackable source) throws IOException {

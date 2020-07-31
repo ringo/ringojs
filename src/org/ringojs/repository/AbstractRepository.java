@@ -37,15 +37,15 @@ public abstract class AbstractRepository implements Repository {
     /**
      * Cache for direct child repositories
      */
-    Map<String, SoftReference<AbstractRepository>> repositories =
+    final Map<String, SoftReference<AbstractRepository>> repositories =
             Collections.synchronizedMap(
-                    new HashMap<String, SoftReference<AbstractRepository>>());
+                new HashMap<>());
 
     /**
      * Cache for direct resources
      */
-    Map<String, AbstractResource> resources =
-            Collections.synchronizedMap(new HashMap<String, AbstractResource>());
+    final Map<String, AbstractResource> resources =
+            Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Cached name for faster access
@@ -170,7 +170,7 @@ public abstract class AbstractRepository implements Repository {
      */
     protected String[] resolve(String path, boolean absolute) {
         String[] elements = StringUtils.split(path, SEPARATOR);
-        LinkedList<String> list = new LinkedList<String>();
+        LinkedList<String> list = new LinkedList<>();
         if (absolute) {
             list.addAll(Arrays.asList(StringUtils.split(this.path, SEPARATOR)));
         }
@@ -203,7 +203,7 @@ public abstract class AbstractRepository implements Repository {
         } else {
             String last = list[list.length - 1];
             for (String e : list) {
-                if (repo == null || e == last) {
+                if (repo == null || e.equals(last)) {
                     break;
                 }
                 repo = repo.lookupRepository(e);
@@ -239,7 +239,7 @@ public abstract class AbstractRepository implements Repository {
         AbstractRepository repo = ref == null ? null : ref.get();
         if (repo == null) {
             repo = createChildRepository(name);
-            repositories.put(name, new SoftReference<AbstractRepository>(repo));
+            repositories.put(name, new SoftReference<>(repo));
         }
         return repo;
     }
@@ -266,7 +266,7 @@ public abstract class AbstractRepository implements Repository {
     }
 
     public Resource[] getResources(boolean recursive) throws IOException {
-        List<Resource> list = new ArrayList<Resource>();
+        List<Resource> list = new ArrayList<>();
         getResources(list, recursive);
         return list.toArray(new Resource[list.size()]);
     }

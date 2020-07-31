@@ -10,7 +10,7 @@ public class Storable extends ScriptableObject {
 
     private Scriptable store;
     private String type;
-    private boolean isPrototype;
+    private final boolean isPrototype;
 
     private Scriptable properties;
     private Object key;
@@ -36,8 +36,8 @@ public class Storable extends ScriptableObject {
 
     static class FactoryFunction extends BaseFunction {
 
-        Storable prototype;
-        FactoryType factoryType;
+        final Storable prototype;
+        final FactoryType factoryType;
 
         FactoryFunction(Storable prototype, Scriptable scope, FactoryType factoryType) {
             this.prototype = prototype;

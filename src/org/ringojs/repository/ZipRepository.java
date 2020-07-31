@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference;
 public final class ZipRepository extends AbstractRepository {
 
     // zip file serving sub-repositories and zip file resources
-    private File file;
+    private final File file;
 
     // weak reference to the zip file
     private WeakReference<ZipFile> zipFile;
@@ -40,7 +40,7 @@ public final class ZipRepository extends AbstractRepository {
     private final String entryPath;
 
     // the nested directory depth of this repository within the zip file
-    private int depth;
+    private final int depth;
 
     private long lastModified = -1;
     private boolean exists;
@@ -121,7 +121,7 @@ public final class ZipRepository extends AbstractRepository {
                 } catch (Exception ignore) {}
             }
             zip = new ZipFile(file);
-            zipFile = new WeakReference<ZipFile>(zip);
+            zipFile = new WeakReference<>(zip);
             lastModified = file.lastModified();
         }
         return zip;
@@ -195,7 +195,7 @@ public final class ZipRepository extends AbstractRepository {
     }
 
     public Repository[] getRepositories() throws IOException {
-        List<Repository> list = new ArrayList<Repository>();
+        List<Repository> list = new ArrayList<>();
         Map<String,ZipEntry> entries = getChildEntries();
 
         for (Map.Entry<String, ZipEntry> entry : entries.entrySet()) {
@@ -248,11 +248,11 @@ public final class ZipRepository extends AbstractRepository {
 
     private Map<String, ZipEntry> getChildEntries() throws IOException {
         ZipFile zipfile = getZipFile();
-        Map<String, ZipEntry> map = new TreeMap<String, ZipEntry>();
-        Enumeration en = zipfile.entries();
+        Map<String, ZipEntry> map = new TreeMap<>();
+        Enumeration<? extends ZipEntry> en = zipfile.entries();
 
         while (en.hasMoreElements()) {
-            ZipEntry entry = (ZipEntry) en.nextElement();
+            ZipEntry entry = en.nextElement();
             String entryName = entry.getName();
 
             if (!entryName.regionMatches(0, entryPath, 0, entryPath.length())) {

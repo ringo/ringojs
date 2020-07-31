@@ -132,9 +132,7 @@ public class Binary extends ScriptableObject implements Wrapper {
             throws NoSuchMethodException {
         Binary prototype = new Binary(type);
         prototype.setPrototype(parentProto);
-        Method ctorMember = Binary.class.getMethod("construct", new Class[] {
-                Context.class, Object[].class, Function.class, Boolean.TYPE
-        });
+        Method ctorMember = Binary.class.getMethod("construct", Context.class, Object[].class, Function.class, Boolean.TYPE);
         FunctionObject constructor = new FunctionObject(type.toString(), ctorMember, scope);
         constructor.addAsConstructor(scope, prototype);
         constructor.defineProperty("wrap", new Wrap(scope, prototype, type),
@@ -514,8 +512,8 @@ public class Binary extends ScriptableObject implements Wrapper {
      * Static method that wraps a java byte array without copying.
      */
     static class Wrap extends BaseFunction {
-        Type type;
-        Scriptable prototype;
+        final Type type;
+        final Scriptable prototype;
 
         Wrap(Scriptable scope, Scriptable prototype, Type type) {
             super(scope, ScriptableObject.getFunctionPrototype(scope));
