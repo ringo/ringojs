@@ -41,11 +41,11 @@ WebSocket.prototype.toString = function() {
  * @function
  */
 WebSocket.prototype.close = function() {
-    if (!this.isOpen()) {
-        throw new Error("Not connected");
+    try {
+        this.session.close();
+    } finally {
+        this.session = null;
     }
-    this.session.close();
-    this.session = null;
 };
 
 /**
