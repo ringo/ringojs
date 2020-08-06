@@ -7,9 +7,9 @@ const {HttpCookie} = org.eclipse.jetty.http;
 
 /**
  * Base context handler constructor
- * @param {org.eclipse.jetty.server.handler.ContextHandlerCollection} The parent container of this context handler
- * @param {String} The mountpoint of this context handler
- * @param {Object} An options object to pass to the extending context (see
+ * @param {org.eclipse.jetty.server.handler.ContextHandlerCollection} parentContainer The parent container of this context handler
+ * @param {String} mountpoint The mountpoint of this context handler
+ * @param {Object} options An options object to pass to the extending context (see
  * <a href="./application.html">ApplicationContext</a> and <a href="./static.html">StaticContext</a>)
  * @constructor
  */
@@ -48,10 +48,18 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
     }
 
     Object.defineProperties(this, {
+        /**
+         * The statistics handler (if options.statistics is set to true)
+         * @type org.eclipse.jetty.server.handler.StatisticsHandler
+         */
         "statisticsHandler": {
             "value": statisticsHandler,
             "enumerable": true
         },
+        /**
+         * The servlet context handler
+         * @type org.eclipse.jetty.servlet.ServletContextHandler
+         */
         "contextHandler": {
             "value": contextHandler,
             "enumerable": true
