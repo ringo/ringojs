@@ -41,6 +41,10 @@ const testInOut = [
     {
         in: 'console.log(typeof require("fs"));',
         out: 'object'
+    },
+    {
+        in: '(function() { const m = new Map(); m.set("foo", "bar"); console.log(m.get("foo")); })();',
+        out: 'bar'
     }
 ];
 
