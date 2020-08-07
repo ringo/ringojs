@@ -1,3 +1,9 @@
+ringojs (3.0.0) stable; urgency=low
+
+  * Bump version to 3.0.0
+
+ -- Philipp Naderer-Puiu <philipp.naderer+ringojs@gmail.com>  Fri, 07 Aug 2020 12:00:00 +0100
+
 ringojs (2.0.0) stable; urgency=low
 
   * Bump version to 2.0.0

@@ -22,7 +22,7 @@
     <!-- =================================================================== -->
     <target name="init">
         <property name="project" value="ringojs"/>
-        <property name="version" value="2.0.0"/>
+        <property name="version" value="3.0.0"/>
 
         <!-- pom.xml generation -->
         <property name="ivy.pom.name" value="RingoJS" />
