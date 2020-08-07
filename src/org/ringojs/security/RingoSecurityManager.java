@@ -28,7 +28,7 @@ public class RingoSecurityManager extends RhinoSecurityManager {
     /**
      * Check if the  top-most application script has permission to access
      * members of Java objects and classes.
-     * <p>
+     *
      * This checks if the script trying to access a java class or object has the
      * <code>accessEngine</code> RingoRuntimePermission.
      *

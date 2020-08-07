@@ -187,9 +187,6 @@ exports.testBefore_After_Compare = function () {
 };
 
 exports.testFirstDayOfWeek = function () {
-    assert.equal(dates.firstDayOfWeek("de"), 2);
-    assert.equal(dates.firstDayOfWeek("us"), 1);
-
     assert.equal(dates.firstDayOfWeek(java.util.Locale.GERMANY), 2);
     assert.equal(dates.firstDayOfWeek(java.util.Locale.US), 1);
 };
@@ -571,37 +568,31 @@ exports.testDayOfYear = function() {
 };
 
 exports.testWeekOfMonth = function() {
-    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), "de"), 0);
-    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), "de"), 5);
-    assert.equal(dates.weekOfMonth(new Date(2011, 1, 1), "de"), 1);
-    assert.equal(dates.weekOfMonth(new Date(2011, 1, 28), "de"), 5);
-    assert.equal(dates.weekOfMonth(new Date(2010, 4, 31), "de"), 5);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), java.util.Locale.GERMANY), 0);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), java.util.Locale.GERMANY), 5);
+    assert.equal(dates.weekOfMonth(new Date(2011, 1, 1), java.util.Locale.GERMANY), 1);
+    assert.equal(dates.weekOfMonth(new Date(2011, 1, 28), java.util.Locale.GERMANY), 5);
+    assert.equal(dates.weekOfMonth(new Date(2010, 4, 31), java.util.Locale.GERMANY), 5);
 
     // Additional check for different locales
-    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), "us"), 1);
-    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), "us"), 6);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), java.util.Locale.US), 1);
+    assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), java.util.Locale.US), 6);
     assert.equal(dates.weekOfMonth(new Date(2011, 0, 1), java.util.Locale.US), 1);
     assert.equal(dates.weekOfMonth(new Date(2011, 0, 31), java.util.Locale.US), 6);
 };
 
 exports.testWeekOfYear = function() {
-    assert.equal(dates.weekOfYear(new Date(2010, 0, 1), "de"), 53);
-    assert.equal(dates.weekOfYear(new Date(2010, 0, 4), "de"), 1);
-    assert.equal(dates.weekOfYear(new Date(2010, 11, 31), "de"), 52);
+    assert.equal(dates.weekOfYear(new Date(2010, 0, 1), java.util.Locale.GERMANY), 53);
+    assert.equal(dates.weekOfYear(new Date(2010, 0, 4), java.util.Locale.GERMANY), 1);
+    assert.equal(dates.weekOfYear(new Date(2010, 11, 31), java.util.Locale.GERMANY), 52);
 
-    assert.equal(dates.weekOfYear(new Date(2011, 0, 1), "de"), 52);
-    assert.equal(dates.weekOfYear(new Date(2011, 0, 3), "de"), 1);
-    assert.equal(dates.weekOfYear(new Date(2011, 11, 31), "de"), 52);
-
-    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "de"), 52);
-    assert.equal(dates.weekOfYear(new Date(2012, 0, 3), "de"), 1);
-    assert.equal(dates.weekOfYear(new Date(2012, 11, 31), "de"), 1);
+    assert.equal(dates.weekOfYear(new Date(2011, 0, 1), java.util.Locale.GERMANY), 52);
+    assert.equal(dates.weekOfYear(new Date(2011, 0, 3), java.util.Locale.GERMANY), 1);
+    assert.equal(dates.weekOfYear(new Date(2011, 11, 31), java.util.Locale.GERMANY), 52);
 
     // Additional check for different locales
     assert.equal(dates.weekOfYear(new Date(2012, 0, 1), java.util.Locale.US), 1);
     assert.equal(dates.weekOfYear(new Date(2012, 0, 1), java.util.Locale.GERMANY), 52);
-    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "us"), 1);
-    assert.equal(dates.weekOfYear(new Date(2012, 0, 1), "de"), 52);
 };
 
 exports.testYearInCentury = function() {

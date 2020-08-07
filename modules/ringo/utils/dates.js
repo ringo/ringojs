@@ -116,11 +116,7 @@ function format(date, format, locale, timezone) {
 // Helper
 /** @ignore */
 function createGregorianCalender(date, locale) {
-    if (typeof locale == "string") {
-        locale = new java.util.Locale(locale);
-    }
-
-    var cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
+    const cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
     cal.set(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     cal.set(java.util.Calendar.MILLISECOND, date.getMilliseconds());
 
@@ -263,16 +259,12 @@ function compare(a, b) {
 /**
  * Gets the first day of the week.
  *
- * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
- *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @param {java.util.Locale} locale (optional) the locale as java Locale
  * @returns {Number} the first day of the week; 1 = Sunday, 2 = Monday.
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/constant-values.html#java.util">java.util.Calendar constant field values</a>
  */
 function firstDayOfWeek(locale) {
-    if (typeof locale == "string") {
-        locale = new java.util.Locale(locale);
-    }
-    var calendar = locale ? java.util.Calendar.getInstance(locale) : java.util.Calendar.getInstance();
+    let calendar = locale ? java.util.Calendar.getInstance(locale) : java.util.Calendar.getInstance();
     return calendar.getFirstDayOfWeek();
 }
 
@@ -297,8 +289,7 @@ function dayOfYear(date) {
 /**
  * Gets the week of the month for the given date.
  * @param {Date} date calculate the week of the month.
- * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
- *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @param {java.util.Locale} locale (optional) the locale as java Locale
  * @returns {Number} week of the month
  */
 function weekOfMonth(date, locale) {
@@ -308,8 +299,7 @@ function weekOfMonth(date, locale) {
 /**
  * Gets the week of the year for the given date.
  * @param {Date} date calculate the week of the year.
- * @param {String|java.util.Locale} locale (optional) the locale as java Locale object or
- *        lowercase two-letter ISO-639 code (e.g. "en")
+ * @param {java.util.Locale} locale (optional) the locale as java Locale
  * @returns {Number} week of the year
  */
 function weekOfYear(date, locale) {
@@ -735,7 +725,7 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
  * @see <a href="https://es5.github.io/#x15.9.4.2">ES5 Date.parse()</a>
  */
 function parse(str, format, locale, timezone, lenient) {
-    var date;
+    let date;
     // if a format is provided, use java.text.SimpleDateFormat
     if (typeof format === "string") {
         if (typeof locale === "string") {
@@ -748,7 +738,7 @@ function parse(str, format, locale, timezone, lenient) {
 
         var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
 
-        if (timezone && timezone != sdf.getTimeZone()) {
+        if (timezone && timezone !== sdf.getTimeZone()) {
             sdf.setTimeZone(timezone);
         }
 
