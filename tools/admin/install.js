@@ -11,8 +11,6 @@ var {ZipFile} = require("ringo/zip");
 var {Parser} = require("ringo/args");
 var strings = require('ringo/utils/strings');
 
-export('installPackage', 'main', 'description');
-
 /** @ignore */
 var description = "Download and install a RingoJS package from a zip URL";
 
@@ -156,6 +154,10 @@ function main(args) {
         installPackage(url, opts);
     }
 }
+
+module.exports.installPackage = installPackage;
+module.exports.main = main;
+module.exports.description = description;
 
 if (require.main == module) {
     main(system.args);

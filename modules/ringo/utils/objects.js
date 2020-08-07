@@ -19,8 +19,6 @@
  * @fileoverview Adds utility functions for working with JavaScript Objects
  */
 
-export("clone", "merge");
-
 // objects.clone() ported from the node-clone module
 //
 // Original work copyright 2011-2015 Paul Vorbach and contributors
@@ -209,3 +207,5 @@ function merge() {
     return result;
 }
 
+module.exports.clone = clone;
+module.exports.merge = merge;

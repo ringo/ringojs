@@ -8,8 +8,6 @@ var strings = require('ringo/utils/strings');
 var log = require('ringo/logging').getLogger(module.id);
 var Buffer = require('ringo/buffer').Buffer;
 
-export('profile', 'Profiler');
-
 /**
  * Convenience function for profiling the invocation of a function.
  * @param {Function} func the function to profile
@@ -19,7 +17,7 @@ export('profile', 'Profiler');
  *  <li>error: the error thrown by the function, if any</li>
  *  <li>profiler: the Profiler instance used to profile the invocation</li></ul>
  */
-function profile(func, maxFrames) {
+module.exports.profile = function profile(func, maxFrames) {
     var engine = require("ringo/engine");
     if (engine.getOptimizationLevel() > -1) {
         log.warn("Profiling with optimization enabled will not produce any results.",
@@ -45,7 +43,7 @@ function profile(func, maxFrames) {
 /**
  * A class for measuring the frequency and runtime of function invocations.
  */
-function Profiler() {
+module.exports.Profiler = function Profiler() {
     var stack = [];
     var frames = {};
     var nanoTime = java.lang.System.nanoTime;

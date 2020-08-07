@@ -8,8 +8,6 @@ var engine = require('ringo/engine');
 var shell = require('ringo/shell');
 var Parser = require('ringo/args').Parser;
 
-export('createApplication', 'createPackage', 'main', 'description');
-
 /** @ignore */
 var description = "Create a new RingoJS web application or package";
 
@@ -164,6 +162,11 @@ function main(args) {
         }
     }
 }
+
+module.exports.createApplication = createApplication;
+module.exports.createPackage = createPackage;
+module.exports.main = main;
+module.exports.description = description;
 
 if (require.main == module) {
     main(system.args);

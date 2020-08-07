@@ -16,8 +16,6 @@
  * console.log(dec.decode(ba));
  */
 
-export("Encoder", "Decoder");
-
 var log = require("ringo/logging").getLogger(module.id);
 
 var {Charset, CharsetEncoder, CharsetDecoder, CodingErrorAction} = java.nio.charset;
@@ -43,7 +41,7 @@ var DEFAULTSIZE = 8192;
  * var dec = new Decoder('ASCII');
  * dec.decode(new ByteArray([246, 228, 252, 999999]));
  */
-function Decoder(charset, strict, capacity) {
+module.exports.Decoder = function Decoder(charset, strict, capacity) {
 
     if (!(this instanceof Decoder)) {
         return new Decoder(charset, strict, capacity);
@@ -291,7 +289,7 @@ function Decoder(charset, strict, capacity) {
  * @param {Number} capacity initial capacity for the input character buffer and output byte buffer.
  *                          The binary buffer's size depends on the average bytes used per character by the charset.
  */
-function Encoder(charset, strict, capacity) {
+module.exports.Encoder = function Encoder(charset, strict, capacity) {
 
     if (!(this instanceof Encoder)) {
         return new Encoder(charset, strict, capacity);

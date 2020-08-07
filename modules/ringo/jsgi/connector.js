@@ -12,7 +12,6 @@ var {ConcurrentLinkedQueue} = java.util.concurrent;
 var {EofException} = org.eclipse.jetty.io;
 var {AtomicBoolean} = java.util.concurrent.atomic;
 
-export('handleRequest', 'AsyncResponse');
 var log = require('ringo/logging').getLogger(module.id);
 
 const FLUSH = new ByteArray(0);
@@ -25,7 +24,7 @@ const FLUSH = new ByteArray(0);
  * @param {Object} request the JSGI request object
  * @returns {Object} the JSGI response object
  */
-function handleRequest(moduleId, functionObj, request) {
+const handleRequest = exports.handleRequest = function handleRequest(moduleId, functionObj, request) {
     initRequest(request);
     var app;
     if (typeof(functionObj) === 'function') {
@@ -189,7 +188,7 @@ function writeBody(response, body, charset) {
  *
  * return response;
  */
-function AsyncResponse(request, timeout) {
+const AsyncResponse = exports.AsyncResponse = function AsyncResponse(request, timeout) {
     if (!request || !request.env) {
         throw new Error("Invalid request argument: " + request);
     }

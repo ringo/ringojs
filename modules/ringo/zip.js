@@ -6,13 +6,11 @@
 var fs = require('fs');
 var {Stream} = require('io');
 
-export('ZipFile', 'ZipIterator');
-
 /**
  * A class to read and unpack a local zip file.
  * @param {String} path the location of the zip file
  */
-function ZipFile(path) {
+module.exports.ZipFile = function ZipFile(path) {
     var zipfile = new java.util.zip.ZipFile(path);
     var entries = [];
     var map = {};
@@ -95,7 +93,7 @@ function ZipFile(path) {
  * @param {Stream|String} resource an input stream or file name
  * @see #ZipFile
  */
-function ZipIterator(resource) {
+module.exports.ZipIterator = function ZipIterator(resource) {
     var stream = typeof resource == "string" ?
             fs.openRaw(resource) : resource;
     var zipstream = new java.util.zip.ZipInputStream(stream);

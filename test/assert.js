@@ -1,5 +1,5 @@
 var assert = require("assert");
-var jsDump = require("test").jsDump;
+var jsDump = require("ringo/utils/test").jsDump;
 
 var getFunction = function(func) {
     var args = Array.prototype.slice.call(arguments, 1);

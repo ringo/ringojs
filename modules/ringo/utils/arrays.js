@@ -19,8 +19,6 @@
  * @fileoverview Provides utility functions for working with JavaScript Arrays.
  */
 
-export('contains', 'peek', 'remove', 'union', 'intersection', 'max', 'min', 'partition');
-
 /**
  * Check if an array passed as argument contains
  * a specific value (start from end of array).
@@ -80,7 +78,7 @@ function union() {
 
 /**
  * Retrieve the intersection set of a bunch of arrays.
- * @param {Array} array1,... the arrays to intersect
+ * @param {Array} array,... the arrays to intersect
  * @returns {Array} the intersection set
  */
 function intersection(array) {
@@ -95,7 +93,7 @@ function intersection(array) {
             else
                 break;
         }
-        if (chksum == arguments.length)
+        if (chksum === arguments.length)
             result.push(item);
     }
     return result;
@@ -131,3 +129,12 @@ function partition(fn) {
     }
     return [trues, falses]
 }
+
+module.exports.contains = contains;
+module.exports.peek = peek;
+module.exports.remove = remove;
+module.exports.union = union;
+module.exports.intersection = intersection;
+module.exports.max = max;
+module.exports.min = min;
+module.exports.partition = partition;

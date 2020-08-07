@@ -30,37 +30,6 @@
  * dates.diff(y2k, now, "mixed"); // { days: 5844, hours: 0, ... }
  */
 
-export(
-    "format",
-    "checkDate",
-    "add",
-    "isLeapYear",
-    "before",
-    "after",
-    "compare",
-    "firstDayOfWeek",
-    "secondOfDay",
-    "dayOfYear",
-    "weekOfMonth",
-    "weekOfYear",
-    "quarterInYear",
-    "quarterInFiscalYear",
-    "yearInCentury",
-    "daysInMonth",
-    "daysInYear",
-    "daysInFebruary",
-    "diff",
-    "overlapping",
-    "inPeriod",
-    "resetTime",
-    "resetDate",
-    "toISOString",
-    "fromUTCDate",
-    "parse",
-    "toInstant",
-    "toOffsetDateTime"
-);
-
 /**
  * Format a Date to a string in a locale-sensitive manner.
  * For details on the format pattern, see
@@ -865,3 +834,32 @@ function toOffsetDateTime(date) {
         java.time.ZoneOffset.ofTotalSeconds(date.getTimezoneOffset() * -60)
     );
 }
+
+module.exports.format = format;
+module.exports.checkDate = checkDate;
+module.exports.add = add;
+module.exports.isLeapYear = isLeapYear;
+module.exports.before = before;
+module.exports.after = after;
+module.exports.compare = compare;
+module.exports.firstDayOfWeek = firstDayOfWeek;
+module.exports.secondOfDay = secondOfDay;
+module.exports.dayOfYear = dayOfYear;
+module.exports.weekOfMonth = weekOfMonth;
+module.exports.weekOfYear = weekOfYear;
+module.exports.quarterInYear = quarterInYear;
+module.exports.quarterInFiscalYear = quarterInFiscalYear;
+module.exports.yearInCentury = yearInCentury;
+module.exports.daysInMonth = daysInMonth;
+module.exports.daysInYear = daysInYear;
+module.exports.daysInFebruary = daysInFebruary;
+module.exports.diff = diff;
+module.exports.overlapping = overlapping;
+module.exports.inPeriod = inPeriod;
+module.exports.resetTime = resetTime;
+module.exports.resetDate = resetDate;
+module.exports.toISOString = toISOString;
+module.exports.fromUTCDate = fromUTCDate;
+module.exports.parse = parse;
+module.exports.toInstant = toInstant;
+module.exports.toOffsetDateTime = toOffsetDateTime;

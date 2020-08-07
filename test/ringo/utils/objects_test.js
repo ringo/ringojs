@@ -67,7 +67,7 @@ exports.testCloneDate = function() {
     assert.strictEqual(a.getTime(), c.getTime());
 };
 
-export.testCloneObject = function() {
+exports.testCloneObject = function() {
     var a = { foo: { bar: "baz" } };
     var b = clone(a);
 
@@ -246,7 +246,7 @@ exports.testCloneOldBehaviour = function() {
     b.a[0] = 99;
     assert.deepEqual(a, [ 99, 2, 3 ]);
     assert.deepEqual(b, { a: [ 99, 2, 3 ]});
-    
+
     // reset to original values
     a = [1, 2, 3];
     b = {"a": a};

@@ -2,8 +2,6 @@
  * @fileOverview Allows to work with deferred values that will be resolved in the future.
  */
 
-export("Deferred", "PromiseList");
-
 var NEW = 0;
 var FULFILLED = 1;
 var FAILED = 2;
@@ -48,7 +46,7 @@ var FAILED = 2;
  *   console.log("Total time: ", Date.now() - start, "ms");
  * });
  */
-function Deferred() {
+const Deferred = exports.Deferred = function Deferred() {
     var value;
     var listeners = [];
     var state = NEW;
@@ -197,7 +195,7 @@ function Deferred() {
  * d3.resolve("some error", true);
  * d1.resolve("i am ok");
  */
-function PromiseList(args) {
+const PromiseList = exports.PromiseList = function PromiseList(args) {
     var promises = Array.isArray(args) ? args : Array.prototype.slice.call(arguments);
     var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
     var results = [];

@@ -16,6 +16,7 @@
 
 package org.ringojs.engine;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.WrapFactory;
 import org.ringojs.util.StringUtils;
@@ -50,7 +51,7 @@ public class RingoConfig {
     private boolean strictVars = true;
     private boolean debug = false;
     private boolean verbose = false;
-    private int languageVersion = 180;
+    private int languageVersion = Context.VERSION_ES6;
     private boolean parentProtoProperties = false;
     private Class<Scriptable>[] hostClasses = null;
     private ClassShutter classShutter = null;

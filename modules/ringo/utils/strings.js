@@ -72,52 +72,6 @@ const dates = require('ringo/utils/dates');
  * @fileoverview Adds useful methods to the JavaScript String type.
  */
 
-export('isDateFormat',
-       'toDate',
-       'isUrl',
-       'isFileName',
-       'toFileName',
-       'isHexColor',
-       'toHexColor',
-       'isAlphanumeric',
-       'toAlphanumeric',
-       'isAlpha',
-       'isNumeric',
-       'toCamelCase',
-       'toDashes',
-       'toUnderscores',
-       'capitalize',
-       'titleize',
-       'entitize',
-       'group',
-       'digest',
-       'repeat',
-       'startsWith',
-       'endsWith',
-       'pad',
-       'contains',
-       'getCommonPrefix',
-       'isEmail',
-       'count',
-       'b16encode',
-       'b16decode',
-       'b64encode',
-       'b64decode',
-       'y64encode',
-       'y64decode',
-       'escapeHtml',
-       'escapeRegExp',
-       'Sorter',
-       'compose',
-       'random',
-       'join',
-       'format',
-       'isUpperCase',
-       'isLowerCase',
-       'isInt',
-       'isFloat',
-       'isDate');
-
 /**
  * Checks if a date format pattern is correct and a valid string to create a
  * new `java.text.SimpleDateFormat` from it.
@@ -997,4 +951,50 @@ function isFloat(string) {
  */
 function isDate(string, format, locale, timezone, lenient) {
     return !isNaN(dates.parse(string, format, locale, timezone, lenient));
-};
+}
+
+module.exports.isDateFormat = isDateFormat;
+module.exports.toDate = toDate;
+module.exports.isUrl = isUrl;
+module.exports.isFileName = isFileName;
+module.exports.toFileName = toFileName;
+module.exports.isHexColor = isHexColor;
+module.exports.toHexColor = toHexColor;
+module.exports.isAlphanumeric = isAlphanumeric;
+module.exports.toAlphanumeric = toAlphanumeric;
+module.exports.isAlpha = isAlpha;
+module.exports.isNumeric = isNumeric;
+module.exports.toCamelCase = toCamelCase;
+module.exports.toDashes = toDashes;
+module.exports.toUnderscores = toUnderscores;
+module.exports.capitalize = capitalize;
+module.exports.titleize = titleize;
+module.exports.entitize = entitize;
+module.exports.group = group;
+module.exports.digest = digest;
+module.exports.repeat = repeat;
+module.exports.startsWith = startsWith;
+module.exports.endsWith = endsWith;
+module.exports.pad = pad;
+module.exports.contains = contains;
+module.exports.getCommonPrefix = getCommonPrefix;
+module.exports.isEmail = isEmail;
+module.exports.count = count;
+module.exports.b16encode = b16encode;
+module.exports.b16decode = b16decode;
+module.exports.b64encode = b64encode;
+module.exports.b64decode = b64decode;
+module.exports.y64encode = y64encode;
+module.exports.y64decode = y64decode;
+module.exports.escapeHtml = escapeHtml;
+module.exports.escapeRegExp = escapeRegExp;
+module.exports.Sorter = Sorter;
+module.exports.compose = compose;
+module.exports.random = random;
+module.exports.join = join;
+module.exports.format = format;
+module.exports.isUpperCase = isUpperCase;
+module.exports.isLowerCase = isLowerCase;
+module.exports.isInt = isInt;
+module.exports.isFloat = isFloat;
+module.exports.isDate = isDate;

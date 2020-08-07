@@ -5,7 +5,7 @@
 
 // strangely meta, no?
 
-var assert = require('assert');
+var assert = require("../modules/assert");
 
 function makeBlock(f) {
     var args = Array.prototype.slice.call(arguments, 1);

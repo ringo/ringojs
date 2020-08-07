@@ -5,14 +5,12 @@
 var {ByteString} = require('binary');
 var strings = require('ringo/utils/strings');
 
-export('Buffer');
-
 /**
  * A Buffer class for composing strings. This is implemented
  * as a simple wrapper around a JavaScript array.
  * @param {*...} args... initial parts to write to the buffer
  */
-function Buffer() {
+module.exports.Buffer = function Buffer() {
 
     var content = [],
         length = 0;

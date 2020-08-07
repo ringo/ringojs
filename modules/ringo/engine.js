@@ -2,26 +2,6 @@
  * @fileOverview Provides access to the Rhino JavaScript engine.
  */
 
-export( 'properties',
-        'addHostObject',
-        'addRepository',
-        'addShutdownHook',
-        'asJavaString',
-        'asJavaObject',
-        'createSandbox',
-        'getErrors',
-        'getRingoHome',
-        'getRepositories',
-        'getRhinoContext',
-        'getRhinoEngine',
-        'getOptimizationLevel',
-        'setOptimizationLevel',
-        'getCurrentWorker',
-        'getWorker',
-        'serialize',
-        'deserialize',
-        'version');
-
 var {Context, ClassShutter} = org.mozilla.javascript;
 var {RhinoEngine, RingoConfig} = org.ringojs.engine;
 var engine = RhinoEngine.getEngine(global);
@@ -203,3 +183,20 @@ function addRepository(repo) {
     }
 }
 
+module.exports.properties = properties;
+module.exports.addHostObject = addHostObject;
+module.exports.addRepository = addRepository;
+module.exports.addShutdownHook = addShutdownHook;
+module.exports.asJavaString = asJavaString;
+module.exports.asJavaObject = asJavaObject;
+module.exports.createSandbox = createSandbox;
+module.exports.getErrors = getErrors;
+module.exports.getRingoHome = getRingoHome;
+module.exports.getRepositories = getRepositories;
+module.exports.getRhinoContext = getRhinoContext;
+module.exports.getRhinoEngine = getRhinoEngine;
+module.exports.getOptimizationLevel = getOptimizationLevel;
+module.exports.setOptimizationLevel = setOptimizationLevel;
+module.exports.getCurrentWorker = getCurrentWorker;
+module.exports.getWorker = getWorker;
+module.exports.version = version;

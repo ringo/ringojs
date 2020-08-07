@@ -14,8 +14,6 @@ var log = require('ringo/logging').getLogger(module.id);
 
 var app;
 
-export('init', 'start', 'stop', 'destroy');
-
 /**
  * Called when the daemon instance is created.
  *
@@ -72,3 +70,7 @@ function destroy() {
     }
 }
 
+module.exports.init = init;
+module.exports.start = start;
+module.exports.stop = stop;
+module.exports.destroy = destroy;

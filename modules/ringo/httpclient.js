@@ -29,8 +29,6 @@ var {Buffer} = require("ringo/buffer");
 var {Random} = java.util;
 var log = require("ringo/logging").getLogger(module.id);
 
-export("request", "get", "post", "put", "del", "TextPart", "BinaryPart");
-
 const VERSION = require("ringo/engine").version.join(".");
 const CRLF = "\r\n";
 const BOUNDARY_CHARS = "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -675,3 +673,11 @@ var BinaryPart = function(data, fileName, contentType) {
 
     return this;
 };
+
+module.exports.request = request;
+module.exports.get = get;
+module.exports.post = post;
+module.exports.put = put;
+module.exports.del = del;
+module.exports.TextPart = TextPart;
+module.exports.BinaryPart = BinaryPart;

@@ -2,11 +2,9 @@
  * @fileOverview Change me.
  */
 
-export('changeMe');
-
 /**
  * Change me.
  */
-function changeMe() {
+module.exports.changeMe = function changeMe() {
     // TODO: impl. me.
 }

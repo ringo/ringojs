@@ -16,37 +16,11 @@
  * It manages the execution of tests and provides the outcome to the user.
  */
 
-export(
-   "AssertionError",
-   "ArgumentsError",
-   "fail",
-   // commonjs assertion methods
-   "ok",
-   "equal",
-   "notEqual",
-   "deepEqual",
-   "notDeepEqual",
-   "strictEqual",
-   "notStrictEqual",
-   "throws",
-   // custom assertion methods
-   "isTrue",
-   "isFalse",
-   "matches",
-   "stringContains",
-   "isNull",
-   "isNotNull",
-   "isUndefined",
-   "isNotUndefined",
-   "isNaN",
-   "isNotNaN"
-);
-
-var {
+const {
     jsDump,
     getType,
     getStackTrace
-} = require("./test");
+} = require("./ringo/utils/test");
 
 /**
 * @param {Object} args The arguments array.
@@ -60,7 +34,7 @@ function evalArguments(args, argsExpected) {
         throw new ArgumentsError("Insufficient arguments passed to assertion function");
     }
     return args[argsExpected];
-};
+}
 
 /**
  * Deep-compares both arguments.
@@ -84,8 +58,8 @@ function isDeepEqual(value1, value2) {
 
 /**
  * Returns true if the objects passed as argument are equal
- * @param {Object} value1 The object to be compared
- * @param {Object} value2 The object to be compared to
+ * @param {Object} obj1 The object to be compared
+ * @param {Object} obj2 The object to be compared to
  * @returns True if the objects are equal, false otherwise
  * @type Boolean
  */
@@ -187,7 +161,7 @@ function prependComment(message, comment) {
  * @constructor
  * @augments Error
  */
-function AssertionError(options) {
+const AssertionError = exports.AssertionError = function AssertionError(options) {
     // accept a single string argument
     if (getType(options) === "string") {
         options = {
@@ -227,7 +201,7 @@ function AssertionError(options) {
     });
 
     return this;
-};
+}
 
 /** @ignore */
 AssertionError.prototype = new Error();
@@ -250,7 +224,7 @@ AssertionError.prototype.toString = function() {
  * @returns A newly created ArgumentsError instance
  * @constructor
  */
-function ArgumentsError(message) {
+const ArgumentsError = exports.ArgumentsError = function ArgumentsError(message) {
 
     var stackTrace = getStackTrace();
 
@@ -267,7 +241,7 @@ function ArgumentsError(message) {
     });
 
     return this;
-};
+}
 
 /** @ignore */
 ArgumentsError.prototype = new Error();
@@ -321,7 +295,6 @@ function ok(value) {
             "expected": true
         });
     }
-    return;
 }
 
 /**
@@ -352,7 +325,6 @@ function equal(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -382,7 +354,6 @@ function notEqual(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -414,7 +385,6 @@ function deepEqual(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -444,7 +414,6 @@ function notDeepEqual(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -481,7 +450,6 @@ function strictEqual(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -509,7 +477,6 @@ function notStrictEqual(actual, expected) {
             "expected": expected
         });
     }
-    return;
 }
 
 /**
@@ -543,7 +510,7 @@ function throws(func, expectedError) {
         if (expectedError == null) {
             // accept everything
             isExpected = true;
-        } else if (expectedError != null && e != null) {
+        } else if (e != null) {
             // check if exception is the one expected
             switch (typeof(expectedError)) {
                 case "string":
@@ -594,7 +561,7 @@ function throws(func, expectedError) {
  * // failing assertion
  * assert.isTrue(100 != 100);
  *
- * @param {Object} val The value that should be boolean true.
+ * @param {Object} value The value that should be boolean true.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -610,7 +577,6 @@ function isTrue(value) {
             "expected": true
         });
     }
-    return;
 }
 
 /**
@@ -621,7 +587,7 @@ function isTrue(value) {
  * // failing assertion
  * assert.isFalse(100 == 100);
  *
- * @param {Object} val The value that should be boolean false.
+ * @param {Object} value The value that should be boolean false.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -637,7 +603,6 @@ function isFalse(value) {
             "expected": false
         });
     }
-    return;
 }
 
 /**
@@ -649,7 +614,7 @@ function isFalse(value) {
  * assert.isNull(undefined);
  * assert.isNull("");
  *
- * @param {Object} val The value that should be null.
+ * @param {Object} value The value that should be null.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -662,7 +627,6 @@ function isNull(value) {
             "expected": null
         });
     }
-    return;
 }
 
 /**
@@ -674,7 +638,7 @@ function isNull(value) {
  * // failing assertion
  * assert.isNotNull(null);
  *
- * @param {Object} val The value that should be not null.
+ * @param {Object} value The value that should be not null.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -686,7 +650,6 @@ function isNotNull(value) {
             "actual": value,
         });
     }
-    return;
 }
 
 /**
@@ -698,7 +661,7 @@ function isNotNull(value) {
  * assert.isUndefined(null);
  * assert.isUndefined("");
  *
- * @param {Object} val The value that should be undefined.
+ * @param {Object} value The value that should be undefined.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -711,7 +674,6 @@ function isUndefined(value) {
             "expected": undefined
         });
     }
-    return;
 }
 
 /**
@@ -723,7 +685,7 @@ function isUndefined(value) {
  * // failing assertion
  * assert.isNotUndefined(undefined);
  *
- * @param {Object} val The value that should be not undefined.
+ * @param {Object} value The value that should be not undefined.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -735,13 +697,12 @@ function isNotUndefined(value) {
             "actual": value,
         });
     }
-    return;
 }
 
 /**
  * Asserts that the value passed as argument is NaN.
  * Uses <code>global.isNaN()</code> for the check.
- * @param {Object} val The value that should be NaN.
+ * @param {Object} value The value that should be NaN.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -754,13 +715,12 @@ function isNaN(value) {
             "expected": NaN
         });
     }
-    return;
 }
 
 /**
  * Checks if the value passed as argument is not NaN.
  * Uses <code>global.isNaN()</code> for the check.
- * @param {Object} val The value that should be not NaN.
+ * @param {Object} value The value that should be not NaN.
  * @throws ArgumentsError
  * @throws AssertionError
  */
@@ -773,7 +733,6 @@ function isNotNaN(value) {
             "expected": Number
         });
     }
-    return;
 }
 
 /**
@@ -798,7 +757,6 @@ function stringContains(value, pattern) {
         throw new ArgumentsError("Invalid argument to assertStringContains(string, string):\n" +
                              jsDump(pattern));
     }
-    return;
 }
 
 /**
@@ -815,7 +773,7 @@ function stringContains(value, pattern) {
 function matches(value, expr) {
     var comment = evalArguments(arguments, arguments.callee.length);
     if (getType(expr) === "regexp") {
-        if (expr.test(value) == false) {
+        if (expr.test(value) === false) {
             fail(prependComment("Expected pattern " + jsDump(expr) + " to match " +
                     jsDump(value), comment));
         }
@@ -823,5 +781,28 @@ function matches(value, expr) {
         throw new ArgumentsError("Invalid argument to assertMatch(string, regexp):\n" +
                              jsDump(expr));
     }
-    return;
 }
+
+module.exports.fail = fail;
+
+// Commonjs assertion methods
+module.exports.ok = ok;
+module.exports.equal = equal;
+module.exports.notEqual = notEqual;
+module.exports.deepEqual = deepEqual;
+module.exports.notDeepEqual = notDeepEqual;
+module.exports.strictEqual = strictEqual;
+module.exports.notStrictEqual = notStrictEqual;
+module.exports.throws = throws;
+
+// Ringo assertion methods
+module.exports.isTrue = isTrue;
+module.exports.isFalse = isFalse;
+module.exports.matches = matches;
+module.exports.stringContains = stringContains;
+module.exports.isNull = isNull;
+module.exports.isNotNull = isNotNull;
+module.exports.isUndefined = isUndefined;
+module.exports.isNotUndefined = isNotUndefined;
+module.exports.isNaN = isNaN;
+module.exports.isNotNaN = isNotNaN;

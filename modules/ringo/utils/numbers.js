@@ -2,8 +2,6 @@
  * @fileoverview Provides utility functions for working with JavaScript numbers.
  */
 
-export("format", "times");
-
 /**
  * Format `number` using java.text.DecimalFormat.
  * @param {Number} number the number
@@ -44,3 +42,6 @@ function times(num, fun) {
         fun(i);
     }
 }
+
+module.exports.format = format;
+module.exports.times = times;

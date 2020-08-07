@@ -14,10 +14,6 @@ var {MemoryStream} = require('io');
 var open = require('fs').open,
     createTempFile = require('ringo/utils/files').createTempFile;
 
-export('ResponseFilter', 'Headers', 'getMimeParameter', 'urlEncode', 'setCookie',
-        'isUrlEncoded', 'isFileUpload', 'parseParameters', 'mergeParameter',
-        'parseFileUpload', 'parseRange', 'canonicalRanges', 'BufferFactory', 'TempFileFactory');
-
 var log = require('ringo/logging').getLogger(module.id);
 
 /**
@@ -896,3 +892,18 @@ function TempFileFactory(data, encoding) {
     data.tempfile = createTempFile("ringo-upload-");
     return open(data.tempfile, {write: true, binary: true});
 }
+
+module.exports.ResponseFilter = ResponseFilter;
+module.exports.Headers = Headers;
+module.exports.getMimeParameter = getMimeParameter;
+module.exports.urlEncode = urlEncode;
+module.exports.setCookie = setCookie;
+module.exports.isUrlEncoded = isUrlEncoded;
+module.exports.isFileUpload = isFileUpload;
+module.exports.parseParameters = parseParameters;
+module.exports.mergeParameter = mergeParameter;
+module.exports.parseFileUpload = parseFileUpload;
+module.exports.parseRange = parseRange;
+module.exports.canonicalRanges = canonicalRanges;
+module.exports.BufferFactory = BufferFactory;
+module.exports.TempFileFactory = TempFileFactory;

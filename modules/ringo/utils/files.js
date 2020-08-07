@@ -6,17 +6,6 @@
 const arrays = require('ringo/utils/arrays');
 const fs = require('fs');
 
-export(
-    'resolveUri',
-    'resolveId',
-    'isHidden',
-    'createTempFile',
-    'roots',
-    'separator',
-    'supportsFileAttributeView',
-    'PosixPermissions'
-);
-
 const {
     Paths,
     Files,
@@ -310,3 +299,12 @@ PosixPermissions.prototype.toJavaFileAttribute = function() {
 PosixPermissions.prototype.toJavaPosixFilePermissionSet = function() {
     return PosixFilePermissions.fromString(octalToSymbolicNotation(this.value));
 };
+
+module.exports.resolveUri = resolveUri;
+module.exports.resolveId = resolveId;
+module.exports.isHidden = isHidden;
+module.exports.createTempFile = createTempFile;
+module.exports.roots = roots;
+module.exports.separator = separator;
+module.exports.supportsFileAttributeView = supportsFileAttributeView;
+module.exports.PosixPermissions = PosixPermissions;

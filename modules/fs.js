@@ -51,60 +51,6 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
                    new RegExp(SEPARATOR) :
                    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
-export('absolute',
-       'base',
-       'copy',
-       'copyTree',
-       'directory',
-       'extension',
-       'isAbsolute', // non-standard/non-spec
-       'isRelative', // non-standard/non-spec
-       'join',
-       'makeTree',
-       'listDirectoryTree',
-       'listTree',
-       'normal',
-       'open',
-       'path',
-       'Path',
-       'read',
-       'relative',
-       'removeTree',
-       'resolve',
-       'write',
-       'split',
-       // previously in fs-base
-       'canonical',
-       'workingDirectory',
-       'exists',
-       'isDirectory',
-       'isFile',
-       'isReadable',
-       'isWritable',
-       'list',
-       'makeDirectory',
-       'move',
-       'lastModified',
-       'openRaw',
-       'remove',
-       'removeDirectory',
-       'size',
-       'touch',
-       'symbolicLink',
-       'hardLink',
-       'readLink',
-       'isLink',
-       'same',
-       'sameFilesystem',
-       'iterate',
-       'Permissions',
-       'owner',
-       'group',
-       'changePermissions',
-       'changeOwner',
-       'changeGroup',
-       'permissions');
-
 /**
  * Open the file corresponding to `path` for reading or writing,
  * depending on the `options` argument. Returns a [binary stream](../io#Stream)
@@ -1353,3 +1299,55 @@ for (i = 0; i < trivia.length; i++) {
         };
     })(name);
 }
+
+module.exports.absolute = absolute;
+module.exports.base = base;
+module.exports.copy = copy;
+module.exports.copyTree = copyTree;
+module.exports.directory = directory;
+module.exports.extension = extension;
+module.exports.isAbsolute = isAbsolute;
+module.exports.isRelative = isRelative;
+module.exports.join = join;
+module.exports.makeTree = makeTree;
+module.exports.listDirectoryTree = listDirectoryTree;
+module.exports.listTree = listTree;
+module.exports.normal = normal;
+module.exports.open = open;
+module.exports.path = path;
+module.exports.Path = Path;
+module.exports.read = read;
+module.exports.relative = relative;
+module.exports.removeTree = removeTree;
+module.exports.resolve = resolve;
+module.exports.write = write;
+module.exports.split = split;
+module.exports.canonical = canonical;
+module.exports.workingDirectory = workingDirectory;
+module.exports.exists = exists;
+module.exports.isDirectory = isDirectory;
+module.exports.isFile = isFile;
+module.exports.isReadable = isReadable;
+module.exports.isWritable = isWritable;
+module.exports.list = list;
+module.exports.makeDirectory = makeDirectory;
+module.exports.move = move;
+module.exports.lastModified = lastModified;
+module.exports.openRaw = openRaw;
+module.exports.remove = remove;
+module.exports.removeDirectory = removeDirectory;
+module.exports.size = size;
+module.exports.touch = touch;
+module.exports.symbolicLink = symbolicLink;
+module.exports.hardLink = hardLink;
+module.exports.readLink = readLink;
+module.exports.isLink = isLink;
+module.exports.same = same;
+module.exports.sameFilesystem = sameFilesystem;
+module.exports.iterate = iterate;
+module.exports.owner = owner;
+module.exports.group = group;
+module.exports.changePermissions = changePermissions;
+module.exports.changeOwner = changeOwner;
+module.exports.changeGroup = changeGroup;
+module.exports.permissions = permissions;

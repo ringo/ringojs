@@ -42,45 +42,6 @@ Object.defineProperty(this, "global", { value: this });
         }
     });
 
-    /**
-     * Takes any number of top-level names to be exported from this module.
-     *
-     * This is a non-standard alternative to the [exports](#exports) object
-     * for exporting values in a less verbose and intrusive way.
-     *
-     * @param {String...} name... one or more names of exported properties
-     * @name export
-     * @function
-     * @example // equivalent to exports.foo = function() { ... }
-     * // and exports.bar = function() { ... }
-     * export(
-     *   "foo",
-     *   "bar"
-     * );
-     *
-     * function foo() { ... };
-     * function bar() { ... };
-     */
-    Object.defineProperty(global, "export", {
-        value: function() {
-            var module = this;
-            var exports = this.exports;
-            if (!exports || typeof exports != "object") {
-                // this should never happen with ringo modules
-                exports = {};
-                Object.defineProperty(module, "exports", { value: exports });
-            }
-            Array.prototype.forEach.call(arguments, function(name) {
-                Object.defineProperty(exports, name, {
-                    get: function() {
-                        return module[name];
-                    },
-                    enumerable: true
-                });
-            });
-        }
-    });
-
     var engine = require("ringo/engine");
 
     /**

@@ -4,8 +4,6 @@
 
 var {Semaphore: JavaSemaphore, TimeUnit} = java.util.concurrent;
 
-export("Semaphore");
-
 /**
  * A counting semaphore that can be used to coordinate and synchronize
  * cooperation between synchronous threads. A semaphore keeps a number of permits.
@@ -30,7 +28,7 @@ export("Semaphore");
  *
  * @param {Number} permits the number of initial permits, defaults to 0
  */
-function Semaphore(permits) {
+module.exports.Semaphore = function Semaphore(permits) {
     if (!(this instanceof Semaphore)) {
         return new Semaphore(permits);
     }

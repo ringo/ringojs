@@ -28,8 +28,6 @@
 var strings = require('ringo/utils/strings');
 var {EventEmitter} = require('ringo/events');
 
-export('getLogger', 'setConfig', 'getScriptStack', 'getJavaStack');
-
 // Use singleton to share flag across workers to avoid unwanted reconfiguration
 var configured = module.singleton("configured");
 // interval id for configuration watcher
@@ -379,3 +377,8 @@ if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
 } else {
     LoggerImpl = JdkLogger;
 }
+
+module.exports.getLogger = getLogger;
+module.exports.setConfig = setConfig;
+module.exports.getScriptStack = getScriptStack;
+module.exports.getJavaStack = getJavaStack;

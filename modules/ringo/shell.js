@@ -20,9 +20,6 @@
 var system = require('system');
 var term = require('ringo/term');
 
-export('write', 'writeln', 'read', 'readln', 'start', 'quit',
-       'printResult', 'printError');
-
 try {
     var input = new Packages.jline.console.ConsoleReader();
 } catch (x) {
@@ -288,3 +285,12 @@ function printError(xcept, errors, verbose) {
         xcept.printStackTrace(system.stdout.raw || System.out);
     }
 }
+
+module.exports.write = write;
+module.exports.writeln = writeln;
+module.exports.read = read;
+module.exports.readln = readln;
+module.exports.start = start;
+module.exports.quit = quit;
+module.exports.printResult = printResult;
+module.exports.printError = printError;
