@@ -26,12 +26,13 @@ import org.mozilla.javascript.*;
  */
 public class ModuleScope extends ImporterTopLevel {
 
-    private Trackable source;
-    private Repository repository;
-    private String id;
-    private RingoWorker worker;
+    private final Trackable source;
+    private final Repository repository;
+    private final String id;
+    private final RingoWorker worker;
     private long checksum;
-    private Scriptable exportsObject, moduleObject;
+    private Scriptable exportsObject;
+    private final Scriptable moduleObject;
     private static final long serialVersionUID = -2409425841990094897L;
 
     public ModuleScope(String moduleId, Trackable source,

@@ -31,7 +31,7 @@ import org.mozilla.javascript.ScriptableObject;
  */
 
 public class Callback {
-    RhinoEngine engine;
+    final RhinoEngine engine;
     RingoWorker worker;
     final Object module;
     final Object function;

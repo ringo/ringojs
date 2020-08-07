@@ -25,7 +25,7 @@ import java.util.ArrayList;
 public class StackUtils {
 
     public static StackTraceElement[] getJavaScriptStack(Throwable t) {
-        List<StackTraceElement> list = new ArrayList<StackTraceElement>();
+        List<StackTraceElement> list = new ArrayList<>();
         StackTraceElement[] stack = t.getStackTrace();
         for (StackTraceElement e: stack) {
             String name = e.getFileName();

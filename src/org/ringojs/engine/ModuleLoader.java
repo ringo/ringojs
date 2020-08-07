@@ -33,7 +33,7 @@ import java.security.PrivilegedAction;
 
 public abstract class ModuleLoader {
 
-    private String extension;
+    private final String extension;
 
     public ModuleLoader(String extension) {
         this.extension = extension;
@@ -57,8 +57,7 @@ class JsModuleLoader extends ModuleLoader {
 
     @Override
     public Object load(final Context cx,  RhinoEngine engine, final Object securityDomain,
-                       String moduleName, final String charset, final Resource resource)
-            throws Exception {
+                       String moduleName, final String charset, final Resource resource) {
         return AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 InputStream aStream = null;
@@ -74,7 +73,7 @@ class JsModuleLoader extends ModuleLoader {
                 } finally {
                     if( aReader != null ) {
                         try{
-                            aReader.close();    
+                            aReader.close();
                         }catch(IOException iox){}
                     }
                     if( aStream != null ) {
@@ -121,7 +120,7 @@ class ClassModuleLoader extends ModuleLoader {
         int length = (int) l;
         byte[] bytes = new byte[length];
         InputStream input = resource.getInputStream();
-        try{
+        try {
             int offset = 0, read;
 
             while (offset < length) {
@@ -133,13 +132,11 @@ class ClassModuleLoader extends ModuleLoader {
             if (offset < length) {
                 throw new IOException("Could not read file completely");
             }
-        }catch(IOException e){
-            throw e;
-        }finally{
+        } finally {
             if(input != null)
                 input.close();
         }
-        
+
 
         String className = moduleName.replaceAll("/", ".");
         ClassLoader rhinoLoader = getClass().getClassLoader();
@@ -152,13 +149,13 @@ class ClassModuleLoader extends ModuleLoader {
             throw new ClassCastException("Module must be a Rhino script class");
         }
 
-        return clazz.newInstance();
+        return clazz.getDeclaredConstructor().newInstance();
     }
 }
 
 class ScriptedModuleLoader extends ModuleLoader {
 
-    Function function;
+    final Function function;
 
     public ScriptedModuleLoader(String extension, Function function) {
         super(extension);
@@ -167,8 +164,7 @@ class ScriptedModuleLoader extends ModuleLoader {
 
     @Override
     public Object load(Context cx, RhinoEngine engine, Object securityDomain,
-                       String moduleName, String charset, Resource resource)
-                       throws Exception {
+                       String moduleName, String charset, Resource resource) {
         Scriptable scope = engine.getScope();
         Object[] args = {cx.getWrapFactory().wrap(cx, scope, resource, null)};
         Object source = function.call(cx, scope, scope, args);

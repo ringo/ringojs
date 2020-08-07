@@ -45,7 +45,7 @@ public class Require extends BaseFunction {
     RhinoEngine engine;
     RingoGlobal scope;
 
-    static Method getMain;
+    static final Method getMain;
     static {
         try {
             getMain = Require.class.getDeclaredMethod("getMain", ScriptableObject.class);
@@ -53,7 +53,7 @@ public class Require extends BaseFunction {
             throw new NoSuchMethodError("getMain");
         }
     }
-    
+
     public Require(RhinoEngine engine, RingoGlobal scope) {
         super(scope, ScriptableObject.getClassPrototype(scope, "Function"));
         this.engine = engine;
@@ -66,7 +66,7 @@ public class Require extends BaseFunction {
         defineProperty("paths", new ModulePath(), attr);
         defineProperty("extensions", new Extensions(), attr);
     }
-    
+
     @Override
     public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
         if (args.length != 1 || !(args[0] instanceof CharSequence)) {
@@ -103,12 +103,12 @@ public class Require extends BaseFunction {
     }
 
     class Extensions extends NativeObject {
-        
+
         public Extensions() {
             setParentScope(scope);
             setPrototype(ScriptableObject.getClassPrototype(scope, "Object"));
         }
-        
+
         @Override
         public void put(String name, Scriptable start, Object value) {
             engine.addModuleLoader(name, value);
@@ -123,26 +123,25 @@ public class Require extends BaseFunction {
     }
 
     class ModulePath extends ScriptableObject {
-    
-        List<Repository> paths;
-        Map<String, SoftReference<Repository>> cache =
-                new HashMap<String, SoftReference<Repository>>();
-    
+
+        final List<Repository> paths;
+        final Map<String, SoftReference<Repository>> cache = new HashMap<>();
+
         public ModulePath() {
             this.paths = engine.getRepositories();
             for (Repository repo : paths) {
-                cache.put(repo.getPath(), new SoftReference<Repository>(repo));
+                cache.put(repo.getPath(), new SoftReference<>(repo));
             }
             setParentScope(scope);
             setPrototype(ScriptableObject.getClassPrototype(scope, "Array"));
-            defineProperty("length", Integer.valueOf(this.paths.size()), DONTENUM);
+            defineProperty("length", this.paths.size(), DONTENUM);
         }
-    
+
         @Override
         public String getClassName() {
             return "ModulePath";
         }
-    
+
         @Override
         public void put(int index, Scriptable start, Object value) {
             if (paths != null) {
@@ -156,12 +155,12 @@ public class Require extends BaseFunction {
                     paths.add(null);
                 }
                 paths.set(index, repo);
-                defineProperty("length", Integer.valueOf(paths.size()), DONTENUM);
+                defineProperty("length", paths.size(), DONTENUM);
             } else {
                 super.put(index, start, value);
             }
         }
-    
+
         @Override
         public void put(String id, Scriptable start, Object value) {
             if (paths != null && "length".equals(id)) {
@@ -178,7 +177,7 @@ public class Require extends BaseFunction {
             }
             super.put(id, start, value);
         }
-    
+
         @Override
         public Object get(int index, Scriptable start) {
             if (paths != null) {
@@ -187,7 +186,7 @@ public class Require extends BaseFunction {
             }
             return super.get(index, start);
         }
-    
+
         @Override
         public boolean has(int index, Scriptable start) {
             if (paths != null) {
@@ -195,29 +194,29 @@ public class Require extends BaseFunction {
             }
             return super.has(index, start);
         }
-    
+
         @Override
         public Object[] getIds() {
             if (paths != null) {
                 Object[] ids = new Object[paths.size()];
                 for (int i = 0; i < ids.length; i++) {
-                    ids[i] = Integer.valueOf(i);
+                    ids[i] = i;
                 }
                 return ids;
             }
             return super.getIds();
         }
-    
+
         private Repository toRepository(Object value) throws IOException {
             if (value instanceof Wrapper) {
                 value = ((Wrapper) value).unwrap();
             }
-            Repository repo = null;
+            Repository repo;
             if (value instanceof Repository) {
                 repo = (Repository) value;
                 // repositories in module search path must be configured as root repository
                 repo.setRoot();
-                cache.put(repo.getPath(), new SoftReference<Repository>(repo));
+                cache.put(repo.getPath(), new SoftReference<>(repo));
             } else if (value != null && value != Undefined.instance) {
                 String str = ScriptRuntime.toString(value);
                 SoftReference<Repository> ref = cache.get(str);
@@ -229,7 +228,7 @@ public class Require extends BaseFunction {
                     } else {
                         repo = new FileRepository(str);
                     }
-                    cache.put(repo.getPath(), new SoftReference<Repository>(repo));
+                    cache.put(repo.getPath(), new SoftReference<>(repo));
                 }
             } else {
                 throw Context.reportRuntimeError("Invalid module path item: " + value);
@@ -237,7 +236,7 @@ public class Require extends BaseFunction {
             return repo;
         }
     }
-    
+
 }
 
 

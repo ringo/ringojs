@@ -65,13 +65,13 @@ public class ScriptableList extends NativeJavaObject {
             obj = ((Wrapper) obj).unwrap();
         }
         if (obj instanceof List) {
-            this.javaObject = this.list = (List) obj;
+            this.javaObject = this.list = (List<Object>) obj;
         } else if (obj instanceof Collection) {
-            this.javaObject = this.list = new ArrayList<Object>((Collection<?>) obj);
+            this.javaObject = this.list = new ArrayList<>((Collection<?>) obj);
         } else if (obj instanceof Map) {
-            this.javaObject = this.list = new ArrayList<Object>(((Map<?,?>)obj).values());
+            this.javaObject = this.list = new ArrayList<>(((Map<?, ?>) obj).values());
         } else if (obj == null || obj == Undefined.instance) {
-            this.javaObject = this.list = new ArrayList<Object>();
+            this.javaObject = this.list = new ArrayList<>();
         } else {
             throw new EvaluatorException("Invalid argument to ScriptableList(): " + obj);
         }
@@ -179,7 +179,7 @@ public class ScriptableList extends NativeJavaObject {
 
     public Object get(String name, Scriptable start) {
         if ("length".equals(name) && list != null) {
-            return new Integer(list.size());
+            return list.size();
         }
         return super.get(name, start);
     }
@@ -190,7 +190,7 @@ public class ScriptableList extends NativeJavaObject {
         int size = list.size();
         Object[] ids = new Object[size];
         for (int i = 0; i < size; ++i) {
-            ids[i] = new Integer(i);
+            ids[i] = i;
         }
         return ids;
     }
@@ -209,7 +209,7 @@ public class ScriptableList extends NativeJavaObject {
         return list;
     }
 
-    public List getList() {
+    public List<Object> getList() {
         return list;
     }
 

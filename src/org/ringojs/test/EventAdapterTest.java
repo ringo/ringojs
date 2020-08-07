@@ -19,7 +19,7 @@ public class EventAdapterTest extends TestCase {
         classes.add(java.lang.Runnable.class);
         classes.add(java.lang.Appendable.class);
         ContextFactory cf = ContextFactory.getGlobal();
-        cf.call(new ContextAction() {
+        cf.call(new ContextAction<Object>() {
             public Object run(Context cx) {
                 Class<?> c1 = EventAdapter.getAdapterClass(classes.toArray(), null);
                 Class<?> c2 = EventAdapter.getAdapterClass(classes.toArray(), null);
@@ -30,7 +30,7 @@ public class EventAdapterTest extends TestCase {
                 return null;
             }
         });
-        cf.call(new ContextAction() {
+        cf.call(new ContextAction<Object>() {
             public Object run(Context cx) {
                 Map<String,String> bindings = new HashMap<String,String>();
                 bindings.put("append", "add");

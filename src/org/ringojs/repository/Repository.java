@@ -30,7 +30,7 @@ public interface Repository extends Trackable {
      * String containing file separator characters. Always include slash character,
      * plus the native separator char if it isn't the slash.
      */
-    final public static String SEPARATOR =
+    String SEPARATOR =
             File.separatorChar == '/' ? "/" : File.separator + "/";
 
     /**
@@ -39,14 +39,14 @@ public interface Repository extends Trackable {
      * @param resourceName name of the child resource to return
      * @return specified child resource
      */
-    public Resource getResource(String resourceName) throws IOException;
+    Resource getResource(String resourceName) throws IOException;
 
     /**
      * Get a list of resources contained in this repository identified by the
      * given local name.
      * @return a list of all direct child resources
      */
-    public Resource[] getResources() throws IOException;
+    Resource[] getResources() throws IOException;
 
     /**
      * Get a list of resources contained in this repository identified by the
@@ -54,7 +54,7 @@ public interface Repository extends Trackable {
      * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public Resource[] getResources(boolean recursive) throws IOException;
+    Resource[] getResources(boolean recursive) throws IOException;
 
     /**
      * Get a list of resources contained in this repository identified by the
@@ -63,7 +63,7 @@ public interface Repository extends Trackable {
      * @param recursive whether to include nested resources
      * @return a list of all nested child resources
      */
-    public Resource[] getResources(String resourcePath, boolean recursive) throws IOException;
+    Resource[] getResources(String resourcePath, boolean recursive) throws IOException;
 
     /**
      * Returns this repository's direct child repositories
@@ -71,7 +71,7 @@ public interface Repository extends Trackable {
      * @return direct repositories
      * @throws IOException an I/O error occurred
      */
-    public Repository[] getRepositories() throws IOException;
+    Repository[] getRepositories() throws IOException;
 
     /**
      * Get a child repository with the given path
@@ -79,17 +79,17 @@ public interface Repository extends Trackable {
      * @return the child repository
      * @throws IOException an IOException occurred
      */
-    public Repository getChildRepository(String path) throws IOException;
+    Repository getChildRepository(String path) throws IOException;
 
     /**
      * Mark this repository as root repository, disabling any parent access.
      */
-    public void setRoot();
+    void setRoot();
 
     /**
      * Get the path of this repository relative to its root repository.
      * @return the repository path
      */
-    public String getRelativePath();
+    String getRelativePath();
 
 }

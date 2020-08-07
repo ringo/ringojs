@@ -113,7 +113,7 @@ public class JsgiServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException {
         JsgiRequest req = new JsgiRequest(request, response, requestProto,
                 engine.getScope(), this);
         RingoWorker worker = engine.getWorker();

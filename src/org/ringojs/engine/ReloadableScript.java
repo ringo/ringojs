@@ -43,9 +43,9 @@ public class ReloadableScript {
     final RhinoEngine engine;
     final String moduleName;
     // the loader
-    ModuleLoader loader;
+    final ModuleLoader loader;
     // true if we should reload modified source files
-    boolean reloading;
+    final boolean reloading;
     // the checksum of the underlying resource or repository when
     // the script was last compiled
     long checksum = -1;
@@ -57,11 +57,11 @@ public class ReloadableScript {
     Exception exception = null;
     List<ScriptError> errors;
     // Set of direct module dependencies
-    private final CopyOnWriteArraySet<ReloadableScript> dependencies = new CopyOnWriteArraySet<ReloadableScript>();
+    private final CopyOnWriteArraySet<ReloadableScript> dependencies = new CopyOnWriteArraySet<>();
     // the static script cache
-    static ScriptCache cache = new ScriptCache();
+    static final ScriptCache cache = new ScriptCache();
 
-    private static Logger log = Logger.getLogger(ReloadableScript.class.getName());
+    private static final Logger log = Logger.getLogger(ReloadableScript.class.getName());
 
     /**
      * Construct a Script from the given script resource.
@@ -179,7 +179,7 @@ public class ReloadableScript {
             return obj;
         }
         Script script = (Script) obj;
-        ModuleScope module = scope instanceof ModuleScope ? 
+        ModuleScope module = scope instanceof ModuleScope ?
                 (ModuleScope) scope : null;
         if (module != null) {
             worker.registerModule(resource, module);
@@ -267,7 +267,7 @@ public class ReloadableScript {
      */
     protected long getChecksum() throws IOException {
         long cs = resource.getChecksum();
-        Set<ReloadableScript> set = new HashSet<ReloadableScript>();
+        Set<ReloadableScript> set = new HashSet<>();
         set.add(this);
         for (ReloadableScript script: dependencies) {
             cs += script.getNestedChecksum(set);
@@ -309,9 +309,7 @@ public class ReloadableScript {
      * @param script a script we depend on
      */
     protected void addDependency(ReloadableScript script) {
-        if (!dependencies.contains(script)) {
-            dependencies.add(script);
-        }
+        dependencies.add(script);
     }
 
     /**
@@ -350,7 +348,7 @@ public class ReloadableScript {
         public void error(String message, String sourceName,
                           int line, String lineSource, int lineOffset) {
             if (errors == null) {
-                errors = new ArrayList<ScriptError>();
+                errors = new ArrayList<>();
             }
             errors.add(new ScriptError(message, sourceName, line, lineSource, lineOffset));
             String error = "SyntaxError";
@@ -373,15 +371,14 @@ public class ReloadableScript {
     }
 
     static class ScriptReference extends SoftReference<Object> {
-        Resource source;
-        long checksum;
-        List<ScriptError> errors;
-        Exception exception;
+        final Resource source;
+        final long checksum;
+        final List<ScriptError> errors;
+        final Exception exception;
 
 
         ScriptReference(Resource source, Object script,
-                        ReloadableScript rescript, ReferenceQueue<Object> queue)
-                throws IOException {
+                        ReloadableScript rescript, ReferenceQueue<Object> queue) {
             super(script, queue);
             this.source = source;
             this.checksum = rescript.checksum;
@@ -391,17 +388,16 @@ public class ReloadableScript {
     }
 
     static class ScriptCache {
-        ConcurrentHashMap<Resource, ScriptReference> map;
-        ReferenceQueue<Object> queue;
+        final ConcurrentHashMap<Resource, ScriptReference> map;
+        final ReferenceQueue<Object> queue;
 
         ScriptCache() {
-            map = new ConcurrentHashMap<Resource, ScriptReference>();
-            queue = new ReferenceQueue<Object>();
+            map = new ConcurrentHashMap<>();
+            queue = new ReferenceQueue<>();
         }
 
         ScriptReference createReference(Resource source, Object script,
-                                        ReloadableScript rlscript)
-                throws IOException {
+                                        ReloadableScript rlscript) {
             return new ScriptReference(source, script, rlscript, queue);
         }
 
@@ -413,8 +409,7 @@ public class ReloadableScript {
             return map.get(source);
         }
 
-        void put(Resource source, ScriptReference ref)
-                throws IOException {
+        void put(Resource source, ScriptReference ref) {
             map.put(source, ref);
         }
     }

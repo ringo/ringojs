@@ -116,7 +116,7 @@ public class ScriptableMap extends NativeJavaObject {
         if (map == null) {
             return super.get(index, start);
         }
-        return getInternal(new Integer(index));
+        return getInternal(index);
     }
 
     private Object getInternal(Object key) {
@@ -139,7 +139,7 @@ public class ScriptableMap extends NativeJavaObject {
         if (map == null) {
             return super.has(index, start);
         } else {
-            return map.containsKey(new Integer(index));
+            return map.containsKey(index);
         }
     }
 
@@ -155,7 +155,7 @@ public class ScriptableMap extends NativeJavaObject {
         if (map == null) {
              super.put(index, start, value);
          } else {
-             putInternal(new Integer(index), value);
+             putInternal(index, value);
         }
     }
 
@@ -183,7 +183,7 @@ public class ScriptableMap extends NativeJavaObject {
     public void delete(int index) {
         if (map != null) {
             try {
-                map.remove(new Integer(index));
+                map.remove(index);
             } catch (RuntimeException e) {
                 Context.throwAsScriptRuntimeEx(e);
             }

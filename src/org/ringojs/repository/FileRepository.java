@@ -113,7 +113,7 @@ public class FileRepository extends AbstractRepository {
                 if (repo == null) {
                     repo = new FileRepository(directory.getParentFile());
                     repo.setAbsolute(true);
-                    repositories.put("..", new SoftReference<AbstractRepository>(repo));
+                    repositories.put("..", new SoftReference<>(repo));
                 }
                 return repo;
             } catch (IOException iox) {
@@ -186,7 +186,7 @@ public class FileRepository extends AbstractRepository {
 
     public Repository[] getRepositories() throws IOException {
         File[] dir = directory.listFiles();
-        List<Repository> list = new ArrayList<Repository>(dir.length);
+        List<Repository> list = new ArrayList<>(dir.length);
 
         for (File file: dir) {
             if (file.isDirectory()) {

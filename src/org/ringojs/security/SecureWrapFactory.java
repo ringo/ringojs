@@ -64,7 +64,7 @@ public class SecureWrapFactory extends RingoWrapFactory {
 
     public static class SecureObjectWrapper extends NativeJavaObject {
 
-        Class clazz;
+        final Class clazz;
 
         public SecureObjectWrapper(Scriptable scope, Object javaObject, Class staticType) {
             super(scope, javaObject, staticType);
@@ -92,7 +92,7 @@ public class SecureWrapFactory extends RingoWrapFactory {
 
     public static class SecureClassWrapper extends NativeJavaClass {
 
-        Class clazz;
+        final Class clazz;
 
         public SecureClassWrapper(Scriptable scope, Class<?> clazz) {
             super(scope, clazz);

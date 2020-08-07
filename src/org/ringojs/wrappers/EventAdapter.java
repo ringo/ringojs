@@ -40,13 +40,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventAdapter extends ScriptableObject {
 
-    private RhinoEngine engine;
-    private Map<String,List<Callback>> callbacks = new HashMap<String,List<Callback>>();
+    private final RhinoEngine engine;
+    private final Map<String,List<Callback>> callbacks = new HashMap<>();
     private Object impl;
 
-    static Map<AdapterKey, WeakReference<Class<?>>> adapterCache =
-            new HashMap<AdapterKey, WeakReference<Class<?>>>();
-    static AtomicInteger serial = new AtomicInteger();
+    static final Map<AdapterKey, WeakReference<Class<?>>> adapterCache =
+        new HashMap<>();
+    static final AtomicInteger serial = new AtomicInteger();
 
     @Override
     public String getClassName() {
@@ -117,7 +117,7 @@ public class EventAdapter extends ScriptableObject {
         }
         List<Callback> list = callbacks.get(type);
         if (list == null) {
-            list = new LinkedList<Callback>();
+            list = new LinkedList<>();
             callbacks.put(type, list);
         }
         list.add(new Callback((Scriptable)function, engine, sync));

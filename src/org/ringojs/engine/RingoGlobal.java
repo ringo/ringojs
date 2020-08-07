@@ -21,8 +21,6 @@ import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeJavaClass;
-import org.mozilla.javascript.NativeJavaObject;
-import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -52,7 +50,7 @@ public class RingoGlobal extends Global {
     private final RhinoEngine engine;
     private final static SecurityManager securityManager = System.getSecurityManager();
     private static ExecutorService threadPool;
-    private static AtomicInteger ids = new AtomicInteger();
+    private static final AtomicInteger ids = new AtomicInteger();
 
     public RingoGlobal(Context cx, RhinoEngine engine, boolean sealed) {
         this.engine = engine;
@@ -111,7 +109,7 @@ public class RingoGlobal extends Global {
             throw Context.reportRuntimeError("defineClass() requires a class argument");
         }
         RhinoEngine engine = ((RingoGlobal) funObj.getParentScope()).engine;
-        engine.defineHostClass((Class) arg);
+        engine.defineHostClass((Class<Scriptable>) arg);
     }
 
     public static Object getResource(final Context cx, Scriptable thisObj,
@@ -225,7 +223,7 @@ public class RingoGlobal extends Global {
         }
         return getThreadPool().submit(new Callable<Object>() {
             public Object call() {
-                return cxfactory.call(new ContextAction() {
+                return cxfactory.call(new ContextAction<Object>() {
                     public Object run(Context cx) {
                         return function.call(cx, scope, scope, fnArgs);
                     }

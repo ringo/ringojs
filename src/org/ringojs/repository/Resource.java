@@ -31,14 +31,14 @@ public interface Resource extends Trackable {
      * Returns the length of the resource's content
      * @return content length
      */
-    public long getLength();
+    long getLength();
 
     /**
      * Returns an input stream to the content of the resource
      * @throws IOException if a I/O related error occurs
      * @return content input stream
      */
-    public InputStream getInputStream() throws IOException;
+    InputStream getInputStream() throws IOException;
 
     /**
      * Returns a reader for the resource using the given character encoding
@@ -46,14 +46,14 @@ public interface Resource extends Trackable {
      * @return the reader
      * @throws IOException if a I/O related error occurs
      */
-    public Reader getReader(String encoding) throws IOException;
+    Reader getReader(String encoding) throws IOException;
 
     /**
      * Returns a reader for the resource
      * @return the reader
      * @throws IOException if a I/O related error occurs
      */
-    public Reader getReader() throws IOException;
+    Reader getReader() throws IOException;
 
     /**
      * Returns the content of the resource in a given encoding
@@ -61,27 +61,27 @@ public interface Resource extends Trackable {
      * @return the content
      * @throws IOException if a I/O related error occurs
      */
-    public String getContent(String encoding) throws IOException;
+    String getContent(String encoding) throws IOException;
 
     /**
      * Returns the content of the resource
      * @return the content
      * @throws IOException if a I/O related error occurs
      */
-    public String getContent() throws IOException;
+    String getContent() throws IOException;
 
     /**
      * Returns the short name of the resource with the file extension
      * (everything following the last dot character) cut off.
      * @return the file name without the file extension
      */
-    public String getBaseName();
+    String getBaseName();
 
     /**
      * Get the path of this resource relative to its root repository.
      * @return the relative resource path
      */
-    public String getRelativePath();
+    String getRelativePath();
 
 
     /**
@@ -89,19 +89,19 @@ public interface Resource extends Trackable {
      * first line starting with the characters #! and suppress it if found
      * @return true if shebang stripping is enabled
      */
-    public boolean getStripShebang();
+    boolean getStripShebang();
 
     /**
      * Switch shebang stripping on or off
      * @param stripShebang true to enable shebang stripping
      */
-    public void setStripShebang(boolean stripShebang);
+    void setStripShebang(boolean stripShebang);
 
     /**
      * Return the current line number of this resource. Useful in combination
      * with things like shebang stripping and shell input.
      * @return the current line number of this resource
      */
-    public int getLineNumber();
+    int getLineNumber();
 
 }

@@ -19,7 +19,7 @@ public abstract class DebuggerBase implements Debugger {
 
     String debuggerScript;
     int debuggerScriptDepth = 0;
-    Logger log = Logger.getLogger(DebuggerBase.class.getName());
+    final Logger log = Logger.getLogger(DebuggerBase.class.getName());
 
     public abstract DebuggerBase createDebugger();
 

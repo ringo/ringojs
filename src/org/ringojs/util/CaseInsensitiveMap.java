@@ -27,18 +27,18 @@ import java.util.HashMap;
  */
 public class CaseInsensitiveMap<V> implements Map<String,V> {
 
-    private Map<String,V> wrapped;
-    private Map<String,String> keymap;
+    private final Map<String,V> wrapped;
+    private final Map<String,String> keymap;
 
     public CaseInsensitiveMap() {
-        wrapped = new HashMap<String,V>();
-        keymap = new HashMap<String, String>();
+        wrapped = new HashMap<>();
+        keymap = new HashMap<>();
     }
 
     public CaseInsensitiveMap(Map<String,V> map) {
         assert map != null;
         wrapped = map;
-        keymap = new HashMap<String, String>();
+        keymap = new HashMap<>();
         for (String key: map.keySet()) {
             keymap.put(processKey(key), key);
         }

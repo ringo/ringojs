@@ -35,10 +35,11 @@ public final class RingoWorker {
     private ReloadableScript currentScript;
     private List<ScriptError> errors;
     private Function errorListener;
-    private Map<Resource, Scriptable> modules, checkedModules;
+    private final Map<Resource, Scriptable> modules;
+    private Map<Resource, Scriptable> checkedModules;
     private boolean reload;
 
-    private static AtomicInteger workerId = new AtomicInteger(1);
+    private static final AtomicInteger workerId = new AtomicInteger(1);
     private final int id;
 
     /**
@@ -47,9 +48,9 @@ public final class RingoWorker {
      */
     public RingoWorker(RhinoEngine engine) {
         this.engine = engine;
-        modules = new HashMap<Resource, Scriptable>();
+        modules = new HashMap<>();
         reload = engine.getConfig().isReloading();
-        checkedModules = reload ? new HashMap<Resource, Scriptable>() : modules;
+        checkedModules = reload ? new HashMap<>() : modules;
         id = workerId.getAndIncrement();
     }
 
@@ -81,7 +82,7 @@ public final class RingoWorker {
 
         Scriptable scope = engine.getScope();
         Context cx = engine.getContextFactory().enterContext(null);
-        errors = new LinkedList<ScriptError>();
+        errors = new LinkedList<>();
         RingoWorker previous = acquireWorker();
         if (reload) checkedModules.clear();
 
@@ -303,7 +304,7 @@ public final class RingoWorker {
             throws IOException {
         Object result;
         ReloadableScript parent = currentScript;
-        errors = new LinkedList<ScriptError>();
+        errors = new LinkedList<>();
         RingoWorker previous = acquireWorker();
         try {
             currentScript = script;
@@ -334,7 +335,7 @@ public final class RingoWorker {
      */
     public void setReloading(boolean reload) {
         if (reload != this.reload) {
-            checkedModules = reload ? new HashMap<Resource, Scriptable>() : modules;
+            checkedModules = reload ? new HashMap<>() : modules;
         }
         this.reload = reload;
     }
@@ -391,9 +392,7 @@ public final class RingoWorker {
         EventLoop eventloop = this.eventloop;
         if (eventloop != null) {
             Delayed task = (Delayed)eventloop.getQueue().peek();
-            if (task != null && task.getDelay(TimeUnit.MILLISECONDS) < 1l) {
-                return true;
-            }
+            return task != null && task.getDelay(TimeUnit.MILLISECONDS) < 1L;
         }
         return false;
     }
@@ -415,7 +414,7 @@ public final class RingoWorker {
     public void release() {
         engine.returnWorker(this);
     }
-    
+
     /**
      * Schedule a task that will release this worker when the current task
      * is finished, returning it back into the engine's worker pool.

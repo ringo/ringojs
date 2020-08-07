@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
 
 public class WebappResource extends AbstractResource {
 
-    ServletContext context;
+    final ServletContext context;
     private int exists = -1;
 
     protected WebappResource(ServletContext context, WebappRepository repository, String name) {
