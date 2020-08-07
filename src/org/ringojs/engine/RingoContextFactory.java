@@ -20,7 +20,7 @@ public class RingoContextFactory extends ContextFactory {
 
     RhinoEngine engine;
 
-    int languageVersion = Context.VERSION_ES6;
+    int languageVersion = Context.VERSION_1_8;
     boolean strictMode = false;
     boolean strictVars = true;
     boolean warningAsError = false;
