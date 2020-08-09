@@ -125,33 +125,12 @@ function Logger(name, impl) {
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
  * repeatedly checks the resource for updates.
  */
-function setConfig(resource, watchForUpdates) {
+function setConfig(resource) {
     var {path, url} = resource;
-    var PropertyConfigurator = org.apache.log4j.PropertyConfigurator;
-    var DOMConfigurator = org.apache.log4j.xml.DOMConfigurator;
-    var configurator = strings.endsWith(path, '.properties') || strings.endsWith(path, '.props') ?
-                       PropertyConfigurator : DOMConfigurator;
-    if (typeof configurator.configure === "function") {
-        configurator.configure(url);
-        if (watchForUpdates) {
-            try {
-                // set up a scheduler to watch the configuration file for changes
-                var lastModified = resource.lastModified();
-                if (configWatcher) {
-                    clearInterval(configWatcher);
-                }
-                configWatcher = setInterval(function() {
-                    if (resource.exists() && resource.lastModified() != lastModified) {
-                        lastModified = resource.lastModified();
-                        configurator.configure(url);
-                    }
-                }, 3000);
-            } catch (e) {
-                print("Error watching log configuration file:", e);
-            }
-        }
-    }
-    configured = module.singleton("configured", function() true);
+    var logContext = org.apache.logging.log4j.LogManager.getContext(false);
+    logContext.setConfigLocation(new java.net.URI(url));
+    logContext.updateLoggers();
+    configured = module.singleton("configured", function() { return true; });
 }
 
 /**
@@ -268,12 +247,9 @@ function JdkLogger(name) {
 function Log4jLogger(name) {
 
     if (!configured) {
-        setConfig(getResource('config/log4j.properties'));
-        configured = module.singleton("configured", function() true);
+        setConfig(getResource('config/log4j2.properties'));
     }
-    var Level = org.apache.log4j.Level;
-    var log = org.apache.log4j.LogManager.getLogger(name);
-
+    var log = org.apache.logging.log4j.LogManager.getLogger(name);
     this.trace = function(msg) {
         // TODO: older versions of log4j don't support trace
         log.trace(msg);
@@ -308,11 +284,11 @@ function Log4jLogger(name) {
     };
 
     this.isWarnEnabled = function() {
-        return log.isEnabledFor(Level.WARN);
+        return log.isWarnEnabled();
     };
 
     this.isErrorEnabled = function() {
-        return log.isEnabledFor(Level.ERROR);
+        return log.isErrorEnabled();
     };
 }
 
@@ -323,8 +299,7 @@ function Log4jLogger(name) {
 function Slf4jLogger(name) {
 
     if (!configured) {
-        setConfig(getResource('config/log4j.properties'));
-        configured = module.singleton("configured", function() true);
+        setConfig(getResource('config/log4j2.properties'));
     }
     var log = org.slf4j.LoggerFactory.getLogger(name);
 
@@ -370,9 +345,10 @@ function Slf4jLogger(name) {
 }
 
 var LoggerImpl;
+
 if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
     LoggerImpl = Slf4jLogger;
-} else if (typeof org.apache.log4j.LogManager.getLogger === "function") {
+} else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
     LoggerImpl = Log4jLogger;
 } else {
     LoggerImpl = JdkLogger;
