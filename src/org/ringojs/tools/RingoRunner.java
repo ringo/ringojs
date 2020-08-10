@@ -34,7 +34,6 @@ import org.mozilla.javascript.RhinoException;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,7 +85,7 @@ public class RingoRunner {
     public RingoRunner() {
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         RingoRunner runner = new RingoRunner();
         runner.run(args);
     }
@@ -154,16 +153,9 @@ public class RingoRunner {
             if ((scriptName == null && expr == null)  || runShell) {
                 // autodetect --silent option if stdin or stdout is redirected
                 if (!silent) {
-                    // System.console() is only available on Java 6 or later
-                    try {
-                        Method systemConsole = System.class.getMethod("console");
-                        silent = systemConsole.invoke(null) == null;
-                    } catch (NoSuchMethodException nsm) {
-                        // System.console() not available
-                    }
+                    silent = System.console() == null;
                 }
                 new RingoShell(engine, history, silent).run();
-                // engine.invoke("ringo/shell", "start");
             } else {
                 // wait for daemon or scheduler threads to terminate
                 engine.waitForAsyncTasks();
@@ -331,7 +323,7 @@ public class RingoRunner {
         return consumedNext;
     }
 
-    private void processOption(String option, String arg) throws IOException {
+    private void processOption(String option, String arg) {
         if ("help".equals(option)) {
             printUsage();
             System.exit(0);
@@ -363,7 +355,7 @@ public class RingoRunner {
             }
         } else if ("bootscript".equals(option)) {
             if (bootScripts == null) {
-                bootScripts = new ArrayList<String>();
+                bootScripts = new ArrayList<>();
             }
             bootScripts.add(arg);
         } else if ("charset".equals(option)) {
