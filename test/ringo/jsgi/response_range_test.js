@@ -7,7 +7,7 @@ const response = require("ringo/jsgi/response");
 
 const DATA = new ByteString("Hello World! I am a string. A long string.", "ASCII");
 
-require("ringo/logging").setConfig(getResource("../httptest_log4j.properties"));
+require("ringo/logging").setConfig(getResource("../httptest_log4j2.properties"));
 var server = null;
 
 exports.setUp = function() {

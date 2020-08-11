@@ -20,12 +20,31 @@
         <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.4.30.v20200611"/>
 
         <!-- logging -->
-        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.+"/>
-        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.7.+">
-            <exclude org="log4j"/>
+        <dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.+">
+            <exclude module="disruptor" />
+            <exclude module="jackson-core" />
+            <exclude module="jackson-databind" />
+            <exclude module="jackson-dataformat-xml" />
+            <exclude module="jackson-dataformat-yaml" />
+            <exclude module="woodstox-core" />
+            <exclude module="javax.mail" />
+            <exclude module="commons-csv" />
+            <exclude module="kafka-clients" />
+            <exclude module="jansi" />
+            <exclude module="jctools-core" />
+            <exclude module="jeromq" />
+            <exclude module="jcommander" />
+            <exclude module="javax.persistence" />
+            <exclude org="org.jboss.spec.javax.jms" />
+            <exclude module="log4j-core-java9" />
+            <exclude module="org.osgi.core" />
         </dependency>
-        <dependency org="log4j" name="log4j" rev="1.2.14"/>
-
+        <dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.+">
+            <exclude module="org.osgi.core" />
+            <exclude module="log4j-api-java9" />
+        </dependency>
+        <dependency org="org.apache.logging.log4j" name="log4j-slf4j-impl" rev="2.+" />
+        
         <!-- jline -->
         <dependency org="jline" name="jline" rev="2.12.1"/>
 
