@@ -204,7 +204,7 @@ HttpServer.prototype.createSslContextFactory = function(options) {
         ],
         "includeProtocols": ["TLSv1.2"]
     });
-    const sslContextFactory = new SslContextFactory();
+    const sslContextFactory = new SslContextFactory.Server();
     sslContextFactory.setKeyStorePath(options.keyStore);
     sslContextFactory.setKeyStoreType(options.keyStoreType || "JKS");
     sslContextFactory.setKeyStorePassword(options.keyStorePassword);
