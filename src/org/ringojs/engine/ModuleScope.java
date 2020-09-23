@@ -44,7 +44,7 @@ public class ModuleScope extends ImporterTopLevel {
         // for activating the ImporterTopLevel import* functions
         activatePrototypeMap(3);
         try {
-            cacheBuiltins();
+            cacheBuiltins(this, false);
         } catch (NoSuchMethodError e) {
             // allows us to run with older versions of Rhino
         }
