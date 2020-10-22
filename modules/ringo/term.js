@@ -14,7 +14,6 @@
  *
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
  */
-let {Stream, TextStream} = require('io');
 const system = require('system');
 const System = java.lang.System;
 
@@ -62,7 +61,7 @@ const matcher = /^(?:\u001B\[\d*(?:;\d+)?[a-zA-Z])+$/;
 
 /**
  * Creates a terminal writer that writes to the Java console.
- * @param {Stream} out a TextStream
+ * @constructor
  */
 const TermWriter = exports.TermWriter = function() {
 
@@ -82,7 +81,7 @@ const TermWriter = exports.TermWriter = function() {
      * @param {Boolean} flag true to enable ANSI colors.
      */
     this.setEnabled = function(flag) {
-        _enabled = flag;
+        _enabled = flag === true;
     };
 
     /**
@@ -98,8 +97,8 @@ const TermWriter = exports.TermWriter = function() {
      * enabled is true.
      * @param {*...} args... variable number of arguments to write
      */
-    const write = this.write = function() {
-        for (var i = 0; i < arguments.length; i++) {
+    this.write = function() {
+        for (let i = 0; i < arguments.length; i++) {
             let arg = String(arguments[i]);
             if (!_enabled) {
                 arg = arg.replace(cleaner, '');
@@ -117,7 +116,7 @@ const TermWriter = exports.TermWriter = function() {
      * @param {*...} args... variable number of arguments to write
      */
     this.writeln = function() {
-        write.apply(this, arguments);
+        this.write.apply(this, arguments);
         javaConsole.printf((_enabled ? exports.RESET : "") + "\n");
     };
 };
