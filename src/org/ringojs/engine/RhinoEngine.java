@@ -385,7 +385,12 @@ public class RhinoEngine implements ScopeProvider {
         Repository repository = new FileRepository("");
         repository.setAbsolute(true);
         Scriptable protoScope = mainScope != null ? mainScope : globalScope;
-        return new ModuleScope("<shell>", repository, protoScope, worker);
+        contextFactory.enterContext();
+        try {
+            return new ModuleScope("<shell>", repository, protoScope, worker);
+        } finally {
+            Context.exit();
+        }
     }
 
     /**
