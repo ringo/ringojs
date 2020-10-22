@@ -3,18 +3,17 @@
  * and error stream <code>stderr</code> for error logging and quick debugging.
  * It’s similar to the console object implemented in most web browsers.
  */
-var {TermWriter, BOLD, ONRED, ONYELLOW, RESET} = require("ringo/term");
+const {TermWriter, BOLD, ONRED, ONYELLOW, RESET} = require("ringo/term");
 
-var writer = new TermWriter(require("system").stdout);
-var errWriter = new TermWriter(require("system").stderr);
-
-var timers = {};
-var {traceHelper, assertHelper} = org.ringojs.util.ScriptUtils;
+const writer = new TermWriter(require("system").stdout);
+const errWriter = new TermWriter(require("system").stderr);
+const {traceHelper, assertHelper} = org.ringojs.util.ScriptUtils;
+const timers = {};
 
 function format() {
-    var msg = arguments[0] ? String(arguments[0]) : "";
-    var pattern = /%[sdifo]/;
-    for (var i = 1; i < arguments.length; i++) {
+    let msg = arguments[0] ? String(arguments[0]) : "";
+    let pattern = /%[sdifo]/;
+    for (let i = 1; i < arguments.length; i++) {
         msg = pattern.test(msg)
                 ? msg.replace(pattern, String(arguments[i]))
                 : msg + " " + arguments[i];
@@ -36,8 +35,7 @@ function format() {
  * Current nanoseconds: 9607196939209
  */
 exports.log = function() {
-    var msg = format.apply(null, arguments);
-    writer.writeln(msg);
+    writer.writeln(format.apply(null, arguments));
 };
 
 /**
@@ -53,8 +51,8 @@ exports.log = function() {
  * [error] Current nanoseconds: 9228448561643 (&#60;stdin&#62;:5)
  */
 exports.error = traceHelper.bind(null, function() {
-    var msg = format.apply(null, arguments);
-    var location = format("(%s:%d)", this.sourceName(), this.lineNumber());
+    const msg = format.apply(null, arguments);
+    const location = format("(%s:%d)", this.sourceName(), this.lineNumber());
     errWriter.writeln(ONRED, BOLD, "[error]" + RESET, BOLD, msg, RESET, location);
 });
 
@@ -71,8 +69,8 @@ exports.error = traceHelper.bind(null, function() {
  * [warn] Current nanoseconds: 9294672097821 (&#60;stdin&#62;:5)
  */
 exports.warn = traceHelper.bind(null, function() {
-    var msg = format.apply(null, arguments);
-    var location = format("(%s:%d)", this.sourceName(), this.lineNumber());
+    const msg = format.apply(null, arguments);
+    const location = format("(%s:%d)", this.sourceName(), this.lineNumber());
     errWriter.writeln(ONYELLOW, BOLD, "[warn]" + RESET, BOLD, msg, RESET, location);
 });
 
@@ -89,8 +87,8 @@ exports.warn = traceHelper.bind(null, function() {
  * [info] Current nanoseconds: 9677228481391 (&#60;stdin&#62;:5)
  */
 exports.info = traceHelper.bind(null, function() {
-    var msg = format.apply(null, arguments);
-    var location = format("(%s:%d)", this.sourceName(), this.lineNumber());
+    const msg = format.apply(null, arguments);
+    const location = format("(%s:%d)", this.sourceName(), this.lineNumber());
     writer.writeln("[info]", BOLD, msg, RESET, location);
 });
 
@@ -101,7 +99,7 @@ exports.info = traceHelper.bind(null, function() {
  * @function
  */
 exports.trace = traceHelper.bind(null, function() {
-    var msg = format.apply(null, arguments);
+    const msg = format.apply(null, arguments);
     writer.writeln("Trace: " + msg);
     writer.write(this.scriptStackTrace);
 });
@@ -112,7 +110,7 @@ exports.trace = traceHelper.bind(null, function() {
  * @param {Boolean} expression the expression to test
  * @param {*...} msg... one or more error messages
  * @function
- * @example >> var x = 10;
+ * @example >> const x = 10;
  * >> console.assert(x > 0, 'failed!'); // passes
  * >> console.assert(x < 0, 'failed!'); // fails
  *    AssertionError: failed! at &#60;stdin&#62;:12
@@ -149,24 +147,21 @@ exports.time = function(name) {
  * timer-1: 15769ms
  */
 exports.timeEnd = function(name) {
-    var start = timers[name];
+    const start = timers[name];
     if (start) {
-        var time = Math.round((java.lang.System.nanoTime() - start) / 1000000);
+        const time = Math.round((java.lang.System.nanoTime() - start) / 1000000);
         writer.writeln(name + ": " + time + "ms");
         delete timers[name];
         return time;
     }
-    return undefined;
 };
 
 /**
  * Prints a list of all properties of an object on <code>stdout</code>.
  * @param {Object} obj the object whose properties should be output
- * @example >> var obj = { foo: "bar", baz: 12345 };
+ * @example >> const obj = { foo: "bar", baz: 12345 };
  * >> console.dir(obj);
  * { foo: 'bar', baz: 12345 }
- * >> console.dir(global);
- * { setTimeout: [Function], setInterval: [Function] }
  */
 exports.dir = function(obj) {
     require("ringo/shell").printResult(obj, writer);
