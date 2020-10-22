@@ -12,38 +12,17 @@
         <dependency org="org.mozilla" name="rhino" rev="1.7.13" />
 
         <!-- standard jetty libs -->
-        <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.4.31.v20200723"/>
-        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="9.4.31.v20200723"/>
-        <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.4.31.v20200723"/>
-        <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.4.31.v20200723"/>
-        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.4.31.v20200723"/>
-        <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.4.31.v20200723"/>
+        <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.4.32.v20200930" conf="default"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="9.4.32.v20200930" conf="default"/>
+        <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.4.32.v20200930" conf="default"/>
+        <dependency org="org.eclipse.jetty.websocket" name="websocket-client" rev="9.4.32.v20200930" conf="default"/>
+        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="9.4.32.v20200930" conf="default"/>
+        <dependency org="org.eclipse.jetty" name="jetty-xml" rev="9.4.32.v20200930" conf="default"/>
 
         <!-- logging -->
-        <dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.+">
-            <exclude module="disruptor" />
-            <exclude module="jackson-core" />
-            <exclude module="jackson-databind" />
-            <exclude module="jackson-dataformat-xml" />
-            <exclude module="jackson-dataformat-yaml" />
-            <exclude module="woodstox-core" />
-            <exclude module="javax.mail" />
-            <exclude module="commons-csv" />
-            <exclude module="kafka-clients" />
-            <exclude module="jansi" />
-            <exclude module="jctools-core" />
-            <exclude module="jeromq" />
-            <exclude module="jcommander" />
-            <exclude module="javax.persistence" />
-            <exclude org="org.jboss.spec.javax.jms" />
-            <exclude module="log4j-core-java9" />
-            <exclude module="org.osgi.core" />
-        </dependency>
-        <dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.+">
-            <exclude module="org.osgi.core" />
-            <exclude module="log4j-api-java9" />
-        </dependency>
-        <dependency org="org.apache.logging.log4j" name="log4j-slf4j-impl" rev="2.+" />
+        <dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.+" conf="default"/>
+        <dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.+" conf="default"/>
+        <dependency org="org.apache.logging.log4j" name="log4j-slf4j-impl" rev="2.+" conf="default"/>
         
         <!-- jline -->
         <dependency org="jline" name="jline" rev="2.12.1"/>
