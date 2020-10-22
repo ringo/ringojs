@@ -22,7 +22,9 @@
  */
 Object.defineProperty(this, "global", { value: this });
 
-(function() {
+((global) => {
+
+    const engine = require("ringo/engine");
 
     /**
      * Load a module and include all its properties in the calling scope.
@@ -35,14 +37,9 @@ Object.defineProperty(this, "global", { value: this });
      */
     Object.defineProperty(global, "include", {
         value: function(moduleName) {
-            var module = this.require(moduleName);
-            for (var key in module) {
-                this[key] = module[key];
-            }
+            Object.assign(this, this.require(moduleName));
         }
     });
-
-    var engine = require("ringo/engine");
 
     /**
      * Executes a function after specified delay. The function will be called
@@ -56,12 +53,13 @@ Object.defineProperty(this, "global", { value: this });
      * @name setTimeout
      * @see #clearTimeout()
      */
-    this.setTimeout = function(callback, delay) {
-        var args = Array.prototype.slice.call(arguments, 2);
-        delay = parseInt(delay, 10) || 0;
-        var worker = engine.getCurrentWorker(callback);
-        return worker.schedule(delay, this, callback, args);
-    };
+    Object.defineProperty(global, "setTimeout", {
+        value: function(callback, delay) {
+            const args = Array.prototype.slice.call(arguments, 2);
+            delay = parseInt(delay, 10) || 0;
+            return engine.getCurrentWorker(callback).schedule(delay, this, callback, args);
+        }
+    });
 
     /**
      * Cancel a timeout previously scheduled with [setTimeout()](#setTimeout).
@@ -72,8 +70,7 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(global, "clearTimeout", {
         value: function(id) {
             try {
-                var worker = engine.getCurrentWorker();
-                worker.cancel(id);
+                engine.getCurrentWorker().cancel(id);
             } catch (error) {
                 // ignore
             }
@@ -92,12 +89,13 @@ Object.defineProperty(this, "global", { value: this });
      * @name setInterval
      * @see #clearInterval()
      */
-    global.setInterval =  function(callback, delay) {
-        var args = Array.prototype.slice.call(arguments, 2);
-        delay = Math.max(parseInt(delay, 10) || 0, 1);
-        var worker = engine.getCurrentWorker(callback);
-        return worker.scheduleInterval(delay, this, callback, args);
-    };
+    Object.defineProperty(global, "setInterval", {
+        value: function(callback, delay) {
+            const args = Array.prototype.slice.call(arguments, 2);
+            delay = Math.max(parseInt(delay, 10) || 0, 1);
+            return engine.getCurrentWorker(callback).scheduleInterval(delay, this, callback, args);
+        }
+    });
 
     /**
      * Cancel a timeout previously scheduled with [setInterval()](#setInterval).
@@ -108,14 +106,12 @@ Object.defineProperty(this, "global", { value: this });
     Object.defineProperty(global, "clearInterval", {
         value:  function(id) {
             try {
-                var worker = engine.getCurrentWorker();
-                worker.cancel(id);
+                engine.getCurrentWorker().cancel(id);
             } catch (error) {
                 // ignore
             }
         }
     });
-
 
     /**
      * Debug console to print messages on `stderr`. It’s similar to the console
@@ -125,7 +121,9 @@ Object.defineProperty(this, "global", { value: this });
      * @example console.log('Hello World!');
      */
     Object.defineProperty(global, "console", {
-        get: function() require("console")
+        get: function() {
+            return require("console");
+        }
     });
 
     // Include file and line number in error.toString() - better error messages ftw!
@@ -136,14 +134,16 @@ Object.defineProperty(this, "global", { value: this });
                     this.name, ": ",
                     this.message, " (",
                     this.fileName, "#",
-                    this.lineNumber, ")"].join("");
+                    this.lineNumber, ")"
+                ].join("");
             }
             return this.name + ": " + this.message;
         },
-        writable: true, configurable: true
+        writable: true,
+        configurable: true
     });
 
-})();
+})(this);
 
 /**
  * The `require` function as defined in the
@@ -196,7 +196,7 @@ Object.defineProperty(this, "global", { value: this });
  * @example // is the current module is the main module?
  *  if (require.main === module) {
  *   // Start up actions like in a Java public static void main() method
- *   var server = new Server();
+ *   const server = new Server();
  *   server.start();
  * }
  */
@@ -302,7 +302,7 @@ Object.defineProperty(this, "global", { value: this });
  *
  * @example // db-controller.js
  * // Create a single cache for all workers
- * var entityCache = module.singleton("entityCache", function() {
+ * const entityCache = module.singleton("entityCache", function() {
  *   return new SomeFancyCache(1000);
  * });
  *
@@ -408,7 +408,7 @@ Object.defineProperty(this, "global", { value: this });
  * @function
  * @example // org.somejavalib.Foo extends org.mozilla.javascript.ScriptableObject
  * defineClass(org.somejavalib.Foo);
- * var x = new Foo();
+ * const x = new Foo();
  * @see <a href="http://es5.github.io/#x4.3.8">ECMAScript 5 host object definition</a>
  * @see <a href="http://www-archive.mozilla.org/rhino/apidocs/org/mozilla/javascript/ScriptableObject.html#defineClass%28org.mozilla.javascript.Scriptable,%20java.lang.Class%29">
  *     Rhino's ScriptableObject.defineClass()</a>
@@ -424,7 +424,7 @@ Object.defineProperty(this, "global", { value: this });
  * provides fine-grained functions for file and stream manipulation.
  *
  * @example // Current working directory: /usr/local/httpd/htdocs/
- * > var resource = getResource("./someFile.xml");
+ * > const resource = getResource("./someFile.xml");
  * >
  * > resource.getChecksum();
  * 1419793411000
@@ -457,8 +457,8 @@ Object.defineProperty(this, "global", { value: this });
  * For file I/O use the [fs](../fs/) module, which provides fine-grained functions
  * for file and stream manipulation.
  *
- * @example > var fileRepository = getRepository("/usr/local/httpd/htdocs/");
- * > var resource = fileRepository.getResource("someFile.xml");
+ * @example > const fileRepository = getRepository("/usr/local/httpd/htdocs/");
+ * > const resource = fileRepository.getResource("someFile.xml");
  * > resource.getUrl();
  * [java.net.URL file:/usr/local/httpd/htdocs/someFile.xml]
  *
