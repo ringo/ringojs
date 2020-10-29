@@ -28,13 +28,13 @@ const {
 * @returns The comment appended to the expected arguments, if any
 * @type String
 */
-function evalArguments(args, argsExpected) {
-    if (!(args.length == argsExpected ||
-            (args.length == argsExpected + 1 && getType(args[args.length - 1]) == "string"))) {
+const evalArguments = (args, argsExpected) => {
+    if (!(args.length === argsExpected ||
+            (args.length === argsExpected + 1 && getType(args[args.length - 1]) === "string"))) {
         throw new ArgumentsError("Insufficient arguments passed to assertion function");
     }
     return args[argsExpected];
-}
+};
 
 /**
  * Deep-compares both arguments.
@@ -44,7 +44,7 @@ function evalArguments(args, argsExpected) {
  * @returns True if arguments are equal, false otherwise
  * @type Boolean
  */
-function isDeepEqual(value1, value2) {
+const isDeepEqual = (value1, value2) => {
     if (value1 === value2) {
         return true;
     } else if (value1 instanceof Date && value2 instanceof Date) {
@@ -63,7 +63,7 @@ function isDeepEqual(value1, value2) {
  * @returns True if the objects are equal, false otherwise
  * @type Boolean
  */
-function objectsAreEqual(obj1, obj2) {
+const objectsAreEqual = (obj1, obj2) => {
     if (isNullOrUndefined(obj1) || isNullOrUndefined(obj2)) {
         return false;
     }
@@ -78,9 +78,9 @@ function objectsAreEqual(obj1, obj2) {
         return false;
     }
     // compare object keys (objects *and* arrays)
-    var keys1 = getOwnKeys(obj1);
-    var keys2 = getOwnKeys(obj2);
-    var propsAreEqual = keys1.length === keys2.length && keys1.every(function(name, idx) {
+    const keys1 = getOwnKeys(obj1);
+    const keys2 = getOwnKeys(obj2);
+    const propsAreEqual = keys1.length === keys2.length && keys1.every(function(name, idx) {
         return name === keys2[idx] && isDeepEqual(obj1[name], obj2[name]);
     });
     if (propsAreEqual === false) {
@@ -93,7 +93,7 @@ function objectsAreEqual(obj1, obj2) {
         });
     }
     return true;
-}
+};
 
 /**
  * Returns true if the argument is null or undefined
@@ -101,9 +101,9 @@ function objectsAreEqual(obj1, obj2) {
  * @returns True if the argument is null or undefined
  * @type Boolean
  */
-function isNullOrUndefined(obj) {
+const isNullOrUndefined = (obj) => {
     return obj === null || obj === undefined;
-}
+};
 
 /**
  * Returns the names of owned properties of the object passed as argument.
@@ -113,9 +113,9 @@ function isNullOrUndefined(obj) {
  * @returns The property names
  * @type Array
  */
-function getOwnKeys(obj) {
-    return [key for (key in obj) if (Object.prototype.hasOwnProperty.call(obj, key))].sort();
-}
+const getOwnKeys = (obj) => {
+    return Object.keys(obj).sort();
+};
 
 /**
  * Basic failure method. Fails an assertion without checking any preconditions.
@@ -128,21 +128,21 @@ function getOwnKeys(obj) {
  *   assert.fail("This should not be reached!");
  * }
  */
-function fail(options) {
+const fail = exports.fail = function fail(options) {
     throw new AssertionError(options);
-}
+};
 
 /**
  * Prepends the comment to the message, if given
  * @returns The message
  * @type String
  */
-function prependComment(message, comment) {
+const prependComment = (message, comment) => {
     if (getType(comment) === "string" && comment.length > 0) {
         return comment + "\n" + message;
     }
     return message;
-}
+};
 
 
 /***************************
@@ -163,48 +163,34 @@ function prependComment(message, comment) {
  */
 const AssertionError = exports.AssertionError = function AssertionError(options) {
     // accept a single string argument
-    if (getType(options) === "string") {
-        options = {
-            "message": options
-        };
-    }
-    var stackTrace = getStackTrace();
+    options = (getType(options) === "string") ?
+        {"message": options} :
+        options || {};
 
-    Object.defineProperty(this, "name", {
-        get: function() {
-            return "AssertionError";
-        }
-    });
-
-    Object.defineProperty(this, "message", {
-        get: function() {
-            return options.message;
-        }
-    });
-
-    Object.defineProperty(this, "actual", {
-        get: function() {
-            return options.actual;
-        }
-    });
-
-    Object.defineProperty(this, "expected", {
-        get: function() {
-            return options.expected;
-        }
-    });
-
-    Object.defineProperty(this, "stackTrace", {
-        get: function() {
-            return stackTrace;
+    Object.defineProperties(this, {
+        "name": {
+            "value": "AssertionError"
+        },
+        "message": {
+            "value": options.message
+        },
+        "actual": {
+            "value": options.actual
+        },
+        "expected": {
+            "value": options.expected
+        },
+        "stackTrace": {
+            "value": getStackTrace()
         }
     });
 
     return this;
-}
+};
 
 /** @ignore */
-AssertionError.prototype = new Error();
+AssertionError.prototype = Object.create(Error.prototype);
+AssertionError.prototype.constructor = AssertionError;
 
 /** @ignore */
 AssertionError.toString = function() {
@@ -226,17 +212,12 @@ AssertionError.prototype.toString = function() {
  */
 const ArgumentsError = exports.ArgumentsError = function ArgumentsError(message) {
 
-    var stackTrace = getStackTrace();
-
-    Object.defineProperty(this, "message", {
-        get: function() {
-            return message;
-        }
-    });
-
-    Object.defineProperty(this, "stackTrace", {
-        get: function() {
-            return stackTrace;
+    Object.defineProperties(this, {
+        "message": {
+            "value": message
+        },
+        "stackTrace": {
+            "value": getStackTrace()
         }
     });
 
@@ -244,7 +225,8 @@ const ArgumentsError = exports.ArgumentsError = function ArgumentsError(message)
 }
 
 /** @ignore */
-ArgumentsError.prototype = new Error();
+ArgumentsError.prototype = Object.create(Error.prototype);
+ArgumentsError.prototype.constructor = ArgumentsError;
 
 /** @ignore */
 ArgumentsError.toString = function() {
@@ -286,8 +268,8 @@ ArgumentsError.prototype.toString = function() {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function ok(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.ok = function ok(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (!!value === false) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be truthy", comment),
@@ -316,8 +298,8 @@ function ok(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function equal(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.equal = function equal(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (actual != expected) {
         fail({
             "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
@@ -344,8 +326,8 @@ function equal(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function notEqual(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.notEqual = function notEqual(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (actual == expected) {
         fail({
             "message": prependComment("Expected different value than " + jsDump(expected) +
@@ -376,8 +358,8 @@ function notEqual(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function deepEqual(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.deepEqual = function deepEqual(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (isDeepEqual(actual, expected) === false) {
         fail({
             "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
@@ -404,8 +386,8 @@ function deepEqual(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function notDeepEqual(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.notDeepEqual = function notDeepEqual(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (isDeepEqual(actual, expected) === true) {
         fail({
             "message": prependComment("Expected different value than " + jsDump(expected) +
@@ -428,7 +410,7 @@ function notDeepEqual(actual, expected) {
  * assert.strictEqual("1", "1");
  * assert.strictEqual(true, true);<br>
  * // passing assertion
- * var obj = {};
+ * const obj = {};
  * assert.strictEqual(obj, obj);<br>
  * // failing assertions
  * assert.strictEqual(null, undefined);
@@ -441,8 +423,8 @@ function notDeepEqual(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function strictEqual(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.strictEqual = function strictEqual(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (actual !== expected) {
         fail({
             "message": prependComment("Expected " + jsDump(expected) + ", got " + jsDump(actual), comment),
@@ -467,8 +449,8 @@ function strictEqual(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function notStrictEqual(actual, expected) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.notStrictEqual = function notStrictEqual(actual, expected) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (actual === expected) {
         fail({
             "message": prependComment("Expected different value than " + jsDump(expected) +
@@ -483,8 +465,8 @@ function notStrictEqual(actual, expected) {
  * Checks if the function passed as argument throws a defined exception.
  * It can also assert certain Java exceptions thrown by the function.
  *
- * @example var foo = function() { throw "foo"; };
- * var bar = function() { (new java.util.Vector()).get(0); }<br>
+ * @example const foo = function() { throw "foo"; };
+ * const bar = function() { (new java.util.Vector()).get(0); }<br>
  * // passes
  * assert.throws(foo, "foo");<br>
  * // fails
@@ -498,15 +480,15 @@ function notStrictEqual(actual, expected) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function throws(func, expectedError) {
+exports.throws = function throws(func, expectedError) {
     if (!(func instanceof Function)) {
         throw new ArgumentsError("First argument to throws() must be a function");
     }
     try {
         func();
     } catch (e) {
-        var isExpected = false;
-        var thrown = e;
+        let isExpected = false;
+        let thrown = e;
         if (expectedError == null) {
             // accept everything
             isExpected = true;
@@ -565,8 +547,8 @@ function throws(func, expectedError) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isTrue(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isTrue = function isTrue(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (getType(value) !== "boolean") {
         throw new ArgumentsError("Invalid argument to assertTrue(boolean): " +
                 jsDump(value));
@@ -591,8 +573,8 @@ function isTrue(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isFalse(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isFalse = function isFalse(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (getType(value) !== "boolean") {
         throw new ArgumentsError("Invalid argument to assertFalse(boolean): " +
                              jsDump(value));
@@ -618,8 +600,8 @@ function isFalse(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isNull(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isNull = function isNull(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (value !== null) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be null", comment),
@@ -642,8 +624,8 @@ function isNull(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isNotNull(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isNotNull = function isNotNull(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (value === null) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be not null", comment),
@@ -665,8 +647,8 @@ function isNotNull(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isUndefined(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isUndefined = function isUndefined(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (value !== undefined) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be undefined", comment),
@@ -689,8 +671,8 @@ function isUndefined(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isNotUndefined(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isNotUndefined = function isNotUndefined(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (value === undefined) {
         fail({
             "message": prependComment("Expected argument to be not undefined", comment),
@@ -706,8 +688,8 @@ function isNotUndefined(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isNaN(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isNaN = function isNaN(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (global.isNaN(value) === false) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be NaN", comment),
@@ -724,8 +706,8 @@ function isNaN(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function isNotNaN(value) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.isNotNaN = function isNotNaN(value) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (global.isNaN(value) === true) {
         fail({
             "message": prependComment("Expected " + jsDump(value) + " to be a number", comment),
@@ -746,8 +728,8 @@ function isNotNaN(value) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function stringContains(value, pattern) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.stringContains = function stringContains(value, pattern) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (getType(pattern) === "string") {
         if (value.indexOf(pattern) < 0) {
             fail(prependComment("Expected string " + jsDump(pattern) +
@@ -770,8 +752,8 @@ function stringContains(value, pattern) {
  * @throws ArgumentsError
  * @throws AssertionError
  */
-function matches(value, expr) {
-    var comment = evalArguments(arguments, arguments.callee.length);
+exports.matches = function matches(value, expr) {
+    const comment = evalArguments(arguments, arguments.callee.length);
     if (getType(expr) === "regexp") {
         if (expr.test(value) === false) {
             fail(prependComment("Expected pattern " + jsDump(expr) + " to match " +
@@ -782,27 +764,3 @@ function matches(value, expr) {
                              jsDump(expr));
     }
 }
-
-module.exports.fail = fail;
-
-// Commonjs assertion methods
-module.exports.ok = ok;
-module.exports.equal = equal;
-module.exports.notEqual = notEqual;
-module.exports.deepEqual = deepEqual;
-module.exports.notDeepEqual = notDeepEqual;
-module.exports.strictEqual = strictEqual;
-module.exports.notStrictEqual = notStrictEqual;
-module.exports.throws = throws;
-
-// Ringo assertion methods
-module.exports.isTrue = isTrue;
-module.exports.isFalse = isFalse;
-module.exports.matches = matches;
-module.exports.stringContains = stringContains;
-module.exports.isNull = isNull;
-module.exports.isNotNull = isNotNull;
-module.exports.isUndefined = isUndefined;
-module.exports.isNotUndefined = isNotUndefined;
-module.exports.isNaN = isNaN;
-module.exports.isNotNaN = isNotNaN;
