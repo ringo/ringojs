@@ -33,17 +33,17 @@
  * assertion library to write unit tests.
  */
 
-var strings = require("ringo/utils/strings");
-var term = require("ringo/term");
-var fs = require("fs");
+const strings = require("ringo/utils/strings");
+const term = require("ringo/term");
+const fs = require("fs");
 
 const {AssertionError, ArgumentsError} = require("./assert");
 
-const {
-    jsDump,
-    getType,
-    getStackTrace
-} = require("./ringo/utils/test");
+const {jsDump, getType, getStackTrace} = require("./ringo/utils/test");
+
+exports.jsDump = jsDump;
+exports.getStackTrace = getStackTrace;
+exports.getType = getType;
 
 /**
  * The main runner method. This method can be called with one, two or three
@@ -55,7 +55,7 @@ const {
  * @param {Object} writer Optional writer to use for displaying the test results. Defaults
  * to TermWriter.
  */
-function run(scope, name, writer) {
+const run = exports.run = function(scope, name, writer) {
     if (arguments.length === 2) {
         if (typeof(arguments[1]) === "object") {
             writer = name;
@@ -69,7 +69,7 @@ function run(scope, name, writer) {
     if (typeof(scope) === "string") {
         scope = require(fs.resolve(fs.workingDirectory(), scope));
     }
-    var summary = {
+    const summary = {
         "testsRun": 0,
         "passed": 0,
         "errors": 0,
@@ -77,7 +77,7 @@ function run(scope, name, writer) {
         "time": 0
     };
     writer.writeHeader();
-    if (name != undefined) {
+    if (name !== undefined) {
         executeTest(scope, name, summary, writer, []);
     } else {
         executeTestScope(scope, summary, writer, []);
@@ -85,7 +85,7 @@ function run(scope, name, writer) {
     scope = null;
     writer.writeSummary(summary);
     return summary.failures + summary.errors;
-}
+};
 
 /**
  * Loops over all properties of a test scope and executes all methods whose
@@ -95,16 +95,13 @@ function run(scope, name, writer) {
  * @param {Object} writer A writer instance for displaying test results
  * @param {Array} path An array containing property path segments
  */
-function executeTestScope(scope, summary, writer, path) {
+const executeTestScope = (scope, summary, writer, path) => {
     // loop over all exported properties and see if there are test methods to run
-    for (var name in scope) {
-        var value = scope[name];
-        if (name === "test" || !strings.startsWith(name, "test")) {
-            continue;
+    Object.keys(scope).forEach(name => {
+        if (name !== "test" && strings.startsWith(name, "test")) {
+            executeTest(scope, name, summary, writer, path);
         }
-        executeTest(scope, name, summary, writer, path);
-    }
-    return;
+    });
 };
 
 /**
@@ -116,21 +113,21 @@ function executeTestScope(scope, summary, writer, path) {
  * @param {Object} writer A writer instance for displaying test results
  * @param {Array} path An array containing property path segments
  */
-function executeTest(scope, name, summary, writer, path) {
-    var value = scope[name];
+const executeTest = (scope, name, summary, writer, path) => {
+    const value = scope[name];
     if (value instanceof Function) {
         writer.writeTestStart(name);
-        var start = null;
-        var time = 0;
+        let start = null;
+        let time = 0;
         try {
             // execute setUp, if defined
             if (typeof(scope.setUp) === "function") {
                 scope.setUp();
             }
             // execute test function
-            start = new Date();
+            start = Date.now();
             value();
-            time = (new Date()).getTime() - start.getTime();
+            time = Date.now() - start;
             writer.writeTestPassed(time);
             summary.passed += 1;
         } catch (e) {
@@ -156,8 +153,7 @@ function executeTest(scope, name, summary, writer, path) {
         executeTestScope(value, summary, writer, path.concat([name]));
         writer.exitScope(name);
     }
-    return;
-}
+};
 
 
 
@@ -174,7 +170,7 @@ function executeTest(scope, name, summary, writer, path) {
  * @returns {TermWriter} A newly created TermWriter instance
  * @constructor
  */
-var TermWriter = function() {
+const TermWriter = function() {
     this.indent = "";
     return this;
 };
@@ -214,7 +210,6 @@ TermWriter.prototype.exitScope = function() {
  */
 TermWriter.prototype.writeTestStart = function(name) {
     term.write(this.indent, "+ Running", name, "...");
-    return;
 };
 
 /**
@@ -223,7 +218,6 @@ TermWriter.prototype.writeTestStart = function(name) {
  */
 TermWriter.prototype.writeTestPassed = function(time) {
     term.writeln(term.BOLD, " PASSED", term.RESET, "(" + time + " ms)");
-    return;
 };
 
 /**
@@ -243,7 +237,6 @@ TermWriter.prototype.writeTestFailed = function(exception) {
         term.writeln("  at " + exception.fileName + ":" + exception.lineNumber);
     }
     term.writeln("");
-    return;
 };
 
 /**
@@ -258,7 +251,6 @@ TermWriter.prototype.writeSummary = function(summary) {
     } else {
         term.writeln("No tests found");
     }
-    return;
 };
 /**
  * Creates a new EvaluationError instance
@@ -270,40 +262,13 @@ TermWriter.prototype.writeSummary = function(summary) {
  * @constructor
  * @exteds TestException
  */
-function EvaluationError(messageOrException) {
-    var message = undefined;
-    var exception = null;
-    var stackTrace = null;
-    var fileName = null;
-    var lineNumber = -1;
+const EvaluationError = function(messageOrException) {
+    let message = undefined;
+    let exception = null;
+    let stackTrace = null;
+    let fileName = null;
+    let lineNumber = -1;
 
-    Object.defineProperty(this, "message", {
-        get: function() {
-            return message;
-        }
-    });
-
-    Object.defineProperty(this, "stackTrace", {
-        get: function() {
-            return stackTrace;
-        }
-    });
-
-    Object.defineProperty(this, "fileName", {
-        get: function() {
-            return fileName;
-        }
-    });
-
-    Object.defineProperty(this, "lineNumber", {
-        get: function() {
-            return lineNumber;
-        }
-    });
-
-    /**
-     * Main constructor body
-     */
     if (messageOrException instanceof Error) {
         exception = messageOrException;
     } else if (typeof(messageOrException.toString) === 'function') {
@@ -314,7 +279,7 @@ function EvaluationError(messageOrException) {
 
     if (exception != null) {
         if (exception.rhinoException != null) {
-            var e = exception.rhinoException;
+            const e = exception.rhinoException;
             message += e.details();
             stackTrace = getStackTrace(e.getStackTrace());
         } else if (exception instanceof Error) {
@@ -326,28 +291,39 @@ function EvaluationError(messageOrException) {
             lineNumber = exception.lineNumber || null;
         }
     }
+
+    Object.defineProperties(this, {
+        "message": {
+            "value": message
+        },
+        "stackTrace": {
+            "value": stackTrace
+        },
+        "fileName": {
+            "value": fileName
+        },
+        "lineNumber": {
+            "value": lineNumber
+        }
+    });
+
     return this;
 };
-EvaluationError.prototype = new Error();
-
-module.exports.run = run;
-module.exports.jsDump = jsDump;
-module.exports.getStackTrace = getStackTrace;
-module.exports.getType = getType;
+EvaluationError.prototype = Object.create(Error.prototype);
+EvaluationError.prototype.constructor = EvaluationError;
 
 /**
  * Executed when called from the command line
  */
 if (require.main === module) {
-    var system = require("system");
-    if (system.args.length == 1) {
+    const system = require("system");
+    if (system.args.length === 1) {
         term.writeln("Usage: bin/ringo test test/file1 test/file2");
     } else {
-        var writer = new TermWriter();
-        var failures = 0;
-        for (var i=1; i<system.args.length; i+=1) {
-            failures += this.run(system.args[i], writer);
-        }
+        const writer = new TermWriter();
+        const failures = system.args.slice(1).reduce((result, arg) => {
+            return result + this.run(arg, writer);
+        }, 0);
         system.exit(failures);
     }
 }
