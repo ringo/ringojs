@@ -5,24 +5,26 @@
  * function is provided.
  */
 
-var stdin, stdout, stderr;
-var System = java.lang.System;
+const {System} = java.lang;
+let stdin, stdout, stderr;
 
 /**
  * A [TextStream](../io/#TextStream) to read from stdin.
  * @name stdin
  */
 Object.defineProperty(exports, "stdin", {
-    get: function() {
+    get: () => {
         if (!stdin) {
-            var {Stream, TextStream} = require('io');
+            const {Stream, TextStream} = require('io');
             stdin = new TextStream(new Stream(System['in']));
         }
         return stdin;
     },
-    set: function(value) {
+    set: (value) => {
         stdin = value;
-    }, configurable: true, enumerable: true
+    },
+    configurable: true,
+    enumerable: true
 });
 
 /**
@@ -30,16 +32,18 @@ Object.defineProperty(exports, "stdin", {
  * @name stdout
  */
 Object.defineProperty(exports, "stdout", {
-    get: function() {
+    get: () => {
         if (!stdout) {
-            var {Stream, TextStream} = require('io');
+            const {Stream, TextStream} = require('io');
             stdout = new TextStream(new Stream(System.out));
         }
         return stdout;
     },
-    set: function(value) {
+    set: (value) => {
         stdout = value;
-    }, configurable: true, enumerable: true
+    },
+    configurable: true,
+    enumerable: true
 });
 
 /**
@@ -47,16 +51,18 @@ Object.defineProperty(exports, "stdout", {
  * @name stderr
  */
 Object.defineProperty(exports, "stderr", {
-    get: function() {
+    get: () => {
         if (!stderr) {
-            var {Stream, TextStream} = require('io');
+            const {Stream, TextStream} = require('io');
             stderr = new TextStream(new Stream(System.err));
         }
         return stderr;
     },
-    set: function(value) {
+    set: (value) => {
         stderr = value;
-    }, configurable: true, enumerable: true
+    },
+    configurable: true,
+    enumerable: true
 });
 
 /**
