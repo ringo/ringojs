@@ -5,9 +5,9 @@
  * proposal.
  *
  * @example // Writes a simple text file
- * var fs = require('fs');
+ * const fs = require('fs');
  * if (!fs.exists('test.txt')) {
- *   var textStream = fs.open('test.txt', {
+ *   const textStream = fs.open('test.txt', {
  *     write: true,
  *     binary: false
  *   });
@@ -26,13 +26,12 @@
 include('io');
 include('binary');
 
-var security = java.lang.System.getSecurityManager();
+const security = java.lang.System.getSecurityManager();
 
-var log = require("ringo/logging").getLogger(module.id);
-var arrays = require('ringo/utils/arrays');
-var {PosixPermissions} = require('ringo/utils/files');
+const arrays = require('ringo/utils/arrays');
+const {PosixPermissions} = require('ringo/utils/files');
 
-var {Paths,
+const {Paths,
     Files,
     FileSystems,
     LinkOption,
@@ -41,15 +40,15 @@ var {Paths,
     FileVisitor,
     FileVisitResult} = java.nio.file;
 
-var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
+const {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
 
-var getPath = Paths.get;
+const getPath = Paths.get;
 
-var FS = FileSystems.getDefault();
-var SEPARATOR = FS.getSeparator();
-var SEPARATOR_RE = SEPARATOR == '/' ?
-                   new RegExp(SEPARATOR) :
-                   new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
+const FS = FileSystems.getDefault();
+const SEPARATOR = FS.getSeparator();
+const SEPARATOR_RE = (SEPARATOR === '/') ?
+    new RegExp(SEPARATOR) :
+    new RegExp(SEPARATOR.replace("\\", "\\\\") + "|/");
 
 /**
  * Open the file corresponding to `path` for reading or writing,
@@ -80,24 +79,24 @@ var SEPARATOR_RE = SEPARATOR == '/' ?
  * @param {Object|String} options options as object properties or as mode string
  * @return {Stream|TextStream} a <code>Stream</code> object in binary mode, otherwise a <code>TextStream</code>
  * @example // Opens a m4a file in binary mode
- * var m4aStream = fs.open('music.m4a', {
+ * const m4aStream = fs.open('music.m4a', {
  *    binary: true,
  *    read: true
  * });
  *
  * // The equivalent call with options as string
- * var m4aStream = fs.open('music.m4a', 'br');
+ * const m4aStream = fs.open('music.m4a', 'br');
  *
  * // Opens a text file
- * var textStream = fs.open('example.txt', { read: true });
+ * const textStream = fs.open('example.txt', { read: true });
  *
  * // The equivalent call with options as string
- * var textStream = fs.open('example.txt', 'r');
+ * const textStream = fs.open('example.txt', 'r');
  */
-function open(path, options) {
+const open = exports.open = function(path, options) {
     options = checkOptions(options);
-    var nioPath = resolvePath(path);
-    var {read, write, append, update, binary, charset} = options;
+    const nioPath = resolvePath(path);
+    let {read, write, append, update, binary, charset} = options;
 
     if (read === true && write === true) {
         throw new Error("Cannot open a file for reading and writing at the same time");
@@ -108,7 +107,7 @@ function open(path, options) {
     }
 
     // configure the NIO options
-    var nioOptions = [];
+    const nioOptions = [];
     if (append === true) {
         nioOptions.push(StandardOpenOption.APPEND);
     }
@@ -119,7 +118,7 @@ function open(path, options) {
         nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    var stream = new Stream(read ?
+    const stream = new Stream(read ?
         Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
     if (binary) {
         return stream;
@@ -145,11 +144,11 @@ function open(path, options) {
  * @returns {Stream}
  * @see #open
  */
-function openRaw(path, options) {
-    var nioPath = resolvePath(path);
+const openRaw = exports.openRaw = function(path, options) {
+    const nioPath = resolvePath(path);
     options = checkOptions(options || {});
 
-    var {read, write, append} = options;
+    let {read, write, append} = options;
     if (!read && !write && !append) {
         read = true;
     } else if (read === true && write === true) {
@@ -157,7 +156,7 @@ function openRaw(path, options) {
     }
 
     // configure the NIO options
-    var nioOptions = [];
+    const nioOptions = [];
     if (append === true) {
         nioOptions.push(StandardOpenOption.APPEND);
     }
@@ -181,10 +180,10 @@ function openRaw(path, options) {
  * @param {Object} options optional options
  * @return {String|Binary} the content of the file
  */
-function read(path, options) {
+const read = exports.read = function(path, options) {
     options = options === undefined ? {} : checkOptions(options);
     options.read = true;
-    var stream = open(path, options);
+    const stream = open(path, options);
     try {
         return stream.read();
     } finally {
@@ -202,11 +201,11 @@ function read(path, options) {
  * @see <a href="../binary/index.html#ByteArray">ByteArray</a> or
  *      <a href="../binary/index.html#ByteString">ByteString</a> for binary data
  */
-function write(path, content, options) {
+const write = exports.write = function(path, content, options) {
     options = options === undefined ? {} : checkOptions(options);
     options.write = true;
     options.binary = content instanceof Binary;
-    var stream = open(path, options);
+    const stream = open(path, options);
     try {
         stream.write(content);
         stream.flush();
@@ -223,9 +222,9 @@ function write(path, content, options) {
  * @example // Copies file from a temporary upload directory into /var/www
  * fs.copy('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
-function copy(from, to) {
-    var sourcePath = resolvePath(from);
-    var targetPath = resolvePath(to);
+const copy = exports.copy = function(from, to) {
+    const sourcePath = resolvePath(from);
+    const targetPath = resolvePath(to);
 
     if (!Files.exists(sourcePath) || Files.isDirectory(sourcePath)) {
         throw new Error(sourcePath + " does not exist!");
@@ -259,29 +258,27 @@ function copy(from, to) {
  *     │   └── example.m4a
  *     └── baz
  */
-function copyTree(from, to) {
-    var source = resolvePath(from);
-    var target = resolvePath(to);
+const copyTree = exports.copyTree = function(from, to) {
+    const source = resolvePath(from);
+    const target = resolvePath(to);
 
-    if (String(target) == String(source)) {
+    if (String(target) === String(source)) {
         throw new Error("Source and target files are equal in copyTree.");
-    } else if (String(target).indexOf(String(source) + SEPARATOR) == 0) {
+    } else if (String(target).indexOf(String(source) + SEPARATOR) === 0) {
         throw new Error("Target is a child of source in copyTree");
     }
 
     if (Files.isDirectory(source)) {
         makeTree(target);
-
-        var files = list(source);
-        for each (var file in files) {
-            var s = join(source.toString(), file);
-            var t = join(target.toString(), file);
+        list(source).forEach(file => {
+            const s = join(source.toString(), file);
+            const t = join(target.toString(), file);
             if (isLink(s)) {
                 symbolicLink(readLink(s), t);
             } else {
                 copyTree(s, t);
             }
-        }
+        });
     } else {
         copy(source.toString(), target.toString());
     }
@@ -302,9 +299,8 @@ function copyTree(from, to) {
  *    └── bar
  *       └── baz
  */
-function makeTree(path) {
-    var fullPath = resolvePath(path);
-    Files.createDirectories(fullPath);
+const makeTree = exports.makeTree = function(path) {
+    Files.createDirectories(resolvePath(path));
 }
 
 /**
@@ -325,20 +321,20 @@ function makeTree(path) {
  * // returned array:
  * [ '', 'foo', 'foo/bar', 'foo/bar/baz' ]
  */
-function listDirectoryTree(path) {
+const listDirectoryTree = exports.listDirectoryTree = function(path) {
     path = path === '' ? '.' : String(path);
-    var result = [''];
-    list(path).forEach(function (child) {
-        var childPath = join(path, child);
+    list(path).reduce((result, child) => {
+        const childPath = join(path, child);
         if (isDirectory(childPath)) {
             if (!isLink(childPath)) {
                 result.push.apply(result,
-                        listDirectoryTree(childPath).map(function (p) join(child, p)));
+                        listDirectoryTree(childPath).map(p => join(child, p)));
             } else { // Don't follow symlinks.
                 result.push(child);
             }
         }
-    });
+        return result;
+    }, ['']);
     return result.sort();
 }
 
@@ -362,20 +358,19 @@ function listDirectoryTree(path) {
  * // returned array:
  * ['', 'foo', 'foo/bar', 'foo/bar/baz', 'musicfile.m4a', 'test.txt']
  */
-function listTree(path) {
+const listTree = exports.listTree = function(path) {
     path = path === '' ? '.' : String(path);
-    var result = [''];
-    list(path).forEach(function (child) {
-        var childPath = join(path, child);
+    list(path).reduce((result, child) => {
+        const childPath = join(path, child);
         // Don't follow directory symlinks, but include them
         if (isDirectory(childPath) && !isLink(childPath)) {
             result.push.apply(result,
-                    listTree(childPath).map(function (p) join(child, p)));
+                    listTree(childPath).map(p => join(child, p)));
         } else {
             // Add file or symlinked directory.
             result.push(child);
         }
-    });
+    }, ['']);
     return result.sort();
 }
 
@@ -397,20 +392,18 @@ function listTree(path) {
  * ├── musicfile.m4a
  * └── test.txt
  */
-function removeTree(path) {
-    var nioPath = resolvePath(path);
+const removeTree = exports.removeTree = function(path) {
+    const nioPath = resolvePath(path);
     Files.walkFileTree(nioPath, new FileVisitor({
-        visitFile: function (file, attrs) {
+        visitFile: (file, attrs) => {
             Files.delete(file);
             return FileVisitResult.CONTINUE;
         },
-        visitFileFailed: function(file, e) {
+        visitFileFailed: (file, e) => {
             throw e;
         },
-        preVisitDirectory: function() {
-            return FileVisitResult.CONTINUE;
-        },
-        postVisitDirectory: function (dir, e) {
+        preVisitDirectory: () => FileVisitResult.CONTINUE,
+        postVisitDirectory: (dir, e) => {
             if (e == null) {
                 Files.delete(dir);
                 return FileVisitResult.CONTINUE;
@@ -432,7 +425,7 @@ function removeTree(path) {
  * >> fs.isAbsolute('/Users/username/Desktop/example.txt');
  * true
  */
-function isAbsolute(path) {
+const isAbsolute = exports.isAbsolute = function(path) {
     return getPath(path).isAbsolute();
 }
 
@@ -443,7 +436,7 @@ function isAbsolute(path) {
  * @param {String} path the path to check
  * @returns {Boolean} true if path is relative, false if not
  */
-function isRelative(path) {
+const isRelative = exports.isRelative = function(path) {
     return !isAbsolute(path);
 }
 
@@ -456,7 +449,7 @@ function isRelative(path) {
  * @example >> fs.absolute('foo/bar/test.txt');
  * '/Users/username/Desktop/working-directory/foo/bar/test.txt'
  */
-function absolute(path) {
+const absolute = exports.absolute = function(path) {
     return resolve(workingDirectory(), path);
 }
 
@@ -470,11 +463,11 @@ function absolute(path) {
  * @example >> fs.base('/a/b/c/foosomeext', 'someext');
  * 'foo'
  */
-function base(path, ext) {
-    var name = arrays.peek(split(path));
+const base = exports.base = function(path, ext) {
+    const name = arrays.peek(split(path));
     if (ext && name) {
-        var diff = name.length - ext.length;
-        if (diff > -1 && name.lastIndexOf(ext) == diff) {
+        const diff = name.length - ext.length;
+        if (diff > -1 && name.lastIndexOf(ext) === diff) {
             return name.substring(0, diff);
         }
     }
@@ -489,7 +482,7 @@ function base(path, ext) {
  * @example >> fs.directory('/Users/username/Desktop/example/test.txt');
  * '/Users/username/Desktop/example'
  */
-function directory(path) {
+const directory = exports.directory = function(path) {
     return (getPath(path).getParent() || getPath('.')).toString();
 }
 
@@ -502,13 +495,13 @@ function directory(path) {
  * @example >> fs.extension('test.txt');
  * '.txt'
  */
-function extension(path) {
-    var name = base(path);
+const extension = exports.extension = function(path) {
+    let name = base(path);
     if (!name) {
         return '';
     }
     name = name.replace(/^\.+/, '');
-    var index = name.lastIndexOf('.');
+    const index = name.lastIndexOf('.');
     return index > 0 ? name.substring(index) : '';
 }
 
@@ -520,11 +513,11 @@ function extension(path) {
  * @returns {String} the joined path
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Paths.html#get(java.lang.String,%20java.lang.String...)">java.nio.file.Paths.get(String first, String... more)</a>
  * @example // build path to the config.json file
- * var fullPath = fs.join(configDir, "config.json");
+ * const fullPath = fs.join(configDir, "config.json");
  */
-function join() {
+const join = exports.join = function() {
     // filter out empty strings to avoid join("", "foo") -> "/foo"
-    var args = Array.prototype.filter.call(arguments, function(p) {
+    const args = Array.prototype.filter.call(arguments, function(p) {
         return p !== "" && p !== null && p !== undefined;
     });
 
@@ -538,7 +531,7 @@ function join() {
  * @example >> fs.split('/Users/someuser/Desktop/subdir/test.txt');
  * [ '', 'Users', 'someuser', 'Desktop', 'subdir', 'test.txt' ]
  */
-function split(path) {
+const split = exports.split = function(path) {
     if (!path) {
         return [];
     }
@@ -553,7 +546,7 @@ function split(path) {
  * @example >> fs.normal('../redundant/../foo/./bar.txt');
  * '../foo/bar.txt'
  */
-function normal(path) {
+const normal = exports.normal = function(path) {
     return resolve(path);
 }
 
@@ -568,17 +561,17 @@ function normal(path) {
  * @example >> fs.resolve('../.././foo/file.txt', 'bar/baz/', 'test.txt');
  * '../../foo/bar/baz/test.txt'
  */
-function resolve() {
-    var root = '';
-    var elements = [];
-    var leaf = '';
-    var path;
-    for (var i = 0; i < arguments.length; i++) {
+const resolve = exports.resolve = function() {
+    const elements = [];
+    let root = '';
+    let leaf = '';
+    let path;
+    for (let i = 0; i < arguments.length; i++) {
         path = String(arguments[i]);
-        if (path.trim() == '') {
+        if (path.trim() === '') {
             continue;
         }
-        var parts = path.split(SEPARATOR_RE);
+        let parts = path.split(SEPARATOR_RE);
         // Checking for absolute paths is not enough here as Windows has
         // something like quasi-absolute paths where a path starts with a
         // path separator instead of a drive character, e.g. \home\projects.
@@ -587,22 +580,22 @@ function resolve() {
             // We still need to explicitly make absolute for the quasi-absolute
             // Windows paths mentioned above.
             root = String(getPath(parts.shift() + SEPARATOR).toAbsolutePath());
-            elements = [];
+            elements.length = 0;
         }
         leaf = parts.pop();
-        if (leaf == '.' || leaf == '..') {
+        if (leaf === '.' || leaf === '..') {
             parts.push(leaf);
             leaf = '';
         }
-        for (var j = 0; j < parts.length; j++) {
-            var part = parts[j];
-            if (part == '..') {
-                if (elements.length > 0 && arrays.peek(elements) != '..') {
+        for (let j = 0; j < parts.length; j++) {
+            let part = parts[j];
+            if (part === '..') {
+                if (elements.length > 0 && arrays.peek(elements) !== '..') {
                     elements.pop();
                 } else if (!root) {
                     elements.push(part);
                 }
-            } else if (part != '' && part != '.') {
+            } else if (part !== '' && part !== '.') {
                 elements.push(part);
             }
         }
@@ -628,7 +621,7 @@ function resolve() {
  * >> fs.relative('foo/bar/', 'foo/bar/baz/');
  * 'baz/'
  */
-function relative(source, target) {
+const relative = exports.relative = function(source, target) {
     if (!target) {
         target = source;
         source = workingDirectory();
@@ -638,10 +631,7 @@ function relative(source, target) {
     source = source.split(SEPARATOR_RE);
     target = target.split(SEPARATOR_RE);
     source.pop();
-    while (
-        source.length &&
-        target.length &&
-        target[0] == source[0]) {
+    while (source.length && target.length && target[0] === source[0]) {
         source.shift();
         target.shift();
     }
@@ -661,10 +651,9 @@ function relative(source, target) {
  * @example // Moves file from a temporary upload directory into /var/www
  * fs.move('/tmp/uploads/fileA.txt', '/var/www/fileA.txt');
  */
-function move(source, target) {
-    var from = resolvePath(source);
-    var to = resolvePath(target);
-
+const move = exports.move = function(source, target) {
+    const from = resolvePath(source);
+    const to = resolvePath(target);
     Files.move(from, to, [StandardCopyOption.REPLACE_EXISTING]);
 }
 
@@ -674,8 +663,8 @@ function move(source, target) {
  * @param {String} path the path of the file to remove.
  * @throws Error if path is not a file or could not be removed.
  */
-function remove(path) {
-    var nioPath = resolvePath(path);
+const remove = exports.remove = function(path) {
+    const nioPath = resolvePath(path);
 
     if (Files.isDirectory(nioPath)) {
         throw new Error(path + " is not a file");
@@ -688,7 +677,7 @@ function remove(path) {
  * Return true if the file denoted by `path` exists, false otherwise.
  * @param {String} path the file path.
  */
-function exists(path) {
+const exists = exports.exists = function(path) {
     return Files.exists(resolvePath(path));
 }
 
@@ -696,7 +685,7 @@ function exists(path) {
  * Return the path name of the current working directory.
  * @returns {String} the current working directory
  */
-function workingDirectory() {
+const workingDirectory = exports.workingDirectory = function() {
     return resolvePath(java.lang.System.getProperty('user.dir')) + SEPARATOR;
 }
 
@@ -706,7 +695,7 @@ function workingDirectory() {
  * @param {String} path the directory path
  * @throws Error if the file or directory could not be removed.
  */
-function removeDirectory(path) {
+const removeDirectory = exports.removeDirectory = function(path) {
     Files.delete(resolvePath(path));
 }
 
@@ -715,9 +704,9 @@ function removeDirectory(path) {
  * the given directory. There is no guarantee that the strings are in
  * any specific order.
  *
- * @example var names = fs.list('/usr/local/');
+ * @example const names = fs.list('/usr/local/');
  * names.forEach(function(name) {
- *   var fullPath = fs.join(dir, name);
+ *   const fullPath = fs.join(dir, name);
  *   if (fs.isFile(fullPath)) {
  *     // do something with the file
  *   }
@@ -725,16 +714,16 @@ function removeDirectory(path) {
  * @param {String} path the directory path
  * @returns {Array} an array of strings with the files, directories, or symbolic links
  */
-function list(path) {
-    var nioPath = resolvePath(path);
+const list = exports.list = function(path) {
+    const nioPath = resolvePath(path);
 
     if (!Files.isDirectory(nioPath)) {
         throw new Error("failed to list directory " + path);
     }
 
-    var files = [];
-    var dirStream = Files.newDirectoryStream(nioPath);
-    var dirIterator = dirStream.iterator();
+    const files = [];
+    const dirStream = Files.newDirectoryStream(nioPath);
+    const dirIterator = dirStream.iterator();
     while (dirIterator.hasNext()) {
         files.push(String(dirIterator.next().getFileName()));
     }
@@ -750,8 +739,8 @@ function list(path) {
  * @returns {Number} the file size in bytes
  * @throws Error if path is not a file
  */
-function size(path) {
-    var nioPath = resolvePath(path);
+const size = exports.size = function(path) {
+    const nioPath = resolvePath(path);
     if (!Files.isRegularFile(nioPath)) {
         throw new Error(path + " is not a file");
     }
@@ -763,9 +752,9 @@ function size(path) {
  * @param {String} path the file path
  * @returns {Date} the date the file was last modified
  */
-function lastModified(path) {
-    var nioPath = resolvePath(path);
-    var fileTime = Files.getLastModifiedTime(nioPath);
+const lastModified = exports.lastModified = function(path) {
+    const nioPath = resolvePath(path);
+    const fileTime = Files.getLastModifiedTime(nioPath);
     return new Date(fileTime.toMillis());
 }
 
@@ -779,8 +768,10 @@ function lastModified(path) {
  * @param {String} path the file path
  * @param {Number|String|java.util.Set<PosixFilePermission>} permissions optional the POSIX permissions
  */
-function makeDirectory(path, permissions) {
-    if (security) security.checkWrite(path);
+const makeDirectory = exports.makeDirectory = function(path, permissions) {
+    if (security) {
+        security.checkWrite(path);
+    }
 
     // single-argument Files.createDirectory() respects the current umask
     if (permissions == null) {
@@ -795,7 +786,7 @@ function makeDirectory(path, permissions) {
  * @param {String} path the file path
  * @returns {Boolean} whether the file exists and is readable
  */
-function isReadable(path) {
+const isReadable = exports.isReadable = function(path) {
     return Files.isReadable(resolvePath(path));
 }
 
@@ -804,7 +795,7 @@ function isReadable(path) {
  * @param {String} path the file path
  * @returns {Boolean} whether the file exists and is writable
  */
-function isWritable(path) {
+const isWritable = exports.isWritable = function(path) {
     return Files.isWritable(resolvePath(path));
 }
 
@@ -813,7 +804,7 @@ function isWritable(path) {
  * @param {String} path the file path
  * @returns {Boolean} whether the file exists and is a file
  */
-function isFile(path) {
+const isFile = exports.isFile = function(path) {
     return Files.isRegularFile(resolvePath(path));
 }
 
@@ -822,7 +813,7 @@ function isFile(path) {
  * @param {String} path the file path
  * @returns {Boolean} whether the file exists and is a directory
  */
-function isDirectory(path) {
+const isDirectory = exports.isDirectory = function(path) {
     return Files.isDirectory(resolvePath(path));
 }
 
@@ -832,8 +823,10 @@ function isDirectory(path) {
  * @param {String} path the file path
  * @returns {Boolean} true if the given file exists and is a symbolic link
  */
-function isLink(path) {
-    if (security) security.checkRead(path);
+const isLink = exports.isLink = function(path) {
+    if (security) {
+        security.checkRead(path);
+    }
     return Files.isSymbolicLink(resolvePath(path));
 }
 
@@ -846,14 +839,14 @@ function isLink(path) {
  * @param {String} pathB the second path
  * @returns {Boolean} true iff the two paths locate the same file
  */
-function same(pathA, pathB) {
+const same = exports.same = function(pathA, pathB) {
     if (security) {
         security.checkRead(pathA);
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    let nioPathA = getPath(canonical(pathA));
-    let nioPathB = getPath(canonical(pathB));
+    const nioPathA = getPath(canonical(pathA));
+    const nioPathB = getPath(canonical(pathB));
 
     return Files.isSameFile(nioPathA, nioPathB);
 }
@@ -865,14 +858,14 @@ function same(pathA, pathB) {
  * @param {String} pathB the second path
  * @returns {Boolean} true if same file system, otherwise false
  */
-function sameFilesystem(pathA, pathB) {
+const sameFilesystem = exports.sameFilesystem = function(pathA, pathB) {
     if (security) {
         security.checkRead(pathA);
         security.checkRead(pathB);
     }
     // make canonical to resolve symbolic links
-    let nioPathA = getPath(canonical(pathA));
-    let nioPathB = getPath(canonical(pathB));
+    const nioPathA = getPath(canonical(pathA));
+    const nioPathB = getPath(canonical(pathB));
 
     return nioPathA.getFileSystem().equals(nioPathB.getFileSystem());
 }
@@ -884,7 +877,7 @@ function sameFilesystem(pathA, pathB) {
  * @param {String} path a file path
  * @returns {String} the canonical path
  */
-function canonical(path) {
+const canonical = exports.canonical = function(path) {
     return String(resolvePath(path).toRealPath().normalize());
 }
 
@@ -895,8 +888,8 @@ function canonical(path) {
  * @param {String} path the file path
  * @param {Date} mtime optional date
  */
-function touch(path, mtime) {
-    var nioPath = resolvePath(path);
+const touch = exports.touch = function(path, mtime) {
+    const nioPath = resolvePath(path);
     if (!Files.exists(nioPath)) {
         Files.createFile(nioPath);
     } else {
@@ -914,7 +907,7 @@ function touch(path, mtime) {
  * @param {String} link the link to create pointing to an existing path
  * @returns {String} the path to the symbolic link
  */
-function symbolicLink(existing, link) {
+const symbolicLink = exports.symbolicLink = function(existing, link) {
     if (security) {
         security.checkRead(existing);
         security.checkWrite(link);
@@ -931,7 +924,7 @@ function symbolicLink(existing, link) {
  * @param {String} link the link to create pointing to an existing path
  * @returns {String} the path to the link
  */
-function hardLink(existing, link) {
+const hardLink = exports.hardLink = function(existing, link) {
     if (security) {
         security.checkRead(existing);
         security.checkWrite(link);
@@ -945,7 +938,7 @@ function hardLink(existing, link) {
  *
  * @param {String} path a file path
  */
-function readLink(path) {
+const readLink = exports.readLink = function(path) {
     if (security) security.checkRead(path);
 
     // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
@@ -962,20 +955,17 @@ function readLink(path) {
  * @param {String} path a directory path
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators">MDN Iterators and Generators</a>
  * @example // Iterates over the current working directory
- * for (var name in fs.iterate(".")) {
+ * for (let name of fs.iterate(".")) {
  *   console.log(name);
  * }
  */
-function iterate(path) {
-    var iter = function() {
-        for each (var item in list(path)) {
+const iterate = exports.iterate = function(path) {
+    return function*() {
+        for (let item of list(path)) {
             yield item;
         }
         throw StopIteration;
     }();
-    // spec requires iterator(), native iterators/generators only have __iterator__().
-    iter.iterator = iter.__iterator__;
-    return iter;
 }
 
 /**
@@ -983,8 +973,10 @@ function iterate(path) {
  * @param {String} path
  * @returns PosixFilePermission the POSIX permissions for the given path
  */
-function permissions(path) {
-    if (security) security.checkRead(path);
+const permissions = exports.permissions = function(path) {
+    if (security) {
+        security.checkRead(path);
+    }
     return new PosixPermissions(Files.getPosixFilePermissions(getPath(path)));
 }
 
@@ -993,8 +985,10 @@ function permissions(path) {
  * @param {String} path
  * @returns {String} the username of the owner, or null if not possible to determine
  */
-function owner(path) {
-    if (security) security.checkRead(path);
+const owner = exports.owner = function(path) {
+    if (security) {
+        security.checkRead(path);
+    }
     try {
         return Files.getOwner(getPath(path)).getName();
     } catch (error) {
@@ -1009,10 +1003,12 @@ function owner(path) {
  * @param {String} path
  * @returns {String} the group's name, or null if not possible to determine
  */
-function group(path) {
-    if (security) security.checkRead(path);
+const group = exports.group = function(path) {
+    if (security) {
+        security.checkRead(path);
+    }
     try {
-        let attributes = Files.getFileAttributeView(getPath(path), PosixFileAttributeView);
+        const attributes = Files.getFileAttributeView(getPath(path), PosixFileAttributeView);
         return attributes.readAttributes().group().getName();
     } catch (error) {
         // do nothing
@@ -1026,8 +1022,10 @@ function group(path) {
  * @param {String} path
  * @param {Number|String|java.util.Set<PosixFilePermission>} permissions the POSIX permissions
  */
-function changePermissions(path, permissions) {
-    if (security) security.checkWrite(path);
+const changePermissions = exports.changePermissions = function(path, permissions) {
+    if (security) {
+        security.checkWrite(path);
+    }
     permissions = new PosixPermissions(permissions);
     return Files.setPosixFilePermissions(getPath(path), permissions.toJavaPosixFilePermissionSet());
 }
@@ -1038,11 +1036,13 @@ function changePermissions(path, permissions) {
  * @param {String} path
  * @param {String} owner the user name string
  */
-function changeOwner(path, user) {
-    if (security) security.checkWrite(path);
+const changeOwner = exports.changeOwner = function(path, user) {
+    if (security) {
+        security.checkWrite(path);
+    }
 
-    var lookupService = FS.getUserPrincipalLookupService();
-    var userPrincipal = lookupService.lookupPrincipalByName(user);
+    const lookupService = FS.getUserPrincipalLookupService();
+    const userPrincipal = lookupService.lookupPrincipalByName(user);
 
     return Files.setOwner(getPath(path), userPrincipal);
 }
@@ -1053,13 +1053,15 @@ function changeOwner(path, user) {
  * @param {String} path
  * @param {String} group group name string
  */
-function changeGroup(path, group) {
-    if (security) security.checkWrite(path);
+const changeGroup = exports.changeGroup = function(path, group) {
+    if (security) {
+        security.checkWrite(path);
+    }
 
-    var lookupService = FS.getUserPrincipalLookupService();
-    var groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+    const lookupService = FS.getUserPrincipalLookupService();
+    const groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
 
-    var attributes = Files.getFileAttributeView(
+    const attributes = Files.getFileAttributeView(
         getPath(path),
         PosixFileAttributeView,
         LinkOption.NOFOLLOW_LINKS
@@ -1069,7 +1071,7 @@ function changeGroup(path, group) {
     return true;
 }
 
-var optionsMask = {
+const optionsMask = {
     read: 1,
     write: 1,
     append: 1,
@@ -1083,7 +1085,7 @@ var optionsMask = {
 /**
  * Internal.
  */
-function checkOptions(options) {
+const checkOptions = function(options) {
     if (!options) {
         options = {};
     } else if (typeof options != 'object') {
@@ -1095,13 +1097,13 @@ function checkOptions(options) {
         }
     } else {
         // run sanity check on user-provided options object
-        for (var key in options) {
+        Object.keys(options).forEach(key => {
             if (!(key in optionsMask)) {
                 throw new Error("unsupported option: " + key);
             }
-            options[key] = key == 'charset' ?
-                    String(options[key]) : Boolean(options[key]);
-        }
+            options[key] = (key === 'charset') ?
+                String(options[key]) : Boolean(options[key]);
+        });
     }
     return options;
 }
@@ -1109,35 +1111,35 @@ function checkOptions(options) {
 /**
  * Internal. Convert a mode string to an options object.
  */
-function applyMode(mode) {
-    var options = {};
-    for (var i = 0; i < mode.length; i++) {
+const applyMode = function(mode) {
+    const options = {};
+    for (let i = 0; i < mode.length; i++) {
         switch (mode[i]) {
-        case 'r':
-            options.read = true;
-            break;
-        case 'w':
-            options.write = true;
-            break;
-        case 'a':
-            options.append = true;
-            break;
-        case '+':
-            options.update = true;
-            break;
-        case 'b':
-            options.binary = true;
-            break;
-        case 'x':
-            // FIXME botic: is this implemented?
-            options.exclusive = true;
-            break;
-        case 'c':
-            // FIXME botic: is this needed?
-            options.canonical = true;
-            break;
-        default:
-            throw new Error("unsupported mode argument: " + options);
+            case 'r':
+                options.read = true;
+                break;
+            case 'w':
+                options.write = true;
+                break;
+            case 'a':
+                options.append = true;
+                break;
+            case '+':
+                options.update = true;
+                break;
+            case 'b':
+                options.binary = true;
+                break;
+            case 'x':
+                // FIXME botic: is this implemented?
+                options.exclusive = true;
+                break;
+            case 'c':
+                // FIXME botic: is this needed?
+                options.canonical = true;
+                break;
+            default:
+                throw new Error("unsupported mode argument: " + options);
         }
     }
     return options;
@@ -1146,8 +1148,8 @@ function applyMode(mode) {
 /**
  * Internal.
  */
-function resolvePath(path) {
-    if (path == undefined) {
+const resolvePath = function(path) {
+    if (path === null || path === undefined) {
         throw new Error('undefined path argument');
     }
 
@@ -1159,7 +1161,7 @@ function resolvePath(path) {
 /**
  * A shorthand for creating a new `Path` without the `new` keyword.
  */
-function path() {
+const path = exports.path = function() {
     return new Path(join.apply(null, arguments));
 }
 
@@ -1167,17 +1169,18 @@ function path() {
  * Path constructor. Path is a chainable shorthand for working with paths.
  * @augments String
  */
-function Path() {
+const Path = exports.Path = function() {
     if (!(this instanceof Path)) {
         return new Path(join.apply(null, arguments));
     }
-    var path = join.apply(null, arguments)
-    this.toString = function() path;
+    const path = join.apply(null, arguments);
+    this.toString = () => path;
     return this;
 }
 
 /** @ignore */
-Path.prototype = new String();
+Path.prototype = Object.create(String.prototype);
+Path.prototype.constructor = Path;
 
 /**
  * This is a non-standard extension, not part of CommonJS Filesystem/A.
@@ -1197,7 +1200,7 @@ Path.prototype.join = function() {
 /**
  * Resolve against this path.
  */
-Path.prototype.resolve = function () {
+Path.prototype.resolve = function() {
     return new Path(resolve.apply(
             null,
             [this.toString()].concat(Array.prototype.slice.call(arguments))
@@ -1210,7 +1213,7 @@ Path.prototype.resolve = function () {
  * to `fs.Path(fs.relative(this, target))`.
  * @param {String} target
  */
-Path.prototype.to = function (target) {
+Path.prototype.to = function(target) {
     return exports.Path(relative(this.toString(), target));
 };
 
@@ -1219,7 +1222,7 @@ Path.prototype.to = function (target) {
  * to `fs.Path(fs.relative(source, this))`.
  * @param {String} target
  */
-Path.prototype.from = function (target) {
+Path.prototype.from = function(target) {
     return exports.Path(relative(target, this.toString()));
 };
 
@@ -1228,10 +1231,10 @@ Path.prototype.from = function (target) {
  * wrapped in Path objects.
  */
 Path.prototype.listPaths = function() {
-    return this.list().map(function (file) new Path(this, file), this).sort();
+    return this.list().map(file => new Path(this, file), this).sort();
 };
 
-var pathed = [
+const PATHED = [
     'absolute',
     'base',
     'canonical',
@@ -1239,20 +1242,16 @@ var pathed = [
     'normal',
     'relative'
 ];
+PATHED.forEach(name => {
+    Path.prototype[name] = function() {
+        return new Path(exports[name].apply(
+            this,
+            [this.toString()].concat(Array.prototype.slice.call(arguments))
+        ));
+    };
+});
 
-for (var i = 0; i < pathed.length; i++) {
-    var name = pathed[i];
-    Path.prototype[name] = (function (name) {
-        return function () {
-            return new Path(exports[name].apply(
-                this,
-                [this.toString()].concat(Array.prototype.slice.call(arguments))
-            ));
-        };
-    })(name);
-}
-
-var trivia = [
+const TRIVIA = [
     'copy',
     'copyTree',
     'exists',
@@ -1283,71 +1282,16 @@ var trivia = [
     'write'
 ];
 
-for (i = 0; i < trivia.length; i++) {
-    var name = trivia[i];
-    Path.prototype[name] = (function (name) {
-        return function () {
-            var fn = exports[name];
-            if (!fn) throw new Error("Not found: " + name);
-            var result = exports[name].apply(
-                this,
-                [this.toString()].concat(Array.prototype.slice.call(arguments))
-            );
-            if (result === undefined)
-                result = this;
-            return result;
-        };
-    })(name);
-}
-
-module.exports.absolute = absolute;
-module.exports.base = base;
-module.exports.copy = copy;
-module.exports.copyTree = copyTree;
-module.exports.directory = directory;
-module.exports.extension = extension;
-module.exports.isAbsolute = isAbsolute;
-module.exports.isRelative = isRelative;
-module.exports.join = join;
-module.exports.makeTree = makeTree;
-module.exports.listDirectoryTree = listDirectoryTree;
-module.exports.listTree = listTree;
-module.exports.normal = normal;
-module.exports.open = open;
-module.exports.path = path;
-module.exports.Path = Path;
-module.exports.read = read;
-module.exports.relative = relative;
-module.exports.removeTree = removeTree;
-module.exports.resolve = resolve;
-module.exports.write = write;
-module.exports.split = split;
-module.exports.canonical = canonical;
-module.exports.workingDirectory = workingDirectory;
-module.exports.exists = exists;
-module.exports.isDirectory = isDirectory;
-module.exports.isFile = isFile;
-module.exports.isReadable = isReadable;
-module.exports.isWritable = isWritable;
-module.exports.list = list;
-module.exports.makeDirectory = makeDirectory;
-module.exports.move = move;
-module.exports.lastModified = lastModified;
-module.exports.openRaw = openRaw;
-module.exports.remove = remove;
-module.exports.removeDirectory = removeDirectory;
-module.exports.size = size;
-module.exports.touch = touch;
-module.exports.symbolicLink = symbolicLink;
-module.exports.hardLink = hardLink;
-module.exports.readLink = readLink;
-module.exports.isLink = isLink;
-module.exports.same = same;
-module.exports.sameFilesystem = sameFilesystem;
-module.exports.iterate = iterate;
-module.exports.owner = owner;
-module.exports.group = group;
-module.exports.changePermissions = changePermissions;
-module.exports.changeOwner = changeOwner;
-module.exports.changeGroup = changeGroup;
-module.exports.permissions = permissions;
+TRIVIA.forEach(name => {
+    Path.prototype[name] = function() {
+        const fn = exports[name];
+        if (!fn) {
+            throw new Error("Not found: " + name);
+        }
+        const result = fn.apply(
+            this,
+            [this.toString()].concat(Array.prototype.slice.call(arguments))
+        );
+        return result === undefined ? this : result;
+    };
+});
