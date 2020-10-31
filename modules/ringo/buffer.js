@@ -2,8 +2,8 @@
  * @fileOverview A simple text Buffer class for composing strings.
  */
 
-var {ByteString} = require('binary');
-var strings = require('ringo/utils/strings');
+const binary = require('binary');
+const strings = require('ringo/utils/strings');
 
 /**
  * A Buffer class for composing strings. This is implemented
@@ -12,15 +12,15 @@ var strings = require('ringo/utils/strings');
  */
 module.exports.Buffer = function Buffer() {
 
-    var content = [],
-        length = 0;
+    const content = [];
+    let length = 0;
 
     /**
      * Reset the buffer discarding all its content.
      * @returns {Buffer} this buffer object
      */
     this.reset = function() {
-        content = [];
+        content.length = 0;
         length = 0;
         return this;
     };
@@ -31,8 +31,8 @@ module.exports.Buffer = function Buffer() {
      * @returns {Buffer} this buffer object
      */
     this.write = function() {
-        for (var i = 0; i < arguments.length; i++) {
-            var str = String(arguments[i]);
+        for (let i = 0; i < arguments.length; i++) {
+            let str = String(arguments[i]);
             content.push(str);
             length += str.length;
         }
@@ -72,7 +72,7 @@ module.exports.Buffer = function Buffer() {
      * contained by this buffer.
      */
     Object.defineProperty(this, "length", {
-        get: function() { return length; }
+        get: () => length
     });
 
     /**
@@ -81,11 +81,11 @@ module.exports.Buffer = function Buffer() {
      * @returns {String} a Base16 encoded digest
      */
     this.digest = function(algorithm) {
-        var md = java.security.MessageDigest.getInstance(algorithm || "MD5");
-        content.forEach(function(part) {
-            md.update(String(part).toByteString());
+        const md = java.security.MessageDigest.getInstance(algorithm || "MD5");
+        content.forEach(part => {
+            md.update(binary.toByteString(String(part)));
         });
-        var b = ByteString.wrap(md.digest());
+        const b = binary.ByteString.wrap(md.digest());
         return strings.b16encode(b);
     };
 
@@ -94,4 +94,4 @@ module.exports.Buffer = function Buffer() {
     }
 
     return this;
-}
+};
