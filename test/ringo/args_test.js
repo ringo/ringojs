@@ -1,30 +1,33 @@
-var assert = require("assert");
-var Parser = require('ringo/args').Parser;
+const assert = require("assert");
+const Parser = require('ringo/args').Parser;
 
 exports.setUp = exports.tearDown = function() {}
 
 exports.testBasic = function () {
-    var p = new Parser();
+    const p = new Parser();
     p.addOption("q", null, null, "Be quiet about errors and warnings");
     p.addOption("s", "silent", null, "Ignore errors and warnings");
     p.addOption("c", "counter", "NUMBER", "Init counter with NUMBER");
-    assert.deepEqual({silent: true}, p.parse(['-s']));
-    assert.deepEqual({silent: true}, p.parse(['--silent']));
-    assert.deepEqual({q: true}, p.parse(['-q']));
-    assert.deepEqual({counter: "42"}, p.parse(['-c', '42']));
-    assert.deepEqual({counter: "42"}, p.parse(['-c42']));
-    assert.deepEqual({counter: "42"}, p.parse(['--counter=42']));
-    assert.deepEqual({counter: "42"}, p.parse(['--counter', '42']));
-    assert.deepEqual({counter: "42", silent: true, q: true}, p.parse(['-sqc42']));
-    assert.deepEqual({counter: "42", silent: true, q: true}, p.parse(['-sqc', '42']));
+    assert.strictEqual(p.help(), " -q                   Be quiet about errors and warnings\n" +
+                                 " -s --silent          Ignore errors and warnings\n" +
+                                 " -c --counter NUMBER  Init counter with NUMBER");
+    assert.deepEqual(p.parse(['-s']), {silent: true});
+    assert.deepEqual(p.parse(['--silent']), {silent: true});
+    assert.deepEqual(p.parse(['-q']), {q: true});
+    assert.deepEqual(p.parse(['-c', '42']), {counter: "42"});
+    assert.deepEqual(p.parse(['-c42']), {counter: "42"});
+    assert.deepEqual(p.parse(['--counter=42']), {counter: "42"});
+    assert.deepEqual(p.parse(['--counter', '42']), {counter: "42"});
+    assert.deepEqual(p.parse(['-sqc42']), {counter: "42", silent: true, q: true});
+    assert.deepEqual(p.parse(['-sqc', '42']), {counter: "42", silent: true, q: true});
     // missing option argument
-    assert.throws(function() {p.parse(['--counter']);});
-    assert.throws(function() {p.parse(['-c']);});
-    assert.throws(function() {p.parse(['-sqc']);});
+    assert.throws(() => p.parse(['--counter']));
+    assert.throws(() => p.parse(['-c']));
+    assert.throws(() => p.parse(['-sqc']));
     // unknown option
-    assert.throws(function() {p.parse(['--unknown']);});
-    assert.throws(function() {p.parse(['-u']);});
-    assert.throws(function() {p.parse(['-squ']);});
+    assert.throws(() => p.parse(['--unknown']));
+    assert.throws(() => p.parse(['-u']));
+    assert.throws(() => p.parse(['-squ']));
 };
 
 if (require.main === module) {
