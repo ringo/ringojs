@@ -17,16 +17,13 @@
  * >> numbers.format(123, "#,###,##0.00", java.util.Locale.ENGLISH);
  * '123.00'
  */
-function format(number, fmt, locale) {
-    var symbols;
-    if (locale != null) {
-        symbols = new java.text.DecimalFormatSymbols(locale);
-    } else {
-        symbols = new java.text.DecimalFormatSymbols();
-    }
-    var df = new java.text.DecimalFormat(fmt || "###,##0.##", symbols);
+exports.format = (number, fmt, locale) => {
+    const symbols = (locale != null) ?
+        new java.text.DecimalFormatSymbols(locale) :
+        new java.text.DecimalFormatSymbols();
+    const df = new java.text.DecimalFormat(fmt || "###,##0.##", symbols);
     return df.format(+number);
-}
+};
 
 /**
  * Invoke a function `num` times, passing 0 .. (this - 1) as argument.
@@ -37,11 +34,8 @@ function format(number, fmt, locale) {
  *   console.log("#" + i);
  * });
  */
-function times(num, fun) {
-    for (var i = 0; i < num; i++) {
+exports.times = (num, fun) => {
+    for (let i = 0; i < num; i++) {
         fun(i);
     }
-}
-
-module.exports.format = format;
-module.exports.times = times;
+};
