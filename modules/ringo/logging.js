@@ -15,7 +15,7 @@
  * interface and emits logged messages using the log level name as event type.
  *
  * @example // Get a Logger for the current module
- * var log = require('ringo/logging').getLogger(module.id);
+ * const log = require('ringo/logging').getLogger(module.id);
  *
  * log.debug('Connected to ', url, ' [GET]');
  * log.error('This should not occur');
@@ -25,15 +25,13 @@
  *
  */
 
-var strings = require('ringo/utils/strings');
-var {EventEmitter} = require('ringo/events');
+const strings = require('ringo/utils/strings');
+const {EventEmitter} = require('ringo/events');
 
 // Use singleton to share flag across workers to avoid unwanted reconfiguration
-var configured = module.singleton("configured");
-// interval id for configuration watcher
-var configWatcher;
+let configured = module.singleton("configured");
 
-var verbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
+const isVerbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose();
 
 // Make exports object emit log events
 EventEmitter.call(exports);
@@ -49,41 +47,41 @@ EventEmitter.call(exports);
  */
 function Logger(name, impl) {
 
-    this.trace = function() {
+    this.trace = () => {
         if (impl.isTraceEnabled()) {
-            var msg = formatMessage(arguments);
+            const msg = formatMessage(arguments);
             impl.trace(msg);
             exports.emit("trace", name, msg);
         }
     };
 
-    this.debug = function() {
+    this.debug = () => {
         if (impl.isDebugEnabled()) {
-            var msg = formatMessage(arguments);
+            const msg = formatMessage(arguments);
             impl.debug(msg);
             exports.emit("debug", name, msg);
         }
     };
 
-    this.info = function() {
+    this.info = () => {
         if (impl.isInfoEnabled()) {
-            var msg = formatMessage(arguments);
+            const msg = formatMessage(arguments);
             impl.info(msg);
             exports.emit("info", name, msg);
         }
     };
 
-    this.warn = function() {
+    this.warn = () => {
         if (impl.isWarnEnabled()) {
-            var msg = formatMessage(arguments);
+            const msg = formatMessage(arguments);
             impl.warn(msg);
             exports.emit("warn", name, msg);
         }
     };
 
-    this.error = function() {
+    this.error = () => {
         if (impl.isErrorEnabled()) {
-            var msg = formatMessage(arguments);
+            const msg = formatMessage(arguments);
             impl.error(msg);
             exports.emit("error", name, msg);
         }
@@ -92,27 +90,27 @@ function Logger(name, impl) {
     /**
      * @function
      */
-    this.isTraceEnabled = impl.isTraceEnabled.bind(impl);
+    this.isTraceEnabled = () => impl.isTraceEnabled;
 
     /**
      * @function
      */
-    this.isDebugEnabled = impl.isDebugEnabled.bind(impl);
+    this.isDebugEnabled = () => impl.isDebugEnabled;
 
     /**
      * @function
      */
-    this.isInfoEnabled = impl.isInfoEnabled.bind(impl);
+    this.isInfoEnabled = () => impl.isInfoEnabled;
 
     /**
      * @function
      */
-    this.isWarnEnabled = impl.isWarnEnabled.bind(impl);
+    this.isWarnEnabled = () => impl.isWarnEnabled;
 
     /**
      * @function
      */
-    this.isErrorEnabled = impl.isErrorEnabled.bind(impl);
+    this.isErrorEnabled = () => impl.isErrorEnabled;
 }
 
 /**
@@ -125,38 +123,36 @@ function Logger(name, impl) {
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
  * repeatedly checks the resource for updates.
  */
-function setConfig(resource) {
-    var {path, url} = resource;
+const setConfig = exports.setConfig = function(resource) {
     var logContext = org.apache.logging.log4j.LogManager.getContext(false);
-    logContext.setConfigLocation(new java.net.URI(url));
+    logContext.setConfigLocation(new java.net.URI(resource.url));
     logContext.updateLoggers();
-    configured = module.singleton("configured", function() { return true; });
-}
+    configured = module.singleton("configured", () => true);
+};
 
 /**
  * Get a logger for the given name.
  * @param {String} name the name of the logger
  * @returns {Logger} a logger instance for the given name
  */
-function getLogger(name) {
+const getLogger = exports.getLogger = (name) => {
     name = name.replace(/\//g, '.');
-    var impl = new LoggerImpl(name);
-    return new Logger(name, impl);
-}
+    return new Logger(name, new LoggerImpl(name));
+};
 
-function formatMessage(args) {
-    var message = strings.format.apply(null, args);
-    for each (var arg in args) {
+const formatMessage = (args) => {
+    let message = strings.format.apply(null, args);
+    Array.prototype.forEach.call(args, (arg) => {
         if (arg instanceof Error || arg instanceof java.lang.Throwable) {
             message  = [
                 message,
                 getScriptStack(arg, "\nScript stack:\n"),
-                verbose ? getJavaStack(arg, "Java stack:\n") : null
+                isVerbose ? getJavaStack(arg, "Java stack:\n") : null
             ].join('');
         }
-    }
+    });
     return message;
-}
+};
 
 /**
  * Get a rendered JavaScript stack trace from a caught error.
@@ -164,12 +160,13 @@ function formatMessage(args) {
  * @param {String} prefix to prepend to result if available
  * @return {String} the rendered JavaScript stack trace
  */
-function getScriptStack(error, prefix) {
+const getScriptStack = exports.getScriptStack = (error, prefix) => {
     prefix = prefix || "";
-    if (error && error.stack)
+    if (error && error.stack) {
         return prefix + error.stack;
+    }
     return "";
-}
+};
 
 /**
  * Get a rendered JavaScript stack trace from a caught error.
@@ -177,175 +174,120 @@ function getScriptStack(error, prefix) {
  * @param {String} prefix to prepend to result if available
  * @return {String} the rendered JavaScript stack trace
  */
-function getJavaStack(error, prefix) {
+const getJavaStack = exports.getJavaStack = (error, prefix) => {
     prefix = prefix || "";
-    var exception = error && error.rhinoException ?
+    const exception = (error && error.rhinoException) ?
         error.rhinoException : error;
     if (exception instanceof java.lang.Throwable) {
-        var writer = new java.io.StringWriter();
-        var printer = new java.io.PrintWriter(writer);
+        const writer = new java.io.StringWriter();
+        const printer = new java.io.PrintWriter(writer);
         exception.printStackTrace(printer);
         return prefix + writer.toString();
     }
     return "";
-}
+};
 
 /**
  * Logger implementation based on java.util.logging
  * @param {String} name the logger name
  */
-function JdkLogger(name) {
+const JdkLogger = function(name) {
 
-    var log = java.util.logging.Logger.getLogger(name);
-    var Level = java.util.logging.Level;
+    const log = java.util.logging.Logger.getLogger(name);
+    const Level = java.util.logging.Level;
 
-    this.trace = function(msg) {
-        log.logp(Level.FINEST, null, null, msg);
-    };
+    this.trace = (msg) => log.logp(Level.FINEST, null, null, msg);
 
-    this.debug = function(msg) {
-        log.logp(Level.FINE, null, null, msg);
-    };
+    this.debug = (msg) => log.logp(Level.FINE, null, null, msg);
 
-    this.info = function(msg) {
-        log.logp(Level.INFO, null, null, msg);
-    };
+    this.info = (msg) => log.logp(Level.INFO, null, null, msg);
 
-    this.warn = function(msg) {
-        log.logp(Level.WARNING, null, null, msg);
-    };
+    this.warn = (msg) => log.logp(Level.WARNING, null, null, msg);
 
-    this.error = function(msg) {
-        log.logp(Level.SEVERE, null, null, msg);
-    };
+    this.error = (msg) => log.logp(Level.SEVERE, null, null, msg);
 
-    this.isTraceEnabled = function() {
-        return log.isLoggable(Level.FINEST);
-    };
+    this.isTraceEnabled = () => log.isLoggable(Level.FINEST);
 
-    this.isDebugEnabled = function() {
-        return log.isLoggable(Level.FINE);
-    };
+    this.isDebugEnabled = () => log.isLoggable(Level.FINE);
 
-    this.isInfoEnabled = function() {
-        return log.isLoggable(Level.INFO);
-    };
+    this.isInfoEnabled = () => log.isLoggable(Level.INFO);
 
-    this.isWarnEnabled = function() {
-        return log.isLoggable(Level.WARNING);
-    };
+    this.isWarnEnabled = () => log.isLoggable(Level.WARNING);
 
-    this.isErrorEnabled = function() {
-        return log.isLoggable(Level.SEVERE);
-    };
-}
+    this.isErrorEnabled = () => log.isLoggable(Level.SEVERE);
+
+    return this;
+};
 
 /**
  * Logger implementation based on log4j
  * @param {String} name the logger name
  */
-function Log4jLogger(name) {
+const Log4jLogger = function(name) {
 
     if (!configured) {
         setConfig(getResource('config/log4j2.properties'));
     }
-    var log = org.apache.logging.log4j.LogManager.getLogger(name);
-    this.trace = function(msg) {
-        // TODO: older versions of log4j don't support trace
-        log.trace(msg);
-    };
+    const log = org.apache.logging.log4j.LogManager.getLogger(name);
 
-    this.debug = function(msg) {
-        log.debug(msg);
-    };
+    this.trace = (msg) => log.trace(msg);
 
-    this.info = function(msg) {
-        log.info(msg);
-    };
+    this.debug = (msg) => log.debug(msg);
 
-    this.warn = function(msg) {
-        log.warn(msg);
-    };
+    this.info = (msg) => log.info(msg);
 
-    this.error = function(msg) {
-        log.error(msg);
-    };
+    this.warn = (msg) => log.warn(msg);
 
-    this.isTraceEnabled = function() {
-        return log.isTraceEnabled();
-    };
+    this.error = (msg) =>log.error(msg);
 
-    this.isDebugEnabled = function() {
-        return log.isDebugEnabled();
-    };
+    this.isTraceEnabled = () => log.isTraceEnabled();
 
-    this.isInfoEnabled = function() {
-        return log.isInfoEnabled();
-    };
+    this.isDebugEnabled = () => log.isDebugEnabled();
 
-    this.isWarnEnabled = function() {
-        return log.isWarnEnabled();
-    };
+    this.isInfoEnabled = () => log.isInfoEnabled();
 
-    this.isErrorEnabled = function() {
-        return log.isErrorEnabled();
-    };
-}
+    this.isWarnEnabled = () => log.isWarnEnabled();
+
+    this.isErrorEnabled = () => log.isErrorEnabled();
+
+    return this;
+};
 
 /**
  * Logger implementation based on SLF4J
  * @param {String} name the logger name
  */
-function Slf4jLogger(name) {
+const Slf4jLogger = function(name) {
 
     if (!configured) {
         setConfig(getResource('config/log4j2.properties'));
     }
-    var log = org.slf4j.LoggerFactory.getLogger(name);
+    const log = org.slf4j.LoggerFactory.getLogger(name);
 
-    this.trace = function(msg) {
-        log.trace(msg);
-    };
+    this.trace = (msg) => log.trace(msg);
 
-    this.debug = function(msg) {
-        log.debug(msg);
-    };
+    this.debug = (msg) => log.debug(msg);
 
-    this.info = function(msg) {
-        log.info(msg);
-    };
+    this.info = (msg) => log.info(msg);
 
-    this.warn = function(msg) {
-        log.warn(msg);
-    };
+    this.warn = (msg) => log.warn(msg);
 
-    this.error = function(msg) {
-        log.error(msg);
-    };
+    this.error = (msg) => log.error(msg);
 
-    this.isTraceEnabled = function() {
-        return log.isTraceEnabled();
-    };
+    this.isTraceEnabled = () => log.isTraceEnabled();
 
-    this.isDebugEnabled = function() {
-        return log.isDebugEnabled();
-    };
+    this.isDebugEnabled = () => log.isDebugEnabled();
 
-    this.isInfoEnabled = function() {
-        return log.isInfoEnabled();
-    };
+    this.isInfoEnabled = () => log.isInfoEnabled();
 
-    this.isWarnEnabled = function() {
-        return log.isWarnEnabled();
-    };
+    this.isWarnEnabled = () => log.isWarnEnabled();
 
-    this.isErrorEnabled = function() {
-        return log.isErrorEnabled();
-    };
-}
+    this.isErrorEnabled = () => log.isErrorEnabled();
 
-var LoggerImpl;
+    return this;
+};
 
+let LoggerImpl;
 if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
     LoggerImpl = Slf4jLogger;
 } else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
@@ -353,8 +295,3 @@ if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
 } else {
     LoggerImpl = JdkLogger;
 }
-
-module.exports.getLogger = getLogger;
-module.exports.setConfig = setConfig;
-module.exports.getScriptStack = getScriptStack;
-module.exports.getJavaStack = getJavaStack;
