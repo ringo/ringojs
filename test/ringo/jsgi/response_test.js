@@ -1,15 +1,13 @@
-var io = require("io");
-var binary = require("binary");
-var assert = require("assert");
+const io = require("io");
+const binary = require("binary");
+const assert = require("assert");
 
-var {JsgiResponse} = require("ringo/jsgi/response");
+const {JsgiResponse} = require("ringo/jsgi/response");
 
-exports.setUp = exports.tearDown = function() {}
+exports.testHttpStatus = () => {
+    const res = new JsgiResponse();
 
-exports.testHttpStatus = function () {
-    var res = new JsgiResponse();
-
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "text/plain; charset=utf-8" },
         body: [""]
@@ -74,10 +72,10 @@ exports.testHttpStatus = function () {
     assert.deepEqual(res, expected);
 };
 
-exports.testText = function () {
-    var res = new JsgiResponse();
+exports.testText = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "text/plain; charset=utf-8" },
         body: ["Hello World!", "1234"]
@@ -86,10 +84,10 @@ exports.testText = function () {
     assert.deepEqual(res.text("Hello World!", 1234), expected);
 };
 
-exports.testHtml = function () {
-    var res = new JsgiResponse();
+exports.testHtml = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "text/html; charset=utf-8" },
         body: ["<html>", "<h1>Hello World!</h1>", "1234", "</html>"]
@@ -98,10 +96,10 @@ exports.testHtml = function () {
     assert.deepEqual(res.html("<html>", "<h1>Hello World!</h1>", 1234, "</html>"), expected);
 };
 
-exports.testJson = function () {
-    var res = new JsgiResponse();
+exports.testJson = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "application/json; charset=utf-8" },
         body: ["{\"foo\":\"bar\"}"]
@@ -110,10 +108,10 @@ exports.testJson = function () {
     assert.deepEqual(res.json({foo: "bar"}), expected);
 };
 
-exports.testJsonp = function () {
-    var res = new JsgiResponse();
+exports.testJsonp = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "application/javascript; charset=utf-8" },
         body: ["doSomething", "(", "{\"foo\":\"bar\"}",");"]
@@ -122,10 +120,10 @@ exports.testJsonp = function () {
     assert.deepEqual(res.jsonp("doSomething", {foo: "bar"}), expected);
 };
 
-exports.testXml = function () {
-    var res = new JsgiResponse();
+exports.testXml = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "application/xml" },
         body: ["<xml>this is xml</xml>"]
@@ -135,17 +133,15 @@ exports.testXml = function () {
     assert.deepEqual(res.xml(new XML("<xml>this is xml</xml>")), expected);
 };
 
-exports.testStream = function () {
-    var source = [0, 1, 2, 3, 4, 5, 6, 7];
-    var stream = new io.MemoryStream(new binary.ByteArray(source));
-    var res = new JsgiResponse().stream(stream);
-    var readStream = function(body) {
-        var input = new io.MemoryStream();
-        body.forEach(function(buffer) {
-            input.write(buffer);
-        });
+exports.testStream = () => {
+    const source = [0, 1, 2, 3, 4, 5, 6, 7];
+    const readStream = (body) => {
+        const input = new io.MemoryStream();
+        body.forEach(buffer => input.write(buffer));
         return input.content.toArray();
     };
+    let stream = new io.MemoryStream(new binary.ByteArray(source));
+    let res = new JsgiResponse().stream(stream);
 
     assert.equal(res.status, 200);
     assert.deepEqual(res.headers, { "content-type": "application/octet-stream" });
@@ -159,13 +155,13 @@ exports.testStream = function () {
     assert.deepEqual(readStream(res.body), source);
 };
 
-exports.testBinary = function () {
-    var res = new JsgiResponse().binary(new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]));
+exports.testBinary = () => {
+    let res = new JsgiResponse().binary(new binary.ByteArray([0, 1, 2, 3, 4, 5, 6, 7]));
     assert.equal(res.status, 200);
     assert.deepEqual(res.headers, { "content-type": "application/octet-stream" });
     assert.strictEqual(typeof res.body.forEach, "function");
-    var arr = [];
-    res.body.forEach(function (ba) {
+    let arr = [];
+    res.body.forEach((ba) => {
         arr = arr.concat(ba.toArray());
     });
     assert.deepEqual(arr, [0, 1, 2, 3, 4, 5, 6, 7]);
@@ -175,7 +171,7 @@ exports.testBinary = function () {
     assert.deepEqual(res.headers, { "content-type": "application/pdf" });
     assert.strictEqual(typeof res.body.forEach, "function");
     arr = [];
-    res.body.forEach(function (ba) {
+    res.body.forEach(ba => {
         arr = arr.concat(ba.toArray());
     });
     assert.deepEqual(arr, [0, 1, 2, 3, 4, 5, 6, 7]);
@@ -188,20 +184,20 @@ exports.testBinary = function () {
     assert.deepEqual(res.headers, { "content-type": "application/asciistuff" });
     assert.strictEqual(typeof res.body.forEach, "function");
     arr = [];
-    res.body.forEach(function (ba) {
+    res.body.forEach(ba => {
         arr = arr.concat(ba.toArray());
     });
     assert.deepEqual(arr, [13,10]);
 
-    assert.throws(function() {
+    assert.throws(() => {
         new JsgiResponse().binary("i am not a binary object");
     }, Error);
 };
 
-exports.testSetCharset = function () {
-    var res = new JsgiResponse();
+exports.testSetCharset = () => {
+    const res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: { "content-type": "text/plain; charset=ISO-8859-1" },
         body: ["Use ISO-8859-1"]
@@ -211,10 +207,10 @@ exports.testSetCharset = function () {
 };
 
 
-exports.testAddHeaders = function () {
-    var res = new JsgiResponse();
+exports.testAddHeaders = () => {
+    let res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: {
             "content-type": "text/plain; charset=utf-8",
@@ -238,7 +234,7 @@ exports.testAddHeaders = function () {
     assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
     assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
     assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
-    assert.isTrue(res.headers.foo.every(function(val) {
+    assert.isTrue(res.headers.foo.every(val => {
         return typeof val === "string";
     }));
 
@@ -253,7 +249,7 @@ exports.testAddHeaders = function () {
     assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
     assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
     assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
-    assert.isTrue(res.headers.foo.every(function(val) {
+    assert.isTrue(res.headers.foo.every(val => {
         return typeof val === "string";
     }));
 
@@ -269,10 +265,10 @@ exports.testAddHeaders = function () {
     assert.isTrue(typeof res.headers.Foo === "string");
 };
 
-exports.testSetHeaders = function () {
-    var res = new JsgiResponse();
+exports.testSetHeaders = () => {
+    let res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: {
             "content-type": "text/plain; charset=utf-8",
@@ -306,9 +302,7 @@ exports.testSetHeaders = function () {
     assert.isTrue(res.headers.foo.indexOf("bar") >= 0);
     assert.isTrue(res.headers.foo.indexOf("baz") >= 0);
     assert.isTrue(res.headers.foo.indexOf("12345") >= 0);
-    assert.isTrue(res.headers.foo.every(function(val) {
-        return typeof val === "string";
-    }));
+    assert.isTrue(res.headers.foo.every(val => typeof val === "string"));
 
     res.setHeaders({ foo: ["moo", "maa", 67890] });
     assert.deepEqual(res.headers,  {
@@ -328,10 +322,10 @@ exports.testSetHeaders = function () {
     assert.isTrue(typeof res.headers.Foo === "string");
 };
 
-exports.testSetContentType = function () {
-    var res = new JsgiResponse();
+exports.testSetContentType = () => {
+    let res = new JsgiResponse();
 
-    var expected = new JsgiResponse({
+    const expected = new JsgiResponse({
         status: 200,
         headers: {
             "content-type": "foo/bar; charset=utf-16"
@@ -355,10 +349,10 @@ exports.testSetContentType = function () {
     });
 };
 
-exports.testHelpers = function() {
-    var response = require("ringo/jsgi/response");
+exports.testHelpers = () => {
+    const response = require("ringo/jsgi/response");
 
-    var expected = new JsgiResponse({
+    let expected = new JsgiResponse({
         status: 123,
         headers: { "content-type": "text/plain; charset=utf-8" },
         body: ["Hello World!"]
