@@ -2,7 +2,7 @@
  * @fileOverview This module provides functionality for determining the MIME type for a
  * given file extension.
  *
- * @example >> var mime = require('ringo/mime');
+ * @example >> const mime = require('ringo/mime');
  * >> mime.mimeType('photo.jpg');
  * 'image/jpeg'
  * >> mime.mimeType('video.m4v');
@@ -21,8 +21,8 @@
  * @param {String} fallback MIME type to return if file extension is unknown
  * @returns {String} the MIME type for the file name
  */
-exports.mimeType = function(fileName, fallback) {
-    var ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+exports.mimeType = (fileName, fallback) => {
+    const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
     return exports.MIME_TYPES[ext] || fallback || 'application/octet-stream';
 };
 
@@ -133,10 +133,7 @@ exports.MIME_TYPES = {
     ".odi"     : "application/vnd.oasis.opendocument.image",
     ".odm"     : "application/vnd.oasis.opendocument.text-master",
     ".odp"     : "application/vnd.oasis.opendocument.presentation",
-    ".odp"     : "application/vnd.oasis.opendocument.presentation",
     ".ods"     : "application/vnd.oasis.opendocument.spreadsheet",
-    ".ods"     : "application/vnd.oasis.opendocument.spreadsheet",
-    ".odt"     : "application/vnd.oasis.opendocument.text",
     ".odt"     : "application/vnd.oasis.opendocument.text",
     ".ogg"     : "application/ogg",
     ".ogx"     : "application/ogg",
