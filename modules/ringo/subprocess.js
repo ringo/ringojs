@@ -6,19 +6,19 @@
  * The exact behavior of this module is highly system-dependent.
  */
 
-var {Stream, MemoryStream, TextStream} = require('io');
-var fs = require('fs');
-var arrays = require('ringo/utils/arrays');
-var sys = require("system");
+const io = require('io');
+const fs = require('fs');
+const arrays = require('ringo/utils/arrays');
+const system = require("system");
 
-function parseArguments(args) {
+const parseArguments = function(args) {
     // arguments may end with a {dir: "", env: {}} object
-    var opts = (args.length > 1 && arrays.peek(args) instanceof Object) ?
-            Array.pop(args) : {};
+    const opts = (args.length > 1 && arrays.peek(args) instanceof Object) ?
+            Array.prototype.pop.call(args) : {};
     // make command either a single string or an array of strings
-    opts.command = args.length == 1 ? String(args[0]) : Array.prototype.map.call(args, String);
+    opts.command = (args.length === 1) ? String(args[0]) : Array.prototype.map.call(args, String);
     return opts;
-}
+};
 
 /**
  * Low-level function to spawn a new process. The function takes an object
@@ -38,24 +38,24 @@ function parseArguments(args) {
  * @returns {Process} a Process object
  * @see #Process
  */
-var createProcess = exports.createProcess = function(args) {
+const createProcess = exports.createProcess = function(args) {
     // convert arguments
-    var {command, env, dir, binary, encoding} = args;
+    let {command, env, dir, binary, encoding} = args;
     dir = new java.io.File(dir || fs.workingDirectory());
     if (env && !Array.isArray(env)) {
         // convert env to an array of the form ["key=value", ...]
-        env = [key + "=" + env[key] for (key in env)];
+        Object.keys(env).map(key => key + "=" + env[key]);
     } else if (!env) {
         env = null;
     }
-    var process = java.lang.Runtime.getRuntime().exec(command, env, dir);
-    var stdin = new Stream(process.getOutputStream());
-    var stdout = new Stream(process.getInputStream());
-    var stderr = new Stream(process.getErrorStream());
+    const process = java.lang.Runtime.getRuntime().exec(command, env, dir);
+    let stdin = new io.Stream(process.getOutputStream());
+    let stdout = new io.Stream(process.getInputStream());
+    let stderr = new io.Stream(process.getErrorStream());
     if (!binary) {
-        stdin = new TextStream(stdin, {charset: encoding});
-        stdout = new TextStream(stdout, {charset: encoding});
-        stderr = new TextStream(stderr, {charset: encoding});
+        stdin = new io.TextStream(stdin, {charset: encoding});
+        stdout = new io.TextStream(stdout, {charset: encoding});
+        stderr = new io.TextStream(stderr, {charset: encoding});
     }
     /**
      * The Process object can be used to control and obtain information about a
@@ -85,17 +85,13 @@ var createProcess = exports.createProcess = function(args) {
          * @name Process.prototype.wait
          * @function
          */
-        wait: function() {
-            return process.waitFor();
-        },
+        wait: () => process.waitFor(),
         /**
          * Kills the subprocess.
          * @name Process.prototype.kill
          * @function
          */
-        kill: function() {
-            process.destroy();
-        },
+        kill: () => process.destroy(),
         /**
          * Connects the process's steams to the argument streams and starts threads to
          * copy the data asynchronously.
@@ -104,7 +100,7 @@ var createProcess = exports.createProcess = function(args) {
          * @param {Stream} errput input stream to connect to the process's error stream
          * @name Process.prototype.connect
          */
-        connect: function(input, output, errput) {
+        connect: (input, output, errput) => {
             if (input) {
                 spawn(function() {
                     input.copy(stdin);
@@ -140,17 +136,17 @@ var createProcess = exports.createProcess = function(args) {
  * @returns {String} the standard output of the command
  */
 exports.command = function() {
-    var args = parseArguments(arguments);
-    var process = createProcess(args);
-    var output= new MemoryStream(),
-        errput = new MemoryStream();
+    const args = parseArguments(arguments);
+    const process = createProcess(args);
+    let output= new io.MemoryStream();
+    let errput = new io.MemoryStream();
     if (!args.binary) {
-        output = new TextStream(output, {charset: args.encoding});
-        errput = new TextStream(errput, {charset: args.encoding});
+        output = new io.TextStream(output, {charset: args.encoding});
+        errput = new io.TextStream(errput, {charset: args.encoding});
     }
     process.connect(null, output, errput);
-    var status = process.wait();
-    if (status != 0) {
+    const status = process.wait();
+    if (status !== 0) {
         throw new Error("(" + status + ") " + errput.content);
     }
     return output.content;
@@ -169,10 +165,10 @@ exports.command = function() {
  * @returns {Number} exit status
  */
 exports.system = function() {
-    var args = parseArguments(arguments);
-    var process = createProcess(args);
-    var output = sys.stdout,
-        errput = sys.stderr;
+    const args = parseArguments(arguments);
+    const process = createProcess(args);
+    let output = system.stdout;
+    let errput = system.stderr;
     if (args.binary) {
         output = output.raw;
         errput = errput.raw;
@@ -193,20 +189,19 @@ exports.system = function() {
  * @name status
  */
 exports.status = function() {
-    var process = createProcess(parseArguments(arguments));
-    process.connect(null, dummyStream(), dummyStream());
+    const process = createProcess(parseArguments(arguments));
+    process.connect(null, new DummyStream(), new DummyStream());
     return process.wait();
 };
 
-function dummyStream() {
-    return {
-        writable: function() true,
-        readable: function() false,
-        seekable: function() false,
-        write: function() this,
-        flush: function() this,
-        close: function() this
-    }
-}
-
-
+const DummyStream = function() {
+    Object.defineProperties(this, {
+        "writable": {"value": () => true},
+        "readable": {"value": () => false},
+        "seekable": {"value": () => false},
+        "write": {"value": () => this},
+        "flush": {"value": () => this},
+        "close": {"value": () => this},
+    });
+    return this;
+};
