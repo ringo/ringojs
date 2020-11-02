@@ -30,6 +30,18 @@
  * dates.diff(y2k, now, "mixed"); // { days: 5844, hours: 0, ... }
  */
 
+const {Calendar} = java.util;
+const {Instant, ZoneOffset} = java.time;
+
+// Helper
+/** @ignore */
+const createGregorianCalender = (date, locale) => {
+    const cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
+    cal.set(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
+    cal.set(Calendar.MILLISECOND, date.getMilliseconds());
+    return cal;
+};
+
 /**
  * Format a Date to a string in a locale-sensitive manner.
  * For details on the format pattern, see
@@ -60,37 +72,23 @@
  * // "1999-12-31 14:00:00 GMT-10:00"
  * dates.format(y2k, "yyyy-MM-dd HH:mm:ss z", "de", "GMT-10");
  */
-function format(date, format, locale, timezone) {
+exports.format = (date, format, locale, timezone) => {
     if (!format) {
         return date.toString();
     }
-
     if (typeof locale == "string") {
         locale = new java.util.Locale(locale);
     }
-
     if (typeof timezone == "string") {
         timezone = java.util.TimeZone.getTimeZone(timezone);
     }
 
-    var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
-
+    const sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
     if (timezone && timezone != sdf.getTimeZone()) {
         sdf.setTimeZone(timezone);
     }
-
     return sdf.format(date);
-}
-
-// Helper
-/** @ignore */
-function createGregorianCalender(date, locale) {
-    const cal = locale ? new java.util.GregorianCalendar(locale) : new java.util.GregorianCalendar();
-    cal.set(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
-    cal.set(java.util.Calendar.MILLISECOND, date.getMilliseconds());
-
-    return cal;
-}
+};
 
 /**
  * Checks if the date is a valid date.
@@ -103,14 +101,14 @@ function createGregorianCalender(date, locale) {
  * @param {Number} day between 1 and 31
  * @returns {Boolean} true, if the date is valid, false if not.
  */
-function checkDate(fullYear, month, day) {
+exports.checkDate = (fullYear, month, day) => {
     if (fullYear == null || month == null || day == null) {
         return false;
     }
 
-    var d = new Date(fullYear, month, day);
+    const d = new Date(fullYear, month, day);
     return d.getFullYear() === fullYear && d.getMonth() === month && d.getDate() === day;
-}
+};
 
 /**
  * Adds delta to the given field or reduces it, if delta is negative. If larger fields are effected,
@@ -127,43 +125,43 @@ function checkDate(fullYear, month, day) {
  * var d2 = dates.add(d1, 1, "hour");
  * dates.diff(d1, d2, "hours"); // --> 1
  */
-function add(date, delta, unit) {
-    var unit = (typeof unit === 'undefined') ? "day" : unit,
-    cal = createGregorianCalender(date),
-    delta = delta || 0;
+exports.add = (date, delta, unit) => {
+    unit = (typeof unit === 'undefined') ? "day" : unit;
+    delta || (delta = 0);
+    const cal = createGregorianCalender(date);
 
     switch (unit) {
         case "year":
         case "years":
-            cal.add(java.util.Calendar.YEAR, delta);
+            cal.add(Calendar.YEAR, delta);
             break;
         case "quarter":
         case "quarters":
-            cal.add(java.util.Calendar.MONTH, delta * 3);
+            cal.add(Calendar.MONTH, delta * 3);
             break;
         case "month":
         case "months":
-            cal.add(java.util.Calendar.MONTH, delta);
+            cal.add(Calendar.MONTH, delta);
             break;
         case "week":
         case "weeks":
-            cal.add(java.util.Calendar.WEEK_OF_YEAR, delta);
+            cal.add(Calendar.WEEK_OF_YEAR, delta);
             break;
         case "day":
         case "days":
-            cal.add(java.util.Calendar.DATE, delta);
+            cal.add(Calendar.DATE, delta);
             break;
         case "hour":
         case "hours":
-            cal.add(java.util.Calendar.HOUR_OF_DAY, delta);
+            cal.add(Calendar.HOUR_OF_DAY, delta);
             break;
         case "minute":
         case "minutes":
-            cal.add(java.util.Calendar.MINUTE, delta);
+            cal.add(Calendar.MINUTE, delta);
             break;
         case "second":
         case "seconds":
-            cal.add(java.util.Calendar.SECOND, delta);
+            cal.add(Calendar.SECOND, delta);
             break;
         case "millisecond":
         case "milliseconds":
@@ -172,7 +170,7 @@ function add(date, delta, unit) {
             throw new Error("Invalid unit: " + unit);
     }
     return new Date(cal.getTimeInMillis());
-}
+};
 
 /**
  * Checks if the date's year is a leap year.
@@ -180,10 +178,10 @@ function add(date, delta, unit) {
  * @param {Date} date to check year
  * @returns {Boolean} true if the year is a leap year, false if not.
  */
-function isLeapYear(date) {
-    var year = date.getFullYear();
-    return year % 4 == 0 && (year % 100 != 0 || (year % 400 == 0));
-}
+const isLeapYear = exports.isLeapYear = (date) => {
+    const year = date.getFullYear();
+    return year % 4 === 0 && (year % 100 !== 0 || (year % 400 === 0));
+};
 
 /**
  * Checks if date <code>a</code> is before date <code>b</code>. This is equals to <code>compareTo(a, b) &lt; 0</code>
@@ -192,9 +190,9 @@ function isLeapYear(date) {
  * @param {Date} b second date
  * @returns {Boolean} true if <code>a</code> is before <code>b</code>, false if not.
  */
-function before(a, b) {
+exports.before = (a, b) => {
     return a.getTime() < b.getTime();
-}
+};
 
 /**
  * Checks if date <code>a</code> is after date <code>b</code>. This is equals to <code>compare(a, b) &gt; 0</code>
@@ -203,9 +201,9 @@ function before(a, b) {
  * @param {Date} b second date
  * @returns {Boolean} true if <code>a</code> is after <code>b</code>, false if not.
  */
-function after(a, b) {
+exports.after = (a, b) => {
     return a.getTime() > b.getTime();
-}
+};
 
 /**
  * Compares the time values of <code>a</code> and <code>b</code>.
@@ -215,15 +213,14 @@ function after(a, b) {
  * @returns {Number} -1 if <code>a</code> is before <code>b</code>, 0 if equals and 1 if <code>a</code> is after <code>b</code>.
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html#compareTo-java.util.Calendar-">java.util.Calendar compareTo()</a>
  */
-function compare(a, b) {
+exports.compare = (a, b) => {
     if (a.getTime() === b.getTime()) {
         return 0;
     } else if (a.getTime() < b.getTime()) {
         return -1;
-    } else {
-        return 1;
     }
-}
+    return 1;
+};
 
 /**
  * Gets the first day of the week.
@@ -232,28 +229,28 @@ function compare(a, b) {
  * @returns {Number} the first day of the week; 1 = Sunday, 2 = Monday.
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/constant-values.html#java.util">java.util.Calendar constant field values</a>
  */
-function firstDayOfWeek(locale) {
-    let calendar = locale ? java.util.Calendar.getInstance(locale) : java.util.Calendar.getInstance();
+exports.firstDayOfWeek = (locale) => {
+    const calendar = locale ? Calendar.getInstance(locale) : Calendar.getInstance();
     return calendar.getFirstDayOfWeek();
-}
+};
 
 /**
  * Gets the second of the day for the given date.
  * @param {Date} date calculate the second of the day.
  * @returns {Number} second of the day
  */
-function secondOfDay(date) {
+exports.secondOfDay = (date) => {
     return (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
-}
+};
 
 /**
  * Gets the day of the year for the given date.
  * @param {Date} date calculate the day of the year.
  * @returns {Number} day of the year
  */
-function dayOfYear(date) {
-    return createGregorianCalender(date).get(java.util.Calendar.DAY_OF_YEAR);
-}
+exports.dayOfYear = (date) => {
+    return createGregorianCalender(date).get(Calendar.DAY_OF_YEAR);
+};
 
 /**
  * Gets the week of the month for the given date.
@@ -261,9 +258,9 @@ function dayOfYear(date) {
  * @param {java.util.Locale} locale (optional) the locale as java Locale
  * @returns {Number} week of the month
  */
-function weekOfMonth(date, locale) {
-    return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_MONTH);
-}
+exports.weekOfMonth = (date, locale) => {
+    return createGregorianCalender(date, locale).get(Calendar.WEEK_OF_MONTH);
+};
 
 /**
  * Gets the week of the year for the given date.
@@ -271,9 +268,9 @@ function weekOfMonth(date, locale) {
  * @param {java.util.Locale} locale (optional) the locale as java Locale
  * @returns {Number} week of the year
  */
-function weekOfYear(date, locale) {
-    return createGregorianCalender(date, locale).get(java.util.Calendar.WEEK_OF_YEAR);
-}
+exports.weekOfYear = (date, locale) => {
+    return createGregorianCalender(date, locale).get(Calendar.WEEK_OF_YEAR);
+};
 
 /**
  * Gets the year of the century for the given date.
@@ -282,65 +279,65 @@ function weekOfYear(date, locale) {
  * @example dates.yearInCentury(new Date(1900, 0, 1)); // --> 0
  * dates.yearInCentury(new Date(2016, 0, 1)); // --> 16
  */
-function yearInCentury(date) {
-    var year = date.getFullYear();
+exports.yearInCentury = (date) => {
+    const year = date.getFullYear();
     return year - (Math.floor(year / 100) * 100);
-}
+};
 
 /**
  * Gets the number of the days in the month.
  * @param {Date} date to find the maximum number of days.
  * @returns {Number} days in the month, between 28 and 31.
  */
-function daysInMonth(date) {
-    return createGregorianCalender(date).getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
-}
+exports.daysInMonth = (date) => {
+    return createGregorianCalender(date).getActualMaximum(Calendar.DAY_OF_MONTH);
+};
 
 /**
  * Gets the number of the days in the year.
  * @param {Date} date to find the maximum number of days.
  * @returns {Number} days in the year, 365 or 366, if it's a leap year.
  */
-function daysInYear(date) {
+exports.daysInYear = (date) => {
     return isLeapYear(date) ? 366 : 365;
-}
+};
 
 /**
  * Gets the number of the days in february.
  * @param {Date} date of year to find the number of days in february.
  * @returns {Number} days in the february, 28 or 29, if it's a leap year.
  */
-function daysInFebruary(date) {
+exports.daysInFebruary = (date) => {
     return isLeapYear(date) ? 29 : 28;
-}
+};
 
 /**
  * Gets the quarter in the year.
  * @param {Date} date to calculate the quarter for.
  * @returns {Number} quarter of the year, between 1 and 4.
  */
-function quarterInYear(date) {
-    switch (createGregorianCalender(date).get(java.util.Calendar.MONTH)) {
-        case java.util.Calendar.JANUARY:
-        case java.util.Calendar.FEBRUARY:
-        case java.util.Calendar.MARCH:
+const quarterInYear = exports.quarterInYear = (date) => {
+    switch (createGregorianCalender(date).get(Calendar.MONTH)) {
+        case Calendar.JANUARY:
+        case Calendar.FEBRUARY:
+        case Calendar.MARCH:
             return 1;
-        case java.util.Calendar.APRIL :
-        case java.util.Calendar.MAY :
-        case java.util.Calendar.JUNE :
+        case Calendar.APRIL :
+        case Calendar.MAY :
+        case Calendar.JUNE :
             return 2;
-        case java.util.Calendar.JULY :
-        case java.util.Calendar.AUGUST :
-        case java.util.Calendar.SEPTEMBER :
+        case Calendar.JULY :
+        case Calendar.AUGUST :
+        case Calendar.SEPTEMBER :
             return 3;
-        case java.util.Calendar.OCTOBER :
-        case java.util.Calendar.NOVEMBER :
-        case java.util.Calendar.DECEMBER :
+        case Calendar.OCTOBER :
+        case Calendar.NOVEMBER :
+        case Calendar.DECEMBER :
             return 4;
     }
 
     throw "Invalid date provided";
-}
+};
 
 /**
  * Gets the quarter in the fiscal year.
@@ -351,21 +348,21 @@ function quarterInYear(date) {
  * // returns 4th quarter
  * dates.quarterInFiscalYear(new Date(2016, 3, 30), new Date(0, 4, 1));
  */
-function quarterInFiscalYear(date, fiscalYearStart) {
-    var firstDay   = fiscalYearStart.getDate(),
-    firstMonth = fiscalYearStart.getMonth(),
-    year = date.getFullYear();
-
+exports.quarterInFiscalYear = (date, fiscalYearStart) => {
+    const firstDay = fiscalYearStart.getDate();
+    const firstMonth = fiscalYearStart.getMonth();
     if (firstDay === 29 && firstMonth === 1) {
         throw "Fiscal year cannot start on 29th february.";
     }
 
+    let year = date.getFullYear();
     // fiscal year starts in the year before the date
-    if (date.getMonth() < firstMonth || (date.getMonth() == firstMonth && date.getDate() < firstDay)) {
+    if (date.getMonth() < firstMonth ||
+            (date.getMonth() === firstMonth && date.getDate() < firstDay)) {
         year --;
     }
 
-    var currentFiscalYear = [
+    const currentFiscalYear = [
         new Date(year, firstMonth, firstDay),
         new Date(year, firstMonth + 3, firstDay),
         new Date(year, firstMonth + 6, firstDay),
@@ -373,14 +370,14 @@ function quarterInFiscalYear(date, fiscalYearStart) {
         new Date(year, firstMonth + 12, firstDay)
     ];
 
-    for (var i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 4; i++) {
         if (inPeriod(date, currentFiscalYear[i-1], currentFiscalYear[i], false, true)) {
             return i;
         }
     }
 
     throw "Kudos! You found a bug, if you see this message. Report it!";
-}
+};
 
 /**
  * Get the difference between two dates, specified by the unit of time.
@@ -391,18 +388,18 @@ function quarterInFiscalYear(date, fiscalYearStart) {
  *        <code>mixed</code> (returns an object); and their respective plural form.
  * @returns difference between the given dates in the specified unit of time.
  * @type Number|Object<days, hours, minutes, seconds, milliseconds>
- * @example var d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
- * var d2 = new Date(Date.UTC(2017, 0, 1));
+ * @example const d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
+ * const d2 = new Date(Date.UTC(2017, 0, 1));
  * dates.diff(d1, d2, "years"); // --> 1
  * dates.diff(d1, d2, "year"); // --> 1
  * dates.diff(d1, d2, "minutes"); // --> 527040
  * dates.diff(d1, d2, "mixed"); // --> { days: 366, hours: 0, … }
  */
-function diff(a, b, unit) {
-    var unit = (typeof unit === 'undefined') ? "day" : unit,
-    mDiff = Math.abs(a.getTime() - b.getTime()),
-    yDiff = a.getFullYear() - b.getFullYear(),
-    delta = mDiff;
+const diff = exports.diff = (a, b, unit) => {
+    unit = (typeof unit === 'undefined') ? "day" : unit;
+    const mDiff = Math.abs(a.getTime() - b.getTime());
+    const yDiff = a.getFullYear() - b.getFullYear();
+    let delta = mDiff;
 
     switch (unit) {
         case "mixed":
@@ -450,7 +447,7 @@ function diff(a, b, unit) {
     }
 
     return Math.floor(delta);
-}
+};
 
 // By Dominik Gruber, written for Tenez.at
 /**
@@ -461,38 +458,34 @@ function diff(a, b, unit) {
  * @param {Date} bEnd second period's end
  * @returns {Boolean} true if the periods are overlapping at some point, false if not.
  */
-function overlapping(aStart, aEnd, bStart, bEnd) {
-    var aStart = aStart.getTime(),
-        aEnd   = aEnd.getTime(),
-        bStart = bStart.getTime(),
-        bEnd   = bEnd.getTime();
+exports.overlapping = (aStart, aEnd, bStart, bEnd) => {
+    aStart = aStart.getTime();
+    aEnd = aEnd.getTime();
+    bStart = bStart.getTime();
+    bEnd = bEnd.getTime();
 
-        // A     |----|
-        // B  |----|
-        if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
-            return true;
-        }
+    // A     |----|
+    // B  |----|
+    if (aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
+        return true;
+    }
 
-        // A  |----|
-        // B    |----|
-        if(aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
-            return true;
-        }
+    // A  |----|
+    // B    |----|
+    if (aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
+        return true;
+    }
 
-        // A  |-------|
-        // B    |--|
-        if(aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
-            return true;
-        }
+    // A  |-------|
+    // B    |--|
+    if (aStart <= bStart && aStart <= bEnd && aEnd >= bStart && aEnd >= bEnd) {
+        return true;
+    }
 
-        // A    |--|
-        // B  |-------|
-        if(aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd) {
-            return true;
-        }
-
-        return false;
-}
+    // A    |--|
+    // B  |-------|
+    return aStart >= bStart && aStart <= bEnd && aEnd >= bStart && aEnd <= bEnd;
+};
 
 /**
  * Look if the date is in the period, using <em>periodStart &lt;= date &lt;= periodEnd</em>.
@@ -503,31 +496,30 @@ function overlapping(aStart, aEnd, bStart, bEnd) {
  * @param {Boolean} periodEndOpen end point is open - default false.
  * @returns {Boolean} true if the date is in the period, false if not.
  */
-function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) {
-    var pStart = periodStart.getTime(),
-    pEnd = periodEnd.getTime(),
-    pStartOpen = periodStartOpen || false,
-    pEndOpen   = periodEndOpen || false,
-    dateMillis = date.getTime();
+const inPeriod = exports.inPeriod = (date, periodStart, periodEnd, periodStartOpen, periodEndOpen) => {
+    const pStart = periodStart.getTime();
+    const pEnd = periodEnd.getTime();
+    const pStartOpen = periodStartOpen || false;
+    const pEndOpen   = periodEndOpen || false;
+    const dateMillis = date.getTime();
 
-    if(!pStartOpen && !pEndOpen && pStart <= dateMillis && dateMillis <= pEnd) {
+    if (!pStartOpen && !pEndOpen && pStart <= dateMillis && dateMillis <= pEnd) {
         // period  |-------|
         // date       ^
         return true;
-    } else if(!pStartOpen && pEndOpen && pStart <= dateMillis && dateMillis < pEnd) {
+    } else if (!pStartOpen && pEndOpen && pStart <= dateMillis && dateMillis < pEnd) {
         // period  |-------)
         // date       ^
         return true;
-    } else if(pStartOpen && !pEndOpen && pStart < dateMillis && dateMillis <= pEnd) {
+    } else if (pStartOpen && !pEndOpen && pStart < dateMillis && dateMillis <= pEnd) {
         // period  (-------|
         // date       ^
         return true;
-    } else if(pStartOpen && pEndOpen && pStart < dateMillis && dateMillis < pEnd) {
+    } else if (pStartOpen && pEndOpen && pStart < dateMillis && dateMillis < pEnd) {
         // period  (-------)
         // date       ^
         return true;
     }
-
     return false;
 }
 
@@ -535,27 +527,27 @@ function inPeriod(date, periodStart, periodEnd, periodStartOpen, periodEndOpen) 
  * Resets the time values to 0, keeping only year, month and day.
  * @param {Date} date to reset
  * @returns {Date} date without any time values
- * @example var d = new Date(2016, 5, 10, 10, 20, 30);
+ * @example const d = new Date(2016, 5, 10, 10, 20, 30);
  *
  * // Fri Jun 10 2016 00:00:00 GMT+0200 (MESZ)
  * dates.resetTime(d);
  */
-function resetTime(date) {
+exports.resetTime = (date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
+};
 
 /**
  * Drops the date values, keeping only hours, minutes, seconds and milliseconds.
  * @param {Date} date to reset
  * @returns {Date} date with the original time values and 1970-01-01 as date.
- * @example var d = new Date(2016, 5, 10, 10, 20, 30);
+ * @example const d = new Date(2016, 5, 10, 10, 20, 30);
  *
  * // Thu Jan 01 1970 10:20:30 GMT+0100 (MEZ)
  * dates.resetDate(d);
  */
-function resetDate(date) {
+exports.resetDate = (date) => {
     return new Date(1970, 0, 1, date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
-}
+};
 
 /**
  * Creates an ISO 8601 compatible string from the date. This is similar to <code>Date.toISOString()</code>, which
@@ -572,7 +564,7 @@ function resetDate(date) {
  * @example // "2018-08-08T17:16:44.926+02:00"
  * dates.toISOString(new Date(), true, true);
  */
-function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds) {
+exports.toISOString = (date, withTime, withTimeZone, withSeconds, withMilliseconds) => {
     let year, month, day, hours, minutes, seconds, milliseconds, str;
 
     withTime = withTime !== false;
@@ -631,7 +623,7 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
     }
 
     return str;
-}
+};
 
 /**
  * Create new Date from UTC timestamp.
@@ -645,9 +637,9 @@ function toISOString(date, withTime, withTimeZone, withSeconds, withMilliseconds
  * @param {Number} millisecond (optional, default 0)
  * @returns {Date}
  */
-function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
+exports.fromUTCDate = (year, month, date, hour, minute, second, millisecond) => {
     return new Date(Date.UTC(year, month, date, hour || 0 , minute || 0, second || 0, millisecond || 0));
-}
+};
 
 /**
  * Parse a string to a date using date and time patterns from Java's <code>SimpleDateFormat</code>.
@@ -693,7 +685,7 @@ function fromUTCDate(year, month, date, hour, minute, second, millisecond) {
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">W3C Note: Date and Time Formats</a>
  * @see <a href="https://es5.github.io/#x15.9.4.2">ES5 Date.parse()</a>
  */
-function parse(str, format, locale, timezone, lenient) {
+exports.parse = (str, format, locale, timezone, lenient) => {
     let date;
     // if a format is provided, use java.text.SimpleDateFormat
     if (typeof format === "string") {
@@ -705,7 +697,7 @@ function parse(str, format, locale, timezone, lenient) {
             timezone = java.util.TimeZone.getTimeZone(timezone);
         }
 
-        var sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
+        const sdf = locale ? new java.text.SimpleDateFormat(format, locale) : new java.text.SimpleDateFormat(format);
 
         if (timezone && timezone !== sdf.getTimeZone()) {
             sdf.setTimeZone(timezone);
@@ -717,8 +709,8 @@ function parse(str, format, locale, timezone, lenient) {
                 sdf.setLenient(false);
             }
 
-            var ppos = new java.text.ParsePosition(0);
-            var javaDate = sdf.parse(str, ppos);
+            const ppos = new java.text.ParsePosition(0);
+            const javaDate = sdf.parse(str, ppos);
 
             // strict parsing & error during parsing --> return NaN
             if (lenient === false && ppos.getErrorIndex() >= 0) {
@@ -726,41 +718,43 @@ function parse(str, format, locale, timezone, lenient) {
             }
 
             date = javaDate != null ? new Date(javaDate.getTime()) : NaN;
-        } catch (e if e.javaException instanceof java.text.ParseException) {
+        } catch (e) {
+            if (!(e.javaException instanceof java.text.ParseException)) {
+                throw e;
+            }
             date = NaN;
         }
     } else {
         // no date format provided, fall back to RFC 3339
         // first check if the native parse method can parse it
-        var elapsed = Date.parse(str);
+        const elapsed = Date.parse(str);
         if (!isNaN(elapsed)) {
             date = new Date(elapsed);
         } else {
-            var match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?))?)?$/);
-            var date;
+            const match = str.match(/^(?:(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?)?(?:T(\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?(Z|(?:[+-]\d{1,2}(?::(\d{2}))?))?)?$/);
             if (match && (match[1] || match[7])) { // must have at least year or time
-                var year = parseInt(match[1], 10) || 0;
-                var month = (parseInt(match[2], 10) - 1) || 0;
-                var day = parseInt(match[3], 10) || 1;
+                const year = parseInt(match[1], 10) || 0;
+                const month = (parseInt(match[2], 10) - 1) || 0;
+                const day = parseInt(match[3], 10) || 1;
 
                 date = new Date(Date.UTC(year, month, day));
 
                 // Check if the given date is valid
-                if (date.getUTCMonth() != month || date.getUTCDate() != day) {
+                if (date.getUTCMonth() !== month || date.getUTCDate() !== day) {
                     return NaN;
                 }
 
                 // optional time
                 if (match[4] !== undefined) {
-                    var type = match[7];
-                    var hours = parseInt(match[4], 10);
-                    var minutes = parseInt(match[5], 10);
-                    var secFrac = parseFloat(match[6]) || 0;
-                    var seconds = secFrac | 0;
-                    var milliseconds = Math.round(1000 * (secFrac - seconds));
+                    const type = match[7];
+                    const hours = parseInt(match[4], 10);
+                    const minutes = parseInt(match[5], 10);
+                    const secFrac = parseFloat(match[6]) || 0;
+                    const seconds = secFrac | 0;
+                    const milliseconds = Math.round(1000 * (secFrac - seconds));
 
                     // Checks if the time string is a valid time.
-                    var validTimeValues = function (hours, minutes, seconds) {
+                    const validTimeValues = function (hours, minutes, seconds) {
                         if (hours === 24) {
                             if (minutes !== 0 || seconds !== 0 || milliseconds !== 0) {
                                 return false;
@@ -774,7 +768,7 @@ function parse(str, format, locale, timezone, lenient) {
                     // Use UTC or local time
                     if (type !== undefined) {
                         date.setUTCHours(hours, minutes, seconds, milliseconds);
-                        if (date.getUTCHours() != hours || date.getUTCMinutes() != minutes || date.getUTCSeconds() != seconds) {
+                        if (date.getUTCHours() !== hours || date.getUTCMinutes() !== minutes || date.getUTCSeconds() !== seconds) {
                             if (!validTimeValues(hours, minutes, seconds, milliseconds)) {
                                 return NaN;
                             }
@@ -782,9 +776,9 @@ function parse(str, format, locale, timezone, lenient) {
 
                         // Check offset
                         if (type !== "Z") {
-                            var hoursOffset = parseInt(type, 10);
-                            var minutesOffset = parseInt(match[8]) || 0;
-                            var offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
+                            const hoursOffset = parseInt(type, 10);
+                            const minutesOffset = parseInt(match[8]) || 0;
+                            const offset = -1000 * (60 * (hoursOffset * 60) + minutesOffset * 60);
 
                             // check maximal timezone offset (24 hours)
                             if (Math.abs(offset) >= 86400000) {
@@ -794,7 +788,7 @@ function parse(str, format, locale, timezone, lenient) {
                         }
                     } else {
                         date.setHours(hours, minutes, seconds, milliseconds);
-                        if (date.getHours() != hours || date.getMinutes() != minutes || date.getSeconds() != seconds) {
+                        if (date.getHours() !== hours || date.getMinutes() !== minutes || date.getSeconds() !== seconds) {
                             if (!validTimeValues(hours, minutes, seconds, milliseconds)) {
                                 return NaN;
                             }
@@ -807,7 +801,7 @@ function parse(str, format, locale, timezone, lenient) {
         }
     }
     return date;
-}
+};
 
 /**
  * Converts the given date to a <code>java.time.Instant</code> instance. Helps to interact with the
@@ -817,9 +811,9 @@ function parse(str, format, locale, timezone, lenient) {
  * @return {java.time.Instant} instant instance at the given point in time
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html">java.time</a>
  */
-function toInstant(date) {
+exports.toInstant = (date) => {
     return java.time.Instant.ofEpochMilli(date.getTime());
-}
+};
 
 /**
  * Converts the given date to a <code>java.time.OffsetDateTime</code> instance using the date's offset.
@@ -829,37 +823,8 @@ function toInstant(date) {
  * @return {java.time.OffsetDateTime} time instance with offset representing the given date
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/time/package-summary.html">java.time</a>
  */
-function toOffsetDateTime(date) {
-    return java.time.Instant.ofEpochMilli(date.getTime()).atOffset(
-        java.time.ZoneOffset.ofTotalSeconds(date.getTimezoneOffset() * -60)
+exports.toOffsetDateTime = (date) => {
+    return Instant.ofEpochMilli(date.getTime()).atOffset(
+        ZoneOffset.ofTotalSeconds(date.getTimezoneOffset() * -60)
     );
-}
-
-module.exports.format = format;
-module.exports.checkDate = checkDate;
-module.exports.add = add;
-module.exports.isLeapYear = isLeapYear;
-module.exports.before = before;
-module.exports.after = after;
-module.exports.compare = compare;
-module.exports.firstDayOfWeek = firstDayOfWeek;
-module.exports.secondOfDay = secondOfDay;
-module.exports.dayOfYear = dayOfYear;
-module.exports.weekOfMonth = weekOfMonth;
-module.exports.weekOfYear = weekOfYear;
-module.exports.quarterInYear = quarterInYear;
-module.exports.quarterInFiscalYear = quarterInFiscalYear;
-module.exports.yearInCentury = yearInCentury;
-module.exports.daysInMonth = daysInMonth;
-module.exports.daysInYear = daysInYear;
-module.exports.daysInFebruary = daysInFebruary;
-module.exports.diff = diff;
-module.exports.overlapping = overlapping;
-module.exports.inPeriod = inPeriod;
-module.exports.resetTime = resetTime;
-module.exports.resetDate = resetDate;
-module.exports.toISOString = toISOString;
-module.exports.fromUTCDate = fromUTCDate;
-module.exports.parse = parse;
-module.exports.toInstant = toInstant;
-module.exports.toOffsetDateTime = toOffsetDateTime;
+};
