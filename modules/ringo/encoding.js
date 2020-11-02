@@ -2,28 +2,27 @@
  * @fileOverview Low-level support for character encoding and decoding.
  * It uses the packages java.nio and java.nio.charset for the underlying operations.
  *
- * @example var enc = new Encoder('utf-8');
+ * @example const enc = new Encoder('utf-8');
  * enc.encode('I \u2665 JS').encode('I \u2665 JS');
- * var bs = enc.toByteString();
+ * const bs = enc.toByteString();
  *
  * // prints 'I ♥ JSI ♥ JS'
  * console.log(bs.decodeToString('utf-8'));
  *
- * var dec = new Decoder('ISO-8859-1');
- * var ba = new ByteArray([246, 228, 252]);
+ * const dec = new Decoder('ISO-8859-1');
+ * const ba = new ByteArray([246, 228, 252]);
  *
  * // prints öäü
  * console.log(dec.decode(ba));
  */
 
-var log = require("ringo/logging").getLogger(module.id);
+const {Charset, CodingErrorAction} = java.nio.charset;
+const {ByteBuffer, CharBuffer} = java.nio;
+const StringUtils = org.ringojs.util.StringUtils;
+const {String: JavaString} = java.lang;
+const binary = require("binary");
 
-var {Charset, CharsetEncoder, CharsetDecoder, CodingErrorAction} = java.nio.charset;
-var {ByteBuffer, CharBuffer} = java.nio;
-var StringUtils = org.ringojs.util.StringUtils;
-var JavaString = java.lang.String;
-
-var DEFAULTSIZE = 8192;
+const DEFAULTSIZE = 8192;
 
 /**
  * Creates a new Decoder to transform a ByteString or ByteArray to a string.
@@ -34,33 +33,32 @@ var DEFAULTSIZE = 8192;
  * @param {Number} capacity initial capacity for the input byte buffer and output character buffer. The output buffer's
  *                          size depends on the average bytes used per character by the charset.
  * @example // throws an Error: MALFORMED[1]
- * var dec = new Decoder('ASCII', true);
+ * const dec = new Decoder('ASCII', true);
  * dec.decode(new ByteArray([246, 228, 252, 999999]));
  *
  * // replaces 999999 with a substitutions character ���
- * var dec = new Decoder('ASCII');
+ * const dec = new Decoder('ASCII');
  * dec.decode(new ByteArray([246, 228, 252, 999999]));
  */
-module.exports.Decoder = function Decoder(charset, strict, capacity) {
+exports.Decoder = function Decoder(charset, strict, capacity) {
 
     if (!(this instanceof Decoder)) {
         return new Decoder(charset, strict, capacity);
     }
 
-    var decoder = Charset.forName(charset).newDecoder();
+    const decoder = Charset.forName(charset).newDecoder();
     // input buffer must be able to contain any character
     capacity = Math.max(capacity, 8) || DEFAULTSIZE;
-    var input = ByteBuffer.allocate(capacity);
-    var output = CharBuffer.allocate(decoder.averageCharsPerByte() * capacity);
-    var stream;
-    var mark = 0;
-
-    var errorAction = strict ?
+    const input = ByteBuffer.allocate(capacity);
+    let output = CharBuffer.allocate(decoder.averageCharsPerByte() * capacity);
+    const errorAction = strict ?
             CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
     decoder.onMalformedInput(errorAction);
     decoder.onUnmappableCharacter(errorAction);
 
-    var decoded;
+    let stream;
+    let mark = 0;
+    let decoded;
 
     /**
      * Decode bytes from the given buffer.
@@ -72,7 +70,7 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
         start = start || 0;
         end = end || bytes.length;
         while (end > start) {
-            var count = Math.min(end - start, input.capacity() - input.position());
+            let count = Math.min(end - start, input.capacity() - input.position());
             input.put(bytes, start, count);
             decodeInput(end - start);
             start += count;
@@ -84,11 +82,11 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     // Internal function
     function decodeInput(remaining) {
         input.flip();
-        var result = decoder.decode(input, output, false);
+        let result = decoder.decode(input, output, false);
         while (result.isOverflow()) {
             // grow output buffer
             capacity += Math.max(capacity, remaining);
-            var newOutput = CharBuffer.allocate(1.2 * capacity * decoder.averageCharsPerByte());
+            let newOutput = CharBuffer.allocate(1.2 * capacity * decoder.averageCharsPerByte());
             output.flip();
             newOutput.append(output);
             output = newOutput;
@@ -109,7 +107,7 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     */
     this.close = function() {
         input.flip();
-        var result = decoder.decode(input, output, true);
+        const result = decoder.decode(input, output, true);
         if (result.isError()) {
             decoder.reset();
             input.clear();
@@ -125,7 +123,7 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     * @see <a href="#readFrom">readFrom</a>
     */
     this.read = function() {
-        var eof = false;
+        let eof = false;
         while (stream && !eof) {
             if (mark > 0) {
                 output.limit(output.position());
@@ -133,8 +131,8 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
                 output.compact();
                 mark = 0;
             }
-            var position = input.position();
-            var read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
+            let position = input.position();
+            let read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
             if (read < 0) {
                 // end of stream has been reached
                 eof = true;
@@ -145,7 +143,7 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
         }
         output.flip();
         decoded = null; // invalidate
-        return mark == output.limit() ?
+        return (mark === output.limit()) ?
                     null : String(output.subSequence(mark, output.limit()));
     };
 
@@ -157,8 +155,8 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     * @see <a href="#readFrom">readFrom</a>
     */
     this.readLine = function(includeNewline) {
-        var eof = false;
-        var newline = StringUtils.searchNewline(output, mark);
+        let eof = false;
+        let newline = StringUtils.searchNewline(output, mark);
         while (stream && !eof && newline < 0) {
             if (mark > 0) {
                 output.limit(output.position());
@@ -166,13 +164,13 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
                 output.compact();
                 mark = 0;
             }
-            var position = input.position();
-            var read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
+            let position = input.position();
+            let read = stream.readInto(ByteArray.wrap(input.array()), position, input.capacity());
             if (read < 0) {
                 // end of stream has been reached
                 eof = true;
             } else {
-                var from = output.position();
+                let from = output.position();
                 input.position(position + read);
                 decodeInput(0);
                 newline = StringUtils.searchNewline(output, from);
@@ -180,10 +178,10 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
         }
         output.flip();
         // get the raw underlying char[] output buffer
-        var array = output.array();
-        var result;
+        const array = output.array();
+        let result;
         if (newline > -1) {
-            var isCrlf = array[newline] == 13 && array[newline + 1] == 10;
+            const isCrlf = array[newline] === 13 && array[newline + 1] === 10;
             if (isCrlf && includeNewline) {
                 // We want to add a single newline to the return value. To save us
                 // from allocating a new buffer we temporarily mod the existing one.
@@ -192,14 +190,14 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
                 array[newline] = 13;
                 mark = newline + 2;
             } else {
-                var count = includeNewline ? newline + 1 - mark : newline - mark;
+                let count = includeNewline ? newline + 1 - mark : newline - mark;
                 result = JavaString.valueOf(array, mark, count);
                 mark = isCrlf ? newline + 2 : newline + 1;
             }
             output.position(output.limit());
             output.limit(output.capacity());
         } else if (eof) {
-            result =  mark == output.limit() ?
+            result = (mark === output.limit()) ?
                     null : JavaString.valueOf(array, mark, output.limit() - mark);
             this.clear();
         }
@@ -231,11 +229,11 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
      * to reading from plain binary ByteArray or ByteString objects.
      * @param {io.Stream} source the source stream
      * @see <a href="../../io/">io streams</a>
-     * @example var stream = new MemoryStream();
+     * @example const stream = new MemoryStream();
      * stream.write(...); // write some bytes into the stream
      * stream.position = 0; // reset the pointer
      *
-     * var dec = new Decoder('ASCII');
+     * const dec = new Decoder('ASCII');
      * dec.readFrom(stream); // connect the stream with the decoder
      * dec.read(); // returns the stream's content as string
      */
@@ -263,10 +261,10 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     * Each character in the buffer is a 16-bit Unicode character.
     * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html">java.nio.CharBuffer</a>
     * @example // an emoji in 4 raw bytes
-    * var ba = new ByteArray([0xF0,0x9F,0x98,0x98]);
+    * const ba = new ByteArray([0xF0,0x9F,0x98,0x98]);
     *
     * // a UTF-8 based decoder
-    * var dec = new Decoder("UTF-8");
+    * const dec = new Decoder("UTF-8");
     *
     * // prints &#128536;
     * console.log(dec.decode(ba));
@@ -275,9 +273,7 @@ module.exports.Decoder = function Decoder(charset, strict, capacity) {
     * console.log(dec.length + " chars vs. " + ba.length + " bytes");
     */
     Object.defineProperty(this, "length", {
-        get: function() {
-            return output.position() - mark;
-        }
+        get: () => output.position() - mark
     });
 }
 
@@ -296,15 +292,15 @@ module.exports.Encoder = function Encoder(charset, strict, capacity) {
     }
 
     capacity = capacity || DEFAULTSIZE;
-    var encoder = Charset.forName(charset).newEncoder();
-    var encoded = new ByteArray(capacity);
-    var output = ByteBuffer.wrap(encoded);
-    var stream;
-
-    var errorAction = strict ?
-            CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
+    const encoder = Charset.forName(charset).newEncoder();
+    const encoded = new ByteArray(capacity);
+    const errorAction = strict ?
+        CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
     encoder.onMalformedInput(errorAction);
     encoder.onUnmappableCharacter(errorAction);
+
+    let output = ByteBuffer.wrap(encoded);
+    let stream;
 
     /**
      * Encodes the given string into the encoder's binary buffer.
@@ -317,13 +313,13 @@ module.exports.Encoder = function Encoder(charset, strict, capacity) {
     this.encode = function(string, start, end) {
         start = start || 0;
         end = end || string.length;
-        var input = CharBuffer.wrap(string, start, end);
-        var result = encoder.encode(input, output, false);
+        const input = CharBuffer.wrap(string, start, end);
+        let result = encoder.encode(input, output, false);
         while (result.isOverflow()) {
             // grow output buffer
             capacity += Math.max(capacity, Math.round(1.2 * (end - start) * encoder.averageBytesPerChar()));
             encoded.length = capacity;
-            var position = output.position();
+            let position = output.position();
             output = ByteBuffer.wrap(encoded);
             output.position(position);
             result = encoder.encode(input, output, false);
@@ -345,8 +341,8 @@ module.exports.Encoder = function Encoder(charset, strict, capacity) {
     * @returns {Encoder} the now closed encoder
     */
     this.close = function() {
-        var input = CharBuffer.wrap("");
-        var result = encoder.encode(input, output, true);
+        const input = CharBuffer.wrap("");
+        const result = encoder.encode(input, output, true);
         if (result.isError()) {
             encoder.reset();
             throw new Error(result);
@@ -368,7 +364,7 @@ module.exports.Encoder = function Encoder(charset, strict, capacity) {
     * @returns {ByteString} the resulting ByteString
     */
     this.toByteString = function() {
-        return ByteString.wrap(encoded.slice(0, output.position()));
+        return binary.ByteString.wrap(encoded.slice(0, output.position()));
     };
 
    /**
@@ -403,8 +399,6 @@ module.exports.Encoder = function Encoder(charset, strict, capacity) {
     * The underlying byte buffer's length.
     */
     Object.defineProperty(this, "length", {
-        get: function() {
-            return output.position();
-        }
+        get: () => output.position()
     });
 }
