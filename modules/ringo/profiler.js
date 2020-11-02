@@ -4,9 +4,25 @@
  * the profiler on optimized code will produce no data.
  */
 
-var strings = require('ringo/utils/strings');
-var log = require('ringo/logging').getLogger(module.id);
-var Buffer = require('ringo/buffer').Buffer;
+const strings = require('ringo/utils/strings');
+const log = require('ringo/logging').getLogger(module.id);
+const Buffer = require('ringo/buffer').Buffer;
+const {nanoTime} = java.lang.System;
+const engine = require("ringo/engine");
+
+/**
+ * @param {Function} script
+ */
+const getScriptName = (script) => {
+    if (script.isFunction()) {
+        const name = [script.sourceName,  " #", script.lineNumbers[0]];
+        if (script.functionName) {
+            name.push(": ", script.functionName);
+        }
+        return name.join("");
+    }
+    return script.sourceName;
+};
 
 /**
  * Convenience function for profiling the invocation of a function.
@@ -17,15 +33,14 @@ var Buffer = require('ringo/buffer').Buffer;
  *  <li>error: the error thrown by the function, if any</li>
  *  <li>profiler: the Profiler instance used to profile the invocation</li></ul>
  */
-module.exports.profile = function profile(func, maxFrames) {
-    var engine = require("ringo/engine");
+exports.profile = (func, maxFrames) => {
     if (engine.getOptimizationLevel() > -1) {
         log.warn("Profiling with optimization enabled will not produce any results.",
                  "Please set the optimization level to -1 when using the profiler.");
     }
-    var profiler = new Profiler();
-    var result, error;
+    const profiler = new Profiler();
     profiler.attach();
+    let result, error;
     try {
         result = func();
     } catch (e) {
@@ -37,16 +52,105 @@ module.exports.profile = function profile(func, maxFrames) {
         result: result,
         error: error,
         profiler: profiler
-    }
-}
+    };
+};
+
+/**
+ * @param {String} name
+ * @param {Array} stack
+ */
+const Frame = function(name, stack) {
+
+    // The timer for the current invocation of this frame.
+    // This is an object containing start and end timestamp properties and
+    // a subTimers array property containing timers for functions directly
+    // invoked from this frame.
+    let currentTimer;
+    const timerStack = [];     // Timer stack for other currently active invocations of this frame
+    const finishedTimers = []; // Timer list of finished invocations of this frame
+
+    Object.defineProperty(this, "name", {
+        "value": name,
+        "enumerable": true
+    });
+
+    /**
+     * @param {Object} cx
+     * @param {Object} activation
+     * @param {Object} thisObj
+     * @param {*...} args...
+     */
+    this.onEnter = function(cx, activation, thisObj, args) {
+        if (currentTimer) {
+            timerStack.push(currentTimer);
+        }
+        const now = nanoTime();
+        currentTimer = {
+            name: name,
+            start: now,
+            subTimers: []
+            // invoker: stack.length ? stack[stack.length - 1].name : null
+        };
+        stack.push(this);
+    };
+
+    /**
+     * @param {Object} cx
+     * @param {Object} ex
+     */
+    this.onExceptionThrown = function(cx, ex) {};
+
+    this.onExit = function(cx, byThrow, resultOrException) {
+        currentTimer.end = nanoTime();
+        stack.pop();
+        if (stack.length > 0) {
+            stack[stack.length - 1].addSubTimer(currentTimer);
+        }
+        finishedTimers.push(currentTimer);
+        currentTimer = timerStack.pop();
+    };
+
+    this.addSubTimer = function(subTimer) {
+        currentTimer.subTimers.push(subTimer);
+    };
+
+    this.getSelftime = function() {
+        return finishedTimers.reduce((prev, e) => {
+            // add this timer's runtime minus the accumulated sub-timers
+            return (prev + e.end - e.start) - e.subTimers.reduce((prev, e) => {
+                return prev + e.end - e.start;
+            }, 0);
+        }, 0);
+    };
+
+    this.getRuntime = function() {
+        return finishedTimers.reduce((prev, e) => {
+            return prev + (e.end - e.start);
+        }, 0);
+    };
+
+    this.countInvocations = function() {
+        return finishedTimers.length;
+    };
+
+    this.renderLine = function(prefixLength) {
+        const runtime = this.getSelftime() / 1000000;
+        const count = this.countInvocations();
+        const formatter = new java.util.Formatter();
+        formatter.format("%1$7.0f ms %2$5.0f ms %3$6.0f    %4$s",
+            runtime, Math.round(runtime / count), count, name.slice(prefixLength));
+        return formatter.toString();
+    };
+
+    return new org.mozilla.javascript.debug.DebugFrame(this);
+};
 
 /**
  * A class for measuring the frequency and runtime of function invocations.
  */
-module.exports.Profiler = function Profiler() {
-    var stack = [];
-    var frames = {};
-    var nanoTime = java.lang.System.nanoTime;
+const Profiler = exports.Profiler = function() {
+    const stack = [];
+    const frames = {};
 
     /**
      * @param {Object} cx
@@ -56,66 +160,45 @@ module.exports.Profiler = function Profiler() {
         if (!script.isFunction()) {
             return null;
         }
-        var name = getScriptName(script);
-        var frame = frames[name];
+        const name = getScriptName(script);
+        let frame = frames[name];
         if (!frame) {
-            frame = new Frame(name);
+            frame = new Frame(name, stack);
             frames[name] = frame;
         }
         return frame;
     };
 
-    /**
-     * @param {Function} script
-     */
-    var getScriptName = function(script) {
-        if (script.isFunction()) {
-            var name = [script.sourceName,  " #", script.lineNumbers[0]];
-            if (script.functionName) {
-                name.push(": ", script.functionName);
-            }
-            return name.join("");
-        } else {
-            return script.sourceName;
-        }
-    };
-
     this.getFrames = function() {
-        var list = [];
-        for each (var frame in frames) {
-            list.push(frame);
-        }
         // sort list according to total runtime
-        list = list.sort(function(a, b) {
-            return b.getSelftime() - a.getSelftime();
-        });
-        return list;
+        return Object.keys(frames)
+            .map(key => frames[key])
+            .sort((a, b) => b.getSelftime() - a.getSelftime());
     };
 
     /**
      * @param {Number} maxFrames optional maximal number of frames to include
      */
     this.formatResult = function(maxFrames) {
-        var list = this.getFrames();
+        const list = this.getFrames();
         // cut list to maxFrames elements
         if (typeof maxFrames == "number") {
             list.length = maxFrames;
         }
-        var count = 0;
-        var maxLength = 0;
         // find common prefix in path names
-        var commonPrefix = list.reduce(function(previous, current) {
+        const commonPrefix = list.reduce((previous, current) => {
             return strings.getCommonPrefix(previous, current.name);
         }, "");
         var lines = [];
-        for each (var item in list) {
-            var str = item.renderLine(commonPrefix.length);
+        let maxLength = 0;
+        list.forEach(item => {
+            const str = item.renderLine(commonPrefix.length);
             maxLength = Math.max(maxLength, str.length);
             lines.push(str);
-        }
-        var buffer = new Buffer();
+        })
+        const buffer = new Buffer();
         buffer.writeln("     total  average  calls    path");
-        for (var i = 1; i < maxLength; i++) {
+        for (let i = 1; i < maxLength; i++) {
             buffer.write("-");
         }
         buffer.writeln();
@@ -126,96 +209,6 @@ module.exports.Profiler = function Profiler() {
     this.toString = function() {
         return this.formatResult(null);
     };
-
-    /**
-     * @param {String} name
-     */
-    function Frame(name) {
-
-        // The timer for the current invocation of this frame.
-        // This is an object containing start and end timestamp properties and
-        // a subTimers array property containing timers for functions directly
-        // invoked from this frame.
-        var currentTimer;
-        var timerStack = [];     // Timer stack for other currently active invocations of this frame
-        var finishedTimers = []; // Timer list of finished invocations of this frame
-        this.name = name;
-
-        /**
-         * @param {Object} cx
-         * @param {Object} activation
-         * @param {Object} thisObj
-         * @param {*...} args...
-         */
-        this.onEnter = function(cx, activation, thisObj, args) {
-            if (currentTimer) {
-                timerStack.push(currentTimer);
-            }
-            var now = nanoTime();
-            currentTimer = {
-                name: name,
-                start: now,
-                subTimers: []
-                // invoker: stack.length ? stack[stack.length - 1].name : null
-            };
-            stack.push(this);
-        };
-
-        /**
-         * @param {Object} cx
-         * @param {Object} ex
-         */
-        this.onExceptionThrown = function(cx, ex) {
-        };
-
-        this.onExit = function(cx, byThrow, resultOrException) {
-            currentTimer.end = nanoTime();
-            stack.pop();
-            if (stack.length > 0) {
-                stack[stack.length - 1].addSubTimer(currentTimer);
-            }
-            finishedTimers.push(currentTimer);
-            currentTimer = timerStack.pop();
-        };
-
-        this.addSubTimer = function(subTimer) {
-            currentTimer.subTimers.push(subTimer);
-        };
-
-        this.getSelftime = function() {
-            return finishedTimers.reduce(
-                function(prev, e) {
-                    // add this timer's runtime minus the accumulated sub-timers
-                    return (prev + e.end - e.start) - e.subTimers.reduce(function(prev, e) {
-                        return prev + e.end - e.start;
-                    }, 0);
-                }, 0
-            );
-        };
-
-        this.getRuntime = function() {
-            return finishedTimers.reduce(
-                function(prev, e) {
-                    return prev + (e.end - e.start);
-                }, 0
-            );
-        };
-
-        this.countInvocations = function() {
-            return finishedTimers.length;
-        };
-
-        this.renderLine = function(prefixLength) {
-            var runtime = this.getSelftime() / 1000000;
-            var count = this.countInvocations();
-            var formatter = new java.util.Formatter();
-            formatter.format("%1$7.0f ms %2$5.0f ms %3$6.0f    %4$s",
-                    runtime, Math.round(runtime / count), count, name.slice(prefixLength));
-            return formatter.toString();
-        };
-
-        return new org.mozilla.javascript.debug.DebugFrame(this);
-    }
 
     var profiler = new org.ringojs.util.DebuggerBase(this);
     profiler.debuggerScript = module.id + ".js";
