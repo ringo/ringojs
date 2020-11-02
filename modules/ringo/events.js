@@ -11,14 +11,14 @@ defineClass(org.ringojs.wrappers.EventAdapter);
  * The `EventEmitter` function can be used as constructor or as mix-in. Use the
  * `new` keyword to construct a new EventEmitter:
  *
- *     var emitter = new EventEmitter();
+ *     const emitter = new EventEmitter();
  *
  * To add event handling methods to an existing object, call or apply the
  * `EventEmitter` function with the object as `this`:
  *
  *     EventEmitter.call(object);
  */
-var EventEmitter = exports.EventEmitter = function() {
+const EventEmitter = exports.EventEmitter = function() {
     // if called on an object other than EventEmitter define properties
     if (!(this instanceof EventEmitter)) {
         Object.defineProperties(this, emitterImpl);
@@ -35,7 +35,7 @@ var EventEmitter = exports.EventEmitter = function() {
  * constructor or as mix-in. Use the `new` keyword to construct a new
  * JavaEventEmitter:
  *
- *     var emitter = new JavaEventEmitter(JavaClassOrInterface);
+ *     const emitter = new JavaEventEmitter(JavaClassOrInterface);
  *
  * To add event handling methods to an existing object, call or apply the
  * `JavaEventEmitter` function with the object as `this`:
@@ -56,9 +56,9 @@ var EventEmitter = exports.EventEmitter = function() {
  *     set to the property value instead of the method name.
  */
 exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
-    var classArg = Array.isArray(classOrInterface) ?
+    const classArg = Array.isArray(classOrInterface) ?
             classOrInterface : [classOrInterface];
-    var e = new EventAdapter(classArg, eventMapping);
+    const e = new EventAdapter(classArg, eventMapping);
     Object.defineProperties(this, {
         /**
          * The generated Java object. This implements the Java interface
@@ -97,7 +97,9 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
          * @function
          */
         on: {
-            get: function() this.addListener
+            get: function() {
+                return this.addListener;
+            }
         },
         /**
          * Add a synchronous listener function for the given event. A
@@ -132,9 +134,7 @@ exports.JavaEventEmitter = function(classOrInterface, eventMapping) {
     return this;
 };
 
-var isArray = Array.isArray;
-
-var emitterImpl = {
+const emitterImpl = {
     /**
      * Emit an event to all listeners registered for this event type
      * @param {String} type type the event type
@@ -146,20 +146,18 @@ var emitterImpl = {
      */
     emit: {
         value: function(type) {
-            var args;
-            var listeners = this._events ? this._events[type] : null;
-            if (isArray(listeners) && !listeners.length) {
+            let listeners = this._events ? this._events[type] : null;
+            if (Array.isArray(listeners) && !listeners.length) {
                 listeners = null; // normalize empty listener array
             }
+            let args;
             if (typeof listeners === "function") {
                 args = Array.prototype.slice.call(arguments, 1);
                 listeners.apply(this, args);
                 return true;
-            } else if (isArray(listeners)) {
+            } else if (Array.isArray(listeners)) {
                 args = Array.prototype.slice.call(arguments, 1);
-                for (var i = 0; i < listeners.length; i++) {
-                    listeners[i].apply(this, args);
-                }
+                listeners.forEach(func => func.apply(this, args));
                 return true;
             } else {
                 return false;
@@ -176,7 +174,9 @@ var emitterImpl = {
      * @function
      */
     on: {
-        get: function() this.addListener
+        get: function() {
+            return this.addListener;
+        }
     },
     /**
      * Add a listener function for the given event. This is a shortcut for
@@ -193,13 +193,13 @@ var emitterImpl = {
                 throw new Error ("Event listener must be a function");
             }
 
-            if (!this._events) this._events = {};
+            this._events || (this._events = {});
             this.emit("newListener", type, listener);
 
             if (!this._events[type]) {
                 // store as single function
                 this._events[type] = listener;
-            } else if (isArray(this._events[type])) {
+            } else if (Array.isArray(this._events[type])) {
                 this._events[type].push(listener);
             } else {
                 // convert to array
@@ -223,17 +223,17 @@ var emitterImpl = {
                 throw new Error ("Event listener must be a function");
             }
 
-            if (this._events && this._events[type]) {
-                var listeners = this._events[type];
+            if (this._events && this._events.hasOwnProperty(type)) {
+                const listeners = this._events[type];
                 if (listeners === listener) {
                     delete this._events[type];
-                } else if (isArray(listeners)) {
-                    var i = listeners.indexOf(listener);
-                    if (i > -1) {
+                } else if (Array.isArray(listeners)) {
+                    const idx = listeners.indexOf(listener);
+                    if (idx > -1) {
                         if (listeners.length === 1) {
                             this._events = null;
                         } else {
-                            listeners.splice(i, 1);
+                            listeners.splice(idx, 1);
                         }
                     }
                 }
@@ -250,7 +250,9 @@ var emitterImpl = {
      */
     removeAllListeners: {
         value: function(type) {
-            if (type && this._events) this._events[type] = undefined;
+            if (type && this._events.hasOwnProperty(type)) {
+                delete this._events[type];
+            }
             return this;
         }
     },
@@ -265,12 +267,10 @@ var emitterImpl = {
      */
     listeners: {
         value: function(type) {
-            if (!this._events) {
-                this._events = {};
-            }
+            this._events || (this._events = {});
             if (!this._events[type]) {
                 this._events[type] = [];
-            } else if (!isArray(this._events[type])) {
+            } else if (!Array.isArray(this._events[type])) {
                 this._events[type] = [this._events[type]];
             }
             return this._events[type];
