@@ -47,7 +47,7 @@ EventEmitter.call(exports);
  */
 function Logger(name, impl) {
 
-    this.trace = () => {
+    this.trace = function() {
         if (impl.isTraceEnabled()) {
             const msg = formatMessage(arguments);
             impl.trace(msg);
@@ -55,7 +55,7 @@ function Logger(name, impl) {
         }
     };
 
-    this.debug = () => {
+    this.debug = function() {
         if (impl.isDebugEnabled()) {
             const msg = formatMessage(arguments);
             impl.debug(msg);
@@ -63,7 +63,7 @@ function Logger(name, impl) {
         }
     };
 
-    this.info = () => {
+    this.info = function() {
         if (impl.isInfoEnabled()) {
             const msg = formatMessage(arguments);
             impl.info(msg);
@@ -71,7 +71,7 @@ function Logger(name, impl) {
         }
     };
 
-    this.warn = () => {
+    this.warn = function() {
         if (impl.isWarnEnabled()) {
             const msg = formatMessage(arguments);
             impl.warn(msg);
@@ -79,7 +79,7 @@ function Logger(name, impl) {
         }
     };
 
-    this.error = () => {
+    this.error = function() {
         if (impl.isErrorEnabled()) {
             const msg = formatMessage(arguments);
             impl.error(msg);
