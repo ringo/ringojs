@@ -13,7 +13,7 @@
  *
  * @example // ringo parserExample.js -v --size 123 -p 45678
  *
- * include('ringo/term');
+ * const term = require('ringo/term');
  * const system = require('system');
  * const {Parser} = require('ringo/args');
  *
@@ -25,23 +25,23 @@
  *
  * const options = parser.parse(system.args.slice(1));
  * if (options.help) {
- *   writeln(parser.help());
+ *   term.writeln(parser.help());
  *} else {
  *   if (options.size) {
- *      writeln('Set size to ' + parseInt(options.size));
+ *      term.writeln('Set size to ' + parseInt(options.size));
  *   }
  *
  *   if (options.pid) {
- *      writeln('Kill process ' + options.pid);
+ *      term.writeln('Kill process ' + options.pid);
  *   }
  *
  *   if (options.verbose) {
- *      writeln('Verbose!');
+ *      term.writeln('Verbose!');
  *   }
  *}
  *
  * if (!Object.keys(options).length) {
- *   writeln("Run with -h/--help to see available options");
+ *   term.writeln("Run with -h/--help to see available options");
  * }
  */
 
