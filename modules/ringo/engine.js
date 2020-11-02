@@ -2,32 +2,34 @@
  * @fileOverview Provides access to the Rhino JavaScript engine.
  */
 
-var {Context, ClassShutter} = org.mozilla.javascript;
-var {RhinoEngine, RingoConfig} = org.ringojs.engine;
-var engine = RhinoEngine.getEngine(global);
+const {Context, ClassShutter} = org.mozilla.javascript;
+const {RhinoEngine, RingoConfig} = org.ringojs.engine;
+const engine = RhinoEngine.getEngine(global);
 
 /**
  * An object reflecting the Java system properties.
  */
-try {
-    var properties = new ScriptableMap(java.lang.System.getProperties());
-} catch (error) {
-    properties = {};
-}
+exports.properties = (() => {
+    try {
+        return new ScriptableMap(java.lang.System.getProperties());
+    } catch (error) {
+        return {};
+    }
+})();
 
 /**
  * The RingoJS version as an array-like object with the major and minor version
  * number as first and second element.
  */
-var version = new ScriptableList(RhinoEngine.VERSION);
+exports.version = new ScriptableList(RhinoEngine.VERSION);
 
 /**
  * Define a class as Rhino host object.
  * @param {JavaClass} javaClass the class to define as host object
  */
-function addHostObject(javaClass) {
+exports.addHostObject = (javaClass) => {
     engine.defineHostClass(javaClass);
-}
+};
 
 /**
  * Register a callback to be invoked when the current RingoJS instance is
@@ -39,9 +41,9 @@ function addHostObject(javaClass) {
  * synchronously (on the main shutdown thread) or asynchronously (on the
  * worker's event loop thread)
  */
-function addShutdownHook(funcOrObject, sync) {
+exports.addShutdownHook = (funcOrObject, sync) => {
     engine.addShutdownHook(funcOrObject, Boolean(sync));
-}
+};
 
 /**
  * Create a sandboxed scripting engine with the same install directory as this and the
@@ -56,36 +58,31 @@ function addShutdownHook(funcOrObject, sync) {
  * @returns {RhinoEngine} a sandboxed RhinoEngine instance
  * @throws {FileNotFoundException} if any part of the module paths does not exist
  */
-function createSandbox(modulePath, globals, options) {
-    options = options || {};
-    var systemModules = options.systemModules || null;
-    var config = new RingoConfig(
-            getRingoHome(), modulePath, systemModules);
+exports.createSandbox = (modulePath, globals, options) => {
+    options || (options = {});
+    const systemModules = options.systemModules || null;
+    const config = new RingoConfig(engine.getRingoHome(), modulePath, systemModules);
     if (options.classShutter) {
-        var shutter = options.shutter;
+        const shutter = options.shutter;
         config.setClassShutter(shutter instanceof ClassShutter ?
                 shutter : new ClassShutter(shutter));
     }
     config.setSealed(Boolean(options.sealed));
     return engine.createSandbox(config, globals);
-}
+};
 
 /**
  * Get the RingoJS installation directory.
  * @returns {Repository} a Repository representing the Ringo installation directory
  */
-function getRingoHome() {
-    return engine.getRingoHome();
-}
+exports.getRingoHome = () => engine.getRingoHome();
 
 /**
  * Get a wrapper for an object that exposes it as Java object to JavaScript.
  * @param {Object} object an object
  * @returns {Object} the object wrapped as native java object
  */
-function asJavaObject(object) {
-    return engine.asJavaObject(object);
-}
+exports.asJavaObject = (object) => engine.asJavaObject(object);
 
 /**
  * Get a wrapper for a string that exposes the java.lang.String methods to JavaScript
@@ -94,9 +91,7 @@ function asJavaObject(object) {
  * @param {Object} object an object
  * @returns {Object} the object converted to a string and wrapped as native java object
  */
-function asJavaString(object) {
-    return engine.asJavaString(object);
-}
+exports.asJavaString = (object) => engine.asJavaString(object);
 
 /**
  * Get the Rhino optimization level for the current thread and context.
@@ -105,9 +100,7 @@ function asJavaString(object) {
  * is 0.
  * @returns {Number} level an integer between -1 and 9
  */
-function getOptimizationLevel() {
-    return engine.getOptimizationLevel();
-}
+exports.getOptimizationLevel = () => engine.getOptimizationLevel();
 
 /**
  * Set the Rhino optimization level for the current thread and context.
@@ -116,87 +109,57 @@ function getOptimizationLevel() {
  * is 0.
  * @param {Number} level an integer between -1 and 9
  */
-function setOptimizationLevel(level) {
+exports.setOptimizationLevel = (level) => {
     engine.setOptimizationLevel(level);
 }
 
 /**
  * Get the org.mozilla.javascript.Context associated with the current thread.
  */
-function getRhinoContext() {
-    return Context.getCurrentContext();
-}
+exports.getRhinoContext = () => Context.getCurrentContext();
 
 /**
  * Get the org.ringojs.engine.RhinoEngine associated with this application.
  * @returns {org.ringojs.engine.RhinoEngine} the current RhinoEngine instance
  */
-function getRhinoEngine() {
-    return engine;
-}
+exports.getRhinoEngine = () => engine;
 
 /**
  * Get a new worker instance.
  * @return {org.ringojs.engine.RingoWorker} a new RingoWorker instance
  */
-function getWorker() {
-    return engine.getWorker();
-}
+exports.getWorker = () => engine.getWorker();
 
 /**
  * Get the worker instance associated with the current thread or the given scope or function object.
  * @param {Object} obj optional scope or function to get the worker from.
  * @return {org.ringojs.engine.RingoWorker} the current worker
  */
-function getCurrentWorker(obj) {
-    return engine.getCurrentWorker(obj || null);
-}
+exports.getCurrentWorker = (obj) => engine.getCurrentWorker(obj || null);
 
 /**
  * Get a list containing the syntax errors encountered in the current worker.
  * @returns {ScriptableList} a list containing the errors encountered in the
  * current worker
  */
-function getErrors() {
-    return new ScriptableList(getCurrentWorker().getErrors());
-}
+exports.getErrors = () => new ScriptableList(getCurrentWorker().getErrors());
 
 /**
  * Get the app's module search path as list of repositories.
  * @returns {ScriptableList} a list containing the module search path repositories
  */
-function getRepositories() {
-    return new ScriptableList(engine.getRepositories());
-}
+exports.getRepositories = () => new ScriptableList(engine.getRepositories());
 
 /**
  * Add a repository to the module search path
  * @param {Repository} repo a repository
  */
-function addRepository(repo) {
+exports.addRepository = (repo) => {
     if (typeof repo == "string") {
         repo = new org.ringojs.repository.FileRepository(repo);
     }
-    var path = getRepositories();
+    const path = getRepositories();
     if (repo.exists() && !path.contains(repo)) {
         path.add(Math.max(0, path.length) - 1, repo);
     }
-}
-
-module.exports.properties = properties;
-module.exports.addHostObject = addHostObject;
-module.exports.addRepository = addRepository;
-module.exports.addShutdownHook = addShutdownHook;
-module.exports.asJavaString = asJavaString;
-module.exports.asJavaObject = asJavaObject;
-module.exports.createSandbox = createSandbox;
-module.exports.getErrors = getErrors;
-module.exports.getRingoHome = getRingoHome;
-module.exports.getRepositories = getRepositories;
-module.exports.getRhinoContext = getRhinoContext;
-module.exports.getRhinoEngine = getRhinoEngine;
-module.exports.getOptimizationLevel = getOptimizationLevel;
-module.exports.setOptimizationLevel = setOptimizationLevel;
-module.exports.getCurrentWorker = getCurrentWorker;
-module.exports.getWorker = getWorker;
-module.exports.version = version;
+};
