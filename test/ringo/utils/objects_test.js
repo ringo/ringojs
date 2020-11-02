@@ -20,25 +20,25 @@
 // https://github.com/pvorb/node-clone/blob/master/LICENSE
 // http://paul.vorba.ch/ and https://github.com/pvorb/node-clone/graphs/contributors
 
-var assert = require('assert');
-var {merge, clone} = require('ringo/utils/objects');
+const assert = require('assert');
+const {merge, clone} = require('ringo/utils/objects');
 
 exports.testMerge = function() {
-    var x = {a: 1, b: 2};
-    var y = {b: 3, c: 4};
-    var z = {c: 5, d: 6};
+    const x = {a: 1, b: 2};
+    const y = {b: 3, c: 4};
+    const z = {c: 5, d: 6};
 
     // degenerate zero/single-argument cases
-    assert.deepEqual(merge(),          {});
-    assert.deepEqual(merge(x),         {a: 1, b: 2});
+    assert.deepEqual(merge(), {});
+    assert.deepEqual(merge(x), {a: 1, b: 2});
 
     // property values of "earlier" arguments are promoted into the result
-    assert.deepEqual(merge(x, y),      {a: 1, b: 2, c: 4});
-    assert.deepEqual(merge(y, x),      {b: 3, c: 4, a: 1});
+    assert.deepEqual(merge(x, y), {a: 1, b: 2, c: 4});
+    assert.deepEqual(merge(y, x), {b: 3, c: 4, a: 1});
 
-    assert.deepEqual(merge(x, y, z),   {a: 1, b: 2, c: 4, d: 6});
-    assert.deepEqual(merge(y, z, x),   {b: 3, c: 4, d: 6, a: 1});
-    assert.deepEqual(merge(z, x, y),   {c: 5, d: 6, a: 1, b: 2});
+    assert.deepEqual(merge(x, y, z), {a: 1, b: 2, c: 4, d: 6});
+    assert.deepEqual(merge(y, z, x), {b: 3, c: 4, d: 6, a: 1});
+    assert.deepEqual(merge(z, x, y), {c: 5, d: 6, a: 1, b: 2});
 
     // check that the objects passed as arguments were not modified
     assert.deepEqual(x, {a: 1, b: 2});
@@ -60,60 +60,58 @@ exports.testCloneNumber = function() {
 };
 
 exports.testCloneDate = function() {
-    var a = new Date();
-    var c = clone(a);
+    const a = new Date();
+    const c = clone(a);
     assert.isTrue(!!a.getUTCDate && !!a.toUTCString);
     assert.isTrue(!!c.getUTCDate && !!c.toUTCString);
     assert.strictEqual(a.getTime(), c.getTime());
 };
 
 exports.testCloneObject = function() {
-    var a = { foo: { bar: "baz" } };
-    var b = clone(a);
-
+    const a = { foo: { bar: "baz" } };
+    const b = clone(a);
     assert.deepEqual(b, a);
 };
 
 assert.testCloneArray = function() {
-    var a = [
+    const a = [
         { foo: "bar" },
         "baz"
     ];
-    var b = clone(a);
-
+    const b = clone(a);
     assert.isTrue(b instanceof Array);
     assert.deepEqual(b, a);
 };
 
 exports.testCloneRegExp = function() {
-    var a = /abc123/gi;
-    var b = clone(a);
+    const a = /abc123/gi;
+    const b = clone(a);
     assert.deepEqual(b, a);
 
-    var c = /a/g;
+    const c = /a/g;
     assert.isTrue(c.lastIndex === 0);
 
     c.exec('123a456a');
     assert.isTrue(c.lastIndex === 4);
 
-    var d = clone(c);
+    const d = clone(c);
     assert.isTrue(d.global);
     assert.isTrue(d.lastIndex === 4);
 };
 
 exports.testCloneObjectWithArray = function() {
-    var a = {
+    const a = {
         arr1: [ { a: '1234', b: '2345' } ],
         arr2: [ { c: '345', d: '456' } ]
     };
 
-    var b = clone(a);
+    const b = clone(a);
     assert.deepEqual(b, a);
 };
 
 exports.testCloneCircularReferences = function() {
-    const inspect = function(obj) {
-        var seen = [];
+    const inspect = (obj) => {
+        const seen = [];
         return JSON.stringify(obj, function (key, val) {
             if (val !== null && typeof val == "object") {
                 if (seen.indexOf(val) >= 0) {
@@ -124,48 +122,47 @@ exports.testCloneCircularReferences = function() {
             return val;
         });
     };
+    const eq = (x, y) => {
+        return inspect(x) === inspect(y);
+    };
 
-    var c = [1, "foo", {'hello': 'bar'}, function () {}, false, [2]];
-    var b = [c, 2, 3, 4];
+    const c = [1, "foo", {'hello': 'bar'}, function () {}, false, [2]];
+    const b = [c, 2, 3, 4];
 
-    var a = {'b': b, 'c': c};
+    const a = {'b': b, 'c': c};
     a.loop = a;
     a.loop2 = a;
     c.loop = c;
     c.aloop = a;
 
-    var aCopy = clone(a);
-    assert.isTrue(a != aCopy);
-    assert.isTrue(a.c != aCopy.c);
-    assert.isTrue(aCopy.c == aCopy.b[0]);
-    assert.isTrue(aCopy.c.loop.loop.aloop == aCopy);
-    assert.isTrue(aCopy.c[0] == a.c[0]);
+    const aCopy = clone(a);
+    assert.isTrue(a !== aCopy);
+    assert.isTrue(a.c !== aCopy.c);
+    assert.isTrue(aCopy.c === aCopy.b[0]);
+    assert.isTrue(aCopy.c.loop.loop.aloop === aCopy);
+    assert.isTrue(aCopy.c[0] === a.c[0]);
 
     assert.isTrue(eq(a, aCopy));
     aCopy.c[0] = 2;
     assert.isTrue(!eq(a, aCopy));
     aCopy.c = "2";
     assert.isTrue(!eq(a, aCopy));
-
-    function eq(x, y) {
-        return inspect(x) === inspect(y);
-    }
 };
 
 exports.testCloneObjectsWithoutConstructor = function() {
-    var n = null;
+    const n = null;
 
-    var a = { foo: 'bar' };
+    const a = { foo: 'bar' };
     a.__proto__ = n;
     assert.isTrue(typeof a === 'object');
     assert.isTrue(typeof a !== null);
 
-    var b = clone(a);
+    const b = clone(a);
     assert.strictEqual(a.foo, b.foo);
 };
 
 exports.testCloneWithDeep = function() {
-    var a = {
+    const a = {
         foo: {
             bar : {
                 baz : 'qux'
@@ -173,7 +170,7 @@ exports.testCloneWithDeep = function() {
         }
     };
 
-    var b = clone(a, false, 1);
+    let b = clone(a, false, 1);
     assert.deepEqual(b, a);
     assert.notEqual(b, a);
     assert.strictEqual(b.foo, a.foo);
@@ -185,23 +182,23 @@ exports.testCloneWithDeep = function() {
 };
 
 exports.testCloneWithPrototype = function() {
-    function T() {}
+    const T = function() {};
 
-    var a = new T();
-    var b = clone(a);
+    const a = new T();
+    const b = clone(a);
     assert.strictEqual(Object.getPrototypeOf(a), Object.getPrototypeOf(b));
 };
 
 exports.testCloneWithProvidedPrototype = function() {
-    function T() {}
+    const T = function() {};
 
-    var a = new T();
-    var b = clone(a, true, Infinity, null);
+    const a = new T();
+    const b = clone(a, true, Infinity, null);
     assert.strictEqual(b.__defineSetter__, undefined);
 };
 
 exports.testCloneWithNullChildren = function() {
-    var a = {
+    const a = {
         foo: {
             bar: null,
             baz: {
@@ -210,22 +207,22 @@ exports.testCloneWithNullChildren = function() {
         }
     };
 
-    var b = clone(a);
+    const b = clone(a);
     assert.deepEqual(b, a);
 };
 
 exports.testCloneWithGetter = function() {
-    function Ctor() {}
+    const Ctor = function() {};
     Object.defineProperty(Ctor.prototype, 'prop', {
         configurable: true,
         enumerable: true,
-        get: function() {
+        get: () => {
             return 'value';
         }
     });
 
-    var a = new Ctor();
-    var b = clone(a);
+    const a = new Ctor();
+    const b = clone(a);
 
     assert.strictEqual(b.prop, 'value');
 };
