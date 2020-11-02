@@ -41,8 +41,7 @@ const decodeChars = [
 ];
 
 const padding = "=".charCodeAt(0);
-
-const {Binary, toByteString, ByteArray} = require('binary');
+const binary = require('binary');
 
 /**
  * Encode a string or binary to a Base64 encoded string
@@ -52,9 +51,9 @@ const {Binary, toByteString, ByteArray} = require('binary');
  * @returns {String} the Base64 encoded string
  */
 exports.encode = function(str, encoding) {
-    const input = str instanceof Binary ? str : toByteString(str, encoding || 'utf8');
+    const input = str instanceof binary.Binary ? str : binary.toByteString(str, encoding || 'utf8');
     const length = input.length;
-    const output = new ByteArray(4 * (length + (3 - length % 3) % 3) / 3);
+    const output = new binary.ByteArray(4 * (length + (3 - length % 3) % 3) / 3);
 
     let i = 0;
     let j = 0;
@@ -95,9 +94,9 @@ exports.encode = function(str, encoding) {
  * @returns {String|ByteArray} the decoded string or ByteArray
  */
 exports.decode = function (str, encoding) {
-    const input = str instanceof Binary ? str : toByteString(str, 'ascii');
+    const input = str instanceof binary.Binary ? str : binary.toByteString(str, 'ascii');
     const length = input.length;
-    const output = new ByteArray(length * 3 / 4);
+    const output = new binary.ByteArray(length * 3 / 4);
     let i = 0;
     let j = 0;
     let c1, c2, c3, c4;
