@@ -17,18 +17,15 @@ exports.testZipIterator = function () {
         "05-folder/06-another-helloworld.txt",
     ];
 
-    const result = [];
     try {
-        result.push(zipIterator.next().name);
-        result.push(zipIterator.next().name);
-        result.push(zipIterator.next().name);
-        result.push(zipIterator.next().name);
-        result.push(zipIterator.next().name);
+        const result = expectedResult.map(() => {
+            return zipIterator.next().value.name;
+        });
+        assert.deepEqual(result, expectedResult);
     } catch (e) {
         assert.fail("Could not iterate over the zip file entries: " + e);
     }
 
-    assert.deepEqual(result.sort(), expectedResult);
 };
 
 if (require.main === module) {

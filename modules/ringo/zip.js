@@ -3,31 +3,32 @@
  * @since 0.5
  */
 
-var fs = require('fs');
-var {Stream} = require('io');
+const fs = require('fs');
+const io = require('io');
+const {ZipFile, ZipInputStream} = java.util.zip;
 
 /**
  * A class to read and unpack a local zip file.
  * @param {String} path the location of the zip file
  */
-module.exports.ZipFile = function ZipFile(path) {
-    var zipfile = new java.util.zip.ZipFile(path);
-    var entries = [];
-    var map = {};
-    var e = zipfile.entries();
-    while (e.hasMoreElements()) {
-        var entry = e.nextElement();
+exports.ZipFile = function(path) {
+    const zipfile = new ZipFile(path);
+    const entries = [];
+    const map = {};
+    const enumerator = zipfile.entries();
+    while (enumerator.hasMoreElements()) {
+        let entry = enumerator.nextElement();
         map[entry.name] = entry;
         entries.push(entry.name);
     }
 
-    function getEntry(name) {
-        var entry = map[name];
+    const getEntry = (name) => {
+        const entry = map[name];
         if (!entry) {
             throw new Error("Invalid zip entry: " + name);
         }
         return entry;
-    }
+    };
 
     /**
      * An array containing the names of all entries in this zip file.
@@ -39,16 +40,16 @@ module.exports.ZipFile = function ZipFile(path) {
      * Get an input stream to read the entry with the given name.
      * @param {String} name the entry name
      */
-    this.open = function(name) {
-        return new Stream(zipfile.getInputStream(getEntry(name)));
+    this.open = (name) => {
+        return new io.Stream(zipfile.getInputStream(getEntry(name)));
     };
 
     /**
      * Returns true if the entry with the given name represents a directory.
      * @param {String} name the entry name
      */
-    this.isDirectory = function(name) {
-        var entry = map[name];
+    this.isDirectory = (name) => {
+        const entry = map[name];
         return entry && entry.isDirectory();
     };
 
@@ -56,8 +57,8 @@ module.exports.ZipFile = function ZipFile(path) {
      * Returns true if the entry with the given name represents a file.
      * @param {String} name the entry name
      */
-    this.isFile = function(name) {
-        var entry = map[name];
+    this.isFile = (name) => {
+        const entry = map[name];
         return entry && !entry.isDirectory();
     };
 
@@ -65,7 +66,7 @@ module.exports.ZipFile = function ZipFile(path) {
      * Returns the uncompressed size in bytes in the given entry, or -1 if not known.
      * @param {String} name the entry name
      */
-    this.getSize = function(name) {
+    this.getSize = (name) => {
         return getEntry(name).getSize();
     };
 
@@ -73,17 +74,19 @@ module.exports.ZipFile = function ZipFile(path) {
      * Returns the last modification timestamp of the given entry, or -1 if not available.
      * @param {String} name the entry name
      */
-    this.getTime = function(name) {
+    this.getTime = (name) => {
         return getEntry(name).getTime();
     };
 
     /**
      * Close the zip file.
      */
-    this.close = function() {
+    this.close = () => {
         zipfile.close();
     };
-}
+
+    return this;
+};
 
 /**
  * A streaming iterator over a zip file or stream. Each item yielded
@@ -93,23 +96,22 @@ module.exports.ZipFile = function ZipFile(path) {
  * @param {Stream|String} resource an input stream or file name
  * @see #ZipFile
  */
-module.exports.ZipIterator = function ZipIterator(resource) {
-    var stream = typeof resource == "string" ?
-            fs.openRaw(resource) : resource;
-    var zipstream = new java.util.zip.ZipInputStream(stream);
-    stream = new Stream(zipstream);
+module.exports.ZipIterator = function*(resource) {
+    const zipStream = new ZipInputStream((typeof resource == "string") ?
+            fs.openRaw(resource) : resource);
+    const stream = new io.Stream(zipStream);
     try {
-        var entry = zipstream.getNextEntry();
-        while (entry) {
-            stream.name = entry.getName();
-            stream.isDirectory = entry.isDirectory();
-            stream.isFile = !stream.isDirectory;
-            stream.size = entry.getSize();
-            stream.time = entry.getTime();
-            yield stream;
-            entry = zipstream.getNextEntry();
+        let entry;
+        while ((entry = zipStream.getNextEntry())) {
+            yield {
+                "name": entry.getName(),
+                "isDirectory": entry.isDirectory(),
+                "isFile": !entry.isDirectory(),
+                "size": entry.getSize(),
+                "time": entry.getTime()
+            };
         }
     } finally {
         stream.close();
     }
-}
+};
