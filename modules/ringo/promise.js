@@ -2,9 +2,9 @@
  * @fileOverview Allows to work with deferred values that will be resolved in the future.
  */
 
-var NEW = 0;
-var FULFILLED = 1;
-var FAILED = 2;
+const NEW = 0;
+const FULFILLED = 1;
+const FAILED = 2;
 
 /**
  * Creates an object representing a deferred value.
@@ -47,10 +47,10 @@ var FAILED = 2;
  * });
  */
 const Deferred = exports.Deferred = function Deferred() {
-    var value;
-    var listeners = [];
-    var state = NEW;
-    var lock = new java.lang.Object();
+    const lock = new java.lang.Object();
+    let value;
+    let listeners = [];
+    let state = NEW;
 
     /**
      * Resolve the promise.
@@ -59,7 +59,7 @@ const Deferred = exports.Deferred = function Deferred() {
      * @param {Boolean} isError if true the promise is resolved as failed
      * @type Function
      */
-    var resolve = sync(function(result, isError) {
+    const resolve = sync((result, isError) => {
         if (state !== NEW) {
             throw new Error("Promise has already been resolved.");
         }
@@ -70,10 +70,10 @@ const Deferred = exports.Deferred = function Deferred() {
         lock.notifyAll();
     }, lock);
 
-    var notify = function(listener) {
-        var isError = (state === FAILED);
-        var callback = isError ? listener.errback : listener.callback;
-        var result = value;
+    const notify = listener => {
+        let isError = (state === FAILED);
+        let result = value;
+        const callback = isError ? listener.errback : listener.callback;
 
         if (callback) {
             try {
@@ -85,9 +85,9 @@ const Deferred = exports.Deferred = function Deferred() {
         }
         // If result is a promise, chain its result to our existing promise. Else resolve directly.
         if (result != null && typeof result.then === 'function') {
-            result.then(function(val) {
+            result.then(val => {
                 listener.tail.resolve(val, isError);
-            }, function(err) {
+            }, err => {
                 listener.tail.resolve(err, true);
             });
         } else {
@@ -100,7 +100,7 @@ const Deferred = exports.Deferred = function Deferred() {
      * to be invoked when the promise is eventually resolved.
      * @name Deferred.prototype.promise
      */
-    var promise = {
+    const promise = {
         /**
          * Register callback and errback functions to be invoked when
          * the promise is resolved.
@@ -110,12 +110,12 @@ const Deferred = exports.Deferred = function Deferred() {
          * @return {Object} a new promise that resolves to the return value of the
          *     callback or errback when it is called.
          */
-        then: sync(function(callback, errback) {
+        then: sync((callback, errback) => {
             if (typeof callback !== "function") {
                 throw new Error("First argument to then() must be a function.");
             }
-            var tail = new Deferred();
-            var listener = {
+            const tail = new Deferred();
+            const listener = {
                 tail: tail,
                 callback: callback,
                 errback: errback
@@ -136,7 +136,7 @@ const Deferred = exports.Deferred = function Deferred() {
          * @return {Object} the value if the promise is resolved as fulfilled
          * @throws Object the error value if the promise is resolved as failed
          */
-        wait: sync(function(timeout) {
+        wait: sync(timeout => {
             if (state === NEW) {
                 if (typeof timeout === "undefined") {
                     lock.wait();
@@ -156,7 +156,7 @@ const Deferred = exports.Deferred = function Deferred() {
         resolve: resolve,
         promise: promise
     };
-}
+};
 
 /**
  * The PromiseList class allows to combine several promises into one.
@@ -195,35 +195,33 @@ const Deferred = exports.Deferred = function Deferred() {
  * d3.resolve("some error", true);
  * d1.resolve("i am ok");
  */
-const PromiseList = exports.PromiseList = function PromiseList(args) {
-    var promises = Array.isArray(args) ? args : Array.prototype.slice.call(arguments);
-    var count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
-    var results = [];
-    var i = 0;
-    var deferred = new Deferred();
+exports.PromiseList = function PromiseList(args) {
+    const promises = Array.isArray(args) ? args : Array.prototype.slice.call(arguments);
+    const count = new java.util.concurrent.atomic.AtomicInteger(promises.length);
+    const results = [];
+    const deferred = new Deferred();
 
-    promises.forEach(function(promise) {
+    promises.forEach((promise, index) => {
         if (typeof promise.then !== "function" && promise.promise) {
             promise = promise.promise;
         }
-        var index = i++;
         promise.then(
-            sync(function(value) {
+            sync(value => {
                 results[index] = {value: value};
-                if (count.decrementAndGet() == 0) {
+                if (count.decrementAndGet() === 0) {
                     deferred.resolve(results);
                 }
             }, count),
-            sync(function(error) {
+            sync(error => {
                 results[index] = {error: error};
-                if (count.decrementAndGet() == 0) {
+                if (count.decrementAndGet() === 0) {
                     deferred.resolve(results);
                 }
             }, count)
         );
     });
     return deferred.promise;
-}
+};
 
 /**
  * A promise object. This class is not exported, create a
