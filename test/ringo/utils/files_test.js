@@ -1,13 +1,13 @@
-var assert = require("assert");
-var files = require('ringo/utils/files');
-var fs = require('fs');
+const assert = require("assert");
+const files = require('ringo/utils/files');
+const fs = require('fs');
 
 const PARENT = '/home/ringo/';
 const CHILD = 'Projects';
 const RELATIVE_CHILD = './' + CHILD;
 const FOO = 'foo';
 
-exports.testResolveUri = function () {
+exports.testResolveUri = () => {
     // Should work the same for both normal and relative child notations.
     assert.strictEqual(PARENT + CHILD, files.resolveUri(PARENT, CHILD));
     assert.strictEqual(PARENT + CHILD, files.resolveUri(PARENT, RELATIVE_CHILD));
@@ -17,15 +17,15 @@ exports.testResolveUri = function () {
     assert.strictEqual(PARENT, files.resolveUri(PARENT, PARENT));
 };
 
-exports.testResolveId = function () {
+exports.testResolveId = () => {
     // Parent is ignored unless child starts with "./" or "../"
     assert.strictEqual(CHILD, files.resolveId(PARENT, CHILD));
     assert.strictEqual(PARENT + CHILD, files.resolveId(PARENT, RELATIVE_CHILD));
     assert.strictEqual(PARENT, files.resolveId(PARENT, PARENT));
 };
 
-exports.testCreateTempFile = function () {
-    var tempFile = files.createTempFile('ringo');
+exports.testCreateTempFile = () => {
+    let tempFile = files.createTempFile('ringo');
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
     assert.isTrue(typeof tempFile === "string", "Result must be string!");
@@ -44,7 +44,7 @@ exports.testCreateTempFile = function () {
 };
 
 // fixme: test for roots, separator
-exports.testHidden = function () {
+exports.testHidden = () => {
     let tempFile = (java.nio.file.Files.createTempFile(".testHidden", ".test")).toString();
     assert.isNotNull(tempFile);
 
@@ -86,18 +86,18 @@ exports.testPosixPermissions = function() {
         return;
     }
 
-    var permissions = new files.PosixPermissions(0777);
-    assert.strictEqual(0777, permissions.value);
+    let permissions = new files.PosixPermissions(0o0777);
+    assert.strictEqual(0o0777, permissions.value);
 
     permissions.value = 0;
     assert.strictEqual(0, permissions.value);
 
-    assert.throws(function () {
+    assert.throws(() => {
        permissions.value = 1000;
     });
 
-    var tempPath = java.nio.file.Files.createTempFile(new java.lang.String("ringotest" + Math.random() + Date.now()), null);
-    var permissionAttributes = java.nio.file.Files.getPosixFilePermissions(tempPath);
+    const tempPath = java.nio.file.Files.createTempFile(new java.lang.String("ringotest" + Math.random() + Date.now()), null);
+    const permissionAttributes = java.nio.file.Files.getPosixFilePermissions(tempPath);
 
     permissions = new files.PosixPermissions(permissionAttributes);
 
@@ -109,12 +109,12 @@ exports.testPosixPermissions = function() {
     java.nio.file.Files.delete(tempPath);
 };
 
-exports.testCreateTempFileWithPermissions = function () {
+exports.testCreateTempFileWithPermissions = () => {
     if (!java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
         return;
     }
 
-    let tempFile = files.createTempFile("ringo", null, null, 0000);
+    let tempFile = files.createTempFile("ringo", null, null, 0o0000);
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[\/\\]ringo\w*\.tmp$/.test(tempFile));
     assert.isTrue(typeof tempFile === "string", "Result must be string!");
@@ -124,11 +124,11 @@ exports.testCreateTempFileWithPermissions = function () {
     );
     assert.strictEqual(
         "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
-        (new files.PosixPermissions(0000)).toString()
+        (new files.PosixPermissions(0o0000)).toString()
     );
     fs.remove(tempFile);
 
-    tempFile = files.createTempFile("ringo", ".js", null, 0000);
+    tempFile = files.createTempFile("ringo", ".js", null, 0o0000);
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[\/\\]ringo\w*\.js$/.test(tempFile));
     assert.isTrue(typeof tempFile === "string", "Result must be string!");
@@ -138,11 +138,11 @@ exports.testCreateTempFileWithPermissions = function () {
     );
     assert.strictEqual(
         "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
-        (new files.PosixPermissions(0000)).toString()
+        (new files.PosixPermissions(0o0000)).toString()
     );
     fs.remove(tempFile);
 
-    tempFile = files.createTempFile("ringo", ".js", java.lang.System.getProperty("java.io.tmpdir"), 0111);
+    tempFile = files.createTempFile("ringo", ".js", java.lang.System.getProperty("java.io.tmpdir"), 0o0111);
     assert.isNotNull(tempFile); // Creation w/ prefix only.
     assert.isTrue(/[[\/\\]ringo\w*\.js$/.test(tempFile));
     assert.isTrue(typeof tempFile === "string", "Result must be string!");
@@ -153,7 +153,7 @@ exports.testCreateTempFileWithPermissions = function () {
     );
     assert.strictEqual(
         "[PosixPermissions " + java.nio.file.attribute.PosixFilePermissions.toString(nativePermissions) + "]",
-        (new files.PosixPermissions(0111)).toString()
+        (new files.PosixPermissions(0o0111)).toString()
     );
     fs.remove(tempFile);
 };
