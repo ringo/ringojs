@@ -1,8 +1,8 @@
 /**
  * @fileoverview A module for sending HTTP requests and receiving HTTP responses.
  *
- * @example var {request} = require('ringo/httpclient');
- * var exchange = request({
+ * @example const {request} = require('ringo/httpclient');
+ * const exchange = request({
  *    method: 'GET',
  *    url: 'http://ringojs.org/',
  *    headers: {
@@ -15,19 +15,19 @@
  * }
  */
 
-var {URL, URLConnection, HttpCookie, Proxy, InetSocketAddress} = java.net;
-var {InputStream, BufferedOutputStream, OutputStreamWriter, BufferedWriter,
-        ByteArrayOutputStream, PrintWriter, OutputStreamWriter} = java.io;
-var {GZIPInputStream, InflaterInputStream} = java.util.zip;
-var {TextStream, MemoryStream} = require("io");
-var {mimeType} = require("ringo/mime");
-var {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
-var {ByteArray} = require("binary");
-var objects = require("ringo/utils/objects");
-var base64 = require("ringo/base64");
-var {Buffer} = require("ringo/buffer");
-var {Random} = java.util;
-var log = require("ringo/logging").getLogger(module.id);
+const {URL, HttpCookie, Proxy, InetSocketAddress} = java.net;
+const {InputStream, OutputStreamWriter, BufferedWriter,
+        ByteArrayOutputStream, PrintWriter} = java.io;
+const {GZIPInputStream, InflaterInputStream} = java.util.zip;
+const io = require("io");
+const {mimeType} = require("ringo/mime");
+const {getMimeParameter, Headers, urlEncode} = require('ringo/utils/http');
+const binary = require("binary");
+const objects = require("ringo/utils/objects");
+const base64 = require("ringo/base64");
+const {Buffer} = require("ringo/buffer");
+const {Random} = java.util;
+const log = require("ringo/logging").getLogger(module.id);
 
 const VERSION = require("ringo/engine").version.join(".");
 const CRLF = "\r\n";
@@ -36,8 +36,8 @@ const BOUNDARY_CHARS = "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR
 /**
  * Defaults for options passable to to request()
  */
-var prepareOptions = function(options) {
-    var defaultValues = {
+const prepareOptions = (options) => {
+    const defaultValues = {
         "data": {},
         "headers": {},
         "method": "GET",
@@ -49,7 +49,7 @@ var prepareOptions = function(options) {
         "binary": false,
         "beforeSend": null
     };
-    var opts = options ? objects.merge(options, defaultValues) : defaultValues;
+    const opts = options ? objects.merge(options, defaultValues) : defaultValues;
     Headers(opts.headers);
     opts.contentType = opts.contentType
             || opts.headers.get("Content-Type")
@@ -63,67 +63,53 @@ var prepareOptions = function(options) {
  * @returns {Cookie} A newly created Cookie instance
  * @constructor
  */
-var Cookie = function(httpCookie) {
+const Cookie = function(httpCookie) {
 
     Object.defineProperties(this, {
         /**
          * @returns {String} the cookie's name
          */
         "name": {
-            "get": function() {
-                return httpCookie.getName();
-            }
+            "value": httpCookie.getName()
         },
         /**
          * @returns {String} the cookie value
          */
         "value": {
-            "get": function() {
-                return httpCookie.getValue();
-            }
+            "value": httpCookie.getValue()
         },
         /**
          * @returns {String} the cookie domain
          */
         "domain": {
-            "get": function() {
-                return httpCookie.getDomain();
-            }
+            "value": httpCookie.getDomain()
         },
         /**
          * @returns {String} the cookie path
          */
         "path": {
-            "get": function() {
-                return httpCookie.getPath();
-            }
+            "value": httpCookie.getPath()
         },
 
         /**
          * @returns {Number} the max age of this cookie in seconds
          */
         "maxAge": {
-            "get": function() {
-                return httpCookie.getMaxAge();
-            }
+            "value": httpCookie.getMaxAge()
         },
 
         /**
          * @returns {String} true if this cookie is restricted to a secure protocol
          */
         "isSecure": {
-            "get": function() {
-                return httpCookie.getSecure();
-            }
+            "value": httpCookie.getSecure()
         },
 
         /**
          * @returns {String} the cookie version
          */
         "version": {
-            "get": function() {
-                return httpCookie.getVersion();
-            }
+            "value": httpCookie.getVersion()
         }
     });
 
@@ -137,25 +123,25 @@ var Cookie = function(httpCookie) {
  * @param {String} charset The character set name
  * @param {String} contentType The content type
  */
-var writeData = function(data, connection, charset, contentType) {
+const writeData = (data, connection, charset, contentType) => {
     connection.setRequestProperty("Content-Type", contentType);
-    var outStream;
+    let outStream;
     try {
-        outStream = new Stream(connection.getOutputStream());
+        outStream = new io.Stream(connection.getOutputStream());
         if (data instanceof InputStream) {
-            (new Stream(data)).copy(outStream).close();
-        } else if (data instanceof Binary) {
-            (new MemoryStream(data)).copy(outStream).close();
-        } else if (data instanceof Stream) {
+            (new io.Stream(data)).copy(outStream).close();
+        } else if (data instanceof binary.Binary) {
+            (new io.MemoryStream(data)).copy(outStream).close();
+        } else if (data instanceof io.Stream) {
             data.copy(outStream).close();
         } else {
-            if (data instanceof TextStream) {
+            if (data instanceof io.TextStream) {
                 data = data.read();
             } else if (data instanceof Object) {
                 data = urlEncode(data);
             }
             if (typeof(data) === "string" && data.length > 0) {
-                var writer = new BufferedWriter(OutputStreamWriter(outStream, charset));
+                const writer = new BufferedWriter(OutputStreamWriter(outStream, charset));
                 writer.write(data);
                 writer.close();
             }
@@ -169,11 +155,11 @@ var writeData = function(data, connection, charset, contentType) {
  * Generates a multipart boundary.
  * @returns {String} A multipart boundary
  */
-var generateBoundary = function() {
+const generateBoundary = () => {
     // taken from apache httpclient
-    var buffer = new Buffer();
-    var random = new Random();
-    var count = random.nextInt(11) + 30; // a random size from 30 to 40
+    const buffer = new Buffer();
+    const random = new Random();
+    const count = random.nextInt(11) + 30; // a random size from 30 to 40
     for (let i=0; i<count; i++) {
         buffer.write(BOUNDARY_CHARS[random.nextInt(BOUNDARY_CHARS.length)]);
     }
@@ -187,16 +173,16 @@ var generateBoundary = function() {
  * @param {String} charset The charset
  * @param {String} boundary The multipart boundary
  */
-var writeMultipartData = function(data, connection, charset, boundary) {
+const writeMultipartData = (data, connection, charset, boundary) => {
     connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-    var outStream, writer;
+    let outStream, writer;
     try {
-        outStream = new Stream(connection.getOutputStream());
+        outStream = new io.Stream(connection.getOutputStream());
         writer = new PrintWriter(new OutputStreamWriter(outStream, charset), true);
-        for (let [name, part] in Iterator(data)) {
+        Object.keys(data).forEach(key => {
             writer.append("--" + boundary).append(CRLF);
-            part.write(name, writer, outStream);
-        }
+            data[key].write(key, writer, outStream);
+        })
         writer.append("--").append(boundary).append("--").append(CRLF);
     } finally {
         writer && writer.close();
@@ -209,9 +195,9 @@ var writeMultipartData = function(data, connection, charset, boundary) {
  * @param {java.net.HttpURLConnection} connection The connection
  * @returns {ByteArray} The response as ByteArray
  */
-var readResponse = function(connection) {
-    var status = connection.getResponseCode();
-    var inStream;
+const readResponse = (connection) => {
+    const status = connection.getResponseCode();
+    let inStream;
     try {
         inStream = connection[(status >= 200 && status < 400) ?
                 "getInputStream" : "getErrorStream"]();
@@ -219,7 +205,7 @@ var readResponse = function(connection) {
         if (inStream === null) {
             return null;
         }
-        var encoding = connection.getContentEncoding();
+        const encoding = connection.getContentEncoding();
         if (encoding != null) {
             if (encoding.equalsIgnoreCase("gzip")) {
                 inStream = new GZIPInputStream(inStream);
@@ -227,10 +213,10 @@ var readResponse = function(connection) {
                 inStream = new InflaterInputStream(inStream);
             }
         }
-        inStream = new Stream(inStream);
-        var outStream = new ByteArrayOutputStream(8192);
+        inStream = new io.Stream(inStream);
+        const outStream = new ByteArrayOutputStream(8192);
         inStream.copy(outStream);
-        return new ByteArray(outStream.toByteArray());
+        return new binary.ByteArray(outStream.toByteArray());
     } finally {
         inStream && inStream.close();
     }
@@ -243,12 +229,11 @@ var readResponse = function(connection) {
  * @returns {Exchange} A newly constructed Exchange instance
  * @constructor
  */
-var Exchange = function(url, options) {
-    var reqData = options.data;
-    var connection = null;
-    var responseContent;
-    var responseContentBytes;
-    var thrownException;
+const Exchange = function(url, options) {
+    let reqData = options.data;
+    let connection = null;
+    let responseContent;
+    let responseContentBytes;
 
     Object.defineProperties(this, {
         /**
@@ -256,30 +241,30 @@ var Exchange = function(url, options) {
          * @name Exchange.prototype.connection
          */
         "connection": {
-            "get": function() {
-                return connection;
-            }, "enumerable": true
+            "get": () => connection,
+            "enumerable": true
         },
         /**
          * The response body as String.
          * @name Exchange.prototype.content
          */
         "content": {
-            "get": function() {
+            "get": () => {
                 if (responseContent !== undefined) {
                     return responseContent;
                 }
-                return responseContent = this.contentBytes==null?null:this.contentBytes.decodeToString(this.encoding);
-            }, "enumerable": true
+                return responseContent = (!this.contentBytes) ?
+                        null : this.contentBytes.decodeToString(this.encoding);
+            },
+            "enumerable": true
         },
         /**
          * The response body as ByteArray.
          * @name Exchange.prototype.contentBytes
          */
         "contentBytes": {
-            "get": function() {
-                return responseContentBytes;
-            }, "enumerable": true
+            "get": () => responseContentBytes,
+            "enumerable": true
         }
     });
 
@@ -290,9 +275,9 @@ var Exchange = function(url, options) {
                 url += "?" + reqData;
             }
         }
-        var url = new URL(url);
+        url = new URL(url);
         if (options.proxy) {
-            var host, port;
+            let host, port;
             if (typeof(options.proxy) == "string") {
                 [host, port] = options.proxy.split(":");
             } else {
@@ -314,36 +299,36 @@ var Exchange = function(url, options) {
         connection.setRequestProperty("Accept-Encoding", "gzip,deflate");
 
         // deal with username:password in url
-        var userInfo = connection.getURL().getUserInfo();
+        const userInfo = connection.getURL().getUserInfo();
         if (userInfo) {
-            var [username, password] = userInfo.split(":");
+            const [username, password] = userInfo.split(":");
             options.username = options.username || username;
             options.password = options.password || password;
         }
         // set authentication header
         if (typeof(options.username) === "string" && typeof(options.password) === "string") {
-            var authKey = base64.encode(options.username + ':' + options.password);
-            connection.setRequestProperty("Authorization", "Basic " + authKey);
+            connection.setRequestProperty("Authorization",
+                "Basic " + base64.encode(options.username + ':' + options.password));
         }
         // set header keys specified in options
-        for (let key in options.headers) {
+        Object.keys(options.headers).forEach(key => {
             connection.setRequestProperty(key, options.headers[key]);
-        }
+        });
         if (typeof(options.beforeSend) === "function") {
             options.beforeSend(this);
         }
 
         if (options.method === "POST" || options.method === "PUT") {
             connection.setDoOutput(true);
-            var charset = getMimeParameter(options.contentType, "charset") || "utf-8";
+            const charset = getMimeParameter(options.contentType, "charset") || "utf-8";
             if (options.method === "POST" && options.contentType === "multipart/form-data") {
                 // all parts must be instances of text or binary parts
-                for (let [name, part] in Iterator(reqData)) {
+                Object.keys(reqData).forEach(key => {
+                    const part = reqData[key];
                     if (!(part instanceof TextPart) && !(part instanceof BinaryPart)) {
                         throw new Error("Multipart form data parts must be either TextPart or BinaryPart, but " + name + "isn't.");
                     }
-                }
-
+                })
                 writeMultipartData(reqData, connection, charset, generateBoundary());
             } else {
                 writeData(reqData, connection, charset, options.contentType);
@@ -366,7 +351,8 @@ Object.defineProperties(Exchange.prototype, {
     "url": {
         "get": function() {
             return this.connection.getURL();
-        }, "enumerable": true
+        },
+        "enumerable": true
     },
     /**
      * The response status code.
@@ -376,7 +362,8 @@ Object.defineProperties(Exchange.prototype, {
     "status": {
         "get": function() {
             return this.connection.getResponseCode();
-        }, "enumerable": true
+        },
+        "enumerable": true
     },
     /**
      * The response status message.
@@ -386,7 +373,8 @@ Object.defineProperties(Exchange.prototype, {
     "message": {
         "get": function() {
             return this.connection.getResponseMessage();
-        }, "enumerable": true
+        },
+        "enumerable": true
     },
     /**
      * The response headers.
@@ -396,7 +384,7 @@ Object.defineProperties(Exchange.prototype, {
         "get": function() {
             // This is required since getHeaderFields() returns an unmodifiable Map
             // http://hg.openjdk.java.net/jdk8/jdk8/jdk/file/687fd7c7986d/src/share/classes/sun/net/www/protocol/http/HttpURLConnection.java#l2919
-            var headerFields = new java.util.HashMap(this.connection.getHeaderFields());
+            const headerFields = new java.util.HashMap(this.connection.getHeaderFields());
 
             // drops the HTTP Status-Line with the key null
             // null => HTTP/1.1 200 OK
@@ -404,7 +392,8 @@ Object.defineProperties(Exchange.prototype, {
             headerFields.remove(null);
 
             return new ScriptableMap(headerFields);
-        }, enumerable: true
+        },
+        "enumerable": true
     },
     /**
      * The cookies set by the server.
@@ -412,17 +401,18 @@ Object.defineProperties(Exchange.prototype, {
      */
     "cookies": {
         "get": function() {
-            var cookies = {};
-            var cookieHeaders = this.connection.getHeaderField("Set-Cookie");
+            const cookies = {};
+            const cookieHeaders = this.connection.getHeaderField("Set-Cookie");
             if (cookieHeaders !== null) {
-                var list = new ScriptableList(HttpCookie.parse(cookieHeaders));
-                for each (let httpCookie in list) {
-                    let cookie = new Cookie(httpCookie);
+                const list = new ScriptableList(HttpCookie.parse(cookieHeaders));
+                list.forEach(httpCookie => {
+                    const cookie = new Cookie(httpCookie);
                     cookies[cookie.name] = cookie;
-                }
+                });
             }
             return cookies;
-        }, enumerable: true
+        },
+        "enumerable": true
     },
     /**
      * The response encoding.
@@ -432,7 +422,8 @@ Object.defineProperties(Exchange.prototype, {
     "encoding": {
         "get": function() {
             return getMimeParameter(this.contentType, "charset") || "utf-8";
-        }, "enumerable": true
+        },
+        "enumerable": true
     },
     /**
      * The response content type.
@@ -442,7 +433,8 @@ Object.defineProperties(Exchange.prototype, {
     "contentType": {
         "get": function() {
             return this.connection.getContentType();
-        }, "enumerable": true
+        },
+        "enumerable": true
     },
     /**
      * The response content length.
@@ -452,7 +444,8 @@ Object.defineProperties(Exchange.prototype, {
     "contentLength": {
         "get": function() {
             return this.connection.getContentLength();
-        }, "enumerable": true
+        },
+        "enumerable": true
     }
 });
 
@@ -494,12 +487,12 @@ Object.defineProperties(Exchange.prototype, {
  * @see #put
  * @see #del
  */
-var request = function(options) {
+const request = exports.request = (options) => {
     if (options.complete != null || options.success != null || options.error != null) {
         log.warn("ringo/httpclient does not support callbacks anymore!");
     }
 
-    var opts = prepareOptions(options);
+    const opts = prepareOptions(options);
     return new Exchange(opts.url, {
         "method": opts.method,
         "data": opts.data,
@@ -524,11 +517,11 @@ var request = function(options) {
  * @returns An options object
  * @type Object<method, url, data>
  */
-var createOptions = function(method, url, data) {
+const createOptions = (method, url, data) => {
     return {
-        method: method,
-        url: url,
-        data: data
+        "method": method,
+        "url": url,
+        "data": data
     };
 };
 
@@ -538,7 +531,7 @@ var createOptions = function(method, url, data) {
  * @param {Object|String} data The data to append as GET parameters to the URL
  * @returns {Exchange} The Exchange instance representing the request and response
  */
-var get = function(url, data) {
+exports.get = (url, data) => {
     return request(createOptions("GET", url, data));
 };
 
@@ -548,7 +541,7 @@ var get = function(url, data) {
  * @param {Object|String|Stream|Binary} data The data to send to the server
  * @returns {Exchange} The Exchange instance representing the request and response
  */
-var post = function(url, data) {
+exports.post = (url, data) => {
     return request(createOptions("POST", url, data));
 };
 
@@ -558,7 +551,7 @@ var post = function(url, data) {
  * @param {Object|String} data The data to append as GET parameters to the URL
  * @returns {Exchange} The Exchange instance representing the request and response
  */
-var del = function(url, data) {
+exports.del = (url, data) => {
     return request(createOptions("DELETE", url, data));
 };
 
@@ -568,7 +561,7 @@ var del = function(url, data) {
  * @param {Object|String|Stream|Binary} data The data send to the server
  * @returns {Exchange} The Exchange instance representing the request and response
  */
-var put = function(url, data) {
+exports.put = (url, data) => {
     return request(createOptions("PUT", url, data));
 };
 
@@ -590,7 +583,7 @@ var put = function(url, data) {
  *   }
  * });
  */
-var TextPart = function(data, charset, fileName) {
+const TextPart = exports.TextPart = function(data, charset, fileName) {
 
     /**
      * Writes this TextPart's data.
@@ -609,8 +602,8 @@ var TextPart = function(data, charset, fileName) {
         writer.append("Content-Type: text/plain; charset=")
                 .append(charset || "utf-8").append(CRLF);
         writer.append(CRLF).flush();
-        if (data instanceof TextStream) {
-            data.copy(new TextStream(outStream, {
+        if (data instanceof io.TextStream) {
+            data.copy(new io.TextStream(outStream, {
                 "charset": charset || "utf-8"
             })).close();
             outStream.flush();
@@ -640,7 +633,7 @@ var TextPart = function(data, charset, fileName) {
  *   }
  * });
  */
-var BinaryPart = function(data, fileName, contentType) {
+const BinaryPart = exports.BinaryPart = function(data, fileName, contentType) {
 
     /**
      * Writes this BinaryPart's data
@@ -662,10 +655,10 @@ var BinaryPart = function(data, fileName, contentType) {
         writer.append("Content-Transfer-Encoding: binary").append(CRLF);
         writer.append(CRLF).flush();
         if (data instanceof InputStream) {
-            (new Stream(data)).copy(outStream).close();
+            (new io.Stream(data)).copy(outStream).close();
         } else if (data instanceof Binary) {
-            (new MemoryStream(data)).copy(outStream).close();
-        } else if (data instanceof Stream) {
+            (new io.MemoryStream(data)).copy(outStream).close();
+        } else if (data instanceof io.Stream) {
             data.copy(outStream).close();
         }
         writer.append(CRLF).flush();
@@ -673,11 +666,3 @@ var BinaryPart = function(data, fileName, contentType) {
 
     return this;
 };
-
-module.exports.request = request;
-module.exports.get = get;
-module.exports.post = post;
-module.exports.put = put;
-module.exports.del = del;
-module.exports.TextPart = TextPart;
-module.exports.BinaryPart = BinaryPart;
