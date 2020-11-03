@@ -11,6 +11,7 @@
  */
 
 const {Encoder, Decoder} = require("ringo/encoding");
+const binary = require("binary");
 
 defineClass(org.ringojs.wrappers.Stream);
 
@@ -214,7 +215,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
         if (typeof source === "string") {
             require("system").stderr.print("Warning: binary write called with string argument. "
                     + "Using default encoding");
-            source = source.toByteString();
+            source = binary.toByteString(source);
         }
         if (!(source instanceof Binary)) {
             throw new Error("write(): first argument must be binary");

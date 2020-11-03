@@ -65,6 +65,7 @@ const URLPATTERN = java.util.regex.Pattern.compile("^" +
 const INT = /^(?:[-+]?(?:0|[1-9][0-9]*))$/;
 const FLOAT = /^(?:[-+]?(?:[0-9]*))(?:\.[0-9]*)?(?:[eE][+\-]?(?:[0-9]+))?$/;
 
+const binary = require('binary');
 const base64 = require('ringo/base64');
 const dates = require('ringo/utils/dates');
 
@@ -402,7 +403,7 @@ exports.group = (string, interval, str, ignoreWhiteSpace) => {
  */
 exports.digest = (string, algorithm) => {
     const md = java.security.MessageDigest.getInstance(algorithm || 'MD5');
-    const b = ByteString.wrap(md.digest(string.toByteString()));
+    const b = ByteString.wrap(md.digest(binary.toByteString(string)));
     return b16encode(b);
 };
 
@@ -652,7 +653,7 @@ exports.y64decode = (string, encoding) => {
  */
 const b16encode = exports.b16encode = (str, encoding) => {
     encoding = encoding || 'utf8';
-    const input = str instanceof Binary ? str : String(str).toByteString(encoding);
+    const input = str instanceof Binary ? str : binary.toByteString(String(str), encoding);
     const length = input.length;
     const result = [];
     const chars = ['0', '1', '2', '3', '4', '5', '6', '7',
@@ -675,7 +676,7 @@ const b16encode = exports.b16encode = (str, encoding) => {
  * strings.b16decode("666F6F", "raw"); // --> [ByteArray 3]
  */
 exports.b16decode = (str, encoding) => {
-    const input = str instanceof Binary ? str : String(str).toByteString('ascii');
+    const input = str instanceof Binary ? str : binary.toByteString(String(str), 'ascii');
     const length = input.length / 2;
     const output = new ByteArray(length);
 

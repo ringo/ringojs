@@ -209,7 +209,7 @@ const DatagramSocket = exports.DatagramSocket = function() {
         if (arg instanceof binary.Binary) {
             return new java.net.DatagramPacket(arg, arg.length);
         } else if (typeof arg === "string") {
-            return new java.net.DatagramPacket(arg.toByteString(), arg.length);
+            return new java.net.DatagramPacket(binary.toByteString(arg), arg.length);
         } else {
             throw new Error("Unsupported argument to send: " + arg);
         }

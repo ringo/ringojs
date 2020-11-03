@@ -130,7 +130,7 @@ const writeBody = (response, body, charset) => {
         const output = response.getOutputStream();
         body.forEach(part => {
             if (!(part instanceof binary.Binary)) {
-                part = part.toByteString(charset);
+                part = binary.toByteString(part, charset);
             }
             output.write(part);
         });
