@@ -189,7 +189,7 @@ const Profiler = exports.Profiler = function() {
         const commonPrefix = list.reduce((previous, current) => {
             return strings.getCommonPrefix(previous, current.name);
         }, "");
-        var lines = [];
+        const lines = [];
         let maxLength = 0;
         list.forEach(item => {
             const str = item.renderLine(commonPrefix.length);
@@ -210,7 +210,7 @@ const Profiler = exports.Profiler = function() {
         return this.formatResult(null);
     };
 
-    var profiler = new org.ringojs.util.DebuggerBase(this);
+    const profiler = new org.ringojs.util.DebuggerBase(this);
     profiler.debuggerScript = module.id + ".js";
     return profiler;
 }

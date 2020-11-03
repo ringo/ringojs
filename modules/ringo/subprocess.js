@@ -120,11 +120,11 @@ const createProcess = exports.createProcess = function(args) {
  * Executes a given command and returns the standard output.
  * If the exit status is non-zero, throws an Error. Examples:
  *
- * <pre><code>var {command} = require("ringo/subprocess");<br>
+ * <pre><code>const {command} = require("ringo/subprocess");<br>
  * // get PATH environment variable on Unix-like systems
- * var path = command("/bin/bash", "-c", "echo $PATH");<br>
+ * const path = command("/bin/bash", "-c", "echo $PATH");<br>
  * // a simple ping
- * var result = command("ping", "-c 1", "ringojs.org");
+ * const result = command("ping", "-c 1", "ringojs.org");
  * </code></pre>
  *
  * @param {String} command command to call in the runtime environment

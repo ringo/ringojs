@@ -17,9 +17,9 @@
 
 /**
  * @fileoverview Adds useful functions for working with JavaScript Date objects.
- * @example var dates = require("ringo/utils/dates");
- * var now = new Date(2016, 0, 1);
- * var y2k = new Date(2000, 0, 1);
+ * @example const dates = require("ringo/utils/dates");
+ * const now = new Date(2016, 0, 1);
+ * const y2k = new Date(2000, 0, 1);
  *
  * dates.after(now, y2k); // --> true
  * dates.before(now, y2k); // --> false
@@ -60,7 +60,7 @@ const createGregorianCalender = (date, locale) => {
  *        is used.
  * @returns {String} the formatted Date
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html">java.text.SimpleDateFormat</a>
- * @example var y2k = new Date(Date.UTC(2000, 0, 1));
+ * @example const y2k = new Date(Date.UTC(2000, 0, 1));
  * // "year 2000"
  * dates.format(y2k, "'year' yyyy");
  * // "Samstag, Januar 1, '00"
@@ -121,8 +121,8 @@ exports.checkDate = (fullYear, month, day) => {
  *        <code>millisecond</code>, and their respective plural form.
  * @returns {Date} date with the calculated date and time
  * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html#add-int-int-">java.util.GregorianCalendar add()</a>
- * @example var d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
- * var d2 = dates.add(d1, 1, "hour");
+ * @example const d1 = new Date(Date.UTC(2016, 0, 1, 0, 0));
+ * const d2 = dates.add(d1, 1, "hour");
  * dates.diff(d1, d2, "hours"); // --> 1
  */
 exports.add = (date, delta, unit) => {

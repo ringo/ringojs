@@ -124,7 +124,7 @@ function Logger(name, impl) {
  * repeatedly checks the resource for updates.
  */
 const setConfig = exports.setConfig = function(resource) {
-    var logContext = org.apache.logging.log4j.LogManager.getContext(false);
+    const logContext = org.apache.logging.log4j.LogManager.getContext(false);
     logContext.setConfigLocation(new java.net.URI(resource.url));
     logContext.updateLoggers();
     configured = module.singleton("configured", () => true);
