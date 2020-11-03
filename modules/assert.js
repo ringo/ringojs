@@ -189,8 +189,9 @@ const AssertionError = exports.AssertionError = function AssertionError(options)
 };
 
 /** @ignore */
-AssertionError.prototype = Object.create(Error.prototype);
-AssertionError.prototype.constructor = AssertionError;
+AssertionError.prototype = Object.create(Error.prototype, {
+    "constructor": {"value": AssertionError}
+});
 
 /** @ignore */
 AssertionError.toString = function() {
@@ -225,8 +226,9 @@ const ArgumentsError = exports.ArgumentsError = function ArgumentsError(message)
 }
 
 /** @ignore */
-ArgumentsError.prototype = Object.create(Error.prototype);
-ArgumentsError.prototype.constructor = ArgumentsError;
+ArgumentsError.prototype = Object.create(Error.prototype, {
+    "constructor": {"value": ArgumentsError}
+});
 
 /** @ignore */
 ArgumentsError.toString = function() {
