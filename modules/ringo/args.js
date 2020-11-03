@@ -134,7 +134,7 @@ exports.Parser = function() {
      * @returns {Object} this parser for chained invocation
      */
     this.addOption = function(shortName, longName, argument, helpText) {
-        if (typeof(shortName) !== "string" || shortName.length !== 1) {
+        if (typeof(shortName) === "string" && shortName.length !== 1) {
             throw new Error("Short option must be a string of length 1");
         }
         longName = longName || "";
