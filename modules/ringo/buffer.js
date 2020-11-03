@@ -10,7 +10,7 @@ const strings = require('ringo/utils/strings');
  * as a simple wrapper around a JavaScript array.
  * @param {*...} args... initial parts to write to the buffer
  */
-module.exports.Buffer = function Buffer() {
+exports.Buffer = function Buffer() {
 
     const content = [];
     let length = 0;

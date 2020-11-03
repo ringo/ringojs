@@ -96,7 +96,7 @@ exports.ZipFile = function(path) {
  * @param {Stream|String} resource an input stream or file name
  * @see #ZipFile
  */
-module.exports.ZipIterator = function*(resource) {
+exports.ZipIterator = function*(resource) {
     const zipStream = new ZipInputStream((typeof resource == "string") ?
             fs.openRaw(resource) : resource);
     const stream = new io.Stream(zipStream);

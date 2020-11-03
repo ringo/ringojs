@@ -285,7 +285,7 @@ exports.Decoder = function Decoder(charset, strict, capacity) {
  * @param {Number} capacity initial capacity for the input character buffer and output byte buffer.
  *                          The binary buffer's size depends on the average bytes used per character by the charset.
  */
-module.exports.Encoder = function Encoder(charset, strict, capacity) {
+exports.Encoder = function Encoder(charset, strict, capacity) {
 
     if (!(this instanceof Encoder)) {
         return new Encoder(charset, strict, capacity);
