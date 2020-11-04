@@ -14,6 +14,7 @@ exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
 exports.testSubProcess     = require('./ringo/subprocess_test');
 exports.testWebSocket      = require('./ringo/websocket_test');
+exports.testWorker         = require('./ringo/worker/worker_test');
 exports.testZip            = require('./ringo/zip_test');
 exports.testUtils          = require('./ringo/utils/all');
 exports.testFile           = require('./file/all');
