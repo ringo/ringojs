@@ -1,14 +1,14 @@
-var fs = require('fs');
-var {GREEN, BLUE, writeln} = require('ringo/term');
+const fs = require('fs');
+const {GREEN, BLUE, writeln, RESET} = require('ringo/term');
 
-var filename = module.path;
+const filename = module.path;
 
 // text streams have an iterator that reads the next line
-var file = fs.open(filename);  // text mode
+let file = fs.open(filename);  // text mode
 file.forEach(function(line) {
-   writeln(GREEN, line);
+   writeln(GREEN, line, RESET);
 });
 
 // binary streams read into ByteArrays/ByteStrings
 file = fs.open(filename, {binary: true});
-writeln(BLUE, file.read())
+writeln(BLUE, file.read(), RESET)
