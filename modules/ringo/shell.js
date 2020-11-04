@@ -200,7 +200,7 @@ const convert = (value, nesting, visited) => {
  * @param {Object} value
  * @param {Stream} writer
  */
-exports.printResult = (value, writer) => {
+const printResult = exports.printResult = (value, writer) => {
     if (typeof value !== "undefined") {
         writer = writer || term;
         printValue(convert(value, 0, []), writer, 0);
@@ -269,7 +269,7 @@ const printValue = (value, writer, nesting) => {
  * @param {Array} errors
  * @param {Boolean} verbose
  */
-exports.printError = (xcept, errors, verbose) => {
+const printError = exports.printError = (xcept, errors, verbose) => {
     if (xcept instanceof org.mozilla.javascript.RhinoException) {
         term.writeln(term.BOLD, term.RED, xcept.details());
     } else {
