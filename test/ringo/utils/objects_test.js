@@ -44,6 +44,42 @@ exports.testMerge = function() {
     assert.deepEqual(x, {a: 1, b: 2});
     assert.deepEqual(y, {b: 3, c: 4});
     assert.deepEqual(z, {c: 5, d: 6});
+
+    // null/undefined args
+    [null, undefined].forEach(value => {
+        assert.deepEqual(merge(value, x), {a: 1, b: 2});
+        assert.deepEqual(merge(x, value), {a: 1, b: 2});
+        assert.deepEqual(merge(value, x, y), {a: 1, b: 2, c: 4});
+        assert.deepEqual(merge(x, value, y), {a: 1, b: 2, c: 4});
+        assert.deepEqual(merge(x, y, value), {a: 1, b: 2, c: 4});
+    });
+
+    // only include own enumerable properties
+    const Base = function() {
+        Object.defineProperties(this, {
+            "baseName": {
+                "value": "base",
+                "enumerable": true
+            }
+        });
+        return this;
+    };
+    const Extend = function(name) {
+        Object.defineProperties(this, {
+            "name": {
+                "value": name,
+                "enumerable": true
+            },
+            "nonenumerable": {
+                "value": "excluded"
+            }
+        });
+        return this;
+    };
+    Extend.prototype = Object.create(Base.prototype, {
+        "constructor": {"value": Extend}
+    });
+    assert.deepEqual(merge(new Extend("extend")), {"name": "extend"});
 };
 
 exports.testCloneNumber = function() {

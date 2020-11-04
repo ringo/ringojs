@@ -196,11 +196,9 @@ exports.merge = function() {
     const result = {};
     for (let i = arguments.length; i > 0; --i) {
         let obj = arguments[i - 1];
-        Object.keys(obj).forEach(key => {
-            if (obj.hasOwnProperty(key)) {
-                result[key] = obj[key];
-            }
-        });
+        if (obj !== null && obj !== undefined) {
+            Object.keys(obj).forEach(key => result[key] = obj[key]);
+        }
     }
     return result;
 };
