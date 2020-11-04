@@ -1,6 +1,6 @@
 // Minimal hello-world HTTP server demo
 
-exports.app = function(req) {
+exports.app = (req) => {
     return {
         status: 200,
         headers: {"Content-Type": "text/plain"},

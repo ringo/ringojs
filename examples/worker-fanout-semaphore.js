@@ -1,29 +1,29 @@
-var {Worker} = require("ringo/worker");
-var {Semaphore} = require("ringo/concurrent");
+const {Worker} = require("ringo/worker");
+const {Semaphore} = require("ringo/concurrent");
 
 function main() {
     // Create a semaphore to wait for response from all workers
-    var s = new Semaphore();
-    var NUMBER_OF_WORKERS = 8;
-    
+    const semaphore = new Semaphore();
+    const NUMBER_OF_WORKERS = 8;
+
     // Create a new workers from this same module. Note that this will
     // create a new instance of this module as workers are isolated.
-    for (var i = 0; i < NUMBER_OF_WORKERS; i++) {
-        var w = new Worker(module.id);
-        w.onmessage = function(e) {
+    for (let i = 0; i < NUMBER_OF_WORKERS; i++) {
+        let worker = new Worker(module.id);
+        worker.onmessage = function(e) {
             print("Got reply from worker " + e.data);
-            s.signal();
+            semaphore.signal();
         }
         // Calling worker.postMessage with true as second argument causes
         // callbacks from the worker to be executed synchronously in
         // the worker's own thread instead of in our own event loop thread,
         // allowing us to wait synchronously for replies.
-        w.postMessage(i, true);
+        worker.postMessage(i, true);
     }
-    
+
     // Wait until we have responses from all workers, but with
     // a timeout that is barely long enough.
-    if (s.tryWait(800, NUMBER_OF_WORKERS)) {
+    if (semaphore.tryWait(800, NUMBER_OF_WORKERS)) {
         print("Got responses from all workers, quitting.");
     } else {
         print("Timed out; quitting.");

@@ -1,14 +1,14 @@
-var {Parser} = require('ringo/args');
-var {RED, BLUE, YELLOW, BOLD, writeln} = require('ringo/term');
-var system = require('system');
+const {Parser} = require('ringo/args');
+const {RED, BLUE, YELLOW, BOLD, writeln} = require('ringo/term');
+const system = require('system');
 
-function main(args) {
-    var parser = new Parser();
+const main = (args) => {
+    const parser = new Parser();
     parser.addOption('f', 'foo', null, 'Enable foo bit');
     parser.addOption('b', 'bar', '[BAR-FACTOR]', 'Specify bar factor');
     parser.addOption('h', 'help', null, 'Display help');
     args.shift();
-    var options = parser.parse(args);
+    const options = parser.parse(args);
     if (options.help) {
         writeln(BLUE, BOLD, 'Options:');
         writeln(BLUE, parser.help());
@@ -23,7 +23,6 @@ function main(args) {
     if (!Object.keys(options).length) {
         writeln(BOLD, "Run with -h/--help to see available options");
     }
-       
 }
 
 if (require.main === module) {

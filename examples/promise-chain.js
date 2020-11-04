@@ -6,21 +6,21 @@
  * in the chain as soon as it is resolved.
  */
 
-var {Deferred} = require('ringo/promise');
+const {Deferred} = require('ringo/promise');
 
-var deferred = new Deferred();
+const deferred = new Deferred();
 
-deferred.promise.then(function(val) {
+deferred.promise.then(val => {
     print('Step 1:', val);
     return val.toUpperCase();
-}).then(function(val) {
+}).then(val => {
     print('Step 2:', val);
-    var d = new Deferred();
+    const d = new Deferred();
     d.resolve(val.split(' ').join(' CRUEL '));
     return d.promise;
-}).then(function(val) {
+}).then(val => {
     print('Step 3:', val);
-}, function(err) {
+}, err => {
     print('Failed:', err);
 });
 

@@ -1,11 +1,11 @@
-var fs = require("fs");
+const fs = require("fs");
 
-var onmessage = function(event) {
-    var {response, file} = event.data;
-    var stream = fs.openRaw(file);
-    var intervalId = setInterval(function() {
+const onmessage = (event) => {
+    const {response, file} = event.data;
+    const stream = fs.openRaw(file);
+    const intervalId = setInterval(() => {
         try {
-            var buf = stream.read(4096);
+            const buf = stream.read(4096);
             if (buf.length > 0) {
                 response.write(buf);
                 response.flush();

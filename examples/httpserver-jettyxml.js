@@ -1,7 +1,7 @@
-var httpServer = require("../lib/main");
-var builder = httpServer.build("config/jetty.xml")
+const httpServer = require("ringo/httpserver");
+const builder = httpServer.build("config/jetty.xml")
         // serve application
-        .serveApplication("/", module.resolve("./app"))
+        .serveApplication("/", module.resolve("./httpserver-app"))
         // static file serving
         .serveStatic("/static", module.resolve("./"), {
             "allowDirectoryListing": true
