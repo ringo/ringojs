@@ -214,12 +214,12 @@ exports.AsyncResponse = function(request, timeout) {
     const writeListener = new WriteListenerImpl(asyncContext);
     out.setWriteListener(writeListener);
     return {
-        "start": (status, headers) => {
+        "start": function(status, headers) {
             servletResponse.setStatus(status);
             writeHeaders(servletResponse, headers || {});
             return this;
         },
-        "write": (data, encoding) => {
+        "write": function(data, encoding) {
             if (asyncContext.getHttpChannelState().isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
@@ -230,10 +230,10 @@ exports.AsyncResponse = function(request, timeout) {
             writeListener.onWritePossible();
             return this;
         },
-        "flush": () => {
+        "flush": function() {
             this.write(FLUSH);
         },
-        "close": () => {
+        "close": function() {
             if (asyncContext.getHttpChannelState().isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
