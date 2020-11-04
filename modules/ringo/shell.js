@@ -174,7 +174,7 @@ const convert = (value, nesting, visited) => {
                     let keys = Object.keys(value);
                     count = 0;
                     for (let i = 0; i < keys.length; i++) {
-                        part = convert(value[keys[i]], nesting + 1, visited);
+                        let part = convert(value[keys[i]], nesting + 1, visited);
                         count += String(keys[i]).length + 4;
                         count += part.string && part.string.length || part.count || 0;
                         retval.items.push({
