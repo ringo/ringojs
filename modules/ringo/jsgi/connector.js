@@ -224,7 +224,7 @@ exports.AsyncResponse = function(request, timeout) {
                 throw new Error("AsyncResponse already closed");
             }
             if (!(data instanceof binary.Binary)) {
-                data = String(data).toByteArray(encoding);
+                data = binary.toByteArray(String(data), encoding);
             }
             writeListener.queue.add(data);
             writeListener.onWritePossible();

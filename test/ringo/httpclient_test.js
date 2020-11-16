@@ -333,7 +333,7 @@ exports.testContentDecoding = () => {
     const compress = (CompressorOutputStream) => {
         const bos = new ByteArrayOutputStream();
         const cos = new CompressorOutputStream(bos, true);
-        cos.write(unzipped.toByteArray());
+        cos.write(binary.toByteArray(unzipped));
         cos.finish();
         const bytes = binary.ByteArray.wrap(bos.toByteArray());
         cos.close();
@@ -406,7 +406,7 @@ exports.testPost = () => {
 
     // use this module's source as test data
     const data = fs.read(module.path);
-    let inputByteArray = data.toByteArray();
+    let inputByteArray = binary.toByteArray(data);
 
     // POSTing byte array
     let exchange = request({
@@ -432,7 +432,7 @@ exports.testPost = () => {
     exchange = request({
         url: baseUri,
         method: "POST",
-        data: new TextStream(new MemoryStream(data.toByteString()), {charset: "utf-8"})
+        data: new TextStream(new MemoryStream(binary.toByteString(data)), {charset: "utf-8"})
     });
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(exchange.contentBytes.length, inputByteArray.length);

@@ -3,6 +3,7 @@ const {Socket, ServerSocket, DatagramSocket} = require("net");
 const {TextStream} = require("io");
 const {Semaphore} = require("ringo/concurrent");
 const {Arrays} = java.util;
+const binary = require("binary");
 
 const HOST = "localhost";
 const HOST_IP = "127.0.0.1";
@@ -69,8 +70,8 @@ exports.testUDP = () => {
     semaphores.client.tryWait(200);
     assert.strictEqual(messages.toServer.address, HOST_IP);
     assert.strictEqual(messages.toServer.port, PORT + 1);
-    assert.isTrue(Arrays.equals(messages.toServer.data, "hello".toByteArray()));
+    assert.isTrue(Arrays.equals(messages.toServer.data, binary.toByteArray("hello")));
     assert.strictEqual(messages.toClient.address, HOST_IP);
     assert.strictEqual(messages.toClient.port, PORT);
-    assert.isTrue(Arrays.equals(messages.toClient.data, "world".toByteArray()));
+    assert.isTrue(Arrays.equals(messages.toClient.data, binary.toByteArray("world")));
 };

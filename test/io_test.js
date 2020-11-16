@@ -1,29 +1,29 @@
 include('io');
-var {ByteString} = require('binary');
-var assert = require('assert');
+const assert = require('assert');
+const binary = require('binary');
 
 exports.testReadFixed = function() {
-    var resource = getResource('./io_test.js');
-    var io = new Stream(resource.inputStream);
-    var bytes = io.read(7);
+    const resource = getResource('./io_test.js');
+    const stream = new Stream(resource.inputStream);
+    const bytes = stream.read(7);
     assert.strictEqual(bytes.length, 7);
     assert.strictEqual(bytes.decodeToString(), 'include');
 };
 
 exports.testReadIndefinite = function() {
-    var resource = getResource('./assert.js');
-    var io = new Stream(resource.inputStream);
-    var bytes = io.read();
+    const resource = getResource('./assert.js');
+    const stream = new Stream(resource.inputStream);
+    const bytes = stream.read();
     assert.strictEqual(bytes.length, resource.length);
     assert.strictEqual(bytes.decodeToString(), resource.content);
 };
 
 exports.testStreamForEach = function() {
-    var resource = getResource('./assert.js');
-    var io = new Stream(resource.inputStream);
-    var str = '';
-    var read = 0;
-    io.forEach(function(data) {
+    const resource = getResource('./assert.js');
+    const stream = new Stream(resource.inputStream);
+    let str = '';
+    let read = 0;
+    stream.forEach(function(data) {
         read += data.length;
         str += data.decodeToString();
     });
@@ -32,27 +32,28 @@ exports.testStreamForEach = function() {
 };
 
 exports.testMemoryStream = function() {
-    var m = new MemoryStream(20);
-    var line = 'Lorem ipsum dolor sit amet, eam suas agam phaedrum an, cetero ' +
+    const m = new MemoryStream(20);
+    const line = 'Lorem ipsum dolor sit amet, eam suas agam phaedrum an, cetero ' +
                'apeirian id vix, menandri evertitur eu cum.';
-    var bytes = line.toByteString();
-    for (var i = 0; i < 100; i++) {
+    const bytes = binary.toByteString(line);
+    for (let i = 0; i < 100; i++) {
         m.write(bytes);
     }
     assert.equal(m.length, bytes.length * 100);
     assert.equal(m.position, bytes.length * 100);
     m.position = 0;
-    for (var j = 0; j < 100; j++) {
+    debugger
+    for (let j = 0; j < 100; j++) {
         assert.deepEqual(m.read(bytes.length), bytes);
     }
-    assert.deepEqual(m.read(bytes.length), new ByteString());
+    assert.deepEqual(m.read(bytes.length), new binary.ByteString());
 }
 
 exports.testTextStream = function() {
     // Carriage return should be dropped
-    var input = new java.io.ByteArrayInputStream((new java.lang.String("Hello\r\nWorld!")).getBytes("UTF-8"));
-    var stream = new TextStream(new Stream(input));
-    var lines = stream.readLines();
+    const input = new java.io.ByteArrayInputStream((new java.lang.String("Hello\r\nWorld!")).getBytes("UTF-8"));
+    let stream = new TextStream(new Stream(input));
+    const lines = stream.readLines();
 
     assert.strictEqual(lines[0], "Hello\n");
     assert.strictEqual(lines[1], "World!");
@@ -68,7 +69,7 @@ exports.testTextStream = function() {
     stream.close();
 
     // Check writing
-    var output = new java.io.ByteArrayOutputStream();
+    const output = new java.io.ByteArrayOutputStream();
     stream = new TextStream(new Stream(output));
     stream.writeLine("Hello");
     stream.write("World!");

@@ -101,36 +101,8 @@ exports.toByteArray = (string, charset) => {
  * const bs = binary.toByteString("hello world");
  */
 exports.toByteString = (string, charset) => {
-    return new ByteArray(String(string), charset || 'utf8');
+    return new ByteString(String(string), charset || 'utf8');
 };
-
-/**
- * Converts the String to a mutable ByteArray using the specified encoding.
- * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns {ByteArray} a ByteArray representing the string
- * @example const ba = "hello world".toByteArray();
- * @deprecated
- */
-Object.defineProperty(String.prototype, 'toByteArray', {
-    value: function(charset) {
-        charset = charset || 'utf8';
-        return new ByteArray(String(this), charset);
-    }, writable: true
-});
-
-/**
- * Converts the String to an immutable ByteString using the specified encoding.
- * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns {ByteString} a ByteString representing the string
- * @example const bs = "hello world".toByteString();
- * @deprecated
- */
-Object.defineProperty(String.prototype, 'toByteString', {
-    value: function(charset) {
-        charset = charset || 'utf8';
-        return new ByteString(String(this), charset);
-    }, writable: true
-});
 
 /**
  * Reverses the content of the ByteArray in-place.
