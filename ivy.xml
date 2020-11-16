@@ -25,7 +25,7 @@
         <dependency org="org.apache.logging.log4j" name="log4j-slf4j-impl" rev="2.+" conf="default"/>
         
         <!-- jline -->
-        <dependency org="jline" name="jline" rev="2.12.1"/>
+        <dependency org="org.jline" name="jline" rev="3.17.1" conf="default"/>
 
         <!-- junit -->
         <dependency org="junit" name="junit" rev="3.8.+" conf="test->*"/>

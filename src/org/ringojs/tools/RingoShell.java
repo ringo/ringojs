@@ -16,9 +16,15 @@
 
 package org.ringojs.tools;
 
-import jline.console.completer.Completer;
-import jline.console.ConsoleReader;
-import jline.console.history.FileHistory;
+import org.jline.reader.*;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.AggregateCompleter;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.reader.impl.history.DefaultHistory;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
@@ -33,7 +39,9 @@ import org.ringojs.repository.StringResource;
 import org.ringojs.wrappers.ScriptableList;
 
 import java.io.*;
-import java.util.Collections;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,14 +59,16 @@ public class RingoShell {
     final RingoWorker worker;
     Scriptable scope;
     boolean silent;
-    File history;
+    Path history;
     CodeSource codeSource = null;
+    final String PROMPT = ">> ";
+    final String SECONDARY_PROMPT = ".. ";
 
     public RingoShell(RhinoEngine engine) throws IOException {
         this(engine, null, false);
     }
 
-    public RingoShell(RhinoEngine engine, File history, boolean silent)
+    public RingoShell(RhinoEngine engine, Path history, boolean silent)
             throws IOException {
         this.config = engine.getConfig();
         this.engine = engine;
@@ -80,45 +90,56 @@ public class RingoShell {
             return;
         }
         preloadShellModule();
-        ConsoleReader reader = new ConsoleReader();
-        reader.setBellEnabled(false);
-        reader.setExpandEvents(false);
-        // reader.setDebug(new PrintWriter(new FileWriter("jline.debug")));
-        reader.addCompleter(new JSCompleter());
+        Terminal terminal = TerminalBuilder.builder()
+            .name("RingoJS Terminal")
+            .build();
         if (history == null) {
-            history = new File(System.getProperty("user.home"), ".ringo-history");
+            history = Paths.get(System.getProperty("user.home"), ".ringo-history");
         }
-        FileHistory fileHistory = new FileHistory(history);
-        reader.setHistory(fileHistory);
-        Runtime.getRuntime().addShutdownHook(new ShutdownHook(fileHistory));
-        PrintStream out = System.out;
+        DefaultParser parser = new DefaultParser();
+        parser.setEofOnUnclosedBracket(DefaultParser.Bracket.CURLY,
+            DefaultParser.Bracket.ROUND,
+            DefaultParser.Bracket.SQUARE);
+        parser.setEofOnEscapedNewLine(true);
+        LineReader reader = LineReaderBuilder.builder()
+            .terminal(terminal)
+            .parser(parser)
+            .variable(LineReader.HISTORY_FILE, history)
+            .variable(LineReader.SECONDARY_PROMPT_PATTERN, SECONDARY_PROMPT)
+            .variable(LineReader.INDENTATION, 4)
+            .history(new DefaultHistory())
+            .completer(new AggregateCompleter(
+                new JSCompleter(terminal),
+                new StringsCompleter(getJsKeywordCandidates())
+            ))
+            .option(LineReader.Option.HISTORY_TIMESTAMPED, false)
+            .build();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                reader.getHistory().save();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+
         int lineno = 0;
-        repl: while (true) {
+        while (true) {
             Context cx = engine.getContextFactory().enterContext(null);
             cx.setErrorReporter(new ToolErrorReporter(false, System.err));
             String source = "";
-            String prompt = getPrompt();
-            while (true) {
-                String newline = reader.readLine(prompt);
-                if (newline == null) {
-                    // NULL input, if e.g. Ctrl-D was pressed
-                    out.println();
-                    out.flush();
-                    break repl;
-                }
-                source = source + newline + "\n";
+            try {
+                source = reader.readLine(PROMPT);
                 lineno++;
-                if (cx.stringIsCompilableUnit(source)) {
-                    break;
-                }
-                prompt = getSecondaryPrompt();
+            } catch (UserInterruptException ignore) {
+            } catch (EndOfFileException e) {
+                break;
             }
             try {
                 Resource res = new StringResource("<stdin>", source, lineno);
                 ReloadableScript script = new ReloadableScript(res, engine);
                 Object result = worker.evaluateScript(cx, script, scope);
 
-                printResult(result, out);
+                printResult(result, System.out);
                 lineno++;
                 // trigger GC once in a while - if we run in non-interpreter mode
                 // we generate a lot of classes to unload
@@ -127,20 +148,12 @@ public class RingoShell {
                 }
             } catch (Exception ex) {
                 // TODO: should this print to System.err?
-                printError(ex, out, config.isVerbose());
+                printError(ex, System.out, config.isVerbose());
             } finally {
                 Context.exit();
             }
         }
         System.exit(0);
-    }
-
-    protected String getPrompt() {
-        return ">> ";
-    }
-
-    protected String getSecondaryPrompt() {
-        return ".. ";
     }
 
     protected void printResult(Object result, PrintStream out) {
@@ -216,43 +229,39 @@ public class RingoShell {
         t.start();
     }
 
+    private Candidate[] getJsKeywordCandidates() {
+        return Arrays.stream(jsKeywords)
+            .map(str -> new Candidate(str, str, null, null, null, null, false))
+            .toArray(Candidate[]::new);
+    }
+
     class JSCompleter implements Completer {
 
         final Pattern variables = Pattern.compile(
                 "(^|\\s|[^\\w\\.'\"])([\\w\\.]+)$");
-        final Pattern keywords = Pattern.compile(
-                "(^|\\s)([\\w]+)$");
+        Terminal terminal;
 
-        @SuppressWarnings("unchecked")
-        public int complete(String s, int i, List list) {
-            int start = i;
+        JSCompleter(Terminal terminal) {
+            this.terminal = terminal;
+        }
+
+        @Override
+        public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
             try {
-                Matcher match = keywords.matcher(s);
-                if (match.find() && s.length() == i) {
-                    String word = match.group(2);
-                    for(String str: jsKeywords) {
-                        if (str.startsWith(word)) {
-                            list.add(str);
-                        }
-                    }
-                }
-                match = variables.matcher(s);
-                if (match.find() && s.length() == i) {
+                Matcher match = variables.matcher(parsedLine.line());
+                if (match.find()) {
                     String word = match.group(2);
                     Scriptable obj = scope;
                     String[] parts = word.split("\\.", -1);
                     for (int k = 0; k < parts.length - 1; k++) {
                         Object o = ScriptableObject.getProperty(obj, parts[k]);
                         if (o == null || o == ScriptableObject.NOT_FOUND) {
-                            return start;
+                            return;
                         }
                         obj = ScriptRuntime.toObject(scope, o);
                     }
                     String lastpart = parts[parts.length - 1];
-                    // set return value to beginning of word we're replacing
-                    start = i - lastpart.length();
                     while (obj != null) {
-                        // System.err.println(word + " -- " + obj);
                         Object[] ids = obj.getIds();
                         collectIds(ids, obj, word, lastpart, list);
                         if (list.size() <= 3 && obj instanceof ScriptableObject) {
@@ -270,46 +279,31 @@ public class RingoShell {
             } catch (Exception ignore) {
                 // ignore.printStackTrace();
             }
-            Collections.sort(list);
-            return start;
         }
 
-        @SuppressWarnings("unchecked")
-        private void collectIds(Object[] ids, Scriptable obj, String word, String lastpart, List list) {
-            for(Object id: ids) {
+        private void collectIds(Object[] ids, Scriptable obj, String word, String lastpart, List<Candidate> list) {
+            for (Object id: ids) {
                 if (!(id instanceof String)) {
                     continue;
                 }
                 String str = (String) id;
                 if (str.startsWith(lastpart) || word.endsWith(".")) {
                     if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
-                        list.add(str + "(");
-                    } else {
-                        list.add(str);
+                        str += "(";
                     }
+                    String suffix = str.substring(lastpart.length());
+                    AttributedStringBuilder sb = new AttributedStringBuilder();
+                    sb.styled(AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN), lastpart);
+                    sb.styled(AttributedStyle.DEFAULT, suffix);
+                    list.add(new Candidate(word + suffix,
+                        sb.toAnsi(terminal), null, null, null, null, false));
                 }
             }
         }
 
     }
 
-    private static class ShutdownHook extends Thread {
-        final FileHistory fileHistory;
-
-        public ShutdownHook(FileHistory fileHistory) {
-            this.fileHistory = fileHistory;
-        }
-
-        public void run() {
-            try {
-                fileHistory.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    static final String[] jsKeywords =
+    private static final String[] jsKeywords =
         new String[] {
             "break",
             "case",
