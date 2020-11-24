@@ -203,7 +203,7 @@ public abstract class AbstractRepository implements Repository {
         } else {
             String last = list[list.length - 1];
             for (String e : list) {
-                if (repo == null || e == last) {
+                if (repo == null || e.equals(last)) {
                     break;
                 }
                 repo = repo.lookupRepository(e);
