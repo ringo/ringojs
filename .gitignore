@@ -1,8 +1,7 @@
 build/*
-lib/ringo.jar
-lib/ivy/*.jar
-lib/ringo-core.jar
-lib/ringo-modules.jar
+!lib/
+lib/*
+!lib/ringo.policy
 run.jar
 target
 *.iml
@@ -15,3 +14,4 @@ docs/java
 bin/ringo-doc.cmd
 bin/ringo-doc
 /pom.xml
+.gradle

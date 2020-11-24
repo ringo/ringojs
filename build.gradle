@@ -1,0 +1,95 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+         java {
+            srcDir 'src'
+            exclude '**/*Test*.java'
+         }
+    }
+
+    runner {
+        java {
+            srcDir 'src'
+            include '**/tools/launcher/**'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'src'
+            include '**/*Test*.java'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.mozilla:rhino:1.7.13'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-servlets:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-xml:9.4.32.v20200930'
+    implementation 'org.apache.logging.log4j:log4j-core:2.+'
+    implementation 'org.apache.logging.log4j:log4j-api:2.+'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.+'
+    implementation 'jline:jline:2.12.1'
+    implementation 'junit:junit:3.8.+'
+}
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+jar {
+    destinationDirectory = file('./lib')
+    archiveFileName = 'ringo-core.jar'
+    from('src') {
+        includes = ['**/*.html']
+        excludes = ['**/package.html']
+    }
+}
+
+javadoc {
+    destinationDir = file('./docs/java')
+    options.addStringOption('doctitle', "RingoJS Java API v${version}");
+    options.addBooleanOption('html5', true)
+    options.addBooleanOption('-no-module-directories', true)
+    options.addBooleanOption('-frames', true);
+    options.addBooleanOption('version', true);
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into './lib/'
+}
+
+task modules(type: Jar) {
+    from('modules')
+    into('modules')
+    destinationDirectory = file('lib')
+    archiveFileName = 'ringo-modules.jar'
+}
+
+task runner(type: Jar) {
+    from sourceSets.runner.output
+    destinationDirectory = file('./lib')
+    archiveFileName = 'run.jar'
+    manifest {
+        attributes (
+            "Main-Class": "org.ringojs.tools.launcher.Main"
+        )
+    }
+}
+
+build {
+    dependsOn jar,runner,modules,copyDependencies
+}
