@@ -93,6 +93,7 @@ task runner(type: Jar) {
 }
 
 task testModules(type: JavaExec) {
+    dependsOn copyDependencies, jar
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.ringojs.tools.launcher.Main'
     args 'test/all.js'
@@ -100,6 +101,7 @@ task testModules(type: JavaExec) {
 }
 
 task testDatesModule(type: DatesTestTask) {
+    dependsOn copyDependencies, jar
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.ringojs.tools.launcher.Main'
     args 'test/ringo/utils/dates_test.js'
@@ -109,8 +111,8 @@ test {
     finalizedBy testModules
 }
 
-build {
-    dependsOn jar,runner,modules,copyDependencies
+assemble {
+    dependsOn copyDependencies, runner
 }
 
 class DatesTestTask extends JavaExec {
