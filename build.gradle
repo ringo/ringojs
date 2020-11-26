@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'distribution'
 }
 
 defaultTasks 'build'
@@ -62,7 +63,7 @@ jar {
 
 javadoc {
     destinationDir = file('./docs/java')
-    options.addStringOption('doctitle', "RingoJS Java API v${version}");
+    options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
     options.addBooleanOption('html5', true)
     options.addBooleanOption('-no-module-directories', true)
     options.addBooleanOption('-frames', true);
@@ -83,7 +84,7 @@ task modules(type: Jar) {
 
 task runner(type: Jar) {
     from sourceSets.runner.output
-    destinationDirectory = file('./lib')
+    destinationDirectory = project.projectDir
     archiveFileName = 'run.jar'
     manifest {
         attributes (
@@ -107,8 +108,42 @@ task testDatesModule(type: DatesTestTask) {
     args 'test/ringo/utils/dates_test.js'
 }
 
+task cleanJars(type: Delete) {
+    delete fileTree("lib").matching {
+        include "*.jar"
+    }
+}
+
+distributions {
+    main {
+        distributionBaseName = 'ringojs'
+        def binaries = ["bin/ringo", "bin/ringo-admin", "bin/ringo-web"]
+        def excludeFiles = [
+                "bin/rp", "bin/rp.*",
+                "packages", "build",
+                "*.zip", "*.o", "*.tar", "*.tar.gz", ".*/**", "*.iml", "*.xml", "*.patch"
+        ]
+        contents {
+            includeEmptyDirs = true
+            duplicatesStrategy = 'exclude'
+            from(binaries) {
+                fileMode 0755
+                into "bin"
+            }
+            from(projectDir) {
+                exclude excludeFiles
+            }
+        }
+    }
+}
+
+
 test {
     finalizedBy testModules
+}
+
+clean {
+    finalizedBy cleanJars
 }
 
 assemble {
