@@ -2,6 +2,8 @@ plugins {
     id 'java'
 }
 
+defaultTasks 'build'
+
 repositories {
     mavenCentral()
 }
@@ -85,11 +87,54 @@ task runner(type: Jar) {
     archiveFileName = 'run.jar'
     manifest {
         attributes (
-            "Main-Class": "org.ringojs.tools.launcher.Main"
+            'Main-Class': 'org.ringojs.tools.launcher.Main'
         )
     }
 }
 
+task testModules(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.ringojs.tools.launcher.Main'
+    args 'test/all.js'
+    shouldRunAfter test
+}
+
+task testDatesModule(type: DatesTestTask) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.ringojs.tools.launcher.Main'
+    args 'test/ringo/utils/dates_test.js'
+}
+
+test {
+    finalizedBy testModules
+}
+
 build {
     dependsOn jar,runner,modules,copyDependencies
+}
+
+class DatesTestTask extends JavaExec {
+
+    @TaskAction
+    void exec() {
+        LocalDateTime localDateTime = LocalDateTime.now()
+        ZoneId.getAvailableZoneIds()
+            .toArray()
+            .stream()
+            .map({id ->
+                ZoneId zoneId = ZoneId.of(id);
+                ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+                ZoneOffset zoneOffset = zonedDateTime.getOffset();
+                return zoneOffset.getId().replaceAll("Z", "+00:00")
+            })
+            .distinct()
+            .sorted()
+            .forEach({offset -> 
+                String timeZone = "GMT${offset}"
+                logger.quiet("Testing ringo/utils/dates in timezone {} …", timeZone)
+                systemProperty("user.timezone", timeZone);
+                super.exec()
+            })
+    }
+
 }
