@@ -47,27 +47,10 @@ dependencies {
     implementation 'junit:junit:3.8.+'
 }
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
-
-jar {
-    destinationDirectory = file('./lib')
-    archiveFileName = 'ringo-core.jar'
-    from('src') {
-        includes = ['**/*.html']
-        excludes = ['**/package.html']
+tasks.withType(JavaCompile) {
+    if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
+        options.compilerArgs.addAll(['--release', '8'])
     }
-}
-
-javadoc {
-    destinationDir = file('./docs/java')
-    options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
-    options.addBooleanOption('html5', true)
-    options.addBooleanOption('-no-module-directories', true)
-    options.addBooleanOption('-frames', true);
-    options.addBooleanOption('version', true);
 }
 
 task copyDependencies(type: Copy) {
@@ -108,10 +91,39 @@ task testDatesModule(type: DatesTestTask) {
     args 'test/ringo/utils/dates_test.js'
 }
 
-task cleanJars(type: Delete) {
-    delete fileTree("lib").matching {
-        include "*.jar"
+jar {
+    destinationDirectory = file('./lib')
+    archiveFileName = 'ringo-core.jar'
+    from('src') {
+        includes = ['**/*.html']
+        excludes = ['**/package.html']
     }
+}
+
+javadoc {
+    destinationDir = file('./docs/java')
+    options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
+    if (JavaVersion.current() > JavaVersion.VERSION_1_9) {
+        options.addBooleanOption('html5', true)
+        options.addBooleanOption('-no-module-directories', true)
+    }
+    options.addBooleanOption('version', true);
+}
+
+test {
+    finalizedBy testModules
+}
+
+clean {
+    delete fileTree('lib').matching {
+        include '*.jar'
+    }
+    delete 'run.jar'
+    delete 'docs/java'
+}
+
+assemble {
+    dependsOn copyDependencies, modules, runner
 }
 
 distributions {
@@ -119,9 +131,9 @@ distributions {
         distributionBaseName = 'ringojs'
         def binaries = ["bin/ringo", "bin/ringo-admin", "bin/ringo-web"]
         def excludeFiles = [
-                "bin/rp", "bin/rp.*",
-                "packages", "build",
-                "*.zip", "*.o", "*.tar", "*.tar.gz", ".*/**", "*.iml", "*.xml", "*.patch"
+            'bin/rp', 'bin/rp.*',
+            'packages', 'build',
+            '*.zip', '*.o', '*.tar', '*.tar.gz', '.*/**', '*.iml', '*.xml', '*.patch'
         ]
         contents {
             includeEmptyDirs = true
@@ -133,21 +145,12 @@ distributions {
             from(projectDir) {
                 exclude excludeFiles
             }
+            from jar
+            from runner
+            from modules
+            from javadoc
         }
     }
-}
-
-
-test {
-    finalizedBy testModules
-}
-
-clean {
-    finalizedBy cleanJars
-}
-
-assemble {
-    dependsOn copyDependencies, runner
 }
 
 class DatesTestTask extends JavaExec {
