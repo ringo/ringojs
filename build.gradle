@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'distribution'
+    id 'maven-publish'
 }
 
 defaultTasks 'build'
@@ -40,16 +41,16 @@ dependencies {
     implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.32.v20200930'
     implementation 'org.eclipse.jetty:jetty-servlets:9.4.32.v20200930'
     implementation 'org.eclipse.jetty:jetty-xml:9.4.32.v20200930'
-    implementation 'org.apache.logging.log4j:log4j-core:2.+'
-    implementation 'org.apache.logging.log4j:log4j-api:2.+'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.+'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.0'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.0'
     implementation 'jline:jline:2.12.1'
-    implementation 'junit:junit:3.8.+'
+    implementation 'junit:junit:4.13.1'
 }
 
 tasks.withType(JavaCompile) {
     options.deprecation true
-    if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
+    if (JavaVersion.current().isJava9Compatible()) {
         options.compilerArgs.addAll(['--release', '8'])
     }
 }
@@ -104,7 +105,7 @@ jar {
 javadoc {
     destinationDir = file('./docs/java')
     options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
-    if (JavaVersion.current() > JavaVersion.VERSION_1_9) {
+    if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
         options.addBooleanOption('-no-module-directories', true)
         options.addStringOption('sourcepath', 'src')
@@ -157,6 +158,65 @@ distributions {
 
 distTar {
     compression Compression.GZIP
+}
+
+publishing {
+    publications {
+         maven(MavenPublication) {
+            groupId = "${project.groupId}"
+            artifactId = "${project.artifactId}"
+            from components.java
+            pom {
+                name = "${project.name}"
+                description = "${project.description}"
+                url = "${project.url}"
+                packaging = 'jar'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hns'
+                        name = 'Hannes Wallnöfer'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=hns'
+                    }
+                    developer {
+                        id = 'oberhamsi'
+                        name = 'Simon Oberhammer'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=oberhamsi'
+                    }
+                    developer {
+                        id = 'botic'
+                        name = 'Philipp Naderer-Puiu'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=botic'
+                    }
+                    developer {
+                        id = 'grob'
+                        name = 'Robert Gaggl'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=grob'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:ringo/ringojs.git'
+                    developerConnection = 'scm:git:git@github.com:ringo/ringojs.git'
+                    url = 'https://github.com/ringo/ringojs'
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/ringo/ringojs/issues'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'myTestRepo'
+            url = "file://${buildDir}/testrepo"
+        }
+    }
 }
 
 class DatesTestTask extends JavaExec {
