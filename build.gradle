@@ -133,7 +133,7 @@ distributions {
         def binaries = ["bin/ringo", "bin/ringo-admin", "bin/ringo-web"]
         def excludeFiles = [
             'bin/rp', 'bin/rp.*',
-            'packages', 'build',
+            'packages/*/**', 'build',
             '*.zip', '*.o', '*.tar', '*.tar.gz', '.*/**', '*.iml', '*.xml', '*.patch'
         ]
         contents {
