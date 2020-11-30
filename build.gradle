@@ -48,6 +48,7 @@ dependencies {
 }
 
 tasks.withType(JavaCompile) {
+    options.deprecation true
     if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
         options.compilerArgs.addAll(['--release', '8'])
     }
