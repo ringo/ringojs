@@ -154,6 +154,10 @@ distributions {
     }
 }
 
+distTar {
+    compression Compression.GZIP
+}
+
 class DatesTestTask extends JavaExec {
 
     @TaskAction
