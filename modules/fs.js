@@ -1073,7 +1073,7 @@ function changeGroup(path, group) {
  * Returns basic attributes associated with a file in a file system.
  * @param {String} path
  * @returns {Object} An Object with properties {creationTime, isDirectory, isOther, isRegularFile, isSymbolicLink, lastAccessTime, lastModifiedTime, size}
- * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/nio/file/attribute/BasicFileAttributes.html">java.nio BasicFileAttributes</a>
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/attribute/BasicFileAttributes.html">java.nio BasicFileAttributes</a>
  */
 function getAttributes(path) {
     var attributes = Files.readAttributes(resolvePath(path), BasicFileAttributes, LinkOption.NOFOLLOW_LINKS);
