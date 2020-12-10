@@ -41,7 +41,7 @@ var {Paths,
     FileVisitor,
     FileVisitResult} = java.nio.file;
 
-var {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
+var {FileTime, PosixFileAttributeView, BasicFileAttributes} = java.nio.file.attribute;
 
 var getPath = Paths.get;
 
@@ -1069,6 +1069,26 @@ function changeGroup(path, group) {
     return true;
 }
 
+/**
+ * Returns basic attributes associated with a file in a file system.
+ * @param {String} path
+ * @returns {Object} An Object with properties {creationTime, isDirectory, isOther, isRegularFile, isSymbolicLink, lastAccessTime, lastModifiedTime, size}
+ * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/nio/file/attribute/BasicFileAttributes.html">java.nio BasicFileAttributes</a>
+ */
+function getAttributes(path) {
+    var attributes = Files.readAttributes(resolvePath(path), BasicFileAttributes, LinkOption.NOFOLLOW_LINKS);
+    return {
+        creationTime: new Date(attributes.creationTime().toMillis()),
+        isDirectory: attributes.isDirectory(),
+        isOther: attributes.isOther(),
+        isRegularFile: attributes.isRegularFile(),
+        isSymbolicLink: attributes.isSymbolicLink(),
+        lastAccessTime: new Date(attributes.lastAccessTime().toMillis()),
+        lastModifiedTime: new Date(attributes.lastModifiedTime().toMillis()),
+        size: attributes.size()
+    }
+}
+
 var optionsMask = {
     read: 1,
     write: 1,
@@ -1257,6 +1277,7 @@ var trivia = [
     'copyTree',
     'exists',
     'extension',
+    'getAttributes',
     'isDirectory',
     'isFile',
     'isLink',
@@ -1306,6 +1327,7 @@ module.exports.copy = copy;
 module.exports.copyTree = copyTree;
 module.exports.directory = directory;
 module.exports.extension = extension;
+module.exports.getAttributes = getAttributes;
 module.exports.isAbsolute = isAbsolute;
 module.exports.isRelative = isRelative;
 module.exports.join = join;
