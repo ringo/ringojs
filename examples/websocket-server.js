@@ -1,29 +1,38 @@
 // Simple websocket server demo
-var response = require("ringo/jsgi/response");
-var arrays = require("ringo/utils/arrays");
+const response = require("ringo/jsgi/response");
+const arrays = require("ringo/utils/arrays");
+const httpServer = require("ringo/httpserver");
 
-var connections = [];
+const connections = [];
 
-exports.app = function(req) {
+const app = (req) => {
     return response.static(module.resolve("html/websocket.html"), "text/html");
 };
 
-function onconnect(conn) {
+const onConnect = (conn) => {
     connections.push(conn);
     console.info("Opening connection, " + connections.length + " open");
-    conn.addListener("text", function(message) {
-        connections.forEach(function(conn) {
-            conn.send(message);
-        });
+    conn.addListener("text", message => {
+        connections.forEach(conn => conn.send(message));
         console.info("Sending message");
     });
-    conn.addListener("close", function() {
+    conn.addListener("close", () => {
         arrays.remove(connections, conn);
         console.info("Closing connection, " + connections.length + " remaining");
     })
-}
+};
 
 if (require.main == module) {
-    var server = require("ringo/httpserver").main(module.id);
-    server.getDefaultContext().addWebSocket("/websocket", onconnect);
+    httpServer.build()
+        // enable sessions with a custom node name
+        // serve application
+        .serveApplication("/", app)
+        // add websocket - this must be called after serveApplication
+        // as it operates on the current context of the builder
+        .addWebSocket("/websocket", onConnect)
+        .http({
+            "port": 8080
+        })
+        // start up the server
+        .start();
 }

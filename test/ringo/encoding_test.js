@@ -1,13 +1,13 @@
-var assert = require("assert");
-include('ringo/encoding');
-include('binary');
-include('io');
+const assert = require("assert");
+const {Encoder, Decoder} = require('ringo/encoding');
+const binary = require('binary');
+const {MemoryStream, TextStream} = require('io');
 
-var str = "I \u2665 JS";
-var bytes = new ByteString([73,32,226,153,165,32,74,83]);
+const str = "I \u2665 JS";
+const bytes = new binary.ByteString([73,32,226,153,165,32,74,83]);
 
 exports.testEncoder = function() {
-    var enc = new Encoder("utf-8");
+    const enc = new Encoder("utf-8");
     enc.encode(str).encode(str);
     assert.strictEqual(str + str, enc.toByteString().decodeToString("utf-8"));
     enc.encode(str);
@@ -17,7 +17,7 @@ exports.testEncoder = function() {
 };
 
 exports.testSmallEncoder = function() {
-    var enc = new Encoder("utf-8", false, 2);
+    const enc = new Encoder("utf-8", false, 2);
     enc.encode(str).encode(str);
     assert.strictEqual(str + str, enc.toByteString().decodeToString("utf-8"));
     enc.encode(str);
@@ -27,8 +27,8 @@ exports.testSmallEncoder = function() {
 };
 
 exports.testStreamEncoder = function() {
-    var enc = new Encoder("utf-8");
-    var stream = new MemoryStream();
+    const enc = new Encoder("utf-8");
+    const stream = new MemoryStream();
     enc.writeTo(stream);
     enc.encode(str).encode(str);
     assert.strictEqual(enc.length, 0);
@@ -42,7 +42,7 @@ exports.testStreamEncoder = function() {
 };
 
 exports.testDecoder = function() {
-    var dec = new Decoder("utf-8");
+    const dec = new Decoder("utf-8");
     dec.decode(bytes).decode(bytes);
     assert.strictEqual(str + str, dec.toString());
     dec.decode(bytes);
@@ -52,7 +52,7 @@ exports.testDecoder = function() {
 };
 
 exports.testDecoderSmall = function() {
-    var dec = new Decoder("utf-8", false, 2);
+    const dec = new Decoder("utf-8", false, 2);
     dec.decode(bytes).decode(bytes);
     assert.strictEqual(str + str, dec.toString());
     dec.decode(bytes);
@@ -62,8 +62,8 @@ exports.testDecoderSmall = function() {
 };
 
 exports.testStreamDecoder = function() {
-    var dec = new Decoder("utf-8");
-    var stream = new MemoryStream();
+    const dec = new Decoder("utf-8");
+    const stream = new MemoryStream();
     stream.write(bytes.concat(bytes).concat(bytes));
     stream.position = 0;
     dec.readFrom(stream);
@@ -73,9 +73,9 @@ exports.testStreamDecoder = function() {
 };
 
 exports.testStreamDecoderReadLine = function() {
-    var dec = new Decoder("utf-8");
-    var stream = new MemoryStream();
-    new TextStream(stream, {charset: "utf-8"}).writeLine(str).writeLine(str).writeLine(str);
+    const dec = new Decoder("utf-8");
+    const stream = new MemoryStream();
+    (new TextStream(stream, {charset: "utf-8"})).writeLine(str).writeLine(str).writeLine(str);
     stream.position = 0;
     dec.readFrom(stream);
     assert.strictEqual(str, dec.readLine());
@@ -86,10 +86,10 @@ exports.testStreamDecoderReadLine = function() {
 };
 
 exports.testStreamDecoderReadLineShort = function() {
-    var line = "The quick brown fox jumps over the lazy dog";
-    var dec = new Decoder("utf-8", false, 2);
-    var stream = new MemoryStream();
-    new TextStream(stream, {charset: "utf-8"}).writeLine(line).writeLine(line).writeLine(line);
+    const line = "The quick brown fox jumps over the lazy dog";
+    const dec = new Decoder("utf-8", false, 2);
+    const stream = new MemoryStream();
+    (new TextStream(stream, {charset: "utf-8"})).writeLine(line).writeLine(line).writeLine(line);
     stream.position = 0;
     dec.readFrom(stream);
     assert.strictEqual(line, dec.readLine());

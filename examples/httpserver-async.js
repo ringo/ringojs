@@ -1,8 +1,8 @@
-var {AsyncResponse} = require('ringo/jsgi/connector');
-var {Worker} = require("ringo/worker");
+const {AsyncResponse} = require('ringo/jsgi/connector');
+const {Worker} = require("ringo/worker");
 
-var worker = module.singleton("worker", function() {
-    var worker = new Worker(module.resolve("./httpserver-async-worker"));
+const worker = module.singleton("worker", () => {
+    const worker = new Worker(module.resolve("./httpserver-async-worker"));
     worker.onmessage = function(event) {
         console.log('Got message from worker:', event.data);
     };
@@ -12,8 +12,8 @@ var worker = module.singleton("worker", function() {
     return worker;
 });
 
-exports.app = function(request) {
-    var response = new AsyncResponse(request, 0, true);
+exports.app = (request) => {
+    const response = new AsyncResponse(request, 0, true);
     response.start(200, {'Content-Type': 'image/png'});
     worker.postMessage({
         "response": response,

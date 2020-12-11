@@ -23,9 +23,9 @@ const FS = FileSystems.getDefault();
  * @return {boolean} true if the attribute is supported; false otherwise
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#supportedFileAttributeViews--">Java File Attribute View</a>
  */
-function supportsFileAttributeView(attribute) {
+exports.supportsFileAttributeView = (attribute) => {
     return FS.supportedFileAttributeViews().contains(attribute) === true;
-}
+};
 
 /**
  * Resolve an arbitrary number of path elements relative to each other.
@@ -35,7 +35,7 @@ function supportsFileAttributeView(attribute) {
  * Originally adapted for helma/file from narwhal's file module.
  * @param {...} arbitrary number of path elements
  */
-function resolveUri() {
+const resolveUri = exports.resolveUri = function() {
     let root = '';
     let elements = [];
     let leaf = '';
@@ -44,29 +44,29 @@ function resolveUri() {
     const SEPARATOR_RE = /\//;
     for (let i = 0; i < arguments.length; i++) {
         path = String(arguments[i]);
-        if (path.trim() == '') {
+        if (path.trim() === '') {
             continue;
         }
         let parts = path.split(SEPARATOR_RE);
-        if (path[0] == '/') {
+        if (path[0] === '/') {
             // path is absolute, throw away everyting we have so far
             root = parts.shift() + SEPARATOR;
             elements = [];
         }
         leaf = parts.pop();
-        if (leaf == '.' || leaf == '..') {
+        if (leaf === '.' || leaf === '..') {
             parts.push(leaf);
             leaf = '';
         }
         for (let j = 0; j < parts.length; j++) {
             let part = parts[j];
-            if (part == '..') {
-                if (elements.length > 0 && arrays.peek(elements) != '..') {
+            if (part === '..') {
+                if (elements.length > 0 && arrays.peek(elements) !== '..') {
                     elements.pop();
                 } else if (!root) {
                     elements.push(part);
                 }
-            } else if (part != '' && part != '.') {
+            } else if (part !== '' && part !== '.') {
                 elements.push(part);
             }
         }
@@ -76,7 +76,7 @@ function resolveUri() {
         leaf = SEPARATOR + leaf;
     }
     return root + path + leaf;
-}
+};
 
 /**
  * Resolve path fragment child relative to parent but only
@@ -87,10 +87,10 @@ function resolveUri() {
  * @param {String} parent the parent path
  * @param {String} child the child path
  */
-function resolveId(parent, child) {
+exports.resolveId = (parent, child) => {
     // only paths starting with "." or ".." are relative according to module spec
     const path = child.split("/");
-    if (path[0] == "." || path[0] == "..") {
+    if (path[0] === "." || path[0] === "..") {
         // we support absolute paths for module ids. Since absolute
         // paths are platform dependent, use the file module's version
         // of resolve() for these instead of resolveUri().
@@ -99,7 +99,7 @@ function resolveId(parent, child) {
     }
     // child is not relative according to module spec, return it as-is
     return child;
-}
+};
 
 /**
  * Create a new empty temporary file in the default directory for temporary files.
@@ -110,7 +110,7 @@ function resolveId(parent, child) {
  *
  * @returns {String} the temporary file's path
  */
-function createTempFile(prefix, suffix, directory, permissions) {
+exports.createTempFile = (prefix, suffix, directory, permissions) => {
     suffix = suffix || null;
     directory = directory ? getPath(directory) : null;
 
@@ -122,14 +122,13 @@ function createTempFile(prefix, suffix, directory, permissions) {
                 Files.createTempFile(directory, prefix, suffix, posixPermissions.toJavaFileAttribute()) :
                 Files.createTempFile(prefix, suffix, posixPermissions.toJavaFileAttribute())
         ).toString();
-    } else {
-        return (
-            directory !== null ?
-                Files.createTempFile(directory, prefix, suffix) :
-                Files.createTempFile(prefix, suffix)
-        ).toString();
     }
-}
+    return (
+        directory !== null ?
+            Files.createTempFile(directory, prefix, suffix) :
+            Files.createTempFile(prefix, suffix)
+    ).toString();
+};
 
 /**
  * Tests whether the file represented by this File object is a hidden file.
@@ -137,9 +136,9 @@ function createTempFile(prefix, suffix, directory, permissions) {
  * @param {String} file
  * @returns {Boolean} true if this File object is hidden
  */
-function isHidden(file) {
+exports.isHidden = (file) => {
     return Files.isHidden(getPath(file));
-}
+};
 
 /**
  * An Array containing the system's file system roots. On UNIX platforms
@@ -147,8 +146,8 @@ function isHidden(file) {
  * contains an element for each mounted drive.
  * @type Array
  */
-const roots = (function(rootsIterator) {
-    let rootDirs = [];
+exports.roots = (rootsIterator => {
+    const rootDirs = [];
     while(rootsIterator.hasNext()) {
         rootDirs.push(rootsIterator.next().toString());
     }
@@ -159,7 +158,7 @@ const roots = (function(rootsIterator) {
  * The system-dependent file system separator character.
  * @type String
  */
-const separator = FS.getSeparator();
+const separator = exports.separator = FS.getSeparator();
 
 /**
  * Internal use only!
@@ -209,8 +208,8 @@ const symbolicToOctalDigit = function(stringPart) {
 const octalToSymbolicNotation = function(octal) {
     return [
         octalDigitToSymbolic(octal >> 6),
-        octalDigitToSymbolic((octal >> 3) & 0007),
-        octalDigitToSymbolic(octal & 0007)
+        octalDigitToSymbolic((octal >> 3) & 0o0007),
+        octalDigitToSymbolic(octal & 0o0007)
     ].join("");
 };
 
@@ -223,7 +222,6 @@ const symbolicToOctalNotation = function(symbolic) {
     if (symbolic.length !== 9) {
         throw "Invalid POSIX permission string: " + symbolic;
     }
-
     return (symbolicToOctalDigit(symbolic.substring(0,3)) << 6) +
         (symbolicToOctalDigit(symbolic.substring(3,6)) << 3) +
         symbolicToOctalDigit(symbolic.substring(6,9));
@@ -244,7 +242,7 @@ const enumToOctalNotation = function(javaEnumSet) {
  * @returns {PosixPermissions}
  * @constructor
  */
-function PosixPermissions(permissions) {
+const PosixPermissions = exports.PosixPermissions = function(permissions) {
     if (!(this instanceof PosixPermissions)) {
         return new PosixPermissions(permissions);
     }
@@ -258,7 +256,7 @@ function PosixPermissions(permissions) {
         get: function() { return _octalValue; },
         set: function(newValue) {
             if (typeof newValue === "number") {
-                if (newValue < 0 || newValue > 0777) {
+                if (newValue < 0 || newValue > 0o0777) {
                     throw "Invalid numeric octal permission: " + newValue.toString(8);
                 }
 
@@ -299,12 +297,3 @@ PosixPermissions.prototype.toJavaFileAttribute = function() {
 PosixPermissions.prototype.toJavaPosixFilePermissionSet = function() {
     return PosixFilePermissions.fromString(octalToSymbolicNotation(this.value));
 };
-
-module.exports.resolveUri = resolveUri;
-module.exports.resolveId = resolveId;
-module.exports.isHidden = isHidden;
-module.exports.createTempFile = createTempFile;
-module.exports.roots = roots;
-module.exports.separator = separator;
-module.exports.supportsFileAttributeView = supportsFileAttributeView;
-module.exports.PosixPermissions = PosixPermissions;

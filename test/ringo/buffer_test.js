@@ -1,12 +1,12 @@
-var assert = require("assert");
-include('ringo/buffer');
-var digest = require('ringo/utils/strings').digest;
+const assert = require("assert");
+const {Buffer} = require('ringo/buffer');
+const digest = require('ringo/utils/strings').digest;
 
-var buffer = new Buffer();
-var STRING1 = 'foo';
-var STRING2 = 'bar';
-var STRING3 = 'baz';
-var EOL = '\r\n';
+const buffer = new Buffer();
+const STRING1 = 'foo';
+const STRING2 = 'bar';
+const STRING3 = 'baz';
+const EOL = '\r\n';
 
 exports.setUp = function () {
     buffer.reset();
@@ -27,9 +27,9 @@ exports.testWriteln = function () {
 };
 
 exports.testForEach = function () {
-    var content = ''; // To concatenate buffer content.
+    let content = ''; // To concatenate buffer content.
     buffer.write(STRING1, STRING2);
-    buffer.forEach(function (it) content += it);
+    buffer.forEach(it => content += it);
     assert.strictEqual(STRING1 + STRING2, content);
 };
 
@@ -39,7 +39,7 @@ exports.testDigest = function () {
 };
 
 exports.testLength = function() {
-    var expectedLength = 0;
+    let expectedLength = 0;
     assert.strictEqual(expectedLength, buffer.length);
     buffer.write(STRING1, STRING2);
     expectedLength = STRING1.length + STRING2.length;

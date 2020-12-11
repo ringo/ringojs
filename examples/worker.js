@@ -1,17 +1,17 @@
-var {Worker} = require("ringo/worker")
+const {Worker} = require("ringo/worker")
 
 function main() {
     // Create a new workers from this same module. Note that this will
     // create a new instance of this module as workers are isolated.
-    var w = new Worker(module.id);
+    const worker = new Worker(module.id);
 
     // Define callback for messages from the worker
-    w.onmessage = function(e) {
+    worker.onmessage = function(e) {
         print("Message from worker: " + e.data);
     };
 
     // Post a message to the worker
-    w.postMessage("Hi there!");
+    worker.postMessage("Hi there!");
 }
 
 function onmessage(e) {

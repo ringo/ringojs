@@ -2,17 +2,16 @@
  * @fileOverview Low-level JSGI adapter implementation.
  */
 
-var {Headers, getMimeParameter} = require('ringo/utils/http');
-var {Stream} = require('io');
-var {Binary} = require('binary');
-var system = require('system');
-var strings = require('ringo/utils/strings');
-var {WriteListener, AsyncListener} = javax.servlet;
-var {ConcurrentLinkedQueue} = java.util.concurrent;
-var {EofException} = org.eclipse.jetty.io;
-var {AtomicBoolean} = java.util.concurrent.atomic;
+const {Headers, getMimeParameter} = require('ringo/utils/http');
+const io = require('io');
+const binary = require('binary');
+const system = require('system');
+const {WriteListener, AsyncListener} = javax.servlet;
+const {ConcurrentLinkedQueue} = java.util.concurrent;
+const {EofException} = org.eclipse.jetty.io;
+const {AtomicBoolean} = java.util.concurrent.atomic;
 
-var log = require('ringo/logging').getLogger(module.id);
+const log = require('ringo/logging').getLogger(module.id);
 
 const FLUSH = new ByteArray(0);
 
@@ -24,9 +23,9 @@ const FLUSH = new ByteArray(0);
  * @param {Object} request the JSGI request object
  * @returns {Object} the JSGI response object
  */
-const handleRequest = exports.handleRequest = function handleRequest(moduleId, functionObj, request) {
+const handleRequest = exports.handleRequest = (moduleId, functionObj, request) => {
     initRequest(request);
-    var app;
+    let app;
     if (typeof(functionObj) === 'function') {
         app = functionObj;
     } else {
@@ -44,31 +43,32 @@ const handleRequest = exports.handleRequest = function handleRequest(moduleId, f
     if (typeof(app) !== 'function') {
         throw new Error('No valid JSGI app: ' + app);
     }
-    var result = app(request);
+    const result = app(request);
     if (!result) {
         throw new Error('No valid JSGI response: ' + result);
     }
     commitResponse(request, result);
-}
+};
 
 /**
  * Set up the I/O related properties of a jsgi environment object.
  * @param {Object} request a jsgi request object
  */
-function initRequest(request) {
-    var input, errors;
+const initRequest = (request) => {
+    let input;
     if (request.hasOwnProperty('input')) {
         // already set up, probably because the original request threw a retry
         return;
     }
     Object.defineProperty(request, "input", {
-        get: function() {
-            if (!input)
-                input = new Stream(request.env.servletRequest.getInputStream());
+        get: () => {
+            if (!input) {
+                input = new io.Stream(request.env.servletRequest.getInputStream());
+            }
             return input;
         },
-        set: function(stream) {
-            if (!stream instanceof Stream) {
+        set: (stream) => {
+            if (!stream instanceof io.Stream) {
                throw new Error("Input must be a Stream!");
             }
             input = stream;
@@ -78,7 +78,7 @@ function initRequest(request) {
     Object.defineProperty(request.jsgi, "errors", {
         value: system.stderr
     });
-}
+};
 
 /**
  * Apply the return value of a JSGI application to a servlet response.
@@ -89,13 +89,13 @@ function initRequest(request) {
  * @param {Object} req the JSGI request argument
  * @param {Object} result the object returned by a JSGI application
  */
-function commitResponse(req, result) {
-    var request = req.env.servletRequest;
+const commitResponse = (req, result) => {
+    const request = req.env.servletRequest;
     if (typeof request.isAsyncStarted === "function" && request.isAsyncStarted()) {
         return;
     }
-    var response = req.env.servletResponse;
-    var {status, headers, body} = result;
+    const response = req.env.servletResponse;
+    const {status, headers, body} = result;
     if (!status || !headers || !body) {
         // Check if this is an asynchronous response. If not throw an Error
         throw new Error('No valid JSGI response: ' + result);
@@ -104,41 +104,38 @@ function commitResponse(req, result) {
     if (!response.isCommitted() && !Headers(headers).contains("X-JSGI-Skip-Response")) {
         writeResponse(response, status, headers, body);
     }
-}
+};
 
-function writeResponse(servletResponse, status, headers, body) {
+const writeResponse = (servletResponse, status, headers, body) => {
     servletResponse.setStatus(status);
     writeHeaders(servletResponse, headers);
-    var charset = getMimeParameter(headers.get("Content-Type"), "charset");
+    const charset = getMimeParameter(headers.get("Content-Type"), "charset");
     writeBody(servletResponse, body, charset);
-}
+};
 
-function writeHeaders(servletResponse, headers) {
-    for (var key in headers) {
-        var values = headers[key];
+const writeHeaders = (servletResponse, headers) => {
+    Object.keys(headers).forEach(key => {
+        let values = headers[key];
         if (typeof values === "string") {
             values = values.split("\n");
-        } else if (!Array.isArray(values)) {
-            continue;
         }
-        values.forEach(function(value) {
-            servletResponse.addHeader(key, value);
-        });
-    }
-}
+        if (Array.isArray(values)) {
+            values.forEach((value) => servletResponse.addHeader(key, value));
+        }
+    });
+};
 
-function writeBody(response, body, charset) {
+const writeBody = (response, body, charset) => {
     if (body && typeof body.forEach == "function") {
-        var output = response.getOutputStream();
-        var writer = function(part) {
-            if (!(part instanceof Binary)) {
-                part = part.toByteString(charset);
+        const output = response.getOutputStream();
+        body.forEach(part => {
+            if (!(part instanceof binary.Binary)) {
+                part = binary.toByteString(part, charset);
             }
             output.write(part);
-        };
-        body.forEach(writer);
+        });
         if (typeof body.close == "function") {
-            body.close(writer);
+            body.close();
         }
     } else {
         throw new Error("Response body doesn't implement forEach: " + body);
@@ -188,12 +185,12 @@ function writeBody(response, body, charset) {
  *
  * return response;
  */
-const AsyncResponse = exports.AsyncResponse = function AsyncResponse(request, timeout) {
+exports.AsyncResponse = function(request, timeout) {
     if (!request || !request.env) {
         throw new Error("Invalid request argument: " + request);
     }
-    var {servletRequest, servletResponse} = request.env;
-    var asyncContext = servletRequest.startAsync();
+    const {servletRequest, servletResponse} = request.env;
+    const asyncContext = servletRequest.startAsync();
     if (timeout != null && isFinite(timeout)) {
         asyncContext.setTimeout(timeout);
     }
@@ -213,8 +210,8 @@ const AsyncResponse = exports.AsyncResponse = function AsyncResponse(request, ti
         }
     }));
 
-    var out = servletResponse.getOutputStream();
-    var writeListener = new WriteListenerImpl(asyncContext);
+    const out = servletResponse.getOutputStream();
+    const writeListener = new WriteListenerImpl(asyncContext);
     out.setWriteListener(writeListener);
     return {
         "start": function(status, headers) {
@@ -226,8 +223,8 @@ const AsyncResponse = exports.AsyncResponse = function AsyncResponse(request, ti
             if (asyncContext.getHttpChannelState().isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
-            if (!(data instanceof Binary)) {
-                data = String(data).toByteArray(encoding);
+            if (!(data instanceof binary.Binary)) {
+                data = binary.toByteArray(String(data), encoding);
             }
             writeListener.queue.add(data);
             writeListener.onWritePossible();
@@ -252,7 +249,7 @@ const AsyncResponse = exports.AsyncResponse = function AsyncResponse(request, ti
  * @returns {javax.servlet.WriteListener}
  * @constructor
  */
-var WriteListenerImpl = function(asyncContext) {
+const WriteListenerImpl = function(asyncContext) {
     this.isReady = new AtomicBoolean(true);
     this.isFinished = false;
     this.queue = new ConcurrentLinkedQueue();
@@ -265,7 +262,7 @@ var WriteListenerImpl = function(asyncContext) {
  * the internal queue and writes them to the response's output stream.
  */
 WriteListenerImpl.prototype.onWritePossible = function() {
-    var outStream = this.asyncContext.getResponse().getOutputStream();
+    const outStream = this.asyncContext.getResponse().getOutputStream();
     if (this.isReady.compareAndSet(true, false)) {
         // Note: .isReady() schedules a call for onWritePossible
         // if it returns false

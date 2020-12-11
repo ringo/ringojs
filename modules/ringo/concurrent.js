@@ -2,7 +2,7 @@
  * @fileoverview Utilities for working with multiple concurrently running threads.
  */
 
-var {Semaphore: JavaSemaphore, TimeUnit} = java.util.concurrent;
+const {Semaphore: JavaSemaphore, TimeUnit} = java.util.concurrent;
 
 /**
  * A counting semaphore that can be used to coordinate and synchronize
@@ -28,21 +28,19 @@ var {Semaphore: JavaSemaphore, TimeUnit} = java.util.concurrent;
  *
  * @param {Number} permits the number of initial permits, defaults to 0
  */
-module.exports.Semaphore = function Semaphore(permits) {
+exports.Semaphore = function Semaphore(permits) {
     if (!(this instanceof Semaphore)) {
         return new Semaphore(permits);
     }
 
-    if (typeof permits === "undefined") permits = 0;
-    var s = new JavaSemaphore(permits);
+    const semaphore = new JavaSemaphore(permits === undefined ? 0 : permits);
 
     /**
      * Wait for one or more permits.
      * @param {Number} permits the number of permits to wait for, defaults to 1
      */
     this.wait = function(permits) {
-        if (typeof permits === "undefined") permits = 1;
-        s.acquire(permits);
+        semaphore.acquire(permits === undefined ? 1 : permits);
     };
 
     /**
@@ -54,8 +52,8 @@ module.exports.Semaphore = function Semaphore(permits) {
      *   timeout elapsed
      */
     this.tryWait = function(timeout, permits) {
-        if (typeof permits === "undefined") permits = 1;
-        return s.tryAcquire(permits, timeout, TimeUnit.MILLISECONDS);
+        return semaphore.tryAcquire(permits === undefined ? 1 : permits,
+            timeout, TimeUnit.MILLISECONDS);
     };
 
     /**
@@ -63,7 +61,6 @@ module.exports.Semaphore = function Semaphore(permits) {
      * @param {Number} permits the number of permits to give, defaults to 1
      */
     this.signal = function(permits) {
-        if (typeof permits === "undefined") permits = 1;
-        s.release(permits);
+        semaphore.release(permits === undefined ? 1 : permits);
     };
 }

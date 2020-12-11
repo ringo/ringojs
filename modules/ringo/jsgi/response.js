@@ -4,10 +4,10 @@
  */
 
 const fs = require("fs");
-var {parseRange, canonicalRanges} = require("ringo/utils/http");
-var {mimeType} = require("ringo/mime");
-var {Stream, MemoryStream} = require("io");
-var {AsyncResponse} = require("./connector");
+const {parseRange, canonicalRanges} = require("ringo/utils/http");
+const {mimeType} = require("ringo/mime");
+const io = require("io");
+const {AsyncResponse} = require("./connector");
 
 const HYPHEN  = new ByteString("-", "ASCII");
 const CRLF = new ByteString("\r\n", "ASCII");
@@ -20,19 +20,19 @@ const EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
  *                 <code>body</code> properties.
  * @constructor
  * @example // Using the constructor
- * var {JsgiResponse} = require('ringo/jsgi/response');
+ * const {JsgiResponse} = require('ringo/jsgi/response');
  * return (new JsgiResponse()).text('Hello World!').setCharset('ISO-8859-1');
  *
  * // Using a static helper
- * var response = require('ringo/jsgi/response');
+ * const response = require('ringo/jsgi/response');
  * return response.json({'foo': 'bar'}).error();
  */
-var JsgiResponse = exports.JsgiResponse = function(base) {
+const JsgiResponse = exports.JsgiResponse = function(base) {
     // Internal use only
     /** @ignore */
     Object.defineProperty(this, "_charset", {
         value: "utf-8",
-        writable: true,
+        writable: true
     });
 
     this.status = 200;
@@ -123,7 +123,7 @@ Object.defineProperty(JsgiResponse.prototype, "jsonp", {
 Object.defineProperty(JsgiResponse.prototype, "xml", {
     value: function(xml) {
         this.headers["content-type"] = "application/xml";
-        this.body = [(typeof xml === 'xml' ? xml.toXMLString() : String(xml))];
+        this.body = [(typeof xml === 'xml') ? xml.toXMLString() : String(xml)];
         return this;
     }
 });
@@ -192,7 +192,7 @@ Object.defineProperty(JsgiResponse.prototype, "binary", {
 Object.defineProperty(JsgiResponse.prototype, "setCharset", {
     value: function(charsetName) {
         this._charset = charsetName;
-        var ct = this.headers["content-type"];
+        const ct = this.headers["content-type"];
         if (ct) {
             this.headers["content-type"] = ct.substring(0, ct.indexOf("; charset=")) +
                 "; charset=" + this._charset;
@@ -586,7 +586,6 @@ exports.static = function (resource, contentType) {
         throw Error("Wrong argument for static response: " + typeof(resource));
     }
 
-    var input;
     return {
         status: 200,
         headers: {
@@ -598,7 +597,7 @@ exports.static = function (resource, contentType) {
                     + resource.length.toString(36);
             },
             forEach: function(fn) {
-                input = new Stream(resource.getInputStream());
+                const input = new io.Stream(resource.getInputStream());
                 try {
                     input.forEach(fn);
                 } finally {
@@ -652,11 +651,11 @@ exports.range = function (request, representation, size, contentType, timeout, m
 
         stream = fs.openRaw(localPath, "r");
     } else if (representation instanceof org.ringojs.repository.Resource) {
-        stream = new Stream(representation.getInputStream());
+        stream = new io.Stream(representation.getInputStream());
         if (size == null && representation.getLength != null) {
             size = representation.getLength();
         }
-    } else if (representation instanceof Stream) {
+    } else if (representation instanceof io.Stream) {
         stream = representation;
     } else {
         throw new Error("Invalid representation! Must be a path to a file, a resource, or a stream.");
@@ -697,7 +696,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
     }
 
     // check if range can be fulfilled
-    if(size != null && ranges[ranges.length - 1][1] > size) {
+    if (size != null && ranges[ranges.length - 1][1] > size) {
         return new JsgiResponse().setStatus(416).addHeaders({
             "content-range": "bytes */" + size
         }).text("Range Not Satisfiable");
@@ -727,7 +726,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
             stream.skip(start - currentBytePos);
 
             if (arr.length > 1) {
-                const boundary = new MemoryStream(70);
+                const boundary = new io.MemoryStream(70);
                 if (index > 0) {
                     boundary.write(CRLF);
                 }
@@ -754,7 +753,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
 
             if (arr.length > 1 && index === arr.length - 1) {
                 // final boundary
-                const eofBoundary = new MemoryStream(70);
+                const eofBoundary = new io.MemoryStream(70);
                 eofBoundary.write(CRLF);
                 eofBoundary.write(HYPHEN);
                 eofBoundary.write(HYPHEN);
@@ -771,7 +770,10 @@ exports.range = function (request, representation, size, contentType, timeout, m
 
         // commit response
         servletResponse.flushBuffer();
-    } catch (e if e.javaException instanceof org.eclipse.jetty.io.EofException) {
+    } catch (e) {
+        if (!(e.javaException instanceof org.eclipse.jetty.io.EofException)) {
+            throw e;
+        }
         // no problem, remote client closed connection ...
     }
 

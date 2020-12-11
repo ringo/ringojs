@@ -5,18 +5,18 @@
  * binding is provided by the `java.net` package.
  *
  * @example // A simple TCP server
- * var io = require('io');
- * var net = require('net');
+ * const io = require('io');
+ * const net = require('net');
  *
- * var server = new net.ServerSocket();
+ * const server = new net.ServerSocket();
  * server.bind('127.0.0.1', 6789);
  *
- * var socket = server.accept();
- * var stream = new io.TextStream(socket.getStream(), {
+ * const socket = server.accept();
+ * const stream = new io.TextStream(socket.getStream(), {
  *   'charset': 'US-ASCII'
  *});
  *
- * var line;
+ * let line;
  * do {
  *   // Read one line from the client
  *   line = stream.readLine();
@@ -31,13 +31,14 @@
  * server.close();
  */
 
-var io = require('io');
-var binary = require('binary');
-var net = java.net;
+const io = require('io');
+const binary = require('binary');
 
-exports.Socket = Socket;
-exports.ServerSocket = ServerSocket;
-exports.DatagramSocket = DatagramSocket;
+const toSocketAddress = function(host, port) {
+    host = host || "";
+    port = port || 0;
+    return new java.net.InetSocketAddress(host, port);
+};
 
 /**
  * The Socket class is used to create a TCP socket. Newly created sockets must
@@ -45,16 +46,16 @@ exports.DatagramSocket = DatagramSocket;
  * @constructor
  * @class Socket
  */
-function Socket() {
-    var socket, stream;
-    var arg = arguments[0];
+const Socket = exports.Socket = function() {
+    let stream;
+    const arg = arguments[0];
 
     if(!(this instanceof Socket)) {
         return arg ? new Socket(arg) : new Socket();
     }
 
     // Either create a new socket or a wrapper around an existing socket
-    socket = arg instanceof net.Socket ? arg : new net.Socket();
+    const socket = arg instanceof java.net.Socket ? arg : new java.net.Socket();
 
     /**
      * Initiate a connection on a socket. Connect to a remote port on the specified
@@ -65,7 +66,7 @@ function Socket() {
      * @param {Number} [timeout] optional timeout value in milliseconds
      */
     this.connect = function(host, port, timeout) {
-        var address = toSocketAddress(host, port);
+        const address = toSocketAddress(host, port);
         if (arguments.length < 3) {
             socket.connect(address);
         } else {
@@ -82,7 +83,7 @@ function Socket() {
      * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port) {
-        var address = toSocketAddress(host, port);
+        const address = toSocketAddress(host, port);
         socket.bind(address);
         return this;
     };
@@ -179,23 +180,40 @@ function Socket() {
     this.close = function() {
         socket.close();
     };
-}
+
+    return this;
+};
 
 /**
  * The DatagramSocket class is used to create a UDP socket.
  * @constructor
  */
-function DatagramSocket() {
-
-    var socket;
-    var arg = arguments[0];
-
+const DatagramSocket = exports.DatagramSocket = function() {
+    const arg = arguments[0];
     if(!(this instanceof DatagramSocket)) {
         return arg ? new DatagramSocket(arg) : new DatagramSocket();
     }
 
     // Either create a new socket or a wrapper around an existing socket
-    socket = arg instanceof net.DatagramSocket ? arg : new net.DatagramSocket(null);
+    const socket = arg instanceof java.net.DatagramSocket ? arg : new java.net.DatagramSocket(null);
+
+    function receiveInternal(length, buffer) {
+        length = length || 1024;
+        buffer = buffer || new binary.ByteArray(length);
+        const packet = new java.net.DatagramPacket(buffer, length);
+        socket.receive(packet);
+        return packet;
+    }
+
+    function toDatagramPacket(arg) {
+        if (arg instanceof binary.Binary) {
+            return new java.net.DatagramPacket(arg, arg.length);
+        } else if (typeof arg === "string") {
+            return new java.net.DatagramPacket(binary.toByteString(arg), arg.length);
+        } else {
+            throw new Error("Unsupported argument to send: " + arg);
+        }
+    }
 
     /**
      * Connect the socket to a remote address. If a DatagramSocket is connected,
@@ -206,7 +224,7 @@ function DatagramSocket() {
      * @param {Number} port port number or service name
      */
     this.connect = function(host, port) {
-        var address = toSocketAddress(host, port);
+        const address = toSocketAddress(host, port);
         socket.connect(address);
         return this;
     };
@@ -226,7 +244,7 @@ function DatagramSocket() {
      * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port) {
-        var address = toSocketAddress(host, port);
+        const address = toSocketAddress(host, port);
         socket.bind(address);
         return this;
     };
@@ -292,7 +310,7 @@ function DatagramSocket() {
      * @return {ByteArray} the received data
      */
     this.receive = function(length, buffer) {
-        var packet = receiveInternal(length, buffer);
+        const packet = receiveInternal(length, buffer);
         buffer = ByteArray.wrap(packet.getData());
         buffer.length = packet.length;
         return buffer;
@@ -311,7 +329,7 @@ function DatagramSocket() {
      * @return {Object} the received packet
      */
     this.receiveFrom = function(length, buffer) {
-        var packet = receiveInternal(length, buffer);
+        const packet = receiveInternal(length, buffer);
         buffer = ByteArray.wrap(packet.getData());
         buffer.length = packet.length;
         return {
@@ -338,7 +356,7 @@ function DatagramSocket() {
      * @param {Binary} data the data to send
      */
     this.sendTo = function(host, port, data) {
-        var packet = toDatagramPacket(data);
+        const packet = toDatagramPacket(data);
         packet.setSocketAddress(toSocketAddress(host, port));
         socket.send(packet);
     }
@@ -369,41 +387,22 @@ function DatagramSocket() {
         socket.close();
     };
 
-    function receiveInternal(length, buffer) {
-        length = length || 1024;
-        buffer = buffer || new binary.ByteArray(length);
-        var packet = new net.DatagramPacket(buffer, length);
-        socket.receive(packet);
-        return packet;
-    }
-
-    function toDatagramPacket(arg) {
-        if (arg instanceof binary.Binary) {
-            return new net.DatagramPacket(arg, arg.length);
-        } else if (typeof arg === "string") {
-            return new net.DatagramPacket(arg.toByteString(), arg.length);
-        } else {
-            throw new Error("Unsupported argument to send: " + arg);
-        }
-    }
-}
+    return this;
+};
 
 /**
  * This class implements a server socket. Server sockets wait for requests
  * coming in over the network.
  * @constructor
  */
-function ServerSocket() {
-
-    var socket;
-    var arg = arguments[0];
-
+const ServerSocket = exports.ServerSocket = function() {
+    const arg = arguments[0];
     if(!(this instanceof ServerSocket)) {
         return arg ? new ServerSocket(arg) : new ServerSocket();
     }
 
     // Either create a new socket or a wrapper around an existing socket
-    socket = arg instanceof net.ServerSocket ? arg : new net.ServerSocket();
+    const socket = arg instanceof java.net.ServerSocket ? arg : new java.net.ServerSocket();
 
     /**
      * Listens for a connection to be made to this socket and returns a new
@@ -422,7 +421,7 @@ function ServerSocket() {
      * @param {Number} port port number to bind the socket to.
      */
     this.bind = function(host, port, backlog) {
-        var address = toSocketAddress(host, port);
+        const address = toSocketAddress(host, port);
         if (arguments.length < 3) {
             socket.bind(address);
         } else {
@@ -487,10 +486,3 @@ function ServerSocket() {
         socket.close();
     };
 }
-
-function toSocketAddress(host, port) {
-    host = host || "";
-    port = port || 0;
-    return new net.InetSocketAddress(host, port);
-}
-

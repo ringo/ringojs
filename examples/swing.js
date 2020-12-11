@@ -1,11 +1,11 @@
-var {JFrame, JButton, ImageIcon, JLabel} = javax.swing;
-var system = require('system');
+const {JFrame, JButton, ImageIcon, JLabel} = javax.swing;
+const system = require('system');
 
-var n = 0;
+const n = 0;
 
 function main() {
-    var frame = new JFrame("Swing Demo");
-    var button = new JButton(new ImageIcon(module.resolve("img/ringo-drums.png")));
+    const frame = new JFrame("Swing Demo");
+    const button = new JButton(new ImageIcon(module.resolve("img/ringo-drums.png")));
     button.addActionListener(function(e) {
         setInterval(function() {
             if (n++ > 200) system.exit();
@@ -19,8 +19,9 @@ function main() {
     frame.setVisible(true);
 }
 
-function random() (Math.random() - 0.5) * 50;
-
+function random() {
+    return (Math.random() - 0.5) * 50;
+}
 
 if (require.main == module) {
     main();

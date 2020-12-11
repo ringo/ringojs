@@ -1,19 +1,19 @@
-var {HttpServer} = require("../lib/main");
+const {HttpServer} = require("ringo/httpserver");
 
-var httpServer = new HttpServer();
+const httpServer = new HttpServer();
 httpServer.enableSessions({
     "name": "myapp"
 });
 
 // init the application context
-var appContext = httpServer.serveApplication("/", module.resolve("./app"), {
+const appContext = httpServer.serveApplication("/", module.resolve("./httpserver-app"), {
     "sessions": true
 });
 // and add a websocket to it
-appContext.addWebSocket("/events", function() {});
+appContext.addWebSocket("/events", () => {});
 
 // initialize static file serving
-var staticContext = httpServer.serveStatic("/static", module.resolve("./"), {
+const staticContext = httpServer.serveStatic("/static", module.resolve("./"), {
     "allowDirectoryListing": true
 });
 

@@ -13,45 +13,117 @@
  *
  * @example // ringo parserExample.js -v --size 123 -p 45678
  *
- * include('ringo/term');
- * var system = require('system');
- * var {Parser} = require('ringo/args');
+ * const term = require('ringo/term');
+ * const system = require('system');
+ * const {Parser} = require('ringo/args');
  *
- * var parser = new Parser();
+ * const parser = new Parser();
  * parser.addOption('s', 'size', 'SIZE', 'Sets the size to SIZE');
  * parser.addOption('p', 'pid', 'PID', 'Kill the process with the PID');
  * parser.addOption('v', 'verbose', null, 'Verbosely do something');
  * parser.addOption('h', 'help', null, 'Show help');
  *
- * var options = parser.parse(system.args.slice(1));
+ * const options = parser.parse(system.args.slice(1));
  * if (options.help) {
- *   writeln(parser.help());
+ *   term.writeln(parser.help());
  *} else {
  *   if (options.size) {
- *      writeln('Set size to ' + parseInt(options.size));
+ *      term.writeln('Set size to ' + parseInt(options.size));
  *   }
  *
  *   if (options.pid) {
- *      writeln('Kill process ' + options.pid);
+ *      term.writeln('Kill process ' + options.pid);
  *   }
  *
  *   if (options.verbose) {
- *      writeln('Verbose!');
+ *      term.writeln('Verbose!');
  *   }
  *}
  *
  * if (!Object.keys(options).length) {
- *   writeln("Run with -h/--help to see available options");
+ *   term.writeln("Run with -h/--help to see available options");
  * }
  */
 
-var strings = require("ringo/utils/strings");
+const strings = require("ringo/utils/strings");
+const missingValueError = (option) => new Error(option + " option requires a value.");
+const unknownOptionError = (option) => new Error("Unknown option: " + option);
+
+const parseShortOption = (options, opt, args, result) => {
+    const length = opt.length;
+    let consumedNext = false;
+    for (let i = 0; i < length; i++) {
+        let def = null;
+        let c = opt.charAt(i);
+        for (let d of options) {
+            if (d.shortName === c) {
+                def = d;
+                break;
+            }
+        }
+        if (def == null) {
+            throw unknownOptionError("-" + c);
+        }
+        let optarg = null;
+        if (def.argument) {
+            if (i === length - 1) {
+                if (args.length <= 1) {
+                    throw missingValueError("-" + def.shortName);
+                }
+                optarg = args[1];
+                consumedNext = true;
+            } else {
+                optarg = opt.substring(i + 1);
+                if (optarg.length === 0) {
+                    throw missingValueError("-" + def.shortName);
+                }
+            }
+            i = length;
+        }
+        let propertyName = def.longName || def.shortName;
+        result[strings.toCamelCase(propertyName)] = optarg || true;
+    }
+    args.splice(0, consumedNext ? 2 : 1);
+};
+
+const parseLongOption = (options, opt, args, result) => {
+    let def = null;
+    for (let d of options) {
+        if (opt === d.longName || (strings.startsWith(opt, d.longName)
+            && opt.charAt(d.longName.length) === '=')) {
+            def = d;
+            break;
+        }
+    }
+    if (def == null) {
+        throw unknownOptionError("--" + opt);
+    }
+    let optarg = null;
+    let consumedNext = false;
+    if (def.argument) {
+        if (opt === def.longName) {
+            if (args.length <= 1) {
+                throw missingValueError("--" + def.longName);
+            }
+            optarg = args[1];
+            consumedNext = true;
+        } else {
+            const length = def.longName.length;
+            if (opt.charAt(length) !== '=') {
+                throw missingValueError("--" + def.longName);
+            }
+            optarg = opt.substring(length + 1);
+        }
+    }
+    result[strings.toCamelCase(def.longName)] = optarg || true;
+    args.splice(0, consumedNext ? 2 : 1);
+};
 
 /**
  * Create a new command line option parser.
  */
 exports.Parser = function() {
-    var options = [];
+    const options = [];
 
     /**
      * Add an option to the parser.
@@ -62,7 +134,7 @@ exports.Parser = function() {
      * @returns {Object} this parser for chained invocation
      */
     this.addOption = function(shortName, longName, argument, helpText) {
-        if (shortName && shortName.length != 1) {
+        if (typeof(shortName) === "string" && shortName.length !== 1) {
             throw new Error("Short option must be a string of length 1");
         }
         longName = longName || "";
@@ -81,9 +153,8 @@ exports.Parser = function() {
      * @returns {String} a string explaining the parser's options
      */
     this.help = function() {
-        var lines = [];
-        for each (var opt in options) {
-            var flags;
+        const lines = options.reduce((lines, opt) => {
+            let flags;
             if (opt.shortName !== undefined && opt.shortName !== null) {
                 flags = " -" + opt.shortName;
             } else {
@@ -96,11 +167,12 @@ exports.Parser = function() {
                 flags += " " + opt.argument;
             }
             lines.push({flags: flags, helpText: opt.helpText});
-        }
-        var maxlength = lines.reduce(function(prev, val) Math.max(val.flags.length, prev), 0);
-        return lines.map(
-            function(s) strings.pad(s.flags, " ", 2 + maxlength) + s.helpText
-        ).join("\n");
+            return lines;
+        }, []);
+        const maxlength = lines.reduce((prev, val) => Math.max(val.flags.length, prev), 0);
+        return lines.map(s => {
+            return strings.pad(s.flags, " ", 2 + maxlength) + s.helpText;
+        }).join("\n");
     };
 
     /**
@@ -117,97 +189,20 @@ exports.Parser = function() {
      * @example parser.parse(system.args.slice(1), {myOption: "defaultValue"});
      */
     this.parse = function(args, result) {
-        result = result || {};
+        result || (result = {});
         while (args.length > 0) {
-            var option = args[0];
+            let option = args[0];
             if (!strings.startsWith(option, "-")) {
                 break;
             }
             if (strings.startsWith(option, "--")) {
-                parseLongOption(option.substring(2), args, result);
+                parseLongOption(options, option.substring(2), args, result);
             } else {
-                parseShortOption(option.substring(1), args, result);
+                parseShortOption(options, option.substring(1), args, result);
             }
         }
         return result;
     };
 
-    function parseShortOption(opt, args, result) {
-        var length = opt.length;
-        var consumedNext = false;
-        for (var i = 0; i < length; i++) {
-            var def = null;
-            var c = opt.charAt(i);
-            for each (var d in options) {
-                if (d.shortName == c) {
-                    def = d;
-                    break;
-                }
-            }
-            if (def == null) {
-                unknownOptionError("-" + c);
-            }
-            var optarg = null;
-            if (def.argument) {
-                if (i == length - 1) {
-                    if (args.length <= 1) {
-                        missingValueError("-" + def.shortName);
-                    }
-                    optarg = args[1];
-                    consumedNext = true;
-                } else {
-                    optarg = opt.substring(i + 1);
-                    if (optarg.length == 0) {
-                        missingValueError("-" + def.shortName);
-                    }
-                }
-                i = length;
-            }
-            var propertyName = def.longName || def.shortName;
-            result[strings.toCamelCase(propertyName)] = optarg || true;
-        }
-        args.splice(0, consumedNext ? 2 : 1);
-    }
-
-    function parseLongOption(opt, args, result) {
-        var def = null;
-        for each (var d in options) {
-            if (opt == d.longName || (strings.startsWith(opt, d.longName)
-                    && opt.charAt(d.longName.length) == '=')) {
-                def = d;
-                break;
-            }
-        }
-        if (def == null) {
-            unknownOptionError("--" + opt);
-        }
-        var optarg = null;
-        var consumedNext = false;
-        if (def.argument) {
-            if (opt == def.longName) {
-                if (args.length <= 1) {
-                    missingValueError("--" + def.longName);
-                }
-                optarg = args[1];
-                consumedNext = true;
-            } else {
-                var length = def.longName.length;
-                if (opt.charAt(length) != '=') {
-                    missingValueError("--" + def.longName);
-                }
-                optarg = opt.substring(length + 1);
-            }
-        }
-        result[strings.toCamelCase(def.longName)] = optarg || true;
-        args.splice(0, consumedNext ? 2 : 1);
-    }
+    return this;
 };
-
-function missingValueError(option) {
-    throw new Error(option + " option requires a value.");
-}
-
-
-function unknownOptionError(option) {
-    throw new Error("Unknown option: " + option);
-}

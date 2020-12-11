@@ -1,55 +1,51 @@
-var assert = require("assert");
-var objects = require("ringo/utils/objects");
-var {HttpServer} = require("ringo/httpserver");
-var response = require("ringo/jsgi/response");
-var {request, post, get, put, del, TextPart, BinaryPart} = require("ringo/httpclient");
-var {parseParameters, parseFileUpload, setCookie, Headers} = require("ringo/utils/http");
-var {MemoryStream, TextStream} = require("io");
-var fs = require("fs");
-var base64 = require("ringo/base64");
-var {ByteArray, ByteString} = require("binary");
-var {ByteArrayOutputStream} = java.io;
-var {GZIPOutputStream, DeflaterOutputStream} = java.util.zip;
+const assert = require("assert");
+const objects = require("ringo/utils/objects");
+const system = require("system");
+const {HttpServer} = require("ringo/httpserver");
+const response = require("ringo/jsgi/response");
+const {request, post, get, put, del, TextPart, BinaryPart} = require("ringo/httpclient");
+const {parseParameters, parseFileUpload, setCookie, Headers} = require("ringo/utils/http");
+const {MemoryStream, TextStream} = require("io");
+const fs = require("fs");
+const base64 = require("ringo/base64");
+const binary = require("binary");
+const {ByteArrayOutputStream, StringWriter} = java.io;
+const {GZIPOutputStream, DeflaterOutputStream} = java.util.zip;
+const {HttpServlet} = javax.servlet.http;
 
-var server;
-var host = "127.0.0.1";
-var port = "8282";
-var baseUri = "http://" + host + ":" + port + "/";
+const host = "127.0.0.1";
+const port = "8282";
+const baseUri = "http://" + host + ":" + port + "/";
+let server;
 
 require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
 /**
  * tests overwrite getResponse() to control the response they expect back
  */
-var getResponse;
+let getResponse;
 
 /**
  * setUp pre every test
  */
-exports.setUp = function() {
-    var handleRequest = function(req) {
+exports.setUp = () => {
+    server = new HttpServer();
+    server.serveApplication("/", (req) => {
         req.charset = 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
         return getResponse(req);
-    };
-
-    var config = {
+    });
+    server.createHttpListener({
         host: host,
         port: port
-    };
-
-    server = new HttpServer();
-    server.serveApplication("/", handleRequest);
-    server.createHttpListener(config);
+    });
     server.start();
-    // test used to hang without this, but seems no longer the case
-    // java.lang.Thread.currentThread().sleep(1000);
 };
 
 /**
  * tearDown after each test
  */
-exports.tearDown = function() {
+exports.tearDown = () => {
     server.stop();
     server.destroy();
     server = null;
@@ -58,26 +54,26 @@ exports.tearDown = function() {
 /**
  * test basic get
  */
-exports.testBasic = function() {
+exports.testBasic = () => {
     const text = "This is the Response Text";
 
-    getResponse = function(req) {
+    getResponse = (req) => {
         return response.html(text + " - " + req.headers["user-agent"]);
     };
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri
     });
 
     assert.strictEqual(exchange.content, text + " - " + "RingoJS HttpClient " + require("ringo/engine").version.join("."));
 };
 
-exports.testNullContent = function() {
-    getResponse = function(req) {
+exports.testNullContent = () => {
+    getResponse = () => {
         return response.notFound();
     };
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri
     });
 
@@ -87,16 +83,15 @@ exports.testNullContent = function() {
 /**
  * test user info in url
  */
-exports.testUserInfo = function() {
+exports.testUserInfo = () => {
 
-    var log;
-    getResponse = function(req) {
+    getResponse = (req) => {
         log.push(req.headers["authorization"]);
         return response.html("response text");
     };
 
     // username and password in url
-    log = [];
+    let log = [];
     request({url: "http://user:pass@" + host + ":" + port + "/"});
     assert.equal(log.length, 1, "user:pass - one request");
     assert.equal(typeof log[0], "string", "user:pass - one Authorization header");
@@ -120,34 +115,34 @@ exports.testUserInfo = function() {
 /**
  * test servlet on request env (this is not httpclient specific, but uses same setUp tearDown)
  */
-exports.testServlet = function() {
-    var servlet;
-    getResponse = function(req) {
+exports.testServlet = () => {
+    let servlet;
+    getResponse = (req) => {
         servlet = req.env.servlet;
         return response.html("servlet set");
     };
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri
     });
     assert.strictEqual(exchange.content, "servlet set");
-    assert.ok(servlet instanceof javax.servlet.http.HttpServlet, "servlet instance");
+    assert.ok(servlet instanceof HttpServlet, "servlet instance");
 };
 
 /**
  * convenience wrappers
  */
-exports.testConvenience = function() {
-    getResponse = function(req) {
-        var params = {};
-        var input = req.method == "POST" ? req.input.read() : req.queryString;
+exports.testConvenience = () => {
+    getResponse = (req) => {
+        const params = {};
+        const input = (req.method === "POST") ? req.input.read() : req.queryString;
         parseParameters(input, params);
         if (params.foo) {
             return response.html(req.method + " with param");
         }
         return response.html(req.method);
     };
-    var x = post(baseUri);
+    let x = post(baseUri);
     assert.strictEqual(x.status, 200);
     assert.strictEqual(x.content, "POST");
 
@@ -171,20 +166,19 @@ exports.testConvenience = function() {
 /**
  * GET, POST params
  */
-exports.testParams = function() {
-    getResponse = function(req) {
-        var params = {};
-        var input = req.method == "POST" ? req.input.read() : req.queryString;
-        parseParameters(input, params);
+exports.testParams = () => {
+    getResponse = (req) => {
+        const input = (req.method === "POST") ? req.input.read() : req.queryString;
+        const params = parseParameters(input, {});
         return response.json(params);
     };
-    var data = {
+    const data = {
         a: "fääßß",
         b: "fööööbääzz",
         c: "08083",
         d: "0x0004"
     };
-    var getExchange = request({
+    const getExchange = request({
         url: baseUri,
         method: 'GET',
         data: data
@@ -192,7 +186,7 @@ exports.testParams = function() {
     assert.strictEqual(getExchange.status, 200);
     assert.deepEqual(JSON.parse(getExchange.content), data);
 
-    var postExchange = request({
+    const postExchange = request({
         url: baseUri,
         method: 'POST',
         data: data
@@ -204,24 +198,27 @@ exports.testParams = function() {
 /**
  * Status Codes
  */
-exports.testStatusCodes = function() {
-    getResponse = function(req) {
-        if (req.pathInfo == '/notfound') {
-            return response.notFound().text("not found");
-        } else if (req.pathInfo == '/success') {
-            return response.json('success');
-        } else if (req.pathInfo == '/redirect') {
-            return {
-                status: 302,
-                headers: {Location: '/redirectlocation'},
-                body: ["Found: " + '/redirectlocation']
-            };
-        } else if (req.pathInfo == '/redirectlocation') {
-            return response.html('redirect success');
+exports.testStatusCodes = () => {
+    getResponse = (req) => {
+        switch (req.pathInfo) {
+            case "/notfound":
+                return response.notFound().text("not found");
+            case "/success":
+                return response.json('success');
+            case "/redirect":
+                return {
+                    status: 302,
+                    headers: {Location: '/redirectlocation'},
+                    body: ["Found: " + '/redirectlocation']
+                };
+            case "/redirectlocation":
+                return response.html('redirect success');
+            default:
+                throw new Error("Unknown req.pathInfo '" + req.pathInfo + "'");
         }
     };
 
-    var exchange = request({
+    let exchange = request({
         url: baseUri + 'notfound',
         method: 'GET'
     });
@@ -249,15 +246,14 @@ exports.testStatusCodes = function() {
  * Cookie set and read
  */
 exports.testCookie = function() {
-    var COOKIE_NAME = "testcookie";
-    var COOKIE_VALUE = "cookie value with s p   a c es";
-    var COOKIE_DAYS = 5;
+    const COOKIE_NAME = "testcookie";
+    const COOKIE_VALUE = "cookie value with s p   a c es";
+    const COOKIE_DAYS = 5;
 
-    getResponse = function(req) {
-        var params = {};
-        parseParameters(req.queryString, params);
+    getResponse = (req) => {
+        const params = parseParameters(req.queryString, {});
         // set cookie
-        var res = response.html("cookie set");
+        const res = response.html("cookie set");
         res.headers["Set-Cookie"] = setCookie(COOKIE_NAME,
                 params.cookievalue, COOKIE_DAYS, {
                     "domain": "localhost",
@@ -267,7 +263,7 @@ exports.testCookie = function() {
     };
 
     // receive cookie
-    var exchange = request({
+    const exchange = request({
         url: baseUri,
         method: "GET",
         data: {
@@ -275,7 +271,7 @@ exports.testCookie = function() {
         }
     });
     assert.strictEqual(exchange.status, 200);
-    var cookie = exchange.cookies[COOKIE_NAME];
+    const cookie = exchange.cookies[COOKIE_NAME];
     assert.strictEqual(cookie.value, COOKIE_VALUE);
     // FIXME: why is -1 necessary?
     assert.strictEqual(cookie.maxAge, (5 * 24 * 60 * 60) - 1);
@@ -286,45 +282,41 @@ exports.testCookie = function() {
 /**
  * send stream and get the same stream back
  */
-exports.testStreamRequest = function() {
+exports.testStreamRequest = () => {
 
-    getResponse = function(req) {
-        var input;
+    getResponse = (req) => {
         return {
             status: 200,
             headers: {
                 'Content-Type': 'image/png'
             },
             body: {
-                forEach: function(fn) {
-                    var read, bufsize = 8192;
-                    var buffer = new ByteArray(bufsize);
-                    input = req.input;
-                    while ((read = input.readInto(buffer)) > -1) {
+                forEach: (fn) => {
+                    const bufsize = 8192;
+                    const buffer = new binary.ByteArray(bufsize);
+                    let read;
+                    while ((read = req.input.readInto(buffer)) > -1) {
                         buffer.length = read;
                         fn(buffer);
                         buffer.length = bufsize;
                     }
                 },
-                close: function() {
-                    if (input) {
-                        input.close();
-                    }
+                close: () => {
+                    req.input && req.input.close();
                 }
             }
         };
     };
 
-    var resource = getResource('./upload_test.png');
-    var ByteArray = require('binary').ByteArray;
-    var inputStream = resource.getInputStream();
+    const resource = getResource('./upload_test.png');
+    const inputStream = resource.getInputStream();
     // small <1k file, just read it all in
-    var size = resource.getLength();
-    var inputByteArray = new ByteArray(size);
+    const size = resource.getLength();
+    const inputByteArray = new binary.ByteArray(size);
     inputStream.read(inputByteArray, 0, size);
-    var sendInputStream = resource.getInputStream();
+    const sendInputStream = resource.getInputStream();
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri,
         method: 'POST',
         data: sendInputStream
@@ -335,20 +327,20 @@ exports.testStreamRequest = function() {
     assert.strictEqual(exchange.contentType, "image/png");
 };
 
-exports.testContentDecoding = function() {
-    var unzipped = "abcdefghijklmnop";
+exports.testContentDecoding = () => {
+    const unzipped = "abcdefghijklmnop";
 
-    var compress = function(CompressorOutputStream) {
-        var bos = new ByteArrayOutputStream();
-        var cos = new CompressorOutputStream(bos, true);
-        cos.write(unzipped.toByteArray());
+    const compress = (CompressorOutputStream) => {
+        const bos = new ByteArrayOutputStream();
+        const cos = new CompressorOutputStream(bos, true);
+        cos.write(binary.toByteArray(unzipped));
         cos.finish();
-        var bytes = ByteArray.wrap(bos.toByteArray());
+        const bytes = binary.ByteArray.wrap(bos.toByteArray());
         cos.close();
         return bytes;
     };
 
-    var compressions = [
+    const compressions = [
         {
             encodings: ['deflate', 'dEfLaTe'],
             CompressorOutputStream: DeflaterOutputStream
@@ -359,10 +351,11 @@ exports.testContentDecoding = function() {
         }
     ];
 
-    for each (let {encodings, CompressorOutputStream} in compressions) {
+    compressions.forEach(compression => {
+        const {encodings, CompressorOutputStream} = compression;
         let compressed = compress(CompressorOutputStream);
-        for each (let encoding in encodings) {
-            getResponse = function(req) {
+        encodings.forEach(encoding => {
+            getResponse = (req) => {
                 return {
                     status: 200,
                     headers: {
@@ -370,58 +363,53 @@ exports.testContentDecoding = function() {
                         'Content-Encoding': encoding
                     },
                     body: {
-                        forEach: function(fn) {
-                            return fn(compressed);
-                        }
+                        forEach: (fn) => fn(compressed)
                     }
                 };
             };
 
-            let exchange = request({
+            const exchange = request({
                 url: baseUri,
                 method: 'GET'
             });
             assert.isNotNull(exchange, 'Content-Encoding: ' + encoding);
             assert.strictEqual(exchange.content, unzipped, 'Content-Encoding: ' + encoding);
-        }
-    }
+        });
+    })
 };
 
-exports.testPost = function() {
+exports.testPost = () => {
 
-    getResponse = function(req) {
-        var input;
+    getResponse = (req) => {
         return {
             "status": 200,
             "headers": {
                 "Content-Type": "application/octet-stream"
             },
             "body": {
-                forEach: function(fn) {
-                    var read, bufsize = 8192;
-                    var buffer = new ByteArray(bufsize);
-                    input = req.input;
-                    while ((read = input.readInto(buffer)) > -1) {
+                forEach: (fn) => {
+                    const bufsize = 8192;
+                    const buffer = new binary.ByteArray(bufsize);
+                    let read;
+                    while ((read = req.input.readInto(buffer)) > -1) {
                         buffer.length = read;
                         fn(buffer);
                         buffer.length = bufsize;
                     }
                 },
-                close: function() {
-                    if (input) {
-                        input.close();
-                    }
+                close: () => {
+                    req.input && req.input.close();
                 }
             }
         };
     };
 
     // use this module's source as test data
-    var data = fs.read(module.path);
-    var inputByteArray = data.toByteArray();
+    const data = fs.read(module.path);
+    let inputByteArray = binary.toByteArray(data);
 
     // POSTing byte array
-    var exchange = request({
+    let exchange = request({
         url: baseUri,
         method: "POST",
         data: inputByteArray
@@ -444,7 +432,7 @@ exports.testPost = function() {
     exchange = request({
         url: baseUri,
         method: "POST",
-        data: new TextStream(new MemoryStream(data.toByteString()), {charset: "utf-8"})
+        data: new TextStream(new MemoryStream(binary.toByteString(data)), {charset: "utf-8"})
     });
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(exchange.contentBytes.length, inputByteArray.length);
@@ -460,11 +448,11 @@ exports.testPost = function() {
     assert.strictEqual(exchange.contentBytes.length, inputByteArray.length);
     assert.deepEqual(exchange.contentBytes.toArray(), inputByteArray.toArray());
 
-    var resource = getResource('./upload_test.png');
-    var inputStream = resource.getInputStream();
+    const resource = getResource('./upload_test.png');
+    const inputStream = resource.getInputStream();
     // small <1k file, just read it all in
-    var size = resource.getLength();
-    inputByteArray = new ByteArray(size);
+    const size = resource.getLength();
+    inputByteArray = new binary.ByteArray(size);
     inputStream.read(inputByteArray, 0, size);
     exchange = request({
         url: baseUri,
@@ -475,33 +463,33 @@ exports.testPost = function() {
     assert.deepEqual(inputByteArray.toArray(), exchange.contentBytes.toArray());
 };
 
-exports.testPostMultipart = function() {
+exports.testPostMultipart = () => {
 
-    var textFile = module.resolve("text_test.txt");
-    var imageFile = module.resolve("upload_test.png");
-    var received = {};
+    const textFile = module.resolve("text_test.txt");
+    const imageFile = module.resolve("upload_test.png");
+    const received = {};
 
-    getResponse = function(req) {
-        var encoding = req.env.servletRequest.getCharacterEncoding() || "utf8";
-        var params = parseFileUpload(req, {}, encoding);
-        for (let [key, value] in Iterator(params)) {
-            received[key] = value;
-        }
+    getResponse = (req) => {
+        const encoding = req.env.servletRequest.getCharacterEncoding() || "utf8";
+        const params = parseFileUpload(req, {}, encoding);
+        Object.keys(params).forEach(key => {
+            received[key] = params[key];
+        });
         return response.html("OK");
     };
 
-    var title = "testing multipart post";
-    var textStream = fs.open(textFile, {"read": true, "charset": "utf-8"});
-    var textFileStream = fs.open(textFile, {"read": true, "charset": "utf-8"});
-    var binaryStream = fs.open(imageFile, {"read": true, "binary": true});
+    const title = "testing multipart post";
+    const textStream = fs.open(textFile, {"read": true, "charset": "utf-8"});
+    const textFileStream = fs.open(textFile, {"read": true, "charset": "utf-8"});
+    const binaryStream = fs.open(imageFile, {"read": true, "binary": true});
 
-    var inputStream = fs.open(imageFile, {"read": true, "binary": true});
+    const inputStream = fs.open(imageFile, {"read": true, "binary": true});
     // small <1k file, just read it all in
-    var size = fs.size(imageFile);
-    var imageByteArray = new ByteArray(size);
+    const size = fs.size(imageFile);
+    const imageByteArray = new binary.ByteArray(size);
     inputStream.readInto(imageByteArray, 0, size);
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri,
         method: "POST",
         contentType: "multipart/form-data",
@@ -515,7 +503,7 @@ exports.testPostMultipart = function() {
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(received.title, title);
     // normalize line feeds, otherwise test fails on windows
-    var expectedText = fs.read(textFile).replace(/\r\n/g, "\n");
+    const expectedText = fs.read(textFile).replace(/\r\n/g, "\n");
     assert.strictEqual(received.text, expectedText);
     assert.isNotUndefined(received.textfile);
     assert.strictEqual(received.textfile.filename, fs.base(textFile));
@@ -537,14 +525,14 @@ exports.testPostMultipart = function() {
     }, Error);
 };
 
-exports.testProxiedRequest = function() {
-    var text = "<h1>This is the Response Text</h1>";
+exports.testProxiedRequest = () => {
+    const text = "<h1>This is the Response Text</h1>";
 
-    getResponse = function(req) {
+    getResponse = () => {
         return response.html(text);
     };
 
-    var exchange = request({
+    let exchange = request({
         url: "http://idontexistandifigetcalledwithoutproxyshouldraiseerror.com",
         proxy: [host, ":", port].join(""),
     });
@@ -557,29 +545,28 @@ exports.testProxiedRequest = function() {
     assert.strictEqual(exchange.content, text);
 };
 
-exports.testIterateExchange_Issue287 = function() {
+exports.testIterateExchange_Issue287 = () => {
     //exchange.headers
-    var text = "<h1>This is the Response Text</h1>";
+    const text = "<h1>This is the Response Text</h1>";
 
-    getResponse = function(req) {
+    getResponse = () => {
         return response.html(text);
     };
 
-    var errorCalled, myData;
-    var exchange = request({
+    const exchange = request({
         url: baseUri
     });
     assert.strictEqual(exchange.content, text);
 
-    var clone = objects.clone(exchange.headers, false, 0);
+    const clone = objects.clone(exchange.headers, false, 0);
     assert.deepEqual(exchange.headers, clone);
     assert.isUndefined(exchange.headers[null]);
 };
 
-exports.testTimeoutResponse_Issue267 = function() {
-    getResponse = function(req) {
-        var loops = 0;
-        var started = Date.now();
+exports.testTimeoutResponse_Issue267 = () => {
+    getResponse = () => {
+        const started = Date.now();
+        let loops = 0;
         while (Date.now() - started < 100) {
             loops++;
         }
@@ -587,7 +574,7 @@ exports.testTimeoutResponse_Issue267 = function() {
     };
 
     assert.throws(function() {
-        var exchange = request({
+        request({
             readTimeout: 1,
             url: baseUri
         });
@@ -595,13 +582,11 @@ exports.testTimeoutResponse_Issue267 = function() {
     }, java.net.SocketTimeoutException, "A timeout request should throw an exception!");
 };
 
-exports.testNoCallbacks = function() {
-    getResponse = function(req) {
-        return response.text("foo");
-    };
+exports.testNoCallbacks = () => {
+    getResponse = () => response.text("foo");
 
-    var anyCallbackCalled = false;
-    var exchange = request({
+    let anyCallbackCalled = false;
+    const exchange = request({
         "url": baseUri,
         "success": function() {
             anyCallbackCalled = true;
@@ -618,45 +603,45 @@ exports.testNoCallbacks = function() {
     assert.strictEqual(exchange.status, 200);
 };
 
-exports.testMultipleHeaders_Issue225 = function() {
-    getResponse = function(req) {
+exports.testMultipleHeaders_Issue225 = () => {
+    getResponse = (req) => {
         assert.equal(req.env.servletRequest.getHeader("single-header"), "one", "Header not present");
         assert.equal(req.env.servletRequest.getHeader("multiple-header"), "one,two", "Multiple headers not merged into one");
         return response.text("done");
     };
 
-    let preparedHeaders = Headers({});
+    const preparedHeaders = Headers({});
     preparedHeaders.set("single-header", "one");
     preparedHeaders.add("multiple-header", "one");
     preparedHeaders.add("multiple-header", "two");
 
-    var exchange = request({
+    request({
         url: baseUri,
         headers: preparedHeaders
     });
 };
 
-exports.testStreamResponse = function() {
-    getResponse = function(req) {
-        var bs = new MemoryStream(3);
-        bs.write(new ByteString("\t\r\n", "ASCII"));
+exports.testStreamResponse = () => {
+    getResponse = () => {
+        const bs = new MemoryStream(3);
+        bs.write(new binary.ByteString("\t\r\n", "ASCII"));
         bs.position = 0;
         return response.stream(bs);
     };
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri
     });
 
     assert.strictEqual(exchange.content, "\t\r\n");
 };
 
-exports.testBinaryResponse = function() {
-    getResponse = function(req) {
-        return response.binary(new ByteArray([35, 114, 105, 110, 103, 111, 106, 115]));
+exports.testBinaryResponse = () => {
+    getResponse = () => {
+        return response.binary(new binary.ByteArray([35, 114, 105, 110, 103, 111, 106, 115]));
     };
 
-    var exchange = request({
+    const exchange = request({
         url: baseUri,
         binary: true
     });
@@ -664,10 +649,10 @@ exports.testBinaryResponse = function() {
     assert.strictEqual(exchange.contentBytes.toArray().join(""), [35, 114, 105, 110, 103, 111, 106, 115].join(""));
 };
 
-exports.testBinaryPart = function() {
+exports.testBinaryPart = () => {
     let bin, result;
-    let sw = new java.io.StringWriter();
-    let bos = new java.io.ByteArrayOutputStream();
+    let sw = new StringWriter();
+    let bos = new ByteArrayOutputStream();
 
     try {
         bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "foo.txt", "text/superplain");
@@ -684,8 +669,8 @@ exports.testBinaryPart = function() {
 
     try {
         bin = new BinaryPart(fs.openRaw(module.resolve("./text_test.txt"), "r"), "bar.txt");
-        sw = new java.io.StringWriter();
-        bos = new java.io.ByteArrayOutputStream();
+        sw = new StringWriter();
+        bos = new ByteArrayOutputStream();
         bin.write("paramname", sw, bos);
 
         result = sw.toString().split("\r\n");
@@ -698,10 +683,10 @@ exports.testBinaryPart = function() {
     }
 };
 
-exports.testTextPart = function() {
+exports.testTextPart = () => {
     let tp, result;
-    let sw = new java.io.StringWriter();
-    let bos = new java.io.ByteArrayOutputStream();
+    let sw = new StringWriter();
+    let bos = new ByteArrayOutputStream();
 
     try {
         tp = new TextPart("asdfasdfasdf", "ISO-8859-15", "foo.txt");
@@ -717,7 +702,7 @@ exports.testTextPart = function() {
 
     let stream = fs.open(module.resolve("./text_test.txt"));
     let mem = new MemoryStream(1000);
-    sw = new java.io.StringWriter();
+    sw = new StringWriter();
 
     try {
         tp = new TextPart(stream, "ISO-8859-15", "foo.txt");
@@ -734,7 +719,7 @@ exports.testTextPart = function() {
 
     stream = fs.open(module.resolve("./text_test.txt"));
     mem = new MemoryStream(1000);
-    sw = new java.io.StringWriter();
+    sw = new StringWriter();
 
     try {
         tp = new TextPart(stream);
@@ -751,11 +736,7 @@ exports.testTextPart = function() {
 };
 
 // start the test runner if we're called directly from command line
-if (require.main === module) {
-    var {run} = require("test");
-    var system = require("system");
-    if (system.args.length > 1) {
-        system.exit(run(exports, system.args.pop()));
-    }
-    system.exit(run(exports));
+if (require.main == module.id) {
+    system.exit(require("test").run.apply(null,
+        [exports].concat(system.args.slice(1))));
 }
