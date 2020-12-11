@@ -4,12 +4,12 @@
  * and a replacement for the print function optimized for styled output.
  *
  * @example
- * <code>include('ringo/term')
- * writeln(YELLOW, "foo", MAGENTA, "bar");
+ * <code>const term = require('ringo/term')
+ * term.writeln(YELLOW, "foo", MAGENTA, "bar");
  * // foo bar
- * writeln(YELLOW, ONBLUE, "IKEA");
+ * term.writeln(YELLOW, ONBLUE, "IKEA");
  * // IKEA
- * writeln(RED, BOLD, INVERSE, "Red Alert!");
+ * term.writeln(RED, BOLD, INVERSE, "Red Alert!");
  * // Red Alert!</code>
  *
  * @see http://en.wikipedia.org/wiki/ANSI_escape_code
@@ -127,12 +127,16 @@ const tw = new TermWriter();
  * support has been detected.
  * @param {*...} args... variable number of arguments to write
  */
-exports.write = tw.write;
+exports.write = function() {
+    tw.write.apply(tw, arguments);
+};
 /**
  * Write the arguments to `system.stdout` followed by a newline character,
  * applying ANSI terminal colors if support has been detected.
  * @param {*...} args... variable number of arguments to write
  */
-exports.writeln = tw.writeln;
+exports.writeln = function() {
+    tw.writeln.apply(tw, arguments);
+};
 
 

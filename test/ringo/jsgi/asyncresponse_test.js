@@ -1,14 +1,12 @@
-var assert = require("assert");
-var {AsyncResponse} = require("ringo/jsgi/connector");
-var {HttpServer} = require("ringo/httpserver");
-var httpClient = require("ringo/httpclient");
-var strings = require("ringo/utils/strings");
-
 require('ringo/logging').setConfig(getResource('../httptest_log4j2.properties'));
-var server = null;
 
-exports.setUp = function() {
-};
+const assert = require("assert");
+const {AsyncResponse} = require("ringo/jsgi/connector");
+const {HttpServer} = require("ringo/httpserver");
+const httpClient = require("ringo/httpclient");
+const strings = require("ringo/utils/strings");
+
+let server = null;
 
 exports.tearDown = function() {
     server.stop();
@@ -16,15 +14,15 @@ exports.tearDown = function() {
     server = null;
 };
 
-exports.testAsync = function() {
-    var line = "test\n";
+exports.testAsync = () => {
+    const line = "test\n";
 
     server = new HttpServer();
     server.serveApplication("/", function(request) {
-        var response = new AsyncResponse(request, 2000);
+        const response = new AsyncResponse(request, 2000);
         response.start(200, {"Content-Type": "text/plain"});
         spawn(function() {
-            var max = 5;
+            const max = 5;
             for (let cnt = 0; cnt < max; cnt += 1) {
                 try {
                     response.write(line);
@@ -43,7 +41,7 @@ exports.testAsync = function() {
     });
     server.start();
 
-    var exchange = httpClient.get("http://localhost:8282");
+    const exchange = httpClient.get("http://localhost:8282");
     assert.strictEqual(exchange.status, 200);
     assert.strictEqual(exchange.content, strings.repeat(line, 5));
 };

@@ -1,9 +1,9 @@
-let assert = require('assert');
-let dates = require('ringo/utils/dates');
+const assert = require('assert');
+const dates = require('ringo/utils/dates');
 
 // list of years taken from http://en.wikipedia.org/wiki/List_of_leap_years
 exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
-    let leapYears = [
+    const leapYears = [
         1896, 1904, 1908, 1912, 1916, 1920,
         1924, 1928, 1932, 1936, 1940, 1944,
         1948, 1952, 1956, 1960, 1964, 1968,
@@ -20,7 +20,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     ];
 
     leapYears.forEach(function(year) {
-        let d = new Date(year, 1, 1);
+        const d = new Date(year, 1, 1);
         assert.isTrue(dates.isLeapYear(d), "Leap Year " + year);
         assert.equal(dates.daysInYear(d), 366, "Leap Year " + year);
         assert.equal(dates.daysInFebruary(d), 29, "Leap Year " + year);
@@ -29,7 +29,7 @@ exports.testIsLeapYear_DaysInFebruary_DaysInYear_DaysInMonth = function () {
     });
 
     noLeapYears.forEach(function(year) {
-        let d = new Date(year, 0, 1);
+        const d = new Date(year, 0, 1);
         assert.isFalse(dates.isLeapYear(d), "No Leap Year " + year);
         assert.equal(dates.daysInYear(d), 365, "No Leap Year " + year);
         assert.equal(dates.daysInFebruary(d), 28, "No Leap Year " + year);
@@ -52,7 +52,7 @@ exports.testAdd = function () {
 
     assert.equal(d.getTime(), Date.UTC(2010, 10, 10, 10, 10, 10, 10));
 
-    let addOne = {
+    const addOne = {
         "millisecond":  Date.UTC(2010, 10, 10, 10, 10, 10, 11),
         "second":       Date.UTC(2010, 10, 10, 10, 10, 11, 10),
         "minute":       Date.UTC(2010, 10, 10, 10, 11, 10, 10),
@@ -477,7 +477,7 @@ exports.testOverlapping = function() {
 };
 
 exports.testInPeriod = function() {
-    let pStart = new Date(2010, 0, 10),
+    const pStart = new Date(2010, 0, 10),
     pEnd = new Date(2010, 0, 20);
 
     //  Period   [--------]
@@ -530,7 +530,7 @@ exports.testInPeriod = function() {
 };
 
 exports.testResetTime = function() {
-    let d = new Date(2010, 0, 1, 20, 20, 20);
+    const d = new Date(2010, 0, 1, 20, 20, 20);
     assert.equal(dates.resetTime(d).getFullYear(), 2010);
     assert.equal(dates.resetTime(d).getMonth(), 0);
     assert.equal(dates.resetTime(d).getDate(), 1);
@@ -540,7 +540,7 @@ exports.testResetTime = function() {
 };
 
 exports.testResetDate = function() {
-    let d = new Date(2010, 0, 1, 20, 20, 20);
+    const d = new Date(2010, 0, 1, 20, 20, 20);
     assert.equal(dates.resetDate(d).getFullYear(), 1970);
     assert.equal(dates.resetDate(d).getMonth(), 0);
     assert.equal(dates.resetDate(d).getDate(), 1);
@@ -736,7 +736,7 @@ exports.testParse = function() {
     assert.isFalse(dates.parse("2010-01-01T23:00-25:00") instanceof Date, "parse should return NaN and not an invalid Date");
 
     // java date format tests
-    assert.strictEqual(dates.parse("2016-06-29T12:11:10.001", "yyyy-MM-dd'T'HH:mm:ss.SSS").getTime(), (new Date(2016,05,29,12,11,10,1)).getTime());
+    assert.strictEqual(dates.parse("2016-06-29T12:11:10.001", "yyyy-MM-dd'T'HH:mm:ss.SSS").getTime(), (new Date(2016,5,29,12,11,10,1)).getTime());
     assert.strictEqual(dates.parse("2016-06-29T12:11:10.001", "yyyy-MM-dd'T'HH:mm:ss.SSS", "en", "UTC").getTime(), 1467202270001);
     assert.strictEqual(dates.parse("2016-06-29T12:11:10.001-01:00", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "en", "UTC").getTime(), 1467205870001);
     assert.strictEqual(dates.parse("29. Juni 2016", "dd. MMM yyyy", "de", "UTC").getTime(), 1467158400000);
@@ -751,7 +751,7 @@ exports.testParse = function() {
     assert.isNotNaN(dates.parse("2010-01-01T01:01:01.001").getTime());
 
     // cases map datestrings to objects with corresponding UTC date properties
-    let cases = {
+    const cases = {
         "2000": {
             year: 2000,
             month: 0,

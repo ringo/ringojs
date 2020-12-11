@@ -1,17 +1,14 @@
+require("ringo/logging").setConfig(getResource("../httptest_log4j2.properties"));
+
 const assert = require("assert");
 const {MemoryStream} = require("io");
 const {HttpServer} = require("ringo/httpserver");
 const httpClient = require("ringo/httpclient");
-const strings = require("ringo/utils/strings");
 const response = require("ringo/jsgi/response");
 
 const DATA = new ByteString("Hello World! I am a string. A long string.", "ASCII");
 
-require("ringo/logging").setConfig(getResource("../httptest_log4j2.properties"));
-var server = null;
-
-exports.setUp = function() {
-};
+let server = null;
 
 exports.tearDown = function() {
     server.stop();
@@ -73,8 +70,7 @@ exports.testSimpleRange = function() {
 exports.testCombinedRequests = function() {
     server = new HttpServer();
     server.serveApplication("/", function(request) {
-        const res = response.range(request, new MemoryStream(DATA.concat(DATA, DATA, DATA)), 4 * DATA.length, "text/plain");
-        return res;
+        return response.range(request, new MemoryStream(DATA.concat(DATA, DATA, DATA)), 4 * DATA.length, "text/plain");
     });
     server.createHttpListener({
         "host": "localhost",
@@ -130,8 +126,7 @@ exports.testCombinedRequests = function() {
 exports.testInvalidRanges = function() {
     server = new HttpServer();
     server.serveApplication("/", function(request) {
-        const res = response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
-        return res;
+        return response.range(request, new MemoryStream(DATA), DATA.length, "text/plain");
     });
     server.createHttpListener({
         "host": "localhost",

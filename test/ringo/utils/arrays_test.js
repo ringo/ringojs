@@ -1,37 +1,30 @@
-var assert = require("assert");
-var arrays = require("ringo/utils/arrays");
+const assert = require("assert");
+const arrays = require("ringo/utils/arrays");
 
 // test data
-var empty = [];
+const empty = [];
 
 // arrays with strings
-var arrayWithOneString = ["one"];
-var arrayWithTwoStrings = ["one", "two"];
-var arrayWithFiveStrings = ["one", "two", "three", "four", "five"];
-var arrayWithFiveOneStrings = ["one", "one", "one", "one", "one"];
-var arrayWithTwoThreeStrings = ["two", "three"];
-var string1 = "one";
-var string3 = "three";
+const arrayWithOneString = ["one"];
+const arrayWithTwoStrings = ["one", "two"];
+const arrayWithFiveStrings = ["one", "two", "three", "four", "five"];
+const arrayWithFiveOneStrings = ["one", "one", "one", "one", "one"];
+const arrayWithTwoThreeStrings = ["two", "three"];
+const string1 = "one";
+const string3 = "three";
 
 // arrays with objects
-var obj1 = { test : "obj" };
-var obj2 = { test : "obj" }; // looks similar to obj1, but in fact is a different object
-var obj3 = { test : "obj3" };
-var obj4 = obj1; // obj4 is the same as obj1
+const obj1 = { test : "obj" };
+const obj2 = { test : "obj" }; // looks similar to obj1, but in fact is a different object
+const obj3 = { test : "obj3" };
+const obj4 = obj1; // obj4 is the same as obj1
 
-var arrayWithOneObject = [obj1];
-var arrayWithTwoObjects = [obj1, obj2];
-var arrayWithTwoThreeObjects = [obj2, obj3];
-var arrayWithFiveObjects = [obj1, obj2, obj3, obj4, obj1];
+const arrayWithOneObject = [obj1];
+const arrayWithTwoObjects = [obj1, obj2];
+const arrayWithFiveObjects = [obj1, obj2, obj3, obj4, obj1];
 
 
-exports.testAssertTrue = function() {
-   // testing the test environment
-   assert.isTrue(true);
-   return;
-};
-
-exports.testArrayIndexOf = function() {
+exports.testIndexOf = function() {
 
    // test with empty array
    assert.strictEqual( empty.indexOf(string3), -1 );
@@ -55,12 +48,10 @@ exports.testArrayIndexOf = function() {
 
    assert.strictEqual( arrayWithFiveObjects.indexOf(obj4), 0 );
    assert.strictEqual( arrayWithFiveObjects.indexOf(obj1), 0 );
-
-   return;
 };
 
 
-exports.testArrayLastIndexOf = function() {
+exports.testLastIndexOf = function() {
 
    // test with empty array
    assert.strictEqual( empty.lastIndexOf(string3), -1 );
@@ -86,12 +77,10 @@ exports.testArrayLastIndexOf = function() {
 
    assert.strictEqual( arrayWithFiveObjects.lastIndexOf(obj4), 4 );
    assert.strictEqual( arrayWithFiveObjects.lastIndexOf(obj1), 4 );
-
-   return;
 };
 
 
-exports.testArrayContains = function() {
+exports.testContains = function() {
 
    // Array.prototype.contains = Array.prototype.include;
 
@@ -116,12 +105,10 @@ exports.testArrayContains = function() {
 
    assert.isTrue( arrays.contains(arrayWithFiveObjects, obj4) );
    assert.isTrue( arrays.contains(arrayWithFiveObjects, obj1) );
-
-   return;
 };
 
 
-exports.testArrayUnion = function() {
+exports.testUnion = function() {
 
    // test with empty
    assert.deepEqual(
@@ -185,12 +172,10 @@ exports.testArrayUnion = function() {
       arrays.union(arrayWithFiveObjects, empty),
       [obj1, obj2, obj3]
    );
-
-   return;
 };
 
 
-exports.testArrayIntersection = function() {
+exports.testIntersection = function() {
 
    // test with empty
    assert.deepEqual(
@@ -259,8 +244,6 @@ exports.testArrayIntersection = function() {
       arrays.intersection(arrayWithFiveObjects, empty),
       []
    );
-
-   return;
 };
 
 if (require.main === module) {

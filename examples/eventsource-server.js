@@ -1,15 +1,13 @@
 // Simple event source server demo
-var response = require("ringo/jsgi/response");
-var arrays = require("ringo/utils/arrays");
-var {EventSource, isEventSourceRequest} = require("ringo/jsgi/eventsource");
+const response = require("ringo/jsgi/response");
+const arrays = require("ringo/utils/arrays");
+const {EventSource, isEventSourceRequest} = require("ringo/jsgi/eventsource");
 
-var connections = module.singleton('connections', function() {
-   return [];
-});
+const connections = module.singleton('connections', () => []);
 
-exports.app = function(req) {
+exports.app = (req) => {
     if (isEventSourceRequest(req)) {
-      var eventSource = new EventSource(req);
+      const eventSource = new EventSource(req);
       eventSource.start({
          'Access-Control-Allow-Origin': '*'
       });
@@ -20,7 +18,7 @@ exports.app = function(req) {
     }
 };
 
-function doPing() {
+const doPing = () => {
     console.info("Sending ping to all ", connections.length ,"connections");
     connections.forEach(function(eventSource) {
         try {
@@ -33,6 +31,6 @@ function doPing() {
 }
 
 if (require.main == module) {
-    var server = require("ringo/httpserver").main(module.id);
+    const server = require("ringo/httpserver").main(module.id);
     setInterval(doPing, 2 * 1000);
 }

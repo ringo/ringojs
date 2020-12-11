@@ -2,8 +2,8 @@
  * @fileOverview This module provides the constructor for EventSource
  * response objects, which allow pushing messages to connected clients.
  */
-var {AsyncResponse} = require('ringo/jsgi/connector');
-var objects = require('ringo/utils/objects');
+const {AsyncResponse} = require('ringo/jsgi/connector');
+const objects = require('ringo/utils/objects');
 
 const CRLF = "\r\n".toByteArray('utf-8');
 const EVENT_FIELD = "event: ".toByteArray('utf-8');
@@ -24,7 +24,7 @@ const COMMENT_FIELD = ": ".toByteArray('utf-8');
  *
  * @example
  *
- *    var eventSource = new EventSource(request);
+ *    const eventSource = new EventSource(request);
  *    // send headers and start heartbeat
  *    eventSource.start({
  *       "X-Additional-Header": "Foo"
@@ -48,7 +48,7 @@ const COMMENT_FIELD = ": ".toByteArray('utf-8');
  *
  */
 exports.EventSource = function(request) {
-   var heartBeat = null;
+   let heartBeat = null;
    this.response = null;
 
    /**
@@ -58,7 +58,9 @@ exports.EventSource = function(request) {
     * @throws {Error}
     */
    this.event = sync(function(name, data) {
-      if (this.response === null) throw new Error('Connection not open');
+      if (this.response === null) {
+          throw new Error('Connection not open');
+      }
 
       this.response.write(EVENT_FIELD);
       this.response.write(name);
@@ -72,7 +74,9 @@ exports.EventSource = function(request) {
     * @throws {Error}
     */
    this.data = sync(function(data) {
-      if (this.response === null) throw new Error('Connection not open');
+      if (this.response === null) {
+          throw new Error('Connection not open');
+      }
 
       this.response.write(DATA_FIELD);
       this.response.write(data);
@@ -87,7 +91,9 @@ exports.EventSource = function(request) {
     * @throws {Error}
     */
    this.comment = sync(function(comment) {
-      if (this.response === null) throw new Error('Connection not open');
+      if (this.response === null) {
+          throw new Error('Connection not open');
+      }
 
       this.response.write(COMMENT_FIELD);
       this.response.write(comment);
@@ -111,7 +117,9 @@ exports.EventSource = function(request) {
     * @param {Number} heartBeatInterval in seconds (optional. default: 15)
     */
    this.start = function(headers, heartBeatInterval) {
-      if (this.response !== null) throw new Error('Connection already open');
+      if (this.response !== null) {
+          throw new Error('Connection already open');
+      }
 
       if (heartBeatInterval === undefined || isNaN(heartBeatInterval)) {
          heartBeatInterval = 15;
@@ -149,6 +157,6 @@ exports.EventSource = function(request) {
  * @param {JSGIRequest} request
  * @returns {Boolean} whether the accept header matches 'text/event-stream
  */
-exports.isEventSourceRequest = function(request) {
+exports.isEventSourceRequest = (request) => {
    return request.headers.accept.indexOf('text/event-stream') > -1;
 };

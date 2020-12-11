@@ -1,5 +1,5 @@
-var assert = require('assert');
-var strings = require('ringo/utils/strings');
+const assert = require('assert');
+const strings = require('ringo/utils/strings');
 
 const DATE_FORMAT = 'MM\'/\'dd\'/\'yyyy';
 const DATE = '10/10/2010';
@@ -26,11 +26,11 @@ exports.testIsDateFormat = function () {
 };
 
 exports.testToDate = function () {
-    var date = strings.toDate(DATE, DATE_FORMAT);
+    const date = strings.toDate(DATE, DATE_FORMAT);
     assert.isTrue(date instanceof Date);
     assert.deepEqual(new Date(DATE), date);
-    assert.throws(function () strings.toDate(FOO),
-            java.lang.IllegalArgumentException); // Invalid date format.
+    assert.throws(() => strings.toDate(FOO),
+        java.lang.IllegalArgumentException); // Invalid date format.
 };
 
 exports.testIsUrl = function () {
@@ -122,7 +122,7 @@ exports.testIsFileName = function () {
 };
 
 exports.testToFileName = function () {
-    var fileName = strings.toFileName(URL);
+    const fileName = strings.toFileName(URL);
     assert.isNotNull(fileName);
     assert.isTrue(strings.isFileName(fileName));
 };
@@ -144,7 +144,7 @@ exports.testIsAlphanumeric = function () {
 };
 
 exports.testToAlphanumeric = function () {
-    var alphanumeric = strings.toAlphanumeric(URL);
+    const alphanumeric = strings.toAlphanumeric(URL);
     assert.isNotNull(alphanumeric);
     assert.isTrue(strings.isAlphanumeric(alphanumeric));
 };
@@ -281,13 +281,13 @@ exports.testB64Decode = function () {
 };
 
 exports.testB64EncodeDecode = function() {
-    for each (var test in BASE16) {
+    BASE16.forEach(test => {
         assert.strictEqual(strings.b16encode(test[0]), test[1]);
         assert.strictEqual(strings.b16decode(strings.b16encode(test[0])), test[0]);
         assert.deepEqual(strings.b16decode(
                 strings.b16encode(test[0]), 'raw').toArray(),
                 new ByteString(test[0], 'utf8').toArray());
-    }
+    });
 };
 
 exports.testEscapeHtml = function () {

@@ -1,24 +1,24 @@
-var assert = require("assert");
-var {EventEmitter} = require("ringo/events");
+const assert = require("assert");
+const {EventEmitter} = require("ringo/events");
 
 exports.testConstructor = function() {
-    var e = new EventEmitter();
+    const e = new EventEmitter();
     assert.isTrue(e instanceof EventEmitter);
     testEmitter(e);
 };
 
 exports.testMixin = function() {
-    var e = {};
+    const e = {};
     EventEmitter.call(e);
     assert.isFalse(e instanceof EventEmitter);
     testEmitter(e);
 };
 
-function testEmitter(e) {
-    var count = 0;
-    var add = function(amount) { count += amount };
-    var subtract = function(amount) { count -= amount };
-    var result;
+const testEmitter = (e) => {
+    let count = 0;
+    const add = (amount) => count += amount;
+    const subtract = (amount) => count -= amount;
+    let result;
     assert.equal(e.on, e.addListener, "on and addListener are different");
     e.addListener("add", add);
     e.addListener("addTwice", add).addListener("addTwice", add);

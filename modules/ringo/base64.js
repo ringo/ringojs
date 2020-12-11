@@ -14,22 +14,22 @@
 
 /**
  * @fileOverview Base64 encoding and decoding for binary data and strings.
- * @example >> var base64 = require('ringo/base64');
- * >> var enc = base64.encode('Hello World!', 'ISO-8859-15');
+ * @example >> const base64 = require('ringo/base64');
+ * >> const enc = base64.encode('Hello World!', 'ISO-8859-15');
  * >> print(enc);
  * 'SGVsbG8gV29ybGQh'
  * >> print(base64.decode(enc, 'ISO-8859-15'));
  * Hello World!
  */
 
-var encodeChars = [
+const encodeChars = [
      65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,
      77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,
      89,  90,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106,
     107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118,
     119, 120, 121, 122,  48,  49,  50,  51,  52,  53,  54,  55,
      56,  57,  43,  47];
-var decodeChars = [
+const decodeChars = [
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
@@ -40,9 +40,8 @@ var decodeChars = [
     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
 ];
 
-var padding = "=".charCodeAt(0);
-
-var {Binary, ByteString, ByteArray} = require('binary');
+const padding = "=".charCodeAt(0);
+const binary = require('binary');
 
 /**
  * Encode a string or binary to a Base64 encoded string
@@ -52,16 +51,16 @@ var {Binary, ByteString, ByteArray} = require('binary');
  * @returns {String} the Base64 encoded string
  */
 exports.encode = function(str, encoding) {
-    var c1, c2, c3;
-    encoding = encoding || 'utf8';
-    var input = str instanceof Binary ? str : String(str).toByteString(encoding);
-    var length = input.length;
-    var output = new ByteArray(4 * (length + (3 - length % 3) % 3) / 3);
+    const input = str instanceof binary.Binary ? str : binary.toByteString(str, encoding || 'utf8');
+    const length = input.length;
+    const output = new binary.ByteArray(4 * (length + (3 - length % 3) % 3) / 3);
 
-    var i = 0, j = 0;
+    let i = 0;
+    let j = 0;
+    let c1, c2, c3;
     while(i < length) {
         c1 = input[i++];
-        if(i == length) {
+        if (i === length) {
             output[j++] = encodeChars[c1 >> 2];
             output[j++] = encodeChars[(c1 & 0x3) << 4];
             output[j++] = padding;
@@ -69,7 +68,7 @@ exports.encode = function(str, encoding) {
             break;
         }
         c2 = input[i++];
-        if(i == length) {
+        if (i === length) {
             output[j++] = encodeChars[c1 >> 2];
             output[j++] = encodeChars[((c1 & 0x3) << 4) | ((c2 & 0xF0) >> 4)];
             output[j++] = encodeChars[(c2 & 0xF) << 2];
@@ -95,28 +94,29 @@ exports.encode = function(str, encoding) {
  * @returns {String|ByteArray} the decoded string or ByteArray
  */
 exports.decode = function (str, encoding) {
-    var c1, c2, c3, c4;
-    var input = str instanceof Binary ? str : String(str).toByteString('ascii');
-    var length = input.length;
-    var output = new ByteArray(length * 3 / 4);
-    var i = 0, j = 0;
+    const input = str instanceof binary.Binary ? str : binary.toByteString(str, 'ascii');
+    const length = input.length;
+    const output = new binary.ByteArray(length * 3 / 4);
+    let i = 0;
+    let j = 0;
+    let c1, c2, c3, c4;
     outer:
     while(i < length) {
         /* c1 */
         do {
             c1 = decodeChars[input[i++]];
-        } while(i < length && c1 == -1);
+        } while (i < length && c1 === -1);
 
-        if(c1 == -1) {
+        if (c1 === -1) {
             break;
         }
 
         /* c2 */
         do {
             c2 = decodeChars[input[i++]]
-        } while(i < length && c2 == -1);
+        } while (i < length && c2 === -1);
 
-        if(c2 == -1) {
+        if (c2 === -1) {
             break;
         }
 
@@ -125,13 +125,13 @@ exports.decode = function (str, encoding) {
         /* c3 */
         do {
             c3 = input[i++];
-            if(c3 == padding) {
+            if (c3 === padding) {
                 break outer;
             }
             c3 = decodeChars[c3];
-        } while(i < length && c3 == -1);
+        } while (i < length && c3 === -1);
 
-        if(c3 == -1) {
+        if (c3 === -1) {
             break;
         }
 
@@ -140,13 +140,13 @@ exports.decode = function (str, encoding) {
         /* c4 */
         do {
             c4 = input[i++];
-            if(c4 == padding) {
+            if (c4 === padding) {
                 break outer;
             }
             c4 = decodeChars[c4];
-        } while(i < length && c4 == -1);
+        } while (i < length && c4 === -1);
 
-        if(c4 == -1) {
+        if (c4 === -1) {
             break;
         }
 
@@ -154,8 +154,8 @@ exports.decode = function (str, encoding) {
     }
 
     output.length = j;
-    encoding = encoding || 'utf8';
-    return encoding == 'raw' ? output : output.decodeToString(encoding);
+    encoding || (encoding = 'utf8');
+    return (encoding === 'raw') ? output : output.decodeToString(encoding);
 };
 
 

@@ -92,14 +92,14 @@
  * console.log(shallowClone.root); // --> 1
  * console.dir(shallowClone.a.b.c.d); // --> { e: 'bar' }
  */
-function clone(object, circular, depth, prototype) {
+const clone = exports.clone = (object, circular, depth, prototype) => {
     if (typeof circular === 'object') {
         throw new Error("Old function signature used for objects.clone()!");
     }
     // maintain two arrays for circular references, where corresponding parents
     // and children have the same index
-    var allParents = [];
-    var allChildren = [];
+    const allParents = [];
+    const allChildren = [];
 
     if (typeof circular == 'undefined') {
         circular = true;
@@ -115,21 +115,19 @@ function clone(object, circular, depth, prototype) {
         if (parent === null) {
             return null;
         }
-
         if (depth === 0) {
             return parent;
         }
-
-        var child;
-        var proto;
         if (typeof parent != 'object') {
             return parent;
         }
 
+        let child;
+        let proto;
         if (Array.isArray(parent)) {
             child = [];
         } else if (parent instanceof RegExp) {
-            var flags = "";
+            let flags = "";
             if (parent.global) {
                 flags += 'g';
             }
@@ -141,47 +139,46 @@ function clone(object, circular, depth, prototype) {
             }
 
             child = new RegExp(parent.source, flags);
-            if (parent.lastIndex) child.lastIndex = parent.lastIndex;
+            if (parent.lastIndex) {
+                child.lastIndex = parent.lastIndex;
+            }
         } else if (parent instanceof Date) {
             child = new Date(parent.getTime());
         } else {
             if (typeof prototype == 'undefined') {
                 proto = Object.getPrototypeOf(parent);
                 child = Object.create(proto);
-            }
-            else {
+            } else {
                 child = Object.create(prototype);
                 proto = prototype;
             }
         }
 
         if (circular) {
-            var index = allParents.indexOf(parent);
-
-            if (index != -1) {
+            const index = allParents.indexOf(parent);
+            if (index !== -1) {
                 return allChildren[index];
             }
             allParents.push(parent);
             allChildren.push(child);
         }
 
-        for (var i in parent) {
-            var attrs;
+        Object.keys(parent).forEach(key => {
+            let attrs;
             if (proto) {
-                attrs = Object.getOwnPropertyDescriptor(proto, i);
+                attrs = Object.getOwnPropertyDescriptor(proto, key);
             }
 
-            if (attrs && attrs.set == null) {
-                continue;
+            if (!attrs || attrs.set !== null) {
+                child[key] = _clone(parent[key], depth - 1);
             }
-            child[i] = _clone(parent[i], depth - 1);
-        }
+        });
 
         return child;
     }
 
     return _clone(object, depth);
-}
+};
 
 /**
  * Creates a new object as the as the keywise union of the provided objects.
@@ -195,17 +192,13 @@ function clone(object, circular, depth, prototype) {
  * // result: { k1: 'val-A', k2: 'val-B' }
  * const result = objects.merge(a, b, c);
  */
-function merge() {
-    var result = {};
-    for (var i = arguments.length; i > 0; --i) {
-        var obj = arguments[i - 1];
-        for (var id in obj) {
-            if (!obj.hasOwnProperty(id)) continue;
-            result[id] = obj[id];
+exports.merge = function() {
+    const result = {};
+    for (let i = arguments.length; i > 0; --i) {
+        let obj = arguments[i - 1];
+        if (obj !== null && obj !== undefined) {
+            Object.keys(obj).forEach(key => result[key] = obj[key]);
         }
     }
     return result;
-}
-
-module.exports.clone = clone;
-module.exports.merge = merge;
+};

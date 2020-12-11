@@ -34,6 +34,9 @@ import org.mozilla.javascript.RhinoException;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +55,7 @@ public class RingoRunner {
     String scriptName = null;
     String[] scriptArgs = new String[0];
     String expr = null;
-    File history = null;
+    Path history = null;
     String charset;
     boolean runShell = false;
     boolean debug = false;
@@ -341,7 +344,7 @@ public class RingoRunner {
                 rangeError(option);
             }
         } else if ("history".equals(option)) {
-            history = new File(arg);
+            history = Paths.get(arg);
         } else if ("modules".equals(option)) {
             Collections.addAll(userModules,
                     StringUtils.split(arg, File.pathSeparator));

@@ -9,10 +9,10 @@
  * as argument to the application life cycle functions.
  */
 
-var system = require('system');
-var log = require('ringo/logging').getLogger(module.id);
+const system = require('system');
+const log = require('ringo/logging').getLogger(module.id);
 
-var app;
+let app;
 
 /**
  * Called when the daemon instance is created.
@@ -20,12 +20,12 @@ var app;
  * This function can be run with superuser id to perform privileged actions
  * before the daemon is started.
  */
-function init() {
+exports.init = () => {
     log.info("init", system.args);
     // Remove our own script name from args
     system.args.shift();
     if (system.args.length) {
-        var appId = system.args[0];
+        const appId = system.args[0];
         try {
             app = require(appId);
         } catch (error) {
@@ -38,39 +38,34 @@ function init() {
     if (app && typeof app.init === "function") {
         app.init();
     }
-}
+};
 
 /**
  * Called when the daemon instance is started.
  */
-function start() {
+exports.start = () => {
     log.info("start");
     if (app && typeof app.start === "function") {
         app.start();
     }
-}
+};
 
 /**
  * Called when the daemon is stopped.
  */
-function stop() {
+exports.stop = () => {
     log.info("stop");
     if (app && typeof app.stop === "function") {
         app.stop();
     }
-}
+};
 
 /**
  * Called when the daemon is destroyed.
  */
-function destroy() {
+exports.destroy = () => {
     log.info("destroy");
     if (app && typeof app.destroy === "function") {
         app.destroy();
     }
-}
-
-module.exports.init = init;
-module.exports.start = start;
-module.exports.stop = stop;
-module.exports.destroy = destroy;
+};

@@ -1,11 +1,11 @@
-var assert = require("assert");
-var {Deferred, PromiseList} = require("ringo/promise");
-var {WorkerPromise} = require("ringo/worker");
-var system = require("system");
+const assert = require("assert");
+const {Deferred, PromiseList} = require("ringo/promise");
+const {WorkerPromise} = require("ringo/worker");
+const system = require("system");
 
 exports.testPromise = function() {
-    var d1 = new Deferred(), d2 = new Deferred();
-    var v1, v2, e2;
+    const d1 = new Deferred(), d2 = new Deferred();
+    let v1, v2, e2;
     d1.promise.then(function(value) {
         v1 = value;
     });
@@ -25,9 +25,9 @@ exports.testPromise = function() {
 };
 
 exports.testPromiseList = function() {
-    var d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
-    var l = PromiseList(d1.promise, d2.promise, d3); // PromiseList should convert d3 to promise
-    var result;
+    const d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
+    const l = PromiseList(d1.promise, d2.promise, d3); // PromiseList should convert d3 to promise
+    let result;
     l.then(function(value) {
         done.resolve(value);
     }, function(error) {
@@ -44,13 +44,13 @@ exports.testPromiseList = function() {
 };
 
 exports.testPromiseListWait = function() {
-    var w1 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
-    var w2 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
-    var l = PromiseList(w1, w2);
+    const w1 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
+    const w2 = new WorkerPromise( module.resolve('./promise_worker'), { delay: 100 }, true );
+    const l = PromiseList(w1, w2);
 
-    var then = new Date().getTime();
-    var result = l.wait(1000);
-    var elapsed = new Date().getTime() - then;
+    const then = Date.now();
+    const result = l.wait(1000);
+    const elapsed = Date.now() - then;
 
     // The workers should finish in 100ms, therefore the PromiseList should end at
     // about the same time. If a second has passed, the PromiseList is not properly
@@ -60,9 +60,9 @@ exports.testPromiseListWait = function() {
 };
 
 exports.testPromiseListAsArray = function() {
-    var d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
-    var l = PromiseList([d1.promise, d2.promise, d3]); // PromiseList should convert d3 to promise
-    var result;
+    const d1 = Deferred(), d2 = Deferred(), d3 = Deferred(), done = Deferred();
+    const l = PromiseList([d1.promise, d2.promise, d3]); // PromiseList should convert d3 to promise
+    let result;
     l.then(function(value) {
         done.resolve(value);
     }, function(error) {
@@ -79,8 +79,8 @@ exports.testPromiseListAsArray = function() {
 };
 
 exports.testPromiseMultipleCallbacks = function() {
-    var d = new Deferred();
-    var v1, v2;
+    const d = new Deferred();
+    let v1, v2;
     d.promise.then(function(value) {
         return value + 2;
     }).then(function(value) {
@@ -97,8 +97,8 @@ exports.testPromiseMultipleCallbacks = function() {
 };
 
 exports.testPromiseChain = function() {
-    var d1 = new Deferred(), d2 = new Deferred();
-    var v1, v2, v3;
+    const d1 = new Deferred(), d2 = new Deferred();
+    let v1, v2, v3;
     d1.promise.then(function(value) {
         v1 = value;
         return v1;
@@ -116,8 +116,8 @@ exports.testPromiseChain = function() {
 };
 
 exports.testPromiseChainFail = function() {
-    var d = new Deferred();
-    var v1, v2, v3, err;
+    const d = new Deferred();
+    let v1, v2, v3, err;
     d.promise.then(function(value) {
         v1 = value;
         throw 'error';

@@ -10,11 +10,8 @@
  * @see <a href="https://github.com/ringo/ringojs/blob/master/examples/worker.js">Simple worker example</a>
  * @see <a href="http://ringojs.org/documentation/workers/">RingoJS: Workers and Multithreading</a>
  */
-var engine = require("ringo/engine");
-var Deferred = require("ringo/promise").Deferred;
-
-exports.Worker = Worker;
-exports.WorkerPromise = WorkerPromise;
+const engine = require("ringo/engine");
+const {Deferred} = require("ringo/promise");
 
 /**
  * A Worker thread loosely modeled after the
@@ -41,31 +38,31 @@ exports.WorkerPromise = WorkerPromise;
  * @constructor
  * @see <a href="http://ringojs.org/documentation/workers/">RingoJS: Workers and Multithreading</a>
  */
-function Worker(moduleId) {
+const Worker = exports.Worker = function(moduleId) {
     if (!(this instanceof Worker)) {
         return new Worker(moduleId);
     }
 
-    var self = this;
-    var worker = engine.getWorker();
+    const self = this;
+    let worker = engine.getWorker();
 
     // Load module immediately and wait till done. This will
     // throw an error if module can't be loaded.
     worker.loadModuleInWorkerThread(moduleId).get();
 
-    function onmessage(e) {
+    const onmessage = (e) => {
         if (typeof self.onmessage === "function") {
             self.onmessage(e);
         }
     }
 
-    function onerror(e) {
+    const onerror = (e) => {
         if (typeof self.onerror === "function") {
             self.onerror(e);
         }
     }
 
-    worker.setErrorListener(function(t) {
+    worker.setErrorListener(t => {
         onerror({data: t});
     });
 
@@ -97,21 +94,27 @@ function Worker(moduleId) {
         if (!worker) {
             throw new Error("Worker has been terminated");
         }
-        var invokeCallback = function(callback, arg) {
-            if (syncCallbacks) callback(arg);
-            else currentWorker.submit(self, callback, arg);
+        const invokeCallback = function(callback, arg) {
+            if (syncCallbacks) {
+                callback(arg);
+            } else {
+                currentWorker.submit(self, callback, arg);
+            }
         };
-        var source = {
-            postMessage: function(data) {
+        const source = {
+            postMessage: (data) => {
                 invokeCallback(onmessage, {data: data, source: self});
             },
-            postError: function(error) {
+            postError: (error) => {
                 invokeCallback(onerror, {data: error, source: self})
             }
         };
-        var currentWorker = engine.getCurrentWorker();
-        var event = {data: data, source: source};
-        worker.submit(self, function() {
+        const currentWorker = engine.getCurrentWorker();
+        const event = {
+            data: data,
+            source: source
+        };
+        worker.submit(self, () => {
             try {
                 worker.invoke(moduleId, "onmessage", event);
             } catch (error) {
@@ -160,10 +163,10 @@ function Worker(moduleId) {
  * @constructor
  * @see ringo/promise#Promise
  */
-function WorkerPromise(moduleId, message, syncCallbacks) {
-    var deferred = new Deferred();
-    var worker = new Worker(moduleId);
-    var resolved = false;
+exports.WorkerPromise = function(moduleId, message, syncCallbacks) {
+    const deferred = new Deferred();
+    const worker = new Worker(moduleId);
+    let resolved = false;
 
     worker.onmessage = function(e) {
         resolve(e.data, false);
@@ -173,7 +176,7 @@ function WorkerPromise(moduleId, message, syncCallbacks) {
         resolve(e.data, true);
     };
 
-    function resolve(message, isError) {
+    const resolve = (message, isError) => {
         if (!resolved) {
             resolved = true;
             deferred.resolve(message, isError);
@@ -204,4 +207,4 @@ function WorkerPromise(moduleId, message, syncCallbacks) {
      * @return {Object} the value if the promise is resolved as fulfilled
      * @throws Object the error value if the promise is resolved as failed
      */
-}
+};

@@ -26,9 +26,9 @@
  * @param {Object} val the value to check
  * @returns {Boolean} true if the value is contained
  */
-function contains(array, val) {
-       return array.indexOf(val) > -1;
-}
+const contains = exports.contains = (array, val) => {
+   return array.indexOf(val) > -1;
+};
 
 /**
  * Return the last element of the array. This is like pop(), but
@@ -36,9 +36,9 @@ function contains(array, val) {
  * @param {Array} array the array
  * @returns {Object} the last element of the array, or undefined if the array is empty.
  */
-function peek(array) {
+exports.peek = (array) => {
     return array[array.length - 1];
-}
+};
 
 /**
  * Remove the first occurrence of the argument value from the array. This method
@@ -48,25 +48,25 @@ function peek(array) {
  * @param {Object} val the value to remove
  * @returns {Array} the array
  */
-function remove(array, val) {
-    var index = array.indexOf(val);
+exports.remove = (array, val) => {
+    const index = array.indexOf(val);
     if(index > -1) {
         array.splice(index, 1);
     }
     return array;
-}
+};
 
 /**
  * Retrieve the union set of a bunch of arrays.
  * @param {Array} array1,... the arrays to unify
  * @returns {Array} the union set
  */
-function union() {
-    var result = [];
-    var map = new java.util.HashMap();
-    for (var i = 0; i < arguments.length; i += 1) {
-        for (var n in arguments[i]) {
-            var item = arguments[i][n];
+const union = exports.union = function() {
+    const result = [];
+    const map = new java.util.HashMap();
+    for (let i = 0; i < arguments.length; i += 1) {
+        for (let n in arguments[i]) {
+            let item = arguments[i][n];
             if (!map.containsKey(item)) {
                 result.push(item);
                 map.put(item, true);
@@ -74,67 +74,42 @@ function union() {
         }
     }
     return result;
-}
+};
 
 /**
  * Retrieve the intersection set of a bunch of arrays.
  * @param {Array} array,... the arrays to intersect
  * @returns {Array} the intersection set
  */
-function intersection(array) {
-    var all = union.apply(null, arguments);
-    var result = [];
-    for (var n in all) {
-        var chksum = 0;
-        var item = all[n];
-        for (var i = 0; i < arguments.length; i += 1) {
-            if (contains(arguments[i], item))
+exports.intersection = function(array) {
+    return union.apply(null, arguments).reduce((result, item) => {
+        let chksum = 0;
+        for (let i = 0; i < arguments.length; i += 1) {
+            if (contains(arguments[i], item)) {
                 chksum += 1;
-            else
+            } else {
                 break;
+            }
         }
-        if (chksum === arguments.length)
+        if (chksum === arguments.length) {
             result.push(item);
-    }
-    return result;
-}
+        }
+        return result;
+    }, []);
+};
 
 /**
  * @param {Array} array the array
  * @returns {Number} the maximal element in an array obtained by calling Math.max().
  */
-function max(array) {
+exports.max = (array) => {
     return Math.max.apply(Math, array);
-}
+};
 
 /**
  * @param {Array} array the array
  * @returns {Number} the minimal element in an array obtained by calling Math.min().
  */
-function min(array) {
+exports.min = (array) => {
     return Math.min.apply(Math, array);
-}
-
-/**
- * @param {Function} fn
- */
-function partition(fn) {
-    var trues = [], falses = [];
-    for (var i=0; i<this.length; i++) {
-        if (fn(this[i], i)) {
-            trues.push(this[i]);
-        } else {
-            falses.push(this[i]);
-        }
-    }
-    return [trues, falses]
-}
-
-module.exports.contains = contains;
-module.exports.peek = peek;
-module.exports.remove = remove;
-module.exports.union = union;
-module.exports.intersection = intersection;
-module.exports.max = max;
-module.exports.min = min;
-module.exports.partition = partition;
+};

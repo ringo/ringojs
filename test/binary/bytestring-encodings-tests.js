@@ -62,8 +62,8 @@ exports.testDecodeToString = function() {
 };
 
 exports.testStringToByteString = function() {
-    assert.strictEqual("hello world", "hello world".toByteString("US-ASCII").decodeToString("US-ASCII"));
-    assert.strictEqual("I ♥ JS", "I ♥ JS".toByteString("UTF-8").decodeToString("UTF-8"));
+    assert.strictEqual("hello world", toByteString("hello world", "US-ASCII").decodeToString("US-ASCII"));
+    assert.strictEqual("I ♥ JS", toByteString("I ♥ JS", "UTF-8").decodeToString("UTF-8"));
 };
 
 if (require.main === module) {

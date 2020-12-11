@@ -1,21 +1,23 @@
-var assert = require("assert");
+const assert = require("assert");
 
-var {Worker} = require("ringo/worker");
-var {Semaphore} = require("ringo/concurrent");
-var {Arrays} = java.util;
+const {Worker} = require("ringo/worker");
+const {Semaphore} = require("ringo/concurrent");
+const {Arrays} = java.util;
+const binary = require("binary");
 
 exports.testTextMessage = function() {
-    var message = "hello world!";
-    var worker = new Worker(module.resolve("./websocket_worker"));
+    const message = "hello world!";
+    const worker = new Worker(module.resolve("./websocket_worker"));
+    let received = null;
     worker.onmessage = function(event) {
         received = event.data;
     };
     worker.onerror = function(event) {
         console.error(event.data);
     };
-    for each (let isAsync in [false, true]) {
-        var semaphore = new Semaphore();
-        var received = null;
+    [false, true].forEach(isAsync => {
+        const semaphore = new Semaphore();
+        received = null;
         worker.postMessage({
             "message": message,
             "semaphore": semaphore,
@@ -26,19 +28,20 @@ exports.testTextMessage = function() {
             assert.fail("web socket text timed out");
         }
         assert.equal(received, message);
-    }
+    });
     worker.terminate();
 };
 
 exports.testBinaryMessage = function() {
-    var message = "hello world!".toByteArray();
-    var worker = new Worker(module.resolve("./websocket_worker"));
+    const message = binary.toByteArray("hello world!");
+    const worker = new Worker(module.resolve("./websocket_worker"));
+    let received = null;
     worker.onmessage = function(event) {
         received = event.data;
     };
-    for each (let isAsync in [false, true]) {
-        var semaphore = new Semaphore();
-        var received = null;
+    [false, true].forEach(isAsync => {
+        const semaphore = new Semaphore();
+        received = null;
         worker.postMessage({
             "message": message.slice(),
             "semaphore": semaphore,
@@ -49,7 +52,7 @@ exports.testBinaryMessage = function() {
             assert.fail("web socket binary timed out");
         }
         assert.isTrue(Arrays.equals(received, message));
-    }
+    });
     worker.terminate();
 };
 

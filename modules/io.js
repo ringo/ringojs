@@ -10,8 +10,8 @@
  * writing files.
  */
 
-var {Binary, ByteArray, ByteString} = require("binary");
-var {Encoder, Decoder} = require("ringo/encoding");
+const {Encoder, Decoder} = require("ringo/encoding");
+const binary = require("binary");
 
 defineClass(org.ringojs.wrappers.Stream);
 
@@ -21,8 +21,6 @@ defineClass(org.ringojs.wrappers.Stream);
  */
 exports.Stream = Stream;
 
-var {InputStreamReader, BufferedReader, OutputStreamWriter, BufferedWriter} = java.io;
-
 /**
  * Reads all data available from this stream and writes the result to the
  * given output stream, flushing afterwards. Note that this function does
@@ -30,8 +28,9 @@ var {InputStreamReader, BufferedReader, OutputStreamWriter, BufferedWriter} = ja
  * @param {Stream} output The target Stream to be written to.
  */
 Stream.prototype.copy = function(output) {
-    var read, length = 8192;
-    var buffer = new ByteArray(length);
+    const length = 8192;
+    const buffer = new ByteArray(length);
+    let read = -1;
     while ((read = this.readInto(buffer, 0, length)) > -1) {
         output.write(buffer, 0, read);
     }
@@ -47,8 +46,9 @@ Stream.prototype.copy = function(output) {
  * @param {Object} [thisObj] optional this-object to use for callback
  */
 Stream.prototype.forEach = function(fn, thisObj) {
-    var read, length = 8192;
-    var buffer = new ByteArray(length);
+    const length = 8192;
+    const buffer = new ByteArray(length);
+    let read = -1;
     while ((read = this.readInto(buffer, 0, length)) > -1) {
         buffer.length = read;
         fn.call(thisObj, buffer);
@@ -75,8 +75,7 @@ Stream.prototype.forEach = function(fn, thisObj) {
  * @constructor
  */
 exports.MemoryStream = function MemoryStream(binaryOrNumber) {
-
-    var buffer, length;
+    let buffer, length;
     if (!binaryOrNumber) {
         buffer = new ByteArray(0);
         length = 0;
@@ -90,10 +89,10 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
         throw new Error("Argument must be Binary, Number, or undefined");
     }
 
-    var stream = Object.create(Stream.prototype);
-    var position = 0;
-    var closed = false;
-    var canWrite = buffer instanceof ByteArray;
+    const stream = Object.create(Stream.prototype);
+    const canWrite = buffer instanceof ByteArray;
+    let position = 0;
+    let closed = false;
 
     function checkClosed() {
         if (closed) {
@@ -152,12 +151,12 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
      */
     stream.read = function(maxBytes) {
         checkClosed();
-        var result;
+        let result;
         if (isFinite(maxBytes)) {
             if (maxBytes < 0) {
                 throw new Error("read(): argument must not be negative");
             }
-            var end = Math.min(position + maxBytes, length);
+            const end = Math.min(position + maxBytes, length);
             result = ByteString.wrap(buffer.slice(position, end));
             position = end;
             return result;
@@ -195,7 +194,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
         } else if (begin > end) {
             throw new Error("readInto(): end must be greater than begin");
         }
-        var count = Math.min(length - position, end - begin);
+        const count = Math.min(length - position, end - begin);
         buffer.copy(position, position + count, target, begin);
         position += count;
         return count;
@@ -216,7 +215,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
         if (typeof source === "string") {
             require("system").stderr.print("Warning: binary write called with string argument. "
                     + "Using default encoding");
-            source = source.toByteString();
+            source = binary.toByteString(source);
         }
         if (!(source instanceof Binary)) {
             throw new Error("write(): first argument must be binary");
@@ -226,7 +225,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
         if (begin > end) {
             throw new Error("write(): end must be greater than begin");
         }
-        var count = end - begin;
+        const count = end - begin;
         source.copy(begin, end, buffer, position);
         position += count;
         length = Math.max(length, position);
@@ -348,13 +347,12 @@ exports.TextStream = function TextStream(io, options, buflen) {
     }
 
     options = options || {};
-    var charset = options.charset || "utf8";
-    var newline = options.hasOwnProperty("newline") ? options.newline : "\n";
-    var delimiter = options.hasOwnProperty("delimiter") ? options.delimiter : " ";
-    var reader, writer;
-    var encoder, decoder;
-    var DEFAULTSIZE = 8192;
+    const charset = options.charset || "utf8";
+    const newline = options.hasOwnProperty("newline") ? options.newline : "\n";
+    const delimiter = options.hasOwnProperty("delimiter") ? options.delimiter : " ";
+    const DEFAULTSIZE = 8192;
 
+    let encoder, decoder;
     if (io.readable()) {
         decoder = new Decoder(charset, false, buflen || DEFAULTSIZE);
         decoder.readFrom(io);
@@ -393,7 +391,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * @returns {String} the next line
      */
     this.readLine = function () {
-        var line = decoder.readLine(true);
+        const line = decoder.readLine(true);
         if (line === null)
             return "";
         return String(line);
@@ -411,8 +409,8 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * Returns the next line of input without the newline. Throws
      * `StopIteration` if the end of the stream is reached.
      * @returns {String} the next line
-     * @example var fs = require('fs');
-     * var txtStream = fs.open('./browserStats.csv', 'r');
+     * @example const fs = require('fs');
+     * const txtStream = fs.open('./browserStats.csv', 'r');
      * try {
      *   while (true) {
      *      console.log(txtStream.next());
@@ -422,7 +420,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * }
      */
     this.next = function () {
-        var line = decoder.readLine(false);
+        const line = decoder.readLine(false);
         if (line == null) {
             throw StopIteration;
         }
@@ -433,13 +431,13 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * Calls `callback` with each line in the input stream.
      * @param {Function} callback the callback function
      * @param {Object} [thisObj] optional this-object to use for callback
-     * @example var txtStream = fs.open('./browserStats.csv', 'r');
+     * @example const txtStream = fs.open('./browserStats.csv', 'r');
      * txtStream.forEach(function(line) {
      *   console.log(line); // Print one single line
      * });
      */
     this.forEach = function (callback, thisObj) {
-        var line = decoder.readLine(false);
+        let line = decoder.readLine(false);
         while (line != null) {
             callback.call(thisObj, line);
             line = decoder.readLine(false);
@@ -452,18 +450,20 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * empty string, but it does include a trailing newline at the end of every
      * line.
      * @returns {Array} an array of lines
-     * @example >> var fs = require('fs');
-     * >> var txtStream = fs.open('./sampleData.csv', 'r');
-     * >> var lines = txtStream.readLines();
+     * @example >> const fs = require('fs');
+     * >> const txtStream = fs.open('./sampleData.csv', 'r');
+     * >> const lines = txtStream.readLines();
      * >> console.log(lines.length + ' lines');
      * 6628 lines
      */
     this.readLines = function () {
-        var lines = [];
+        const lines = [];
+        let line;
         do {
-            var line = this.readLine();
-            if (line.length)
+            line = this.readLine();
+            if (line.length) {
                 lines.push(line);
+            }
         } while (line.length);
         return lines;
     };
@@ -492,9 +492,10 @@ exports.TextStream = function TextStream(io, options, buflen) {
      */
     this.copy = function (output) {
         while (true) {
-            var line = this.readLine();
-            if (!line.length)
+            let line = this.readLine();
+            if (!line.length) {
                 break;
+            }
             output.write(line).flush();
         }
         return this;
@@ -503,8 +504,8 @@ exports.TextStream = function TextStream(io, options, buflen) {
     /**
      * Writes all arguments to the stream.
      * @return {TextStream} this stream
-     * @example >> var fs = require('fs');
-     * >> var txtOutStream = fs.open('./demo.txt', 'w');
+     * @example >> const fs = require('fs');
+     * >> const txtOutStream = fs.open('./demo.txt', 'w');
      * >> txtOutStream.write('foo', 'bar', 'baz');
      *
      * // demo.txt content:
@@ -515,7 +516,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
             throw new Error("The TextStream is not writable!");
         }
 
-        for (var i = 0; i < arguments.length; i++) {
+        for (let i = 0; i < arguments.length; i++) {
             encoder.encode(String(arguments[i]));
         }
         return this;
@@ -546,8 +547,8 @@ exports.TextStream = function TextStream(io, options, buflen) {
     /**
      * Writes all argument values as a single line, delimiting the values using
      * a single blank.
-     * @example >> var fs = require('fs');
-     * >> var txtOutStream = fs.open('./demo.txt', 'w');
+     * @example >> const fs = require('fs');
+     * >> const txtOutStream = fs.open('./demo.txt', 'w');
      * >> txtOutStream.print('foo', 'bar', 'baz');
      *
      * // demo.txt content:
@@ -555,7 +556,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
      * @return {TextStream} this stream
      */
     this.print = function () {
-        for (var i = 0; i < arguments.length; i++) {
+        for (let i = 0; i < arguments.length; i++) {
             this.write(String(arguments[i]));
             if (i < arguments.length - 1) {
                 this.write(delimiter);
@@ -588,7 +589,7 @@ exports.TextStream = function TextStream(io, options, buflen) {
      */
     Object.defineProperty(this, "content", {
         get: function() {
-            var wrappedContent = io.content;
+            const wrappedContent = io.content;
             if (!wrappedContent) {
                 return "";
             }
