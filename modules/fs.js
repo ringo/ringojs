@@ -40,7 +40,7 @@ const {Paths,
     FileVisitor,
     FileVisitResult} = java.nio.file;
 
-const {FileTime, PosixFileAttributeView} = java.nio.file.attribute;
+const {FileTime, PosixFileAttributeView, BasicFileAttributes} = java.nio.file.attribute;
 
 const getPath = Paths.get;
 
@@ -1071,6 +1071,26 @@ const changeGroup = exports.changeGroup = function(path, group) {
     return true;
 }
 
+/**
+ * Returns basic attributes associated with a file in a file system.
+ * @param {String} path
+ * @returns {Object} An Object with properties {creationTime, isDirectory, isOther, isRegularFile, isSymbolicLink, lastAccessTime, lastModifiedTime, size}
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/attribute/BasicFileAttributes.html">java.nio BasicFileAttributes</a>
+ */
+function getAttributes(path) {
+    const attributes = Files.readAttributes(resolvePath(path), BasicFileAttributes, LinkOption.NOFOLLOW_LINKS);
+    return {
+        creationTime: new Date(attributes.creationTime().toMillis()),
+        isDirectory: attributes.isDirectory(),
+        isOther: attributes.isOther(),
+        isRegularFile: attributes.isRegularFile(),
+        isSymbolicLink: attributes.isSymbolicLink(),
+        lastAccessTime: new Date(attributes.lastAccessTime().toMillis()),
+        lastModifiedTime: new Date(attributes.lastModifiedTime().toMillis()),
+        size: attributes.size()
+    }
+}
+
 const optionsMask = {
     read: 1,
     write: 1,
@@ -1256,6 +1276,7 @@ const TRIVIA = [
     'copyTree',
     'exists',
     'extension',
+    'getAttributes',
     'isDirectory',
     'isFile',
     'isLink',
