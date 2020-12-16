@@ -1,0 +1,246 @@
+plugins {
+    id 'java'
+    id 'distribution'
+    id 'maven-publish'
+}
+
+defaultTasks 'build'
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+         java {
+            srcDir 'src'
+            exclude '**/*Test*.java'
+         }
+    }
+
+    runner {
+        java {
+            srcDir 'src'
+            include '**/tools/launcher/**'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'src'
+            include '**/*Test*.java'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.mozilla:rhino:1.7.13'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-servlets:9.4.32.v20200930'
+    implementation 'org.eclipse.jetty:jetty-xml:9.4.32.v20200930'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.0'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.0'
+    implementation 'jline:jline:2.12.1'
+    implementation 'junit:junit:4.13.1'
+}
+
+tasks.withType(JavaCompile) {
+    options.deprecation true
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.compilerArgs.addAll(['--release', '8'])
+    }
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into './lib/'
+}
+
+task modules(type: Jar) {
+    from('modules')
+    into('modules')
+    destinationDirectory = file('lib')
+    archiveFileName = 'ringo-modules.jar'
+}
+
+task runner(type: Jar) {
+    from sourceSets.runner.output
+    destinationDirectory = project.projectDir
+    archiveFileName = 'run.jar'
+    manifest {
+        attributes (
+            'Main-Class': 'org.ringojs.tools.launcher.Main'
+        )
+    }
+}
+
+task testModules(type: JavaExec) {
+    dependsOn copyDependencies, jar
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.ringojs.tools.launcher.Main'
+    args 'test/all.js'
+    shouldRunAfter test
+}
+
+task testDatesModule(type: DatesTestTask) {
+    dependsOn copyDependencies, jar
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.ringojs.tools.launcher.Main'
+    args 'test/ringo/utils/dates_test.js'
+}
+
+jar {
+    destinationDirectory = file('./lib')
+    archiveFileName = 'ringo-core.jar'
+    from('src') {
+        includes = ['**/*.html']
+        excludes = ['**/package.html']
+    }
+}
+
+javadoc {
+    destinationDir = file('./docs/java')
+    options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+        options.addBooleanOption('-no-module-directories', true)
+        options.addStringOption('sourcepath', 'src')
+    }
+    options.addBooleanOption('version', true);
+}
+
+test {
+    finalizedBy testModules
+}
+
+clean {
+    delete fileTree('lib').matching {
+        include '*.jar'
+    }
+    delete 'run.jar'
+    delete 'docs/java'
+}
+
+assemble {
+    dependsOn copyDependencies, modules, runner
+}
+
+distributions {
+    main {
+        distributionBaseName = 'ringojs'
+        def binaries = ["bin/ringo", "bin/ringo-admin", "bin/ringo-web"]
+        def excludeFiles = [
+            'bin/rp', 'bin/rp.*',
+            'packages/*/**', 'build',
+            '*.zip', '*.o', '*.tar', '*.tar.gz', '.*/**', '*.iml', '*.xml', '*.patch'
+        ]
+        contents {
+            includeEmptyDirs = true
+            duplicatesStrategy = 'exclude'
+            from(binaries) {
+                fileMode 0755
+                into "bin"
+            }
+            from(projectDir) {
+                exclude excludeFiles
+            }
+            from jar
+            from runner
+            from modules
+            from javadoc
+        }
+    }
+}
+
+distTar {
+    compression Compression.GZIP
+}
+
+publishing {
+    publications {
+         maven(MavenPublication) {
+            groupId = "${project.groupId}"
+            artifactId = "${project.artifactId}"
+            from components.java
+            pom {
+                name = "${project.name}"
+                description = "${project.description}"
+                url = "${project.url}"
+                packaging = 'jar'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hns'
+                        name = 'Hannes Wallnöfer'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=hns'
+                    }
+                    developer {
+                        id = 'oberhamsi'
+                        name = 'Simon Oberhammer'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=oberhamsi'
+                    }
+                    developer {
+                        id = 'botic'
+                        name = 'Philipp Naderer-Puiu'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=botic'
+                    }
+                    developer {
+                        id = 'grob'
+                        name = 'Robert Gaggl'
+                        url = 'http://github.com/ringo/ringojs/commits/master?author=grob'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:ringo/ringojs.git'
+                    developerConnection = 'scm:git:git@github.com:ringo/ringojs.git'
+                    url = 'https://github.com/ringo/ringojs'
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/ringo/ringojs/issues'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'myTestRepo'
+            url = "file://${buildDir}/testrepo"
+        }
+    }
+}
+
+class DatesTestTask extends JavaExec {
+
+    @TaskAction
+    void exec() {
+        LocalDateTime localDateTime = LocalDateTime.now()
+        ZoneId.getAvailableZoneIds()
+            .toArray()
+            .stream()
+            .map({id ->
+                ZoneId zoneId = ZoneId.of(id);
+                ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+                ZoneOffset zoneOffset = zonedDateTime.getOffset();
+                return zoneOffset.getId().replaceAll("Z", "+00:00")
+            })
+            .distinct()
+            .sorted()
+            .forEach({offset -> 
+                String timeZone = "GMT${offset}"
+                logger.quiet("Testing ringo/utils/dates in timezone {} …", timeZone)
+                systemProperty("user.timezone", timeZone);
+                super.exec()
+            })
+    }
+
+}
