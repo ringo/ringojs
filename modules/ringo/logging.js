@@ -90,27 +90,27 @@ function Logger(name, impl) {
     /**
      * @function
      */
-    this.isTraceEnabled = () => impl.isTraceEnabled;
+    this.isTraceEnabled = impl.isTraceEnabled;
 
     /**
      * @function
      */
-    this.isDebugEnabled = () => impl.isDebugEnabled;
+    this.isDebugEnabled = impl.isDebugEnabled;
 
     /**
      * @function
      */
-    this.isInfoEnabled = () => impl.isInfoEnabled;
+    this.isInfoEnabled = impl.isInfoEnabled;
 
     /**
      * @function
      */
-    this.isWarnEnabled = () => impl.isWarnEnabled;
+    this.isWarnEnabled = impl.isWarnEnabled;
 
     /**
      * @function
      */
-    this.isErrorEnabled = () => impl.isErrorEnabled;
+    this.isErrorEnabled = impl.isErrorEnabled;
 }
 
 /**
