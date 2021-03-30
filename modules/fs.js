@@ -204,7 +204,7 @@ const read = exports.read = function(path, options) {
 const write = exports.write = function(path, content, options) {
     options = options === undefined ? {} : checkOptions(options);
     options.write = true;
-    options.binary = content instanceof Binary;
+    options.binary = content instanceof binary.Binary;
     const stream = open(path, options);
     try {
         stream.write(content);

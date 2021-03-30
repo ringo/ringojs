@@ -7,11 +7,12 @@ const fs = require("fs");
 const {parseRange, canonicalRanges} = require("ringo/utils/http");
 const {mimeType} = require("ringo/mime");
 const io = require("io");
+const binary = require("binary");
 const {AsyncResponse} = require("./connector");
 
-const HYPHEN  = new ByteString("-", "ASCII");
-const CRLF = new ByteString("\r\n", "ASCII");
-const EMPTY_LINE = new ByteString("\r\n\r\n", "ASCII");
+const HYPHEN  = new binary.ByteString("-", "ASCII");
+const CRLF = new binary.ByteString("\r\n", "ASCII");
+const EMPTY_LINE = new binary.ByteString("\r\n\r\n", "ASCII");
 
 /**
  * A wrapper around a JSGI response object. `JsgiResponse` is chainable.
@@ -162,21 +163,21 @@ Object.defineProperty(JsgiResponse.prototype, "stream", {
 
 /**
  * Create a JSGI response with a <code>Binary</code> object as response body.
- * @param {ByteString|ByteArray} binary the binary object to write
+ * @param {ByteString|ByteArray} data the binary object to write
  * @param {String} contentType optional MIME type. If not defined,
  *         the MIME type is <code>application/octet-stream</code>.
  * @returns {JsgiResponse} JSGI response
  */
 Object.defineProperty(JsgiResponse.prototype, "binary", {
-    value: function (binary, contentType) {
-        if (!(binary instanceof Binary)) {
+    value: function (data, contentType) {
+        if (!(data instanceof binary.Binary)) {
             throw Error("Wrong argument for binary response!");
         }
 
         this.headers["content-type"] = contentType || "application/octet-stream";
         this.body = {
             forEach: function(fn) {
-                fn(binary);
+                fn(data);
             }
         };
 
@@ -665,7 +666,7 @@ exports.range = function (request, representation, size, contentType, timeout, m
         throw new Error("Stream must be readable!");
     }
 
-    const BOUNDARY = new ByteString("sjognir_doro_" +
+    const BOUNDARY = new binary.ByteString("sjognir_doro_" +
         java.lang.System.identityHashCode(this).toString(36) +
         java.lang.System.identityHashCode(request).toString(36) +
         java.lang.System.identityHashCode(stream).toString(36) +
@@ -734,9 +735,9 @@ exports.range = function (request, representation, size, contentType, timeout, m
                 boundary.write(HYPHEN);
                 boundary.write(BOUNDARY);
                 boundary.write(CRLF);
-                boundary.write(new ByteString("Content-Type: " + contentType, "ASCII"));
+                boundary.write(new binary.ByteString("Content-Type: " + contentType, "ASCII"));
                 boundary.write(CRLF);
-                boundary.write(new ByteString("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"), "ASCII"));
+                boundary.write(new binary.ByteString("Content-Range: bytes " + range.join("-") + "/" + (size >= 0 ? size : "*"), "ASCII"));
                 boundary.write(EMPTY_LINE);
 
                 boundary.position = 0;

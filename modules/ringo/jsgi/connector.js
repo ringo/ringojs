@@ -13,7 +13,7 @@ const {AtomicBoolean} = java.util.concurrent.atomic;
 
 const log = require('ringo/logging').getLogger(module.id);
 
-const FLUSH = new ByteArray(0);
+const FLUSH = new binary.ByteArray(0);
 
 /**
  * Handle a JSGI request.

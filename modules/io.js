@@ -29,7 +29,7 @@ exports.Stream = Stream;
  */
 Stream.prototype.copy = function(output) {
     const length = 8192;
-    const buffer = new ByteArray(length);
+    const buffer = new binary.ByteArray(length);
     let read = -1;
     while ((read = this.readInto(buffer, 0, length)) > -1) {
         output.write(buffer, 0, read);
@@ -47,7 +47,7 @@ Stream.prototype.copy = function(output) {
  */
 Stream.prototype.forEach = function(fn, thisObj) {
     const length = 8192;
-    const buffer = new ByteArray(length);
+    const buffer = new binary.ByteArray(length);
     let read = -1;
     while ((read = this.readInto(buffer, 0, length)) > -1) {
         buffer.length = read;
@@ -77,20 +77,20 @@ Stream.prototype.forEach = function(fn, thisObj) {
 exports.MemoryStream = function MemoryStream(binaryOrNumber) {
     let buffer, length;
     if (!binaryOrNumber) {
-        buffer = new ByteArray(0);
+        buffer = new binary.ByteArray(0);
         length = 0;
-    } else if (binaryOrNumber instanceof Binary) {
+    } else if (binaryOrNumber instanceof binary.Binary) {
         buffer = binaryOrNumber;
         length = buffer.length;
     } else if (typeof binaryOrNumber == "number") {
-        buffer = new ByteArray(binaryOrNumber);
+        buffer = new binary.ByteArray(binaryOrNumber);
         length = 0;
     } else {
         throw new Error("Argument must be Binary, Number, or undefined");
     }
 
     const stream = Object.create(Stream.prototype);
-    const canWrite = buffer instanceof ByteArray;
+    const canWrite = buffer instanceof binary.ByteArray;
     let position = 0;
     let closed = false;
 
@@ -122,7 +122,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
      * @function
      */
     stream.writable = function() {
-        return buffer instanceof ByteArray;
+        return buffer instanceof binary.ByteArray;
     };
 
     /**
@@ -157,11 +157,11 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
                 throw new Error("read(): argument must not be negative");
             }
             const end = Math.min(position + maxBytes, length);
-            result = ByteString.wrap(buffer.slice(position, end));
+            result = binary.ByteString.wrap(buffer.slice(position, end));
             position = end;
             return result;
         } else {
-            result = ByteString.wrap(buffer.slice(position, length));
+            result = binary.ByteString.wrap(buffer.slice(position, length));
             position = length;
         }
         return result;
@@ -181,7 +181,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
      */
     stream.readInto = function(target, begin, end) {
         checkClosed();
-        if (!(target instanceof ByteArray)) {
+        if (!(target instanceof binary.ByteArray)) {
             throw new Error("readInto(): first argument must be ByteArray");
         }
         if (position >= length) {
@@ -217,7 +217,7 @@ exports.MemoryStream = function MemoryStream(binaryOrNumber) {
                     + "Using default encoding");
             source = binary.toByteString(source);
         }
-        if (!(source instanceof Binary)) {
+        if (!(source instanceof binary.Binary)) {
             throw new Error("write(): first argument must be binary");
         }
         begin = begin === undefined ? 0 : Math.max(0, begin);

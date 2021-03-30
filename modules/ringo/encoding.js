@@ -293,7 +293,7 @@ exports.Encoder = function Encoder(charset, strict, capacity) {
 
     capacity = capacity || DEFAULTSIZE;
     const encoder = Charset.forName(charset).newEncoder();
-    const encoded = new ByteArray(capacity);
+    const encoded = new binary.ByteArray(capacity);
     const errorAction = strict ?
         CodingErrorAction.REPORT : CodingErrorAction.REPLACE;
     encoder.onMalformedInput(errorAction);

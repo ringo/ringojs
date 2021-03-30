@@ -311,7 +311,7 @@ const DatagramSocket = exports.DatagramSocket = function() {
      */
     this.receive = function(length, buffer) {
         const packet = receiveInternal(length, buffer);
-        buffer = ByteArray.wrap(packet.getData());
+        buffer = binary.ByteArray.wrap(packet.getData());
         buffer.length = packet.length;
         return buffer;
     };
@@ -330,7 +330,7 @@ const DatagramSocket = exports.DatagramSocket = function() {
      */
     this.receiveFrom = function(length, buffer) {
         const packet = receiveInternal(length, buffer);
-        buffer = ByteArray.wrap(packet.getData());
+        buffer = binary.ByteArray.wrap(packet.getData());
         buffer.length = packet.length;
         return {
             address: packet.getAddress().getHostAddress(),

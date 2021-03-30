@@ -656,7 +656,7 @@ const BinaryPart = exports.BinaryPart = function(data, fileName, contentType) {
         writer.append(CRLF).flush();
         if (data instanceof InputStream) {
             (new io.Stream(data)).copy(outStream).close();
-        } else if (data instanceof Binary) {
+        } else if (data instanceof binary.Binary) {
             (new io.MemoryStream(data)).copy(outStream).close();
         } else if (data instanceof io.Stream) {
             data.copy(outStream).close();
