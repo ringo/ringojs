@@ -44,7 +44,7 @@ const createProcess = exports.createProcess = function(args) {
     dir = new java.io.File(dir || fs.workingDirectory());
     if (env && !Array.isArray(env)) {
         // convert env to an array of the form ["key=value", ...]
-        Object.keys(env).map(key => key + "=" + env[key]);
+        env = Object.keys(env).map(key => key + "=" + env[key]);
     } else if (!env) {
         env = null;
     }
