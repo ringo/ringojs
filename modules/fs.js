@@ -24,7 +24,7 @@
  */
 
 include('io');
-include('binary');
+const binary = require('binary');
 
 const security = java.lang.System.getSecurityManager();
 
