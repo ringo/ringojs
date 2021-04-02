@@ -142,7 +142,7 @@ exports.getCurrentWorker = (obj) => engine.getCurrentWorker(obj || null);
  * @returns {ScriptableList} a list containing the errors encountered in the
  * current worker
  */
-exports.getErrors = () => new ScriptableList(getCurrentWorker().getErrors());
+exports.getErrors = () => new ScriptableList(engine.getCurrentWorker(null).getErrors());
 
 /**
  * Get the app's module search path as list of repositories.
