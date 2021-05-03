@@ -23,7 +23,7 @@
  * }
  */
 
-include('io');
+const io = require('io');
 const binary = require('binary');
 
 const security = java.lang.System.getSecurityManager();
@@ -118,13 +118,13 @@ const open = exports.open = function(path, options) {
         nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    const stream = new Stream(read ?
+    const stream = new io.Stream(read ?
         Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
     if (binary) {
         return stream;
     } else if (read || write || append) {
         // if charset is undefined, TextStream will use utf8
-        return new TextStream(stream, {charset: charset});
+        return new io.TextStream(stream, {charset: charset});
     } else if (update) {
         // FIXME botic: check for invalid options before returning a stream? See issue #270
         throw new Error("update not yet implemented");
@@ -167,7 +167,7 @@ const openRaw = exports.openRaw = function(path, options) {
         nioOptions.push(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    return new Stream(read ? Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
+    return new io.Stream(read ? Files.newInputStream(nioPath, nioOptions) : Files.newOutputStream(nioPath, nioOptions));
 }
 
 
