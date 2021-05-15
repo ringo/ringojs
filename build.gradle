@@ -7,6 +7,7 @@ plugins {
     id 'java'
     id 'distribution'
     id 'maven-publish'
+    id 'idea'
 }
 
 defaultTasks 'build'
@@ -130,10 +131,6 @@ clean {
     delete 'docs/java'
 }
 
-assemble {
-    dependsOn copyDependencies, modules, runner
-}
-
 distributions {
     main {
         distributionBaseName = 'ringojs'
@@ -161,7 +158,12 @@ distributions {
     }
 }
 
+assemble.dependsOn(modules, runner)
+distZip {
+    dependsOn copyDependencies
+}
 distTar {
+    dependsOn copyDependencies
     compression Compression.GZIP
 }
 
