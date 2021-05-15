@@ -32,12 +32,10 @@ Releases of RingoJS will be signed with one of the following GPG keys:
 
 ![Current Build Status on Codeship](https://codeship.com/projects/b5d80b20-15d7-0134-6e68-2e1718fe265e/status?branch=master)
 
-Ringo requires a recent version of [Java]. It uses Apache [Ant] as build tool
-and [Ivy] (>= 2.4 is required) for managing dependencies.
+Ringo requires a recent version of [Java]. It uses Gradle [Gradle] as build tool.
 
 [Java]: https://www.oracle.com/technetwork/java/javase/downloads/index.html
-[Ant]: https://ant.apache.org/
-[Ivy]: https://ant.apache.org/ivy/
+[Gradle]: https://gradle.org/
 
 If you have these installed, building Ringo is straightforward:
 
@@ -45,18 +43,9 @@ Check out Ringo using Git:
 
     git clone git://github.com/ringo/ringojs.git
 
-Change to the ringojs directory and run the ant `update` task to fetch
-dependencies:
+Change to the ringojs directory and run
 
-    ant update
-
-Then run the `jar` task to compile the code and build the jar file:
-
-    ant jar
-
-Run the `docs` task to build the documentation:
-
-    ant docs
+    ./gradlew
 
 ## Running RingoJS
 
