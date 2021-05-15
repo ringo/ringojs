@@ -8,5 +8,5 @@ exports.testSemaphore = () => {
         java.lang.Thread.sleep(50);
         semaphore.signal(2);
     });
-    assert.isTrue(semaphore.tryWait(55, 2));
+    assert.isTrue(semaphore.tryWait(60, 2));
 };
