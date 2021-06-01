@@ -1077,7 +1077,7 @@ const changeGroup = exports.changeGroup = function(path, group) {
  * @returns {Object} An Object with properties {creationTime, isDirectory, isOther, isRegularFile, isSymbolicLink, lastAccessTime, lastModifiedTime, size}
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/attribute/BasicFileAttributes.html">java.nio BasicFileAttributes</a>
  */
-function getAttributes(path) {
+const getAttributes = exports.getAttributes = function (path) {
     const attributes = Files.readAttributes(resolvePath(path), BasicFileAttributes, LinkOption.NOFOLLOW_LINKS);
     return {
         creationTime: new Date(attributes.creationTime().toMillis()),
