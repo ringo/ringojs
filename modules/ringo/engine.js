@@ -2,6 +2,7 @@
  * @fileOverview Provides access to the Rhino JavaScript engine.
  */
 
+const fs = require("fs");
 const {Context, ClassShutter} = org.mozilla.javascript;
 const {RhinoEngine, RingoConfig} = org.ringojs.engine;
 const engine = RhinoEngine.getEngine(global);
@@ -162,4 +163,23 @@ exports.addRepository = (repo) => {
     if (repo.exists() && !path.contains(repo)) {
         path.add(Math.max(0, path.length) - 1, repo);
     }
+};
+
+/**
+ * Loads the given location and adds all resources with a `*.jar` suffix to the class path.
+ * If location is a string, it will be treated as repository path and loads with `getRepository(location)`.
+ * Otherwise, location must be a valid Ringo repository.
+ *
+ * @param {Repository|string} location a path or repository to lookup JAR resources.
+ */
+exports.loadJars = (location) => {
+    if (typeof location !== "string" && !(location instanceof org.ringojs.repository.Repository)) {
+        throw new TypeError("location must be of type string or a repository");
+    }
+
+    const repo = typeof location === "string" ? getRepository(location) : location;
+    const jars = repo.getResources().filter(r => /.+\.jar$/i.test(r.name));
+    jars.forEach(function(file) {
+        addToClasspath(file);
+    });
 };
