@@ -2,7 +2,6 @@
  * @fileOverview Provides access to the Rhino JavaScript engine.
  */
 
-const fs = require("fs");
 const {Context, ClassShutter} = org.mozilla.javascript;
 const {RhinoEngine, RingoConfig} = org.ringojs.engine;
 const engine = RhinoEngine.getEngine(global);
