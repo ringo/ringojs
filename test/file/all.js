@@ -15,6 +15,7 @@ exports.test_relative = require("./test-fs-relative");
 exports.test_resolve = require("./test-fs-resolve");
 exports.test_sameFilesystem = require("./test-fs-sameFilesystem");
 exports.test_touch = require("./test-fs-touch");
+exports.test_getAttributes = require("./test-fs-getAttributes");
 
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
