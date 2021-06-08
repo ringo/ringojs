@@ -71,6 +71,34 @@ exports.testInteractiveShell = function () {
 exports.testRequireMain = require("./require-index/main").testCalculator;
 exports.testHttpJsgiBinding = require("./http-jsgi-binding/simple").testHttpJsgiBinding;
 
+exports.testLoadJarsFlat = function () {
+    var process = createProcess({
+        command: [
+            RINGO_BIN,
+            module.resolve('./engine-load-jars/load-flat.js')
+        ]
+    });
+
+    process.connect(null, system.stdout, system.stderr);
+
+    // wait for the exit code
+    assert.equal(process.wait(), 0);
+};
+
+exports.testLoadJarsRecursive = function () {
+    var process = createProcess({
+        command: [
+            RINGO_BIN,
+            module.resolve('./engine-load-jars/load-recursive.js')
+        ]
+    });
+
+    process.connect(null, system.stdout, system.stderr);
+
+    // wait for the exit code
+    assert.equal(process.wait(), 0);
+};
+
 // start the test runner if we're called directly from command line
 if (require.main === module) {
     system.exit(require('test').run(exports));

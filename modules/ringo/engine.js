@@ -163,3 +163,30 @@ exports.addRepository = (repo) => {
         path.add(Math.max(0, path.length) - 1, repo);
     }
 };
+
+/**
+ * Loads the given location and adds all resources with a `*.jar` suffix to the class path.
+ * If location is a string, it will be treated as repository path like `getRepository(location)`.
+ * Otherwise, location must be a valid Ringo repository.
+ * By default, JAR resources inside the repository will be looked up recursively and subjacent JARs will be loaded.
+ *
+ * @param {Repository|string} location a path or repository to lookup JAR resources.
+ * @param {boolean} recursive load JARs recursively, defaults to true
+ */
+exports.loadJars = (location, recursive) => {
+    if (typeof location !== "string" && !(location instanceof org.ringojs.repository.Repository)) {
+        throw new TypeError("location must be of type string or a repository");
+    }
+
+    if (recursive !== undefined && typeof recursive !== "boolean") {
+        throw new TypeError("recursive must be a boolean");
+    }
+
+    recursive = recursive === undefined || recursive === true;
+
+    const repo = typeof location === "string" ? getRepository(location) : location;
+    const jars = repo.getResources(recursive).filter(r => /.+\.jar$/i.test(r.name));
+    jars.forEach(function(file) {
+        addToClasspath(file);
+    });
+};
