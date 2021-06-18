@@ -41,12 +41,12 @@ sourceSets {
 
 dependencies {
     implementation 'org.mozilla:rhino:1.7.13'
-    implementation 'org.eclipse.jetty:jetty-server:9.4.40.v20210413'
-    implementation 'org.eclipse.jetty:jetty-servlet:9.4.40.v20210413'
-    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.40.v20210413'
-    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.40.v20210413'
-    implementation 'org.eclipse.jetty:jetty-servlets:9.4.40.v20210413'
-    implementation 'org.eclipse.jetty:jetty-xml:9.4.40.v20210413'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.42.v20210604'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.42.v20210604'
+    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.42.v20210604'
+    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.42.v20210604'
+    implementation 'org.eclipse.jetty:jetty-servlets:9.4.42.v20210604'
+    implementation 'org.eclipse.jetty:jetty-xml:9.4.42.v20210604'
     implementation 'org.apache.logging.log4j:log4j-core:2.14.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.14.0'
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.0'
