@@ -167,6 +167,11 @@ distZip {
 distTar {
     dependsOn clean, copyDependencies
     compression Compression.GZIP
+    extension = 'tar.gz'
+}
+
+task dist(type: Task, dependsOn: [distZip, distTar]) {
+    description = "Builds the release zip and tar files."
 }
 
 publishing {
