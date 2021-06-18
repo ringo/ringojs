@@ -153,17 +153,19 @@ distributions {
             from jar
             from runner
             from modules
-            from javadoc
+            from(javadoc) {
+                into 'docs/java'
+            }
         }
     }
 }
 
 assemble.dependsOn(modules, runner)
 distZip {
-    dependsOn copyDependencies
+    dependsOn clean, copyDependencies
 }
 distTar {
-    dependsOn copyDependencies
+    dependsOn clean, copyDependencies
     compression Compression.GZIP
 }
 
