@@ -126,16 +126,17 @@ const writeHeaders = (servletResponse, headers) => {
 };
 
 const writeBody = (response, body, charset) => {
-    if (body && typeof body.forEach == "function") {
+    if (body && typeof body.forEach === "function") {
         const output = response.getOutputStream();
-        body.forEach(part => {
+        const writer = (part) => {
             if (!(part instanceof binary.Binary)) {
                 part = binary.toByteString(part, charset);
             }
             output.write(part);
-        });
-        if (typeof body.close == "function") {
-            body.close();
+        };
+        body.forEach(writer);
+        if (typeof body.close === "function") {
+            body.close(writer);
         }
     } else {
         throw new Error("Response body doesn't implement forEach: " + body);
