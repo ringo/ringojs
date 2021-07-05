@@ -127,6 +127,7 @@ clean {
     delete fileTree('lib').matching {
         include '*.jar'
     }
+    delete 'lib/ivy'
     delete 'run.jar'
     delete 'docs/java'
 }
