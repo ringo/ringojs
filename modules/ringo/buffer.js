@@ -83,7 +83,7 @@ exports.Buffer = function Buffer() {
     this.digest = function(algorithm) {
         const md = java.security.MessageDigest.getInstance(algorithm || "MD5");
         content.forEach(part => {
-            md.update(binary.toByteString(String(part)));
+            md.update(binary.toByteString(part));
         });
         const b = binary.ByteString.wrap(md.digest());
         return strings.b16encode(b);
