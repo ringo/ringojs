@@ -4,11 +4,12 @@
  */
 const {AsyncResponse} = require('ringo/jsgi/connector');
 const objects = require('ringo/utils/objects');
+const binary = require('binary');
 
-const CRLF = "\r\n".toByteArray('utf-8');
-const EVENT_FIELD = "event: ".toByteArray('utf-8');
-const DATA_FIELD = "data: ".toByteArray('utf-8');
-const COMMENT_FIELD = ": ".toByteArray('utf-8');
+const CRLF = binary.toByteArray('\r\n', 'utf-8');
+const EVENT_FIELD = binary.toByteArray('event: ', 'utf-8');
+const DATA_FIELD = binary.toByteArray('data: ', 'utf-8');
+const COMMENT_FIELD = binary.toByteArray(': ', 'utf-8');
 /**
  * EventSource (or Server-Sent-Events) is a server push technology utilizing
  * plain HTTP responses. The event stream format defines three types of messages:
