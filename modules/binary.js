@@ -81,27 +81,37 @@ exports.ByteArray = ByteArray;
 exports.ByteString = ByteString;
 
 /**
- * Converts the String to a mutable ByteArray using the specified encoding.
- * @param {String} string The string to convert into a ByteArray
- * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns {ByteArray} a ByteArray representing the string
+ * Converts a String or Binary instance to a mutable ByteArray using the specified encoding.
+ * @param {String|Binary} str The String or Binary to convert into a ByteArray
+ * @param {String} charset the string's encoding. Defaults to 'UTF-8'
+ * @returns {ByteArray} a ByteArray representing the str
  * @example const binary = require("binary");
  * const ba = binary.toByteArray("hello world");
  */
-exports.toByteArray = (string, charset) => {
-    return new ByteArray(String(string), charset || 'utf8');
+exports.toByteArray = (str, charset) => {
+    const appliedCharset = charset || 'utf8';
+    if (str instanceof Binary) {
+        return str.toByteArray(appliedCharset, appliedCharset);
+    }
+
+    return new ByteArray(String(str), charset || 'utf8');
 };
 
 /**
- * Converts the String to an immutable ByteString using the specified encoding.
- * @param {String} string The string to convert into a ByteString
- * @param {String} charset the name of the string encoding. Defaults to 'UTF-8'
- * @returns {ByteString} a ByteString representing the string
+ * Converts a String or Binary instance to an immutable ByteString using the specified encoding.
+ * @param {String|Binary} str A String or Binary to convert into a ByteString
+ * @param {String} charset the string's encoding. Defaults to 'UTF-8'
+ * @returns {ByteString} a ByteString representing str
  * @example const binary = require("binary");
  * const bs = binary.toByteString("hello world");
  */
-exports.toByteString = (string, charset) => {
-    return new ByteString(String(string), charset || 'utf8');
+exports.toByteString = (str, charset) => {
+    const appliedCharset = charset || 'utf8';
+    if (str instanceof Binary) {
+        return str.toByteString(appliedCharset, appliedCharset);
+    }
+
+    return new ByteString(String(str), appliedCharset);
 };
 
 /**

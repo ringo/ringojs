@@ -318,6 +318,36 @@ exports.testByteArrayConcat = function() {
 
 };
 
+exports.testStringToByteArray = function() {
+    // escaped 🇪🇺 flag to ensure tests are encoded the right way
+    const ba = toByteArray("hallo welt \uD83C\uDDEA\uD83C\uDDFA", "utf-8");
+    const bs = toByteString("hallo welt \uD83C\uDDEA\uD83C\uDDFA", "utf-8");
+
+    assert.deepEqual(
+        toByteArray("hallo welt 🇪🇺", "utf-8").toArray(),
+        [0x68, 0x61, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x65, 0x6c, 0x74, 0x20, 0xf0, 0x9f, 0x87, 0xaa, 0xf0, 0x9f, 0x87, 0xba]
+    );
+    assert.deepEqual(ba.toArray(), bs.toArray());
+    assert.deepEqual(toByteArray(bs).toArray(), bs.toArray());
+    assert.deepEqual(toByteArray("hallo welt 🇪🇺").toArray(), bs.toArray());
+    assert.notDeepEqual(toByteArray("hallo welt 🇪🇺", "ascii").toArray(), bs.toArray());
+
+    assert.deepEqual(toByteString(bs).toArray(), ba.toArray());
+    assert.deepEqual(toByteString("hallo welt 🇪🇺").toArray(), ba.toArray());
+    assert.notDeepEqual(toByteString("hallo welt 🇪🇺", "ascii").toArray(), ba.toArray());
+
+    const umlauts_ISO_8859_15 = [0xd6, 0xc4, 0xdc];
+    const umlauts_UTF_8 = [0xc3, 0x96, 0xc3, 0x84, 0xc3, 0x9c]; // 195 150 195 132 195 156
+    assert.deepEqual(
+        toByteArray(new ByteArray(umlauts_ISO_8859_15).decodeToString("ISO-8859-15"), "utf-8").toArray(),
+        umlauts_UTF_8
+    );
+    assert.deepEqual(
+        toByteString(new ByteString(umlauts_ISO_8859_15).decodeToString("ISO-8859-15"), "utf-8").toArray(),
+        umlauts_UTF_8
+    );
+}
+
 if (require.main === module) {
     require('system').exit(require('test').run(module.id));
 }
