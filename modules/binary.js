@@ -121,7 +121,7 @@ Object.defineProperty(ByteArray.prototype, 'reverse', {
  * Sorts the content of the ByteArray in-place.
  * @param {Function} comparator the function to compare entries
  * @returns {ByteArray} this ByteArray with its elements sorted
- * @example const ba = "hello world".toByteArray();
+ * @example const ba = binary.toByteArray("hello world", "utf-8");
  * ba.sort();
  * ba.decodeToString() // --> "dehllloorw"
  */
@@ -135,7 +135,7 @@ Object.defineProperty(ByteArray.prototype, 'sort', {
  * Apply a function for each element in the ByteArray.
  * @param {Function} fn the function to call for each element
  * @param {Object} thisObj optional this-object for callback
- * @example const ba = "hello world".toByteArray();
+ * @example const ba = binary.toByteArray("hello world", "utf-8");
  * // prints 104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100
  * ba.forEach(function(byte) { console.log(byte) });
  */
@@ -151,7 +151,7 @@ Object.defineProperty(ByteArray.prototype, 'forEach', {
  * @param {Function} callback the filter function
  * @param {Object} thisObj optional this-object for callback
  * @returns {ByteArray} a new ByteArray
- * @example const ba = "hello world".toByteArray();
+ * @example const ba = binary.toByteArray("hello world", "utf-8");
  * const bf = ba.filter(function(byte) { return byte > 110 });
  * bf.decodeToString(); // returns "owor"
  */
