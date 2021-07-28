@@ -89,12 +89,16 @@ exports.ByteString = ByteString;
  * const ba = binary.toByteArray("hello world");
  */
 exports.toByteArray = (str, charset) => {
+    if (typeof str !== "string" && !(str instanceof Binary)) {
+        throw new Error("'str' must be a string or instance of Binary.");
+    }
+
     const appliedCharset = charset || 'utf8';
     if (str instanceof Binary) {
         return str.toByteArray(appliedCharset, appliedCharset);
     }
 
-    return new ByteArray(String(str), charset || 'utf8');
+    return new ByteArray(String(str), appliedCharset);
 };
 
 /**
@@ -106,6 +110,10 @@ exports.toByteArray = (str, charset) => {
  * const bs = binary.toByteString("hello world");
  */
 exports.toByteString = (str, charset) => {
+    if (typeof str !== "string" && !(str instanceof Binary)) {
+        throw new Error("'str' must be a string or instance of Binary.");
+    }
+
     const appliedCharset = charset || 'utf8';
     if (str instanceof Binary) {
         return str.toByteString(appliedCharset, appliedCharset);

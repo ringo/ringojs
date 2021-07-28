@@ -346,6 +346,11 @@ exports.testStringToByteArray = function() {
         toByteString(new ByteString(umlauts_ISO_8859_15).decodeToString("ISO-8859-15"), "utf-8").toArray(),
         umlauts_UTF_8
     );
+
+    assert.throws(() => { toByteArray(); });
+    assert.throws(() => { toByteArray(null); });
+    assert.throws(() => { toByteString(); });
+    assert.throws(() => { toByteString(null); });
 }
 
 if (require.main === module) {
