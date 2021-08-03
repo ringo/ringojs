@@ -94,11 +94,9 @@ exports.toByteArray = (str, charset) => {
     }
 
     const appliedCharset = charset || 'utf8';
-    if (str instanceof Binary) {
-        return str.toByteArray(appliedCharset, appliedCharset);
-    }
-
-    return new ByteArray(String(str), appliedCharset);
+    return str instanceof Binary
+        ? str.toByteArray(appliedCharset, appliedCharset)
+        : new ByteArray(str, appliedCharset);
 };
 
 /**
@@ -115,11 +113,9 @@ exports.toByteString = (str, charset) => {
     }
 
     const appliedCharset = charset || 'utf8';
-    if (str instanceof Binary) {
-        return str.toByteString(appliedCharset, appliedCharset);
-    }
-
-    return new ByteString(String(str), appliedCharset);
+    return str instanceof Binary
+        ? str.toByteString(appliedCharset, appliedCharset)
+        : ByteString(str, appliedCharset);
 };
 
 /**
