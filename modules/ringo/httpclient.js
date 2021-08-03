@@ -50,9 +50,9 @@ const prepareOptions = (options) => {
         "beforeSend": null
     };
     const opts = options ? objects.merge(options, defaultValues) : defaultValues;
-    Headers(opts.headers);
+    const headers = Headers(opts.headers);
     opts.contentType = opts.contentType
-            || opts.headers.get("Content-Type")
+            || headers.get("Content-Type")
             || "application/x-www-form-urlencoded;charset=utf-8";
     return opts;
 };

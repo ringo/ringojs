@@ -315,6 +315,15 @@ exports.testHeadersOnObject = function() {
     assert.isUndefined(obj.get("one"), "Header value not unset");
 };
 
+exports.testHeadersOnNullUndefined = function() {
+    let headers = undefined;
+    assert.isNotUndefined(http.Headers(headers));
+    assert.isUndefined(headers);
+    headers = null;
+    assert.isNotNull(http.Headers(headers));
+    assert.isNull(headers);
+};
+
 exports.testHeadersMultipleNames = function() {
     let obj = {
         "single": "simplevalue",
