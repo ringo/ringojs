@@ -360,7 +360,7 @@ const listDirectoryTree = exports.listDirectoryTree = function(path) {
  */
 const listTree = exports.listTree = function(path) {
     path = path === '' ? '.' : String(path);
-    list(path).reduce((result, child) => {
+    return list(path).reduce((result, child) => {
         const childPath = join(path, child);
         // Don't follow directory symlinks, but include them
         if (isDirectory(childPath) && !isLink(childPath)) {
@@ -370,8 +370,8 @@ const listTree = exports.listTree = function(path) {
             // Add file or symlinked directory.
             result.push(child);
         }
-    }, ['']);
-    return result.sort();
+        return result;
+    }, ['']).sort();
 }
 
 /**
