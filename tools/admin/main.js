@@ -1,8 +1,12 @@
-const log = require("ringo/logging").getLogger(module.id);
+const logging = require("ringo/logging");
+logging.setConfig(getResource("./log4j2.properties"));
+
+const log = logging.getLogger(module.id);
 const system = require("system");
 const term = require("ringo/term");
 
 const run = (args) => {
+    log.debug("--- Started ringo-admin with args {}", JSON.stringify(args));
     const command = args.shift() || "help";
     try {
         const commandModule = require("./commands/" + command);
@@ -14,6 +18,7 @@ const run = (args) => {
             term.RESET);
         return false;
     } catch (e) {
+        log.error(e);
         term.writeln(term.RED, e.message, term.RESET);
     }
 };

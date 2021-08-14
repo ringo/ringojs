@@ -1,3 +1,4 @@
+const log = require("ringo/logging").getLogger(module.id);
 const fs = require("fs");
 const {Parser} = require("ringo/args");
 const term = require("ringo/term");
@@ -32,7 +33,7 @@ exports.help = [
  * @param {Object} options Options defining the application to create
  */
 const createApplication = (path, options) => {
-    const destination = getDestinationPath(path);
+    log.info("Creating application in {} (options: {}) ...", path, JSON.stringify(options));
     const home = packages.getRingoHome();
     const skeletons = fs.join(home, "tools/admin/skeletons");
     const appSource = options.appSource || fs.join(skeletons, "app");
@@ -40,52 +41,55 @@ const createApplication = (path, options) => {
             options.javaWebApp ? "webapp" : null;
     if (appTemplate) {
         const symlink = Boolean(options.symlink);
-        copyTree(fs.join(skeletons, appTemplate), destination);
+        copyTree(fs.join(skeletons, appTemplate), path);
         // symlink app source if requested unless it's the skeleton app
         if (!options.googleAppengine) {
-            copyTree(appSource, fs.join(destination, "WEB-INF/app"), symlink && options.appSource);
+            copyTree(appSource, fs.join(path, "WEB-INF/app"), symlink && options.appSource);
         }
-        copyTree(fs.join(home, "modules"), fs.join(destination, "WEB-INF/modules"), symlink);
-        createAppEngineDirs(destination);
-        copyJars(home, destination, symlink);
-    } else if (copyTree(appSource, destination)) {
+        copyTree(fs.join(home, "modules"), fs.join(path, "WEB-INF/modules"), symlink);
+        createAppEngineDirs(path);
+        copyJars(home, path, symlink);
+    } else if (copyTree(appSource, path)) {
         if (!options.appSource) {
-            const descriptor = packages.getDescriptor(destination);
+            const descriptor = packages.getDescriptor(path);
             term.writeln("Installing dependencies ...");
-            const packagesDirectory = fs.join(destination, "packages");
+            const packagesDirectory = fs.join(path, "packages");
             if (!fs.exists(packagesDirectory)) {
                 fs.makeDirectory(packagesDirectory);
             }
             install.installDependencies(descriptor, packagesDirectory);
         }
     }
+    log.info("Created application in", path);
     term.writeln(term.GREEN, "Created application in", path, term.RESET);
 };
 
 /**
  * Create a new RingoJS package at the given path.
  * @param {String} path The path where to create the package
- * @param {Object} options Package options
  */
-const createPackage = (path, options) => {
-    const destination = getDestinationPath(path);
+const createPackage = (path) => {
+    log.info("Creating package in", path);
     const home = packages.getRingoHome();
     const source = fs.join(home, "tools/admin/skeletons/package");
-    copyTree(source, destination);
+    copyTree(source, path);
+    log.info("Created package in", path);
     term.writeln(term.GREEN, "Created RingoJS package in", path, term.RESET);
 };
 
 const copyTree = (source, destination, asSymLink) => {
     if (!fs.exists(source) || !fs.isDirectory(source)) {
-        term.writeln(term.RED, "Can't find directory", source, term.RESET);
-        return false;
+        throw new Error("Source directory " + source + " doesn't exist");
     }
     term.write((asSymLink ? "Linking" : "Copying"), source, "to", destination, "... ");
     if (asSymLink) {
+        log.info("Linking {} to {} ...", source, destination);
         fs.symbolicLink(source, destination);
     } else {
+        log.info("Copying tree {} to {} ...", source, destination);
         fs.copyTree(source, destination);
     }
+    log.info("done");
     term.writeln("done");
     return true;
 };
@@ -101,7 +105,8 @@ const createAppEngineDirs = (destination) => {
 };
 
 const copyJars = (home, destination, asSymLink) => {
-    term.write("Copying JAR files ... ");
+    log.info("Copying .jar files from {} to {} (as symlink: {}) ...", home, destination, asSymLink);
+    term.write("Copying .jar files ... ");
     const jars = [
         "ringo-core.jar",
         fs.list(fs.join(packages.getRingoHome(), "lib")).find(jar => {
@@ -118,20 +123,8 @@ const copyJars = (home, destination, asSymLink) => {
             fs.copy(fs.join(libSource, jar), fs.join(libDestination, fs.base(jar)));
         }
     });
+    log.info("done");
     term.writeln("done");
-};
-
-const getDestinationPath = (path) => {
-    if (!path) {
-        throw new Error("No destination path given");
-    } else if (fs.exists(path)) {
-        if (!fs.isDirectory(path)) {
-            term.writeln(term.RED, path, "exists, but is not a directory", term.RESET);
-        } else if (fs.list(path).length > 0) {
-            term.writeln(term.RED, path, "exists, but is not empty", term.RESET);
-        }
-    }
-    return path;
 };
 
 /**
@@ -162,7 +155,7 @@ exports.run = (args) => {
     if (prepare(path, type)) {
         term.writeln(term.GREEN, "Creating", type, "in", path, term.RESET);
         if (options.ringoPackage) {
-            createPackage(path, options);
+            createPackage(path);
         } else {
             createApplication(path, options);
         }
@@ -173,15 +166,18 @@ const prepare = (path, type) => {
     if (fs.exists(path)) {
         if (fs.isDirectory(path)) {
             if (fs.list(path).length > 0) {
+                log.warn("Destination path {} exists, but is not a directory", path);
                 term.writeln(term.RED, path, "exists, but is not empty");
                 return false;
             }
         } else {
+            log.warn("Destination directory {} exists, but is not empty", path);
             term.writeln(term.RED, path, "exists, but is not a directory");
             return false;
         }
     } else {
         if (shell.prompt("Create " + type + " in " + path + " ?", ["y", "n"], "n") !== "y") {
+            log.info("User aborted creation of {} in {}", type, path);
             term.writeln("Aborted");
             return false;
         }

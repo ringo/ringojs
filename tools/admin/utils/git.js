@@ -5,6 +5,8 @@ const files = require("./files");
 
 exports.clone = (url, treeish) => {
     const directory = files.createTempDirectory();
+    log.info("Cloning git repository {} (tree-ish: {}) into {}",
+            url, (treeish || "-"), directory);
     try {
         if (treeish) {
             // do a shallow clone if possible
@@ -53,6 +55,7 @@ const shallowClone = exports.shallowClone = (url, directory, treeish) => {
         url,
         directory
     ];
+    log.info("Shallow cloning ", url, "(tree-ish:" + treeish + ") into", directory);
     process.execute(command).decodeToString();
     return directory;
 };
@@ -68,6 +71,7 @@ const fullClone = exports.fullClone = (url, directory, treeish) => {
         url,
         directory
     ];
+    log.info("Full cloning ", url, "into", directory);
     process.execute(command);
     if (treeish !== null && treeish !== undefined) {
         checkout(directory, treeish);
@@ -83,6 +87,7 @@ const checkout = exports.checkout = (directory, treeish) => {
         "--quiet",
         treeish
     ];
+    log.info("Checking out", treeish);
     process.execute(command);
 };
 
