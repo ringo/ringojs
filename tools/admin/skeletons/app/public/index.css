@@ -1,0 +1,42 @@
+body {
+    margin: 3em;
+    padding: 0;
+    font-family: sans-serif;
+    background: #fefefe;
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+}
+
+a, a:visited, a:active {
+    color: #b7505d;
+}
+
+li {
+    margin: 0.8em;
+}
+
+header .logo {
+    display: block;
+    width: 200px;
+    margin: 0 auto;
+}
+header .title {
+    font-weight: normal;
+    font-size: 3rem;
+    margin: 20px 0;
+    text-align: center;
+}
+
+main {
+    margin: 0 auto;
+    font-size: 1.125rem;
+}
+
+code {
+    font-family: monospace;
+    color: #b70202;
+    background-color: #ffeff0;
+    padding: 1px 3px;
+    border-radius: 3px;
+}

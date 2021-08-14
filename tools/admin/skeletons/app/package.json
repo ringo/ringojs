@@ -1,0 +1,8 @@
+{
+    "name": "ringojs-app",
+    "description": "Skeleton application for RingoJS",
+    "dependencies": {
+        "stick": "https://github.com/ringo/stick#v1.0",
+        "reinhardt": "https://github.com/orfon/reinhardt#es6"
+    }
+}
