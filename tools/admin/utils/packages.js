@@ -1,17 +1,13 @@
 const fs = require("fs");
 
-const HTTP_URL = /^https?:\/{2}/;
-const GIT_URL = /^git:\/{2}/;
-const GIT_SSH_URL = /^git+ssh:\/{2}/;
-
 const PACKAGES_DIR = exports.PACKAGES_DIR = "packages";
 const PACKAGE_JSON = exports.PACKAGE_JSON = "package.json";
 
-const getRingoHome = exports.getRingoHome = () => {
+exports.getRingoHome = () => {
     return fs.normal(environment["ringo.home"]);
 };
 
-const getBaseDirectory = exports.getBaseDirectory = () => {
+exports.getBaseDirectory = () => {
     let dir = fs.workingDirectory();
     do {
         if (fs.exists(fs.join(dir, PACKAGE_JSON)) ||
@@ -25,22 +21,6 @@ const getBaseDirectory = exports.getBaseDirectory = () => {
 
 exports.getPackagesDirectory = (directory) => {
     return fs.normal(fs.join(directory, PACKAGES_DIR));
-};
-
-exports.isZipFile = (path) => {
-    return fs.extension(path) === ".zip";
-};
-
-exports.isHttpUrl = (str) => {
-    return HTTP_URL.test(str);
-};
-
-exports.isGitUrl = (str) => {
-    return GIT_URL.test(str);
-};
-
-exports.isGitSshUrl = (str) => {
-    return GIT_SSH_URL.test(str);
 };
 
 /**

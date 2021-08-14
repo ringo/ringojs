@@ -10,8 +10,10 @@ exports.isValidUrl = (url) => {
     }
 }
 
-const isHttp = exports.isHttp = (url) => {
-    return ["http", "https"].includes(URI.create(url).getScheme());
+const isArchive = exports.isArchive = (url) => {
+    const uri = URI.create(url);
+    return ["http", "https"].includes(uri.getScheme()) &&
+        [".tar", ".tar.gz", ".tgz", ".zip"].some(extension => uri.getPath().endsWith(extension));
 };
 
 const isGit = exports.isGit = (url) => {
@@ -25,12 +27,14 @@ const isGit = exports.isGit = (url) => {
     ].includes(URI.create(url).getScheme());
 };
 
-const isGitHub = exports.isGitHub = (spec) => {
-    const uri = URI.create(spec);
-    const segments = uri.getPath().split("/").slice(1);
-    return ["http", "https", "git", "git+http", "git+https"].includes(uri.getScheme()) &&
-        segments.length === 2 &&
-        segments.every(part => /[a-zA-Z0-9_-]/.test(part.trim()));
+const isGitHub = exports.isGitHub = (url) => {
+    const uri = URI.create(url);
+    const segments = uri.getPath().split("/");
+    if (segments.length === 2) {
+        return segments.every(part => /^[a-zA-Z0-9_-]+$/.test(part.trim()));
+    }
+    return ["http", "https"].includes(uri.getScheme()) &&
+        uri.getHost() === "github.com";
 };
 
 const newGitHubSpec = exports.newGitHubSpec = (url) => {
@@ -59,20 +63,20 @@ const newGitSpec = exports.newGitSpec = (url) => {
     };
 };
 
-const newHttpSpec = exports.newHttpSpec = (url) => {
+const newArchiveSpec = exports.newArchiveSpec = (url) => {
     return {
-        type: constants.TYPE_HTTP,
+        type: constants.TYPE_ARCHIVE,
         url: url
     };
 };
 
 exports.get = (url) => {
-    if (isGitHub(url)) {
-        return newGitHubSpec(url);
-    } else if (isGit(url)) {
+    if (isGit(url)) {
         return newGitSpec(url);
-    } else if (isHttp(url)) {
-        return newHttpSpec(url);
+    } else if (isArchive(url)) {
+        return newArchiveSpec(url);
+    } else if (isGitHub(url)) {
+        return newGitHubSpec(url);
     }
     throw new Error("Invalid package url " + url);
 };

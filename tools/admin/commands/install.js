@@ -96,7 +96,7 @@ const installPackage = exports.installPackage = (url, packagesDirectory, force) 
     }
     const spec = specs.get(url);
     switch (spec.type) {
-        case constants.TYPE_HTTP:
+        case constants.TYPE_ARCHIVE:
             return installArchive(spec, packagesDirectory, force);
         case constants.TYPE_GIT:
             return installGit(spec, packagesDirectory, force);

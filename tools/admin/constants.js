@@ -6,5 +6,4 @@ exports.ARCHIVE_TAR_GZ = "tar.gz";
 exports.ARCHIVE_ZIP = "zip";
 
 exports.TYPE_GIT = "git";
-exports.TYPE_HTTP = "http";
-// exports.TYPE_FILE = "file";
+exports.TYPE_ARCHIVE = "http";

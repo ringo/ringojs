@@ -20,24 +20,34 @@ exports.testIsGit = () => {
 
 exports.testIsGitHub = () => {
     [
+        "ringo/ringojs",
+        "ringo/ringojs#master",
         "http://github.com/ringo/ringojs",
         "https://github.com/ringo/ringojs",
-        "git://github.com/ringo/ringojs",
-        "git+http://github.com/ringo/ringojs",
-        "git+https://github.com/ringo/ringojs"
+        "https://github.com/ringo/ringojs#master",
     ].forEach(uri => assert.isTrue(specs.isGitHub(uri), uri));
     [
-        "ssh://github.com/ringo/ringojs",
-        "https://github.com",
-        "https://github.com/ringo"
+        "ringo",
+        "ringo/ringojs/wrong",
+        "ringo/wröng"
     ].forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
 };
 
-exports.testIsHttp = () => {
+exports.testIsArchive = () => {
     [
-        "http://xyz",
-        "https://xyz"
-    ].forEach(uri => assert.isTrue(specs.isHttp(uri), uri));
+        "http://example.com/archive.tar",
+        "https://example.com/archive.tar",
+        "http://example.com/archive.tar.gz",
+        "https://example.com/archive.tar.gz",
+        "http://example.com/archive.tgz",
+        "https://example.com/archive.tgz",
+        "http://example.com/archive.zip",
+        "https://example.com/archive.zip"
+    ].forEach(uri => assert.isTrue(specs.isArchive(uri), uri));
+    [
+        "http://example.com/archive",
+        "https://example.com/archive"
+    ].forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
 };
 
 exports.testNewGitHubSpec = () => {
@@ -82,7 +92,7 @@ exports.testNewGitSpec = () => {
     })
 };
 
-exports.testNewHttpSpec = () => {
+exports.testNewArchiveSpec = () => {
     const schemes = [
         "http", "https"
     ];
@@ -94,8 +104,8 @@ exports.testNewHttpSpec = () => {
     schemes.forEach(scheme => {
         uris.map(part => [scheme, part].join("://"))
             .forEach(url => {
-                const spec = specs.newHttpSpec(url);
-                assert.strictEqual(spec.type, constants.TYPE_HTTP, url);
+                const spec = specs.newArchiveSpec(url);
+                assert.strictEqual(spec.type, constants.TYPE_ARCHIVE, url);
                 assert.strictEqual(spec.url, url, url);
             });
     });
