@@ -37,6 +37,9 @@ const extract = (archiveInputStream, directory, basePath) => {
             }
             let entryPath = Paths.get(entry.getName());
             let destination = Paths.get(directory, basePath.relativize(entryPath)).normalize();
+            if (!destination.startsWith(directory)) {
+                throw new Error("Invalid archive entry: " + destination + " is not inside " + directory);
+            }
             if (entry.isDirectory()) {
                 if (!Files.isDirectory(destination) && !Files.createDirectories(destination)) {
                     throw new Error("Failed to create directory " + destination);
