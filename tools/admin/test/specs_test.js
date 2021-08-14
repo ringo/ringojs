@@ -1,3 +1,4 @@
+const system = require("system");
 const assert = require("assert");
 const specs = require("../utils/specs");
 const constants = require("../constants");
@@ -156,6 +157,7 @@ exports.testGet = () => {
 };
 
 // start the test runner if we're called directly from command line
-if (require.main === module) {
-    require('system').exit(require('test').run(exports));
+if (require.main == module.id) {
+    system.exit(require("test").run.apply(null,
+        [exports].concat(system.args.slice(1))));
 }

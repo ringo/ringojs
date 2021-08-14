@@ -10,7 +10,7 @@ const fs = require("fs");
 const files = require("./files");
 const strings = require("ringo/utils/strings");
 
-const getEntries = (archiveInputStream) => {
+const getEntries = exports.getEntries = (archiveInputStream) => {
     const entries = [];
     let entry = null;
     try {
@@ -23,9 +23,12 @@ const getEntries = (archiveInputStream) => {
     }
 };
 
-const getBasePath = (path) => {
+const getBasePath = exports.getBasePath = (path) => {
     const entries = getEntries(newArchiveInputStream(path));
-    return Paths.get(entries.reduce((prev, current) => strings.getCommonPrefix(prev, current)));
+    const basePath = entries.reduce((prev, current) => {
+        return strings.getCommonPrefix(prev, current);
+    });
+    return Paths.get(basePath).normalize();
 };
 
 const extract = (archiveInputStream, directory, basePath) => {
