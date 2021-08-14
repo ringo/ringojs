@@ -139,6 +139,22 @@ exports.testNewArchiveSpec = () => {
     });
 };
 
+exports.testGet = () => {
+    const tests = [
+        {urls: GIT_URLS.positive, type: constants.TYPE_GIT},
+        {urls: GITHUB_URLS.positive, type: constants.TYPE_GIT},
+        {urls: ARCHIVE_URLS.positive, type: constants.TYPE_ARCHIVE}
+    ];
+    const test = (test) => {
+        test.urls.forEach(url => assert.strictEqual(specs.get(url).type, test.type, url));
+    };
+    tests.forEach(test);
+    tests.reverse().forEach(test);
+    for (let i=0; i<100; i+=1) {
+        test(tests[Math.round(Math.random() * (tests.length - 1))]);
+    }
+};
+
 // start the test runner if we're called directly from command line
 if (require.main === module) {
     require('system').exit(require('test').run(exports));
