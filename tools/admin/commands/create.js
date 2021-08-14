@@ -1,9 +1,10 @@
 const fs = require("fs");
-const shell = require("ringo/shell");
 const {Parser} = require("ringo/args");
 const term = require("ringo/term");
 
 const packages = require("../utils/packages");
+const shell = require("../utils/shell");
+const install = require("./install");
 
 const parser = new Parser();
 parser.addOption("a", "app-source", "[DIR]", "Copy application from [DIR] instead of skeleton");
@@ -38,8 +39,16 @@ const createApplication = (path, options) => {
         copyTree(fs.join(home, "modules"), fs.join(destination, "WEB-INF/modules"), symlink);
         createAppEngineDirs(destination);
         copyJars(home, destination, symlink);
-    } else {
-        copyTree(appSource, destination);
+    } else if (copyTree(appSource, destination)) {
+        if (!options.appSource) {
+            const descriptor = packages.getDescriptor(destination);
+            term.writeln("Installing dependencies ...");
+            const packagesDirectory = fs.join(destination, "packages");
+            if (!fs.exists(packagesDirectory)) {
+                fs.makeDirectory(packagesDirectory);
+            }
+            install.installDependencies(descriptor, packagesDirectory);
+        }
     }
     term.writeln(term.GREEN, "Created application in", path, term.RESET);
 };
@@ -58,18 +67,18 @@ const createPackage = (path, options) => {
 };
 
 const copyTree = (source, destination, asSymLink) => {
-    term.write("Copying files ... ");
     if (!fs.exists(source) || !fs.isDirectory(source)) {
         term.writeln(term.RED, "Can't find directory", source, term.RESET);
-        return;
+        return false;
     }
-    term.writeln(" +", (asSymLink ? "Linking" : "Copying"), source, "to", destination, "...");
+    term.write((asSymLink ? "Linking" : "Copying"), source, "to", destination, "... ");
     if (asSymLink) {
         fs.symbolicLink(source, destination);
     } else {
         fs.copyTree(source, destination);
     }
     term.writeln("done");
+    return true;
 };
 
 const createAppEngineDirs = (destination) => {
@@ -116,6 +125,15 @@ const getDestinationPath = (path) => {
     return path;
 };
 
+exports.help = () => {
+    term.writeln("\n" + exports.description, "\n");
+    term.writeln("Usage:");
+    term.writeln("  ringo-admin create [path]");
+    term.writeln("\nOptions:");
+    term.writeln(parser.help());
+    term.writeln();
+};
+
 /**
  * Create a new RingoJS web application from the command line.
  * @param args
@@ -140,11 +158,8 @@ exports.run = (args) => {
             options.javaWebApp ? "Java web application" :
                 "Ringo web application";
 
-    const path = args[0] || shell.readln("Path for new " + type + ": ");
-
-    if (!path) {
-        term.writeln(term.RED, "No path, exiting.", term.RESET);
-    } else {
+    const path = fs.absolute(args[0] || shell.readln("Path for new " + type + ": "));
+    if (prepare(path, type)) {
         term.writeln(term.GREEN, "Creating", type, "in", path, term.RESET);
         if (options.ringoPackage) {
             createPackage(path, options);
@@ -152,4 +167,25 @@ exports.run = (args) => {
             createApplication(path, options);
         }
     }
+};
+
+const prepare = (path, type) => {
+    if (fs.exists(path)) {
+        if (fs.isDirectory(path)) {
+            if (fs.list(path).length > 0) {
+                term.writeln(term.RED, path, "exists, but is not empty");
+                return false;
+            }
+        } else {
+            term.writeln(term.RED, path, "exists, but is not a directory");
+            return false;
+        }
+    } else {
+        if (shell.prompt("Create " + type + " in " + path + " ?", ["y", "n"], "n") !== "y") {
+            term.writeln("Aborted");
+            return false;
+        }
+        fs.makeTree(path);
+    }
+    return true;
 };

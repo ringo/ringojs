@@ -65,7 +65,7 @@ const confirmInstall = (name, installDirectory, force) => {
         if (force !== true) {
             term.writeln(term.RED, "The package", name, "is already installed in",
                 installDirectory, term.RESET);
-            if (!shell.proceed("n")) {
+            if (!shell.continue("n")) {
                 term.writeln("Aborted");
                 return false;
             }
@@ -76,7 +76,7 @@ const confirmInstall = (name, installDirectory, force) => {
     return true;
 };
 
-const installDependencies = (descriptor, packagesDirectory, force) => {
+const installDependencies = exports.installDependencies = (descriptor, packagesDirectory, force) => {
     const {dependencies} = descriptor;
     return Object.keys(dependencies).map(dependency => {
         const url = dependencies[dependency];
@@ -89,7 +89,7 @@ const installDependencies = (descriptor, packagesDirectory, force) => {
     });
 };
 
-const installPackage = (url, packagesDirectory, force) => {
+const installPackage = exports.installPackage = (url, packagesDirectory, force) => {
     if (!specs.isValidUrl(url)) {
         term.writeln(term.RED, "Invalid package url '" + url + "'", term.RESET);
         return;
@@ -103,7 +103,7 @@ const installPackage = (url, packagesDirectory, force) => {
     }
 };
 
-const installArchive = (spec, packagesDirectory, force) => {
+const installArchive = exports.installArchive = (spec, packagesDirectory, force) => {
     term.writeln("Installing package from", spec.url);
     const tempArchive = httpClient.getBinary(spec.url);
     const tempDirectory = archive.extract(tempArchive);
@@ -124,7 +124,7 @@ const installArchive = (spec, packagesDirectory, force) => {
     }
 };
 
-const installGit = (spec, packagesDirectory, force) => {
+const installGit = exports.installGit = (spec, packagesDirectory, force) => {
     const tempDirectory = git.clone(spec.url, spec.treeish);
     const descriptor = packages.getDescriptor(tempDirectory);
     if (!descriptor) {

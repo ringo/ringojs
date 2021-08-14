@@ -1,6 +1,6 @@
 const shell = require("ringo/shell");
 
-exports.confirm = function(message, keys, defaultKey) {
+exports.prompt = (message, keys, defaultKey) => {
     const possible = keys
         .map(key => key[(key === defaultKey) ? "toUpperCase" : "toLowerCase"]())
         .join("/");
@@ -12,6 +12,14 @@ exports.confirm = function(message, keys, defaultKey) {
     return value.toLowerCase();
 };
 
-exports.proceed = function(defaultKey) {
-    return exports.confirm("\nDo you want to continue?", ["y", "n"], defaultKey) === "y";
+exports.continue = (defaultKey) => {
+    return exports.prompt("\nDo you want to continue?", ["y", "n"], defaultKey) === "y";
+};
+
+exports.readln = (message) => {
+    let value;
+    do {
+        value = shell.readln(message);
+    } while (!value);
+    return value;
 };
