@@ -17,6 +17,15 @@ parser.addOption("h", "help", null, "Print help message and exit");
 /** @ignore */
 exports.description = "Create a new RingoJS web application or package";
 
+exports.help = [
+    "\n" + exports.description + "\n",
+    "Usage:",
+    "  ringo-admin create [path]",
+    "\nOptions:",
+    parser.help(),
+    ""
+].join("\n");
+
 /**
  * Create a new RingoJS web application at the given path.
  * @param {String} path The path where to create the application
@@ -123,15 +132,6 @@ const getDestinationPath = (path) => {
         }
     }
     return path;
-};
-
-exports.help = () => {
-    term.writeln("\n" + exports.description, "\n");
-    term.writeln("Usage:");
-    term.writeln("  ringo-admin create [path]");
-    term.writeln("\nOptions:");
-    term.writeln(parser.help());
-    term.writeln();
 };
 
 /**

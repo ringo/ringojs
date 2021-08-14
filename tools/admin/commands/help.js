@@ -1,12 +1,19 @@
 const fs = require("fs");
 const term = require("ringo/term");
 
-exports.description = "Display available commands";
+exports.description = "Display command usage details";
+
+exports.help = [
+    "\n" + exports.description + "\n",
+    "Usage:",
+    "  ringo-admin help <command>",
+    ""
+].join("\n")
 
 exports.run = ([name]) => {
     if (name != null) {
         try {
-            require("./" + name).help();
+            term.writeln(require("./" + name).help);
         } catch (e if e instanceof InternalError) {
             term.writeln(term.RED, "Unknown command '" + name +
                     "', use 'help' to get a list of available commands",

@@ -17,16 +17,18 @@ parser.addOption("f", "force", null, "Answer all prompts with 'yes'");
 
 exports.description = "Install package(s)"
 
-exports.help = () => {
-    term.writeln("\n" + exports.description, "\n");
-    term.writeln("Usage:");
-    term.writeln("  ringo-admin install");
-    term.writeln("  ringo-admin install <zipball file>");
-    term.writeln("  ringo-admin install <zipball url>");
-    term.writeln("\nOptions:");
-    term.writeln(parser.help());
-    term.writeln();
-};
+exports.help = [
+    "\n" + exports.description + "\n",
+    "Usage:",
+    "  ringo-admin install (no args, in package directory)",
+    "  ringo-admin install http(s)://example.com/path/archive.<tar|tar.gz|tgz|zip>",
+    "  ringo-admin install <github owner>/<github repo>",
+    "  ringo-admin install https://github.com/<owner>/<repo>[#<tree-ish>]",
+    "  ringo-admin install <git|git+ssh|ssh|git+http|git+https|git+file>://<url>[#<tree-ish>]",
+    "\nOptions:",
+    parser.help(),
+    ""
+].join("\n");
 
 exports.run = (args) => {
     const options = {};
