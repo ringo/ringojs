@@ -71,7 +71,7 @@ const newInputStream = (path) => {
     }
 };
 
-const newArchiveInputStream = (path) => {
+const newArchiveInputStream = exports.newArchiveInputStream = (path) => {
     const inputStream = newInputStream(path);
     return new ArchiveStreamFactory().createArchiveInputStream(inputStream);
 };

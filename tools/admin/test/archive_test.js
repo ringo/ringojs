@@ -1,6 +1,7 @@
 const system = require("system");
 const assert = require("assert");
 const archive = require("../utils/archive");
+const fs = require("fs");
 
 const {Path} = java.nio.file;
 
@@ -26,6 +27,58 @@ exports.testGetBasePath = () => {
         const basePath = archive.getBasePath(path);
         assert.isTrue(basePath instanceof Path, path);
         assert.strictEqual(basePath.toString(), "", path);
+    });
+};
+
+exports.testGetEntries = () => {
+    ARCHIVES_WITH_BASEPATH.forEach(path => {
+        const inputStream = archive.newArchiveInputStream(path);
+        const entries = archive.getEntries(inputStream);
+        assert.deepEqual(entries.sort(), [
+            "package/",
+            "package/lib/",
+            "package/README.txt",
+            "package/lib/test/",
+            "package/lib/main.js",
+            "package/lib/test/test.js"
+        ].sort(), path);
+        // inputStream is closed by getEntries(), but for some reason
+        // it still returns null?
+        assert.isNull(inputStream.getNextEntry(), path);
+    });
+    ARCHIVES.forEach(path => {
+        const inputStream = archive.newArchiveInputStream(path);
+        const entries = archive.getEntries(inputStream);
+        assert.deepEqual(entries.sort(), [
+            "lib/",
+            "README.txt",
+            "lib/test/",
+            "lib/main.js",
+            "lib/test/test.js"
+        ].sort(), path);
+    });
+};
+
+exports.testExtract = () => {
+    const entries = [
+        "",
+        "lib",
+        "README.txt",
+        "lib/test",
+        "lib/main.js",
+        "lib/test/test.js"
+    ].sort();
+
+    [ARCHIVES_WITH_BASEPATH, ARCHIVES].forEach(paths => {
+        paths.forEach(path => {
+            let directory;
+            try {
+                directory = archive.extract(path);
+                assert.deepEqual(fs.listTree(directory), entries, path);
+            } finally {
+                directory && fs.removeTree(directory);
+            }
+        });
     });
 };
 
