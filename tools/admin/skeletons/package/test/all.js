@@ -1,5 +1,5 @@
-var assert = require('assert');
-var changeMe = require('skeleton');
+const assert = require('assert');
+const changeMe = require('skeleton');
 
 exports.testSomething = function () {
     assert.ok(true);

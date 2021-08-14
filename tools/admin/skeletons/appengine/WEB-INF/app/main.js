@@ -1,4 +1,4 @@
-var response = require('ringo/jsgi/response');
+const response = require('ringo/jsgi/response');
 
 // Just a simple JSGI response
 exports.app = function(request) {
