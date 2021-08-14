@@ -2,39 +2,42 @@ const assert = require("assert");
 const specs = require("../utils/specs");
 const constants = require("../constants");
 
-exports.testIsGit = () => {
-    [
-        "file://xyz",
-        "http://xyz",
-        "https://xyz"
-    ].forEach(uri => assert.isFalse(specs.isGit(uri), uri));
-    [
-        "git://xyz",
-        "git+ssh://xyz",
-        "ssh://xyz",
-        "git+http://xyz",
-        "git+https://xyz",
-        "git+file://xyz"
-    ].forEach(uri => assert.isTrue(specs.isGit(uri), uri));
+const GIT_URLS = {
+    negative: [
+        "http://example.com/xyz",
+        "https://example.com/xyz",
+        "file://example.com/xyz"
+    ],
+    positive: [
+        "git://example.com/xyz",
+        "git+ssh://example.com/xyz",
+        "ssh://example.com/xyz",
+        "git+http://example.com/xyz",
+        "git+https://example.com/xyz",
+        "git+file://example.com/xyz"
+    ]
 };
 
-exports.testIsGitHub = () => {
-    [
+const GITHUB_URLS = {
+    positive: [
         "ringo/ringojs",
         "ringo/ringojs#master",
         "http://github.com/ringo/ringojs",
         "https://github.com/ringo/ringojs",
         "https://github.com/ringo/ringojs#master",
-    ].forEach(uri => assert.isTrue(specs.isGitHub(uri), uri));
-    [
+        "https://github.com/ringo/ringojs#HEAD",
+        "https://github.com/ringo/ringojs#v2.x",
+        "https://github.com/ringo/ringojs#82116b6d1a474a37fb2783a127d4168190e61745"
+    ],
+    negative: [
         "ringo",
         "ringo/ringojs/wrong",
         "ringo/wröng"
-    ].forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+    ]
 };
 
-exports.testIsArchive = () => {
-    [
+const ARCHIVE_URLS = {
+    positive: [
         "http://example.com/archive.tar",
         "https://example.com/archive.tar",
         "http://example.com/archive.tar.gz",
@@ -43,22 +46,47 @@ exports.testIsArchive = () => {
         "https://example.com/archive.tgz",
         "http://example.com/archive.zip",
         "https://example.com/archive.zip"
-    ].forEach(uri => assert.isTrue(specs.isArchive(uri), uri));
-    [
+    ],
+    negative: [
         "http://example.com/archive",
         "https://example.com/archive"
-    ].forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
+    ]
+};
+
+exports.testIsGit = () => {
+    GIT_URLS.positive.forEach(uri => assert.isTrue(specs.isGit(uri), uri));
+    GIT_URLS.negative.forEach(uri => assert.isFalse(specs.isGit(uri), uri));
+    GITHUB_URLS.positive.forEach(uri => assert.isFalse(specs.isGit(uri), uri));
+    GITHUB_URLS.negative.forEach(uri => assert.isFalse(specs.isGit(uri), uri));
+    ARCHIVE_URLS.positive.forEach(uri => assert.isFalse(specs.isGit(uri), uri));
+    ARCHIVE_URLS.negative.forEach(uri => assert.isFalse(specs.isGit(uri), uri));
+};
+
+exports.testIsGitHub = () => {
+    GITHUB_URLS.positive.forEach(uri => assert.isTrue(specs.isGitHub(uri), uri));
+    GITHUB_URLS.negative.forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+    GIT_URLS.positive.forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+    GIT_URLS.negative.forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+    ARCHIVE_URLS.positive.forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+    ARCHIVE_URLS.negative.forEach(uri => assert.isFalse(specs.isGitHub(uri), uri));
+};
+
+exports.testIsArchive = () => {
+    ARCHIVE_URLS.positive.forEach(uri => assert.isTrue(specs.isArchive(uri), uri));
+    ARCHIVE_URLS.negative.forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
+    GITHUB_URLS.positive.forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
+    GITHUB_URLS.negative.forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
+    GIT_URLS.positive.forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
+    GIT_URLS.negative.forEach(uri => assert.isFalse(specs.isArchive(uri), uri));
 };
 
 exports.testNewGitHubSpec = () => {
-    [
-        "https://github.com/ringo/ringojs",
-        "https://github.com/ringo/ringojs#HEAD",
-        "https://github.com/ringo/ringojs#v2.x",
-        "https://github.com/ringo/ringojs#82116b6d1a474a37fb2783a127d4168190e61745",
-    ].forEach(uri => {
+    GITHUB_URLS.positive.forEach(uri => {
         const spec = specs.newGitHubSpec(uri);
-        const [url, treeish] = uri.split("#");
+        let [url, treeish] = uri.split("#");
+        if (!url.includes("github.com")) {
+            url = "https://github.com/" + url;
+        }
         assert.strictEqual(spec.type, constants.TYPE_GIT, uri);
         assert.strictEqual(spec.url, url, uri);
         assert.strictEqual(spec.treeish, treeish || null, uri);

@@ -30,7 +30,7 @@ const isGit = exports.isGit = (url) => {
 const isGitHub = exports.isGitHub = (url) => {
     const uri = URI.create(url);
     const segments = uri.getPath().split("/");
-    if (segments.length === 2) {
+    if (!uri.getScheme() && segments.length === 2) {
         return segments.every(part => /^[a-zA-Z0-9_-]+$/.test(part.trim()));
     }
     return ["http", "https"].includes(uri.getScheme()) &&
@@ -39,14 +39,18 @@ const isGitHub = exports.isGitHub = (url) => {
 
 const newGitHubSpec = exports.newGitHubSpec = (url) => {
     const uri = URI.create(url);
-    const [owner, repository] = uri.getPath()
-            .split("/")
-            .slice(1)
-            .map(part => part.trim());
     const treeish = uri.getFragment();
+    if (!uri.isAbsolute()) {
+        const [owner, repository] = uri.getPath()
+            .split("/")
+            .map(part => part.trim());
+        url = ["https://github.com", owner, repository].join("/");
+    } else {
+        url = [uri.getScheme(), uri.getSchemeSpecificPart()].join(":");
+    }
     return {
         type: constants.TYPE_GIT,
-        url: ["https://github.com", owner, repository].join("/"),
+        url: url,
         treeish: treeish
     };
 };
