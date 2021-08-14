@@ -23,7 +23,7 @@ exports.getBinary = (url) => {
 };
 
 exports.composeUrl = function() {
-    return Array.prototype.map.call(arguments, function(val, idx, arr) {
+    return Array.prototype.map.call(arguments, (val, idx, arr) => {
         val = val.replace(RE_SLASH_LEADING, "");
         if (idx < arr.length -1) {
             val = val.replace(RE_SLASH_TRAILING, "");

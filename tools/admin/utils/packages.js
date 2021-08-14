@@ -11,7 +11,7 @@ const getRingoHome = exports.getRingoHome = () => {
     return fs.normal(environment["ringo.home"]);
 };
 
-const getBaseDirectory = exports.getBaseDirectory = function() {
+const getBaseDirectory = exports.getBaseDirectory = () => {
     let dir = fs.workingDirectory();
     do {
         if (fs.exists(fs.join(dir, PACKAGE_JSON)) ||
