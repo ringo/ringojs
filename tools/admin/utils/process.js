@@ -26,7 +26,7 @@ exports.execute = (command, environment) => {
     }).get();
     const exitCode = process.waitFor();
     if (exitCode !== 0) {
-        throw new Error("(" + exitCode + ") " + output.content.decodeToString());
+        throw new Error("(" + exitCode + ") " + errput.content.decodeToString());
     }
     const errors = errput.content.decodeToString();
     if (errors.length > 0) {

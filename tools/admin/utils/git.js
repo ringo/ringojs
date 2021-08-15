@@ -19,7 +19,7 @@ exports.clone = (url, treeish) => {
         return fullClone(url, directory);
     } catch (e) {
         fs.exists(directory) && fs.removeTree(directory);
-        throw e;
+        throw new Error("Failed to clone " + url + ": " + e.message, {cause: e});
     }
 };
 
