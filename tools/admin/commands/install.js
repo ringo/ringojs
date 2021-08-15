@@ -15,6 +15,7 @@ const shell = require("../utils/shell");
 const parser = new Parser();
 parser.addOption("g", "global", null, "Install package globally");
 parser.addOption("f", "force", null, "Answer all prompts with 'yes'");
+parser.addOption("h", "help", null, "Print help message and exit");
 
 exports.description = "Install package(s)"
 
@@ -39,6 +40,10 @@ exports.run = (args) => {
         term.writeln(term.RED, e.message, term.RESET);
         term.writeln("Available options:");
         term.writeln(parser.help());
+        return;
+    }
+    if (options.help) {
+        term.writeln(exports.help);
         return;
     }
     const baseDirectory = (options.global === true) ?

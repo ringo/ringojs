@@ -134,13 +134,7 @@ const copyJars = (home, destination, asSymLink) => {
 exports.run = (args) => {
     const options = parser.parse(args);
     if (options.help) {
-        term.writeln("Creates a Ringo application or package.");
-        term.writeln();
-        term.writeln("Usage:");
-        term.writeln("  ringo-admin create [options] [path]");
-        term.writeln();
-        term.writeln("Options:");
-        term.writeln(parser.help());
+        term.writeln(exports.help);
         return;
     } else if (!!options.googleAppengine + !!options.ringoPackage + !!options.javaWebapp > 1) {
         term.writeln(term.RED, "Options are mutually exclusive.", term.RESET);
