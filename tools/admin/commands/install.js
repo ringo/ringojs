@@ -15,7 +15,13 @@ const shell = require("../utils/shell");
 const parser = new Parser();
 parser.addOption("g", "global", null, "Install package globally");
 parser.addOption("f", "force", null, "Answer all prompts with 'yes'");
+parser.addOption("n", "no-deps", null, "Skip installing dependencies");
 parser.addOption("h", "help", null, "Print help message and exit");
+
+const DEFAULT_OPTIONS = {
+    force: false,
+    noDeps: false
+};
 
 exports.description = "Install package(s)"
 
@@ -33,7 +39,7 @@ exports.help = [
 ].join("\n");
 
 exports.run = (args) => {
-    const options = {};
+    const options = Object.assign({}, DEFAULT_OPTIONS);
     try {
         parser.parse(args, options);
     } catch (e) {
@@ -59,12 +65,10 @@ exports.run = (args) => {
         if (!descriptor) {
             throw new Error("No package.json file found in " + baseDirectory);
         }
-        return installDependencies(descriptor, packagesDirectory,
-                options.force === true);
+        installDependencies(descriptor, packagesDirectory, options);
     } else {
         return args.map(url => {
-            return installPackage(url, packagesDirectory,
-                options.force === true);
+            return installPackage(url, packagesDirectory, options);
         });
     }
 };
@@ -88,8 +92,9 @@ const confirmInstall = (name, installDirectory, force) => {
     return true;
 };
 
-const installDependencies = exports.installDependencies = (descriptor, packagesDirectory, force) => {
-    log.info("Installing dependencies of {} (force: {}) ...", descriptor.name, force);
+const installDependencies = exports.installDependencies = (descriptor, packagesDirectory, options) => {
+    options || (options = DEFAULT_OPTIONS);
+    log.info("Installing dependencies of {} (options: {}) ...", descriptor.name, JSON.stringify(options));
     term.writeln("Installing dependencies of", descriptor.name, "...");
     const {dependencies} = descriptor;
     Object.keys(dependencies).forEach(dependency => {
@@ -100,12 +105,13 @@ const installDependencies = exports.installDependencies = (descriptor, packagesD
             term.writeln(term.RED, "Dependency", dependency, "of", descriptor.name,
                     "has an invalid package url '" + url + "'", term.RESET);
         } else {
-            installPackage(url, packagesDirectory, force);
+            installPackage(url, packagesDirectory, options);
         }
     });
 };
 
-const installPackage = exports.installPackage = (url, packagesDirectory, force) => {
+const installPackage = exports.installPackage = (url, packagesDirectory, options) => {
+    options || (options = DEFAULT_OPTIONS);
     if (!specs.isValidUrl(url)) {
         log.warn("Invalid package url '{}'", url);
         term.writeln(term.RED, "Invalid package url '" + url + "'", term.RESET);
@@ -114,18 +120,19 @@ const installPackage = exports.installPackage = (url, packagesDirectory, force) 
     const spec = specs.get(url);
     switch (spec.type) {
         case constants.TYPE_ARCHIVE:
-            installArchive(spec, packagesDirectory, force);
+            installArchive(spec, packagesDirectory, options);
             break;
         case constants.TYPE_GIT:
-            installGit(spec, packagesDirectory, force);
+            installGit(spec, packagesDirectory, options);
             break;
         default:
             throw new Error("Unknown spec type '" + spec.type + "'");
     }
 };
 
-const installArchive = exports.installArchive = (spec, packagesDirectory, force) => {
-    log.info("Installing package from {} (force: {})", spec.url, force);
+const installArchive = exports.installArchive = (spec, packagesDirectory, options) => {
+    options || (options = DEFAULT_OPTIONS);
+    log.info("Installing package from {} (options: {})", spec.url, JSON.stringify(options));
     term.writeln("Installing package from", spec.url);
     const tempArchive = httpClient.getBinary(spec.url);
     const tempDirectory = archive.extract(tempArchive);
@@ -134,29 +141,30 @@ const installArchive = exports.installArchive = (spec, packagesDirectory, force)
         throw new Error("Missing or invalid package.json in " + spec.url);
     }
     const installDirectory = files.getInstallDirectory(packagesDirectory, descriptor.name);
-    if (!confirmInstall(descriptor.name, installDirectory, force === true)) {
+    if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.info("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
     } else {
         archive.install(tempDirectory, installDirectory);
         term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ") in", installDirectory, term.RESET);
         log.info("Installed package from {} to {}", spec.url, installDirectory);
-        if (packages.hasDependencies(descriptor)) {
-            installDependencies(descriptor, packagesDirectory, force);
+        if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
+            installDependencies(descriptor, packagesDirectory, options);
         }
     }
 };
 
-const installGit = exports.installGit = (spec, packagesDirectory, force) => {
-    log.info("Installing git repository from {} (tree-ish: {}, force: {})",
-            spec.url, spec.treeish, force);
+const installGit = exports.installGit = (spec, packagesDirectory, options) => {
+    options || (options = DEFAULT_OPTIONS);
+    log.info("Installing git repository from {} (tree-ish: {}, options: {})",
+            spec.url, spec.treeish, JSON.stringify(options));
     const tempDirectory = git.clone(spec.url, spec.treeish);
     const descriptor = packages.getDescriptor(tempDirectory);
     if (!descriptor) {
         throw new Error("Missing or invalid package.json in " + spec.url);
     }
     const installDirectory = files.getInstallDirectory(packagesDirectory, descriptor.name);
-    if (!confirmInstall(descriptor.name, installDirectory, force === true)) {
+    if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.info("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
     } else {
@@ -167,8 +175,8 @@ const installGit = exports.installGit = (spec, packagesDirectory, force) => {
         fs.removeTree(tempDirectory);
         log.info("Installed git repository {} to {}", spec.url, installDirectory);
         term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ")", "in", installDirectory, term.RESET);
-        if (packages.hasDependencies(descriptor)) {
-            installDependencies(descriptor, packagesDirectory, force);
+        if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
+            installDependencies(descriptor, packagesDirectory, options);
         }
     }
 };
