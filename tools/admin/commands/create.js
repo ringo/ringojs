@@ -33,7 +33,7 @@ exports.help = [
  * @param {Object} options Options defining the application to create
  */
 const createApplication = (path, options) => {
-    log.info("Creating application in {} (options: {}) ...", path, JSON.stringify(options));
+    log.debug("Creating application in {} (options: {}) ...", path, JSON.stringify(options));
     const home = packages.getRingoHome();
     const skeletons = fs.join(home, "tools/admin/skeletons");
     const appSource = options.appSource || fs.join(skeletons, "app");
@@ -60,7 +60,7 @@ const createApplication = (path, options) => {
             install.installDependencies(descriptor, packagesDirectory);
         }
     }
-    log.info("Created application in", path);
+    log.debug("Created application in", path);
     term.writeln(term.GREEN, "Created application in", path, term.RESET);
 };
 
@@ -69,11 +69,11 @@ const createApplication = (path, options) => {
  * @param {String} path The path where to create the package
  */
 const createPackage = (path) => {
-    log.info("Creating package in", path);
+    log.debug("Creating package in", path);
     const home = packages.getRingoHome();
     const source = fs.join(home, "tools/admin/skeletons/package");
     copyTree(source, path);
-    log.info("Created package in", path);
+    log.debug("Created package in", path);
     term.writeln(term.GREEN, "Created RingoJS package in", path, term.RESET);
 };
 
@@ -83,13 +83,13 @@ const copyTree = (source, destination, asSymLink) => {
     }
     term.write((asSymLink ? "Linking" : "Copying"), source, "to", destination, "... ");
     if (asSymLink) {
-        log.info("Linking {} to {} ...", source, destination);
+        log.debug("Linking {} to {} ...", source, destination);
         fs.symbolicLink(source, destination);
     } else {
-        log.info("Copying tree {} to {} ...", source, destination);
+        log.debug("Copying tree {} to {} ...", source, destination);
         fs.copyTree(source, destination);
     }
-    log.info("done");
+    log.debug("done");
     term.writeln("done");
     return true;
 };
@@ -105,7 +105,7 @@ const createAppEngineDirs = (destination) => {
 };
 
 const copyJars = (home, destination, asSymLink) => {
-    log.info("Copying .jar files from {} to {} (as symlink: {}) ...", home, destination, asSymLink);
+    log.debug("Copying .jar files from {} to {} (as symlink: {}) ...", home, destination, asSymLink);
     term.write("Copying .jar files ... ");
     const jars = [
         "ringo-core.jar",
@@ -123,7 +123,7 @@ const copyJars = (home, destination, asSymLink) => {
             fs.copy(fs.join(libSource, jar), fs.join(libDestination, fs.base(jar)));
         }
     });
-    log.info("done");
+    log.debug("done");
     term.writeln("done");
 };
 
@@ -171,7 +171,7 @@ const prepare = (path, type) => {
         }
     } else {
         if (shell.prompt("Create " + type + " in " + path + " ?", ["y", "n"], "n") !== "y") {
-            log.info("User aborted creation of {} in {}", type, path);
+            log.debug("User aborted creation of {} in {}", type, path);
             term.writeln("Aborted");
             return false;
         }

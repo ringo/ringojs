@@ -44,7 +44,7 @@ const extract = (archiveInputStream, directory, basePath) => {
             if (!destination.startsWith(directory)) {
                 throw new Error("Invalid archive entry: " + destination + " is not inside " + directory);
             }
-            log.info("Extracting {} to {}", entryPath, destination);
+            log.debug("Extracting {} to {}", entryPath, destination);
             if (entry.isDirectory()) {
                 if (!Files.isDirectory(destination) && !Files.createDirectories(destination)) {
                     throw new Error("Failed to create directory " + destination);
@@ -84,7 +84,7 @@ exports.extract = (path) => {
     // package name directory
     const basePath = getBasePath(path);
     const tempDirectory = files.createTempDirectory();
-    log.info("Extracting {} into {} (base path: {})", path, tempDirectory, basePath || "none");
+    log.debug("Extracting {} into {} (base path: {})", path, tempDirectory, basePath || "none");
     try {
         return extract(newArchiveInputStream(path), tempDirectory, basePath);
     } catch (e) {
@@ -94,6 +94,6 @@ exports.extract = (path) => {
 };
 
 exports.install = (sourceDirectory, destinationDirectory) => {
-    log.info("Moving {} to {}", sourceDirectory, destinationDirectory);
+    log.debug("Moving {} to {}", sourceDirectory, destinationDirectory);
     return files.move(sourceDirectory, destinationDirectory);
 };
