@@ -2,7 +2,7 @@ const log = require("ringo/logging").getLogger(module.id);
 const {MemoryStream} = require("io");
 const {ProcessBuilder} = java.lang;
 
-exports.execute = (command, environment) => {
+exports.execute = (command) => {
     log.debug("Executing '{}'", command.join(" "));
     const processBuilder = new ProcessBuilder(command);
     const process = processBuilder.start();
@@ -30,7 +30,7 @@ exports.execute = (command, environment) => {
     }
     const errors = errput.content.decodeToString();
     if (errors.length > 0) {
-        log.error("Git errors while executing {}:", command, errors);
+        log.debug("Git errors while executing {}:", command, errors);
     }
     return output.content;
 };
