@@ -1,6 +1,7 @@
 const system = require("system");
 
 exports.testArchive = require("./archive_test");
+exports.testGit = require("./git_test");
 exports.testPackages = require("./packages_test");
 exports.testSpecs = require("./specs_test");
 
