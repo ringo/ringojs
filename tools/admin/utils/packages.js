@@ -34,7 +34,7 @@ exports.isInstalled = function(path) {
     return fs.exists(fs.join.apply(null, Array.prototype.slice.call(arguments)));
 };
 
-exports.getDescriptor = function() {
+const getDescriptor = exports.getDescriptor = function() {
     let path = fs.join.apply(null, Array.prototype.slice.call(arguments));
     if (fs.isDirectory(path)) {
         path = fs.join(path, PACKAGE_JSON);
@@ -48,4 +48,21 @@ exports.getDescriptor = function() {
 exports.hasDependencies = (descriptor) => {
     return descriptor.hasOwnProperty("dependencies") &&
             Object.keys(descriptor.dependencies).length > 0;
+};
+
+exports.save = (directory, installed) => {
+    const descriptor = getDescriptor(directory) || {dependencies: {}};
+    installed.forEach(dependency => {
+        descriptor.dependencies[dependency.name] = dependency.url;
+    });
+    // sort dependencies
+    descriptor.dependencies = Object.keys(descriptor.dependencies)
+            .sort()
+            .reduce((result, name) => {
+                 result[name] = descriptor.dependencies[name];
+                 return result;
+            }, {});
+    const destination = fs.join(directory, PACKAGE_JSON);
+    fs.write(destination, JSON.stringify(descriptor, null, 4));
+    return destination;
 };

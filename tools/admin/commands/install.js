@@ -17,6 +17,7 @@ parser.addOption("g", "global", null, "Install package globally");
 parser.addOption("f", "force", null, "Answer all prompts with 'yes'");
 parser.addOption("n", "no-deps", null, "Skip installing dependencies");
 parser.addOption("h", "help", null, "Print help message and exit");
+parser.addOption("s", "save", null, "Add package to dependencies in package.json");
 
 const DEFAULT_OPTIONS = {
     force: false,
@@ -67,9 +68,14 @@ exports.run = (args) => {
         }
         installDependencies(descriptor, packagesDirectory, options);
     } else {
-        return args.map(url => {
-            return installPackage(url, packagesDirectory, options);
-        });
+        const installed = args.reduce((result, url )=> {
+            const descriptor = installPackage(url, packagesDirectory, options);
+            result.push({name: descriptor.name, url: url});
+            return result;
+        }, []);
+        if (!options.global && options.save === true) {
+            term.writeln("Added installed package(s) to", packages.save(baseDirectory, installed));
+        }
     }
 };
 
@@ -81,7 +87,6 @@ const confirmInstall = (name, installDirectory, force) => {
                 installDirectory, term.RESET);
             if (!shell.continue("n")) {
                 log.debug("User aborted installation of {} to {}", name, installDirectory);
-                term.writeln("Aborted");
                 return false;
             }
         }
@@ -120,11 +125,9 @@ const installPackage = exports.installPackage = (url, packagesDirectory, options
     const spec = specs.get(url);
     switch (spec.type) {
         case constants.TYPE_ARCHIVE:
-            installArchive(spec, packagesDirectory, options);
-            break;
+            return installArchive(spec, packagesDirectory, options);
         case constants.TYPE_GIT:
-            installGit(spec, packagesDirectory, options);
-            break;
+            return installGit(spec, packagesDirectory, options);
         default:
             throw new Error("Unknown spec type '" + spec.type + "'");
     }
@@ -144,14 +147,15 @@ const installArchive = exports.installArchive = (spec, packagesDirectory, option
     if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.debug("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
-    } else {
-        archive.install(tempDirectory, installDirectory);
-        term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ") in", installDirectory, term.RESET);
-        log.debug("Installed package from {} to {}", spec.url, installDirectory);
-        if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
-            installDependencies(descriptor, packagesDirectory, options);
-        }
+        throw new Error("Aborted");
     }
+    archive.install(tempDirectory, installDirectory);
+    term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ") in", installDirectory, term.RESET);
+    log.debug("Installed package from {} to {}", spec.url, installDirectory);
+    if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
+        installDependencies(descriptor, packagesDirectory, options);
+    }
+    return descriptor;
 };
 
 const installGit = exports.installGit = (spec, packagesDirectory, options) => {
@@ -167,16 +171,17 @@ const installGit = exports.installGit = (spec, packagesDirectory, options) => {
     if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.debug("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
-    } else {
-        log.debug("Creating install directory", installDirectory);
-        fs.makeDirectory(installDirectory, 0o755);
-        git.install(tempDirectory, installDirectory);
-        log.debug("Removed temporary directory", tempDirectory);
-        fs.removeTree(tempDirectory);
-        log.debug("Installed git repository {} to {}", spec.url, installDirectory);
-        term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ")", "in", installDirectory, term.RESET);
-        if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
-            installDependencies(descriptor, packagesDirectory, options);
-        }
+        throw new Error("Aborted");
     }
+    log.debug("Creating install directory", installDirectory);
+    fs.makeDirectory(installDirectory, 0o755);
+    git.install(tempDirectory, installDirectory);
+    log.debug("Removed temporary directory", tempDirectory);
+    fs.removeTree(tempDirectory);
+    log.debug("Installed git repository {} to {}", spec.url, installDirectory);
+    term.writeln(term.GREEN, "Installed", descriptor.name, "(" + descriptor.version + ")", "in", installDirectory, term.RESET);
+    if (packages.hasDependencies(descriptor) && options.noDeps !== true) {
+        installDependencies(descriptor, packagesDirectory, options);
+    }
+    return descriptor;
 };

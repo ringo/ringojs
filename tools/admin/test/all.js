@@ -1,6 +1,7 @@
 const system = require("system");
 
 exports.testArchive = require("./archive_test");
+exports.testPackages = require("./packages_test");
 exports.testSpecs = require("./specs_test");
 
 // start the test runner if we're called directly from command line
