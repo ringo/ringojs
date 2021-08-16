@@ -1,6 +1,13 @@
 const {URI} = java.net;
 const constants = require("../constants");
 
+const GIT_SCHEMES = {
+    "git+ssh": "ssh",
+    "git+http": "http",
+    "git+https": "https",
+    "git+file": "file"
+};
+
 exports.isValidUrl = (url) => {
     try {
         URI.create(url);
@@ -57,8 +64,9 @@ const newGitHubSpec = exports.newGitHubSpec = (url) => {
 
 const newGitSpec = exports.newGitSpec = (url) => {
     const uri = URI.create(url);
+    const scheme = GIT_SCHEMES[uri.getScheme()] || uri.getScheme();
     // additional toString to prevent java ProcessBuilder complaints about "ConsString"
-    const uriString = (uri.getScheme() + ":" + uri.getSchemeSpecificPart()).toString();
+    const uriString = (scheme + ":" + uri.getSchemeSpecificPart()).toString();
     const treeish = uri.getFragment();
     return {
         type: constants.TYPE_GIT,

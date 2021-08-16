@@ -3,6 +3,8 @@ const assert = require("assert");
 const specs = require("../utils/specs");
 const constants = require("../constants");
 
+const {URI} = java.net;
+
 const GIT_URLS = {
     negative: [
         "http://example.com/xyz",
@@ -96,29 +98,32 @@ exports.testNewGitHubSpec = () => {
 
 exports.testNewGitSpec = () => {
     const schemes = [
-        "git",
-        "git+ssh",
-        "ssh",
-        "git+http",
-        "git+https",
-        "git+file"
+        {value: "git", expected: "git"},
+        {value: "git+ssh", expected: "ssh"},
+        {value: "ssh", expected: "ssh"},
+        {value: "git+http", expected: "http"},
+        {value: "git+https", expected: "https"},
+        {value: "git+file", expected: "file"}
     ];
     const uris =         [
-        "example.com/path/to/repo",
-        "example.com/path/to/repo#HEAD",
-        "example.com/path/to/repo#v2.x",
-        "example.com/path/to/repo#82116b6d1a474a37fb2783a127d4168190e61745",
+        "//example.com/path/to/repo",
+        "//example.com/path/to/repo#HEAD",
+        "//example.com/path/to/repo#v2.x",
+        "//example.com/path/to/repo#82116b6d1a474a37fb2783a127d4168190e61745",
     ];
     schemes.forEach(scheme => {
-        uris.map(part => [scheme, part].join("://"))
-            .forEach(uri => {
-                const spec = specs.newGitSpec(uri);
-                const [url, treeish] = uri.split("#");
-                assert.strictEqual(spec.type, constants.TYPE_GIT, uri);
-                assert.strictEqual(spec.url, url, uri);
-                assert.strictEqual(spec.treeish, treeish || null, uri);
-            });
-    })
+        uris.forEach(uri => {
+            const gitUrl = [scheme.value, uri].join(":");
+            const spec = specs.newGitSpec(gitUrl);
+            const treeish = gitUrl.split("#")[1] || null;
+            const receivedUri = URI.create(spec.url);
+            const expectedUri = URI.create(gitUrl);
+            assert.strictEqual(spec.type, constants.TYPE_GIT, gitUrl);
+            assert.strictEqual(receivedUri.getScheme(), scheme.expected, gitUrl);
+            assert.strictEqual(receivedUri.getSchemeSpecificPart(), expectedUri.getSchemeSpecificPart(), gitUrl);
+            assert.strictEqual(spec.treeish, expectedUri.getFragment(), gitUrl);
+        });
+    });
 };
 
 exports.testNewArchiveSpec = () => {
