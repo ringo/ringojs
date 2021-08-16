@@ -27,7 +27,9 @@ const getRemoteRefs = exports.getRemoteRefs = (url) => {
     const command = [
         "git",
         "ls-remote",
-        "--heads", "--tags",
+        "--heads",
+        "--tags",
+        "--refs",
         "--quiet",
         url
     ];
@@ -36,8 +38,7 @@ const getRemoteRefs = exports.getRemoteRefs = (url) => {
         const rawRef = line.split(/\s+/)[1];
         const ref = rawRef.split("/").pop() || null;
         if (ref) {
-            // github returns (some) tags as (weird) refs ending with "^{}"
-            refs.push(ref.endsWith("^{}") ? ref.slice(0, -3) : ref);
+            refs.push(ref);
         }
         return refs;
     }, []);
