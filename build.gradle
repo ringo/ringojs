@@ -168,7 +168,7 @@ distZip {
 distTar {
     dependsOn clean, copyDependencies
     compression Compression.GZIP
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
 }
 
 task dist(type: Task, dependsOn: [distZip, distTar]) {
