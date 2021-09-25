@@ -23,8 +23,6 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedStringBuilder;
-import org.jline.utils.AttributedStyle;
 import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
@@ -248,11 +246,12 @@ public class RingoShell {
         @Override
         public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
             try {
-                Matcher match = variables.matcher(parsedLine.line());
+                String line = parsedLine.line();
+                Matcher match = variables.matcher(line);
                 if (match.find()) {
-                    String word = match.group(2);
+                    String path = match.group(2);
                     Scriptable obj = scope;
-                    String[] parts = word.split("\\.", -1);
+                    String[] parts = path.split("\\.", -1);
                     for (int k = 0; k < parts.length - 1; k++) {
                         Object o = ScriptableObject.getProperty(obj, parts[k]);
                         if (o == null || o == ScriptableObject.NOT_FOUND) {
@@ -260,15 +259,16 @@ public class RingoShell {
                         }
                         obj = ScriptRuntime.toObject(scope, o);
                     }
-                    String lastpart = parts[parts.length - 1];
+                    String lastPart = parts[parts.length - 1];
+                    String prefix = line.substring(0, line.length() - lastPart.length());
                     while (obj != null) {
                         Object[] ids = obj.getIds();
-                        collectIds(ids, obj, word, lastpart, list);
+                        collectIds(ids, obj, prefix, lastPart, list);
                         if (list.size() <= 3 && obj instanceof ScriptableObject) {
                             ids = ((ScriptableObject) obj).getAllIds();
-                            collectIds(ids, obj, word, lastpart, list);
+                            collectIds(ids, obj, prefix, lastPart, list);
                         }
-                        if (word.endsWith(".") && obj instanceof ModuleScope) {
+                        if (path.endsWith(".") && obj instanceof ModuleScope) {
                             // don't walk scope prototype chain if nothing to compare yet -
                             // the list is just too long.
                             break;
@@ -281,22 +281,18 @@ public class RingoShell {
             }
         }
 
-        private void collectIds(Object[] ids, Scriptable obj, String word, String lastpart, List<Candidate> list) {
+        private void collectIds(Object[] ids, Scriptable obj, String line, String lastPart, List<Candidate> list) {
             for (Object id: ids) {
                 if (!(id instanceof String)) {
                     continue;
                 }
                 String str = (String) id;
-                if (str.startsWith(lastpart) || word.endsWith(".")) {
+                if (str.startsWith(lastPart)) {
                     if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
                         str += "(";
                     }
-                    String suffix = str.substring(lastpart.length());
-                    AttributedStringBuilder sb = new AttributedStringBuilder();
-                    sb.styled(AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN), lastpart);
-                    sb.styled(AttributedStyle.DEFAULT, suffix);
-                    list.add(new Candidate(word + suffix,
-                        sb.toAnsi(terminal), null, null, null, null, false));
+                    Candidate candidate = new Candidate(line + str, line + str, null, null, null, null, false);
+                    list.add(candidate);
                 }
             }
         }
@@ -308,28 +304,35 @@ public class RingoShell {
             "break",
             "case",
             "catch",
+            "const",
             "continue",
+            "debugger",
             "default",
             "delete",
             "do",
             "else",
+            "false",
             "finally",
             "for",
             "function",
             "if",
             "in",
             "instanceof",
+            "let",
             "new",
+            "null",
             "return",
             "switch",
             "this",
             "throw",
+            "true",
             "try",
             "typeof",
             "var",
             "void",
             "while",
-            "with"
+            "with",
+            "yield"
     };
 
 }
