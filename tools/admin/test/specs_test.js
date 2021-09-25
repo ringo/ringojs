@@ -1,7 +1,6 @@
 const system = require("system");
 const assert = require("assert");
 const specs = require("../utils/specs");
-const constants = require("../constants");
 
 const {URI} = java.net;
 
@@ -90,7 +89,7 @@ exports.testNewGitHubSpec = () => {
         if (!url.includes("github.com")) {
             url = "https://github.com/" + url;
         }
-        assert.strictEqual(spec.type, constants.TYPE_GIT, uri);
+        assert.strictEqual(spec.type, specs.TYPE_GIT, uri);
         assert.strictEqual(spec.url, url, uri);
         assert.strictEqual(spec.treeish, treeish || null, uri);
     });
@@ -118,7 +117,7 @@ exports.testNewGitSpec = () => {
             const treeish = gitUrl.split("#")[1] || null;
             const receivedUri = URI.create(spec.url);
             const expectedUri = URI.create(gitUrl);
-            assert.strictEqual(spec.type, constants.TYPE_GIT, gitUrl);
+            assert.strictEqual(spec.type, specs.TYPE_GIT, gitUrl);
             assert.strictEqual(receivedUri.getScheme(), scheme.expected, gitUrl);
             assert.strictEqual(receivedUri.getSchemeSpecificPart(), expectedUri.getSchemeSpecificPart(), gitUrl);
             assert.strictEqual(spec.treeish, expectedUri.getFragment(), gitUrl);
@@ -139,7 +138,7 @@ exports.testNewArchiveSpec = () => {
         uris.map(part => [scheme, part].join("://"))
             .forEach(url => {
                 const spec = specs.newArchiveSpec(url);
-                assert.strictEqual(spec.type, constants.TYPE_ARCHIVE, url);
+                assert.strictEqual(spec.type, specs.TYPE_ARCHIVE, url);
                 assert.strictEqual(spec.url, url, url);
             });
     });
@@ -147,9 +146,9 @@ exports.testNewArchiveSpec = () => {
 
 exports.testGet = () => {
     const tests = [
-        {urls: GIT_URLS.positive, type: constants.TYPE_GIT},
-        {urls: GITHUB_URLS.positive, type: constants.TYPE_GIT},
-        {urls: ARCHIVE_URLS.positive, type: constants.TYPE_ARCHIVE}
+        {urls: GIT_URLS.positive, type: specs.TYPE_GIT},
+        {urls: GITHUB_URLS.positive, type: specs.TYPE_GIT},
+        {urls: ARCHIVE_URLS.positive, type: specs.TYPE_ARCHIVE}
     ];
     const test = (test) => {
         test.urls.forEach(url => assert.strictEqual(specs.get(url).type, test.type, url));

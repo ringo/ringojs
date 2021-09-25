@@ -3,7 +3,6 @@ const term = require("ringo/term");
 const {Parser} = require("ringo/args");
 const fs = require("fs");
 
-const constants = require("../constants");
 const packages = require("../utils/packages");
 const specs = require("../utils/specs");
 const files = require("../utils/files");
@@ -124,9 +123,9 @@ const installPackage = exports.installPackage = (url, packagesDirectory, options
     }
     const spec = specs.get(url);
     switch (spec.type) {
-        case constants.TYPE_ARCHIVE:
+        case specs.TYPE_ARCHIVE:
             return installArchive(spec, packagesDirectory, options);
-        case constants.TYPE_GIT:
+        case specs.TYPE_GIT:
             return installGit(spec, packagesDirectory, options);
         default:
             throw new Error("Unknown spec type '" + spec.type + "'");

@@ -1,5 +1,4 @@
 const {URI} = java.net;
-const constants = require("../constants");
 
 const GIT_SCHEMES = {
     "git+ssh": "ssh",
@@ -7,6 +6,9 @@ const GIT_SCHEMES = {
     "git+https": "https",
     "git+file": "file"
 };
+
+const TYPE_GIT = exports.TYPE_GIT = "git";
+const TYPE_ARCHIVE = exports.TYPE_ARCHIVE = "archive";
 
 exports.isValidUrl = (url) => {
     try {
@@ -56,7 +58,7 @@ const newGitHubSpec = exports.newGitHubSpec = (url) => {
         url = [uri.getScheme(), uri.getSchemeSpecificPart()].join(":");
     }
     return {
-        type: constants.TYPE_GIT,
+        type: TYPE_GIT,
         url: url,
         treeish: treeish
     };
@@ -69,7 +71,7 @@ const newGitSpec = exports.newGitSpec = (url) => {
     const uriString = (scheme + ":" + uri.getSchemeSpecificPart()).toString();
     const treeish = uri.getFragment();
     return {
-        type: constants.TYPE_GIT,
+        type: TYPE_GIT,
         url: uriString,
         treeish: treeish
     };
@@ -77,7 +79,7 @@ const newGitSpec = exports.newGitSpec = (url) => {
 
 const newArchiveSpec = exports.newArchiveSpec = (url) => {
     return {
-        type: constants.TYPE_ARCHIVE,
+        type: TYPE_ARCHIVE,
         url: url
     };
 };
