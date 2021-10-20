@@ -149,9 +149,7 @@ public class ReloadableScript {
         Object script = null;
         String charset = engine.getCharset();
         try {
-            CodeSource securityDomain = engine.isPolicyEnabled() ?
-                    new CodeSource(resource.getUrl(), (CodeSigner[]) null) : null;
-            script = loader.load(cx, engine, securityDomain, moduleName,
+            script = loader.load(cx, engine, null, moduleName,
                     charset, resource);
         } catch (Exception x) {
             exception = x;

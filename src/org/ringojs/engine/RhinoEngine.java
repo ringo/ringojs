@@ -700,14 +700,7 @@ public class RhinoEngine implements ScopeProvider {
      */
     public RhinoEngine createSandbox(RingoConfig config, Map<String,Object> globals)
             throws Exception {
-        config.setPolicyEnabled(this.config.isPolicyEnabled());
         return new RhinoEngine(config, globals);
-    }
-
-    protected boolean isPolicyEnabled() {
-        // only use security when ringo runs standalone with default security manager,
-        // not with google app engine
-        return config.isPolicyEnabled();
     }
 
     /**

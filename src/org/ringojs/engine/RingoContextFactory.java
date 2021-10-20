@@ -82,10 +82,6 @@ public class RingoContextFactory extends ContextFactory {
         if (classShutter != null) {
             cx.setClassShutter(classShutter);
         }
-        if (engine.isPolicyEnabled()) {
-            cx.setInstructionObserverThreshold(instructionLimit);
-            cx.setSecurityController(new PolicySecurityController());
-        }
         cx.setErrorReporter(new ToolErrorReporter(true));
         cx.setGeneratingDebug(generatingDebug);
     }
