@@ -11,7 +11,7 @@ const {Buffer} = require('ringo/buffer');
 const binary = require('binary');
 const io = require('io');
 
-const {open} = require('fs').open;
+const fs = require('fs');
 const {createTempFile} = require('ringo/utils/files');
 
 const PATH_CTL = java.util.regex.Pattern.compile("[\x00-\x1F\x7F\x3B]");
@@ -894,5 +894,5 @@ exports.TempFileFactory = function(data, encoding) {
         return BufferFactory(data, encoding)
     }
     data.tempfile = createTempFile("ringo-upload-");
-    return open(data.tempfile, {write: true, binary: true});
+    return fs.open(data.tempfile, {write: true, binary: true});
 };
