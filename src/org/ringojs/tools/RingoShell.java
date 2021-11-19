@@ -76,11 +76,6 @@ public class RingoShell {
         this.worker = engine.getWorker();
         this.scope = engine.getShellScope(worker);
         this.silent = silent;
-        // FIXME give shell code a trusted code source in case security is on
-        if (config.isPolicyEnabled()) {
-            Repository modules = config.getRingoHome().getChildRepository("modules");
-            codeSource = new CodeSource(modules.getUrl(), (CodeSigner[])null);
-        }
     }
 
     public void run() throws IOException {

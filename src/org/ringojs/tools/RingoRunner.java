@@ -26,8 +26,6 @@ import org.ringojs.engine.ScriptError;
 import org.ringojs.repository.FileRepository;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.ZipRepository;
-import org.ringojs.security.RingoSecurityManager;
-import org.ringojs.security.SecureWrapFactory;
 import org.ringojs.util.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
@@ -79,7 +77,6 @@ public class RingoRunner {
         {"m", "modules", "Add a directory to the module search path", "DIR"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
         {"p", "production", "Disable module reloading and warnings", ""},
-        {"P", "policy", "Set java policy file and enable security manager", "URL"},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
         {"V", "verbose", "Print java stack traces on errors", ""},
         {"v", "version", "Print version number and exit", ""},
@@ -126,9 +123,6 @@ public class RingoRunner {
         String[] userModulePath = userModules.toArray(new String[userModules.size()]);
 
         config = new RingoConfig(home, userModulePath, systemModulePath);
-        boolean hasPolicy = System.getProperty("java.security.policy") != null;
-        config.setPolicyEnabled(hasPolicy);
-        config.setWrapFactory(hasPolicy ? new SecureWrapFactory() : new RingoWrapFactory());
         config.setMainScript(scriptName);
         config.setArguments(scriptArgs);
         config.setOptLevel(optlevel);
@@ -348,9 +342,6 @@ public class RingoRunner {
         } else if ("modules".equals(option)) {
             Collections.addAll(userModules,
                     StringUtils.split(arg, File.pathSeparator));
-        } else if ("policy".equals(option)) {
-            System.setProperty("java.security.policy", arg);
-            System.setSecurityManager(new RingoSecurityManager());
         } else if ("java-property".equals(option)) {
             if (arg.contains("=")) {
                 String[] property = arg.split("=", 2);

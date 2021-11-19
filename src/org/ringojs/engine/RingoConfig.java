@@ -58,7 +58,6 @@ public class RingoConfig {
     private WrapFactory wrapFactory = null;
     private List<String> bootstrapScripts;
     private boolean sealed = false;
-    private boolean policyEnabled = false;
     private boolean reloading = true;
     private String charset = "UTF-8";
 
@@ -535,14 +534,6 @@ public class RingoConfig {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
-    }
-
-    public boolean isPolicyEnabled() {
-        return policyEnabled;
-    }
-
-    public void setPolicyEnabled(boolean hasPolicy) {
-        this.policyEnabled = hasPolicy;
     }
 
     public List<String> getBootstrapScripts() {
