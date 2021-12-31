@@ -1,7 +1,8 @@
 const log = require("ringo/logging").getLogger(module.id);
 const Context = require("./context");
 const {JsgiServlet} = org.ringojs.jsgi;
-const {WebSocketServlet, WebSocketCreator} = org.eclipse.jetty.websocket.servlet;
+const {JettyWebSocketServlet, JettyWebSocketCreator} = org.eclipse.jetty.websocket.server;
+const {JettyWebSocketServletContainerInitializer} = org.eclipse.jetty.websocket.server.config;
 const {EventSourceServlet} = org.eclipse.jetty.servlets;
 const EventSource = require("../eventsource");
 const WebSocket = require("../websocket");
@@ -53,8 +54,9 @@ ApplicationContext.prototype.serve = function(app, engine) {
  */
 ApplicationContext.prototype.addWebSocket = function(path, onConnect, onCreate, initParams) {
     log.info("Starting websocket support");
+    JettyWebSocketServletContainerInitializer.configure(this.contextHandler, null);
 
-    const webSocketCreator = new WebSocketCreator({
+    const webSocketCreator = new JettyWebSocketCreator({
         "createWebSocket": function(request, response) {
             if (typeof(onCreate) === "function" && onCreate(request, response) !== true) {
                 return null;
@@ -71,7 +73,7 @@ ApplicationContext.prototype.addWebSocket = function(path, onConnect, onCreate, 
         }
     });
 
-    this.addServlet(path, new WebSocketServlet({
+    this.addServlet(path, new JettyWebSocketServlet({
         "configure": function(factory) {
             factory.setCreator(webSocketCreator);
         }

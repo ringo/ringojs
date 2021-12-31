@@ -1,5 +1,5 @@
 const {JavaEventEmitter} = require('ringo/events');
-const {WebSocketListener} = org.eclipse.jetty.websocket.api;
+const {WebSocketListener, WriteCallback} = org.eclipse.jetty.websocket.api;
 const {ByteBuffer} = java.nio;
 
 /**
@@ -79,13 +79,19 @@ WebSocket.prototype.sendString = function(message) {
  * does not wait until the message as been transmitted.
  * @param {String} message a string
  * @name WebSocket.instance.sendStringAsync
+ * @returns {Promise} A promise that is resolved or rejected
  * @function
  */
 WebSocket.prototype.sendStringAsync = function(message) {
     if (!this.isOpen()) {
         throw new Error("Not connected");
     }
-    return this.session.getRemote().sendStringByFuture(message);
+    return new Promise((resolve, reject) => {
+        this.session.getRemote().sendString(message, new WriteCallback({
+            writeFailed: (error) => reject(error),
+            writeSuccess: () => resolve()
+        }));
+    });
 };
 
 /**
@@ -115,7 +121,7 @@ WebSocket.prototype.sendBinary = function(byteArray, offset, length) {
  * @param {Number} length Optional length (defaults to the
  * length of the byte array)
  * @name WebSocket.instance.sendBinaryAsync
- * @returns {java.util.concurrent.Future}
+ * @returns {Promise} A promise that is resolved or rejected
  * @function
  */
 WebSocket.prototype.sendBinaryAsync = function(byteArray, offset, length) {
@@ -124,7 +130,12 @@ WebSocket.prototype.sendBinaryAsync = function(byteArray, offset, length) {
     }
     const buffer = ByteBuffer.wrap(byteArray, parseInt(offset, 10) || 0,
             parseInt(length, 10) || byteArray.length);
-    return this.session.getRemote().sendBytesByFuture(buffer);
+    return new Promise((resolve, reject) => {
+        this.session.getRemote().sendBytes(buffer, new WriteCallback({
+            writeFailed: (error) => reject(error),
+            writeSuccess: () => resolve()
+        }));
+    });
 };
 
 /**

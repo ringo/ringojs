@@ -74,7 +74,7 @@ var onmessage = function(event) {
         server.destroy();
         server = null;
     });
-    listener.on("binary", function(bytes, offset, length) {
+    listener.on("binary", function(bytes) {
         event.source.postMessage(bytes);
         semaphore.signal();
         server.stop();
