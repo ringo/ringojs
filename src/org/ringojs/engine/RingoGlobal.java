@@ -217,7 +217,9 @@ public class RingoGlobal extends Global {
             public Object call() {
                 return cxfactory.call(new ContextAction<Object>() {
                     public Object run(Context cx) {
-                        return function.call(cx, scope, scope, fnArgs);
+                        Object result = function.call(cx, scope, scope, fnArgs);
+                        cx.processMicrotasks();
+                        return result;
                     }
                 });
             }
