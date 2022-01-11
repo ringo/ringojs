@@ -40,7 +40,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation 'org.mozilla:rhino:1.7.14-RC1'
+    implementation 'org.mozilla:rhino:1.7.14'
     implementation 'org.eclipse.jetty:jetty-server:9.4.44.v20210927'
     implementation 'org.eclipse.jetty:jetty-servlet:9.4.44.v20210927'
     implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.44.v20210927'
