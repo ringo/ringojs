@@ -40,18 +40,18 @@ sourceSets {
 }
 
 dependencies {
-    implementation 'org.mozilla:rhino:1.7.13'
-    implementation 'org.eclipse.jetty:jetty-server:9.4.43.v20210629'
-    implementation 'org.eclipse.jetty:jetty-servlet:9.4.43.v20210629'
-    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.43.v20210629'
-    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.43.v20210629'
-    implementation 'org.eclipse.jetty:jetty-servlets:9.4.43.v20210629'
-    implementation 'org.eclipse.jetty:jetty-xml:9.4.43.v20210629'
-    implementation 'org.apache.logging.log4j:log4j-core:2.14.0'
-    implementation 'org.apache.logging.log4j:log4j-api:2.14.0'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.0'
-    implementation 'org.jline:jline:3.20.0'
-    implementation 'junit:junit:4.13.1'
+    implementation 'org.mozilla:rhino:1.7.14'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-servlets:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-xml:9.4.44.v20210927'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
+    implementation 'org.jline:jline:3.21.0'
+    implementation 'junit:junit:4.13.2'
 }
 
 tasks.withType(JavaCompile) {
@@ -250,7 +250,7 @@ class DatesTestTask extends JavaExec {
             })
             .distinct()
             .sorted()
-            .forEach({offset -> 
+            .forEach({offset ->
                 String timeZone = "GMT${offset}"
                 logger.quiet("Testing ringo/utils/dates in timezone {} …", timeZone)
                 systemProperty("user.timezone", timeZone);

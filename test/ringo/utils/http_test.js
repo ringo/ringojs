@@ -1,4 +1,6 @@
+const fs = require("fs");
 const assert = require("assert");
+const binary = require("binary");
 const dates = require("ringo/utils/dates");
 const strings = require("ringo/utils/strings");
 const http = require("ringo/utils/http");
@@ -452,6 +454,40 @@ exports.testCanonicalRanges = function() {
     assert.deepEqual(http.canonicalRanges([[0,100], [50, 200], [400,400], [401,401]]), [[0, 200], [400,401]]); // overlapping
     assert.deepEqual(http.canonicalRanges([[0,4], [90,99], [5,75], [100,199], [101,102]]), [[0, 75], [90,199]]); // overlapping
 };
+
+exports.testTempFileFactory = function() {
+    const ba = new binary.ByteArray([0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+    const {TempFileFactory} = http;
+
+    const data = {
+        name: "test",
+        filename: "uploadtest",
+    };
+
+    const stream = TempFileFactory(data, "UTF-8");
+    try {
+        stream.write(ba);
+        stream.flush();
+    } finally {
+        stream.close();
+        assert.isTrue(stream.closed());
+    }
+
+    const checkStream = fs.openRaw(data.tempfile, "r");
+    try {
+        const buff = new ByteArray(10);
+        assert.equal(checkStream.readInto(buff), 10);
+
+        // Check the content
+        for (let i = 0; i < buff.length; i++) {
+            assert.equal(buff.charCodeAt(i), ba.charCodeAt(i));
+        }
+    } finally {
+        checkStream.close();
+        assert.isTrue(checkStream.closed());
+        fs.remove(data.tempfile);
+    }
+}
 
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));

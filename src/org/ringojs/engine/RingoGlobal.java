@@ -30,7 +30,6 @@ import org.mozilla.javascript.tools.shell.Environment;
 import org.mozilla.javascript.tools.shell.QuitAction;
 import org.ringojs.repository.Repository;
 import org.ringojs.repository.Trackable;
-import org.ringojs.security.RingoSecurityManager;
 import org.ringojs.util.ScriptUtils;
 import org.mozilla.javascript.tools.shell.Global;
 import org.ringojs.repository.Resource;
@@ -48,7 +47,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RingoGlobal extends Global {
 
     private final RhinoEngine engine;
-    private final static SecurityManager securityManager = System.getSecurityManager();
     private static ExecutorService threadPool;
     private static final AtomicInteger ids = new AtomicInteger();
 
@@ -147,9 +145,6 @@ public class RingoGlobal extends Global {
 
     public static Object addToClasspath(final Context cx, Scriptable thisObj,
                                         Object[] args, Function funObj) {
-        if (securityManager != null) {
-            securityManager.checkPermission(RingoSecurityManager.GET_CLASSLOADER);
-        }
         if (args.length != 1) {
             throw Context.reportRuntimeError(
                     "addToClasspath() requires one argument");
@@ -206,9 +201,6 @@ public class RingoGlobal extends Global {
 
     public static Object spawn(Context cx, Scriptable thisObj,
                                Object[] args, Function funObj) {
-        if (securityManager != null) {
-            securityManager.checkPermission(RingoSecurityManager.SPAWN_THREAD);
-        }
         if (args.length < 1  || !(args[0] instanceof Function)) {
             throw Context.reportRuntimeError("spawn() requires a function argument");
         }

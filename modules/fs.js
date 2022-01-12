@@ -26,8 +26,6 @@
 const io = require('io');
 const binary = require('binary');
 
-const security = java.lang.System.getSecurityManager();
-
 const arrays = require('ringo/utils/arrays');
 const {PosixPermissions} = require('ringo/utils/files');
 
@@ -769,10 +767,6 @@ const lastModified = exports.lastModified = function(path) {
  * @param {Number|String|java.util.Set<PosixFilePermission>} permissions optional the POSIX permissions
  */
 const makeDirectory = exports.makeDirectory = function(path, permissions) {
-    if (security) {
-        security.checkWrite(path);
-    }
-
     // single-argument Files.createDirectory() respects the current umask
     if (permissions == null) {
         Files.createDirectory(getPath(path));
@@ -824,9 +818,6 @@ const isDirectory = exports.isDirectory = function(path) {
  * @returns {Boolean} true if the given file exists and is a symbolic link
  */
 const isLink = exports.isLink = function(path) {
-    if (security) {
-        security.checkRead(path);
-    }
     return Files.isSymbolicLink(resolvePath(path));
 }
 
@@ -840,10 +831,6 @@ const isLink = exports.isLink = function(path) {
  * @returns {Boolean} true iff the two paths locate the same file
  */
 const same = exports.same = function(pathA, pathB) {
-    if (security) {
-        security.checkRead(pathA);
-        security.checkRead(pathB);
-    }
     // make canonical to resolve symbolic links
     const nioPathA = getPath(canonical(pathA));
     const nioPathB = getPath(canonical(pathB));
@@ -859,10 +846,6 @@ const same = exports.same = function(pathA, pathB) {
  * @returns {Boolean} true if same file system, otherwise false
  */
 const sameFilesystem = exports.sameFilesystem = function(pathA, pathB) {
-    if (security) {
-        security.checkRead(pathA);
-        security.checkRead(pathB);
-    }
     // make canonical to resolve symbolic links
     const nioPathA = getPath(canonical(pathA));
     const nioPathB = getPath(canonical(pathB));
@@ -908,11 +891,6 @@ const touch = exports.touch = function(path, mtime) {
  * @returns {String} the path to the symbolic link
  */
 const symbolicLink = exports.symbolicLink = function(existing, link) {
-    if (security) {
-        security.checkRead(existing);
-        security.checkWrite(link);
-    }
-
     return String(Files.createSymbolicLink(getPath(link), getPath(existing)));
 }
 
@@ -925,11 +903,6 @@ const symbolicLink = exports.symbolicLink = function(existing, link) {
  * @returns {String} the path to the link
  */
 const hardLink = exports.hardLink = function(existing, link) {
-    if (security) {
-        security.checkRead(existing);
-        security.checkWrite(link);
-    }
-
     return String(Files.createLink(getPath(link), getPath(existing)));
 }
 
@@ -939,8 +912,6 @@ const hardLink = exports.hardLink = function(existing, link) {
  * @param {String} path a file path
  */
 const readLink = exports.readLink = function(path) {
-    if (security) security.checkRead(path);
-
     // Throws an exception if there is no symbolic link at the given path or the link cannot be read.
     if (!Files.isReadable(getPath(path))) {
         throw new Error("Path " + path + " is not readable!");
@@ -974,9 +945,6 @@ const iterate = exports.iterate = function(path) {
  * @returns PosixFilePermission the POSIX permissions for the given path
  */
 const permissions = exports.permissions = function(path) {
-    if (security) {
-        security.checkRead(path);
-    }
     return new PosixPermissions(Files.getPosixFilePermissions(getPath(path)));
 }
 
@@ -986,9 +954,6 @@ const permissions = exports.permissions = function(path) {
  * @returns {String} the username of the owner, or null if not possible to determine
  */
 const owner = exports.owner = function(path) {
-    if (security) {
-        security.checkRead(path);
-    }
     try {
         return Files.getOwner(getPath(path)).getName();
     } catch (error) {
@@ -1004,9 +969,6 @@ const owner = exports.owner = function(path) {
  * @returns {String} the group's name, or null if not possible to determine
  */
 const group = exports.group = function(path) {
-    if (security) {
-        security.checkRead(path);
-    }
     try {
         const attributes = Files.getFileAttributeView(getPath(path), PosixFileAttributeView);
         return attributes.readAttributes().group().getName();
@@ -1023,9 +985,6 @@ const group = exports.group = function(path) {
  * @param {Number|String|java.util.Set<PosixFilePermission>} permissions the POSIX permissions
  */
 const changePermissions = exports.changePermissions = function(path, permissions) {
-    if (security) {
-        security.checkWrite(path);
-    }
     permissions = new PosixPermissions(permissions);
     return Files.setPosixFilePermissions(getPath(path), permissions.toJavaPosixFilePermissionSet());
 }
@@ -1037,10 +996,6 @@ const changePermissions = exports.changePermissions = function(path, permissions
  * @param {String} owner the user name string
  */
 const changeOwner = exports.changeOwner = function(path, user) {
-    if (security) {
-        security.checkWrite(path);
-    }
-
     const lookupService = FS.getUserPrincipalLookupService();
     const userPrincipal = lookupService.lookupPrincipalByName(user);
 
@@ -1054,10 +1009,6 @@ const changeOwner = exports.changeOwner = function(path, user) {
  * @param {String} group group name string
  */
 const changeGroup = exports.changeGroup = function(path, group) {
-    if (security) {
-        security.checkWrite(path);
-    }
-
     const lookupService = FS.getUserPrincipalLookupService();
     const groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
 
