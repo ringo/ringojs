@@ -126,6 +126,7 @@ public final class RingoWorker {
             }
         } finally {
             releaseWorker(previous);
+            cx.processMicrotasks();
             Context.exit();
         }
     }
