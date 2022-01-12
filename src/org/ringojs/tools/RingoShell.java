@@ -31,7 +31,6 @@ import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoConfig;
 import org.ringojs.engine.RingoWorker;
 import org.ringojs.engine.ScriptError;
-import org.ringojs.repository.Repository;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 import org.ringojs.repository.Resource;
@@ -45,8 +44,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.security.CodeSource;
-import java.security.CodeSigner;
 
 /**
  * RingoShell is a simple interactive shell that provides the
@@ -60,7 +57,6 @@ public class RingoShell {
     Scriptable scope;
     boolean silent;
     Path history;
-    CodeSource codeSource = null;
     final String PROMPT = ">> ";
     final String SECONDARY_PROMPT = ".. ";
 
@@ -73,7 +69,7 @@ public class RingoShell {
         this.config = engine.getConfig();
         this.engine = engine;
         this.history = history;
-        this.worker = engine.getWorker();
+        this.worker = engine.getMainWorker();
         this.scope = engine.getShellScope(worker);
         this.silent = silent;
     }
