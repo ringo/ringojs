@@ -142,7 +142,7 @@ public class ScriptableList extends NativeJavaObject {
             double d = ScriptRuntime.toNumber(value);
             long longVal = ScriptRuntime.toUint32(d);
             if (longVal != d) {
-                String msg = ScriptRuntime.getMessage0("msg.arraylength.bad");
+                String msg = ScriptRuntime.getMessageById("msg.arraylength.bad");
                 throw ScriptRuntime.constructError("RangeError", msg);
             }
             int size = list.size();
