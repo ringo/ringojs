@@ -63,9 +63,11 @@ exports.run = (args) => {
     if (args.length === 0) {
         const descriptor = packages.getDescriptor(baseDirectory);
         if (!descriptor) {
-            throw new Error("No package.json file found in " + baseDirectory);
+            term.writeln(term.RED, "No package.json file found in " + baseDirectory, term.RESET);
+            term.writeln(exports.help);
+        } else {
+            installDependencies(descriptor, packagesDirectory, options);
         }
-        installDependencies(descriptor, packagesDirectory, options);
     } else {
         const installed = args.reduce((result, url )=> {
             const descriptor = installPackage(url, packagesDirectory, options);
