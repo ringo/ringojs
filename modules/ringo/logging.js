@@ -114,16 +114,24 @@ function Logger(name, impl) {
 }
 
 /**
- * Configure log4j using the given file resource.
+ * Configure log4j2 using the given file resource.
  *
- * If you plan to update the configuration make sure to set the
- * reset property to true in your configuration file.
- *
- * @param {Resource} resource the configuration resource in XML or properties format
+ * @param {FileResource|string} resource the configuration resource in a valid format; or
+ *                                   a string with the path to the configuration file.
  * @param {Boolean} watchForUpdates if true a scheduler thread is started that
  * repeatedly checks the resource for updates.
  */
 const setConfig = exports.setConfig = function(resource) {
+    if (typeof resource === "string") {
+        resource = getResource(resource);
+    } else if (!(resource instanceof org.ringojs.repository.FileResource)) {
+        throw Error("Invalid argument for configuration resource: " + typeof(resource));
+    }
+
+    if (!resource.exists()) {
+        throw Error("Configuration resource " + resource + " does not exist!");
+    }
+
     const logContext = org.apache.logging.log4j.LogManager.getContext(false);
     logContext.setConfigLocation(new java.net.URI(resource.url));
     logContext.updateLoggers();
