@@ -36,6 +36,40 @@ const isVerbose = require('ringo/engine').getRhinoEngine().getConfig().isVerbose
 // Make exports object emit log events
 EventEmitter.call(exports);
 
+// For the logging module internal debugging.
+const loggingLogger = (function InternalLogger() {
+    let internalLog;
+
+    if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
+        internalLog = org.slf4j.LoggerFactory.getLogger(module.id);
+    } else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
+        internalLog = org.apache.logging.log4j.LogManager.getLogger(module.id);
+    } else {
+        internalLog = java.util.logging.Logger.getLogger(module.id);
+    }
+
+    return {
+        debug: function(str) {
+            if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
+                internalLog.debug(str);
+            } else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
+                internalLog.debug(str);
+            } else {
+                internalLog.logp(java.util.logging.Level.FINE, null, null, str);
+            }
+        },
+        warn: function(str) {
+            if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
+                internalLog.warn(str);
+            } else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
+                internalLog.warn(str);
+            } else {
+                internalLog.logp(java.util.logging.Level.WARNING, null, null, str);
+            }
+        },
+    }
+})();
+
 /**
  * Logger class. This constructor is not exported, use this module's
  * {@link getLogger} to get a logger instance.
@@ -122,6 +156,11 @@ function Logger(name, impl) {
  * repeatedly checks the resource for updates.
  */
 const setConfig = exports.setConfig = function(resource) {
+    if (typeof org.apache.logging.log4j.LogManager.getContext !== "function") {
+        loggingLogger.warn("Skipping configurating ringo/logging; setConfig() is only supported by log4j!");
+        return;
+    }
+
     if (typeof resource === "string") {
         resource = getResource(resource);
     } else if (!(resource instanceof org.ringojs.repository.FileResource)) {
@@ -203,6 +242,7 @@ const JdkLogger = function(name) {
 
     const log = java.util.logging.Logger.getLogger(name);
     const Level = java.util.logging.Level;
+    loggingLogger.debug("Created JdkLogger for the named subsystem " + name);
 
     this.trace = (msg) => log.logp(Level.FINEST, null, null, msg);
 
@@ -237,6 +277,7 @@ const Log4jLogger = function(name) {
         setConfig(getResource('config/log4j2.properties'));
     }
     const log = org.apache.logging.log4j.LogManager.getLogger(name);
+    loggingLogger.debug("Created Log4jLogger with the name " + name);
 
     this.trace = (msg) => log.trace(msg);
 
@@ -267,10 +308,11 @@ const Log4jLogger = function(name) {
  */
 const Slf4jLogger = function(name) {
 
-    if (!configured) {
+    if (!configured && typeof org.apache.logging.log4j.LogManager.getContext === "function") {
         setConfig(getResource('config/log4j2.properties'));
     }
     const log = org.slf4j.LoggerFactory.getLogger(name);
+    loggingLogger.debug("Created Slf4jLogger with the name " + name);
 
     this.trace = (msg) => log.trace(msg);
 
