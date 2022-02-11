@@ -38,14 +38,15 @@ EventEmitter.call(exports);
 
 // For the logging module internal debugging.
 const loggingLogger = (function InternalLogger() {
+    const loggerName = module.id.replace(/\//g, '.');
     let internalLog;
 
     if (typeof org.slf4j.LoggerFactory.getLogger === "function") {
-        internalLog = org.slf4j.LoggerFactory.getLogger(module.id);
+        internalLog = org.slf4j.LoggerFactory.getLogger(loggerName);
     } else if (typeof org.apache.logging.log4j.LogManager.getLogger === "function") {
-        internalLog = org.apache.logging.log4j.LogManager.getLogger(module.id);
+        internalLog = org.apache.logging.log4j.LogManager.getLogger(loggerName);
     } else {
-        internalLog = java.util.logging.Logger.getLogger(module.id);
+        internalLog = java.util.logging.Logger.getLogger(loggerName);
     }
 
     return {
@@ -179,7 +180,8 @@ const setConfig = exports.setConfig = function(resource) {
 
 /**
  * Get a logger for the given name.
- * @param {String} name the name of the logger
+ * @param {String} name the name of the logger. To ensure dot-separated logger names,
+ * module hierarchy separators (<tt>/</tt>) will be replaced with a dot.
  * @returns {Logger} a logger instance for the given name
  */
 const getLogger = exports.getLogger = (name) => {
