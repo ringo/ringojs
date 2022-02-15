@@ -66,8 +66,8 @@ exports.testUDP = () => {
 
     spawn(() => {
         clientSocket.sendTo(HOST_IP, PORT, "hello");
-        semaphores.client.signal();
         messages.toClient = clientSocket.receiveFrom(5);
+        semaphores.client.signal();
     });
     semaphores.server.tryWait(TIMEOUT);
     semaphores.client.tryWait(TIMEOUT);
