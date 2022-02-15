@@ -8,6 +8,7 @@ const binary = require("binary");
 const HOST = "localhost";
 const HOST_IP = "127.0.0.1";
 const PORT = 65432;
+const TIMEOUT = 2500;
 
 exports.testTCP = () => {
     const semaphores = {
@@ -36,8 +37,8 @@ exports.testTCP = () => {
         messages.toClient = stream.readLine();
         semaphores.client.signal();
     });
-    semaphores.server.tryWait(200);
-    semaphores.client.tryWait(200);
+    semaphores.server.tryWait(TIMEOUT);
+    semaphores.client.tryWait(TIMEOUT);
     assert.strictEqual(messages.toServer, "hello\n");
     assert.strictEqual(messages.toClient, "world\n");
 };
@@ -66,8 +67,8 @@ exports.testUDP = () => {
         semaphores.client.signal();
         messages.toClient = clientSocket.receiveFrom(5);
     });
-    semaphores.server.tryWait(200);
-    semaphores.client.tryWait(200);
+    semaphores.server.tryWait(TIMEOUT);
+    semaphores.client.tryWait(TIMEOUT);
     assert.strictEqual(messages.toServer.address, HOST_IP);
     assert.strictEqual(messages.toServer.port, PORT + 1);
     assert.isTrue(Arrays.equals(messages.toServer.data, binary.toByteArray("hello")));
