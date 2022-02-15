@@ -54,14 +54,16 @@ exports.testUDP = () => {
     };
     const serverSocket = new DatagramSocket();
     serverSocket.bind(HOST, PORT);
+
+    const clientSocket = new DatagramSocket();
+    clientSocket.bind(HOST, PORT + 1);
+
     spawn(() => {
         messages.toServer = serverSocket.receiveFrom(5);
         serverSocket.sendTo(HOST_IP, PORT + 1, "world");
         semaphores.server.signal();
     });
 
-    const clientSocket = new DatagramSocket();
-    clientSocket.bind(HOST, PORT + 1);
     spawn(() => {
         clientSocket.sendTo(HOST_IP, PORT, "hello");
         semaphores.client.signal();
