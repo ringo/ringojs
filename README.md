@@ -36,7 +36,7 @@ Releases of RingoJS will be signed with one of the following GPG keys:
 [![Build and Test](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml/badge.svg?branch=master&event=push)](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml)
 
 Ringo runs on top of the Java Platform. You can use an open implementation like [Eclipse Temurin][EclipseTemurin] or [Oracle's distribution][OracleJava].
-It uses Gradle [Gradle] as build tool.
+It uses [Gradle] as build tool.
 
 [EclipseTemurin]: https://adoptium.net/ 
 [OracleJava]: https://www.oracle.com/technetwork/java/javase/downloads/index.html
