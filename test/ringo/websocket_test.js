@@ -5,7 +5,7 @@ const {Semaphore} = require("ringo/concurrent");
 const {Arrays} = java.util;
 const binary = require("binary");
 
-const TIMEOUT = 5000;
+const TIMEOUT = 10000;
 
 exports.testTextMessage = function() {
     const message = "hello world!";
