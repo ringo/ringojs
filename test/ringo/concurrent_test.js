@@ -9,6 +9,6 @@ exports.testSemaphore = () => {
         java.lang.Thread.sleep(50);
         semaphore.signal(2);
     });
-    
-    assert.isTrue(semaphore.tryWait(100, 2));
+
+    assert.isTrue(semaphore.tryWait(500, 2));
 };

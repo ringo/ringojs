@@ -13,7 +13,7 @@ exports.testResolve = () => {
             semaphore.signal();
         });
     });
-    semaphore.tryWait(150);
+    semaphore.tryWait(5000);
     assert.isTrue(expected);
 };
 

@@ -5,6 +5,8 @@ const {Semaphore} = require("ringo/concurrent");
 const {Arrays} = java.util;
 const binary = require("binary");
 
+const TIMEOUT = 5000;
+
 exports.testTextMessage = function() {
     const message = "hello world!";
     const worker = new Worker(module.resolve("./websocket_worker"));
@@ -24,7 +26,7 @@ exports.testTextMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(2000)) {
+        if (!semaphore.tryWait(TIMEOUT)) {
             assert.fail("web socket text timed out");
         }
         assert.equal(received, message);
@@ -48,7 +50,7 @@ exports.testBinaryMessage = function() {
             "isAsync": isAsync
         }, true);
 
-        if (!semaphore.tryWait(2000)) {
+        if (!semaphore.tryWait(TIMEOUT)) {
             assert.fail("web socket binary timed out");
         }
         assert.isTrue(Arrays.equals(received, message));
