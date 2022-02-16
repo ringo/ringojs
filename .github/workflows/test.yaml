@@ -2,10 +2,12 @@ name: Build and Test
 on: [push, workflow_dispatch]
 jobs:
   start-test-runner:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
       matrix:
+        # All three major OS types are supported
+        os: [windows-latest, macos-latest, ubuntu-latest]
         # RingoJS supports all current LTS releases:
         java: ['8', '11', '17']
     name: Test with JDK ${{ matrix.java }}
