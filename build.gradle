@@ -111,7 +111,7 @@ jar {
 javadoc {
     destinationDir = file('./docs/java')
     options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
-    if (JavaVersion.current().isJava9Compatible()) {
+    if (JavaVersion.current().isJava9Compatible() && !JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
         options.addBooleanOption('html5', true)
         options.addBooleanOption('-no-module-directories', true)
         options.addStringOption('sourcepath', 'src')
