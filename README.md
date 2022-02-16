@@ -14,13 +14,16 @@ large-scale application development:
   * Support for CommonJS packages to install or write additional software
     components.
 
-For more information, visit the RingoJS web site: <https://ringojs.org/>
+For more information, visit the RingoJS web site: <https://ringojs.org>
 
 ## Download and Installation
 
 Download the latest precompiled release from the [download page](https://ringojs.org/download/). Extract the archive and add the `ringojs/bin` directory to your local `PATH` for convinience.
 
 If you use the Homebrew package manager on MacOS, you can use the ringojs formula: `brew install ringojs`
+
+Take a look at the [Getting Started Guide](https://ringojs.org/get_started/) on Ringo's website for more details
+how to get started after you installed Ringo on your system.
 
 ### Verify Releases
 Releases of RingoJS will be signed with one of the following GPG keys:
@@ -30,11 +33,13 @@ Releases of RingoJS will be signed with one of the following GPG keys:
 
 ## Building from Source
 
-![Current Build Status on Codeship](https://codeship.com/projects/b5d80b20-15d7-0134-6e68-2e1718fe265e/status?branch=master)
+[![Build and Test](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml/badge.svg?branch=master&event=push)](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml)
 
-Ringo requires a recent version of [Java]. It uses Gradle [Gradle] as build tool.
+Ringo runs on top of the Java Platform. You can use an open implementation like [Eclipse Temurin][EclipseTemurin] or [Oracle's distribution][OracleJava].
+It uses [Gradle] as build tool.
 
-[Java]: https://www.oracle.com/technetwork/java/javase/downloads/index.html
+[EclipseTemurin]: https://adoptium.net/ 
+[OracleJava]: https://www.oracle.com/technetwork/java/javase/downloads/index.html
 [Gradle]: https://gradle.org/
 
 If you have these installed, building Ringo is straightforward:
@@ -46,43 +51,6 @@ Check out Ringo using Git:
 Change to the ringojs directory and run
 
     ./gradlew
-
-## Running RingoJS
-
-It is recommended but not strictly required to add the ringojs bin directory to
-your PATH environment variable. If you don't you'll have to type the full path
-to the bin/ringo command in the examples below.
-
-To start the Ringo shell, just run the ringo command without any arguments:
-
-    ringo
-
-To run a script simply pass it to ringo on the command line. For example,
-to run the Ringo test suite:
-
-    ringo test/all.js
-
-Use the basic ringo-admin command to create a new web application or install
-packages. To create a blank Ringo web app:
-
-    ringo-admin create [appdir]
-
-To install a package from a zip URL:
-
-    ringo-admin install [packageurl]
-
-## Installing a package manager
-
-Ringo does not ship with a built-in package manager.
-An easy way to manage packages and their dependencies is the evolving Ringo package manager rp.
-The main benefit of rp over `ringo-admin` is that rp downloads dependencies defined in the packages descriptors.
-rp can install any package available in its [online registry](http://packages.ringojs.org).
-
-To install rp itself you can use the ringo-admin tool:
-
-    ringo-admin install grob/rp
-
-For more information visit the [rp documentation wiki](https://github.com/grob/rp/wiki).
 
 ## Supporters
 
