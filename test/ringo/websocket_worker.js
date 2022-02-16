@@ -1,23 +1,23 @@
-var {URI} = java.net;
-var {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;
-var {WebSocketListener, StatusCode} = org.eclipse.jetty.websocket.api;
-var {ByteBuffer} = java.nio;
-var {JavaEventEmitter} = require("ringo/events");
-var {HttpServer} = require("ringo/httpserver");
+const {URI} = java.net;
+const {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;
+const {WebSocketListener} = org.eclipse.jetty.websocket.api;
+const {ByteBuffer} = java.nio;
+const {JavaEventEmitter} = require("ringo/events");
+const {HttpServer} = require("ringo/httpserver");
 
 require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
-var host = "127.0.0.1";
-var port = "4400";
-var path = "/websocket";
-var uri = "ws://" + host + ":" + port + path;
+const host = "127.0.0.1";
+const port = "4400";
+const path = "/websocket";
+const uri = "ws://" + host + ":" + port + path;
 
-var config = {
+const config = {
     host: host,
     port: port
 };
 
-var Listener = function() {
+const Listener = function() {
     return new JavaEventEmitter(WebSocketListener, {
         "onWebSocketConnect": "connect",
         "onWebSocketClose": "close",
@@ -30,11 +30,11 @@ var Listener = function() {
 /**
  * The worker module needed by scheduler_test
  */
-var onmessage = function(event) {
-    var {message, semaphore, isAsync} = event.data;
-    var isBinary = (typeof message === "string");
-    var server = new HttpServer();
-    var appContext = server.serveApplication("/", function(req) {
+const onmessage = function(event) {
+    const {message, semaphore, isAsync} = event.data;
+    const isBinary = (typeof message === "string");
+    let server = new HttpServer();
+    const appContext = server.serveApplication("/", function(req) {
         req.charset = 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
         return getResponse(req);
@@ -52,15 +52,15 @@ var onmessage = function(event) {
     server.createHttpListener(config);
     server.start();
 
-    var client = new WebSocketClient();
+    const client = new WebSocketClient();
     client.start();
 
-    var socketUri = new URI(uri);
-    var request = new ClientUpgradeRequest();
+    const socketUri = new URI(uri);
+    const request = new ClientUpgradeRequest();
 
-    var listener = new Listener();
+    const listener = new Listener();
     listener.on("connect", function(session) {
-        var remote = session.getRemote();
+        const remote = session.getRemote();
         if (isBinary) {
             remote.sendString(message);
         } else {

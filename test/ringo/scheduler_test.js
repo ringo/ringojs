@@ -1,18 +1,20 @@
-var assert = require("assert");
-var {Worker} = require("ringo/worker");
-var {Semaphore} = require("ringo/concurrent");
+const assert = require("assert");
+const {Worker} = require("ringo/worker");
+const {Semaphore} = require("ringo/concurrent");
+
+const TIMEOUT = 1000;
 
 exports.testSetTimeout = function() {
-    var value;
-    var semaphore = new Semaphore();
+    let value;
+    const semaphore = new Semaphore();
     // Spawn worker which will set timeout
-    var worker = new Worker(module.resolve("./scheduler_worker"));
+    const worker = new Worker(module.resolve("./scheduler_worker"));
     worker.onmessage = function(e) {
         value = e.data;
     };
     worker.postMessage({test: 1, semaphore: semaphore}, true);
     // wait for promises to resolve
-    if (!semaphore.tryWait(1000)) {
+    if (!semaphore.tryWait(TIMEOUT)) {
         assert.fail("timed out");
     }
     // make sure promises have resolved via chained callback
@@ -21,16 +23,16 @@ exports.testSetTimeout = function() {
 };
 
 exports.testSetInterval = function() {
-    var value = 0;
-    var semaphore = new Semaphore();
+    let value = 0;
+    const semaphore = new Semaphore();
     // Spawn worker which will set interval
-    var worker = new Worker(module.resolve("./scheduler_worker"));
+    const worker = new Worker(module.resolve("./scheduler_worker"));
     worker.onmessage = function(e) {
         value += e.data;
     };
     worker.postMessage({test: 2, semaphore: semaphore}, true);
     // wait for promises to resolve
-    if (!semaphore.tryWait(1000, 3)) {
+    if (!semaphore.tryWait(TIMEOUT, 3)) {
         assert.fail("timed out");
     }
     // make sure promises have resolved via chained callback
@@ -46,7 +48,7 @@ function onmessage(e) {
             e.data.semaphore.signal();
         }, 1, "value");
     } else {
-        var id = setInterval(function(arg) {
+        setInterval(function(arg) {
             e.source.postMessage(arg);
             e.data.semaphore.signal();
         }, 5, 10);
