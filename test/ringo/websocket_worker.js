@@ -69,17 +69,17 @@ const onmessage = function(event) {
     });
     listener.on("text", function(message) {
         event.source.postMessage(message);
-        semaphore.signal();
         server.stop();
         server.destroy();
         server = null;
+        semaphore.signal();
     });
     listener.on("binary", function(bytes, offset, length) {
         event.source.postMessage(bytes);
-        semaphore.signal();
         server.stop();
         server.destroy();
         server = null;
+        semaphore.signal();
     });
     client.connect(listener.impl, socketUri, request);
 };
