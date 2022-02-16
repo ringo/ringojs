@@ -24,22 +24,7 @@ const bashTests = {
         assert.isTrue(status === 0);
     },
     testSystem: () => {
-        const oldOut = java.lang.System.out;
-        const baos = new java.io.ByteArrayOutputStream(1024);
-        const ps = new java.io.PrintStream(baos);
-        java.lang.System.setOut(ps);
-
-        let status = -1;
-        try {
-            status = subprocess.system("/bin/bash", "-c", "echo $PATH");
-        } finally {
-            java.lang.System.setOut(oldOut);
-        }
-
-        const cs = java.nio.charset.Charset.defaultCharset();
-        const path = baos.toString(cs.name());
-
-        assert.isTrue(path.indexOf("/bin") >= 0);
+        const status = subprocess.system("/bin/bash", "-c", "echo ''");
         assert.isTrue(status === 0);
     }
 };
@@ -54,22 +39,7 @@ const cmdTests = {
         assert.isTrue(status === 0);
     },
     testSystem: () => {
-        const oldOut = java.lang.System.out;
-        const baos = new java.io.ByteArrayOutputStream(1024);
-        const ps = new java.io.PrintStream(baos);
-        java.lang.System.setOut(ps);
-
-        let status = -1;
-        try {
-            status = subprocess.system("cmd", "/C", "ver");
-        } finally {
-            java.lang.System.setOut(oldOut);
-        }
-
-        const cs = java.nio.charset.Charset.defaultCharset();
-        const path = baos.toString(cs.name());
-
-        assert.isTrue(path.indexOf("Microsoft Windows") >= 0);
+        const status = subprocess.system("cmd", "/C", "ver");
         assert.isTrue(status === 0);
     }
 };
