@@ -5,7 +5,7 @@ const {Semaphore} = require("ringo/concurrent");
 const {Arrays} = java.util;
 const binary = require("binary");
 
-const TIMEOUT = 10000;
+const TIMEOUT = 5000;
 
 let worker;
 
@@ -20,7 +20,6 @@ exports.tearDown = function() {
 
 exports.testTextMessage = function() {
     const message = "hello world!";
-    const worker = new Worker(module.resolve("./websocket_worker"));
     let received = null;
     worker.onmessage = function(event) {
         received = event.data;
