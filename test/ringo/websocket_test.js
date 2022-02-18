@@ -7,6 +7,17 @@ const binary = require("binary");
 
 const TIMEOUT = 10000;
 
+let worker;
+
+exports.setUp = function() {
+    worker = new Worker(module.resolve("./websocket_worker"));
+}
+
+exports.tearDown = function() {
+    worker.terminate();
+    worker = null;
+};
+
 exports.testTextMessage = function() {
     const message = "hello world!";
     const worker = new Worker(module.resolve("./websocket_worker"));
@@ -32,17 +43,6 @@ exports.testTextMessage = function() {
         assert.equal(received, message);
     });
     worker.terminate();
-};
-
-let worker;
-
-exports.setUp = function() {
-    worker = new Worker(module.resolve("./websocket_worker"));
-}
-
-exports.tearDown = function() {
-    worker.terminate();
-    worker = null;
 };
 
 exports.testBinaryMessage = function() {
