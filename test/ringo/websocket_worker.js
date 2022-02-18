@@ -7,16 +7,6 @@ const {HttpServer} = require("ringo/httpserver");
 
 require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
-const host = "127.0.0.1";
-const port = "4400";
-const path = "/websocket";
-const uri = "ws://" + host + ":" + port + path;
-
-const config = {
-    host: host,
-    port: port
-};
-
 const Listener = function() {
     return new JavaEventEmitter(WebSocketListener, {
         "onWebSocketConnect": "connect",
@@ -33,6 +23,17 @@ const Listener = function() {
 const onmessage = function(event) {
     const {message, semaphore, isAsync} = event.data;
     const isBinary = (typeof message === "string");
+
+    const host = "127.0.0.1";
+    const port = String(4400 + (isAsync ? 0 : 1) + (isBinary ? 0 : 10));
+    const path = "/websocket";
+    const uri = "ws://" + host + ":" + port + path;
+
+    const config = {
+        host: host,
+        port: port
+    };
+
     let server = new HttpServer();
     const appContext = server.serveApplication("/", function(req) {
         req.charset = 'utf8';

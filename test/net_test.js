@@ -7,7 +7,8 @@ const binary = require("binary");
 
 const HOST = "localhost";
 const HOST_IP = "127.0.0.1";
-const PORT = 65432;
+const PORT_TCP = 25000;
+const PORT_UDP = 26000;
 const TIMEOUT = 2500;
 
 exports.testTCP = () => {
@@ -20,7 +21,7 @@ exports.testTCP = () => {
         "toClient": null
     };
     const serverSocket = new ServerSocket();
-    serverSocket.bind(HOST, PORT);
+    serverSocket.bind(HOST, PORT_TCP);
 
     const socket = new Socket();
 
@@ -33,7 +34,7 @@ exports.testTCP = () => {
     });
 
     spawn(() => {
-        socket.connect(HOST, PORT);
+        socket.connect(HOST, PORT_TCP);
         const stream = new TextStream(socket.getStream());
         stream.writeLine("hello");
         messages.toClient = stream.readLine();
@@ -56,19 +57,19 @@ exports.testUDP = () => {
         "toClient": null
     };
     const serverSocket = new DatagramSocket();
-    serverSocket.bind(HOST, PORT);
+    serverSocket.bind(HOST, PORT_UDP);
 
     const clientSocket = new DatagramSocket();
-    clientSocket.bind(HOST, PORT + 1);
+    clientSocket.bind(HOST, PORT_UDP + 1);
 
     spawn(() => {
         messages.toServer = serverSocket.receiveFrom(5);
-        serverSocket.sendTo(HOST_IP, PORT + 1, "world");
+        serverSocket.sendTo(HOST_IP, PORT_UDP + 1, "world");
         semaphores.server.signal();
     });
 
     spawn(() => {
-        clientSocket.sendTo(HOST_IP, PORT, "hello");
+        clientSocket.sendTo(HOST_IP, PORT_UDP, "hello");
         messages.toClient = clientSocket.receiveFrom(5);
         semaphores.client.signal();
     });
@@ -77,10 +78,10 @@ exports.testUDP = () => {
     semaphores.client.tryWait(TIMEOUT);
 
     assert.strictEqual(messages.toServer.address, HOST_IP);
-    assert.strictEqual(messages.toServer.port, PORT + 1);
+    assert.strictEqual(messages.toServer.port, PORT_UDP + 1);
     assert.isTrue(Arrays.equals(messages.toServer.data, binary.toByteArray("hello")));
     assert.strictEqual(messages.toClient.address, HOST_IP);
-    assert.strictEqual(messages.toClient.port, PORT);
+    assert.strictEqual(messages.toClient.port, PORT_UDP);
     assert.isTrue(Arrays.equals(messages.toClient.data, binary.toByteArray("world")));
 };
 
