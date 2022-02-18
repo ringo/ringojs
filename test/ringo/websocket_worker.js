@@ -51,36 +51,59 @@ const onmessage = function(event) {
     });
 
     server.createHttpListener(config);
-    server.start();
+    let client = new WebSocketClient();
 
-    const client = new WebSocketClient();
-    client.start();
+    try {
+        server.start();
+        client.start();
 
-    const socketUri = new URI(uri);
-    const request = new ClientUpgradeRequest();
+        const socketUri = new URI(uri);
+        const request = new ClientUpgradeRequest();
 
-    const listener = new Listener();
-    listener.on("connect", function(session) {
-        const remote = session.getRemote();
-        if (isBinary) {
-            remote.sendString(message);
-        } else {
-            remote.sendBytes(ByteBuffer.wrap(message));
-        }
-    });
-    listener.on("text", function(message) {
-        event.source.postMessage(message);
+        const listener = new Listener();
+        listener.on("connect", function (session) {
+            const remote = session.getRemote();
+            if (isBinary) {
+                remote.sendString(message);
+            } else {
+                remote.sendBytes(ByteBuffer.wrap(message));
+            }
+        });
+        listener.on("text", function (message) {
+            event.source.postMessage(message);
+
+            server.stop();
+            server.destroy();
+            server = null;
+
+            client.stop();
+            client.destroy();
+            client = null;
+
+            semaphore.signal();
+        });
+        listener.on("binary", function (bytes, offset, length) {
+            event.source.postMessage(bytes);
+
+            server.stop();
+            server.destroy();
+            server = null;
+
+            client.stop();
+            client.destroy();
+            client = null;
+
+            semaphore.signal();
+        });
+
+        client.connect(listener.impl, socketUri, request);
+    } catch (e) {
         server.stop();
         server.destroy();
         server = null;
-        semaphore.signal();
-    });
-    listener.on("binary", function(bytes, offset, length) {
-        event.source.postMessage(bytes);
-        server.stop();
-        server.destroy();
-        server = null;
-        semaphore.signal();
-    });
-    client.connect(listener.impl, socketUri, request);
+
+        client.stop();
+        client.destroy();
+        client = null;
+    }
 };

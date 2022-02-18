@@ -34,9 +34,19 @@ exports.testTextMessage = function() {
     worker.terminate();
 };
 
+let worker;
+
+exports.setUp = function() {
+    worker = new Worker(module.resolve("./websocket_worker"));
+}
+
+exports.tearDown = function() {
+    worker.terminate();
+    worker = null;
+};
+
 exports.testBinaryMessage = function() {
     const message = binary.toByteArray("hello world!");
-    const worker = new Worker(module.resolve("./websocket_worker"));
     let received = null;
     worker.onmessage = function(event) {
         received = event.data;
@@ -55,7 +65,6 @@ exports.testBinaryMessage = function() {
         }
         assert.isTrue(Arrays.equals(received, message));
     });
-    worker.terminate();
 };
 
 if (require.main === module) {
