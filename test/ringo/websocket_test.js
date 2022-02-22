@@ -37,7 +37,7 @@ exports.testTextMessage = function() {
         }, true);
 
         if (!semaphore.tryWait(TIMEOUT)) {
-            assert.fail("web socket text timed out");
+            assert.fail("web socket text timed out (async: " + isAsync + ")");
         }
         assert.equal(received, message);
     });
@@ -60,7 +60,7 @@ exports.testBinaryMessage = function() {
         }, true);
 
         if (!semaphore.tryWait(TIMEOUT)) {
-            assert.fail("web socket binary timed out");
+            assert.fail("web socket binary timed out (async: " + isAsync + ")");
         }
         assert.isTrue(Arrays.equals(received, message));
     });
