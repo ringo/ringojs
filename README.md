@@ -28,8 +28,34 @@ how to get started after you installed Ringo on your system.
 ### Verify Releases
 Releases of RingoJS will be signed with one of the following GPG keys:
 
+* 3.0.0 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; `1405 9F17 6485 6429 089F B423 6167 CFBB BDF2 A508`
 * 1.2.1 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; `DE2A A9A1 B018 6C2F 622F  D9EF 3F47 C28B 23EB 3072`
 * 1.2.0 and older: Philipp Naderer &lt;philipp.naderer@gmail.com&gt; `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
+
+#### Verifying a binary release
+
+Get the latest release key for 3.0.0 and newer with: 
+
+```
+$ gpg --keyserver hkps://keys.openpgp.org --recv-keys 14059F1764856429089FB4236167CFBBBDF2A508
+```
+
+Download the checksums `SHASUMS256.txt` and separate signature `SHASUMS256.txt.sig` for the release, e.g.
+
+```
+$ curl -LO https://github.com/ringo/ringojs/releases/download/v3.0.0/SHASUMS256-3.0.0.txt
+$ curl -LO https://github.com/ringo/ringojs/releases/download/v3.0.0/SHASUMS256-3.0.0.txt.sig
+```
+
+Now verify the checksums with:
+
+```
+$ gpg --verify SHASUMS256-3.0.0.txt.sig
+gpg: assuming signed data in 'SHASUMS256-3.0.0-RC6.txt'
+gpg: Signature made Wed Feb 23 12:07:10 2022 CET
+gpg:                using RSA key 14059F1764856429089FB4236167CFBBBDF2A508
+gpg: Good signature from "Philipp Naderer-Puiu <philipp@naderer-puiu.at>" [ultimate]
+```
 
 ## Building from Source
 
