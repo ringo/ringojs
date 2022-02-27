@@ -25,15 +25,23 @@ If you use the Homebrew package manager on MacOS, you can use the ringojs formul
 Take a look at the [Getting Started Guide](https://ringojs.org/get_started/) on Ringo's website for more details
 how to get started after you installed Ringo on your system.
 
-### Verify Releases
+### Verify releases
+
+To verify the integrity of a downloaded binary distribution, use the associated checksum file:
+
+```
+$ grep ringojs-x.y.z.tar.gz SHASUMS256-x.y.z.txt | sha256sum -c -
+```
+
+#### Verifying the integrity of provided checksums
+
 Releases of RingoJS will be signed with one of the following GPG keys:
 
-* 3.0.0 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; `1405 9F17 6485 6429 089F B423 6167 CFBB BDF2 A508`
-* 1.2.1 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; `DE2A A9A1 B018 6C2F 622F  D9EF 3F47 C28B 23EB 3072`
-* 1.2.0 and older: Philipp Naderer &lt;philipp.naderer@gmail.com&gt; `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
+* 3.0.0 and newer: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; <br> `1405 9F17 6485 6429 089F B423 6167 CFBB BDF2 A508`
+* 2.0.0 and older: Philipp Naderer-Puiu &lt;philipp@naderer-puiu.at&gt; <br> `DE2A A9A1 B018 6C2F 622F  D9EF 3F47 C28B 23EB 3072`
+* 1.2.0 and older: Philipp Naderer &lt;philipp.naderer@gmail.com&gt; <br> `8FF2 26B7 F268 547B 176F ABAC F312 313B 5CBC 0883`
 
-#### Verifying a binary release
-
+All official releases will be signed by at least one published key.
 Get the latest release key for 3.0.0 and newer with: 
 
 ```
