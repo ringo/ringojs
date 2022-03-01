@@ -47,9 +47,9 @@ dependencies {
     implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.45.v20220203'
     implementation 'org.eclipse.jetty:jetty-servlets:9.4.45.v20220203'
     implementation 'org.eclipse.jetty:jetty-xml:9.4.45.v20220203'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.2'
     implementation 'org.jline:jline:3.21.0'
     implementation 'junit:junit:4.13.2'
 }
