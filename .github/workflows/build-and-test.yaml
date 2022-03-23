@@ -1,9 +1,8 @@
 name: Build and Test
 on:
-  push:
-    branches:
-      - "main"    # future-proof
-      - "master"  # naming
+#  push:
+#    branches:
+#      - "main"
   workflow_dispatch:
 jobs:
   start-test-runner:
