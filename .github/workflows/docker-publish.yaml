@@ -1,16 +1,13 @@
 name: Docker Publish
-
 on:
   push:
     branches:
       - "main"
   workflow_dispatch:
-
-# env:
-#  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-#  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
