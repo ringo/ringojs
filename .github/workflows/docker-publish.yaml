@@ -12,7 +12,6 @@ on:
 #  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
 jobs:
-
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
