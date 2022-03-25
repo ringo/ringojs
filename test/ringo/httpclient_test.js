@@ -248,14 +248,14 @@ exports.testStatusCodes = () => {
 exports.testCookie = function() {
     const COOKIE_NAME = "testcookie";
     const COOKIE_VALUE = "cookie value with s p   a c es";
-    const COOKIE_DAYS = 5;
+    const COOKIE_EXPIRES = new Date(Date.now() + (5 * 60 * 1000));
 
     getResponse = (req) => {
         const params = parseParameters(req.queryString, {});
         // set cookie
         const res = response.html("cookie set");
         res.headers["Set-Cookie"] = setCookie(COOKIE_NAME,
-                params.cookievalue, COOKIE_DAYS, {
+                params.cookievalue, COOKIE_EXPIRES, {
                     "domain": "localhost",
                     "secure": true
                 });
@@ -273,8 +273,11 @@ exports.testCookie = function() {
     assert.strictEqual(exchange.status, 200);
     const cookie = exchange.cookies[COOKIE_NAME];
     assert.strictEqual(cookie.value, COOKIE_VALUE);
-    // FIXME: why is -1 necessary?
-    assert.strictEqual(cookie.maxAge, (5 * 24 * 60 * 60) - 1);
+
+    // We set 'expires', but only have 'maxAge' in the returned cookie =>
+    // the maxAge depends on the time it takes to calculate it; should be 0 to 2 seconds.
+    assert.isTrue(cookie.maxAge >= 298 && cookie.maxAge <= 300);
+
     assert.strictEqual(cookie.domain, "localhost");
     assert.strictEqual(cookie.isSecure, true);
 };

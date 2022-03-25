@@ -3,6 +3,8 @@ const system = require("system");
 const {Worker} = require("ringo/worker");
 const {Semaphore} = require("ringo/concurrent");
 
+const TIMEOUT = 500;
+
 exports.testPostMessage = () => {
     const worker = new Worker(module.resolve("./worker"));
     const semaphore = new Semaphore();
@@ -23,7 +25,7 @@ exports.testPostMessage = () => {
             "method": "postMessage",
             "payload": payload
         }, true);
-        assert.isTrue(semaphore.tryWait(100));
+        assert.isTrue(semaphore.tryWait(TIMEOUT));
         assert.deepEqual(received, payload);
 
         // postError
@@ -31,14 +33,14 @@ exports.testPostMessage = () => {
             "method": "postError",
             "payload": payload
         }, true);
-        assert.isTrue(semaphore.tryWait(100));
+        assert.isTrue(semaphore.tryWait(TIMEOUT));
         assert.deepEqual(received, payload);
 
         // errors thrown by worker must be received in onerror callback
         worker.postMessage({
             "method": "throwError"
         }, true);
-        assert.isTrue(semaphore.tryWait(100));
+        assert.isTrue(semaphore.tryWait(TIMEOUT));
         assert.isTrue(received instanceof Error);
         assert.strictEqual(received.message, "Error thrown in worker");
 
@@ -46,7 +48,7 @@ exports.testPostMessage = () => {
         worker.postMessage({
             "method": "timeoutError"
         }, true);
-        assert.isTrue(semaphore.tryWait(100));
+        assert.isTrue(semaphore.tryWait(TIMEOUT));
         assert.isTrue(received instanceof Error);
         assert.strictEqual(received.message, "Error thrown in worker timeout");
     } finally {

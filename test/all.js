@@ -9,6 +9,7 @@ exports.testEncoding       = require('./ringo/encoding_test');
 exports.testEvents         = require('./ringo/events_test');
 exports.testHttpClient     = require('./ringo/httpclient_test');
 exports.testJsgi           = require('./ringo/jsgi/all');
+exports.testLogging        = require('./ringo/logging_test');
 exports.testNet            = require('./net_test');
 exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
@@ -22,6 +23,7 @@ exports.testBinary         = require('./binary/all');
 exports.testRepository     = require('./repository/all');
 exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
+exports.testRhino          = require("./rhino/all");
 
 // Also include integration tests
 exports.testIntegration    = require('./integration-tests/all');

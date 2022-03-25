@@ -1,40 +1,115 @@
-var {URI} = java.net;
-var {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;
-var {WebSocketListener, StatusCode} = org.eclipse.jetty.websocket.api;
-var {ByteBuffer} = java.nio;
-var {JavaEventEmitter} = require("ringo/events");
-var {HttpServer} = require("ringo/httpserver");
+const {URI} = java.net;
+const {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;
+const {WebSocketListener} = org.eclipse.jetty.websocket.api;
+const {ByteBuffer} = java.nio;
+const {JavaEventEmitter} = require("ringo/events");
+const {HttpServer} = require("ringo/httpserver");
+const {AbstractLifeCycleListener} = org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
-var host = "127.0.0.1";
-var port = "4400";
-var path = "/websocket";
-var uri = "ws://" + host + ":" + port + path;
-
-var config = {
-    host: host,
-    port: port
-};
-
-var Listener = function() {
+const Listener = function() {
     return new JavaEventEmitter(WebSocketListener, {
-        "onWebSocketConnect": "connect",
-        "onWebSocketClose": "close",
-        "onWebSocketText": "text",
-        "onWebSocketBinary": "binary",
-        "onWebSocketError": "error"
+        onWebSocketConnect: "connect",
+        onWebSocketClose: "close",
+        onWebSocketText: "text",
+        onWebSocketBinary: "binary",
+        onWebSocketError: "error"
     });
 };
 
 /**
  * The worker module needed by scheduler_test
  */
-var onmessage = function(event) {
-    var {message, semaphore, isAsync} = event.data;
-    var isBinary = (typeof message === "string");
-    var server = new HttpServer();
-    var appContext = server.serveApplication("/", function(req) {
+const onmessage = function(event) {
+    const {source} = event;
+    const {message, semaphore, isAsync} = event.data;
+    const isBinary = (typeof message === "string");
+
+    const host = "127.0.0.1";
+    const port = String(4400 + (isAsync ? 0 : 1) + (isBinary ? 0 : 10));
+    const path = "/websocket";
+    const uri = "ws://" + host + ":" + port + path;
+
+    const config = {
+        host: host,
+        port: port
+    };
+
+    let server = new HttpServer();
+    let client = new WebSocketClient();
+
+    const stopAll = () => {
+        server.stop();
+        server.destroy();
+        server = null;
+        client.stop();
+        client.destroy();
+        client = null;
+    };
+
+    const lifeCycleListener = new AbstractLifeCycleListener({
+        lifeCycleFailure: (event, error) => {
+            source.postError(error);
+            stopAll();
+        },
+        lifeCycleStarted: () => {
+            try {
+                const socketUri = new URI(uri);
+                const request = new ClientUpgradeRequest();
+                const listener = new Listener();
+                listener.on("error", (e) => {
+                    try {
+                        source.postError(e);
+                    } finally {
+                        stopAll();
+                    }
+                });
+                listener.on("connect", (session) => {
+                    try {
+                        const remote = session.getRemote();
+                        if (isBinary) {
+                            remote.sendString(message);
+                        } else {
+                            remote.sendBytes(ByteBuffer.wrap(message));
+                        }
+                    } catch (e) {
+                        source.postError(e);
+                        stopAll();
+                    }
+                });
+                listener.on("text", (message) => {
+                    try {
+                        source.postMessage(message);
+                    } catch (e) {
+                        source.postError(e);
+                    } finally {
+                        stopAll();
+                    }
+                });
+                listener.on("binary", (bytes) => {
+                    try {
+                        source.postMessage(bytes);
+                    } catch (e) {
+                        source.postError(e);
+                    } finally {
+                        stopAll();
+                    }
+                });
+                client.start();
+                client.connect(listener.impl, socketUri, request);
+            } catch (e) {
+                source.postError(e);
+                stopAll();
+            }
+        },
+        lifeCycleStopped: () => {
+            semaphore.signal();
+        }
+    });
+    server.jetty.addLifeCycleListener(lifeCycleListener);
+
+    const appContext = server.serveApplication("/", function(req) {
         req.charset = 'utf8';
         req.pathInfo = decodeURI(req.pathInfo);
         return getResponse(req);
@@ -51,35 +126,4 @@ var onmessage = function(event) {
 
     server.createHttpListener(config);
     server.start();
-
-    var client = new WebSocketClient();
-    client.start();
-
-    var socketUri = new URI(uri);
-    var request = new ClientUpgradeRequest();
-
-    var listener = new Listener();
-    listener.on("connect", function(session) {
-        var remote = session.getRemote();
-        if (isBinary) {
-            remote.sendString(message);
-        } else {
-            remote.sendBytes(ByteBuffer.wrap(message));
-        }
-    });
-    listener.on("text", function(message) {
-        event.source.postMessage(message);
-        semaphore.signal();
-        server.stop();
-        server.destroy();
-        server = null;
-    });
-    listener.on("binary", function(bytes) {
-        event.source.postMessage(bytes);
-        semaphore.signal();
-        server.stop();
-        server.destroy();
-        server = null;
-    });
-    client.connect(listener.impl, socketUri, request);
 };

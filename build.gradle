@@ -40,16 +40,16 @@ sourceSets {
 }
 
 dependencies {
-    implementation 'org.mozilla:rhino:1.7.14-RC1'
-    implementation 'org.eclipse.jetty:jetty-server:10.0.7'
-    implementation 'org.eclipse.jetty:jetty-servlet:10.0.7'
-    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:10.0.7'
-    implementation 'org.eclipse.jetty.websocket:websocket-jetty-client:10.0.7'
-    implementation 'org.eclipse.jetty:jetty-servlets:10.0.7'
-    implementation 'org.eclipse.jetty:jetty-xml:10.0.7'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
+    implementation 'org.mozilla:rhino:1.7.14'
+    implementation 'org.eclipse.jetty:jetty-server:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-servlets:9.4.44.v20210927'
+    implementation 'org.eclipse.jetty:jetty-xml:9.4.44.v20210927'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.2'
     implementation 'org.jline:jline:3.21.0'
     implementation 'junit:junit:4.13.2'
 }
@@ -111,7 +111,7 @@ jar {
 javadoc {
     destinationDir = file('./docs/java')
     options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
-    if (JavaVersion.current().isJava9Compatible()) {
+    if (JavaVersion.current().isJava9Compatible() && !JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
         options.addBooleanOption('html5', true)
         options.addBooleanOption('-no-module-directories', true)
         options.addStringOption('sourcepath', 'src')

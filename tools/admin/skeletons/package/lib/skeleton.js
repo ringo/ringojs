@@ -5,6 +5,6 @@
 /**
  * Change me.
  */
-module.exports.changeMe = function changeMe() {
+exports.changeMe = () => {
     // TODO: impl. me.
 }
