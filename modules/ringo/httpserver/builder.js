@@ -227,7 +227,7 @@ HttpServerBuilder.prototype.addEventSource = function(path, onConnect, initParam
  * been configured before.
  * @name HttpServerBuilder.instance.addFilter
  * @param {String} path The path spec of this filter
- * @param {javax.servlet.Filter} filter The filter to add
+ * @param {jakarta.servlet.Filter} filter The filter to add
  * @param {Object} initParams An object containing init parameters to pass to the <a href="https://www.eclipse.org/jetty/javadoc/current/org/eclipse/jetty/servlet/FilterHolder.html">org.eclipse.jetty.servlet.FilterHolder</a>
  * @returns {HttpServerBuilder}
  */

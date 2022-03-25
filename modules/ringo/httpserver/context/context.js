@@ -2,7 +2,7 @@ const log = require("ringo/logging").getLogger(module.id);
 const {ServletContextHandler, ServletHolder, FilterHolder} = org.eclipse.jetty.servlet;
 const {StatisticsHandler} = org.eclipse.jetty.server.handler;
 const {EnumSet} = java.util;
-const {DispatcherType} = javax.servlet;
+const {DispatcherType} = Packages.jakarta.servlet;
 const {HttpCookie} = org.eclipse.jetty.http;
 
 /**
@@ -85,7 +85,7 @@ Context.prototype.getKey = function() {
 /**
  * Adds a servlet at the give path to this context handler
  * @param {String} path The mountpoint
- * @param {javax.servlet.Servlet} servlet The servlet to add
+ * @param {jakarta.servlet.Servlet} servlet The servlet to add
  * @param {Object} initParams An object containing init parameters to pass to
  * <a href="https://www.eclipse.org/jetty/javadoc/current/org/eclipse/jetty/servlet/ServletContextHandler.html">org.eclipse.jetty.servlet.ServletContextHandler</a>
  * @returns {org.eclipse.jetty.servlet.ServletHolder} The servlet holder of this servlet
@@ -105,7 +105,7 @@ Context.prototype.addServlet = function(path, servlet, initParams) {
 /**
  * Adds a servlet filter at the give path to this context handler
  * @param {String} path The path spec of this filter
- * @param {javax.servlet.Filter} filter The servlet filter to add
+ * @param {jakarta.servlet.Filter} filter The servlet filter to add
  * @param {Object} initParams An object containing init parameters to pass to
  * <a href="https://www.eclipse.org/jetty/javadoc/current/org/eclipse/jetty/servlet/FilterHolder.html">org.eclipse.jetty.servlet.FilterHolder</a>
  * @returns {org.eclipse.jetty.servlet.FilterHolder} The filter holder of this servlet filter
