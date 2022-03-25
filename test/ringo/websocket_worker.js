@@ -91,7 +91,6 @@ const onmessage = function(event) {
                         source.postError(e);
                     } finally {
                         webSocketSession.close();
-                        stopAll();
                     }
                 });
                 listener.on("binary", (bytes) => {
@@ -101,8 +100,10 @@ const onmessage = function(event) {
                         source.postError(e);
                     } finally {
                         webSocketSession.close();
-                        stopAll();
                     }
+                });
+                listener.on("close", () => {
+                    stopAll();
                 });
                 client.start();
                 client.connect(listener.impl, socketUri, request);
@@ -125,11 +126,9 @@ const onmessage = function(event) {
 
     appContext.addWebSocket(path, function(socket, session) {
         socket.on("text", function(message) {
-            debugger
             socket[isAsync ? "sendString" : "sendStringAsync"](message);
         });
         socket.on("binary", function(bytes, offset, length) {
-            debugger
             socket[isAsync ? "sendBinary" : "sendBinaryAsync"](bytes, offset, length);
         });
     });
