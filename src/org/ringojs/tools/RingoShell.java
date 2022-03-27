@@ -226,8 +226,7 @@ public class RingoShell {
 
     class JSCompleter implements Completer {
 
-        final Pattern variables = Pattern.compile(
-                "(^|\\s|[^\\w\\.'\"])([\\w\\.]+)$");
+        final Pattern variables = Pattern.compile("(^|\\s|[^\\w.'\"])([\\w.]+)$");
         Terminal terminal;
 
         JSCompleter(Terminal terminal) {
@@ -237,8 +236,8 @@ public class RingoShell {
         @Override
         public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
             try {
-                String line = parsedLine.line();
-                Matcher match = variables.matcher(line);
+                String word = parsedLine.word();
+                Matcher match = variables.matcher(word);
                 if (match.find()) {
                     String path = match.group(2);
                     Scriptable obj = scope;
@@ -251,15 +250,16 @@ public class RingoShell {
                         obj = ScriptRuntime.toObject(scope, o);
                     }
                     String lastPart = parts[parts.length - 1];
-                    String prefix = line.substring(0, line.length() - lastPart.length());
+                    String value = word.substring(0, word.length() - lastPart.length());
+                    String display = path.substring(0, path.length() - lastPart.length());
                     while (obj != null) {
                         Object[] ids = obj.getIds();
-                        collectIds(ids, obj, prefix, lastPart, list);
+                        collectIds(ids, obj, value, display, list);
                         if (list.size() <= 3 && obj instanceof ScriptableObject) {
                             ids = ((ScriptableObject) obj).getAllIds();
-                            collectIds(ids, obj, prefix, lastPart, list);
+                            collectIds(ids, obj, value, display, list);
                         }
-                        if (path.endsWith(".") && obj instanceof ModuleScope) {
+                        if (word.endsWith(".") && obj instanceof ModuleScope) {
                             // don't walk scope prototype chain if nothing to compare yet -
                             // the list is just too long.
                             break;
@@ -272,19 +272,17 @@ public class RingoShell {
             }
         }
 
-        private void collectIds(Object[] ids, Scriptable obj, String line, String lastPart, List<Candidate> list) {
+        private void collectIds(Object[] ids, Scriptable obj, String value, String display, List<Candidate> list) {
             for (Object id: ids) {
                 if (!(id instanceof String)) {
                     continue;
                 }
                 String str = (String) id;
-                if (str.startsWith(lastPart)) {
-                    if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
-                        str += "(";
-                    }
-                    Candidate candidate = new Candidate(line + str, line + str, null, null, null, null, false);
-                    list.add(candidate);
+                if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
+                    str += "(";
                 }
+                Candidate candidate = new Candidate(value + str, display + str, null, null, null, null, false);
+                list.add(candidate);
             }
         }
 
