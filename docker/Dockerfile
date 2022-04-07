@@ -31,8 +31,6 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 ## Setup environment variables
 ENV PATH=${PATH}:${JAVA_HOME}/bin:${RINGO_HOME}/bin
 
-WORKDIR /home/ringojs
-
 ENTRYPOINT [ "docker-entrypoint.sh" ]
 
 CMD [ "ringo" ]
