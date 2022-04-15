@@ -12,7 +12,7 @@ RUN git -C /usr/local clone --depth 1 https://github.com/ringo/ringojs ${RINGO_H
     rm -rf ${RINGO_HOME}/.git
 
 WORKDIR ${RINGO_HOME}
-RUN ./gradlew -x test
+RUN ./gradlew --exclude-task test
 
 FROM debian:stretch-slim
 
