@@ -51,5 +51,5 @@ jobs:
           context: ./docker/
           platforms: linux/amd64,linux/arm64
           file: ./docker/Dockerfile
-          tags: botic/ringojs:latest
+          tags: ringojs/ringojs:latest
           push: true
