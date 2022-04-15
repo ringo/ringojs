@@ -1,3 +1,5 @@
+const system = require("system");
+
 // Run complete RingoJS test suite.
 exports.testAssert         = require('./assert');
 exports.testAssertCommonJs = require('./assert_commonjs');
@@ -14,7 +16,6 @@ exports.testNet            = require('./net_test');
 exports.testPromise        = require('./ringo/promise_test');
 exports.testScheduler      = require('./ringo/scheduler_test');
 exports.testSubProcess     = require('./ringo/subprocess_test');
-exports.testWebSocket      = require('./ringo/websocket_test');
 exports.testWorker         = require('./ringo/worker/worker_test');
 exports.testZip            = require('./ringo/zip_test');
 exports.testUtils          = require('./ringo/utils/all');
@@ -25,7 +26,14 @@ exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
 exports.testRhino          = require("./rhino/all");
 
-// Also include integration tests
+// Test only executed outside of Github Actions:
+if (system.env["GITHUB_ACTIONS"] === undefined) {
+    exports.testWebSocket = require('./ringo/websocket_test');
+} else {
+    console.warn("Skipping websocket_test.js");
+}
+
+// Also include integration tests.
 exports.testIntegration    = require('./integration-tests/all');
 
 // start the test runner if we're called directly from command line
