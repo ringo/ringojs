@@ -16,7 +16,7 @@ jobs:
         # All three major OS types are supported
         os: [windows-latest, macos-latest, ubuntu-latest]
         # RingoJS supports all current LTS releases:
-        java: ["8", "11", "17"]
+        java: ["11", "17"]
     name: ${{ matrix.os }} - JDK ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
