@@ -132,7 +132,6 @@ HttpServer.prototype.createHttpConfig = function(options) {
  * <li>port: (Number)</li>
  * <li>name: (String) Optional connector name</li>
  * <li>idleTimeout: (Number, defaults to 30000 millis)</li>
- * <li>soLingerTime: (Number, defaults to -1)</li>
  * <li>acceptorPriorityDelta: (Number, defaults to 0)</li>
  * <li>acceptQueueSize: (Number, defaults to 0)</li>
  * </ul>
@@ -144,7 +143,6 @@ HttpServer.prototype.createConnector = function(connectionFactory, options) {
     connector.setHost(options.host);
     connector.setPort(options.port);
     connector.setIdleTimeout(options.idleTimeout || 30000);
-    connector.setSoLingerTime(options.soLingerTime || -1);
     connector.setAcceptorPriorityDelta(options.acceptorPriorityDelta || 0);
     connector.setAcceptQueueSize(options.acceptQueueSize || 0);
     if (typeof(options.name) === "string") {

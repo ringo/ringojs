@@ -6,7 +6,7 @@ const {Headers, getMimeParameter} = require('ringo/utils/http');
 const io = require('io');
 const binary = require('binary');
 const system = require('system');
-const {WriteListener, AsyncListener} = javax.servlet;
+const {WriteListener, AsyncListener} = Packages.jakarta.servlet;
 const {ConcurrentLinkedQueue} = java.util.concurrent;
 const {EofException} = org.eclipse.jetty.io;
 const {AtomicBoolean} = java.util.concurrent.atomic;
@@ -245,9 +245,9 @@ exports.AsyncResponse = function(request, timeout) {
 
 /**
  * Creates a new WriteListener instance
- * @param {javax.servlet.AsyncContext} asyncContext The async context of the request
- * @param {javax.servlet.ServletOutputStream} outStream The output stream to write to
- * @returns {javax.servlet.WriteListener}
+ * @param {jakarta.servlet.AsyncContext} asyncContext The async context of the request
+ * @param {jakarta.servlet.ServletOutputStream} outStream The output stream to write to
+ * @returns {jakarta.servlet.WriteListener}
  * @constructor
  */
 const WriteListenerImpl = function(asyncContext) {

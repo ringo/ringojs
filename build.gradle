@@ -41,12 +41,15 @@ sourceSets {
 
 dependencies {
     implementation 'org.mozilla:rhino:1.7.14'
-    implementation 'org.eclipse.jetty:jetty-server:9.4.45.v20220203'
-    implementation 'org.eclipse.jetty:jetty-servlet:9.4.45.v20220203'
-    implementation 'org.eclipse.jetty.websocket:websocket-server:9.4.45.v20220203'
-    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.45.v20220203'
-    implementation 'org.eclipse.jetty:jetty-servlets:9.4.45.v20220203'
-    implementation 'org.eclipse.jetty:jetty-xml:9.4.45.v20220203'
+    implementation 'org.eclipse.jetty:jetty-server:11.0.8'
+    implementation 'org.eclipse.jetty:jetty-servlet:11.0.8'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.8'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-client:11.0.8'
+    implementation 'org.eclipse.jetty:jetty-servlets:11.0.8'
+    implementation 'org.eclipse.jetty:jetty-xml:11.0.8'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
     implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
     implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.2'
@@ -87,7 +90,7 @@ task runner(type: Jar) {
 task testModules(type: JavaExec) {
     dependsOn copyDependencies, jar
     classpath = sourceSets.main.runtimeClasspath
-    main = 'org.ringojs.tools.launcher.Main'
+    mainClass = 'org.ringojs.tools.launcher.Main'
     args 'test/all.js'
     shouldRunAfter test
 }
@@ -95,7 +98,7 @@ task testModules(type: JavaExec) {
 task testDatesModule(type: DatesTestTask) {
     dependsOn copyDependencies, jar
     classpath = sourceSets.main.runtimeClasspath
-    main = 'org.ringojs.tools.launcher.Main'
+    mainClass = 'org.ringojs.tools.launcher.Main'
     args 'test/ringo/utils/dates_test.js'
 }
 
@@ -189,29 +192,29 @@ publishing {
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
                 developers {
                     developer {
                         id = 'hns'
                         name = 'Hannes Wallnöfer'
-                        url = 'http://github.com/ringo/ringojs/commits/master?author=hns'
+                        url = 'https://github.com/ringo/ringojs/commits/master?author=hns'
                     }
                     developer {
                         id = 'oberhamsi'
                         name = 'Simon Oberhammer'
-                        url = 'http://github.com/ringo/ringojs/commits/master?author=oberhamsi'
+                        url = 'https://github.com/ringo/ringojs/commits/master?author=oberhamsi'
                     }
                     developer {
                         id = 'botic'
                         name = 'Philipp Naderer-Puiu'
-                        url = 'http://github.com/ringo/ringojs/commits/master?author=botic'
+                        url = 'https://github.com/ringo/ringojs/commits/master?author=botic'
                     }
                     developer {
                         id = 'grob'
                         name = 'Robert Gaggl'
-                        url = 'http://github.com/ringo/ringojs/commits/master?author=grob'
+                        url = 'https://github.com/ringo/ringojs/commits/master?author=grob'
                     }
                 }
                 scm {

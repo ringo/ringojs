@@ -18,8 +18,8 @@ package org.ringojs.jsgi;
 
 import org.mozilla.javascript.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.lang.reflect.Method;
 

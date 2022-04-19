@@ -11,7 +11,7 @@ const base64 = require("ringo/base64");
 const binary = require("binary");
 const {ByteArrayOutputStream, StringWriter} = java.io;
 const {GZIPOutputStream, DeflaterOutputStream} = java.util.zip;
-const {HttpServlet} = javax.servlet.http;
+const {HttpServlet} = Packages.jakarta.servlet.http;
 
 const host = "127.0.0.1";
 const port = "8282";

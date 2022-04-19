@@ -38,14 +38,19 @@ const onmessage = function(event) {
 
     let server = new HttpServer();
     let client = new WebSocketClient();
+    let webSocketSession = null;
 
     const stopAll = () => {
-        server.stop();
-        server.destroy();
-        server = null;
-        client.stop();
-        client.destroy();
-        client = null;
+        if (server !== null) {
+            server.stop();
+            server.destroy();
+            server = null;
+        }
+        if (client !== null) {
+            client.stop();
+            client.destroy();
+            client = null;
+        }
     };
 
     const lifeCycleListener = new AbstractLifeCycleListener({
@@ -66,6 +71,7 @@ const onmessage = function(event) {
                     }
                 });
                 listener.on("connect", (session) => {
+                    webSocketSession = session;
                     try {
                         const remote = session.getRemote();
                         if (isBinary) {
@@ -84,7 +90,7 @@ const onmessage = function(event) {
                     } catch (e) {
                         source.postError(e);
                     } finally {
-                        stopAll();
+                        webSocketSession.close();
                     }
                 });
                 listener.on("binary", (bytes) => {
@@ -93,8 +99,11 @@ const onmessage = function(event) {
                     } catch (e) {
                         source.postError(e);
                     } finally {
-                        stopAll();
+                        webSocketSession.close();
                     }
+                });
+                listener.on("close", () => {
+                    stopAll();
                 });
                 client.start();
                 client.connect(listener.impl, socketUri, request);
@@ -107,7 +116,7 @@ const onmessage = function(event) {
             semaphore.signal();
         }
     });
-    server.jetty.addLifeCycleListener(lifeCycleListener);
+    server.jetty.addEventListener(lifeCycleListener);
 
     const appContext = server.serveApplication("/", function(req) {
         req.charset = 'utf8';
