@@ -5,6 +5,7 @@
  */
 const log = require('ringo/logging').getLogger(module.id);
 const {XmlConfiguration} = org.eclipse.jetty.xml;
+const {Resource} = org.eclipse.jetty.util.resource;
 const {Server, HttpConfiguration, HttpConnectionFactory,
         ServerConnector, SslConnectionFactory,
         SecureRequestCustomizer, ServerConnectionStatistics} = org.eclipse.jetty.server;
@@ -17,7 +18,7 @@ const {SslContextFactory} = org.eclipse.jetty.util.ssl;
 const objects = require("ringo/utils/objects");
 const ApplicationContext = require("./context/application");
 const StaticContext = require("./context/static");
-const fs = require("fs");
+const {Paths, Files} = java.nio.file;
 
 /**
  * HttpServer constructor
@@ -83,11 +84,11 @@ HttpServer.prototype.toString = function() {
  * @param {String} xmlPath The path to the jetty.xml configuration file
  */
 HttpServer.prototype.configure = function(xmlPath) {
-    const xmlResource = getResource(xmlPath);
-    if (!xmlResource.exists()) {
-        throw Error('Jetty XML configuration "' + xmlResource + '" not found');
+    const path = Paths.get(xmlPath);
+    if (!Files.exists(path)) {
+        throw Error('Jetty XML configuration "' + xmlPath + '" not found');
     }
-    return this.xmlConfig = new XmlConfiguration(xmlResource.inputStream);
+    return this.xmlConfig = new XmlConfiguration(Resource.newResource(path));
 };
 
 /**
@@ -390,7 +391,9 @@ HttpServer.prototype.serveStatic = function(mountpoint, directory, options) {
     }
     if (typeof(directory) !== "string") {
         throw new Error("Missing directory argument");
-    } else if (!fs.exists(directory) || !fs.isDirectory(directory)) {
+    }
+    const path = Paths.get(directory);
+    if (!Files.exists(path) || !Files.isDirectory(path)) {
         throw new Error("Directory '" + directory + "' doesn't exist or is not a directory");
     }
     options || (options = {});
