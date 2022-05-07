@@ -54,6 +54,8 @@ exports.ONMAGENTA = "\u001B[45m";
 exports.ONCYAN =    "\u001B[46m";
 exports.ONWHITE =   "\u001B[47m";
 
+exports.LIGHT_GREY = "\u001B[38;5;242;1m";
+
 // used to remove ANSI control sequences if disabled
 const cleaner = /\u001B\[\d*(?:;\d+)?[a-zA-Z]/g;
 // used to check if a string consists only of ANSI control sequences
