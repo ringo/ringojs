@@ -1,4 +1,4 @@
-FROM debian:stretch-slim AS builder
+FROM debian:bullseye-slim AS builder
 
 RUN apt-get update && apt-get install -y git
 
@@ -14,7 +14,7 @@ RUN git -C /usr/local clone --depth 1 https://github.com/ringo/ringojs ${RINGO_H
 WORKDIR ${RINGO_HOME}
 RUN ./gradlew --exclude-task test
 
-FROM debian:stretch-slim
+FROM debian:bullseye-slim
 
 ENV JAVA_HOME=/opt/java/openjdk
 ENV RINGO_HOME=/usr/local/ringojs
