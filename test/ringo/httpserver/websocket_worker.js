@@ -1,4 +1,4 @@
-require('ringo/logging').setConfig(getResource('../httptest_log4j2.properties'));
+require('ringo/logging').setConfig(getResource('../../log4j2.properties'));
 
 const {URI} = java.net;
 const {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;

@@ -1,3 +1,5 @@
+require('ringo/logging').setConfig(getResource('../../log4j2.properties'));
+
 const assert = require("assert");
 
 const {get, request} = require("ringo/httpclient");

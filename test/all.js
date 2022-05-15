@@ -1,4 +1,4 @@
-const system = require("system");
+require("ringo/logging").setConfig(getResource("./log4j2.properties"));
 
 // Run complete RingoJS test suite.
 exports.testAssert         = require('./assert');
