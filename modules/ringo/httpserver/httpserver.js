@@ -66,7 +66,7 @@ const HttpServer = module.exports = function HttpServer(options) {
         } else if (typeof(options) === "object" && options.constructor === Object) {
             jetty.setStopAtShutdown(options.stopAtShutdown !== false);
             jetty.setStopTimeout(options.stopTimeout || 1000);
-            jetty.setDumpAfterStart(options.dumpBeforeStart === true);
+            jetty.setDumpAfterStart(options.dumpAfterStart === true);
             jetty.setDumpBeforeStop(options.dumpBeforeStop === true);
         }
     }
@@ -204,17 +204,25 @@ HttpServer.prototype.createSslContextFactory = function(options) {
         "includeProtocols": ["TLSv1.2"]
     });
     const sslContextFactory = new SslContextFactory.Server();
-    sslContextFactory.setKeyStorePath(options.keyStore);
-    sslContextFactory.setKeyStoreType(options.keyStoreType || "JKS");
-    sslContextFactory.setKeyStorePassword(options.keyStorePassword);
-    sslContextFactory.setKeyManagerPassword(options.keyManagerPassword);
-    sslContextFactory.setTrustStorePath(options.trustStore || options.keyStore);
-    sslContextFactory.setTrustStorePassword(options.trustStorePassword ||
-            options.keyStorePassword);
+    if (typeof options.keyStore === "string") {
+        sslContextFactory.setKeyStorePath(options.keyStore || null);
+        sslContextFactory.setKeyStorePassword(options.keyStorePassword || null);
+        if (typeof options.keyStoreType === "string") {
+            sslContextFactory.setKeyStoreType(options.keyStoreType);
+        }
+    }
+    sslContextFactory.setKeyManagerPassword(options.keyManagerPassword || null);
+    if (typeof options.trustStore === "string") {
+        sslContextFactory.setTrustStorePath(options.trustStore || options.keyStore || null);
+        sslContextFactory.setTrustStorePassword(options.trustStorePassword ||
+            options.keyStorePassword || null);
+    }
     sslContextFactory.setIncludeCipherSuites(options.includeCipherSuites);
     sslContextFactory.setExcludeCipherSuites(options.excludeCipherSuites);
     sslContextFactory.setIncludeProtocols(options.includeProtocols);
-    sslContextFactory.setExcludeProtocols(options.excludeProtocols);
+    if (Array.isArray(options.excludeProtocols)) {
+        sslContextFactory.setExcludeProtocols(options.excludeProtocols);
+    }
     sslContextFactory.setRenegotiationAllowed(options.allowRenegotiation === true);
     if (options.verbose === true) {
         log.info(sslContextFactory.dump());
@@ -284,7 +292,8 @@ HttpServer.prototype.createHttpsListener = function(options) {
 };
 
 /**
- * Returns the handler collection of the encapsulated jetty server
+ * Returns the handler collection of the encapsulated jetty server, instantiating
+ * it if it doesn't exist already
  * @name HttpServer.instance.getHandlerCollection
  * @returns {org.eclipse.jetty.server.handler.HandlerCollection};
  */
@@ -298,7 +307,8 @@ HttpServer.prototype.getHandlerCollection = function() {
 };
 
 /**
- * Returns the context handler collection of the encapsulated jetty server
+ * Returns the context handler collection of the encapsulated jetty server,
+ * instantiating it if it doesn't exist already
  * @name HttpServer.instance.getContextHandlerCollection
  * @returns {org.eclipse.jetty.server.handler.ContextHandlerCollection};
  */
@@ -413,6 +423,15 @@ HttpServer.prototype.serveStatic = function(mountpoint, directory, options) {
     const context = new StaticContext(parentContainer, mountpoint, {
             "security": options.security === true,
             "sessions": options.sessions === true,
+            "sessionsMaxInactiveInterval": options.sessionsMaxInactiveInterval || null,
+            "cookieName": options.cookieName || null,
+            "cookieDomain": options.cookieDomain || null,
+            "cookiePath": options.cookiePath || null,
+            "cookieMaxAge": options.cookieMaxAge || -1,
+            "httpOnlyCookies": options.httpOnlyCookies !== false,
+            "secureCookies": options.secureCookies === true,
+            "sameSiteCookies": options.sameSiteCookies || null,
+            "statistics": options.statistics === true,
             "virtualHosts": options.virtualHosts
         });
     context.serve(directory, initParameters);

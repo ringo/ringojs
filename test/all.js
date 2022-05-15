@@ -10,6 +10,7 @@ exports.testConcurrent     = require('./ringo/concurrent_test');
 exports.testEncoding       = require('./ringo/encoding_test');
 exports.testEvents         = require('./ringo/events_test');
 exports.testHttpClient     = require('./ringo/httpclient_test');
+exports.testHttpServer     = require('./ringo/httpserver/all');
 exports.testJsgi           = require('./ringo/jsgi/all');
 exports.testLogging        = require('./ringo/logging_test');
 exports.testNet            = require('./net_test');
@@ -25,13 +26,6 @@ exports.testRepository     = require('./repository/all');
 exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
 exports.testRhino          = require("./rhino/all");
-
-// Test only executed outside of Github Actions:
-if (system.env["GITHUB_ACTIONS"] === undefined) {
-    exports.testWebSocket = require('./ringo/websocket_test');
-} else {
-    console.warn("Skipping websocket_test.js");
-}
 
 // Also include integration tests.
 exports.testIntegration    = require('./integration-tests/all');
