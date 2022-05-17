@@ -8,7 +8,7 @@ exports.testEventSource = require("./eventsource_test");
 exports.testStatic = require("./static_test");
 
 // Test only executed outside of Github Actions:
-if (environment["GITHUB_ACTIONS"] === undefined) {
+if (system.env["SKIP_WEBSOCKET_TEST"] === undefined) {
     exports.testWebSocket = require("./websocket_test");
 } else {
     console.warn("Skipping websocket_test.js");
