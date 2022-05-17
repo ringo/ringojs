@@ -1,14 +1,14 @@
+require('ringo/logging').setConfig(getResource('../../log4j2.properties'));
+
 const {URI} = java.net;
 const {ClientUpgradeRequest, WebSocketClient} = org.eclipse.jetty.websocket.client;
 const {WebSocketListener} = org.eclipse.jetty.websocket.api;
 const {ByteBuffer} = java.nio;
-const {JavaEventEmitter} = require("ringo/events");
-const {HttpServer} = require("ringo/httpserver");
+const {JavaEventEmitter} = require("../../../modules/ringo/events");
+const {HttpServer} = require("../../../modules/ringo/httpserver");
 const {AbstractLifeCycleListener} = org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
-
-const Listener = function() {
+const newListener = () => {
     return new JavaEventEmitter(WebSocketListener, {
         onWebSocketConnect: "connect",
         onWebSocketClose: "close",
@@ -18,10 +18,7 @@ const Listener = function() {
     });
 };
 
-/**
- * The worker module needed by scheduler_test
- */
-const onmessage = function(event) {
+const onmessage = (event) => {
     const {source} = event;
     const {message, semaphore, isAsync} = event.data;
     const isBinary = (typeof message === "string");
@@ -62,7 +59,7 @@ const onmessage = function(event) {
             try {
                 const socketUri = new URI(uri);
                 const request = new ClientUpgradeRequest();
-                const listener = new Listener();
+                const listener = newListener();
                 listener.on("error", (e) => {
                     try {
                         source.postError(e);
@@ -105,6 +102,9 @@ const onmessage = function(event) {
                 listener.on("close", () => {
                     stopAll();
                 });
+                // create & connect a websocket client - once it's connected,
+                // it will send a message to server, which in turn will echo
+                // it back to the client
                 client.start();
                 client.connect(listener.impl, socketUri, request);
             } catch (e) {
@@ -118,17 +118,13 @@ const onmessage = function(event) {
     });
     server.jetty.addEventListener(lifeCycleListener);
 
-    const appContext = server.serveApplication("/", function(req) {
-        req.charset = 'utf8';
-        req.pathInfo = decodeURI(req.pathInfo);
-        return getResponse(req);
-    });
+    const appContext = server.serveApplication("/", () => {});
 
-    appContext.addWebSocket(path, function(socket, session) {
-        socket.on("text", function(message) {
+    appContext.addWebSocket(path, (socket) => {
+        socket.on("text", (message) => {
             socket[isAsync ? "sendString" : "sendStringAsync"](message);
         });
-        socket.on("binary", function(bytes, offset, length) {
+        socket.on("binary", (bytes, offset, length) => {
             socket[isAsync ? "sendBinary" : "sendBinaryAsync"](bytes, offset, length);
         });
     });

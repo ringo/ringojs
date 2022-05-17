@@ -12,7 +12,7 @@ const {JavaEventEmitter} = require("ringo/events");
  *  * **close**: called when an established eventsource connection closes
  * @name EventSource
  */
-const EventSourceWrapper = module.exports = function() {
+module.exports = function EventSourceWrapper() {
     let conn = null;
 
     /**

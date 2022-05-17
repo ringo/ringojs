@@ -37,14 +37,14 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
             sessionHandler.setSameSite(HttpCookie.SameSite.valueOf(options.sameSiteCookies));
         }
         const sessionCookieConfig = sessionHandler.getSessionCookieConfig();
-        sessionCookieConfig.setHttpOnly(options.httpOnlyCookies);
-        sessionCookieConfig.setSecure(options.secureCookies);
+        sessionCookieConfig.setHttpOnly(options.httpOnlyCookies !== false);
+        sessionCookieConfig.setSecure(options.secureCookies === true);
         if (typeof(options.cookieName) === "string") {
             sessionCookieConfig.setName(options.cookieName);
         }
-        sessionCookieConfig.setDomain(options.cookieDomain);
-        sessionCookieConfig.setPath(options.cookiePath);
-        sessionCookieConfig.setMaxAge(options.cookieMaxAge);
+        sessionCookieConfig.setDomain(options.cookieDomain || null);
+        sessionCookieConfig.setPath(options.cookiePath || null);
+        sessionCookieConfig.setMaxAge(options.cookieMaxAge || -1);
     }
 
     Object.defineProperties(this, {
@@ -67,6 +67,10 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
     });
 
     return this;
+};
+
+Context.prototype.toString = function() {
+    return "[" + this.constructor.name + " " + this.contextHandler.contextPath + "]";
 };
 
 /**

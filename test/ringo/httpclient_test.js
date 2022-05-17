@@ -1,3 +1,5 @@
+require('ringo/logging').setConfig(getResource('../log4j2.properties'));
+
 const assert = require("assert");
 const objects = require("ringo/utils/objects");
 const system = require("system");
@@ -17,8 +19,6 @@ const host = "127.0.0.1";
 const port = "8282";
 const baseUri = "http://" + host + ":" + port + "/";
 let server;
-
-require('ringo/logging').setConfig(getResource('./httptest_log4j2.properties'));
 
 /**
  * tests overwrite getResponse() to control the response they expect back
