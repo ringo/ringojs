@@ -131,6 +131,15 @@ public final class RingoWorker {
         }
     }
 
+    public Object getProperty(Scriptable obj, String name) {
+        RingoWorker previous = acquireWorker();
+        try {
+            return ScriptableObject.getProperty(obj, name);
+        } finally {
+            releaseWorker(previous);
+        }
+    }
+
     /**
      * <p>Submit a function to be invoked on the worker's event loop thread and
      * return a future for the result.</p>

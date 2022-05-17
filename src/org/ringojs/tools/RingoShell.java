@@ -23,7 +23,6 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.ringojs.engine.ModuleScope;
 import org.ringojs.engine.ReloadableScript;
 import org.ringojs.engine.RhinoEngine;
 import org.ringojs.engine.RingoConfig;
@@ -98,10 +97,11 @@ public class RingoShell {
             .variable(LineReader.INDENTATION, 4)
             .history(new DefaultHistory())
             .completer(new AggregateCompleter(
-                new JSCompleter(terminal),
+                new JSCompleter(),
                 new StringsCompleter(getJsKeywordCandidates())
             ))
             .option(LineReader.Option.HISTORY_TIMESTAMPED, false)
+            .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
             .build();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -122,6 +122,9 @@ public class RingoShell {
             } catch (UserInterruptException ignore) {
             } catch (EndOfFileException e) {
                 break;
+            }
+            if (source.trim().length() == 0) {
+                continue;
             }
             try {
                 Resource res = new StringResource("<stdin>", source, lineno);
@@ -201,18 +204,14 @@ public class RingoShell {
 
     // preload ringo/shell in separate thread
     private void preloadShellModule() {
-        Thread t = new Thread() {
-            public void run() {
-                Context cx = engine.getContextFactory().enterContext(null);
-                try {
-                    worker.loadModule(cx, "ringo/shell", null);
-                } catch (Exception ignore) {
-                    // ignore
-                } finally {
-                    Context.exit();
-                }
+        Thread t = new Thread(() -> engine.getContextFactory().call(cx -> {
+            try {
+                worker.loadModule(cx, "ringo/shell", null);
+            } catch (Exception ignore) {
+                // ignore
             }
-        };
+            return null;
+        }));
         t.setPriority(Thread.MIN_PRIORITY);
         t.setDaemon(true);
         t.start();
@@ -227,65 +226,56 @@ public class RingoShell {
     class JSCompleter implements Completer {
 
         final Pattern variables = Pattern.compile("(^|\\s|[^\\w.'\"])([\\w.]+)$");
-        Terminal terminal;
-
-        JSCompleter(Terminal terminal) {
-            this.terminal = terminal;
-        }
 
         @Override
         public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
-            try {
-                String word = parsedLine.word();
-                Matcher match = variables.matcher(word);
-                if (match.find()) {
-                    String path = match.group(2);
-                    Scriptable obj = scope;
-                    String[] parts = path.split("\\.", -1);
-                    for (int k = 0; k < parts.length - 1; k++) {
-                        Object o = ScriptableObject.getProperty(obj, parts[k]);
-                        if (o == null || o == ScriptableObject.NOT_FOUND) {
-                            return;
-                        }
-                        obj = ScriptRuntime.toObject(scope, o);
+            Scriptable obj = scope;
+            String word = parsedLine.word();
+            Matcher match = variables.matcher(word);
+            String value = "";
+            String display = "";
+            if (match.find()) {
+                String path = match.group(2);
+                String[] parts = path.split("\\.", -1);
+                for (int k = 0; k < parts.length - 1; k++) {
+                    Object o = worker.getProperty(obj, parts[k]);
+                    if (o == null || o == ScriptableObject.NOT_FOUND) {
+                        return;
                     }
-                    String lastPart = parts[parts.length - 1];
-                    String value = word.substring(0, word.length() - lastPart.length());
-                    String display = path.substring(0, path.length() - lastPart.length());
-                    while (obj != null) {
-                        Object[] ids = obj.getIds();
-                        collectIds(ids, obj, value, display, list);
-                        if (list.size() <= 3 && obj instanceof ScriptableObject) {
-                            ids = ((ScriptableObject) obj).getAllIds();
-                            collectIds(ids, obj, value, display, list);
-                        }
-                        if (word.endsWith(".") && obj instanceof ModuleScope) {
-                            // don't walk scope prototype chain if nothing to compare yet -
-                            // the list is just too long.
-                            break;
-                        }
-                        obj = obj.getPrototype();
-                    }
+                    obj = ScriptRuntime.toObject(scope, o);
                 }
-            } catch (Exception ignore) {
-                // ignore.printStackTrace();
+                String lastPart = parts[parts.length - 1];
+                value = word.substring(0, word.length() - lastPart.length());
+                display = path.substring(0, path.length() - lastPart.length());
+            }
+            while (obj != null) {
+                Object[] ids = obj.getIds();
+                collectIds(ids, obj, value, display, list);
+                if (obj instanceof ScriptableObject) {
+                    ids = ((ScriptableObject) obj).getAllIds();
+                    collectIds(ids, obj, value, display, list);
+                }
+                obj = obj.getPrototype();
             }
         }
 
-        private void collectIds(Object[] ids, Scriptable obj, String value, String display, List<Candidate> list) {
+        private void collectIds(Object[] ids, Scriptable obj, String value, String display, List<Candidate> candidates) {
             for (Object id: ids) {
                 if (!(id instanceof String)) {
                     continue;
                 }
-                String str = (String) id;
-                if (ScriptableObject.getProperty(obj, str) instanceof Callable) {
-                    str += "(";
+                String idStr = (String) id;
+                // use the thread worker to retrieve properties: JS getters in global
+                // scope using `require()` need a worker associated with the current
+                // thread (i.e. console getter)
+                Object property = worker.getProperty(obj, idStr);
+                if (property instanceof Callable) {
+                    idStr += "(";
                 }
-                Candidate candidate = new Candidate(value + str, display + str, null, null, null, null, false);
-                list.add(candidate);
+                Candidate candidate = new Candidate(value + idStr, display + idStr, null, null, null, null, false);
+                candidates.add(candidate);
             }
         }
-
     }
 
     private static final String[] jsKeywords =

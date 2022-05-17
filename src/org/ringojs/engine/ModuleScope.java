@@ -43,11 +43,7 @@ public class ModuleScope extends ImporterTopLevel {
         delete("constructor");
         // for activating the ImporterTopLevel import* functions
         activatePrototypeMap(3);
-        try {
-            cacheBuiltins(this, false);
-        } catch (NoSuchMethodError e) {
-            // allows us to run with older versions of Rhino
-        }
+        cacheBuiltins(this, false);
         this.source = source;
         this.repository = source instanceof Repository ?
                 (Repository) source : source.getParentRepository();

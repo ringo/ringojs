@@ -16,15 +16,7 @@
 
 package org.ringojs.engine;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.ScriptRuntime;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.Undefined;
-import org.mozilla.javascript.WrapFactory;
-import org.mozilla.javascript.Wrapper;
+import org.mozilla.javascript.*;
 import org.mozilla.javascript.json.JsonParser;
 import org.ringojs.repository.*;
 import org.ringojs.tools.RingoDebugger;
@@ -262,7 +254,7 @@ public class RhinoEngine implements ScopeProvider {
     }
 
     /**
-     * Associate a worker with the current worker and return the worker
+     * Associate a worker with the current thread and return the worker
      * that was previously associated with it, or null.
      *
      * @param worker the new worker associated with the current thread
@@ -385,12 +377,7 @@ public class RhinoEngine implements ScopeProvider {
         Repository repository = new FileRepository("");
         repository.setAbsolute(true);
         Scriptable protoScope = mainScope != null ? mainScope : globalScope;
-        contextFactory.enterContext();
-        try {
-            return new ModuleScope("<shell>", repository, protoScope, worker);
-        } finally {
-            Context.exit();
-        }
+        return contextFactory.call(cx -> new ModuleScope("<shell>", repository, protoScope, worker));
     }
 
     /**

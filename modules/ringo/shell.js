@@ -27,6 +27,7 @@ const styles = {
     'function': term.CYAN,
     'boolean': term.YELLOW,
     'null': term.BOLD,
+    'undefined': term.LIGHT_GREY,
     'date': term.MAGENTA,
     'java': term.MAGENTA,
     'custom': term.RED
@@ -187,7 +188,7 @@ const convert = (value, nesting, visited) => {
             }
             break;
         case 'undefined':
-            retval = {};
+            retval.type = retval.string = 'undefined';
             break;
         default:
             retval.string = String(value);
@@ -201,11 +202,9 @@ const convert = (value, nesting, visited) => {
  * @param {Stream} writer
  */
 const printResult = exports.printResult = (value, writer) => {
-    if (typeof value !== "undefined") {
-        writer = writer || term;
-        printValue(convert(value, 0, []), writer, 0);
-        writer.writeln();
-    }
+    writer = writer || term;
+    printValue(convert(value, 0, []), writer, 0);
+    writer.writeln();
 };
 
 const printValue = (value, writer, nesting) => {
