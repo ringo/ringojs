@@ -86,8 +86,10 @@ public class RingoGlobal extends Global {
                                  ScriptableObject.DONTENUM);
         defineProperty("require", new Require(engine, this), DONTENUM);
         defineProperty("arguments", cx.newArray(this, engine.getArguments()), DONTENUM);
+
         // Set up "environment" in the global scope to provide access to the
-        // System environment variables. http://github.com/ringo/ringojs/issues/#issue/88
+        // System environment variables. https://github.com/ringo/ringojs/issues/88
+        // DEPRECATED beginning with Ringo 4.x: https://github.com/ringo/ringojs/issues/456
         Environment.defineClass(this);
         Environment environment = new Environment(this);
         defineProperty("environment", environment, ScriptableObject.DONTENUM);

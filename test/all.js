@@ -26,6 +26,7 @@ exports.testRepository     = require('./repository/all');
 exports.testIo             = require('./io_test');
 exports.testModules        = require('./modules/all');
 exports.testRhino          = require("./rhino/all");
+exports.testSystem         = require('./system_test');
 
 // Also include integration tests.
 exports.testIntegration    = require('./integration-tests/all');
