@@ -184,9 +184,9 @@ exports.testCreateSslContextFactory = () => {
         allowRenegotiation: true
     }
     sslContextFactory = httpServer.createSslContextFactory(options);
-    assert.strictEqual(sslContextFactory.keyStorePath, "file://" + options.keyStore);
+    assert.strictEqual(sslContextFactory.keyStorePath, Paths.get(options.keyStore).toUri().toString());
     assert.strictEqual(sslContextFactory.keyStoreType, options.keyStoreType);
-    assert.strictEqual(sslContextFactory.trustStorePath, "file://" + options.trustStore);
+    assert.strictEqual(sslContextFactory.trustStorePath, Paths.get(options.trustStore).toUri().toString());
     assert.isTrue(sslContextFactory.renegotiationAllowed);
 };
 
@@ -289,7 +289,7 @@ exports.testServeStatic = () => {
             .toRealPath().toString() + "/";
 
     let {contextHandler} = httpServer.serveStatic(path, directory);
-    assert.strictEqual(contextHandler.resourceBase, "file://" + directory);
+    assert.strictEqual(contextHandler.resourceBase, Paths.get(directory).toUri().toString());
 
     // static serving has no security/session handler by default
     assert.isNull(contextHandler.securityHandler);
