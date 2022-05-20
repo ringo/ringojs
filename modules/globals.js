@@ -340,9 +340,14 @@ Object.defineProperty(this, "global", { value: this });
  */
 
 /**
- * The `environment` object contains the Java system properties.
+ * The `environment` object contains the Java system properties and is specific to the Rhino engine.
+ * Java system properties are set on the command line using the `-Dproperty=value` syntax and
+ * can be modified during the runtime. They do not relate to the operating system's environment variables.
+ * Because of the misleading name of this global property, using [system.properties](../system#properties)
+ * is recommended.
  * @name environment
  * @see <a href="http://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html">Java System Properties</a>
+ * @deprecated Use the `system` module's `properties` and `env` exports instead.
  */
 
 /**

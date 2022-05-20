@@ -95,9 +95,33 @@ exports.args = global.arguments || [];
  *   LOCALAPPDATA: 'C:\Local',
  *   ...
  * }
- * @see <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/System.html#getenv()">java.lang.System.getenv()</a>
+ * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getenv()">java.lang.System.getenv()</a>
  */
 exports.env = new ScriptableMap(System.getenv());
+
+/**
+ * @name properties
+ * Returns an unmodifiable view on the current Java system properties.
+ * @example {
+ *   gopherProxySet: 'false',
+ *   awt.toolkit: 'sun.lwawt.macosx.LWCToolkit',
+ *   java.specification.version: '11',
+ *   sun.cpu.isalist: '',
+ *   sun.jnu.encoding: 'UTF-8',
+ *   java.class.path: '/Users/nobody/ringojs/run.jar',
+ *   java.vm.vendor: 'Eclipse Adoptium',
+ *   sun.arch.data.model: '64',
+ *   java.vendor.url: 'https://adoptium.net/',
+ *   user.timezone: 'Europe/Vienna',
+ *   ...
+ * }
+ * @see <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getProperties()">java.lang.System.getProperties()</a>
+ */
+Object.defineProperty(exports, "properties", {
+    get: () => {
+        return new ScriptableMap(java.util.Collections.unmodifiableMap(System.getProperties()));
+    }
+});
 
 /**
  * Terminates the current process.
