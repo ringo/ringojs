@@ -66,8 +66,7 @@ gpg: Good signature from "Philipp Naderer-Puiu <philipp@naderer-puiu.at>" [ultim
 ```
 
 ## Building from Source
-
-[![Build and Test](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml/badge.svg?branch=master&event=push)](https://github.com/ringo/ringojs/actions/workflows/build-and-test.yaml)
+[![main](https://github.com/ringo/ringojs/actions/workflows/test-publish-main.yaml/badge.svg?branch=main)](https://github.com/ringo/ringojs/actions/workflows/test-publish-main.yaml)
 
 Ringo runs on top of the Java Platform. You can use an open implementation like [Eclipse Temurin][EclipseTemurin] or [Oracle's distribution][OracleJava].
 It uses [Gradle] as build tool.
