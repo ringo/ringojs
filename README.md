@@ -51,15 +51,15 @@ $ gpg --keyserver hkps://keys.openpgp.org --recv-keys 14059F1764856429089FB42361
 Download the checksums `SHASUMS256.txt` and separate signature `SHASUMS256.txt.sig` for the release, e.g.
 
 ```
-$ curl -LO https://github.com/ringo/ringojs/releases/download/v3.0.0/SHASUMS256-3.0.0.txt
-$ curl -LO https://github.com/ringo/ringojs/releases/download/v3.0.0/SHASUMS256-3.0.0.txt.sig
+$ curl -LO https://github.com/ringo/ringojs/releases/download/v4.0.0/SHASUMS256-4.0.0.txt
+$ curl -LO https://github.com/ringo/ringojs/releases/download/v4.0.0/SHASUMS256-4.0.0.txt.sig
 ```
 
 Now verify the checksums with:
 
 ```
-$ gpg --verify SHASUMS256-3.0.0.txt.sig
-gpg: assuming signed data in 'SHASUMS256-3.0.0-RC6.txt'
+$ gpg --verify SHASUMS256-4.0.0.txt.sig
+gpg: assuming signed data in 'SHASUMS256-4.0.0.txt'
 gpg: Signature made Wed Feb 23 12:07:10 2022 CET
 gpg:                using RSA key 14059F1764856429089FB4236167CFBBBDF2A508
 gpg: Good signature from "Philipp Naderer-Puiu <philipp@naderer-puiu.at>" [ultimate]
