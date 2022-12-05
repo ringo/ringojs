@@ -287,6 +287,13 @@ exports.testSetCookie = function() {
     );
 };
 
+exports.testHeadersToString = function() {
+    let obj = { foo: "foo", bar: 0, baz: "0"};
+
+    http.Headers(obj);
+    assert.equal(obj.toString(), "foo: foo\r\nbar: 0\r\nbaz: 0\r\n");
+}
+
 exports.testHeadersOnObject = function() {
     let obj = {
         "One": "ValueOne",

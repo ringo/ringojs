@@ -189,7 +189,7 @@ exports.Headers = function(headers) {
          value: function() {
             const buffer = new Buffer();
             Object.keys(this).forEach(key => {
-                this[key].split("\n").forEach(function(value) {
+                String(this[key]).split("\n").forEach(function(value) {
                     buffer.write(key).write(": ").writeln(value);
                 });
             }, this);
