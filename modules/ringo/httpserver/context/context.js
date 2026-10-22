@@ -1,5 +1,5 @@
 const log = require("ringo/logging").getLogger(module.id);
-const {ServletContextHandler, ServletHolder, FilterHolder} = org.eclipse.jetty.servlet;
+const {ServletContextHandler, ServletHolder, FilterHolder} = org.eclipse.jetty.ee10.servlet;
 const {StatisticsHandler} = org.eclipse.jetty.server.handler;
 const {EnumSet} = java.util;
 const {DispatcherType} = Packages.jakarta.servlet;
@@ -13,21 +13,23 @@ const {HttpCookie} = org.eclipse.jetty.http;
  * <a href="./application.html">ApplicationContext</a> and <a href="./static.html">StaticContext</a>)
  * @constructor
  */
-const Context = module.exports = function Context(parentContainer, mountpoint, options) {
+const Context = module.exports = function Context(server, parentContainer, mountpoint, options) {
     let statisticsHandler = null;
     if (options.statistics === true) {
         // add statistics handler and use it as parent container for
         // the context handler created below
         statisticsHandler = new StatisticsHandler();
-        parentContainer.addHandler(statisticsHandler);
-        parentContainer = statisticsHandler;
+
+        let oldHandler = server.getHandler();
+        statisticsHandler.setHandler(oldHandler);
+        server.setHandler(statisticsHandler);
     }
-    const contextHandler = new ServletContextHandler(parentContainer, mountpoint,
-            options.sessions, options.security);
+    const contextHandler = new ServletContextHandler(mountpoint,  options.sessions, options.security);
     if (options.virtualHosts) {
-        contextHandler.setVirtualHosts(Array.isArray(options.virtualHosts) ?
-                options.virtualHosts : [String(options.virtualHosts)]);
+        contextHandler.setVirtualHosts(Array.isArray(options.virtualHosts) ? options.virtualHosts : [String(options.virtualHosts)]);
     }
+    parentContainer.addHandler(contextHandler);
+
     const sessionHandler = contextHandler.getSessionHandler();
     if (sessionHandler !== null) {
         if (Number.isInteger(options.sessionsMaxInactiveInterval)) {
@@ -41,6 +43,8 @@ const Context = module.exports = function Context(parentContainer, mountpoint, o
         sessionCookieConfig.setSecure(options.secureCookies === true);
         if (typeof(options.cookieName) === "string") {
             sessionCookieConfig.setName(options.cookieName);
+        } else {
+            sessionCookieConfig.setName("JSESSIONID");
         }
         sessionCookieConfig.setDomain(options.cookieDomain || null);
         sessionCookieConfig.setPath(options.cookiePath || null);

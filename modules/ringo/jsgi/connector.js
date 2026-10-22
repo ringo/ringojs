@@ -221,7 +221,8 @@ exports.AsyncResponse = function(request, timeout) {
             return this;
         },
         "write": function(data, encoding) {
-            if (asyncContext.getHttpChannelState().isResponseCompleted()) {
+            let servletRequestState = servletRequest.getRequest().getServletChannel().getServletRequestState();
+            if (servletRequestState.isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
             if (!(data instanceof binary.Binary)) {
@@ -235,7 +236,8 @@ exports.AsyncResponse = function(request, timeout) {
             this.write(FLUSH);
         },
         "close": function() {
-            if (asyncContext.getHttpChannelState().isResponseCompleted()) {
+            let servletRequestState = servletRequest.getRequest().getServletChannel().getServletRequestState();
+            if (servletRequestState.isResponseCompleted()) {
                 throw new Error("AsyncResponse already closed");
             }
             return writeListener.close();

@@ -1,27 +1,26 @@
 FROM debian:bullseye-slim AS builder
 
-RUN apt-get update && apt-get install -y git
-
-## Java 11
+## Java 17 (minimum required by Jetty 12)
 ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:11-jdk-focal $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:17-jdk-focal $JAVA_HOME $JAVA_HOME
 
 ## Ringo main
 ENV RINGO_HOME=/usr/local/ringojs
-RUN git -C /usr/local clone --depth 1 https://github.com/ringo/ringojs ${RINGO_HOME} && \
-    rm -rf ${RINGO_HOME}/.git
+COPY . ${RINGO_HOME}
 
 WORKDIR ${RINGO_HOME}
-RUN ./gradlew --exclude-task test
+# normalize line endings/permissions in case the build context came from a
+# checkout with CRLF line endings (e.g. Windows with core.autocrlf=true)
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew && ./gradlew --exclude-task test
 
 FROM debian:bullseye-slim
 
 ENV JAVA_HOME=/opt/java/openjdk
 ENV RINGO_HOME=/usr/local/ringojs
 
-COPY --from=eclipse-temurin:11-jre-focal $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:17-jre-focal $JAVA_HOME $JAVA_HOME
 COPY --from=builder ${RINGO_HOME} ${RINGO_HOME}
-COPY ./docker-entrypoint.sh /usr/local/bin/
+COPY ./docker/docker-entrypoint.sh /usr/local/bin/
 
 # Create ringojs user and group
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \

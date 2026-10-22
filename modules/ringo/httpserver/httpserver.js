@@ -5,16 +5,16 @@
  */
 const log = require('ringo/logging').getLogger(module.id);
 const {XmlConfiguration} = org.eclipse.jetty.xml;
-const {Resource} = org.eclipse.jetty.util.resource;
+const {PathResourceFactory} = org.eclipse.jetty.util.resource;
 const {Server, HttpConfiguration, HttpConnectionFactory,
         ServerConnector, SslConnectionFactory,
-        SecureRequestCustomizer, ServerConnectionStatistics} = org.eclipse.jetty.server;
-const {HandlerCollection, ContextHandlerCollection} = org.eclipse.jetty.server.handler;
+        SecureRequestCustomizer, Handler} = org.eclipse.jetty.server;
+const {ContextHandlerCollection, DefaultHandler} = org.eclipse.jetty.server.handler;
 const {ConnectionStatistics} = org.eclipse.jetty.io;
 const {HttpVersion, HttpCookie} = org.eclipse.jetty.http;
-const {DefaultSessionIdManager} = org.eclipse.jetty.server.session;
+const {DefaultSessionIdManager, HouseKeeper} = org.eclipse.jetty.session;
 const {SslContextFactory} = org.eclipse.jetty.util.ssl;
-
+const {Long} = java.lang;
 const objects = require("ringo/utils/objects");
 const ApplicationContext = require("./context/application");
 const StaticContext = require("./context/static");
@@ -32,6 +32,7 @@ const HttpServer = module.exports = function HttpServer(options) {
     }
 
     const jetty = new Server();
+    jetty.setDefaultHandler(new DefaultHandler());
 
     let xmlConfig = null;
 
@@ -88,7 +89,7 @@ HttpServer.prototype.configure = function(xmlPath) {
     if (!Files.exists(path)) {
         throw Error('Jetty XML configuration "' + xmlPath + '" not found');
     }
-    return this.xmlConfig = new XmlConfiguration(Resource.newResource(path));
+    return this.xmlConfig = new XmlConfiguration(new PathResourceFactory().newResource(path));
 };
 
 /**
@@ -300,7 +301,7 @@ HttpServer.prototype.createHttpsListener = function(options) {
 HttpServer.prototype.getHandlerCollection = function() {
     let handlerCollection = this.jetty.getHandler();
     if (handlerCollection === null) {
-        handlerCollection = new HandlerCollection();
+        handlerCollection = new Handler.Sequence();
         this.jetty.setHandler(handlerCollection);
     }
     return handlerCollection;
@@ -315,13 +316,22 @@ HttpServer.prototype.getHandlerCollection = function() {
 HttpServer.prototype.getContextHandlerCollection = function() {
     const handlerCollection = this.getHandlerCollection();
     let contextHandlerCollection =
-            handlerCollection.getChildHandlerByClass(ContextHandlerCollection);
+            handlerCollection.getDescendant(ContextHandlerCollection);
     if (contextHandlerCollection === null) {
         contextHandlerCollection = new ContextHandlerCollection();
-        handlerCollection.addHandler(contextHandlerCollection);
+        prependHandler(contextHandlerCollection, handlerCollection);
     }
     return contextHandlerCollection;
 };
+
+function prependHandler(handler, handlers) {
+    if (handler == null || handlers == null) {
+        return;
+    }
+    const existing = handlers.getHandlers();
+    const children = [handler].concat(existing);
+    handlers.setHandlers(children);
+}
 
 /**
  * Adds a context and starts it
@@ -350,7 +360,13 @@ HttpServer.prototype.enableSessions = function(options) {
     // if random is null, jetty will fall back to a SecureRandom in its initRandom()
     const sessionIdManager = new DefaultSessionIdManager(this.jetty, options.random || null);
     sessionIdManager.setWorkerName(options.name || "node1");
-    this.jetty.setSessionIdManager(sessionIdManager);
+
+    let houseKeeper = new HouseKeeper();
+    houseKeeper.setSessionIdManager(sessionIdManager);
+    houseKeeper.setIntervalSec(new Long(600));
+    sessionIdManager.setSessionHouseKeeper(houseKeeper);
+
+    this.jetty.addBean(sessionIdManager);
     return sessionIdManager;
 };
 /**
@@ -385,7 +401,7 @@ HttpServer.prototype.serveApplication = function(mountpoint, app, options) {
         "virtualHosts": options.virtualHosts
     };
     const parentContainer = this.getContextHandlerCollection();
-    const context = new ApplicationContext(parentContainer, mountpoint, options);
+    const context = new ApplicationContext(this.jetty, parentContainer, mountpoint, options);
     context.serve(app);
     return this.addContext(context);
 };
@@ -420,7 +436,7 @@ HttpServer.prototype.serveStatic = function(mountpoint, directory, options) {
         "otherGzipFileExtensions": options.gzipExtensions || null
     };
     const parentContainer = this.getContextHandlerCollection();
-    const context = new StaticContext(parentContainer, mountpoint, {
+    const context = new StaticContext(this.jetty, parentContainer, mountpoint, {
             "security": options.security === true,
             "sessions": options.sessions === true,
             "sessionsMaxInactiveInterval": options.sessionsMaxInactiveInterval || null,
@@ -443,7 +459,7 @@ HttpServer.prototype.serveStatic = function(mountpoint, directory, options) {
  * @see <a href="../builder/index.html#HttpServerBuilder.prototype.enableConnectionStatistics">HttpServerBuilder.enableConnectionStatistics()</a>
  */
 HttpServer.prototype.enableConnectionStatistics = function() {
-    ServerConnectionStatistics.addToAllConnectors(this.jetty);
+    this.jetty.addBeanToAllConnectors(new ConnectionStatistics());
 };
 
 /**

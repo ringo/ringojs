@@ -223,7 +223,7 @@ exports.testServeApplication = () => {
 
     // defaults
     let {contextHandler} = httpServer.serveApplication("/", app);
-    assert.isNull(contextHandler.virtualHosts);
+    assert.isTrue(contextHandler.virtualHosts.isEmpty());
 
     let {securityHandler, sessionHandler} = contextHandler;
     assert.isTrue(securityHandler.getClass().equals(contextHandler.defaultSecurityHandlerClass));
@@ -289,7 +289,7 @@ exports.testServeStatic = () => {
             .toRealPath().toString() + "/";
 
     let {contextHandler} = httpServer.serveStatic(path, directory);
-    assert.strictEqual(contextHandler.resourceBase, Paths.get(directory).toUri().toString());
+    assert.strictEqual(contextHandler.getBaseResource().getPath().toUri().toString(), Paths.get(directory).toUri().toString());
 
     // static serving has no security/session handler by default
     assert.isNull(contextHandler.securityHandler);

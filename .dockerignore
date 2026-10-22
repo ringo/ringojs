@@ -1,0 +1,9 @@
+.git
+.gradle
+build
+docs/modules
+docs/java
+.idea
+*.iml
+*.ipr
+*.iws

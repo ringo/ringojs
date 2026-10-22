@@ -1,5 +1,5 @@
 const log = require("ringo/logging").getLogger(module.id);
-const {EventSource} = org.eclipse.jetty.servlets;
+const {EventSource} = org.eclipse.jetty.ee10.servlets;
 const {JavaEventEmitter} = require("ringo/events");
 
 /**

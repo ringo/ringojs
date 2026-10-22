@@ -4,7 +4,8 @@ const assert = require("assert");
 const {XmlConfiguration} = org.eclipse.jetty.xml;
 const {ServerConnector} = org.eclipse.jetty.server;
 const {ConnectionStatistics} = org.eclipse.jetty.io;
-const {CrossOriginFilter, HeaderFilter} = org.eclipse.jetty.servlets;
+const {CrossOriginFilter, HeaderFilter} = org.eclipse.jetty.ee10.servlets;
+const {SessionIdManager} = org.eclipse.jetty.session;
 
 const Builder = require("../../../modules/ringo/httpserver/builder");
 const HttpServer = require("../../../modules/ringo/httpserver/httpserver");
@@ -65,9 +66,9 @@ exports.testHttps = () => {
 
 exports.testEnableSessions = () => {
     const builder = new Builder();
-    assert.isNull(builder.server.jetty.sessionIdManager);
+    assert.isNull(builder.server.jetty.getBean(SessionIdManager));
     assert.strictEqual(builder.enableSessions(), builder);
-    assert.isNotNull(builder.server.jetty.sessionIdManager);
+    assert.isNotNull(builder.server.jetty.getBean(SessionIdManager));
 };
 
 exports.testEnableConnectionStatistics = () => {
