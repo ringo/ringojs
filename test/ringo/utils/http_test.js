@@ -177,6 +177,36 @@ exports.testParseParameters = function() {
     });
 };
 
+exports.testParseParametersPrototypePollution = function() {
+    let payloads = [
+        "q[]=1&q[constructor][constructor][prototype][dd]=pwned",
+        "a[]=1&a[constructor][prototype][0]=pwnedArr",
+        "__proto__[polluted]=yes",
+        "constructor[prototype][cc]=x",
+        "x[__proto__][polluted]=yes",
+        "y[a]=1&y[a][constructor][prototype][ee]=pwned",
+        "s=1&s[constructor][prototype][ff]=pwned"
+    ];
+    payloads.forEach(function(payload) {
+        http.parseParameters(payload, {});
+    });
+    assert.isUndefined((function() {}).dd);
+    assert.isUndefined([].push.dd);
+    assert.isUndefined(Function.prototype.dd);
+    assert.strictEqual(Array.prototype.length, 0);
+    assert.isUndefined([][0]);
+    assert.isUndefined(({}).polluted);
+    assert.isUndefined(({}).cc);
+    assert.isUndefined(({}).ee);
+    assert.isUndefined("".ff);
+    assert.isUndefined(String.prototype.ff);
+
+    // dangerous segments are dropped, regular params are kept
+    assert.deepEqual(http.parseParameters("q[]=1&q[constructor][prototype][x]=2"), {q: ["1"]});
+    assert.deepEqual(http.parseParameters("__proto__=1&b=2"), {b: "2"});
+    assert.deepEqual(http.parseParameters("constructor=1"), {constructor: "1"});
+};
+
 exports.testSetCookie = function() {
     // a simple cookie
     assert.equal(http.setCookie("foo", "bar"), "foo=bar; Path=/");

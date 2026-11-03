@@ -70,6 +70,16 @@ const sanitizeHeaderValue = (fieldValue) => {
 };
 
 /**
+ * @ignore interal function to prevent prototype pollution
+ */
+const isForbiddenKey = (key) => ["__proto__", "constructor", "prototype"].indexOf(key) > -1;
+
+/**
+ * @ignore interal function
+ */
+const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
+/**
  * Returns an object for use as a HTTP request header collection. The returned object
  * provides methods for setting, getting, and deleting its properties in a
  * case-insensitive and case-preserving way. Multiple headers with the same
@@ -471,12 +481,18 @@ exports.parseParameters = (input, params, encoding) => {
 const mergeParameter = exports.mergeParameter = (params, name, value) => {
     // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
     if (name.match(/^[\w_\-.]+(?:\[[^\]]*\]\s*)+$/)) {
-        const names = name.split(/\]\s*\[|\[|\]/).map((s) => s.trim()).slice(0, -1);
+        let names = name.split(/\]\s*\[|\[|\]/).map((s) => s.trim()).slice(0, -1);
+        // never traverse into or write to built-in prototypes
+        if (names.some(isForbiddenKey)) {
+            return;
+        }
         mergeParameterInternal(params, names, value);
     } else {
         // not matching the foo[bar] pattern, add param as is
-        if (!params.hasOwnProperty(name)) {
-            params[name] = value;
+        if (!hasOwn(params, name)) {
+            if (name !== "__proto__") {
+                params[name] = value;
+            }
         } else {
             // is parameter a single-key param?
             if (!Array.isArray(params[name])) {
@@ -496,10 +512,10 @@ const mergeParameterInternal = (params, names, value) => {
         Array.isArray(params) ? params.push(value) : params[names[0]] = value;
     } else {
         // we have a property path - consume first token and recurse
-        const name = names.shift();
+        let name = names.shift();
         if (names[0]) {
             // foo[bar] - parse as object property
-            let obj = params[name];
+            let obj = hasOwn(params, name) ? params[name] : undefined;
             if (!(obj instanceof Object)) {
                 obj = {};
                 Array.isArray(params) ? params.push(obj) : params[name] = obj;
@@ -507,7 +523,7 @@ const mergeParameterInternal = (params, names, value) => {
             mergeParameterInternal(obj, names, value);
         } else {
             // foo[] - parse as array
-            let array = params[name];
+            let array = hasOwn(params, name) ? params[name] : undefined;
             if (!Array.isArray(array)) {
                 array = array == null ? [] : [array];
                 Array.isArray(params) ? params.push(array) : params[name] = array;
