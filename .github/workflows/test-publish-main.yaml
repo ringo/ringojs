@@ -16,8 +16,8 @@ jobs:
       matrix:
         # All three major OS types are supported
         os: [windows-latest, macos-latest, ubuntu-latest]
-        # RingoJS supports all current LTS releases:
-        java: ["11", "17"]
+        # Gradle 9 requires JDK 17+ to run the build:
+        java: ["17", "21"]
     name: ${{ matrix.os }} - JDK ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2

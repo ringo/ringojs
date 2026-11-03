@@ -2,9 +2,9 @@ FROM debian:bullseye-slim AS builder
 
 RUN apt-get update && apt-get install -y git
 
-## Java 11
+## Java 17 (required by Gradle 9 to build)
 ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:11-jdk-focal $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:17-jdk-focal $JAVA_HOME $JAVA_HOME
 
 ## Ringo main
 ENV RINGO_HOME=/usr/local/ringojs

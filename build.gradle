@@ -59,26 +59,26 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-tasks.withType(JavaCompile) {
-    options.deprecation true
+tasks.withType(JavaCompile).configureEach {
+    options.deprecation = true
     if (JavaVersion.current().isJava9Compatible()) {
         options.compilerArgs.addAll(['--release', '8'])
     }
 }
 
-task copyDependencies(type: Copy) {
+tasks.register('copyDependencies', Copy) {
     from configurations.runtimeClasspath
     into './lib/'
 }
 
-task modules(type: Jar) {
+tasks.register('modules', Jar) {
     from('modules')
     into('modules')
     destinationDirectory = file('lib')
     archiveFileName = 'ringo-modules.jar'
 }
 
-task runner(type: Jar) {
+tasks.register('runner', Jar) {
     from sourceSets.runner.output
     destinationDirectory = project.projectDir
     archiveFileName = 'run.jar'
@@ -89,19 +89,19 @@ task runner(type: Jar) {
     }
 }
 
-task testModules(type: JavaExec) {
-    dependsOn copyDependencies, jar
+tasks.register('testModules', JavaExec) {
+    dependsOn 'copyDependencies', jar
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.ringojs.tools.launcher.Main'
-    args 'test/all.js'
+    args = ['test/all.js']
     shouldRunAfter test
 }
 
-task testDatesModule(type: DatesTestTask) {
-    dependsOn copyDependencies, jar
+tasks.register('testDatesModule', DatesTestTask) {
+    dependsOn 'copyDependencies', jar
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.ringojs.tools.launcher.Main'
-    args 'test/ringo/utils/dates_test.js'
+    args = ['test/ringo/utils/dates_test.js']
 }
 
 jar {
@@ -115,17 +115,17 @@ jar {
 
 javadoc {
     destinationDir = file('./docs/java')
-    options.addStringOption('doctitle', "RingoJS Java API v${project.version}");
+    options.addStringOption('doctitle', "RingoJS Java API v${project.version}")
     if (JavaVersion.current().isJava9Compatible() && !JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_13)) {
         options.addBooleanOption('html5', true)
         options.addBooleanOption('-no-module-directories', true)
         options.addStringOption('sourcepath', 'src')
     }
-    options.addBooleanOption('version', true);
+    options.addBooleanOption('version', true)
 }
 
 test {
-    finalizedBy testModules
+    finalizedBy 'testModules'
 }
 
 clean {
@@ -150,15 +150,17 @@ distributions {
             includeEmptyDirs = true
             duplicatesStrategy = 'exclude'
             from(binaries) {
-                fileMode 0755
+                filePermissions {
+                    unix(0755)
+                }
                 into "bin"
             }
             from(projectDir) {
                 exclude excludeFiles
             }
             from jar
-            from runner
-            from modules
+            from tasks.named('runner')
+            from tasks.named('modules')
             from(javadoc) {
                 into 'docs/java'
             }
@@ -166,17 +168,18 @@ distributions {
     }
 }
 
-assemble.dependsOn(modules, runner)
+assemble.dependsOn(tasks.named('modules'), tasks.named('runner'))
 distZip {
-    dependsOn clean, copyDependencies
+    dependsOn clean, 'copyDependencies'
 }
 distTar {
-    dependsOn clean, copyDependencies
-    compression Compression.GZIP
+    dependsOn clean, 'copyDependencies'
+    compression = Compression.GZIP
     archiveExtension = 'tar.gz'
 }
 
-task dist(type: Task, dependsOn: [distZip, distTar]) {
+tasks.register('dist') {
+    dependsOn distZip, distTar
     description = "Builds the release zip and tar files."
 }
 
@@ -234,12 +237,12 @@ publishing {
     repositories {
         maven {
             name = 'myTestRepo'
-            url = "file://${buildDir}/testrepo"
+            url = layout.buildDirectory.dir("testrepo")
         }
     }
 }
 
-class DatesTestTask extends JavaExec {
+abstract class DatesTestTask extends JavaExec {
 
     @TaskAction
     void exec() {
