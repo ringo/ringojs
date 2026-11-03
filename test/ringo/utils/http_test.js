@@ -231,6 +231,35 @@ exports.testParseParametersPrototypePollution = function() {
     assert.deepEqual(http.parseParameters("prototype[a]=1"), {prototype: {a: "1"}});
 };
 
+// Adapted from https://github.com/tj/node-querystring/blob/master/test/parse.js
+// See: https://github.com/tj/node-querystring
+// Original test copyright (c) 2014 TJ Holowaychuk <tj@vision-media.ca>
+exports.testCommonQueryParamPatterns = function() {
+    // should not produce empty keys
+    assert.deepEqual(http.parseParameters("_r=1&"), {_r: "1"});
+
+    // Numeric indices are treated as plain object keys
+    let q = http.parseParameters("a[999999999]=1&a[2]=2");
+    assert.isFalse(Array.isArray(q.a));
+    assert.deepEqual(q, {a: {"2": "2", "999999999": "1"}});
+
+    // should not be able to override prototypes
+    // (special names are stored as own data, prototypes stay intact)
+    let obj = http.parseParameters("toString=bad&bad[toString]=bad&constructor=bad");
+    assert.deepEqual(obj, {toString: "bad", bad: {toString: "bad"}, constructor: "bad"});
+    assert.strictEqual(Object.getPrototypeOf(obj), Object.prototype);
+    assert.strictEqual(Object.getPrototypeOf(obj.bad), Object.prototype);
+    assert.isTrue(typeof Object.prototype.toString === "function");
+    assert.isTrue(typeof ({}).toString === "function");
+    assert.strictEqual(({}).constructor, Object);
+
+    // should not be possible to access Object prototype
+    http.parseParameters("constructor[prototype][bad]=bad");
+    http.parseParameters("bad[constructor][prototype][bad]=bad");
+    assert.isUndefined(Object.prototype.bad);
+    assert.isUndefined(({}).bad);
+};
+
 exports.testSetCookie = function() {
     // a simple cookie
     assert.equal(http.setCookie("foo", "bar"), "foo=bar; Path=/");
