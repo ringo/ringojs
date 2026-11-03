@@ -59,6 +59,7 @@ public class RingoConfig {
     private List<String> bootstrapScripts;
     private boolean sealed = false;
     private boolean reloading = true;
+    private boolean production = false;
     private String charset = "UTF-8";
 
     /**
@@ -534,6 +535,14 @@ public class RingoConfig {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
+    }
+
+    public boolean isProduction() {
+        return production;
+    }
+
+    public void setProduction(boolean production) {
+        this.production = production;
     }
 
     public List<String> getBootstrapScripts() {

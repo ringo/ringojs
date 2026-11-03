@@ -97,6 +97,7 @@ public class JsgiServlet extends HttpServlet {
                 ringoConfig.setParentProtoProperties(legacyMode);
                 ringoConfig.setStrictVars(!legacyMode && !production);
                 ringoConfig.setReloading(!production);
+                ringoConfig.setProduction(production);
                 ringoConfig.setOptLevel(optlevel);
                 if (bootScripts != null) {
                     ringoConfig.setBootstrapScripts(Arrays.asList(

@@ -132,6 +132,7 @@ public class RingoRunner {
         config.setParentProtoProperties(legacyMode);
         config.setStrictVars(!legacyMode && !productionMode);
         config.setReloading(!productionMode);
+        config.setProduction(productionMode);
         if (charset != null) {
             config.setCharset(charset);
         }
