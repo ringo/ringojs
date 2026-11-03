@@ -496,6 +496,56 @@ exports.testTempFileFactory = function() {
     }
 }
 
+let parseUploadRecording = (payload) => {
+    let io = require("io");
+    let parts = [];
+    let factory = (data, encoding) => {
+        let stream = http.TempFileFactory(data, encoding);
+        parts.push({data: data, stream: stream});
+        return stream;
+    };
+    let request = {
+        headers: {"content-type": "multipart/form-data; boundary=BB"},
+        input: new io.MemoryStream(new binary.ByteArray(payload, "ASCII"))
+    };
+    let params, error;
+    try {
+        params = http.parseFileUpload(request, {}, "UTF-8", factory);
+    } catch (e) {
+        error = e;
+    }
+    return {params: params, error: error, parts: parts};
+};
+
+let PART_ONE = "--BB\r\nContent-Disposition: form-data; name=\"f1\"; filename=\"a.bin\"\r\n" +
+        "Content-Type: application/octet-stream\r\n\r\nAAAA\r\n";
+
+exports.testParseFileUploadTruncatedBody = function() {
+    let result = parseUploadRecording(PART_ONE +
+            "--BB\r\nContent-Disposition: form-data; name=\"f2\"; filename=\"b.bin\"\r\n\r\nBBBBBBBB");
+    assert.isUndefined(result.error);
+    assert.equal(result.parts.length, 2);
+    let [first, second] = result.parts;
+    try {
+        assert.strictEqual(result.params.f1, first.data);
+        assert.isTrue(fs.exists(first.data.tempfile));
+        assert.isUndefined(result.params.f2);
+        assert.isTrue(second.stream.closed());
+        assert.isFalse(fs.exists(second.data.tempfile));
+    } finally {
+        fs.exists(first.data.tempfile) && fs.remove(first.data.tempfile);
+    }
+};
+
+exports.testParseFileUploadMalformedHeaders = function() {
+    let result = parseUploadRecording(PART_ONE +
+            "--BB\r\nContent-Disposition: form-data; name=\"f2\"; filename=\"b.bin\"\r\n");
+    assert.isNotUndefined(result.error);
+    assert.equal(result.parts.length, 1);
+    assert.isTrue(result.parts[0].stream.closed());
+    assert.isFalse(fs.exists(result.parts[0].data.tempfile));
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

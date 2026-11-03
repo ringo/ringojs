@@ -607,76 +607,112 @@ exports.parseFileUpload = (request, params, encoding, streamFactory) => {
         return totalRead;
     };
 
-    refill();
+    // temp files created during this parse, removed again if parsing fails
+    let tempfiles = [];
+    let completed = false;
 
-    while (position < limit) {
-        if (!data) {
-            // refill buffer if we don't have enough fresh bytes
-            if (!eof && limit - position < refillThreshold) {
-                refill(true);
+    try {
+        refill();
+
+        while (position < limit) {
+            if (!data) {
+                // refill buffer if we don't have enough fresh bytes
+                if (!eof && limit - position < refillThreshold) {
+                    refill(true);
+                }
+                let boundaryPos = buffer.indexOf(boundary, position, limit);
+                if (boundaryPos < 0) {
+                    throw new Error("boundary not found in multipart stream");
+                }
+                // move position past boundary to beginning of multipart headers
+                position = boundaryPos + boundary.length + CRLF.length;
+                if (buffer[position - 2] === HYPHEN && buffer[position - 1] === HYPHEN) {
+                    // reached final boundary
+                    break;
+                }
+                let b = buffer.indexOf(EMPTY_LINE, position, limit);
+                if (b < 0) {
+                    throw new Error("could not parse headers");
+                }
+                data = {};
+                let headers = [];
+                buffer.slice(position, b).split(CRLF).forEach(function(line) {
+                    line = line.decodeToString(encoding);
+                    // unfold multiline headers
+                    if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
+                        headers[headers.length - 1] += arrays.peek(headers);
+                    } else {
+                        headers.push(line);
+                    }
+                });
+                headers.forEach((header) => {
+                    if (strings.startsWith(header.toLowerCase(), "content-disposition:")) {
+                        data.name = getMimeParameter(header, "name");
+                        data.filename = getMimeParameter(header, "filename");
+                    } else if (strings.startsWith(header.toLowerCase(), "content-type:")) {
+                        data.contentType = header.substring(13).trim();
+                    }
+                });
+                // move position after the empty line that separates headers from body
+                position = b + EMPTY_LINE.length;
+                // create stream for mime part
+                stream = streamFactory(data, encoding);
+                if (data.tempfile) {
+                    tempfiles.push(data.tempfile);
+                }
             }
             let boundaryPos = buffer.indexOf(boundary, position, limit);
             if (boundaryPos < 0) {
-                throw new Error("boundary not found in multipart stream");
-            }
-            // move position past boundary to beginning of multipart headers
-            position = boundaryPos + boundary.length + CRLF.length;
-            if (buffer[position - 2] === HYPHEN && buffer[position - 1] === HYPHEN) {
-                // reached final boundary
-                break;
-            }
-            let b = buffer.indexOf(EMPTY_LINE, position, limit);
-            if (b < 0) {
-                throw new Error("could not parse headers");
-            }
-            data = {};
-            let headers = [];
-            buffer.slice(position, b).split(CRLF).forEach(function(line) {
-                line = line.decodeToString(encoding);
-                // unfold multiline headers
-                if ((line.startsWith(" ") || line.startsWith("\t")) && headers.length) {
-                    headers[headers.length - 1] += arrays.peek(headers);
-                } else {
-                    headers.push(line);
+                // no terminating boundary found, slurp bytes and check for
+                // partial boundary at buffer end which we know starts with "\r\n--"
+                // but we just check for \r to keep it simple.
+                let cr = buffer.indexOf(CR, Math.max(position, limit - boundary.length - 2), limit);
+                let end =  (cr < 0) ? limit : cr;
+                stream.write(buffer, position, end);
+                // stream.flush();
+                position = end;
+                if (!eof) {
+                    refill();
                 }
-            });
-            headers.forEach((header) => {
-                if (strings.startsWith(header.toLowerCase(), "content-disposition:")) {
-                    data.name = getMimeParameter(header, "name");
-                    data.filename = getMimeParameter(header, "filename");
-                } else if (strings.startsWith(header.toLowerCase(), "content-type:")) {
-                    data.contentType = header.substring(13).trim();
-                }
-            });
-            // move position after the empty line that separates headers from body
-            position = b + EMPTY_LINE.length;
-            // create stream for mime part
-            stream = streamFactory(data, encoding);
-        }
-        let boundaryPos = buffer.indexOf(boundary, position, limit);
-        if (boundaryPos < 0) {
-            // no terminating boundary found, slurp bytes and check for
-            // partial boundary at buffer end which we know starts with "\r\n--"
-            // but we just check for \r to keep it simple.
-            let cr = buffer.indexOf(CR, Math.max(position, limit - boundary.length - 2), limit);
-            let end =  (cr < 0) ? limit : cr;
-            stream.write(buffer, position, end);
-            // stream.flush();
-            position = end;
-            if (!eof) {
-                refill();
-            }
-        } else {
-            // found terminating boundary, complete data and merge into parameters
-            stream.write(buffer, position, boundaryPos - 2);
-            stream.close();
-            position = boundaryPos;
-            if (typeof data.value === "string") {
-                mergeParameter(params, data.name, data.value);
             } else {
-                mergeParameter(params, data.name, data);
+                // found terminating boundary, complete data and merge into parameters
+                stream.write(buffer, position, boundaryPos - 2);
+                stream.close();
+                position = boundaryPos;
+                if (typeof data.value === "string") {
+                    mergeParameter(params, data.name, data.value);
+                } else {
+                    mergeParameter(params, data.name, data);
+                }
+                data = stream = null;
             }
-            data = stream = null;
+        }
+        completed = true;
+    } finally {
+        // release resources of a part that was started but never completed
+        // (truncated body or parse error)
+        if (stream) {
+            try {
+                stream.close();
+            } catch (e) {
+                // ignore
+            }
+        }
+        let removeTempfile = (file) => {
+            try {
+                if (fs.exists(file)) {
+                    fs.remove(file);
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+        if (!completed) {
+            // the caller won't receive any part, so remove all temp files
+            tempfiles.forEach(removeTempfile);
+        } else if (data && data.tempfile) {
+            // incomplete last part, not merged into params
+            removeTempfile(data.tempfile);
         }
     }
     return params;
@@ -884,7 +920,10 @@ const BufferFactory = exports.BufferFactory = function(data, encoding) {
  * argument to [parseFileUpload()](#parseFileUpload).
  *
  * The name of the temporary file is stored in the `tempfile` property
- * of the parameter's data object.
+ * of the parameter's data object. The caller is responsible for removing
+ * the temporary files of returned parts once they are no longer needed.
+ * Temporary files of incomplete or malformed parts are removed by
+ * [parseFileUpload()](#parseFileUpload).
  * @param {Object} data
  * @param {String} encoding
  */
