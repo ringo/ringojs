@@ -70,14 +70,21 @@ const sanitizeHeaderValue = (fieldValue) => {
 };
 
 /**
- * @ignore interal function to prevent prototype pollution
- */
-const isForbiddenKey = (key) => ["__proto__", "constructor", "prototype"].indexOf(key) > -1;
-
-/**
  * @ignore interal function
  */
 const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
+/**
+ * @ignore interal function, always define own data property
+ */
+const setOwn = (obj, key, value) => {
+    Object.defineProperty(obj, key, {
+        value: value,
+        writable: true,
+        enumerable: true,
+        configurable: true
+    });
+};
 
 /**
  * Returns an object for use as a HTTP request header collection. The returned object
@@ -482,54 +489,39 @@ const mergeParameter = exports.mergeParameter = (params, name, value) => {
     // split "foo[bar][][baz]" into ["foo", "bar", "", "baz", ""]
     if (name.match(/^[\w_\-.]+(?:\[[^\]]*\]\s*)+$/)) {
         let names = name.split(/\]\s*\[|\[|\]/).map((s) => s.trim()).slice(0, -1);
-        // never traverse into or write to built-in prototypes
-        if (names.some(isForbiddenKey)) {
-            return;
-        }
         mergeParameterInternal(params, names, value);
-    } else {
+    } else if (!hasOwn(params, name)) {
         // not matching the foo[bar] pattern, add param as is
-        if (!hasOwn(params, name)) {
-            if (name !== "__proto__") {
-                params[name] = value;
-            }
-        } else {
-            // is parameter a single-key param?
-            if (!Array.isArray(params[name])) {
-                // convert the parameter to a value array
-                params[name] = [params[name], value];
-            } else {
-                // push to the existing value array
-                params[name].push(value);
-            }
-        }
+        setOwn(params, name, value);
+    } else if (!Array.isArray(params[name])) {
+        // single-key param: convert the parameter to a value array
+        setOwn(params, name, [params[name], value]);
+    } else {
+        // push to the existing value array
+        params[name].push(value);
     }
 };
 
 const mergeParameterInternal = (params, names, value) => {
     if (names.length === 1) {
         // a simple property - push or set depending on params' type
-        Array.isArray(params) ? params.push(value) : params[names[0]] = value;
+        Array.isArray(params) ? params.push(value) : setOwn(params, names[0], value);
     } else {
         // we have a property path - consume first token and recurse
         let name = names.shift();
+        let current = hasOwn(params, name) ? params[name] : undefined;
+        let next;
         if (names[0]) {
             // foo[bar] - parse as object property
-            let obj = hasOwn(params, name) ? params[name] : undefined;
-            if (!(obj instanceof Object)) {
-                obj = {};
-                Array.isArray(params) ? params.push(obj) : params[name] = obj;
-            }
-            mergeParameterInternal(obj, names, value);
+            next = current instanceof Object ? current : {};
         } else {
             // foo[] - parse as array
-            let array = hasOwn(params, name) ? params[name] : undefined;
-            if (!Array.isArray(array)) {
-                array = array == null ? [] : [array];
-                Array.isArray(params) ? params.push(array) : params[name] = array;
-            }
-            mergeParameterInternal(array, names, value);
+            next = Array.isArray(current) ? current : (current == null ? [] : [current]);
         }
+        if (next !== current) {
+            Array.isArray(params) ? params.push(next) : setOwn(params, name, next);
+        }
+        mergeParameterInternal(next, names, value);
     }
 };
 

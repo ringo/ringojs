@@ -201,10 +201,34 @@ exports.testParseParametersPrototypePollution = function() {
     assert.isUndefined("".ff);
     assert.isUndefined(String.prototype.ff);
 
-    // dangerous segments are dropped, regular params are kept
-    assert.deepEqual(http.parseParameters("q[]=1&q[constructor][prototype][x]=2"), {q: ["1"]});
-    assert.deepEqual(http.parseParameters("__proto__=1&b=2"), {b: "2"});
+    // no key is blocked: special names are stored as plain own data
+    let p = http.parseParameters("q[]=1&q[constructor][prototype][x]=2");
+    assert.isTrue(Array.isArray(p.q));
+    assert.strictEqual(p.q[0], "1");
+    // q is an array, so the "constructor" segment is consumed by a push
+    assert.deepEqual(p.q[1], {prototype: {x: "2"}});
+
+    p = http.parseParameters("o[a]=1&o[constructor][prototype][x]=2");
+    assert.strictEqual(p.o.constructor.prototype.x, "2");
+    assert.strictEqual(Object.getPrototypeOf(p.o), Object.prototype);
+
+    p = http.parseParameters("__proto__=1&b=2");
+    assert.strictEqual(Object.getPrototypeOf(p), Object.prototype);
+    assert.isTrue(Object.prototype.hasOwnProperty.call(p, "__proto__"));
+    assert.strictEqual(p["__proto__"], "1");
+    assert.strictEqual(p.b, "2");
+    assert.deepEqual(Object.keys(p).sort(), ["__proto__", "b"]);
+
+    p = http.parseParameters("__proto__=1&__proto__=2");
+    assert.deepEqual(p["__proto__"], ["1", "2"]);
+    assert.strictEqual(Object.getPrototypeOf(p), Object.prototype);
+
+    p = http.parseParameters("x[__proto__][polluted]=yes");
+    assert.strictEqual(Object.getPrototypeOf(p.x), Object.prototype);
+    assert.strictEqual(p.x["__proto__"].polluted, "yes");
+
     assert.deepEqual(http.parseParameters("constructor=1"), {constructor: "1"});
+    assert.deepEqual(http.parseParameters("prototype[a]=1"), {prototype: {a: "1"}});
 };
 
 exports.testSetCookie = function() {
@@ -549,6 +573,42 @@ let parseUploadRecording = (payload) => {
 
 let PART_ONE = "--BB\r\nContent-Disposition: form-data; name=\"f1\"; filename=\"a.bin\"\r\n" +
         "Content-Type: application/octet-stream\r\n\r\nAAAA\r\n";
+
+exports.testParseFileUploadSpecialNames = function() {
+    [
+        ["file[prototype]", ["file", "prototype"]],
+        ["file[constructor]", ["file", "constructor"]],
+        ["file[__proto__]", ["file", "__proto__"]],
+        ["__proto__", ["__proto__"]],
+        ["file[ constructor ][prototype]", ["file", "constructor", "prototype"]]
+    ].forEach(function([name, path]) {
+        let result = parseUploadRecording(PART_ONE +
+                '--BB\r\nContent-Disposition: form-data; name="' + name +
+                '"; filename="special.bin"\r\n\r\nSPECIAL\r\n' +
+                '--BB\r\nContent-Disposition: form-data; name="f2"; filename="b.bin"\r\n\r\nBBBB\r\n' +
+                '--BB--\r\n');
+        try {
+            assert.isUndefined(result.error);
+            assert.equal(result.parts.length, 3);
+            let [first, special, last] = result.parts;
+            assert.strictEqual(Object.getPrototypeOf(result.params), Object.prototype);
+            assert.deepEqual(Object.keys(result.params).sort(), ["f1", "f2", path[0]].sort());
+            assert.strictEqual(result.params.f1, first.data);
+            assert.strictEqual(result.params.f2, last.data);
+            let value = path.reduce(function(obj, key) {
+                assert.isTrue(Object.prototype.hasOwnProperty.call(obj, key), name);
+                return obj[key];
+            }, result.params);
+            assert.strictEqual(value, special.data, name);
+            assert.isTrue(fs.exists(special.data.tempfile));
+            assert.isUndefined(({}).polluted);
+        } finally {
+            result.parts.forEach(function(part) {
+                fs.exists(part.data.tempfile) && fs.remove(part.data.tempfile);
+            });
+        }
+    });
+};
 
 exports.testParseFileUploadTruncatedBody = function() {
     let result = parseUploadRecording(PART_ONE +
