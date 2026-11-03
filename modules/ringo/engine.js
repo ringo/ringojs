@@ -68,6 +68,7 @@ exports.createSandbox = (modulePath, globals, options) => {
                 shutter : new ClassShutter(shutter));
     }
     config.setSealed(Boolean(options.sealed));
+    config.setProduction(engine.getConfig().isProduction());
     return engine.createSandbox(config, globals);
 };
 

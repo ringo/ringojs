@@ -14,7 +14,9 @@ const {ConnectionStatistics} = org.eclipse.jetty.io;
 const {HttpVersion, HttpCookie} = org.eclipse.jetty.http;
 const {DefaultSessionIdManager} = org.eclipse.jetty.server.session;
 const {SslContextFactory} = org.eclipse.jetty.util.ssl;
+const {ProductionErrorHandler} = org.ringojs.jsgi;
 
+const engine = require("ringo/engine");
 const objects = require("ringo/utils/objects");
 const ApplicationContext = require("./context/application");
 const StaticContext = require("./context/static");
@@ -32,6 +34,9 @@ const HttpServer = module.exports = function HttpServer(options) {
     }
 
     const jetty = new Server();
+    if (engine.getRhinoEngine().getConfig().isProduction()) {
+        jetty.setErrorHandler(new ProductionErrorHandler());
+    }
 
     let xmlConfig = null;
 

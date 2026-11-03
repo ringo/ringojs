@@ -5,6 +5,7 @@
  * web framework like <a href="https://github.com/ringo/stick">stick</a>.
  */
 
+const engine = require('ringo/engine');
 const dates = require('ringo/utils/dates');
 const strings = require('ringo/utils/strings');
 const {Buffer} = require('ringo/buffer');
@@ -84,6 +85,14 @@ const setOwn = (obj, key, value) => {
         enumerable: true,
         configurable: true
     });
+};
+
+/**
+ * @ignore internal function, errors caused by request data can reach clients,
+ * so in production mode they must not reveal parser details or runtime values
+ */
+const errorMessage = (details, generic) => {
+    return engine.getRhinoEngine().getConfig().isProduction() ? generic : details;
 };
 
 /**
@@ -630,7 +639,8 @@ exports.parseFileUpload = (request, params, encoding, streamFactory) => {
                 }
                 let boundaryPos = buffer.indexOf(boundary, position, limit);
                 if (boundaryPos < 0) {
-                    throw new Error("boundary not found in multipart stream");
+                    throw new Error(errorMessage("boundary not found in multipart stream",
+                            "Invalid multipart request"));
                 }
                 // move position past boundary to beginning of multipart headers
                 position = boundaryPos + boundary.length + CRLF.length;
@@ -640,7 +650,8 @@ exports.parseFileUpload = (request, params, encoding, streamFactory) => {
                 }
                 let b = buffer.indexOf(EMPTY_LINE, position, limit);
                 if (b < 0) {
-                    throw new Error("could not parse headers");
+                    throw new Error(errorMessage("could not parse headers",
+                            "Invalid multipart request"));
                 }
                 data = {};
                 let headers = [];
@@ -745,14 +756,16 @@ exports.parseFileUpload = (request, params, encoding, streamFactory) => {
  */
 exports.parseRange = (rangeStr, size) => {
     if (typeof rangeStr !== "string") {
-        throw new Error("Could not parse range, must be a string, but is " + typeof rangeStr);
+        throw new Error(errorMessage("Could not parse range, must be a string, but is " + typeof rangeStr,
+                "Could not parse range"));
     }
 
     // it's not necessary to know the size of the resource
     if (size == null) {
         size = -1
     } else if (!Number.isSafeInteger(size) || size < -1) {
-        throw new Error("Could not parse range, invalid size: " + size);
+        throw new Error(errorMessage("Could not parse range, invalid size: " + size,
+                "Could not parse range"));
     }
 
     const rangeSpecifier = rangeStr.split("=");

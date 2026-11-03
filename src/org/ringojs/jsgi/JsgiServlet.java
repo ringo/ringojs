@@ -41,6 +41,10 @@ import java.util.List;
 
 public class JsgiServlet extends HttpServlet {
 
+    private static final String PRODUCTION_ERROR_MESSAGE = "Internal Server Error";
+    private static final String PRODUCTION_ERROR_BODY =
+            "<p>The server encountered an error and could not complete your request.</p>";
+
     String module;
     Object function;
     RhinoEngine engine;
@@ -131,6 +135,10 @@ public class JsgiServlet extends HttpServlet {
                 // custom error reporting failed, rethrow original exception
                 // for default handling
                 RingoRunner.reportError(x, System.err, errors, false);
+                if (engine.getConfig().isProduction()) {
+                    // containers render the exceptions they receive
+                    throw new ServletException(PRODUCTION_ERROR_MESSAGE);
+                }
                 throw new ServletException(x);
             }
         } finally {
@@ -160,7 +168,11 @@ public class JsgiServlet extends HttpServlet {
         String title = t instanceof RhinoException ?
                 ((RhinoException)t).details() : t.getMessage();
         StringBuilder body = new StringBuilder();
-        if (t instanceof RhinoException) {
+        if (engine.getConfig().isProduction()) {
+            // error details are only reported to System.err
+            title = "500 – " + PRODUCTION_ERROR_MESSAGE;
+            body.append(PRODUCTION_ERROR_BODY);
+        } else if (t instanceof RhinoException) {
             RhinoException rx = (RhinoException) t;
             if (errors != null && !errors.isEmpty()) {
                 for (ScriptError error : errors) {
