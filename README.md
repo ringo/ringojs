@@ -68,7 +68,7 @@ gpg: Good signature from "Philipp Naderer-Puiu <philipp@naderer-puiu.at>" [ultim
 ## Building from Source
 [![main](https://github.com/ringo/ringojs/actions/workflows/test-publish-main.yaml/badge.svg?branch=main)](https://github.com/ringo/ringojs/actions/workflows/test-publish-main.yaml)
 
-Ringo runs on top of the Java Platform. You can use an open implementation like [Eclipse Temurin][EclipseTemurin] or [Oracle's distribution][OracleJava].
+Ringo runs on top of the Java Platform (Java 11 or newer). You can use an open implementation like [Eclipse Temurin][EclipseTemurin] or [Oracle's distribution][OracleJava].
 It uses [Gradle] as build tool, which requires JDK 17 or newer to run the build.
 
 [EclipseTemurin]: https://adoptium.net/ 

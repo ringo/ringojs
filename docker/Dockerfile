@@ -1,10 +1,10 @@
-FROM debian:bullseye-slim AS builder
+FROM debian:trixie-slim AS builder
 
 RUN apt-get update && apt-get install -y git
 
-## Java 17 (required by Gradle 9 to build)
+## Java 21 (Gradle 9 requires at least Java 17 to build)
 ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:17-jdk-focal $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:21-jdk-noble $JAVA_HOME $JAVA_HOME
 
 ## Ringo main
 ENV RINGO_HOME=/usr/local/ringojs
@@ -14,12 +14,13 @@ RUN git -C /usr/local clone --depth 1 https://github.com/ringo/ringojs ${RINGO_H
 WORKDIR ${RINGO_HOME}
 RUN ./gradlew --exclude-task test
 
-FROM debian:bullseye-slim
+FROM debian:trixie-slim
 
 ENV JAVA_HOME=/opt/java/openjdk
 ENV RINGO_HOME=/usr/local/ringojs
+ENV LANG=C.UTF-8
 
-COPY --from=eclipse-temurin:11-jre-focal $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:21-jre-noble $JAVA_HOME $JAVA_HOME
 COPY --from=builder ${RINGO_HOME} ${RINGO_HOME}
 COPY ./docker-entrypoint.sh /usr/local/bin/
 

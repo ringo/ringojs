@@ -61,9 +61,8 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.deprecation = true
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.compilerArgs.addAll(['--release', '8'])
-    }
+    // Gradle 9 itself needs Java 17+, but the build output stays Java 11 compatible
+    options.release = 11
 }
 
 tasks.register('copyDependencies', Copy) {
