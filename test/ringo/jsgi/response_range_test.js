@@ -184,9 +184,15 @@ exports.testFileStreamHandling = function() {
         return stream;
     };
 
+    // the client can receive the response before response.range has closed the file,
+    // counts down once for each of the three requests below
+    const handled = new java.util.concurrent.CountDownLatch(3);
+
     server = new HttpServer();
     server.serveApplication("/", function(request) {
-        return response.range(request, module.path, null, "text/plain");
+        const result = response.range(request, module.path, null, "text/plain");
+        handled.countDown();
+        return result;
     });
     server.createHttpListener({
         "host": "localhost",
@@ -211,6 +217,7 @@ exports.testFileStreamHandling = function() {
         assert.strictEqual(opened.length, 0);
 
         assert.strictEqual(statusFor("bytes=0-4"), 206);
+        assert.isTrue(handled.await(5, java.util.concurrent.TimeUnit.SECONDS));
         assert.strictEqual(opened.length, 1);
         assert.isTrue(opened[0].closed());
     } finally {
