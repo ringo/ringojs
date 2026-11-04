@@ -98,6 +98,32 @@ const confirmInstall = (name, installDirectory, force) => {
     return true;
 };
 
+/**
+ * Reads the package.json of a downloaded package and determines its install
+ * directory. If the package can't be installed its temporary directory is
+ * removed, since nothing else will do so after the error has been thrown.
+ * @param {String} tempDirectory The directory containing the downloaded package
+ * @param {String} packagesDirectory The packages directory
+ * @param {String} url The url of the package
+ * @returns {Object} The package descriptor and its install directory
+ */
+const resolvePackage = (tempDirectory, packagesDirectory, url) => {
+    try {
+        const descriptor = packages.getDescriptor(tempDirectory);
+        if (!descriptor) {
+            throw new Error("Missing or invalid package.json in " + url);
+        }
+        return {
+            descriptor: descriptor,
+            installDirectory: files.getInstallDirectory(packagesDirectory, descriptor.name)
+        };
+    } catch (e) {
+        log.debug("Removing temporary directory", tempDirectory);
+        fs.removeTree(tempDirectory);
+        throw e;
+    }
+};
+
 const installDependencies = exports.installDependencies = (descriptor, packagesDirectory, options) => {
     options || (options = DEFAULT_OPTIONS);
     log.debug("Installing dependencies of {} (options: {}) ...", descriptor.name, JSON.stringify(options));
@@ -140,11 +166,7 @@ const installArchive = exports.installArchive = (spec, packagesDirectory, option
     term.writeln("Installing package from", spec.url);
     const tempArchive = httpClient.getBinary(spec.url);
     const tempDirectory = archive.extract(tempArchive);
-    const descriptor = packages.getDescriptor(tempDirectory);
-    if (!descriptor) {
-        throw new Error("Missing or invalid package.json in " + spec.url);
-    }
-    const installDirectory = files.getInstallDirectory(packagesDirectory, descriptor.name);
+    const {descriptor, installDirectory} = resolvePackage(tempDirectory, packagesDirectory, spec.url);
     if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.debug("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
@@ -164,11 +186,7 @@ const installGit = exports.installGit = (spec, packagesDirectory, options) => {
     log.debug("Installing git repository from {} (tree-ish: {}, options: {})",
             spec.url, spec.treeish, JSON.stringify(options));
     const tempDirectory = git.clone(spec.url, spec.treeish);
-    const descriptor = packages.getDescriptor(tempDirectory);
-    if (!descriptor) {
-        throw new Error("Missing or invalid package.json in " + spec.url);
-    }
-    const installDirectory = files.getInstallDirectory(packagesDirectory, descriptor.name);
+    const {descriptor, installDirectory} = resolvePackage(tempDirectory, packagesDirectory, spec.url);
     if (!confirmInstall(descriptor.name, installDirectory, options.force === true)) {
         log.debug("Removing temporary directory", tempDirectory);
         fs.removeTree(tempDirectory);
