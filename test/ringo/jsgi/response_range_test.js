@@ -1,6 +1,7 @@
 require("ringo/logging").setConfig(getResource("../../log4j2.properties"));
 
 const assert = require("assert");
+const fs = require("fs");
 const {MemoryStream} = require("io");
 const {HttpServer} = require("ringo/httpserver");
 const httpClient = require("ringo/httpclient");
@@ -171,6 +172,50 @@ exports.testInvalidRanges = function() {
         }
     });
     assert.strictEqual(exchange.status, 416);
+};
+
+exports.testFileStreamHandling = function() {
+    const {openRaw} = fs;
+    const opened = [];
+    // spy on the streams response.range opens, restored at the end of the test
+    fs.openRaw = function() {
+        const stream = openRaw.apply(this, arguments);
+        opened.push(stream);
+        return stream;
+    };
+
+    server = new HttpServer();
+    server.serveApplication("/", function(request) {
+        return response.range(request, module.path, null, "text/plain");
+    });
+    server.createHttpListener({
+        "host": "localhost",
+        "port": 8484,
+    });
+    server.start();
+
+    const statusFor = function(range) {
+        return httpClient.request({
+            method: "GET",
+            url: "http://localhost:8484",
+            headers: {
+                "Range": range
+            }
+        }).status;
+    };
+
+    try {
+        // rejected requests must not open the file at all
+        assert.strictEqual(statusFor("wtf=0-1"), 416);
+        assert.strictEqual(statusFor("bytes=99999999-99999999"), 416);
+        assert.strictEqual(opened.length, 0);
+
+        assert.strictEqual(statusFor("bytes=0-4"), 206);
+        assert.strictEqual(opened.length, 1);
+        assert.isTrue(opened[0].closed());
+    } finally {
+        fs.openRaw = openRaw;
+    }
 };
 
 if (require.main === module) {

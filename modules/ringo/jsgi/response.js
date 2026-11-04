@@ -614,7 +614,8 @@ exports.static = function (resource, contentType) {
  * Multiple or overlapping byte ranges are coalesced into a canonical response range.
  *
  * @param {Object} request a JSGI request object
- * @param {String|Resource|Stream} representation path of a file as string, a resource, or a readable <a href="../../../io/">io.Stream</a>
+ * @param {String|Resource|Stream} representation path of a file as string, a resource, or a readable <a href="../../../io/">io.Stream</a>.
+ *        Files and resources are opened and closed by this function, a passed stream stays open and must be closed by the caller.
  * @param {Number} size optional size of the resource in bytes, -1 indicates an unknown size.
  * @param {String} contentType optional content type to send for single range responses
  * @param {Number} timeout optional timeout to send back the ranges, defaults to 30 seconds, -1 indicates an infinite timeout.
@@ -635,7 +636,8 @@ exports.range = function (request, representation, size, contentType, timeout, m
         return new JsgiResponse().setStatus(400).text("Method not allowed.");
     }
 
-    let stream;
+    // files and resources are not opened until the requested ranges have been accepted
+    let openStream = null;
     if (typeof representation == "string") {
         let localPath = fs.absolute(representation);
         if (!fs.exists(localPath) || !fs.isReadable(localPath)) {
@@ -650,28 +652,24 @@ exports.range = function (request, representation, size, contentType, timeout, m
             }
         }
 
-        stream = fs.openRaw(localPath, "r");
+        openStream = () => fs.openRaw(localPath, "r");
     } else if (representation instanceof org.ringojs.repository.Resource) {
-        stream = new io.Stream(representation.getInputStream());
+        if (!representation.exists()) {
+            throw new Error("Resource does not exist or is not readable.");
+        }
+
         if (size == null && representation.getLength != null) {
             size = representation.getLength();
         }
+
+        openStream = () => new io.Stream(representation.getInputStream());
     } else if (representation instanceof io.Stream) {
-        stream = representation;
+        if (!representation.readable()) {
+            throw new Error("Stream must be readable!");
+        }
     } else {
         throw new Error("Invalid representation! Must be a path to a file, a resource, or a stream.");
     }
-
-    if (!stream.readable()) {
-        throw new Error("Stream must be readable!");
-    }
-
-    const BOUNDARY = new binary.ByteString("sjognir_doro_" +
-        java.lang.System.identityHashCode(this).toString(36) +
-        java.lang.System.identityHashCode(request).toString(36) +
-        java.lang.System.identityHashCode(stream).toString(36) +
-        (java.lang.System.currentTimeMillis() % 100000).toString(36) +
-        (Math.random().toFixed(10).slice(2)), "ASCII");
 
     contentType = contentType || "application/octet-stream";
     maxRanges = (maxRanges != null && Number.isSafeInteger(maxRanges) && maxRanges >= 0 ? maxRanges : 20);
@@ -703,20 +701,30 @@ exports.range = function (request, representation, size, contentType, timeout, m
         }).text("Range Not Satisfiable");
     }
 
-    const {servletResponse} = request.env;
-    servletResponse.setStatus(206);
-    if (ranges.length > 1) {
-        servletResponse.setHeader("content-type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
-    } else {
-        servletResponse.setHeader("content-type", contentType);
-        servletResponse.setHeader("content-range", "bytes " + ranges[0].join("-") + "/" + size);
-        servletResponse.setContentLengthLong(ranges[0][1] - ranges[0][0] + 1);
-    }
-
-    const outStream = servletResponse.getOutputStream();
-    const responseBufferSize = Math.max(request.env.servletResponse.getBufferSize() - 70, 8192);
+    // open before touching the servlet response, a failure can still produce a clean error response
+    const stream = openStream !== null ? openStream() : representation;
 
     try {
+        const BOUNDARY = new binary.ByteString("sjognir_doro_" +
+            java.lang.System.identityHashCode(this).toString(36) +
+            java.lang.System.identityHashCode(request).toString(36) +
+            java.lang.System.identityHashCode(stream).toString(36) +
+            (java.lang.System.currentTimeMillis() % 100000).toString(36) +
+            (Math.random().toFixed(10).slice(2)), "ASCII");
+
+        const {servletResponse} = request.env;
+        servletResponse.setStatus(206);
+        if (ranges.length > 1) {
+            servletResponse.setHeader("content-type", "multipart/byteranges; boundary=" + BOUNDARY.decodeToString("ASCII"));
+        } else {
+            servletResponse.setHeader("content-type", contentType);
+            servletResponse.setHeader("content-range", "bytes " + ranges[0].join("-") + "/" + size);
+            servletResponse.setContentLengthLong(ranges[0][1] - ranges[0][0] + 1);
+        }
+
+        const outStream = servletResponse.getOutputStream();
+        const responseBufferSize = Math.max(request.env.servletResponse.getBufferSize() - 70, 8192);
+
         let currentBytePos = 0;
         ranges.forEach(function(range, index, arr) {
             const [start, end] = range;
@@ -776,6 +784,10 @@ exports.range = function (request, representation, size, contentType, timeout, m
             throw e;
         }
         // no problem, remote client closed connection ...
+    } finally {
+        if (openStream !== null) {
+            stream.close();
+        }
     }
 
     return {
