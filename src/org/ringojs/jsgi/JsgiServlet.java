@@ -157,26 +157,27 @@ public class JsgiServlet extends HttpServlet {
             }
         }
         String template = new String(buffer, 0, read);
-        String title = t instanceof RhinoException ?
-                ((RhinoException)t).details() : t.getMessage();
+        String title = StringUtils.escapeHtml(String.valueOf(t instanceof RhinoException ?
+                ((RhinoException)t).details() : t.getMessage()));
         StringBuilder body = new StringBuilder();
         if (t instanceof RhinoException) {
             RhinoException rx = (RhinoException) t;
             if (errors != null && !errors.isEmpty()) {
                 for (ScriptError error : errors) {
+                    // ScriptErrors escape HTML by default, so this is safe to use:
                     body.append(error.toHtml());
                 }
             } else {
-                body.append("<p><b>").append(rx.sourceName())
+                body.append("<p><b>").append(StringUtils.escapeHtml(String.valueOf(rx.sourceName())))
                         .append("</b>, line <b>").append(rx.lineNumber())
                         .append("</b></p>");
             }
             body.append("<h3>Script Stack</h3><pre>")
-                    .append(rx.getScriptStackTrace())
+                    .append(StringUtils.escapeHtml(String.valueOf(rx.getScriptStackTrace())))
                     .append("</pre>");
         }
-        template = template.replaceAll("<% title %>", title);
-        template = template.replaceAll("<% body %>", body.toString());
+        template = template.replace("<% title %>", title);
+        template = template.replace("<% body %>", body.toString());
         response.setStatus(500);
         response.setContentType("text/html");
         response.getWriter().write(template);
