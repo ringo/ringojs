@@ -738,6 +738,18 @@ exports.testTextPart = () => {
     }
 };
 
+exports.testPartHeaderEscaping = () => {
+    const evil = "a\"\r\nX-Evil: 1";
+    const escaped = "a%22%0D%0AX-Evil: 1";
+
+    [new TextPart("data", "utf-8", evil), new BinaryPart(null, evil)].forEach(part => {
+        const sw = new StringWriter();
+        part.write(evil, sw, new ByteArrayOutputStream());
+        assert.equal(sw.toString().split("\r\n")[0],
+                "Content-Disposition: form-data; name=\"" + escaped + "\"; filename=\"" + escaped + "\"");
+    });
+};
+
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {
     system.exit(require("test").run.apply(null,

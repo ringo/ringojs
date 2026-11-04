@@ -167,6 +167,18 @@ const generateBoundary = () => {
 };
 
 /**
+ * Escapes a part name or file name for use as a quoted Content-Disposition
+ * parameter, the same way browsers encode multipart/form-data. This stops the
+ * value from closing the quoted string or starting a new part header.
+ * @param {String} value The part name or file name
+ * @returns {String} The escaped value
+ * @see https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#multipart/form-data-encoding-algorithm
+ */
+const escapeDispositionParam = (value) => {
+    return String(value).replace(/"/g, "%22").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+};
+
+/**
  * Writes the multipart data to the connection's output stream.
  * @param {Object} data An object containing the multipart data
  * @param {java.net.HttpURLConnection} connection The connection to write the data to
@@ -594,9 +606,9 @@ const TextPart = exports.TextPart = function(data, charset, fileName) {
      */
     this.write = function(name, writer, outStream) {
         writer.append("Content-Disposition: form-data; name=\"")
-                .append(name).append("\"");
+                .append(escapeDispositionParam(name)).append("\"");
         if (fileName != null) {
-            writer.append("; filename=\"").append(fileName).append("\"");
+            writer.append("; filename=\"").append(escapeDispositionParam(fileName)).append("\"");
         }
         writer.append(CRLF);
         writer.append("Content-Type: text/plain; charset=")
@@ -644,9 +656,9 @@ const BinaryPart = exports.BinaryPart = function(data, fileName, contentType) {
      */
     this.write = function(name, writer, outStream) {
         writer.append("Content-Disposition: form-data; name=\"")
-                .append(name).append("\"");
+                .append(escapeDispositionParam(name)).append("\"");
         if (fileName != null) {
-            writer.append("; filename=\"").append(fileName).append("\"");
+            writer.append("; filename=\"").append(escapeDispositionParam(fileName)).append("\"");
         }
         writer.append(CRLF);
         writer.append("Content-Type: ")
