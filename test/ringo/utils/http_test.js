@@ -665,6 +665,44 @@ exports.testParseFileUploadMalformedHeaders = function() {
     assert.isFalse(fs.exists(result.parts[0].data.tempfile));
 };
 
+exports.testErrorMessages = function() {
+    let malformedHeaders = PART_ONE + "--BB\r\nContent-Disposition: form-data; name=\"f2\"\r\n";
+    let messageOf = (fn) => {
+        try {
+            fn();
+        } catch (e) {
+            return e.message;
+        }
+        throw new Error("Expected function to throw");
+    };
+    let cleanUp = (result) => result.parts.forEach((part) => {
+        fs.exists(part.data.tempfile) && fs.remove(part.data.tempfile);
+    });
+    let uploadMessage = (payload) => {
+        let result = parseUploadRecording(payload);
+        cleanUp(result);
+        return result.error.message;
+    };
+
+    assert.strictEqual(uploadMessage("garbage"), "boundary not found in multipart stream");
+    assert.strictEqual(uploadMessage(malformedHeaders), "could not parse headers");
+    assert.strictEqual(messageOf(() => http.parseRange(42)),
+            "Could not parse range, must be a string, but is number");
+    assert.strictEqual(messageOf(() => http.parseRange("bytes=0-1", -2)),
+            "Could not parse range, invalid size: -2");
+
+    let config = require("ringo/engine").getRhinoEngine().getConfig();
+    config.setProduction(true);
+    try {
+        assert.strictEqual(uploadMessage("garbage"), "Invalid multipart request");
+        assert.strictEqual(uploadMessage(malformedHeaders), "Invalid multipart request");
+        assert.strictEqual(messageOf(() => http.parseRange(42)), "Could not parse range");
+        assert.strictEqual(messageOf(() => http.parseRange("bytes=0-1", -2)), "Could not parse range");
+    } finally {
+        config.setProduction(false);
+    }
+};
+
 if (require.main === module) {
     require('system').exit(require("test").run(module.id));
 }

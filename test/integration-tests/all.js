@@ -99,6 +99,21 @@ exports.testLoadJarsRecursive = function () {
     assert.equal(process.wait(), 0);
 };
 
+exports.testProductionMode = function () {
+    var process = createProcess({
+        command: [
+            RINGO_BIN,
+            '--production',
+            module.resolve('./production-mode/main.js')
+        ]
+    });
+
+    process.connect(null, system.stdout, system.stderr);
+
+    // wait for the exit code
+    assert.equal(process.wait(), 0);
+};
+
 // start the test runner if we're called directly from command line
 if (require.main === module) {
     system.exit(require('test').run(exports));

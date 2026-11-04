@@ -76,7 +76,7 @@ public class RingoRunner {
         {"l", "legacy-mode", "Enable __parent__ and __proto__ and suppress warnings", ""},
         {"m", "modules", "Add a directory to the module search path", "DIR"},
         {"o", "optlevel", "Set Rhino optimization level (-1 to 9)", "OPT"},
-        {"p", "production", "Disable module reloading and warnings", ""},
+        {"p", "production", "Disable module reloading, warnings and error details in HTTP responses", ""},
         {"s", "silent", "Disable shell prompt and echo for piped stdin/stdout", ""},
         {"V", "verbose", "Print java stack traces on errors", ""},
         {"v", "version", "Print version number and exit", ""},
