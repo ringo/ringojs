@@ -30,7 +30,7 @@ public class ScriptError {
 
     public String toHtml() {
         String lineSeparator = System.getProperty("line.separator", "\n");
-        StringBuilder b = new StringBuilder("<p>").append(sourceName)
+        StringBuilder b = new StringBuilder("<p>").append(StringUtils.escapeHtml(sourceName))
                 .append(", line ").append(lineNumber).append(": <b>")
                 .append(StringUtils.escapeHtml(message)).append("</b></p>")
                 .append(lineSeparator).append("<pre>");
