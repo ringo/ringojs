@@ -60,6 +60,8 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    // the default depends on the platform and JDK, e.g. windows-1252 with JDK 17 on Windows
+    options.encoding = 'UTF-8'
     options.deprecation = true
     // Gradle 9 itself needs Java 17+, but the build output stays Java 11 compatible
     options.release = 11
