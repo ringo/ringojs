@@ -2,7 +2,7 @@ FROM debian:trixie-slim AS builder
 
 RUN apt-get update && apt-get install -y git
 
-## Java 21 (Gradle 9 requires at least Java 17 to build)
+## Java 21
 ENV JAVA_HOME=/opt/java/openjdk
 COPY --from=eclipse-temurin:21-jdk-noble $JAVA_HOME $JAVA_HOME
 
